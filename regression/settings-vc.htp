@@ -1,0 +1,6 @@
+param_player_vc and_over_edge 1
+param_player_vc use_push_rule 1
+param_player_vc use_patterns 1
+param_player_vc softlimit_full 40
+param_player_vc softlimit_semi 50
+

@@ -1,0 +1,50 @@
+Benzene TODO file
+=================
+
+broderic [090404] (in rough order of importance)
+* Switch dead region/decomp detection to new Phil algo
+* Make GroupBoard and PatternBoard not derive off of StoneBoard
+* Add HexBoard::Resize() method; use in SyncBoard()
+* Have Wolve check TT for losing moves in move generation.
+* Add ponder ability to Wolve and MoHex
+* Support reading installed shared data in $(pkgdatadir)
+* Remove lssolve from src/util/ and replace with boost::ublas
+* Proof class in Solver
+  * Proof class should do assertions, reductions
+  * Support permanently inferior in solver
+
+ph [081113]
+* Tournament tool improvements:
+  * asymmetric.py should print opening, not just sgf numbers
+  * summary.py should give whole opening, not just first move
+  * should have script for post-game sgf analysis with solver
+* Solver should do 2 sweeps during move ordering:
+  * DB and TT checks only in first sweep, mustplay and vc-build 2nd sweep
+* Unique probe sequence for solver:
+  * Create pattern file
+  * If losing move and winning reply match pattern, try no more
+* Induced path transpositions for solver:
+  * Create induced path equivalence file
+  * Create induced path domination file
+  * Create induced path inferiority file
+  * Apply files to get more DB transpositions by shifting played moves
+* Proof-set pruned states should be stored in DB/TT
+* Website stuff:
+  * Create handicap Java applet
+  * Create bibtex file of Hex resources
+  * Create annotated bibliography of Hex resources
+* MoHex improvements:
+  * Root parallelization
+  * Learned-reponse array through UCT tree sequences (used for node init)
+* Wolve improvements:
+  * Make 4-ply feasible (no need to go through edge)
+  * Re-create opening book (requires DB switch and OB change first)
+  * Eliminate hand-book
+* Inferior cell improvements:
+  * Implement algorithm developed with Laurie to find more dead cell patterns
+  * Develop similar algorithm for captured
+  * Create larger list of vulnerable and dominated from above work
+* Virtual-connection improvements:
+  * Backing-up connections
+  * Identify Noshita under special conditions (theory in progress)
+* Mustplay mask

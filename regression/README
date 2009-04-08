@@ -1,0 +1,15 @@
+Regression testing README
+=========================
+
+To run the tests, do:
+
+% ./run.sh
+
+To see the available options:
+
+% ./run.sh -h
+
+Some tests require certain settings if you want the results to match the 
+expected results in the script. These settings are in the 
+'settings-X.htp" for test 'X.st'. For example, the settings for 'vc.tst' 
+are in 'settings-vc.htp'.

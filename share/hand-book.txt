@@ -1,0 +1,108 @@
+#a2 -> d8
+aaaa2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa02 d8
+#b1 -> d8
+a2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa02 d8
+#b2 -> d8
+aaaaaaa8aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa02 d8
+#c1 -> d8
+8aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa02 d8
+#b6-f6 -> b10
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaa8a9aaaaaaaaaaaaaaaaaaaaaaaaaaaa02 b10
+#b8-b9 -> c9
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8aaaaaa6aaaaaaaaaaaaaa02 c9
+#b9-f5 -> g5
+aaaaaaaaaaaaaaaaaaaaaaaaa6aaaaaaaaaaaaaaaaaaa2aaaaaaaaaaaaaa02 g5
+#b10-f5 -> f6
+aaaaaaaaaaaaaaaaaaaaaaaaa6aaaaaaaaaaaaaaaaaaaaaaaaa8aaaaaaaa02 f6
+#c3-f6 -> g6
+aaaaaaaaaaaaa8aaaaaaaaaaaaaaaaa9aaaaaaaaaaaaaaaaaaaaaaaaaaaa02 g6
+#c6-e8 -> b10
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaa2aaaaaaaaaaa6aaaaaaaaaaaaaaaaaa02 b10
+#a2-d8-g6-g5-i4 -> h5
+aaaa2aaaaaaaaaaaaaaaa2aa9aaaaaa2aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h5
+#b1-d8-g6-g5-i4 -> h5
+a2aaaaaaaaaaaaaaaaaaa2aa9aaaaaa2aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h5
+#b2-d8-g6-g5-i4 -> h5
+aaaaaaa8aaaaaaaaaaaaa2aa9aaaaaa2aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h5
+#c1-d8-g6-g5-i4 -> h5
+8aaaaaaaaaaaaaaaaaaaa2aa9aaaaaa2aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h5
+#a2-d8-g6-g5-i4-h5-f6 -> f5
+aaaa2aaaaaaaaaaaaaaaa2aa5aaaaaa0aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 f5
+#a2-d8-g6-g5-i4-h5-i5 -> h6
+aaaa2aaaaaaaaaaaaaaaa2aa5aa8aaa2aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h6
+#b1-d8-g6-g5-i4-h5-f6 -> f5
+a2aaaaaaaaaaaaaaaaaaa2aa5aaaaaa0aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 f5
+#b1-d8-g6-g5-i4-h5-i5 -> h6
+a2aaaaaaaaaaaaaaaaaaa2aa5aa8aaa2aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h6
+#b2-d8-g6-g5-i4-h5-f6 -> f5
+aaaaaaa8aaaaaaaaaaaaa2aa5aaaaaa0aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 f5
+#b2-d8-g6-g5-i4-h5-i5 -> h6
+aaaaaaa8aaaaaaaaaaaaa2aa5aa8aaa2aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h6
+#c1-d8-g6-g5-i4-h5-f6 -> f5
+8aaaaaaaaaaaaaaaaaaaa2aa5aaaaaa0aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 f5
+#c1-d8-g6-g5-i4-h5-i5 -> h6
+8aaaaaaaaaaaaaaaaaaaa2aa5aa8aaa2aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h6
+#a2-d8-g6-g5-i4-h5-f6-f5-i5 -> h6
+aaaa2aaaaaaaaaaaaaaaa2aa56a8aaa0aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h6
+#a2-d8-g6-g5-i4-h5-i5-h6-i6 -> h7
+aaaa2aaaaaaaaaaaaaaaa2aa5aa8aa12aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h7
+#b1-d8-g6-g5-i4-h5-f6-f5-i5 -> h6
+a2aaaaaaaaaaaaaaaaaaa2aa56a8aaa0aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h6
+#b1-d8-g6-g5-i4-h5-i5-h6-i6 -> h7
+a2aaaaaaaaaaaaaaaaaaa2aa5aa8aa12aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h7
+#b2-d8-g6-g5-i4-h5-f6-f5-i5 -> h6
+aaaaaaa8aaaaaaaaaaaaa2aa56a8aaa0aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h6
+#b2-d8-g6-g5-i4-h5-i5-h6-i6 -> h7
+aaaaaaa8aaaaaaaaaaaaa2aa5aa8aa12aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h7
+#c1-d8-g6-g5-i4-h5-f6-f5-i5 -> h6
+8aaaaaaaaaaaaaaaaaaaa2aa56a8aaa0aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h6
+#c1-d8-g6-g5-i4-h5-i5-h6-i6 -> h7
+8aaaaaaaaaaaaaaaaaaaa2aa5aa8aa12aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h7
+#a2-d8-g6-g5-i4-h5-f6-f5-i5-h6-i6 -> h7
+aaaa2aaaaaaaaaaaaaaaa2aa56a8aa10aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h7
+#a2-d8-g6-g5-i4-h5-i5-h6-i6-h7-i7 -> h3
+aaaa2aaaaaaaaaaaaaaaa2aa5aa8aa12aaaa86aaa9aaaaaaaaaaaaaaaaaa02 h3
+#b1-d8-g6-g5-i4-h5-f6-f5-i5-h6-i6 -> h7
+a2aaaaaaaaaaaaaaaaaaa2aa56a8aa10aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h7
+#b1-d8-g6-g5-i4-h5-i5-h6-i6-h7-i7 -> h3
+a2aaaaaaaaaaaaaaaaaaa2aa5aa8aa12aaaa86aaa9aaaaaaaaaaaaaaaaaa02 h3
+#b2-d8-g6-g5-i4-h5-f6-f5-i5-h6-i6 -> h7
+aaaaaaa8aaaaaaaaaaaaa2aa56a8aa10aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h7
+#b2-d8-g6-g5-i4-h5-i5-h6-i6-h7-i7 -> h3
+aaaaaaa8aaaaaaaaaaaaa2aa5aa8aa12aaaa86aaa9aaaaaaaaaaaaaaaaaa02 h3
+#c1-d8-g6-g5-i4-h5-f6-f5-i5-h6-i6 -> h7
+8aaaaaaaaaaaaaaaaaaaa2aa56a8aa10aaaaaaaaa9aaaaaaaaaaaaaaaaaa02 h7
+#b1-d8-g6-g5-i4-h5-f6-f5-i5-h6-i6-h7-i7 -> h3
+a2aaaaaaaaaaaaaaaaaaa2aa56a8aa10aaaa86aaa9aaaaaaaaaaaaaaaaaa02 h3
+#b2-d8-g6-g5-i4-h5-f6-f5-i5-h6-i6-h7-i7 -> h3
+aaaaaaa8aaaaaaaaaaaaa2aa56a8aa10aaaa86aaa9aaaaaaaaaaaaaaaaaa02 h3
+#c1-d8-g6-g5-i4-h5-f6-f5-i5-h6-i6-h7-i7 -> h3
+8aaaaaaaaaaaaaaaaaaaa2aa56a8aa10aaaa86aaa9aaaaaaaaaaaaaaaaaa02 h3
+#j10 -> i3
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8aaaa02 i3
+#j10-i3-e6-e7-c8 -> d7
+aaaaaaaaaaaaaa9aaaaaaaaaaaaa2aaaaa9aaa2aaaaaaaaaaaaaaaa8aaaa02 d7
+#j10-i3-e6-e7-c8-d7-c7 -> d6
+aaaaaaaaaaaaaa9aaaaaaaaaaaaa2aaaaa94aa2aaaaaaaaaaaaaaaa8aaaa02 d6
+#j10-i3-e6-e7-c8-d7-c7-d6-c6 -> d9
+aaaaaaaaaaaaaa9aaaaaaaaaaaaa12aaaa94aa2aaaaaaaaaaaaaaaa8aaaa02 d9
+#j11 -> i3
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2a02 i3
+#j11-i3-e6-e7-c8 -> d7
+aaaaaaaaaaaaaa9aaaaaaaaaaaaa2aaaaa9aaa2aaaaaaaaaaaaaaaaaaa2a02 d7
+#j11-i3-e6-e7-c8-d7-c7 -> d6
+aaaaaaaaaaaaaa9aaaaaaaaaaaaa2aaaaa94aa2aaaaaaaaaaaaaaaaaaa2a02 d6
+#j11-i3-e6-e7-c8-d7-c7-d6-c6 -> d9
+aaaaaaaaaaaaaa9aaaaaaaaaaaaa12aaaa94aa2aaaaaaaaaaaaaaaaaaa2a02 d9
+#j3-f7 -> e7
+aaaaaaaaaaaaaa2aaaaaaaaaaaaaaaaaaa6aaaaaaaaaaaaaaaaaaaaaaaaa02 e7
+#j5-f7 -> e7
+aaaaaaaaaaaaaaaaaaaaaaaaaaa2aaaaaa6aaaaaaaaaaaaaaaaaaaaaaaaa02 e7
+#j6-f6 -> g6
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa9a8aaaaaaaaaaaaaaaaaaaaaaaaaa02 g6
+#g9-f6 -> g5
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa9aaaaaaaaaaaaaa8aaaaaaaaaaaaa02 g5
+#k6-g5 -> e6
+aaaaaaaaaaaaaaaaaaaaaaaa9aaaaaaaa2aaaaaaaaaaaaaaaaaaaaaaaaaa02 e6
+#f10 -> g5
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8aaaaaa02 g5

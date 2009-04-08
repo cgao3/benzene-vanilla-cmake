@@ -1,0 +1,81 @@
+
+Benzene 0.7 (released 09/02/18)
+-------------------------------
+* Build system switched to autotools
+* Separate executables for wolve and mohex 
+* Support for boardsizes up to 19x19
+* Boost::program_options for cmdline arguments
+* Improved tournament scripts
+* Upgraded to Fuego-0.3
+* Players/solver interruptable
+* Massive refactoring/cleanup
+
+Benzene cg2008 (0.6.0) (released 08/10/17)
+------------------------------------------
+* Combinatorial decompositions
+  * 4-sided decomps handled automatically by the board
+  * Splitting decompositions used in Solver to decompose proof
+* ICE improvements
+  * Permanently inferior cells
+  * Correctly handle captured carriers, etc.
+  * Better incremental algorithm
+  * Refactored/cleaned up code
+* VC improvements
+  * Push-rule
+  * Edge-templates for difficult connections
+  * Ladder-templates
+  * Optimized (again!)
+* Solver
+  * Uses decompositions (as mentiond above)
+  * Reduced number of played moves that need to be played
+    (handle DB/TT checks in the move ordering phase, etc).
+  * DB uses Berkeley DB instead of home-grown fileformat
+  * Proof shrinking/transpositions
+  * Many bugfixes
+  * Can solve 7x7 in 15min and 8x8 in about 2 weeks. 
+* Opening Book using self-play
+* Time control
+* Player runs Solver for a short time before generating
+  a move: much improved endgame play.
+* Wolve now around 200 ELO stronger than Six
+* MoHex:
+  * Around 100 ELO stronger than Six
+  * Rollouts played from 1-ply filled-in boards
+  * 1st and 2nd ply moves restricted to mustplay
+  * Switched to Fuego v0.1
+  * Multi-threading support
+* Added Perfect player
+* Added Handicap player
+* More unit and regression tests
+
+Benzene 0.4.1 (released 07/09/26)
+---------------------------------
+* Optimized VCs considerably.
+* Wolve computes VCs through the edge; ~100 ELO stronger than Six. 
+* Improved Inferior Cell Engine:
+  * multiple vulnerable cell dominators; changed patterns to refelct this. 
+  * iterates on ps-pairs.
+  * computes vulnerable cells before dominated cells.  
+* Six supports the htp commands: 'vc-build', 'vc-between-cells', and
+  'vc-connected-to'.
+* Default program settings loaded from /bin/config/defaults.  
+* More unit/regression tests
+
+Benzene 0.4.0 (released 07/09/12)
+---------------------------------
+* Unit tests.
+* Doxygen documentation.
+* Regression test suite. 
+* Two distance and resistance evaluation functions. 
+* Much improved Solver, including databases. 
+* Endgame search
+* Many, many code changes and enhancements. 
+* Ported version of Six.
+
+Benzene 0.2.0 (released 07/05/01)
+---------------------------------
+* Pattern based UCT player.
+* Very primitive Solver.
+* Multi-level logger. 
+* No alphabeta player.
+* Tournament scripts for automated playing. 

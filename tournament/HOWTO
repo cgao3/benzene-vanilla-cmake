@@ -1,0 +1,51 @@
+How to run a tournament:
+
+1) Run a tournament with twogtp.py.
+
+   Some points:
+     * Programs alternate playing each opening in the set of openings
+       provided.  Each round corresponds to each program playing black once
+       for each opening.
+
+   An example tournament where Wolve with new settings plays against
+   itself with old settings:
+
+    ./twogtp.py \
+      --p1cmd="../bin/wolve.exe --config new.htp" --p1name="new-wolve" \
+      --p2cmd="../bin/wolve.exe --config old.htp" --p2name="old-wovle" \
+      --dir="new-vs-old" --size 11 --rounds 3 \
+      --openings="openings/11x11-all-1ply"
+
+3) The 'results' file.  
+
+The 'results' file contains a listing of the completed games and
+results.  If you stop the tournament script for any reason (or if it
+detects an error and stops itself), you will lose only the last game
+played.  You can continue the tournament using the same command you used
+to start it.
+
+4) the nnnn.sgf files. 
+
+These are the actual games played.  Each sgf file lists the exact
+arguments sent to the programs so you should be able to recreate the
+game as long as your programs are deterministic (i.e, after the initial
+seed value to their random number generator). 
+
+5) Getting a summary. 
+
+At any time, you may run 
+
+   ./summary --file [results file] [--random]
+
+to obtain a compact summary of the tournament results so far.  The
+results will be broken down by opening. Use the "--random" command if
+you want to games down by opening and show which were split and
+non-split.
+
+6) The openings.
+
+The available openings are found under the openings/ directory. 
+Each file contains exactly one opening per line. Make sure there
+are no extra empty lines at the end of the file, as currently, every
+line is used as an opening.
+

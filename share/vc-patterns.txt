@@ -1,0 +1,536 @@
+name row2start1
+type start
+height 2
+E
+ X
+
+name row2start2
+type start
+height 2
+. E
+ X .
+
+name row2start3
+type start
+height 2
+. . E
+ . X X
+  * * *
+
+name row2start4
+type start
+height 2
+. . . E *
+ . . * * *
+  . * * * *
+   * * * * *
+
+name row2start5
+type start
+height 2
+. . . . * E
+ . . * * * *
+  . * * * * *
+   * * * * * *
+
+name row2start6
+type start
+height 2
+. . . . * E
+ . . . * * *
+  . . * * * B
+   . * * * * *
+    * * * * * *
+
+name row2end1
+type end
+height 2
+*
+ B
+
+name row2end2
+type end
+height 2
+B
+ *
+
+name row2end3
+type end
+height 2
+. B *
+ * * *
+  * * *
+
+name row2end4
+type end
+height 2
+. * B
+ * * *
+  * * *
+
+name row2end5a
+type end
+height 2
+* B
+ . B
+
+name row2end6a
+type end
+height 2
+* * *
+ * * B
+  . * *
+
+name row2end6b
+type end
+height 2
+* * *
+ * * B
+  . . B
+
+name row2end6c
+type end
+height 2
+* * *
+ * * B
+  . B .
+
+name row2end8
+type end
+height 2
+. . B * .
+ * * * * *
+  * * * * *
+   * * * * *
+
+name row2end9
+type end
+height 2
+. . * B .
+ * * * * *
+  * * * * *
+   * * * * *
+
+name row2end10
+type end
+height 2
+B B
+ * *
+  * .
+
+name row2end11
+type end
+height 2
+. . B B .
+ . * * * .
+  * * * * *
+   * * * * *
+    * * * * *
+
+name row2end12
+type end
+height 2
+. . . B B
+ . . * * *
+  * * * * *
+   * * * * *
+    * * * * *
+
+name row2end13
+type end
+height 2
+. B B
+ * * *
+  * * .
+   * * .
+
+name row2end14
+type end
+height 2
+. B *
+ * * B
+  * * .
+   * * .
+
+name row2end15
+type end
+height 2
+B *
+ * B
+  * .
+
+name row3start1
+type start
+height 3
+. E
+ . X
+  * *
+
+name row3start2
+type start
+height 3
+. . . E
+ . . * *
+  . * * *
+   * * * *
+
+name row3start3
+type start
+height 3
+. . . . E *
+ . . . * * *
+  . . * * * *
+   . * * * * *
+    * * * * * *
+
+name row3start4
+type start
+height 3
+. . . . . . E *
+ . . . . * * * *
+  . . * * * * * *
+   . * * * * * * *
+    * * * * * * * *
+
+name row3start5
+type start
+height 3
+. . . . E
+ . . . * *
+  . . B * *
+   . * * * *
+    * * * * *
+
+name row3end1
+type end
+height 3
+B *
+ * *
+  * *
+
+name row3end2a
+type end
+height 3
+* * B
+ * . B
+  * * *
+
+name row3end2b
+type end
+height 3
+* * B
+ * . B
+  * B .
+
+name row3end2c
+type end
+height 3
+* * B
+ * . B
+  * . B
+
+name row3end4
+type end
+height 3
+. * B * .
+ * * * * *
+  * * * * *
+   * * * * *
+
+name row3end5
+type end
+height 3
+*
+ B
+  *
+
+name row3end6
+type end
+height 3
+. B B
+ * * *
+  * * *
+   * * *
+
+name row3end7
+type end
+height 3
+. . . . . B *
+ . . . . B * *
+  . . . * * * *
+   * * * * * * *
+    * * * * * * *
+     * * * * * * *
+
+name row4end1a
+type end
+height 4
+* * * * B
+ * * * * *
+  * * * * B
+   * * * * *
+
+name row4end1b
+type end
+height 4
+* * * * B
+ * * * * *
+  * * * * B
+   * * * B .
+
+name row4end1c
+type end
+height 4
+* * * * B
+ * * * * *
+  * * * * B
+   * * * . B
+
+name row4end2
+type end
+height 4
+* * * .
+ * * B *
+  * * * *
+   * * * *
+
+name row4end3a
+type end
+height 4
+* * * * B
+ * * * * *
+  * * * B .
+   * * * * .
+
+name row4end3b
+type end
+height 4
+* * * * B
+ * * * * *
+  * * * B .
+   * * B . .
+
+name row4end3c
+type end
+height 4
+* * * * B
+ * * * * *
+  * * * B .
+   * * . B .
+
+name row4end4a
+type end
+height 4
+. . . . * B
+ * * * B * *
+  * * * * * *
+   * * * * * *
+    * * * * * *
+
+name row4end4b
+type end
+height 4
+. . . . . B
+ * * * B B *
+  * * * * * *
+   * * * * * *
+    * * * * * *
+
+name row4end4c
+type end
+height 4
+. . . . B B
+ * * * B . *
+  * * * * * *
+   * * * * * *
+    * * * * * *
+
+name dk4-3
+type complete
+height -1
+. . E B
+ . * * *
+  . * * *
+   * * * *
+
+name dk4-6
+type complete
+height -1
+. . E * .
+ . B * * *
+  . * * * *
+   * * * * *
+
+name dk4-8
+type complete
+height -1
+. E B B
+ * * * *
+  * * * .
+   * * * .
+
+name dk4-9
+type complete
+height -1
+. . . E * B
+ . . * * * *
+  . * * * * *
+   * * * * * *
+
+name dk4-14
+type complete
+height -1
+. . . . . . * * * . .
+ . . . . * E * * * * .
+  . . * * * * * * * * *
+   . * * * * * * * * * *
+    * * . * * * * * * * *
+
+name dk4-16
+type complete
+height -1
+. . . . * * * . .
+ . . . E * * * * .
+  . . * * * * * * *
+   . * * * * * * * *
+    * * * * * * * * *
+
+name dk5-1
+type complete
+height -1
+. . . . . * E * . .
+ . . . . * * * * * .
+  . . * * * * * * * *
+   . * * * * * * * * *
+    * * * * * * * * * *
+
+name dk5-5
+type complete
+height -1
+. . . E * . .
+ . . B * * * .
+  . * * * * * *
+   . * * * * * *
+    * * * * * * *
+
+name dk5-6
+type complete
+height -1
+. . . . E B .
+ . . . * * * .
+  . . * * * * *
+   . * * * * * *
+    * * * * * * *
+
+name dk5-8
+type complete
+height -1
+. . . E * * . .
+ . . * * * B * *
+  . * * * * * * *
+   * * * * * * * *
+    * * * * * * * *
+
+name dk5-11
+type complete
+height -1
+. . . . * E
+ . . . * * B
+  . . * * * *
+   . * * * * *
+    * * * * * *
+
+name dk5-12
+type complete
+height -1
+. . . . E * *
+ . . . * * * B
+  . . * * * * *
+   . * * * * * *
+    * * * * * * *
+
+name dk5-19
+type complete
+height -1
+. . . . . * E
+ . . . * * * *
+  . . B * * * *
+   . * * * * * *
+    * * * * * * *
+
+name dk5-20
+type complete
+height -1
+. . . . * E
+ . . . B * *
+  . . * * * *
+   . * * * * *
+    * * * * * *
+
+name dk5-21
+type complete
+height -1
+. . . . . . E .
+ . . . . * * * .
+  . . * * * * B *
+   . * * * * * * *
+    * * . * * * * *
+
+name dk6-1
+type complete
+height -1
+. . . . . E
+ . . . . * *
+  . . . B * *
+   . . * * * *
+    . B * * * *
+     * * * * * *
+
+name dk6-2
+type complete
+height -1
+. . . . . E *
+ . . . . * * *
+  . . . * * * *
+   . . * * B * *
+    . * * * * * *
+     * * * * * * *
+
+name dk6-3
+type complete
+height -1
+. . . . . E *
+ . . . . * * *
+  . . . * * * *
+   . . * * * B *
+    . * * * * * *
+     * * * * * * *
+
+name dk6-5
+type complete
+height -1
+. . . . * E
+ . . . * * *
+  . . B * * *
+   . * * * * *
+    . B * * * *
+     * * * * * *
+
+name dk6-7
+type complete
+height -1
+. . . E * . .
+ . . * * * * .
+  . B * * * * .
+   . * B * * * *
+    . * * * * * *
+     * * * * * * *
+
+name ph5-98653
+type complete
+height -1
+. . . . B * E . .
+ . . . * * * * * .
+  . . * * * * * * .
+   . * * * * * * * *
+    * * * * * B * . B

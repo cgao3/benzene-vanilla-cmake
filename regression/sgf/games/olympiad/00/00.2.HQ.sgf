@@ -1,0 +1,6 @@
+(;AP[Hex-benzene:0.1]FF[4]GM[11]PB[player1]PW[player2]SZ[11]
+;B[a2];W[SWAP];W[f6];B[g6];W[i3];B[h3];W[h4];B[g5];W[g4];B[f5];W[f4]
+;B[d5];W[e5];B[d6];W[e3];B[k2];W[c4];B[j4];W[i5];B[j5];W[k1];B[j2]
+;W[i6];B[j6];W[i7];B[j7];W[i8];B[j8];W[i10];B[i9];W[h10];B[h9];W[g10]
+;B[k9];W[j11];B[g8];W[f9];B[k8];W[e8];B[b9];W[d8];B[d7];W[f8];B[d9]
+;W[k10];B[g9];W[f10];B[e6];W[g7])

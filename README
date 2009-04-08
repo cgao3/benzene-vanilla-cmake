@@ -1,0 +1,106 @@
+Project Benzene README
+
+----------
+ Building
+----------
+
+You will need the fuego v0.3 includes and library objects. To get
+them, checkout fuego-0.3 from sourceforge.net. For example, from
+within your benzene directory:
+
+% cd ..
+% svn co https://fuego.svn.sourceforge.net/svnroot/fuego/branches/VERSION_0_3_FIXES/ fuego-0.3/
+
+% cd fuego-0.3/
+% aclocal
+% autoheader
+% autoreconf -i
+% ./configure --enable-assert=yes [other options]
+
+Include the "--enable-assert=yes" if you will be doing development on
+Benzene. The compilation will fail if you want to use assertions in 
+Benzene but not in Fuego. 
+
+If you will not be doing development or testing, or would prefer
+maximum speed and performance, then you can safely exclude the
+"--enable-assert=yes" option.
+
+% make
+
+Change back to the benzene directory. 
+
+% cd ../benzene
+
+If you checked out your benzene code from an svn repository you will need
+to run autotools to create your configure script. If you downloaded a
+distribution tarball, go straight to the 'configure' step.
+
+% aclocal
+% autoheader
+% autoreconf -i
+
+This should complete without error. 
+
+Now run configure (skip to here if you downloaded a benzene tarball): 
+
+% ./configure FUEGO_ROOT=[absolute path to fuego-0.3] --enable-assert=yes
+
+FUEGO_ROOT simply tells benzene where it can find the fuego files it
+needs.  Do not use a relative path as this will cause an error in the
+next step, ie, do not use "FUEGO_ROOT=../fuego-0.3/".
+
+Recall that if you compiled Fuego without assertions then you cannot use
+assertions in Benzene, and so you should leave off the assert option
+to 'configure'.
+
+If you want to support boardsizes up to 13x13, include the option
+"--enable-upto13x13=yes". This will degrade performance, so only use
+this if you want to play on 13x13.
+
+If you want to support boardsizes up to 14x14, include the option
+"--enable-upto14x14=yes". This will degrade performance a little more
+(and will override the 13x13 option), so only use this if you want to
+play on 14x14.
+
+If you want to support boardsizes up to 19x19, include the option
+"--enable-upto19x19=yes". This will degrade performance even further,
+so again, only use this if you want to play on very large boards. This
+option supercedes "--enable-upto13x13" and "--enable-upto14x14", so if
+you use "--enable-upto19x19" only it will have any effect.
+
+'configure' should finish without error. If 'configure' fails to find
+BOOST or BerkeleyDB, you may need to direct it to those files
+explicitly (good luck, buddy!).  If all is well, then do:
+
+% make
+
+This will build everything. If you have a multi-core processor, do
+"make -j#" where # is the number of cores you wish to use. This will
+greatly speed up the build process.
+
+MoHex and Wolve executables can be found under src/mohex/ and src/wolve
+respectively. 
+
+-------------
+ Development
+-------------
+
+If you are only modifying existing source files, then a simple 'make'
+is enough to build the new code properly. If you wish to add or remove
+source files, then you will have to edit the proper 'Makefile.am'
+files.  If you modify any 'Makefile.am', you will need to run
+'autoreconf' and 'configure' again. That is:
+
+[add some source files, make changes in all relevant Makefile.am]
+% autoreconf -i
+% ./configure FUEGO_ROOT=[abs path to fuego-0.3] --enable-assert=[yes/no]
+% make
+
+------------
+ Installing
+------------
+
+If you just want to run benzene, you should do a 'make install'
+after 'make'. See the file INSTALL. 
+
+

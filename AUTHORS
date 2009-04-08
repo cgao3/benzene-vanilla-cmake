@@ -1,0 +1,28 @@
+----------------
+ Project Leader
+----------------
+Ryan Hayward
+
+-----------------
+ Benzene Authors
+-----------------
+Broderick Arneson
+
+Philip Henderson 
+
+--------------
+ Contributors
+--------------
+Robert Budac: Original code for Handicap player.
+
+Morgan Kan: Created initial repository, some old board and game stuff.
+
+Jack van Rijswijck: Original inferior cell patterns.
+
+Gabor Melis: Author of Six, which we have ported to GTP.  
+        Algorithms for building vcs and evaluting boardstates 
+        inspiration for those used in Wolve.
+
+Markus Enzenberger: Author of Fuego. Old build framework, regression 
+        framework, unit-test framework. Made Broderick a better coder, etc. 
+
