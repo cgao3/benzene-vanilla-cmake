@@ -10,7 +10,6 @@ HandicapPlayer.cpp \
 LadderCheck.cpp \
 PerfectPlayer.cpp \
 PlayerFactory.cpp \
-SolverCheck.cpp \
 SwapCheck.cpp \
 VulPreCheck.cpp 
 
@@ -25,7 +24,6 @@ HandicapPlayer.hpp \
 LadderCheck.hpp \
 PerfectPlayer.hpp \
 PlayerFactory.hpp \
-SolverCheck.hpp \
 SwapCheck.hpp \
 VulPreCheck.hpp 
 

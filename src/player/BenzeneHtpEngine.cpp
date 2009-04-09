@@ -18,7 +18,6 @@
 #include "PlayerUtils.hpp"
 #include "Resistance.hpp"
 #include "Solver.hpp"
-#include "SolverCheck.hpp"
 #include "SolverDB.hpp"
 #include "SwapCheck.hpp"
 #include "TwoDistance.hpp"
@@ -365,7 +364,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
     EndgameCheck* endgame = GetInstanceOf<EndgameCheck>(player);
     HandBookCheck* handbook = GetInstanceOf<HandBookCheck>(player);
     LadderCheck* ladder = GetInstanceOf<LadderCheck>(player);
-    SolverCheck* solver = GetInstanceOf<SolverCheck>(player);
     
     if (cmd.NuArg() == 0)
     {
@@ -387,9 +385,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
                 << ladder->Enabled() << '\n';
         cmd << "[bool] use_parallel_solver "
             << m_useParallelSolver << '\n';
-        if (solver)
-            cmd << "[bool] use_solver_check "
-                << solver->Enabled() << '\n';
         if (book) 
         {
             cmd << "[string] book_depth_value_adjustment "
@@ -422,8 +417,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
             ladder->SetEnabled(cmd.BoolArg(1));
         else if (name == "use_parallel_solver")
             m_useParallelSolver = cmd.BoolArg(1);
-        else if (solver && name == "use_solver_check") 
-            solver->SetEnabled(cmd.BoolArg(1));
     }
     else 
         throw HtpFailure("Expected 0 ore 2 arguments");
