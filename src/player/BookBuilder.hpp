@@ -18,8 +18,12 @@
 
 //----------------------------------------------------------------------------
 
-/** Expands an opening book using the given player to evaluate
-    positions. 
+/** Expands an OpeningBook using the given player to evaluate
+    game positions positions. 
+
+    Supports multithreaded evaluation of states.
+
+    @ingroup openingbook
 */
 template<class PLAYER>
 class BookBuilder

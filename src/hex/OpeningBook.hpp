@@ -13,40 +13,41 @@
 #include "HexEval.hpp"
 
 //----------------------------------------------------------------------------
-/** This code is based on Thomas R. Lincke's paper "Strategies for the
+/** @defgroup openingbook Automatic Opening Book Construction
+    Hex-specific opening book construction.
+
+    Code is based on Thomas R. Lincke's paper "Strategies for the
     Automatic Construction of Opening Books" published in 2001.
     
     We make the following adjustments:
-    1) Neither side is assumed to be the book player, so the expansion
-       formula is identical for all nodes (see page 80 of the paper). In other
-       words, both sides can play sub-optimal moves.
-    2) We do not include the swap rule as a move, since this would lead to
-       redundant evaluation computations (such as a2-f6 and a2-swap-f6). This
-       is fine since the value of the root position indicates whether or not
-       to swap.
-    3) Each node stores its successors for propagation value and expansion
-       priority.
-    4) These nodes will be referenced by a map or DB so that transpositions
-       are not re-computed. So it is not a tree, but a DAG.
-    
+    - Neither side is assumed to be the book player, so the expansion
+      formula is identical for all nodes (see page 80 of the paper). In other
+      words, both sides can play sub-optimal moves.
+    - We do not include the swap rule as a move, since this would lead to
+      redundant evaluation computations (such as a2-f6 and a2-swap-f6). 
+      We do handle swap implicitly, however. States in which swap is a valid 
+      move are scored taking it into account. 
+    - A single node for each state is stored, such that transpositions
+      are not re-computed. Hence the book forms a DAG of states, not a tree.
+    - Progressive widening is used on internal nodes to restrict the 
+      search initially. 
+
     We also think there is a typo with respect to the formula of epo_i on
     page 80. Namely, since p_i is the negamax of p_{s_j}s, then we should
     sum the values to find the distance from optimal, not subtract. That is,
     we use epo_i = 1 + min(s_j) (epb_{s_j} + alpha*(p_i + p_{s_j}) instead.
 
-    TODO:
-    - keep heurValue for interior nodes due to odd/even ply effect
-    - incorporate swap rule into book as 2nd ply moves
-    - will have single book for all openings
-    - book expansion using game records (in addition to Lincke's formula)
-    - need function for child/move selection, based on level of information
-      and propagated heuristic value. The information level should be a
-      function of the parent's information level, and not a direct comparison
-      of siblings, because of transpositions into/from the mainline
+    @todo
+    - Book expansion using game records (in addition to Lincke's formula)
+    - Function for child/move selection, based on level of information
+      and propagated value. 
+    - Make game independent.
 */
 //----------------------------------------------------------------------------
 
-/** A node in the Opening Book. */
+/** State in the Opening Book. 
+    @ingroup openingbook
+ */
 class OpeningBookNode
 {
 public:
@@ -181,7 +182,13 @@ inline std::ostream& operator<<(std::ostream& os, const OpeningBookNode& node)
 
 //----------------------------------------------------------------------------
 
-/** Opening Book class. */
+/** Opening Book. 
+
+    OpeningBook provides an interface for reading/writing states to
+    a database of scored positions.
+
+    @ingroup openingbook
+*/
 class OpeningBook
 {
 public:
@@ -292,7 +299,9 @@ inline void OpeningBook::Flush()
 
 //----------------------------------------------------------------------------
 
-/** Utilities on OpeningBooks. */
+/** Utilities on OpeningBooks. 
+    @ingroup openingbook
+*/
 namespace OpeningBookUtil
 {
 

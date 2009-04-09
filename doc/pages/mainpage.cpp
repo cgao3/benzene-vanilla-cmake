@@ -15,6 +15,10 @@
     - @ref patternencoding
 
     @section vcs Virtual Connections
-    - Put VC stuff here!
+    - @todo Add VC stuff here.
+
+    @section Tools
+    - @ref openingbook 
+
 */
 
