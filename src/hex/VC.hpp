@@ -196,14 +196,6 @@ public:
     
     static VC ShrinkSemi(const VC& v1, const bitset_t& takeout,
                          HexPoint outx, HexPoint outy);
-
-    /** NOT USED CURRENTLY! */
-    static VC Combine(bitset_t& I, const VC& v1, const VC& v2, 
-                      VcCombineRule rule);
-
-    /** NOT USED CURRENTLY! */
-    bool IsValid(const VC& vc, const bitset_t& I);
-
     // @}
 
 private:
