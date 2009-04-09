@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: VC.hpp 1938 2009-03-05 01:32:51Z ph $
+/** @file VC.hpp
+ */
 //----------------------------------------------------------------------------
 
 #ifndef VC_H
@@ -63,10 +64,7 @@ inline std::ostream& operator<<(std::ostream& os, VcCombineRule rule)
 //----------------------------------------------------------------------------
 
 
-/** Virtual Connection. 
-
-    @see @ref supersetpolicy
-*/
+/** Virtual Connection. */
 class VC
 {  
 public:
@@ -171,13 +169,13 @@ public:
     bool operator>(const VC& o) const;
     bool operator<=(const VC& o) const;
 
-    /** Is this a subset of o?  
-        @see @ref supersetpolicy
-    */
+    /** Is this a subset of o? */
     bool isSubsetOf(const VC& o) const;
 
     //------------------------------------------------------------
-    /** Static methods.*/
+
+    /** @name Static methods */
+    // @{
 
     /** Returns a copy of vc with endpoints x and y. */
     static VC Translate(HexPoint x, HexPoint y, const VC& vc);
@@ -206,6 +204,7 @@ public:
     /** NOT USED CURRENTLY! */
     bool IsValid(const VC& vc, const bitset_t& I);
 
+    // @}
 
 private:
 

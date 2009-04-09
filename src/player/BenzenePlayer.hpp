@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file 
+/** @file BenzenePlayer.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -69,9 +69,13 @@ public:
         the move pre_search() returns. If unsuccessfull, search() is
         called. Default implementation does nothing.
         
+        @param brd
+        @param game_state
+        @param color
         @param consider Moves to consider in this state. Can be
-        modified. Passed into search().
-                     
+               modified. Passed into search().
+        @param time_remaining
+        @param score
         @return INVALID_POINT on failure, otherwise a valid move on
         success.
     */
@@ -81,8 +85,13 @@ public:
 
     /** Generates a move in the given gamestate.  Derived classes
         should extend this method. Score can be stored in score.
-        
+
+        @param brd
+        @param game_state
+        @param color
         @param consider Moves to consider in this state. 
+        @param time_remaining
+        @param score
         @return The move to play.
     */
     virtual HexPoint search(HexBoard& brd, const Game& game_state,
@@ -94,7 +103,11 @@ public:
         returned is not dominated, and if it is, return the killer
         instead.  Default implementation does nothing.
 
+        @param brd
+        @param color
         @param move The move returned by search(). 
+        @param time_remaining
+        @param score
         @return The modified move that will be played instead.  
     */
     virtual HexPoint post_search(HexPoint move, HexBoard& brd, 
@@ -105,7 +118,11 @@ private:
 
     /** Finds inferior cells, builds vcs. Sets moves to consider to
         all empty cells. 
-        
+
+        @param brd
+        @param color
+        @param time_remaining
+        @param score
         @return INVALID_POINT if a non-terminal state, otherwise the
         move to play in the terminal state.
     */
