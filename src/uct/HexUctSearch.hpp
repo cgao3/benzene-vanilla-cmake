@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: HexUctSearch.hpp 1807 2008-12-19 22:19:36Z broderic $ 
+/** @file HexUctSearch.hpp
+ */
 //----------------------------------------------------------------------------
 
 #ifndef HEXUCTSEARCH_H
@@ -99,9 +100,8 @@ public:
     /** @see HexUctUtil::SaveTree() */
     void SaveTree(std::ostream& out) const;
 
-    //FIXME: Phil commented these out just because, but don't seem to exist?!?
-    //void SetToPlay(HexColor toPlay);
-    //HexColor ToPlay() const;
+    /** Returns the position the previous search was run on. */
+    const StoneBoard& LastPositionSearched() const;
 
     // @}
 
@@ -176,6 +176,9 @@ protected:
    
     /** Data for first few ply of the game. Shared amoung threads. */
     const HexUctInitialData* m_initial_data;
+
+
+    StoneBoard m_lastPositionSearched;
 
     //----------------------------------------------------------------------
 
@@ -265,6 +268,11 @@ inline void HexUctSearch::SetInitialData(const HexUctInitialData* data)
 inline const HexUctInitialData* HexUctSearch::InitialData() const
 {
     return m_initial_data;
+}
+
+inline const StoneBoard& HexUctSearch::LastPositionSearched() const
+{
+    return m_lastPositionSearched;
 }
 
 //----------------------------------------------------------------------------
