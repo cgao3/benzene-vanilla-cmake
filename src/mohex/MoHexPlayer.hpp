@@ -56,19 +56,16 @@ public:
     /** See MaxTime() */
     void SetMaxTime(double time);
 
+    /** Search is initialized using the subttree of the last search
+        tree rooted at the current position. */
+    bool ReuseSubtree() const;
+    
+    /** See ReuseSubtree() */
+    void SetReuseSubtree(bool reuse);
+
     // @}
 
 protected:
-
-    /** Generates a move in the given gamestate using uct. */
-    virtual HexPoint search(HexBoard& brd, const Game& game_state,
-			    HexColor color, const bitset_t& consider,
-                            double time_remaining, double& score);
-
-    /** Does the search. */
-    HexPoint Search(HexBoard& b, HexColor color, HexPoint lastMove,
-                    const bitset_t& given_to_consider, 
-                    double time_remaining, double& score);
 
     HexUctSharedPolicy m_shared_policy;
     
@@ -81,6 +78,19 @@ protected:
 
     /** See MaxTime() */
     double m_max_time;
+
+    /** See ReuseSubtree() */
+    bool m_reuse_subtree;
+
+    /** Generates a move in the given gamestate using uct. */
+    virtual HexPoint search(HexBoard& brd, const Game& game_state,
+			    HexColor color, const bitset_t& consider,
+                            double time_remaining, double& score);
+
+    /** Returns relevant subtree from previous searchtree, if
+        possible. */
+    SgUctTree* TryReuseSubtree(const Game& game);
+
 };
 
 inline std::string MoHexPlayer::name() const
@@ -126,6 +136,16 @@ inline double MoHexPlayer::MaxTime() const
 inline void MoHexPlayer::SetMaxTime(double time)
 {
     m_max_time = time;
+}
+
+inline bool MoHexPlayer::ReuseSubtree() const
+{
+    return m_reuse_subtree;
+}
+
+inline void MoHexPlayer::SetReuseSubtree(bool reuse)
+{
+    m_reuse_subtree = reuse;
 }
 
 //----------------------------------------------------------------------------

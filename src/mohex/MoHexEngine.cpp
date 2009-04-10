@@ -57,6 +57,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << mohex->BackupIceInfo() << '\n'
             << "[bool] lock_free " 
             << search.LockFree() << '\n'
+            << "[bool] reuse_subtree " 
+            << mohex->ReuseSubtree() << '\n'
             << "[bool] use_livegfx "
             << search.LiveGfx() << '\n'
             << "[bool] use_rave "
@@ -95,6 +97,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetLiveGfx(cmd.BoolArg(1));
         else if (name == "use_rave")
             search.SetRave(cmd.BoolArg(1));
+        else if (name == "reuse_subtree")
+            mohex->SetReuseSubtree(cmd.BoolArg(1));
         else if (name == "bias_term")
             search.SetBiasTermConstant(cmd.FloatArg(1));
         else if (name == "expand_threshold")

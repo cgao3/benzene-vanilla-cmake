@@ -6,6 +6,7 @@
 #include "SgSystem.h"
 
 #include "SgTimer.h"
+#include "SgUctTreeUtil.h"
 
 #include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
@@ -254,7 +255,8 @@ MoHexPlayer::MoHexPlayer()
                HexUctUtil::ComputeMaxNumMoves()),
       m_backup_ice_info(true),
       m_max_games(500000),
-      m_max_time(9999999)
+      m_max_time(9999999),
+      m_reuse_subtree(false)
 {
     LogFine() << "--- MoHexPlayer" << '\n';
 }
@@ -287,10 +289,16 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
 HexPoint MoHexPlayer::search(HexBoard& brd, 
                              const Game& game_state,
 			     HexColor color,
-                             const bitset_t& consider,
+                             const bitset_t& given_to_consider,
                              double time_remaining,
                              double& score)
 {
+   
+    HexAssert(HexColorUtil::isBlackWhite(color));
+    HexAssert(!brd.isGameOver());
+
+    double start = HexGetTime();
+
     HexPoint lastMove = INVALID_POINT;
     if (!game_state.History().empty()) {
 	lastMove = game_state.History().back().point();
@@ -299,23 +307,6 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 	  lastMove = game_state.History().front().point();
 	}
     }
-
-    HexPoint ret = Search(brd, color, lastMove, consider, 
-                          time_remaining, score);
-
-    return ret;
-}
-
-//----------------------------------------------------------------------------
-
-HexPoint MoHexPlayer::Search(HexBoard& brd, HexColor color, HexPoint lastMove,
-                             const bitset_t& given_to_consider, 
-                             double time_remaining, double& score) 
-{
-    double start = HexGetTime();
-    
-    HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(!brd.isGameOver());
 
     LogInfo() << "--- MoHexPlayer::Search()" << '\n'
 	      << "Color: " << color << '\n'
@@ -367,9 +358,15 @@ HexPoint MoHexPlayer::Search(HexBoard& brd, HexColor color, HexPoint lastMove,
     int old_radius = brd.updateRadius();
     brd.setUpdateRadius(m_search.TreeUpdateRadius());
 
+    SgUctTree* initTree = 0;
+    if (m_reuse_subtree)
+        initTree = TryReuseSubtree(game_state);
+
     std::vector<SgMove> sequence;
+    std::vector<SgMove> rootFilter;
     m_search.SetBoard(brd);
-    score = m_search.Search(m_max_games, timelimit, sequence);
+    score = m_search.Search(m_max_games, timelimit, sequence,
+                            rootFilter, initTree, 0);
 
     brd.setUpdateRadius(old_radius);
 
@@ -411,6 +408,68 @@ HexPoint MoHexPlayer::Search(HexBoard& brd, HexColor color, HexPoint lastMove,
     LogWarning() << "**** HexUctSearch returned empty sequence!" << '\n'
 		 << "**** Returning random move!" << '\n';
     return BoardUtils::RandomEmptyCell(brd);
+}
+
+/** @bug CURRENTLY BROKEN!  
+
+    Consider the search tree, A* -> B -> C (where * denotes fillin
+    being performed on that node). B and C will not have the moves
+    filled-in at A. Now suppose the best child from A is played and B
+    -> C is re-used. Then we compute fill-in for B during the
+    intialization phase, but do not remove those moves from C.
+    
+    How to fix this: Not sure. Running down entire tree and pruning
+    moves seems bad. Truncating the subtrees of children will fillin
+    also seems bad.
+*/
+SgUctTree* MoHexPlayer::TryReuseSubtree(const Game& game)
+{
+    LogSevere() << "\"param_mohex reuse_subtree\" is currently broken!" << '\n'
+                << "Please see MoHexPlayer::TryReuseSubtree() in "
+                << "the documentation." << '\n';
+    abort();
+
+    const StoneBoard& lastPosition = m_search.LastPositionSearched();
+
+    /** @todo This is evil. Come up with better way to determine
+        if a search has been done before, other than checking if
+        lastPosition is an undefined board. 
+    */
+    if (!&lastPosition.Const())
+        return 0;
+
+    LogInfo() << "Old Search Position:" << lastPosition << '\n';
+
+    GameHistory gameSeq;
+    if (!GameUtil::SequenceFromPosition(game, lastPosition, gameSeq))
+        return 0;
+
+    // Ensure alternating colors p
+    for (std::size_t i = 1; i < gameSeq.size(); ++i)
+        if (gameSeq[i].color() == gameSeq[i-1].color())
+            return 0;
+
+    LogInfo() << "Moves played:";            
+    std::vector<SgMove> sequence;
+    for (std::size_t i = 0; i < gameSeq.size(); ++i)
+    {
+        LogInfo() << ' ' << gameSeq[i].point();
+        sequence.push_back(gameSeq[i].point());
+    }
+    LogInfo() << '\n';
+    
+    SgUctTree& tree = m_search.GetTempTree();
+    SgUctTreeUtil::ExtractSubtree(m_search.Tree(), tree, sequence, true, 10.0);
+    std::size_t newTreeNodes = tree.NuNodes();
+    std::size_t oldTreeNodes = m_search.Tree().NuNodes();
+    if (oldTreeNodes > 1 && newTreeNodes > 1)
+    {
+        float reuse = static_cast<float>(newTreeNodes) / oldTreeNodes;
+        int reusePercent = static_cast<int>(100 * reuse);
+        LogInfo() << "HexUctPlayer: Reusing " << newTreeNodes
+                  << " nodes (" << reusePercent << "%)\n";
+    }
+    return &tree;
 }
 
 //----------------------------------------------------------------------------
