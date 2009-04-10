@@ -43,13 +43,42 @@ Game::ReturnType Game::PlayMove(HexColor color, HexPoint cell)
     return VALID_MOVE;
 }
 
-void  Game::UndoMove()
+void Game::UndoMove()
 {
     if (m_history.empty())
         return;
-
     m_board->undoMove(m_history.back().point());
     m_history.pop_back();
+}
+
+//----------------------------------------------------------------------------
+
+bool GameUtil::SequenceFromPosition(const Game& game, const StoneBoard& pos, 
+                                    GameHistory& seq)
+{
+    if (game.Board().Const() != pos.Const())
+        return false;
+    StoneBoard cur(pos);
+    cur.startNewGame();
+    if (cur == pos)
+    {
+        seq = game.History();
+        return true;
+    }
+    const GameHistory& history = game.History();
+    for (GameHistory::const_iterator it = history.begin(); 
+         it != history.end(); ++it)
+    {    
+        const Move& move = *it;
+        cur.playMove(move.color(), move.point());
+        if (cur == pos)
+        {
+            LogInfo() << "Position matched!" << '\n';
+            seq.assign(++it, history.end());
+            return true;
+        }
+    }
+    return false;
 }
 
 //----------------------------------------------------------------------------

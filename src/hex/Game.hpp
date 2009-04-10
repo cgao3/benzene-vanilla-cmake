@@ -152,4 +152,17 @@ inline void Game::SetGameTime(double time)
 
 //----------------------------------------------------------------------------
 
+/** Utilities on Games. */
+namespace GameUtil
+{
+
+    /** If game contains the given position, returns the move history
+        from that position to the current end of the game. */
+    bool SequenceFromPosition(const Game& game, const StoneBoard& pos, 
+                              GameHistory& seq);
+    
+}
+
+//----------------------------------------------------------------------------
+
 #endif  // GAME_HPP
