@@ -149,7 +149,7 @@ typedef std::set<HexPoint> HexPointSet;
 typedef std::map<HexPoint, bitset_t> PointToBitset;
 
 /** A sequence of HexPoints. */
-typedef std::vector<HexPoint> MoveSequence;
+typedef std::vector<HexPoint> PointSequence;
 
 //---------------------------------------------------------------------------
 

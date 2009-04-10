@@ -125,7 +125,7 @@ public:
 
         bitset_t proof;
         int moves_to_connection;
-        MoveSequence pv;
+        PointSequence pv;
         BranchStatistics stats;
 
         SolutionSet()
@@ -412,25 +412,25 @@ private:
     /** Solves the current state in brd for the color to move. Handles
         decompositions if option is turned on. */
     bool solve_state(HexBoard& brd, HexColor tomove,
-                     MoveSequence& variation, 
+                     PointSequence& variation, 
                      SolutionSet& solution);
 
     /** Solves each side of the decompsosition; combines proofs if
         necessary. */
     bool solve_decomposition(HexBoard& brd, HexColor color, 
-                             MoveSequence& variation,
+                             PointSequence& variation,
                              SolutionSet& solution,
                              HexPoint group);
 
     /** Does the recursive mustplay search; calls solve_state() on
         child states. */
     bool solve_interior_state(HexBoard& brd, HexColor color, 
-                              MoveSequence& variation,
+                              PointSequence& variation,
                               SolutionSet& solution);
 
     /** Shrinks/verifies proof; stores in tt/db. */
     void handle_proof(const HexBoard& brd, HexColor color, 
-                      const MoveSequence& variation,
+                      const PointSequence& variation,
                       bool winning_state, SolutionSet& solution);
 
     //------------------------------------------------------------------------
@@ -583,7 +583,7 @@ inline void Solver::SetTT(SolverTT* TT)
 namespace SolverUtil 
 {
     /** Prints the variation; for debugging purposes. */
-    std::string PrintVariation(const MoveSequence& variation);
+    std::string PrintVariation(const PointSequence& variation);
     
     /** Computes distance from the center of the board. */
     int DistanceFromCenter(const ConstBoard& brd, HexPoint p);

@@ -14,7 +14,7 @@ namespace SequenceHash
 {
 
     /** Hashes a move sequence. */
-    hash_t Hash(const MoveSequence& seq);
+    hash_t Hash(const PointSequence& seq);
 
 }
 

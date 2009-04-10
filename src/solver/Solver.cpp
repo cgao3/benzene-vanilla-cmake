@@ -155,7 +155,7 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
 
     // Solve it!
     m_completed.resize(100);
-    MoveSequence variation;
+    PointSequence variation;
     bool win = solve_state(brd, tomove, variation, solution);
 
     // AND the proof with empty cells on board since our working proof
@@ -344,7 +344,7 @@ bool Solver::HandleLeafNode(const HexBoard& brd, HexColor color,
 //----------------------------------------------------------------------------
 
 bool Solver::solve_state(HexBoard& brd, HexColor color, 
-                         MoveSequence& variation,
+                         PointSequence& variation,
                          SolutionSet& solution)
 {
     if (CheckAbort()) 
@@ -398,7 +398,7 @@ bool Solver::solve_state(HexBoard& brd, HexColor color,
 }
 
 bool Solver::solve_decomposition(HexBoard& brd, HexColor color, 
-                                 MoveSequence& variation,
+                                 PointSequence& variation,
                                  SolutionSet& solution,
                                  HexPoint group)
 {
@@ -502,7 +502,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
 // Internal state
 //--------------------------------------------------------------------------
 bool Solver::solve_interior_state(HexBoard& brd, HexColor color, 
-                                  MoveSequence& variation,
+                                  PointSequence& variation,
                                   SolutionSet& solution)
 {
     int depth = variation.size();
@@ -735,7 +735,7 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
 }
 
 void Solver::handle_proof(const HexBoard& brd, HexColor color, 
-                          const MoveSequence& variation,
+                          const PointSequence& variation,
                           bool winning_state, 
                           SolutionSet& solution)
 {
@@ -1222,7 +1222,7 @@ void Solver::DumpStats(const SolutionSet& solution) const
 
 // Debugging utilities
 
-std::string SolverUtil::PrintVariation(const MoveSequence& variation)
+std::string SolverUtil::PrintVariation(const PointSequence& variation)
 {
     std::ostringstream os;
     os << "Variation: ";

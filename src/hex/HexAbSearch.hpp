@@ -121,7 +121,7 @@ protected:
     int m_current_depth;
 
     /** Sequences of moves to the current state. */
-    MoveSequence m_sequence;
+    PointSequence m_sequence;
 
     /** If current state exists in TT, but TT state was not deep
         enough, this will hold the best move for that state; otherwise

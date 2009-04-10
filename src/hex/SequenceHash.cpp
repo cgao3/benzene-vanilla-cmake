@@ -34,7 +34,7 @@ const HashData& GetHashData()
 
 //----------------------------------------------------------------------------
 
-hash_t SequenceHash::Hash(const MoveSequence& seq)
+hash_t SequenceHash::Hash(const PointSequence& seq)
 {
     HexAssert((int)seq.size() < BITSETSIZE);
 

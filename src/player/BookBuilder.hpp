@@ -116,7 +116,7 @@ private:
 
     void UpdateValue(OpeningBookNode& node, StoneBoard& brd);
 
-    void DoExpansion(StoneBoard& brd, MoveSequence& pv);
+    void DoExpansion(StoneBoard& brd, PointSequence& pv);
 
     void CreateWorkers();
 
@@ -289,7 +289,7 @@ void BookBuilder<PLAYER>::Expand(OpeningBook& book, const HexBoard& board,
             }
         }
 	
-        MoveSequence pv;
+        PointSequence pv;
         DoExpansion(brd, pv);
     }
 
@@ -514,7 +514,7 @@ void BookBuilder<PLAYER>::UpdateValue(OpeningBookNode& node, StoneBoard& brd)
 }
 
 template<class PLAYER>
-void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, MoveSequence& pv)
+void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
 {
     OpeningBookNode node;
     if (!GetNode(brd, node))
