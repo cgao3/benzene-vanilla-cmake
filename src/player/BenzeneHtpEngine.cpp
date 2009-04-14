@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file BenzeneHtpEngine.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -219,6 +219,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("book-depths", &BenzeneHtpEngine::CmdBookMainLineDepth);
     RegisterCmd("book-counts", &BenzeneHtpEngine::CmdBookCounts);
     RegisterCmd("book-scores", &BenzeneHtpEngine::CmdBookScores);
+    RegisterCmd("book-visualize", &BenzeneHtpEngine::CmdBookVisualize);
 
     RegisterCmd("compute-inferior", &BenzeneHtpEngine::CmdComputeInferior);
     RegisterCmd("compute-fillin", &BenzeneHtpEngine::CmdComputeFillin);
@@ -603,6 +604,18 @@ void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
         }
         brd.undoMove(*p);
     }
+}
+
+void BenzeneHtpEngine::CmdBookVisualize(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    std::string filename = cmd.Arg(0);
+    StoneBoard brd(m_game->Board());
+    std::ofstream f(filename.c_str());
+    if (!f)
+        throw HtpFailure() << "Could not open file for output.";
+    OpeningBookUtil::DumpVisualizationData(*m_book, brd, 0, f);
+    f.close();
 }
 
 //----------------------------------------------------------------------

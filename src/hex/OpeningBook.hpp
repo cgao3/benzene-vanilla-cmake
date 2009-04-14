@@ -321,6 +321,11 @@ namespace OpeningBookUtil
         node. Returns INVALID_POINT if node has no children. */
     HexPoint UpdatePriority(const OpeningBook& book, OpeningBookNode& node, 
                             StoneBoard& brd, float alpha);
+
+    /** Writes a (score, depth) pair to output stream for each leaf in
+        the book. Can be visualized with GnuPlot. */
+    void DumpVisualizationData(const OpeningBook& book, StoneBoard& brd, 
+                               int depth, std::ostream& out);
 }
 
 //----------------------------------------------------------------------------

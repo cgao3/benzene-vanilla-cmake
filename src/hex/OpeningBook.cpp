@@ -249,4 +249,25 @@ HexPoint OpeningBookUtil::UpdatePriority(const OpeningBook& book,
     return bestChild;
 }
 
+void OpeningBookUtil::DumpVisualizationData(const OpeningBook& book, 
+                                            StoneBoard& brd, 
+                                            int depth,
+                                            std::ostream& out)
+{
+    OpeningBookNode node;
+    if (!book.GetNode(brd, node))
+        return;
+    if (node.IsLeaf())
+    {
+        out << node.Value(brd) << " " << depth << '\n';
+        return;
+    }
+    for (BitsetIterator i(brd.getEmpty()); i; ++i) 
+    {
+	brd.playMove(brd.WhoseTurn(), *i);
+        DumpVisualizationData(book, brd, depth + 1, out);
+        brd.undoMove(*i);
+    }
+}
+
 //----------------------------------------------------------------------------
