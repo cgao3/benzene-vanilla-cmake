@@ -19,39 +19,41 @@
 enum LogLevel
 {
     /** All messages with levels higher than OFF are ignored. */
-    OFF = 65536,
+    LOG_LEVEL_OFF = 65536,
 
-    /** SEVERE is a message indicating a serious failure. 
-        In general a SEVERE message should describe events of considerable
+    /** Message level indicating a serious failure. 
+        In general a severe message should describe events of considerable
         importance which will prevent normal program execution. 
     */
-    SEVERE = 1000,
+    LOG_LEVEL_SEVERE = 1000,
 
-    /** WARNING is a message level indicating a potential problem. 
-        WARNING should be used to describe events of interest to users
-        and developers. 
+    /** Message level indicating a potential problem. 
+        Should be used to describe events of interest to users and
+        developers.
     */
-    WARNING = 900,
+    LOG_LEVEL_WARNING = 900,
 
-    /** INFO is a message level for informational messages.
-        Messages of INFO level or higher are typically output on the console.
+    /** Message level for informational messages.
+        Messages of this level or higher are typically output on the
+        console.
     */
-    INFO = 800,
+    LOG_LEVEL_INFO = 800,
     
-    /** CONFIG is a message level for configuration purposes. 
-        CONFIG should be used to provide a variety of static configuration
-	information to assist in debugging. 
+    /** Message level for configuration purposes. 
+        Should be used to provide a variety of static configuration
+	information to assist in debugging.
     */
-    CONFIG = 700,
+    LOG_LEVEL_CONFIG = 700,
 
-    /** FINE is a message level providing tracing information. */
-    FINE = 500,
+    /** Message level providing tracing information. */
+    LOG_LEVEL_FINE = 500,
 
-    /** FINER is a message level providing more tracing information. */
-    FINER = 300, 
+    /** Message level providing more tracing information. */
+    LOG_LEVEL_FINER = 300, 
 
-    /** A special level indicating that all messages should be logged. */
-    ALL = 0
+    /** Special level indicating that all messages should be
+        logged. */
+    LOG_LEVEL_ALL = 0
 };
 
 /** Utilities on LogLevel. */
@@ -127,29 +129,8 @@ public:
         exist. */
     bool RemoveHandler(LogHandler* handler);
 
-    /** Sets the level of all messages this logger receives from now on.
-        
-        You can use the hex::severe, hex::warning, etc, functions to do this
-        for you.  For example, to log a severe message you can do:
-
-           [...]
-           hex::log << hex::severe << "CRITICAL ERROR" << hex::endl;
-           [...]
-
-           This is equivalent to:
-
-           hex::log.setLevel(SEVERE);
-           hex::log << "CRITICAL ERROR" << hex::endl;
-
-       You can mix the levels between hex::endl's, but the LAST one specified
-       will determine at what level the message is logged. For example, 
-          
-           hex::log << hex::severe << "SEVERE " 
-                    << hex::info << "REVERE"
-                    << hex::endl;
-                    
-           will send "SEVERE REVERE" as an INFO level message. 
-    */
+    /** Sets the level of all messages this logger receives from now
+        on. */
     void SetLevel(LogLevel level);
 
     /** Flushes the log. */

@@ -117,35 +117,36 @@ void Logger::Flush()
 
 bool LogLevelUtil::IsValidLevel(LogLevel level)
 {
-    if (level == ALL || level == FINER || level == FINE || level == CONFIG ||
-        level == INFO || level == WARNING || level == SEVERE || 
-        level == OFF)
+    if (level == LOG_LEVEL_ALL || level == LOG_LEVEL_FINER 
+        || level == LOG_LEVEL_FINE || level == LOG_LEVEL_CONFIG 
+        || level == LOG_LEVEL_INFO || level == LOG_LEVEL_WARNING 
+        || level == LOG_LEVEL_SEVERE || level == LOG_LEVEL_OFF)
         return true;
     return false;
 }
     
 std::string LogLevelUtil::toString(LogLevel level)
 {
-    if (level == ALL) return "all";
-    if (level == FINER) return "finer";
-    if (level == FINE) return "fine";
-    if (level == CONFIG) return "config";
-    if (level == INFO) return "info";
-    if (level == WARNING) return "warning";
-    if (level == SEVERE) return "severe";
+    if (level == LOG_LEVEL_ALL) return "all";
+    if (level == LOG_LEVEL_FINER) return "finer";
+    if (level == LOG_LEVEL_FINE) return "fine";
+    if (level == LOG_LEVEL_CONFIG) return "config";
+    if (level == LOG_LEVEL_INFO) return "info";
+    if (level == LOG_LEVEL_WARNING) return "warning";
+    if (level == LOG_LEVEL_SEVERE) return "severe";
     return "off";
 }
 
 LogLevel LogLevelUtil::fromString(std::string level)
 {
-    if (level == "all") return ALL;
-    if (level == "finer") return FINER;
-    if (level == "fine") return FINE;
-    if (level == "config") return CONFIG;
-    if (level == "info") return INFO;
-    if (level == "warning") return WARNING;
-    if (level == "severe") return SEVERE;
-    return OFF;
+    if (level == "all") return LOG_LEVEL_ALL;
+    if (level == "finer") return LOG_LEVEL_FINER;
+    if (level == "fine") return LOG_LEVEL_FINE;
+    if (level == "config") return LOG_LEVEL_CONFIG;
+    if (level == "info") return LOG_LEVEL_INFO;
+    if (level == "warning") return LOG_LEVEL_WARNING;
+    if (level == "severe") return LOG_LEVEL_SEVERE;
+    return LOG_LEVEL_OFF;
 }
 
 //----------------------------------------------------------------------------

@@ -226,11 +226,11 @@ void HexProgram::ProcessCmdLineArguments(int argc, char** argv)
         exit(0);
     }
 
-    m_stderr_level = INFO;
+    m_stderr_level = LOG_LEVEL_INFO;
     if (vm.count("quiet"))
-        m_stderr_level = OFF;
+        m_stderr_level = LOG_LEVEL_OFF;
     if (vm.count("verbose"))
-        m_stderr_level = ALL;
+        m_stderr_level = LOG_LEVEL_ALL;
     
 }
 
