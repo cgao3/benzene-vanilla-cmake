@@ -19,18 +19,10 @@ namespace po = boost::program_options;
 
 //----------------------------------------------------------------------------
 
-/** Global hex namespace. */
-namespace hex 
-{
-    Logger log;
-}
-
 /** Annonymous namespace */
 namespace 
 {
-    LogHandler* g_StdErrHandler;
     std::ofstream g_logfile;
-    LogHandler* g_LogFileHandler;
 }
 
 //----------------------------------------------------------------------------
@@ -92,8 +84,9 @@ void HexProgram::RegisterCmdLineArguments()
 
 void HexProgram::InitLog()
 {
-    g_StdErrHandler = new LogHandler(std::cerr);
-    hex::log.AddHandler(g_StdErrHandler, m_stderr_level);
+    // remove default streams and add our own
+    Logger::Global().ClearStreams();
+    Logger::Global().AddStream(std::cerr, m_stderr_level);
 
     if (m_use_logfile)
     {
@@ -105,14 +98,9 @@ void HexProgram::InitLog()
     }
     if (g_logfile) 
     {
-        g_LogFileHandler = new LogHandler(g_logfile);
         LogLevel level = LogLevelUtil::fromString(m_logfile_level);
-        hex::log.AddHandler(g_LogFileHandler, level);
+        Logger::Global().AddStream(g_logfile, level);
     } 
-    else
-    {
-        g_LogFileHandler = 0;
-    }
 }
 
 void HexProgram::InitRandom()
@@ -167,23 +155,12 @@ void HexProgram::Initialize(int argc, char **argv)
 
 void HexProgram::ShutdownLog()
 {
-    if (g_logfile) g_logfile << "--- HexLogShutdown" << std::endl;
-
-    if (g_logfile) g_logfile << "Flushing log..." << std::endl;    
-    hex::log.Flush();
-
-    if (g_logfile) g_logfile << "Removing handlers..." << std::endl;
-    hex::log.RemoveHandler(g_StdErrHandler);
-    hex::log.RemoveHandler(g_LogFileHandler);
-
-    if (g_logfile) g_logfile << "Deleting handlers..." << std::endl;
-    if (g_StdErrHandler) delete g_StdErrHandler;
-    if (g_LogFileHandler) delete g_LogFileHandler;
-
-    if (g_logfile) 
-        g_logfile << "Flushing and closing this stream..." << std::endl;
-
-    g_logfile.flush();
+    Logger::Global().Flush();
+    if (g_logfile)
+    {
+        g_logfile << "Flushing and closing this stream...\n";
+        g_logfile.flush();
+    }
     g_logfile.close();
 }
 

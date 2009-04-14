@@ -48,40 +48,34 @@
 #include "HexColor.hpp"
 #include "HexPoint.hpp"
 
-namespace hex
-{
-    /** Master logger. */
-    extern Logger log;
-};
-
 inline Logger& LogFine()
 {
-    hex::log.SetLevel(LOG_LEVEL_FINE);
-    return hex::log;
+    Logger::Global().SetLevel(LOG_LEVEL_FINE);
+    return Logger::Global();
 }
 
 inline Logger& LogConfig()
 {
-    hex::log.SetLevel(LOG_LEVEL_CONFIG);
-    return hex::log;
+    Logger::Global().SetLevel(LOG_LEVEL_CONFIG);
+    return Logger::Global();
 }
 
 inline Logger& LogInfo()
 {
-    hex::log.SetLevel(LOG_LEVEL_INFO);
-    return hex::log;
+    Logger::Global().SetLevel(LOG_LEVEL_INFO);
+    return Logger::Global();
 }
 
 inline Logger& LogWarning()
 {
-    hex::log.SetLevel(LOG_LEVEL_WARNING);
-    return hex::log;
+    Logger::Global().SetLevel(LOG_LEVEL_WARNING);
+    return Logger::Global();
 }
 
 inline Logger& LogSevere()
 {
-    hex::log.SetLevel(LOG_LEVEL_SEVERE);
-    return hex::log;
+    Logger::Global().SetLevel(LOG_LEVEL_SEVERE);
+    return Logger::Global();
 }
 
 //----------------------------------------------------------------------------

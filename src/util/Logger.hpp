@@ -71,64 +71,40 @@ namespace LogLevelUtil
 
 //----------------------------------------------------------------------------
 
-/** An output stream for a Logger object. */
-class LogHandler
-{
-public:
-
-    /** Creates a Handler that sends output to an existing output stream. */
-    LogHandler(std::ostream& stream) 
-        : stream(stream)
-    {}
-
-    /** The stream for this handler. */
-    std::ostream& stream;
-};
-
-//----------------------------------------------------------------------------
-
 /** Logger supporting message levels and multiple output streams
     received from multiple threads.
 
-    A Logger can have several LogHandlers with each LogHandler
-    associated with a LogLevel.  When the Logger receives a message
-    with LogLevel L, all handlers with level at least L will be sent a
-    copy of the message.
-
-    An example Logger with two LogHandlers: LogHandler1's output stream
-    is std::cerr, and LogHandler2's output stream is a std::ofstream 
-    pointing to the file 'example.log'.  LogHandler1 has LogLevel 'info', 
-    and LogLevel2 has LogLevel 'all'.  Any message if level 'info' or
-    higher will be echoed to std::cerr and 'example.log'.  A message of
-    level 'fine' or lower will ONLY go to 'example.log'. 
+    A Logger can have several streams. Each stream is assigned a level.
+    When the Logger receives a message at level L, all streams with level 
+    at least L will be sent a copy of the message.
 
     Logger handles messages coming from multiple threads internally. A
     LogLevel for each thread is maintained, and separate buffers are
     used for messages being formed simulataneously in different
     threads.  Blocking is used to grant a thread exclusive access to
-    the LogHandlers when printing; this potentially could cause
-    slowdown if several threads are dumping lots of text
-    simultaneously.
+    the streams when printing; this potentially could cause slowdown
+    if several threads are dumping lots of text simultaneously.
 */
 class Logger
 {
 public:
 
-    /** Creates a logger object. */
+    /** Creates a logger object. By default, log outputs to std::cerr
+        at LOG_LEVEL_INFO. */
     Logger();
 
     /** Destructor. */
-    virtual ~Logger();
+    ~Logger();
 
-    /** Adds a handler to this logger at the given level.  Returns
-        true if handler was successfully added; false if it is a
-        duplicate. */
-    bool AddHandler(LogHandler* handler, LogLevel level);
+    /** Returns the global Logger object. */
+    static Logger& Global();
 
-    /** Removes the given handler. Returns false if handler doesn't
-        exist. */
-    bool RemoveHandler(LogHandler* handler);
+    /** Adds a handler to this logger at the given level. */
+    void AddStream(std::ostream& stream, LogLevel level);
 
+    /** Removes all output streams. */
+    void ClearStreams();
+    
     /** Sets the level of all messages this logger receives from now
         on. */
     void SetLevel(LogLevel level);
@@ -158,10 +134,10 @@ private:
     /** Returns the current loglevel for the thread. */
     LogLevel GetThreadLevel();
 
-    /** LogHandlers for this log. */
-    std::vector<LogHandler*> m_handlers;
+    /** Streams for this log. */
+    std::vector<std::ostream*> m_streams;
 
-    /** Level for each handler. */
+    /** Level for each stream. */
     std::vector<LogLevel> m_levels;
    
     /** Threads must grab this mutex before modifying m_thread_buffer

@@ -8,41 +8,36 @@
 //----------------------------------------------------------------------------
 
 Logger::Logger()
+    : m_streams(),
+      m_levels()
 {
-    for (int i=0; i<MAX_THREADS; i++) {
+    for (int i = 0; i < MAX_THREADS; ++i)
         m_thread_buffer[i].id = 0;
-    }
+    AddStream(std::cerr, LOG_LEVEL_INFO);
 }
 
 Logger::~Logger()
 {
 }
 
-//----------------------------------------------------------------------------
-
-bool Logger::AddHandler(LogHandler* handler, LogLevel level)
+Logger& Logger::Global()
 {
-    for (unsigned i=0; i<m_handlers.size(); ++i) {
-        if (m_handlers[i] == handler)
-            return false;
-    }
-    m_handlers.push_back(handler);
-    m_levels.push_back(level);
-    return true;
+    static Logger s_global_logger;
+    return s_global_logger;
 }
 
-bool Logger::RemoveHandler(LogHandler* handler)
+//----------------------------------------------------------------------------
+
+void Logger::AddStream(std::ostream& stream, LogLevel level)
 {
-    std::vector<LogHandler*>::iterator ih = m_handlers.begin();
-    std::vector<LogLevel>::iterator il = m_levels.begin();
-    for (; ih != m_handlers.end(); ++ih, ++il) {
-        if (*ih == handler) {
-            m_handlers.erase(ih);
-            m_levels.erase(il);
-            return true;
-        }
-    }
-    return false;
+    m_streams.push_back(&stream);
+    m_levels.push_back(level);
+}
+
+void Logger::ClearStreams()
+{
+    m_streams.clear();
+    m_levels.clear();
 }
 
 Logger::ThreadBuffer& Logger::GetThreadBuffer()
@@ -97,14 +92,16 @@ void Logger::Flush()
     // buffer mutex so no one else can do this or change the
     // buffers in any way. 
     pthread_mutex_lock(&m_buffer_mutex);
-    for (unsigned i=0; i<m_handlers.size(); ++i) {
+    for (std::size_t i = 0; i < m_streams.size(); ++i) 
+    {
         LogLevel level = GetThreadLevel();
-        if (level < m_levels[i]) continue;
-        LogHandler& handler = *m_handlers[i];
-        handler.stream << pthread_self() << " " 
-                       << LogLevelUtil::toString(level) << ": " 
-                       << buffer.buffer.str() << std::endl;
-        handler.stream.flush();
+        if (level < m_levels[i]) 
+            continue;
+        std::ostream& stream = *m_streams[i];
+        stream << pthread_self() << " " 
+               << LogLevelUtil::toString(level) << ": " 
+               << buffer.buffer.str() << std::endl;
+        stream.flush();
     }
 
     // clear buffer and set it to unused
