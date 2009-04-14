@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: Hex.hpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file Hex.hpp
+ */
 //----------------------------------------------------------------------------
 
 #ifndef HEX_HPP
@@ -47,36 +48,6 @@
 #include "HexAssert.hpp"
 #include "HexColor.hpp"
 #include "HexPoint.hpp"
-
-inline Logger& LogFine()
-{
-    Logger::Global().SetLevel(LOG_LEVEL_FINE);
-    return Logger::Global();
-}
-
-inline Logger& LogConfig()
-{
-    Logger::Global().SetLevel(LOG_LEVEL_CONFIG);
-    return Logger::Global();
-}
-
-inline Logger& LogInfo()
-{
-    Logger::Global().SetLevel(LOG_LEVEL_INFO);
-    return Logger::Global();
-}
-
-inline Logger& LogWarning()
-{
-    Logger::Global().SetLevel(LOG_LEVEL_WARNING);
-    return Logger::Global();
-}
-
-inline Logger& LogSevere()
-{
-    Logger::Global().SetLevel(LOG_LEVEL_SEVERE);
-    return Logger::Global();
-}
 
 //----------------------------------------------------------------------------
 

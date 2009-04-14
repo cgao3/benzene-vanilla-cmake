@@ -174,4 +174,41 @@ inline Logger& Logger::operator<< <char> (const char& type)
 
 //----------------------------------------------------------------------------
 
+/** Sets global logger to LOG_LEVEL_FINE. */
+inline Logger& LogFine()
+{
+    Logger::Global().SetLevel(LOG_LEVEL_FINE);
+    return Logger::Global();
+}
+
+/** Similar to LogFine() */
+inline Logger& LogConfig()
+{
+    Logger::Global().SetLevel(LOG_LEVEL_CONFIG);
+    return Logger::Global();
+}
+
+/** Similar to LogFine() */
+inline Logger& LogInfo()
+{
+    Logger::Global().SetLevel(LOG_LEVEL_INFO);
+    return Logger::Global();
+}
+
+/** Similar to LogFine() */
+inline Logger& LogWarning()
+{
+    Logger::Global().SetLevel(LOG_LEVEL_WARNING);
+    return Logger::Global();
+}
+
+/** Similar to LogFine() */
+inline Logger& LogSevere()
+{
+    Logger::Global().SetLevel(LOG_LEVEL_SEVERE);
+    return Logger::Global();
+}
+
+//----------------------------------------------------------------------------
+
 #endif // LOGGER_HPP
