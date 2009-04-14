@@ -56,27 +56,32 @@ namespace hex
 
 inline Logger& LogFine()
 {
-    return hex::log << hex::fine;
+    hex::log.SetLevel(FINE);
+    return hex::log;
 }
 
 inline Logger& LogConfig()
 {
-    return hex::log << hex::config;
+    hex::log.SetLevel(CONFIG);
+    return hex::log;
 }
 
 inline Logger& LogInfo()
 {
-    return hex::log << hex::info;
+    hex::log.SetLevel(INFO);
+    return hex::log;
 }
 
 inline Logger& LogWarning()
 {
-    return hex::log << hex::warning;
+    hex::log.SetLevel(WARNING);
+    return hex::log;
 }
 
 inline Logger& LogSevere()
 {
-    return hex::log << hex::severe;
+    hex::log.SetLevel(SEVERE);
+    return hex::log;
 }
 
 //----------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: Logger.hpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file Logger.hpp
+ */
 //----------------------------------------------------------------------------
 
 #ifndef HEXLOGGER_HPP
@@ -154,10 +155,6 @@ public:
     /** Flushes the log. */
     void Flush();
 
-    /** Executes a function on a Logger object; typically used to
-        change the loggers level. An example would be 'hex::info'. */
-    Logger& operator<<(Logger& ( *pf )(Logger& log));
-
     /** Pipes text into the log. */
     template<typename TYPE>
     Logger& operator<<(const TYPE& type);
@@ -216,32 +213,6 @@ inline Logger& Logger::operator<< <char> (const char& type)
     else
 	GetThreadBuffer().buffer << type;
     return *this;
-}
-
-//----------------------------------------------------------------------------
-
-namespace hex {
-
-    /** Sends eol and flushes the buffer. */
-    Logger& endl(Logger& log);
-
-    /** Sets the log's level to FINER. */
-    Logger& finer(Logger& log);
-
-    /** Sets the log's level to FINE. */
-    Logger& fine(Logger& log);
-
-    /** Sets the log's level to CONFIG. */
-    Logger& config(Logger& log);
-
-    /** Sets the log's level to INFO. */
-    Logger& info(Logger& log);
-
-    /** Sets the logs level to WARNING. */
-    Logger& warning(Logger& log);
-
-    /** Sets the logs level to SEVERE. */
-    Logger& severe(Logger& log);
 }
 
 //----------------------------------------------------------------------------

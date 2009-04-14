@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file Logger.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -111,56 +111,6 @@ void Logger::Flush()
     buffer.buffer.str("");
     buffer.id = 0;
     pthread_mutex_unlock(&m_buffer_mutex);
-}
-
-Logger& Logger::operator<<(Logger& ( *pf )(Logger& log))
-{
-    pf(*this);
-    return *this;
-}
-
-//----------------------------------------------------------------------------
-
-Logger& hex::endl(Logger& log)
-{
-    log.Flush();
-    return log;
-}
-
-Logger& hex::finer(Logger& log)
-{
-    log.SetLevel(FINER);
-    return log;
-}
-
-Logger& hex::fine(Logger& log)
-{
-    log.SetLevel(FINE);
-    return log;
-}
- 
-Logger& hex::config(Logger& log)
-{
-    log.SetLevel(CONFIG);
-    return log;
-}
-
-Logger& hex::info(Logger& log)
-{
-    log.SetLevel(INFO);
-    return log;
-}
-
-Logger& hex::warning(Logger& log)
-{
-    log.SetLevel(WARNING);
-    return log;
-}
-
-Logger& hex::severe(Logger& log)
-{
-    log.SetLevel(SEVERE);
-    return log;
 }
 
 //----------------------------------------------------------------------------
