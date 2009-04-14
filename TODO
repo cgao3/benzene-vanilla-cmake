@@ -1,12 +1,13 @@
 Benzene TODO file
 =================
 
-broderic [090404] (in rough order of importance)
+broderic [090413] (in rough order of importance)
+* Mustplay/fillin in core of uct tree
+* Add ponder ability to Wolve and MoHex
 * Switch dead region/decomp detection to new Phil algo
 * Make GroupBoard and PatternBoard not derive off of StoneBoard
 * Add HexBoard::Resize() method; use in SyncBoard()
 * Have Wolve check TT for losing moves in move generation.
-* Add ponder ability to Wolve and MoHex
 * Support reading installed shared data in $(pkgdatadir)
 * Remove lssolve from src/util/ and replace with boost::ublas
 * Proof class in Solver
