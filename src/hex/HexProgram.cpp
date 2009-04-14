@@ -22,7 +22,7 @@ namespace po = boost::program_options;
 /** Global hex namespace. */
 namespace hex 
 {
-    Logger log("hex");
+    Logger log;
 }
 
 /** Annonymous namespace */

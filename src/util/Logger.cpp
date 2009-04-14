@@ -7,8 +7,7 @@
 
 //----------------------------------------------------------------------------
 
-Logger::Logger(std::string callsign)
-    : m_callsign(callsign)
+Logger::Logger()
 {
     for (int i=0; i<MAX_THREADS; i++) {
         m_thread_buffer[i].id = 0;

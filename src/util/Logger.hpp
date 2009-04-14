@@ -111,8 +111,8 @@ class Logger
 {
 public:
 
-    /** Creates a logger object with the given name. */
-    Logger(std::string callsign);
+    /** Creates a logger object. */
+    Logger();
 
     /** Destructor. */
     virtual ~Logger();
@@ -164,6 +164,9 @@ public:
 
 private:
 
+    /** Maximum number of threads handled at once. */
+    static const int MAX_THREADS = 16;
+
     /** Buffer for a thread of execution. */
     struct ThreadBuffer
     {
@@ -177,24 +180,24 @@ private:
     /** Returns the current loglevel for the thread. */
     LogLevel GetThreadLevel();
 
-    /** Logger callsign; not used currently! */
-    std::string m_callsign;
-
     /** LogHandlers for this log. */
     std::vector<LogHandler*> m_handlers;
 
     /** Level for each handler. */
     std::vector<LogLevel> m_levels;
-
-
-    static const int MAX_THREADS = 16;
-    
-    /** Buffers for up to MAX_THREADS active threads. */
+   
+    /** Threads must grab this mutex before modifying m_thread_buffer
+        or printing output. */
     pthread_mutex_t m_buffer_mutex;
+
+    /** Buffers for up to MAX_THREADS active threads. */
     ThreadBuffer m_thread_buffer[MAX_THREADS];
 
-    /** Current log level for each thread. */
+    /** Threads must grab this mutex before modifying
+        m_thread_level. */
     pthread_mutex_t m_map_mutex;
+
+    /** Current log level for each thread. */
     std::map<pthread_t, LogLevel> m_thread_level;
 };
 
