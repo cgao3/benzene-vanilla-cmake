@@ -20,8 +20,6 @@ ph [081113]
   * asymmetric.py should print opening, not just sgf numbers
   * summary.py should give whole opening, not just first move
   * should have script for post-game sgf analysis with solver
-* Solver should do 2 sweeps during move ordering:
-  * DB and TT checks only in first sweep, mustplay and vc-build 2nd sweep
 * Unique probe sequence for solver:
   * Create pattern file
   * If losing move and winning reply match pattern, try no more
