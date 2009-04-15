@@ -17,6 +17,7 @@ src/config.in
 src/stamp-h1
 Makefile
 .deps
+*.log
 *.tags
 *.o
 *.in
