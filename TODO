@@ -3,7 +3,9 @@ Benzene TODO file
 
 broderic [090413] (in rough order of importance)
 * Mustplay/fillin in core of uct tree
-* Add ponder ability to Wolve and MoHex
+  * Fix reuse subtree in MoHex
+    * Add ponder ability to MoHex
+* Put code into a unique namespace
 * Better book visualization tools
 * Switch dead region/decomp detection to new Phil algo
 * Make GroupBoard and PatternBoard not derive off of StoneBoard
