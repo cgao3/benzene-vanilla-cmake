@@ -257,7 +257,7 @@ std::string StoneBoard::GetBoardIDString() const
 			      "8", "9", "a", "b", "c", "d", "e", "f"};
     BoardID brdID = GetBoardID();
     std::string idString;
-    for (uint i=0; i<brdID.size(); ++i) {
+    for (std::size_t i = 0; i < brdID.size(); ++i) {
 	byte b = brdID[i];
 	idString += hexval[((b >> 4) & 0xF)];
 	idString += hexval[b & 0x0F];

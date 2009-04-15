@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: HexUctKnowledge.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file HexUctKnowledge.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -90,7 +91,7 @@ void HexUctPriorKnowledge::LoadGoodPatterns(const std::string& filename)
     // Can only load patterns once!
     HexAssert(m_good_patterns[BLACK].empty());
     
-    for (uint i=0; i<patterns.size(); i++) {
+    for (std::size_t i = 0; i < patterns.size(); ++i) {
         Pattern p = patterns[i];
         
         switch(p.getType()) {
@@ -121,7 +122,7 @@ void HexUctPriorKnowledge::LoadBadPatterns(const std::string& filename)
     // Can only load patterns once!
     HexAssert(m_bad_patterns[BLACK].empty());
     
-    for (uint i=0; i<patterns.size(); i++) {
+    for (std::size_t i=0; i < patterns.size(); ++i) {
         Pattern p = patterns[i];
         
         switch(p.getType()) {

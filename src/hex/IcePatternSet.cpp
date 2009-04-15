@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: IcePatternSet.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file IcePatternSet.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "IcePatternSet.hpp"
@@ -27,7 +28,8 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
 	      << "Read " << patterns.size() << " patterns " 
 	      << "from '" << nativeFile << "'." << '\n';
 
-    for (uint i=0; i<patterns.size(); i++) {
+    for (std::size_t i = 0; i < patterns.size(); i++) 
+    {
         Pattern p(patterns[i]);
 
         switch(p.getType()) {
@@ -68,7 +70,8 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
     }
 
     m_hashed_dead.hash(m_dead);
-    for (BWIterator it; it; ++it) {
+    for (BWIterator it; it; ++it) 
+    {
         m_hashed_captured[*it].hash(m_captured[*it]);
         m_hashed_permanently_inferior[*it].hash(m_permanently_inferior[*it]);
         m_hashed_vulnerable[*it].hash(m_vulnerable[*it]);

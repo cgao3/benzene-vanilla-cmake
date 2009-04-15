@@ -1,11 +1,5 @@
 //----------------------------------------------------------------------------
-// $Id: InferiorCells.cpp 1657 2008-09-15 23:32:09Z broderic $
-//----------------------------------------------------------------------------
-
-#include "BitsetIterator.hpp"
-#include "InferiorCells.hpp"
-
-/** @file
+/** @file InferiorCells.cpp
 
     @todo Handle a sink in the dominated component graph being
     partially outside the mustplay -- in this case, no representative
@@ -14,8 +8,11 @@
     @note The set of dominated cells must be recomputed each time the
     domination graph or the vulnerable info is changed. Dominated()
     does this computation lazily when required.
-
 */
+//----------------------------------------------------------------------------
+
+#include "BitsetIterator.hpp"
+#include "InferiorCells.hpp"
 
 //----------------------------------------------------------------------------
 
@@ -349,14 +346,16 @@ bitset_t InferiorCells::FindPresimplicialPairs() const
 
 std::string InferiorCells::GuiOutput() const
 {
-    uint t, c=0;
+    std::size_t c = 0;
     std::ostringstream out;
-    for (int i=0; i<FIRST_INVALID; i++) {
+    for (int i = 0; i < FIRST_INVALID; ++i) 
+    {
         HexPoint p = static_cast<HexPoint>(i);
         std::ostringstream os;
         
         os << " " << p << " ";
-        if (Dead().test(i)) {
+        if (Dead().test(i)) 
+        {
             os << "db";
             //os << ((brd.getColor(p) == BLACK) ? "b" : "w");
         }
@@ -364,15 +363,18 @@ std::string InferiorCells::GuiOutput() const
             os << "b";
         else if (Captured(WHITE).test(i))
             os << "w";
-        else if (PermInf(BLACK).test(i)) {
+        else if (PermInf(BLACK).test(i)) 
+        {
             os << "pb[";
             os << "]";
         }
-        else if (PermInf(WHITE).test(i)) {
+        else if (PermInf(WHITE).test(i)) 
+        {
             os << "pw[";
             os << "]";
         }
-        else if (Vulnerable().test(i)) {
+        else if (Vulnerable().test(i)) 
+        {
             os << "#[";
             bool first=true;
             std::set<VulnerableKiller>::const_iterator i;
@@ -384,12 +386,13 @@ std::string InferiorCells::GuiOutput() const
             }
             os << "]";
         }
-        else if (Dominated().test(i)) {
-
+        else if (Dominated().test(i)) 
+        {
             os << "![";
             bool first=true;
             std::set<HexPoint>::iterator i;
-            for (i=m_dom_graph.out_begin(p); i!=m_dom_graph.out_end(p); ++i) {
+            for (i=m_dom_graph.out_begin(p); i!=m_dom_graph.out_end(p); ++i) 
+            {
                 if (Vulnerable().test(*i))
                     continue;
                 if (!first) os << "-";
@@ -398,21 +401,18 @@ std::string InferiorCells::GuiOutput() const
             }
             os << "]";
         }
-        else {
-
+        else 
             continue;
 
-        }
-
         std::string str = os.str();
-        t = str.size();
-
-        if (c + t > 40) {
-            out << "\n";
+        std::size_t t = str.size();
+        if (c + t > 40) 
+        {
+            out << '\n';
             c = t;
-        } else {
+        } 
+        else 
             c += t;
-        }
 
         out << str;
     }    

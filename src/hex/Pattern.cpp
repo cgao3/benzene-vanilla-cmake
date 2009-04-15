@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file Pattern.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -36,11 +36,11 @@ bool Pattern::unserialize(std::string code)
 {
     std::istringstream ss(code);
     char c;
-    uint i;
+    unsigned int i;
 
 #ifndef NDEBUG
     // mask of all valid bits in a slice
-    const uint check = ~((1<<(MAX_EXTENSION*(MAX_EXTENSION+1)/2))-1);
+    const unsigned int check = ~((1<<(MAX_EXTENSION*(MAX_EXTENSION+1)/2))-1);
 #endif
 
     ss >> c;

@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: HandBookCheck.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** HandBookCheck.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "HandBookCheck.hpp"
@@ -92,7 +93,7 @@ HexPoint HandBookCheck::HandBookResponse(const StoneBoard& brd,
     LogInfo() << "HandBookCheck: Seeking response" << '\n'
 	      << "Board ID: " << brd.GetBoardIDString() << '\n';
     
-    for (uint i=0; i<m_id.size(); ++i) {
+    for (std::size_t i = 0; i < m_id.size(); ++i) {
 	if (brd.GetBoardIDString() == m_id[i]) {
 	    LogInfo() << "Found hand book response!" << '\n';
 	    HexAssert(m_response[i] != INVALID_POINT);

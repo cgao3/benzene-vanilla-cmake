@@ -1,3 +1,7 @@
+//----------------------------------------------------------------------------
+/** VulPreCheck.cpp
+ */
+//----------------------------------------------------------------------------
 
 #include "VulPreCheck.hpp"
 
@@ -16,15 +20,14 @@ HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
 				 HexColor color, bitset_t& consider,
 				 double time_remaining, double& score)
 {
-    LogWarning() << "Performing vulnerable pre-check..."
-	     << '\n';
+    LogWarning() << "Performing vulnerable pre-check..." << '\n';
     
     if (!game_state.History().empty()) {
 	// Setup the board as it was prior to the opponent's last move.
 	GameHistory gh = game_state.History();
 	PatternBoard b(brd.width(), brd.height());
 	b.startNewGame();
-	for (uint i=0; i+1<gh.size(); i++) {
+	for (std::size_t i = 0; i + 1 < gh.size(); ++i) {
 	    HexPoint p = gh[i].point();
 	    HexColor c = gh[i].color();
 	    
@@ -37,20 +40,18 @@ HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
 	    b.playMove(c, p);
 	}
 	b.update();
-	LogWarning() << "Board before last move:"
-		 << b << '\n';
+	LogWarning() << "Board before last move:" << b << '\n';
 	
 	// Check if last move played (by opponent) was vulnerable.
 	HexPoint lastCell = gh.back().point();
 	bitset_t lastMoveOnly;
 	lastMoveOnly.set(lastCell);
 	LogWarning() << "Last move on this board:"
-		 << b.printBitset(lastMoveOnly) << '\n';
+                     << b.printBitset(lastMoveOnly) << '\n';
 	HexAssert(gh.back().color() == !color);
 	InferiorCells inf;
 	brd.ICE().FindVulnerable(b, !color, lastMoveOnly, inf);
-	LogWarning() << "Inferior cells:"
-		 << inf.GuiOutput() << '\n';
+	LogWarning() << "Inferior cells:" << inf.GuiOutput() << '\n';
 	
 	// If it was, simply return the killer.
 	if (inf.Vulnerable().test(lastCell)) {

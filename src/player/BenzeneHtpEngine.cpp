@@ -763,7 +763,7 @@ void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
              << '\n' << "Includes: ";
     int x1, y1, x2, y2;
     HexPointUtil::pointToCoords(center, x1, y1);
-    uint i = 1;
+    std::size_t i = 1;
     while (i < cmd.NuArg())
     {
         HexPoint p = MoveArg(cmd, i++);

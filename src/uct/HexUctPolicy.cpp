@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: HexUctPolicy.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file HexUctPolicy.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "Hex.hpp"
@@ -79,26 +80,22 @@ void HexUctSharedPolicy::LoadPlayPatterns(const std::string& filename)
     // can only load patterns once!
     HexAssert(m_patterns[BLACK].empty());
 
-    for (uint i=0; i<patterns.size(); i++) {
+    for (std::size_t i = 0; i < patterns.size(); ++i) {
         Pattern p = patterns[i];
-        
         switch(p.getType()) {
         case Pattern::MOHEX:
             m_patterns[BLACK].push_back(p);
             p.flipColors();
             m_patterns[WHITE].push_back(p);
             break;
-
         default:
             LogWarning() << "Pattern type = " << p.getType() << '\n';
             HexAssert(false);
         }
     }
-
     // create the hashed pattern sets for fast checking
-    for (BWIterator color; color; ++color) {
+    for (BWIterator color; color; ++color)
         m_hash_patterns[*color].hash(m_patterns[*color]);
-    }
 }
 
 #if COLLECT_PATTERN_STATISTICS
