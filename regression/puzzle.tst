@@ -133,6 +133,10 @@ loadsgf sgf/puzzles/9x9-henderson-01.sgf
 80 solver-find-winning black
 #? [c4 b5 g5]
 
+loadsgf sgf/puzzles/6x6-henderson-02.sgf
+81 solver-find-winning black
+#? [b4]
+
 
 # Little Golem puzzles
 

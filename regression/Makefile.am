@@ -201,6 +201,7 @@ sgf/puzzles/5x5-hein-06.sgf \
 sgf/puzzles/6x6-hayward-01.sgf \
 sgf/puzzles/6x6-hein-03.sgf \
 sgf/puzzles/6x6-hein-07.sgf \
+sgf/puzzles/6x6-henderson-02.sgf \
 sgf/puzzles/7x7-enderton-01.sgf \
 sgf/puzzles/7x7-enderton-02.sgf \
 sgf/puzzles/7x7-enderton-03.sgf \
