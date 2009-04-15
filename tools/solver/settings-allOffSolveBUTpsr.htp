@@ -1,0 +1,16 @@
+param_solver backup_ice_info 0
+param_solver shrink_proofs 1
+param_solver use_decompositions 0
+param_solver move_ordering 6
+param_solver tt_bits 0
+param_solver_board backup_ice_info 0
+param_solver_board use_decompositions 0
+param_solver_ice backup_opponent_dead 0
+param_solver_ice find_all_pattern_dominators 0
+param_solver_ice find_all_pattern_killers 0
+param_solver_ice find_permanently_inferior 0
+param_solver_ice find_presimplicial_pairs 0
+param_solver_ice find_three_sided_dead_regions 0
+param_solver_ice iterative_dead_regions 0
+param_solver_ice use_hand_coded_patterns 0
+param_solver_vc use_patterns 0
