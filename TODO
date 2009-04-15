@@ -15,10 +15,8 @@ broderic [090413] (in rough order of importance)
   * Proof class should do assertions, reductions
   * Support permanently inferior in solver
 
-ph [081113]
+ph [090413]
 * Tournament tool improvements:
-  * asymmetric.py should print opening, not just sgf numbers
-  * summary.py should give whole opening, not just first move
   * should have script for post-game sgf analysis with solver
 * Unique probe sequence for solver:
   * Create pattern file
@@ -37,7 +35,6 @@ ph [081113]
   * Root parallelization
   * Learned-reponse array through UCT tree sequences (used for node init)
 * Wolve improvements:
-  * Make 4-ply feasible (no need to go through edge)
   * Re-create opening book (requires DB switch and OB change first)
   * Eliminate hand-book
 * Inferior cell improvements:
