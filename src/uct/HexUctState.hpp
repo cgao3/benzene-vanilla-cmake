@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: HexUctState.hpp 1842 2009-01-18 00:05:04Z broderic $
+/** @file HexUctState.hpp
+ */
 //----------------------------------------------------------------------------
 
 #ifndef HEXUCTSTATE_HPP
@@ -80,9 +81,9 @@ public:
     /** Constructor.
         @param threadId The number of the thread. Needed for passing to
         constructor of SgUctThreadState.
-        @param bd The board with the current position. The state has is own
-        board that will be synchronized with the currently searched position
-        in StartSearch()
+        @param sch Parent Search object.
+        @param treeUpdateRadius Pattern matching radius in tree.
+        @param playoutUpdateRadius Pattern matching radius in playouts.
     */
     HexUctState(std::size_t threadId,
 		const HexUctSearch& sch,

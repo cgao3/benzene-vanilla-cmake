@@ -118,9 +118,9 @@ private:
 
     /** Finds inferior cells, builds vcs. Sets moves to consider to
         all empty cells. 
-
         @param brd
         @param color
+        @param consider
         @param time_remaining
         @param score
         @return INVALID_POINT if a non-terminal state, otherwise the
@@ -129,7 +129,6 @@ private:
     HexPoint init_search(HexBoard& brd, HexColor color, 
                          bitset_t& consider,
                          double time_remaining, double& score);
-
 };
 
 //----------------------------------------------------------------------------
