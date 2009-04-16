@@ -46,7 +46,7 @@ void ConnectionBuilder::Build(Connections& con, const GroupBoard& brd)
     m_brd = &brd;
     m_log = 0;
 
-    double s = HexGetTime();
+    double s = Time::Get();
     m_con->Clear();
     m_statistics = ConnectionBuilderStatistics();
     m_queue.clear();
@@ -56,7 +56,7 @@ void ConnectionBuilder::Build(Connections& con, const GroupBoard& brd)
         AddPatternVCs();
     DoSearch();
 
-    double e = HexGetTime();
+    double e = Time::Get();
     LogFine() << "  " << (e-s) << "s to build vcs." << '\n';
 }
 
@@ -119,7 +119,7 @@ void ConnectionBuilder::Build(Connections& con, const GroupBoard& brd,
     m_brd = &brd;
     m_log = log;
 
-    double s = HexGetTime();
+    double s = Time::Get();
     m_statistics = Statistics();
     m_queue.clear();
 
@@ -128,7 +128,7 @@ void ConnectionBuilder::Build(Connections& con, const GroupBoard& brd,
         AddPatternVCs();
     DoSearch();
 
-    double e = HexGetTime();
+    double e = Time::Get();
     LogFine()
              << "  " << (e-s) << "s to build vcs incrementally." 
              << '\n';

@@ -97,7 +97,7 @@ HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
 {
     UNUSED(timelimit);
 
-    double start = HexGetTime();
+    double start = Time::Get();
 
     m_brd = &brd;
     m_toplay = color;
@@ -116,7 +116,7 @@ HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
         int depth = depths_to_search[d];
         LogInfo() << "---- Depth " << depth << " ----" << '\n';
 
-        double beganAt = HexGetTime();
+        double beganAt = Time::Get();
 
         m_eval.clear();
         m_current_depth = 0;
@@ -126,7 +126,7 @@ HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
         double thisValue = SearchState(plywidth, depth, IMMEDIATE_LOSS, 
                                        IMMEDIATE_WIN, thisPV);
 
-        double finishedAt = HexGetTime();
+        double finishedAt = Time::Get();
 
         // copy result only if search was not aborted
         if (!m_aborted)
@@ -152,7 +152,7 @@ HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
     
     OnSearchComplete();
 
-    double end = HexGetTime();
+    double end = Time::Get();
     m_statistics.elapsed_time = end - start;
     
     // Copy the root evaluations back into m_eval; these will be printed

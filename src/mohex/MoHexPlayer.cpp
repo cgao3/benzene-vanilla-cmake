@@ -297,7 +297,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(!brd.isGameOver());
 
-    double start = HexGetTime();
+    double start = Time::Get();
 
     HexPoint lastMove = INVALID_POINT;
     if (!game_state.History().empty()) {
@@ -336,7 +336,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     time_remaining -= elapsed;
     
     LogInfo() << "Time to compute initial data: " 
-	      << FormattedTime(elapsed) << '\n';
+	      << Time::Formatted(elapsed) << '\n';
     
     // If a winning VC is found after a one ply move, no need to search
     if (oneMoveWin != INVALID_POINT) {
@@ -370,7 +370,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 
     brd.setUpdateRadius(old_radius);
 
-    double end = HexGetTime();
+    double end = Time::Get();
 
     // Output stats
     std::ostringstream os;
@@ -379,7 +379,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     os << m_shared_policy.DumpStatistics() << '\n';
     os << brd.DumpPatternCheckStats() << '\n';
 #endif
-    os << "Elapsed Time   " << FormattedTime(end - start) << '\n';
+    os << "Elapsed Time   " << Time::Formatted(end - start) << '\n';
     m_search.WriteStatistics(os);
     os << "Score          " << score << "\n"
        << "Sequence      ";

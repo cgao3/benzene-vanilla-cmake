@@ -258,7 +258,7 @@ void BookBuilder<PLAYER>::Expand(OpeningBook& book, const HexBoard& board,
     m_book = &book;
     m_brd = const_cast<HexBoard*>(&board);
     StoneBoard brd(board);
-    double s = HexGetTime();
+    double s = Time::Get();
     m_num_evals = 0;
 
     CreateWorkers();
@@ -296,12 +296,12 @@ void BookBuilder<PLAYER>::Expand(OpeningBook& book, const HexBoard& board,
     LogInfo() << "Flushing DB..." << '\n';
     m_book->Flush();
 
-    double e = HexGetTime();
+    double e = Time::Get();
 
     DestroyWorkers();
 
     LogInfo() << '\n'
-              << "  Total Time: " << FormattedTime(e - s) << '\n'
+              << "  Total Time: " << Time::Formatted(e - s) << '\n'
               << "  Expansions: " << num 
               << std::fixed << std::setprecision(2) 
               << " (" << (num / (e - s)) << "/s)" << '\n'

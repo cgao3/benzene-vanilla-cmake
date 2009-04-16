@@ -67,7 +67,7 @@ void Solver::Initialize(const HexBoard& brd)
 
     m_aborted = false;
 
-    m_start_time = HexGetTime();
+    m_start_time = Time::Get();
 
     m_histogram = Histogram();
     m_statistics = GlobalStatistics();
@@ -162,7 +162,7 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
     // contains played stones.
     solution.proof &= brd.getEmpty();
 
-    m_end_time = HexGetTime();
+    m_end_time = Time::Get();
 
     Cleanup();
 
@@ -290,7 +290,7 @@ bool Solver::CheckAbort()
             LogInfo() << "Solver::CheckAbort(): Abort flag!" << '\n';
         }
         else if ((m_settings.time_limit > 0) && 
-                 ((HexGetTime() - m_start_time) > m_settings.time_limit))
+                 ((Time::Get() - m_start_time) > m_settings.time_limit))
         {
             m_aborted = true;
             LogInfo() << "Solver::CheckAbort(): Timelimit!" << '\n';
@@ -629,7 +629,7 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
 		      << ": (" << color
 		      << ", " << cell << ")"
 		      << " " << m_statistics.played 
-		      << " " << FormattedTime(HexGetTime() - m_start_time);
+		      << " " << Time::Formatted(Time::Get() - m_start_time);
 	    
             if (!mustplay.test(cell))
                 LogInfo() << " " << "*pruned*";
@@ -1212,7 +1212,7 @@ void Solver::DumpStats(const SolutionSet& solution) const
     LogInfo() << "States/sec: " 
 	      << (solution.stats.explored_states/total_time) << '\n'
 	      << "Played/sec: " << (m_statistics.played/total_time) << '\n'
-	      << "Total Time: " << FormattedTime(total_time) << '\n'
+	      << "Total Time: " << Time::Formatted(total_time) << '\n'
 	      << "VC in " << solution.moves_to_connection << " moves" << '\n'
 	      << "PV:" << HexPointUtil::ToPointListString(solution.pv) << '\n'
 	      << m_histogram.Dump() << '\n';

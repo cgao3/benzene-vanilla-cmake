@@ -673,7 +673,7 @@ void ICEngine::ComputeInferiorCells(HexColor color, PatternBoard& board,
 #ifndef NDEBUG
     StoneBoard oldBoard(board);
 #endif
-    double startTime = HexGetTime();
+    double startTime = Time::Get();
 
     ComputeFillin(color, board, out);
 
@@ -693,7 +693,7 @@ void ICEngine::ComputeInferiorCells(HexColor color, PatternBoard& board,
         }
     }
     
-    double endTime = HexGetTime();
+    double endTime = Time::Get();
     LogFine() << "  " << (endTime - startTime) 
              << "s to find inferior cells." << '\n';
 #ifndef NDEBUG

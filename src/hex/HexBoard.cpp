@@ -203,7 +203,7 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move,
 void HexBoard::ComputeAll(HexColor color_to_move, 
                           EndgameFillin endgame_mode)
 {
-    double s = HexGetTime();
+    double s = Time::Get();
     
     update();
     absorb();
@@ -223,13 +223,13 @@ void HexBoard::ComputeAll(HexColor color_to_move,
         HandleVCDecomposition(color_to_move, endgame_mode);
     }
 
-    double e = HexGetTime();
+    double e = Time::Get();
     LogFine() << (e-s) << "s to compute all." << '\n';
 }
 
 void HexBoard::PlayMove(HexColor color, HexPoint cell)
 {
-    double s = HexGetTime();
+    double s = Time::Get();
     LogFine() << "Playing (" << color << ", " 
              << cell << ")" << '\n';
 
@@ -254,7 +254,7 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
         HandleVCDecomposition(!color, DO_NOT_REMOVE_WINNING_FILLIN);
     }
 
-    double e = HexGetTime();
+    double e = Time::Get();
     LogFine() << (e-s) << "s to play stones." << '\n';
 }
 
@@ -263,7 +263,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 {
     HexAssert(BitsetUtil::IsSubsetOf(played, getEmpty()));
 
-    double s = HexGetTime();
+    double s = Time::Get();
     LogFine() << "Playing (" << color << ","
              << HexPointUtil::ToPointListString(played) << ")"
              << '\n';
@@ -290,7 +290,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
                               DO_NOT_REMOVE_WINNING_FILLIN);
     }
 
-    double e = HexGetTime();
+    double e = Time::Get();
     LogFine() << (e-s) << "s to play stones." << '\n';
 }
 
@@ -300,7 +300,7 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
 {
     HexAssert(BitsetUtil::IsSubsetOf(played, getEmpty()));
 
-    double s = HexGetTime();
+    double s = Time::Get();
     LogFine() << "Adding (" << color << ", "
              << HexPointUtil::ToPointListString(played) << ")"
              << '\n';
@@ -321,19 +321,19 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     if (m_use_vcs)
         BuildVCs(added, false); 
 
-    double e = HexGetTime();
+    double e = Time::Get();
     LogFine() << (e-s) << "s to add stones." << '\n';
 }
 
 void HexBoard::UndoMove()
 {
-    double s = HexGetTime();
+    double s = Time::Get();
 
     PopHistory();
     update();
     absorb();
     
-    double e = HexGetTime();
+    double e = Time::Get();
     LogFine() << (e-s) << "s to undo move." << '\n';
 }
 

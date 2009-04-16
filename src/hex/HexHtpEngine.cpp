@@ -244,12 +244,12 @@ void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(2);
     if (cmd.NuArg() == 0) {
-        cmd << "Black: " << FormattedTime(m_game->TimeRemaining(BLACK)) << ", "
-            << "White: " << FormattedTime(m_game->TimeRemaining(WHITE));
+        cmd << "Black: " << Time::Formatted(m_game->TimeRemaining(BLACK)) << ", "
+            << "White: " << Time::Formatted(m_game->TimeRemaining(WHITE));
     }
     else if (cmd.NuArg() == 1) {
         HexColor color = ColorArg(cmd, 0);
-        cmd << FormattedTime(m_game->TimeRemaining(color));
+        cmd << Time::Formatted(m_game->TimeRemaining(color));
     } 
     else {
         HexColor color = ColorArg(cmd, 0);

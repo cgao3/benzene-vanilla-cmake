@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file Time.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -11,14 +11,14 @@
 
 //----------------------------------------------------------------------------
 
-double HexGetTime()
+double Time::Get()
 {
     struct timeval tt;
     gettimeofday(&tt, NULL);
-    return 1e-6*(tt.tv_sec*1e6 + tt.tv_usec);
+    return tt.tv_sec + 1e-6*tt.tv_usec;
 }
 
-std::string FormattedTime(double elapsed)
+std::string Time::Formatted(double elapsed)
 {
     std::ostringstream os;
 
