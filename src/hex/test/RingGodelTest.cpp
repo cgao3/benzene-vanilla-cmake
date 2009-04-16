@@ -9,7 +9,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(RingGodel_All)
+BOOST_AUTO_TEST_CASE(RingGodel_All)
 {
     RingGodel brd;
     PatternRingGodel pat;

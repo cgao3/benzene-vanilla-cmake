@@ -6,7 +6,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(HexColor_Iterator)
+BOOST_AUTO_TEST_CASE(HexColor_Iterator)
 {
     BWIterator itColor;
     BOOST_CHECK(itColor);
@@ -18,7 +18,7 @@ BOOST_AUTO_UNIT_TEST(HexColor_Iterator)
     BOOST_CHECK(!itColor);
 }
 
-BOOST_AUTO_UNIT_TEST(HexColor_CheckingValidityAndRange)
+BOOST_AUTO_TEST_CASE(HexColor_CheckingValidityAndRange)
 {
     BOOST_CHECK(HexColorUtil::isValidColor(BLACK));
     BOOST_CHECK(HexColorUtil::isValidColor(WHITE));
@@ -28,14 +28,14 @@ BOOST_AUTO_UNIT_TEST(HexColor_CheckingValidityAndRange)
     BOOST_CHECK(!HexColorUtil::isBlackWhite(EMPTY));
 }
 
-BOOST_AUTO_UNIT_TEST(HexColor_StringConversion)
+BOOST_AUTO_TEST_CASE(HexColor_StringConversion)
 {
     BOOST_CHECK_EQUAL(HexColorUtil::toString(BLACK), "black");
     BOOST_CHECK_EQUAL(HexColorUtil::toString(WHITE), "white");
     BOOST_CHECK_EQUAL(HexColorUtil::toString(EMPTY), "empty");
 }
 
-BOOST_AUTO_UNIT_TEST(HexColor_GetComplement)
+BOOST_AUTO_TEST_CASE(HexColor_GetComplement)
 {
     BOOST_CHECK_EQUAL(HexColorUtil::otherColor(BLACK), WHITE);
     BOOST_CHECK_EQUAL(HexColorUtil::otherColor(WHITE), BLACK);
@@ -50,7 +50,7 @@ BOOST_AUTO_UNIT_TEST(HexColor_GetComplement)
     }
 }
 
-BOOST_AUTO_UNIT_TEST(HexColorSet_CheckingValidity)
+BOOST_AUTO_TEST_CASE(HexColorSet_CheckingValidity)
 {
     BOOST_CHECK(HexColorSetUtil::isValid(BLACK_ONLY));
     BOOST_CHECK(HexColorSetUtil::isValid(WHITE_ONLY));
@@ -61,7 +61,7 @@ BOOST_AUTO_UNIT_TEST(HexColorSet_CheckingValidity)
     BOOST_CHECK(HexColorSetUtil::isValid(ALL_COLORS));
 }
 
-BOOST_AUTO_UNIT_TEST(HexColorSet_StringConversion)
+BOOST_AUTO_TEST_CASE(HexColorSet_StringConversion)
 {
     BOOST_CHECK_EQUAL(HexColorSetUtil::toString(BLACK_ONLY), "black_only");
     BOOST_CHECK_EQUAL(HexColorSetUtil::toString(WHITE_ONLY), "white_only");
@@ -79,7 +79,7 @@ BOOST_AUTO_UNIT_TEST(HexColorSet_StringConversion)
     BOOST_CHECK_EQUAL(HexColorSetUtil::fromString("all_colors"), ALL_COLORS);
 }
 
-BOOST_AUTO_UNIT_TEST(HexColorSet_CheckingInclusion)
+BOOST_AUTO_TEST_CASE(HexColorSet_CheckingInclusion)
 {
     BOOST_CHECK( HexColorSetUtil::InSet(BLACK, BLACK_ONLY));
     BOOST_CHECK(!HexColorSetUtil::InSet(WHITE, BLACK_ONLY));
@@ -99,7 +99,7 @@ BOOST_AUTO_UNIT_TEST(HexColorSet_CheckingInclusion)
     BOOST_CHECK( HexColorSetUtil::InSet(EMPTY, ALL_COLORS));
 }
 
-BOOST_AUTO_UNIT_TEST(HexColorSet_ColorToColorSet)
+BOOST_AUTO_TEST_CASE(HexColorSet_ColorToColorSet)
 {
     BOOST_CHECK_EQUAL(HexColorSetUtil::Only(BLACK), BLACK_ONLY);
     BOOST_CHECK_EQUAL(HexColorSetUtil::Only(WHITE), WHITE_ONLY);

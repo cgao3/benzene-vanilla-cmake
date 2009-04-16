@@ -7,7 +7,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(ConstBoard_Dimensions)
+BOOST_AUTO_TEST_CASE(ConstBoard_Dimensions)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 7);
     ConstBoard* cb = &ConstBoard::Get(1, 1);
@@ -24,7 +24,7 @@ BOOST_AUTO_UNIT_TEST(ConstBoard_Dimensions)
     BOOST_CHECK_EQUAL(cb->height(), MAX_HEIGHT);
 }
 
-BOOST_AUTO_UNIT_TEST(ConstBoard_CellsLocationsValid)
+BOOST_AUTO_TEST_CASE(ConstBoard_CellsLocationsValid)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 3);
     ConstBoard* cb = &ConstBoard::Get(5, 3);
@@ -89,7 +89,7 @@ BOOST_AUTO_UNIT_TEST(ConstBoard_CellsLocationsValid)
     BOOST_CHECK(cb->isValid(HEX_CELL_K11));
 }
 
-BOOST_AUTO_UNIT_TEST(ConstBoard_CellLocationValidIterators)
+BOOST_AUTO_TEST_CASE(ConstBoard_CellLocationValidIterators)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 9 && MAX_HEIGHT >= 6);
     ConstBoard* cb = &ConstBoard::Get(9, 6);
@@ -139,7 +139,7 @@ BOOST_AUTO_UNIT_TEST(ConstBoard_CellLocationValidIterators)
     BOOST_CHECK(remainingBitset.none());
 }
 
-BOOST_AUTO_UNIT_TEST(ConstBoard_NeighbourIterators)
+BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 11 && MAX_HEIGHT >= 11);
     BOOST_REQUIRE(Pattern::MAX_EXTENSION >= 3);
@@ -285,7 +285,7 @@ BOOST_AUTO_UNIT_TEST(ConstBoard_NeighbourIterators)
    
 }
 
-BOOST_AUTO_UNIT_TEST(ConstBoard_DistanceAndAdjacency)
+BOOST_AUTO_TEST_CASE(ConstBoard_DistanceAndAdjacency)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 11 && MAX_HEIGHT >= 11);
     

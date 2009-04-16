@@ -25,7 +25,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(PatternBoard_Tests)
+BOOST_AUTO_TEST_CASE(PatternBoard_Tests)
 {
     //              W !
     //             W * W                         [7/0]

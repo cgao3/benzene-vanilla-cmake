@@ -6,9 +6,9 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(SequenceHash_Hash)
+BOOST_AUTO_TEST_CASE(SequenceHash_Hash)
 {
-    MoveSequence a, b;
+    PointSequence a, b;
 
     BOOST_CHECK_EQUAL(SequenceHash::Hash(a), 0);
     

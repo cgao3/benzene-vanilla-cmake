@@ -9,7 +9,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(VC_Construction)
+BOOST_AUTO_TEST_CASE(VC_Construction)
 {
     HexPoint x = HexPointUtil::fromString("a1");
     HexPoint y = HexPointUtil::fromString("a2");

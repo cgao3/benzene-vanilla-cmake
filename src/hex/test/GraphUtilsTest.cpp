@@ -10,7 +10,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(GraphUtils_ComputeDigraph)
+BOOST_AUTO_TEST_CASE(GraphUtils_ComputeDigraph)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
     GroupBoard gb(5, 5);

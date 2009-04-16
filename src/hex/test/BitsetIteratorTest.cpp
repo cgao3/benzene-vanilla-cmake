@@ -9,7 +9,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(BitsetIterator_Basic)
+BOOST_AUTO_TEST_CASE(BitsetIterator_Basic)
 {
     bitset_t bs1;
     BitsetIterator b1(bs1);

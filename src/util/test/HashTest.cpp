@@ -11,7 +11,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(Hash_BasicTests)
+BOOST_AUTO_TEST_CASE(Hash_BasicTests)
 {
     BOOST_CHECK_EQUAL(HashUtil::toString(0), "0x0");
     BOOST_CHECK_EQUAL(HashUtil::toString(1), "0x1");

@@ -11,7 +11,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(Digraph_AllTests)
+BOOST_AUTO_TEST_CASE(Digraph_AllTests)
 {
     Digraph<int> g;
 
@@ -121,7 +121,7 @@ BOOST_AUTO_UNIT_TEST(Digraph_AllTests)
 
 }
 
-BOOST_AUTO_UNIT_TEST(Digraph_StronglyConnectedComponents)
+BOOST_AUTO_TEST_CASE(Digraph_StronglyConnectedComponents)
 {
     Digraph<int> g1;
     std::vector<std::set<int> > comp;

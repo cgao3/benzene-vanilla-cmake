@@ -13,7 +13,7 @@ namespace {
 
 //---------------------------------------------------------------------------
 
-BOOST_AUTO_UNIT_TEST(HexBoard_PlayAndUndo)
+BOOST_AUTO_TEST_CASE(HexBoard_PlayAndUndo)
 {
     ICEngine ice;
     ConnectionBuilderParam param;
@@ -32,7 +32,7 @@ BOOST_AUTO_UNIT_TEST(HexBoard_PlayAndUndo)
     BOOST_CHECK(!brd.Cons(BLACK).Exists(NORTH, HEX_CELL_A4, VC::FULL));
 }
 
-BOOST_AUTO_UNIT_TEST(HexBoard_CopyConstructor)
+BOOST_AUTO_TEST_CASE(HexBoard_CopyConstructor)
 {
     ICEngine ice;
     ConnectionBuilderParam param;

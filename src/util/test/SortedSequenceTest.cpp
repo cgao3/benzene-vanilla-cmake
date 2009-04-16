@@ -11,7 +11,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(SortedSequence_Empty)
+BOOST_AUTO_TEST_CASE(SortedSequence_Empty)
 {
     SortedSequence seq;
     BOOST_CHECK(seq.finished());
@@ -24,7 +24,7 @@ BOOST_AUTO_UNIT_TEST(SortedSequence_Empty)
     BOOST_CHECK(ss.finished());
 }
 
-BOOST_AUTO_UNIT_TEST(SortedSequence_one)
+BOOST_AUTO_TEST_CASE(SortedSequence_one)
 {
     SortedSequence seq(4, 1);
     
@@ -59,7 +59,7 @@ BOOST_AUTO_UNIT_TEST(SortedSequence_one)
     BOOST_CHECK(seq.finished());
 }
 
-BOOST_AUTO_UNIT_TEST(SortedSequence_two)
+BOOST_AUTO_TEST_CASE(SortedSequence_two)
 {
     std::vector<int> v(2);
     v[0] = 1;
@@ -94,7 +94,7 @@ BOOST_AUTO_UNIT_TEST(SortedSequence_two)
     BOOST_CHECK(seq.finished());
 }
 
-BOOST_AUTO_UNIT_TEST(SortedSequence_three)
+BOOST_AUTO_TEST_CASE(SortedSequence_three)
 {
     SortedSequence seq(5, 3);
     

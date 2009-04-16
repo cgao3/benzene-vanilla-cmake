@@ -23,7 +23,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(VCList_Basic)
+BOOST_AUTO_TEST_CASE(VCList_Basic)
 {
     HexPoint x = HexPointUtil::fromString("a1");
     HexPoint y = HexPointUtil::fromString("a2");

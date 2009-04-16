@@ -12,7 +12,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(UnionFind_AllTests)
+BOOST_AUTO_TEST_CASE(UnionFind_AllTests)
 {
     UnionFind<14> uf;
     int root;

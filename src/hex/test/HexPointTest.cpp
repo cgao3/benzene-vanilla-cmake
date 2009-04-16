@@ -10,7 +10,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(HexPoint_NecessaryPointOrdering)
+BOOST_AUTO_TEST_CASE(HexPoint_NecessaryPointOrdering)
 {
     BOOST_CHECK(!INVALID_POINT);
     BOOST_CHECK(FIRST_SPECIAL < FIRST_EDGE);
@@ -25,7 +25,7 @@ BOOST_AUTO_UNIT_TEST(HexPoint_NecessaryPointOrdering)
     BOOST_CHECK(FIRST_INVALID <= BITSETSIZE);
 }
 
-BOOST_AUTO_UNIT_TEST(HexPoint_StringConversion)
+BOOST_AUTO_TEST_CASE(HexPoint_StringConversion)
 {
     BOOST_CHECK_EQUAL(HexPointUtil::toString(INVALID_POINT), "invalid");
     BOOST_CHECK_EQUAL(HexPointUtil::toString(RESIGN), "resign");
@@ -73,7 +73,7 @@ BOOST_AUTO_UNIT_TEST(HexPoint_StringConversion)
                       HEX_CELL_E7);
 }
 
-BOOST_AUTO_UNIT_TEST(HexPoint_Swap)
+BOOST_AUTO_TEST_CASE(HexPoint_Swap)
 {
     BOOST_CHECK(!HexPointUtil::isSwap(INVALID_POINT));
     BOOST_CHECK(!HexPointUtil::isSwap(RESIGN));
@@ -82,7 +82,7 @@ BOOST_AUTO_UNIT_TEST(HexPoint_Swap)
     BOOST_CHECK(!HexPointUtil::isSwap(FIRST_INVALID));
 }
 
-BOOST_AUTO_UNIT_TEST(HexPoint_Edges)
+BOOST_AUTO_TEST_CASE(HexPoint_Edges)
 {
     BOOST_CHECK(!HexPointUtil::isEdge(INVALID_POINT));
     BOOST_CHECK(!HexPointUtil::isEdge(RESIGN));
@@ -121,7 +121,7 @@ BOOST_AUTO_UNIT_TEST(HexPoint_Edges)
     BOOST_CHECK(HexPointUtil::isColorEdge(HexPointUtil::colorEdge2(WHITE), WHITE));
 }
 
-BOOST_AUTO_UNIT_TEST(HexPoint_CoordsConversion)
+BOOST_AUTO_TEST_CASE(HexPoint_CoordsConversion)
 {
     int x, y;
     HexPointUtil::pointToCoords(FIRST_CELL, x, y);
@@ -140,7 +140,7 @@ BOOST_AUTO_UNIT_TEST(HexPoint_CoordsConversion)
     BOOST_CHECK_EQUAL(HexPointUtil::coordsToPoint(1, 1), HEX_CELL_B2);
 }
 
-BOOST_AUTO_UNIT_TEST(HexPoint_DirectionalDeltaXY)
+BOOST_AUTO_TEST_CASE(HexPoint_DirectionalDeltaXY)
 {
     BOOST_CHECK_EQUAL(HexPointUtil::DeltaX(DIR_EAST), 1);
     BOOST_CHECK_EQUAL(HexPointUtil::DeltaY(DIR_EAST), 0);

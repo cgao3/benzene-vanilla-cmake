@@ -9,7 +9,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(BoardIterator_Basic)
+BOOST_AUTO_TEST_CASE(BoardIterator_Basic)
 {
     std::vector<HexPoint> empty, simple;
     

@@ -14,7 +14,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(Connections_CheckCopy)
+BOOST_AUTO_TEST_CASE(Connections_CheckCopy)
 {
     GroupBoard bd(11, 11);
     Connections con1(bd.Const(), BLACK);
@@ -33,7 +33,7 @@ BOOST_AUTO_UNIT_TEST(Connections_CheckCopy)
 }
 
 /** @todo Make this test quicker! */
-BOOST_AUTO_UNIT_TEST(Connections_CheckRevert)
+BOOST_AUTO_TEST_CASE(Connections_CheckRevert)
 {
     GroupBoard bd(11, 11);
 

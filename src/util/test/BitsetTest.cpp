@@ -11,7 +11,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(Bitset_Basics)
+BOOST_AUTO_TEST_CASE(Bitset_Basics)
 {
     // sort of ridiculous, but in case someone switches
     // from stl to some other basis, we need these
@@ -49,74 +49,7 @@ BOOST_AUTO_UNIT_TEST(Bitset_Basics)
     BOOST_CHECK(b1.none());
 }
 
-BOOST_AUTO_UNIT_TEST(Bitset_ConversionToBase64)
-{
-    bitset_t b;
-    std::string s1, s2;
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_REQUIRE(BITSETSIZE >= 128);
-    int numExtraChars = (BITSETSIZE + 5) / 6 - 21;
-    BOOST_CHECK(numExtraChars >= 0);
-    for (int i=0; i<numExtraChars; i++)
-	s2 = s2 + "0";
-    BOOST_CHECK_EQUAL(s1, "000000000000000000000" + s2);
-    b.set(0);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "100000000000000000000" + s2);
-    b.reset();
-    b.set(1);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "200000000000000000000" + s2);
-    b.reset();
-    b.set(2);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "400000000000000000000" + s2);
-    b.reset();
-    b.set(3);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "800000000000000000000" + s2);
-    b.reset();
-    b.set(4);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "G00000000000000000000" + s2);
-    b.reset();
-    b.set(5);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "W00000000000000000000" + s2);
-    b.reset();
-    b.set(6);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "010000000000000000000" + s2);
-    b.reset();
-    b.set(0);
-    b.set(1);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "300000000000000000000" + s2);
-    b.set(2);
-    b.set(3);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "F00000000000000000000" + s2);
-    b.set(4);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "V00000000000000000000" + s2);
-    b.set(5);
-    s1 = BitsetToBase64(b);
-    BOOST_CHECK_EQUAL(Base64ToBitset(s1), b);
-    BOOST_CHECK_EQUAL(s1, "/00000000000000000000" + s2);
-}
-
-BOOST_AUTO_UNIT_TEST(Bitset_ConversionToBytes)
+BOOST_AUTO_TEST_CASE(Bitset_ConversionToBytes)
 {
     bitset_t b1, b2;
     byte byteArray[8];
@@ -143,7 +76,7 @@ BOOST_AUTO_UNIT_TEST(Bitset_ConversionToBytes)
     BOOST_CHECK_EQUAL(byteArray[1], 1);
 }
 
-BOOST_AUTO_UNIT_TEST(Bitset_ConversionToHex)
+BOOST_AUTO_TEST_CASE(Bitset_ConversionToHex)
 {
     bitset_t b;
     std::string s;
@@ -170,7 +103,7 @@ BOOST_AUTO_UNIT_TEST(Bitset_ConversionToHex)
     BOOST_CHECK(BitsetUtil::IsSubsetOf(BitsetUtil::HexToBitset(s), b));
 }
 
-BOOST_AUTO_UNIT_TEST(Bitset_Subtraction)
+BOOST_AUTO_TEST_CASE(Bitset_Subtraction)
 {
     bitset_t b1, b2;
     BOOST_REQUIRE(BITSETSIZE > 2);
@@ -204,7 +137,7 @@ BOOST_AUTO_UNIT_TEST(Bitset_Subtraction)
     BOOST_CHECK((b2 - b1).test(0));
 }
 
-BOOST_AUTO_UNIT_TEST(Bitset_Comparison)
+BOOST_AUTO_TEST_CASE(Bitset_Comparison)
 {
     // Note: cannot assume any order for IsLessThan, so can only
     // check that it is transitive and non-reflexive
@@ -316,7 +249,7 @@ BOOST_AUTO_UNIT_TEST(Bitset_Comparison)
     BOOST_CHECK(BitsetUtil::IsSubsetOf(b3, b2));
 }
 
-BOOST_AUTO_UNIT_TEST(Bitset_ConversionToVector)
+BOOST_AUTO_TEST_CASE(Bitset_ConversionToVector)
 {
     bitset_t b;
     std::vector<int> moves;
@@ -338,7 +271,7 @@ BOOST_AUTO_UNIT_TEST(Bitset_ConversionToVector)
     BOOST_CHECK_EQUAL(moves[moves.size()-1], BITSETSIZE-1);
 }
 
-BOOST_AUTO_UNIT_TEST(Bitset_FindSingleton)
+BOOST_AUTO_TEST_CASE(Bitset_FindSingleton)
 {
     bitset_t b;
     BOOST_REQUIRE(BITSETSIZE > 2);

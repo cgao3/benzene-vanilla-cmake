@@ -11,14 +11,14 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(ChangeLog_InitialState)
+BOOST_AUTO_TEST_CASE(ChangeLog_InitialState)
 {
     ChangeLog<float> cl;
     BOOST_CHECK(cl.empty());
     BOOST_CHECK_EQUAL(cl.size(), 0);
 }
 
-BOOST_AUTO_UNIT_TEST(ChangeLog_PushPopTopAndClear)
+BOOST_AUTO_TEST_CASE(ChangeLog_PushPopTopAndClear)
 {
     ChangeLog<float> cl;
     cl.push(ChangeLog<float>::ADD, 0.1f);
@@ -55,7 +55,7 @@ BOOST_AUTO_UNIT_TEST(ChangeLog_PushPopTopAndClear)
     BOOST_CHECK(cl.empty());
 }
 
-BOOST_AUTO_UNIT_TEST(ChangeLog_Dump)
+BOOST_AUTO_TEST_CASE(ChangeLog_Dump)
 {
     ChangeLog<float> cl;
     BOOST_CHECK_EQUAL(cl.dump(), "");

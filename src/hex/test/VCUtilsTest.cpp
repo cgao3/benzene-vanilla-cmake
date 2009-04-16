@@ -9,7 +9,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(VCUtils_ValidEdgeBridge)
+BOOST_AUTO_TEST_CASE(VCUtils_ValidEdgeBridge)
 {
     StoneBoard brd(4, 4);
     brd.startNewGame();

@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: TestMain.cpp 1859 2009-01-21 21:54:01Z broderic $
+/** @file TestMain.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include <cstdlib>
@@ -19,7 +20,8 @@ namespace {
 void Initialize()
 {
     int argc = 1;
-    char* argv = "bin/hex-test";
+    char name[] = "bin/hex-test";
+    char* argv = name;
     HexProgram& program = HexProgram::Get();
     program.SetInfo("hex-test", VERSION, __DATE__);
     program.Initialize(argc, &argv);

@@ -11,7 +11,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(ICEngine_Tests)
+BOOST_AUTO_TEST_CASE(ICEngine_Tests)
 {
 }
 

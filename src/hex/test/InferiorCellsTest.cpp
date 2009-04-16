@@ -11,12 +11,12 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(InferiorCells_Basic)
+BOOST_AUTO_TEST_CASE(InferiorCells_Basic)
 {
     
 }
 
-BOOST_AUTO_UNIT_TEST(InferiorCells_Dominated) 
+BOOST_AUTO_TEST_CASE(InferiorCells_Dominated) 
 {
     HexPoint a1 = HexPointUtil::fromString("a1");
     HexPoint b1 = HexPointUtil::fromString("b1");

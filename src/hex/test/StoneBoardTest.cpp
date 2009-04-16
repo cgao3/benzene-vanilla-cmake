@@ -10,13 +10,13 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(StoneBoard_CheckInitialBitsets)
+BOOST_AUTO_TEST_CASE(StoneBoard_CheckInitialBitsets)
 {
     // test removed since state is not defined until
     // startNewGame() is called. 
 }
 
-BOOST_AUTO_UNIT_TEST(StoneBoard_numStones)
+BOOST_AUTO_TEST_CASE(StoneBoard_numStones)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
 
@@ -34,7 +34,7 @@ BOOST_AUTO_UNIT_TEST(StoneBoard_numStones)
     BOOST_CHECK_EQUAL(b.numStones(), 2);
 }
 
-BOOST_AUTO_UNIT_TEST(StoneBoard_AddRemoveSetColor)
+BOOST_AUTO_TEST_CASE(StoneBoard_AddRemoveSetColor)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 8 && MAX_HEIGHT >= 8);
     StoneBoard sb = StoneBoard(8, 8);
@@ -100,7 +100,7 @@ BOOST_AUTO_UNIT_TEST(StoneBoard_AddRemoveSetColor)
     BOOST_CHECK(sb.getWhite().test(HEX_CELL_A4));
 }
 
-BOOST_AUTO_UNIT_TEST(StoneBoard_PlayAndUndoMoves)
+BOOST_AUTO_TEST_CASE(StoneBoard_PlayAndUndoMoves)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 9 && MAX_HEIGHT >= 9);
     
@@ -170,7 +170,7 @@ BOOST_AUTO_UNIT_TEST(StoneBoard_PlayAndUndoMoves)
     BOOST_CHECK(sb.isWhite(HexPointUtil::fromString("f6")));
 }
 
-BOOST_AUTO_UNIT_TEST(StoneBoard_RotateAndMirrorBoard)
+BOOST_AUTO_TEST_CASE(StoneBoard_RotateAndMirrorBoard)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 8 && MAX_HEIGHT >= 8);
     StoneBoard sb = StoneBoard(5, 6);
@@ -294,7 +294,7 @@ BOOST_AUTO_UNIT_TEST(StoneBoard_RotateAndMirrorBoard)
     BOOST_CHECK(sb.isPlayed(WEST));
 }
 
-BOOST_AUTO_UNIT_TEST(StoneBoard_Hash)
+BOOST_AUTO_TEST_CASE(StoneBoard_Hash)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
     StoneBoard sb = StoneBoard(5, 5);
@@ -331,7 +331,7 @@ BOOST_AUTO_UNIT_TEST(StoneBoard_Hash)
     BOOST_CHECK(h2 == sb.Hash());
 }
 
-BOOST_AUTO_UNIT_TEST(StoneBoard_WhoseTurn)
+BOOST_AUTO_TEST_CASE(StoneBoard_WhoseTurn)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
     StoneBoard sb = StoneBoard(5, 5);
@@ -373,7 +373,7 @@ BOOST_AUTO_UNIT_TEST(StoneBoard_WhoseTurn)
 
 //---------------------------------------------------------------------------
 
-BOOST_AUTO_UNIT_TEST(StoneBoard_BoardID)
+BOOST_AUTO_TEST_CASE(StoneBoard_BoardID)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 2 && MAX_HEIGHT >= 2);
 

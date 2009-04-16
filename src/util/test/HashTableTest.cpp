@@ -12,7 +12,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(HashTable_AllTests)
+BOOST_AUTO_TEST_CASE(HashTable_AllTests)
 {
     HashTable<int> hm(5);
 

@@ -11,7 +11,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(GroupBoard_Captains)
+BOOST_AUTO_TEST_CASE(GroupBoard_Captains)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
     GroupBoard gb(5, 5);
@@ -37,7 +37,7 @@ BOOST_AUTO_UNIT_TEST(GroupBoard_Captains)
 
 }
 
-BOOST_AUTO_UNIT_TEST(GroupBoard_Caching)
+BOOST_AUTO_TEST_CASE(GroupBoard_Caching)
 {
     bitset_t nbs, mbs;
     GroupBoard gb(5, 5);
@@ -85,7 +85,7 @@ BOOST_AUTO_UNIT_TEST(GroupBoard_Caching)
 
 }
 
-BOOST_AUTO_UNIT_TEST(GroupBoard_Nbs)
+BOOST_AUTO_TEST_CASE(GroupBoard_Nbs)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
     GroupBoard gb(5, 5);

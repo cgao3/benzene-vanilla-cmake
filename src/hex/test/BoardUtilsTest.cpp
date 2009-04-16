@@ -10,7 +10,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(BoardUtils_BitsetPacking)
+BOOST_AUTO_TEST_CASE(BoardUtils_BitsetPacking)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 7 && MAX_HEIGHT >= 9);
     ConstBoard* cb = &ConstBoard::Get(7, 9);
@@ -37,7 +37,7 @@ BOOST_AUTO_UNIT_TEST(BoardUtils_BitsetPacking)
     BOOST_CHECK_EQUAL(BoardUtils::UnpackBitset(*cb, b2), b1 & cb->getCells());
 }
 
-BOOST_AUTO_UNIT_TEST(BoardUtils_RotateAndMirror)
+BOOST_AUTO_TEST_CASE(BoardUtils_RotateAndMirror)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 11 && MAX_HEIGHT >= 11);
     
@@ -84,7 +84,7 @@ BOOST_AUTO_UNIT_TEST(BoardUtils_RotateAndMirror)
     BOOST_CHECK_EQUAL(BoardUtils::Mirror(*cb, HEX_CELL_D5), HEX_CELL_E4);
 }
 
-BOOST_AUTO_UNIT_TEST(BoardUtils_CentrePoints)
+BOOST_AUTO_TEST_CASE(BoardUtils_CentrePoints)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 10 && MAX_HEIGHT >= 10);
     
@@ -109,7 +109,7 @@ BOOST_AUTO_UNIT_TEST(BoardUtils_CentrePoints)
     BOOST_CHECK_EQUAL(BoardUtils::CenterPointRight(*cb), HEX_CELL_F4);
 }
 
-BOOST_AUTO_UNIT_TEST(BoardUtils_CoordsToPoint)
+BOOST_AUTO_TEST_CASE(BoardUtils_CoordsToPoint)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 8 && MAX_HEIGHT >= 8);
     ConstBoard* cb = &ConstBoard::Get(8, 8);
@@ -129,7 +129,7 @@ BOOST_AUTO_UNIT_TEST(BoardUtils_CoordsToPoint)
 		      HEX_CELL_H8);
 }
 
-BOOST_AUTO_UNIT_TEST(BoardUtils_PointInDir)
+BOOST_AUTO_TEST_CASE(BoardUtils_PointInDir)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 8 && MAX_HEIGHT >= 8);
     ConstBoard* cb = &ConstBoard::Get(8, 8);
@@ -150,7 +150,7 @@ BOOST_AUTO_UNIT_TEST(BoardUtils_PointInDir)
     BOOST_CHECK_EQUAL(BoardUtils::PointInDir(*cb, NORTH, DIR_EAST), NORTH);
 }
 
-BOOST_AUTO_UNIT_TEST(BoardUtils_ShiftBitset)
+BOOST_AUTO_TEST_CASE(BoardUtils_ShiftBitset)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 8 && MAX_HEIGHT >= 8);
     ConstBoard* cb = &ConstBoard::Get(8, 8);
@@ -168,7 +168,7 @@ BOOST_AUTO_UNIT_TEST(BoardUtils_ShiftBitset)
 
 }
 
-BOOST_AUTO_UNIT_TEST(BoardUtil_RandomEmptyCell)
+BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
 {
     HexPoint p;
     BOOST_REQUIRE(MAX_WIDTH >= 2 && MAX_HEIGHT >= 2);

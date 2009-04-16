@@ -10,7 +10,7 @@
 
 namespace {
 
-BOOST_AUTO_UNIT_TEST(ZobristHash_InitializationAndUpdates)
+BOOST_AUTO_TEST_CASE(ZobristHash_InitializationAndUpdates)
 {
     bitset_t black, white;
     hash_t h1, h2, h3;
