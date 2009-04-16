@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: LadderCheck.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file LadderCheck.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "LadderCheck.hpp"
@@ -51,7 +52,7 @@ HexPoint LadderCheck::pre_search(HexBoard& brd, const Game& game_state,
         if (badProbes.any()) {
             consider = consider - badProbes;
             LogInfo() << "Removed bad probes:"
-                     << brd.printBitset(badProbes) << '\n';
+                      << brd.printBitset(badProbes) << '\n';
         }
     }
 
