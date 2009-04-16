@@ -16,6 +16,7 @@ src/config.h
 src/config.in
 src/stamp-h1
 Makefile
+TAGS
 .deps
 *.log
 *.tags
