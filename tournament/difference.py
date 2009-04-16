@@ -30,16 +30,12 @@ def listDifferences(filename1, filename2):
         array1 = string.split(line1, "\t")
         gamenum1 = array1[0]
         fullopening1 = array1[2]
-        black1 = array1[3]
-        white1 = array1[4]
         bres1 = array1[5]
         wres1 = array1[6]
         
         array2 = string.split(line2, "\t")
         gamenum2 = array2[0]
         fullopening2 = array2[2]
-        black2 = array2[3]
-        white2 = array2[4]
         bres2 = array2[5]
         wres2 = array2[6]
         
@@ -54,23 +50,25 @@ def listDifferences(filename1, filename2):
             f2.close()
             sys.exit(-1)
         
-        if ((bres1 == wres1) and (bres2 == wres2)):
-            if (((bres1 == black1) and (bres2 != black2)) or
-                ((bres1 != black1) and (bres2 == black2))):
-                totaldiff = totaldiff + 1
-                oldmorep1wins = morep1wins
-                
-                if (bres2 == black2):
-                    morep1wins = morep1wins + evengame
-                    morep2wins = morep2wins + 1 - evengame
-                else:
-                    morep1wins = morep1wins + 1 - evengame
-                    morep2wins = morep2wins + evengame
-                
-                if (oldmorep1wins < morep1wins):
-                    print "Game " + str(gamenum1) + ": P1 gain"
-                else:
-                    print "Game " + str(gamenum1) + ": P2 gain"
+        if ((bres1 != wres1) or (bres2 != wres2)):
+            print "Players disagree on result in game " + str(gamenum1) + "!"
+        elif (bres1 != bres2):
+            totaldiff = totaldiff + 1
+            oldmorep1wins = morep1wins
+            
+            if (bres2 == "B+"):
+                morep1wins = morep1wins + evengame
+                morep2wins = morep2wins + 1 - evengame
+            elif (bres2 == "W+"):
+                morep1wins = morep1wins + 1 - evengame
+                morep2wins = morep2wins + evengame
+            else:
+                print "Invalid result for game " + str(gamenum1) + "!"
+            
+            if (oldmorep1wins < morep1wins):
+                print "Game " + str(gamenum1) + ": P1 gain"
+            else:
+                print "Game " + str(gamenum1) + ": P2 gain"
         
         line1 = f1.readline()
         linenum1 = linenum1 + 1
