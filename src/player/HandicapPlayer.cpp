@@ -33,6 +33,11 @@ HexPoint HandicapPlayer::search(HexBoard& brd,
     UNUSED(consider);
     UNUSED(time_remaining); 
     UNUSED(score);
+// NOTE: 'color' is currently used only in a few HexAsserts below. 
+// Remove this if it will be used outside of the HexAsserts!
+#ifdef NDEBUG
+    UNUSED(color);
+#endif
 
     HexPoint lastMove, response;
     HexAssert(color == !VERTICAL_COLOR);
