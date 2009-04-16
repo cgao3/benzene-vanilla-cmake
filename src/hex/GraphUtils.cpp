@@ -126,12 +126,14 @@ bitset_t GraphUtils::CellsOnShortestWinningPaths(const GroupBoard& brd,
     return CellsOnShortestWinningPaths(brd, c, nbs, distFromStart);
 }
 
-bitset_t GraphUtils::CellsOnShortestWinningPaths(const GroupBoard& UNUSED(brd),
+bitset_t GraphUtils::CellsOnShortestWinningPaths(const GroupBoard& brd,
 						 HexColor c,
 						 PointToBitset& nbs,
 					 int distFromStart[2][BITSETSIZE],
 					 int numPaths[2][BITSETSIZE])
 {
+    UNUSED(brd);
+
     // Perform BFS from each of the color c edges using the given adjacencies.
     bitset_t stop;
     stop.set(HexPointUtil::colorEdge1(c));

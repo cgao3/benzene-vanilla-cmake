@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: WolvePlayer.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file WolvePlayer.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
@@ -39,12 +40,15 @@ WolvePlayer::~WolvePlayer()
 //----------------------------------------------------------------------------
 
 HexPoint WolvePlayer::search(HexBoard& brd, 
-                             const Game& UNUSED(game_state),
+                             const Game& game_state,
 			     HexColor color, 
                              const bitset_t& consider,
-                             double UNUSED(time_remaining),
+                             double time_remaining,
                              double& score)
 {
+    UNUSED(game_state);
+    UNUSED(time_remaining);
+
     m_search.SetRootMovesToConsider(consider);
     LogInfo() << "Using consider set:" << brd.printBitset(consider) << '\n'
 	      << "Plywidths: " << MiscUtil::PrintVector(m_plywidth) << '\n'
@@ -242,8 +246,10 @@ void WolveSearch::ExecuteMove(HexPoint move)
     }
 }
 
-void WolveSearch::UndoMove(HexPoint UNUSED(move))
+void WolveSearch::UndoMove(HexPoint move)
 {
+    UNUSED(move);
+
     if (m_use_threads)
     {
         m_threadAction = WOLVE_THREAD_UNDO;

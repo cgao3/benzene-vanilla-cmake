@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: HexUctSearch.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file HexUctSearch.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -161,8 +162,10 @@ void HexUctSearch::SaveGames(const std::string& filename) const
     HexSgUtil::WriteSgf(m_root, "MoHex", filename.c_str(), m_brd->height()); 
 }
 
-void HexUctSearch::SaveTree(std::ostream& UNUSED(out)) const
+void HexUctSearch::SaveTree(std::ostream& out) const
 {
+    UNUSED(out);
+
     LogWarning() << "SaveTree() not implemented yet!" << '\n';
 
 #if 0
@@ -171,10 +174,12 @@ void HexUctSearch::SaveTree(std::ostream& UNUSED(out)) const
 #endif
 }
 
-void HexUctSearch::OnSearchIteration(std::size_t gameNumber, 
-                                     int UNUSED(threadId),
-                                     const SgUctGameInfo& UNUSED(info))
+void HexUctSearch::OnSearchIteration(std::size_t gameNumber, int threadId,
+                                     const SgUctGameInfo& info)
 {
+    UNUSED(threadId);
+    UNUSED(info);
+
     if (m_liveGfx && gameNumber % m_liveGfxInterval == 0)
     {
         std::ostringstream os;

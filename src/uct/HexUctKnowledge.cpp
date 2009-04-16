@@ -21,8 +21,10 @@ HexUctPriorKnowledge::~HexUctPriorKnowledge()
 {
 }
 
-void HexUctPriorKnowledge::ProcessPosition(bool& UNUSED(deepenTree))
+void HexUctPriorKnowledge::ProcessPosition(bool& deepenTree)
 {
+    UNUSED(deepenTree);
+
     // Get previous move and current board state.
     HexPoint prevMove = m_state.GetLastMovePlayed();
     HexColor toPlay = m_state.GetColorToPlay();

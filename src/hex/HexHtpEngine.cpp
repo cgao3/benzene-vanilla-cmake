@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: HexHtpEngine.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file HexHtpEngine.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -107,9 +108,10 @@ void HexHtpEngine::Play(HexColor color, HexPoint move)
     }
 }
 
-HexPoint HexHtpEngine::GenMove(HexColor UNUSED(color), 
-                               double UNUSED(time_remaining))
+HexPoint HexHtpEngine::GenMove(HexColor color, double time_remaining)
 {
+    UNUSED(color);
+    UNUSED(time_remaining);
     return BoardUtils::RandomEmptyCell(m_game->Board());
 }
  

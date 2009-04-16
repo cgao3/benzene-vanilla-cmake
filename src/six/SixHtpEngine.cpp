@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: SixHtpEngine.cpp 1871 2009-01-28 00:50:33Z broderic $
+/** @file SixHtpEngine.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -158,9 +159,10 @@ void SixHtpEngine::NewGame(int width, int height)
                                 m_game->AllowSwap()));
 }
 
-HexPoint SixHtpEngine::GenMove(HexColor color, 
-                               double UNUSED(time_remaining))
+HexPoint SixHtpEngine::GenMove(HexColor color, double time_remaining)
 {
+    UNUSED(time_remaining);
+
     HexMark mark = SixColor(color);
 
     // check if the game is over and resign if so
@@ -201,14 +203,14 @@ void SixHtpEngine::CmdScoreForLastMove(HtpCommand& cmd)
 
 int g_doOrs;
 
-void SixHtpEngine::CmdVCBuild(HtpCommand& UNUSED(cmd))
+void SixHtpEngine::CmdVCBuild(HtpCommand& cmd)
 {
+    UNUSED(cmd);
 
     static Poi<Connector::DualBatchLimiter> limiter =
         Poi<Connector::DualBatchLimiter>
         (new Connector::SoftLimiter(MAXINT, MAXINT, 50, MAXINT));
-    
-   
+       
     for (BWIterator it; it; ++it) {
         HexMark mark = SixColor(*it);
 

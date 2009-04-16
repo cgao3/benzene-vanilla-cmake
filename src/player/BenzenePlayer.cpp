@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: BenzenePlayer.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file BenzenePlayer.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "BenzenePlayer.hpp"
@@ -54,9 +55,11 @@ HexPoint BenzenePlayer::genmove(HexBoard& brd,
 HexPoint BenzenePlayer::init_search(HexBoard& brd, 
                                     HexColor color, 
                                     bitset_t& consider, 
-                                    double UNUSED(time_remaining), 
+                                    double time_remaining,
                                     double& score)
 {
+    UNUSED(time_remaining);
+    
     // resign if the game is already over
     brd.absorb();
     if (brd.isGameOver()) {
@@ -72,33 +75,49 @@ HexPoint BenzenePlayer::init_search(HexBoard& brd,
     return INVALID_POINT;
 }
 
-HexPoint BenzenePlayer::pre_search(HexBoard& UNUSED(brd), 
-                                   const Game& UNUSED(game_state),
-                                   HexColor UNUSED(color), 
-                                   bitset_t& UNUSED(consider),
-                                   double UNUSED(time_remaining), 
-                                   double& UNUSED(score))
+HexPoint BenzenePlayer::pre_search(HexBoard& brd,
+                                   const Game& game_state,
+                                   HexColor color, 
+                                   bitset_t& consider,
+                                   double time_remaining,
+                                   double& score)
 {
+    UNUSED(brd); 
+    UNUSED(game_state);
+    UNUSED(color);
+    UNUSED(consider);
+    UNUSED(time_remaining);
+    UNUSED(score);
     return INVALID_POINT;
 }
 
 HexPoint BenzenePlayer::search(HexBoard& brd, 
-                               const Game& UNUSED(game_state),
-                               HexColor UNUSED(color), 
-                               const bitset_t& UNUSED(consider),
-                               double UNUSED(time_remaining), 
-                               double& UNUSED(score))
+                               const Game& game_state,
+                               HexColor color, 
+                               const bitset_t& consider,
+                               double time_remaining, 
+                               double& score)
 {
     HexAssert(false); // Defense against Phil's stupidity
+
+    UNUSED(game_state);
+    UNUSED(color);
+    UNUSED(consider);
+    UNUSED(time_remaining);
+    UNUSED(score);
     return BoardUtils::RandomEmptyCell(brd);
 }
     
 HexPoint BenzenePlayer::post_search(HexPoint move, 
-                                    HexBoard& UNUSED(brd), 
-                                    HexColor UNUSED(color), 
-                                    double UNUSED(time_remaining), 
-                                    double& UNUSED(score))
+                                    HexBoard& brd,
+                                    HexColor color,
+                                    double time_remaining,
+                                    double& score)
 {
+    UNUSED(brd);
+    UNUSED(color);
+    UNUSED(time_remaining);
+    UNUSED(score);
     return move;
 }
 

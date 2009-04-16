@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: PerfectPlayer.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file PerfectPlayer.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -24,12 +25,16 @@ PerfectPlayer::~PerfectPlayer()
 //----------------------------------------------------------------------------
 
 HexPoint PerfectPlayer::search(HexBoard& brd, 
-                               const Game& UNUSED(game_state),
-			       HexColor color, 
-                               const bitset_t& UNUSED(consider), 
-                               double UNUSED(time_remaining), 
+                               const Game& game_state,
+			       HexColor color,
+                               const bitset_t& consider,
+                               double time_remaining,
                                double& score)
 {
+    UNUSED(game_state);
+    UNUSED(consider); 
+    UNUSED(time_remaining); 
+
     bool need_to_run_solver = true;
 
     bitset_t proof;

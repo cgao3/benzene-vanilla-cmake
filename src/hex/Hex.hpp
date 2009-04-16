@@ -23,20 +23,10 @@
 #include <functional>
 #include <limits>
 
-/** Marks a parameter as unusable and suppresses compiler warning to
-    that it is unused. */
-#ifdef UNUSED
-#elif defined(__GNUC__)
-# define UNUSED(x) UNUSED_ ## x __attribute__((unused))
-#elif defined(__LCLINT__)
-# define UNUSED(x) /*@unused@*/ x
-#else
-# define UNUSED(x) x
-#endif
-
 //----------------------------------------------------------------------------
 // stuff from src/util/
 
+#include "Benzene.hpp"
 #include "Types.hpp"
 #include "Hash.hpp"
 #include "Logger.hpp"

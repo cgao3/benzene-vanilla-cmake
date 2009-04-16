@@ -204,13 +204,19 @@ inline std::string BenzenePlayerFunctionality::name() const
 }
 
 inline HexPoint 
-BenzenePlayerFunctionality::pre_search(HexBoard& UNUSED(brd), 
-                                       const Game& UNUSED(game_state),
-                                       HexColor UNUSED(color), 
-                                       bitset_t& UNUSED(consider),
-                                       double UNUSED(time_remaining), 
-                                       double& UNUSED(score))
+BenzenePlayerFunctionality::pre_search(HexBoard& brd,
+                                       const Game& game_state,
+                                       HexColor color,
+                                       bitset_t& consider,
+                                       double time_remaining,
+                                       double& score)
 {
+    UNUSED(brd); 
+    UNUSED(game_state);
+    UNUSED(color);
+    UNUSED(consider);
+    UNUSED(time_remaining);
+    UNUSED(score);
     return INVALID_POINT;
 }
 
@@ -225,11 +231,15 @@ BenzenePlayerFunctionality::search(HexBoard& brd, const Game& game_state,
 
 inline HexPoint 
 BenzenePlayerFunctionality::post_search(HexPoint move, 
-                                        HexBoard& UNUSED(brd), 
-                                        HexColor UNUSED(color), 
-                                        double UNUSED(time_remaining), 
-                                        double& UNUSED(score))
+                                        HexBoard& brd,
+                                        HexColor color,
+                                        double time_remaining,
+                                        double& score)
 {
+    UNUSED(brd); 
+    UNUSED(color);
+    UNUSED(time_remaining);
+    UNUSED(score);
     return move;
 }
 

@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: HexAbSearch.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file HexAbSearch.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -91,9 +92,11 @@ void HexAbSearch::AfterStateSearched() {}
 HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
                             const std::vector<int>& plywidth, 
                             const std::vector<int>& depths_to_search, 
-                            int UNUSED(timelimit),
+                            int timelimit,
                             std::vector<HexPoint>& outPV)
 {
+    UNUSED(timelimit);
+
     double start = HexGetTime();
 
     m_brd = &brd;

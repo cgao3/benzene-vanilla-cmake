@@ -72,8 +72,9 @@ inline hash_t SearchedState::Hash() const
 }
 
 inline 
-void SearchedState::CheckCollision(const SearchedState& UNUSED(other)) const
+void SearchedState::CheckCollision(const SearchedState& other) const
 {
+    UNUSED(other);
 }
 
 inline bool SearchedState::ReplaceWith(const SearchedState& other) const

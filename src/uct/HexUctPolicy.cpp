@@ -229,9 +229,11 @@ HexPoint HexUctPolicy::GenerateMove(PatternBoard& brd,
 
 HexPoint HexUctPolicy::PickRandomPatternMove(const PatternBoard& brd, 
                                              const HashedPatternSet& patterns, 
-                                             HexColor UNUSED(toPlay),
+                                             HexColor toPlay,
                                              HexPoint lastMove)
 {
+    UNUSED(toPlay);
+
     if (lastMove == INVALID_POINT)
 	return INVALID_POINT;
     

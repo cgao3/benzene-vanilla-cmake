@@ -85,8 +85,10 @@ void HandBookCheck::LoadHandBook()
 }
 
 HexPoint HandBookCheck::HandBookResponse(const StoneBoard& brd, 
-                                         HexColor UNUSED(color))
+                                         HexColor color)
 {
+    UNUSED(color);
+
     if (!m_handBookLoaded)
 	LoadHandBook();
     

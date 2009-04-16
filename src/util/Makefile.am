@@ -9,6 +9,7 @@ Misc.cpp \
 Time.cpp
 
 noinst_HEADERS = \
+Benzene.hpp \
 Bitset.hpp \
 ChangeLog.hpp \
 Digraph.hpp \

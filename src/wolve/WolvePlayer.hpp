@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: WolvePlayer.hpp 1888 2009-02-01 01:04:41Z broderic $
+/** @file WolvePlayer.hpp
+ */
 //----------------------------------------------------------------------------
 
 #ifndef WOLVEPLAYER_HPP
@@ -100,9 +101,9 @@ inline hash_t VariationInfo::Hash() const
     return hash;
 }
 
-inline 
-void VariationInfo::CheckCollision(const VariationInfo& UNUSED(other)) const
+inline void VariationInfo::CheckCollision(const VariationInfo& other) const
 {
+    UNUSED(other);
     /** @todo Check for hash variation collisions. */
 }
 

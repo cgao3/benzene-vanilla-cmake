@@ -863,8 +863,9 @@ void BenzeneHtpEngine::CmdBuildIncremental(HtpCommand& cmd)
     cmd << "\n";
 }
 
-void BenzeneHtpEngine::CmdUndoIncremental(HtpCommand& UNUSED(cmd))
+void BenzeneHtpEngine::CmdUndoIncremental(HtpCommand& cmd)
 {
+    UNUSED(cmd);
     m_pe.brd->UndoMove();
 }
 
@@ -1162,8 +1163,9 @@ void BenzeneHtpEngine::CmdSolveState(HtpCommand& cmd)
     cmd << winner;
 }
 
-void BenzeneHtpEngine::CmdSolverClearTT(HtpCommand& UNUSED(cmd))
+void BenzeneHtpEngine::CmdSolverClearTT(HtpCommand& cmd)
 {
+    UNUSED(cmd);
     m_solver_tt->clear();
 }
 

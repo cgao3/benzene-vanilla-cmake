@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: ICEngine.cpp 1998 2009-04-06 03:38:48Z broderic $
+/** @file ICEngine.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "Time.hpp"
@@ -910,8 +911,10 @@ void ICEngine::CheckHandCodedDominates(const StoneBoard& brd,
 //----------------------------------------------------------------------------
 
 void IceUtil::Update(InferiorCells& out, const InferiorCells& in, 
-                     PatternBoard& UNUSED(brd))
+                     PatternBoard& brd)
 {
+    UNUSED(brd);
+
     // overwrite old vulnerable/dominated with new vulnerable/dominated 
     out.ClearVulnerable();
     out.ClearDominated();

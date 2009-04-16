@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: SolvedState.hpp 1657 2008-09-15 23:32:09Z broderic $
+/** @file SolvedState.hpp
+ */
 //----------------------------------------------------------------------------
 
 #ifndef SOLVEDSTATE_H
@@ -9,8 +10,7 @@
 
 //----------------------------------------------------------------------------
 
-/** 
-    A solved state. Stored in a TT or DB.  
+/** A solved state. Stored in a TT or DB.  
     
     Matches HashTableStateConcept and TransTableStateConcept.
 */
@@ -131,8 +131,9 @@ inline hash_t SolvedState::Hash() const
     return hash;
 }
 
-inline bool SolvedState::ReplaceWith(const SolvedState& UNUSED(other)) const
+inline bool SolvedState::ReplaceWith(const SolvedState& other) const
 {
+    UNUSED(other);
     return true;
 }
 

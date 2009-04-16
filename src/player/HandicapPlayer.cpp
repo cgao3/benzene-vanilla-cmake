@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: HandicapPlayer.cpp 1994 2009-04-06 00:57:12Z broderic $
+/** @file HandicapPlayer.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -25,10 +26,14 @@ HandicapPlayer::~HandicapPlayer()
 HexPoint HandicapPlayer::search(HexBoard& brd, 
                                 const Game& game_state,
 				HexColor color, 
-                                const bitset_t& UNUSED(consider),
-				double UNUSED(time_remaining), 
-                                double& UNUSED(score))
+                                const bitset_t& consider,
+				double time_remaining, 
+                                double& score)
 {
+    UNUSED(consider);
+    UNUSED(time_remaining); 
+    UNUSED(score);
+
     HexPoint lastMove, response;
     HexAssert(color == !VERTICAL_COLOR);
     
