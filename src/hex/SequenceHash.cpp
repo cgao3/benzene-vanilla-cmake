@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: SequenceHash.cpp 1657 2008-09-15 23:32:09Z broderic $
+/** @file SequenceHash.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "SequenceHash.hpp"
@@ -17,11 +18,9 @@ struct HashData
 
 HashData::HashData()
 {
-    for (int i=0; i<BITSETSIZE; ++i) {
-        for (int j=0; j<BITSETSIZE; ++j) {
+    for (int i = 0; i < BITSETSIZE; ++i)
+        for (int j = 0; j < BITSETSIZE; ++j)
             hashes[i][j] = HashUtil::RandomHash();
-        }
-    }
 }
 
 const HashData& GetHashData()
@@ -30,7 +29,7 @@ const HashData& GetHashData()
     return data;
 }
 
-} 
+} // namespace
 
 //----------------------------------------------------------------------------
 
@@ -41,9 +40,8 @@ hash_t SequenceHash::Hash(const PointSequence& seq)
     const HashData& data = GetHashData();
 
     hash_t ret = 0;
-    for (std::size_t i=0; i<seq.size(); ++i) {
+    for (std::size_t i = 0; i < seq.size(); ++i) 
         ret ^= data.hashes[i][seq[i]];
-    }
 
     return ret;
 }

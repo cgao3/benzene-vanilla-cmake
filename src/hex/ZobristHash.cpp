@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: ZobristHash.cpp 1914 2009-02-14 01:14:21Z broderic $
+/** @file ZobristHash.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -8,11 +9,9 @@
 
 //----------------------------------------------------------------------------
 
-/** @bug Making this 0 could potentially break all OpeningBooks and 
-    SolverDBs if it changes the default set of hashes.  
-
-    @todo Change HashDB to use a two-way function for encoding board
-    state ids.
+/** Use hashes defined in ZobrishHashes.hpp if this is true.
+    @bug Setting this to 0 will break all OpeningBooks and SolverDBs.
+    Only do this if you really know what you are doing.   
 */
 #define USE_PREDEFINED_HASHES 1
 
@@ -40,7 +39,8 @@ ZobristHash::ZobristHash(const bitset_t& black, const bitset_t& white)
 void ZobristHash::compute(const bitset_t& black, const bitset_t& white)
 {
     reset();
-    for (int p=0; p<BITSETSIZE; p++) {
+    for (int p = 0; p < BITSETSIZE; ++p) 
+    {
         if (black.test(p)) m_hash ^= GetGlobalData().zkey_color[BLACK][p];
         if (white.test(p)) m_hash ^= GetGlobalData().zkey_color[WHITE][p];
     }

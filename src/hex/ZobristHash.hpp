@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: ZobristHash.hpp 1657 2008-09-15 23:32:09Z broderic $
+/** @file ZobristHash.hpp
+ */
 //----------------------------------------------------------------------------
 
 #ifndef ZOBRISTHASH_HPP
@@ -13,9 +14,7 @@
     boardstates where each bitset represents the stones for each
     color).
     
-    Hash values are shared amoung all instances of ZobristHash, and
-    are created using the generator SgRandom::Global() when the first
-    ZobristHash object is created.
+    Hash values are shared amoung all instances of ZobristHash.
 */
 class ZobristHash
 {
