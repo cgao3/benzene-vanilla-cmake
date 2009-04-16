@@ -1,42 +1,10 @@
 //----------------------------------------------------------------------------
-// $Id: Bitset.cpp 1657 2008-09-15 23:32:09Z broderic $
+/** @file Bitset.cpp
+ */
 //----------------------------------------------------------------------------
 
 #include <sstream>
 #include "Bitset.hpp"
-
-//----------------------------------------------------------------------
-
-static const std::string g_base64 =  
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/";
-
-std::string BitsetToBase64(const bitset_t& b)
-{
-    std::ostringstream os;
-    for (int i=0; i<BITSETSIZE; i+=6) {
-
-        int c = 0;
-        for (int j=0; j<6 && i+j < BITSETSIZE; j++) 
-            c += (b.test(i+j)) ? (1<<j) : 0;
-
-        os << g_base64[c];
-    }
-    return os.str();
-}
-
-bitset_t Base64ToBitset(const std::string& str)
-{
-    bitset_t out;
-    for (unsigned i=0; i<str.size(); i++) {
-        std::string::size_type c = g_base64.find(str[i], 0);
-        assert(c != std::string::npos);
-
-        for (int j=0; j<6 && (i*6 + j) < (unsigned)BITSETSIZE; j++) {
-            if (c & (1<<j)) out.set(i*6 + j);
-        }
-    }
-    return out;
-}
 
 //----------------------------------------------------------------------------
 

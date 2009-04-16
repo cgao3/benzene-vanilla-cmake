@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
-// $Id: Bitset.hpp 1917 2009-02-17 22:36:12Z ph $
+/** @file Bitset.hpp
+ */
 //----------------------------------------------------------------------------
 
 #ifndef BITSET_HPP
@@ -53,16 +54,6 @@ typedef std::bitset<BITSETSIZE> bitset_t;
 
 /** Global empty bitset. */
 static const bitset_t EMPTY_BITSET;
-
-//----------------------------------------------------------------------------
-
-/** Converts a bitset into a base 64 number. 
-    @note Currently not used. */
-std::string BitsetToBase64(const bitset_t& b);
-
-/** Converts a string of base 64 symbols into a bitset. 
-    @note Currently not used. */
-bitset_t Base64ToBitset(const std::string& str);
 
 //----------------------------------------------------------------------------
 
