@@ -57,6 +57,7 @@ public:
         forced widenings will be performed until the value can be
         determined. */
     void Refresh(OpeningBook& book, HexBoard& board);
+
     //---------------------------------------------------------------------    
 
     /** The parameter alpha controls state expansion (big values give

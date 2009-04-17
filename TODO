@@ -2,7 +2,6 @@ Benzene TODO file
 =================
 
 broderic [090413] (in rough order of importance)
-* fix tools/benzene to use git repo, and build with assertions.
 * Mustplay/fillin in core of uct tree
   * Fix reuse subtree in MoHex
     * Add ponder ability to MoHex
