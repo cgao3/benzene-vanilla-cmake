@@ -11,39 +11,44 @@ broderic [090413] (in rough order of importance)
 * Make GroupBoard and PatternBoard not derive off of StoneBoard
 * Add HexBoard::Resize() method; use in SyncBoard()
 * Have Wolve check TT for losing moves in move generation.
+  * Phil says `maybe': if solve strong moves but not weak, then Wolve will
+    have to play a weaker move, and so this may weaken the player :(
 * Support reading installed shared data in $(pkgdatadir)
 * Remove lssolve from src/util/ and replace with boost::ublas
 * Proof class in Solver
   * Proof class should do assertions, reductions
   * Support permanently inferior in solver
 
-ph [090413]
-* Tournament tool improvements:
-  * should have script for post-game sgf analysis with solver
+ph [090416]
 * Unique probe sequence for solver:
-  * Create pattern file
-  * If losing move and winning reply match pattern, try no more
+  * If try losing move and PV winning reply matches pattern, then state loses
 * Induced path transpositions for solver:
-  * Create induced path equivalence file
-  * Create induced path domination file
-  * Create induced path inferiority file
   * Apply files to get more DB transpositions by shifting played moves
-* Proof-set pruned states should be stored in DB/TT
-* Website stuff:
-  * Create handicap Java applet
-  * Create bibtex file of Hex resources
-  * Create annotated bibliography of Hex resources
+  * Compute closed set of all transposition types
+* Solver move ordering:
+  * Try moving split decomposition moves to the top of the list
+  * If that doesn't work, try making the mustplay count for split decomposition
+    moves equal to the max mustplay on either side of the decomp.
+* Reversible moves
+  * Pattern file exists, just need to add it to ICE :) Like vulnerable, but
+    no fill-in can be computed
+* Virtual-connection improvements:
+  * Add fill-in for keys (and maybe endpoints?)
+  * Common-substrategy
+  * Backing-up/recalling connections..?
 * MoHex improvements:
-  * Root parallelization
-  * Learned-reponse array through UCT tree sequences (used for node init)
-* Wolve improvements:
-  * Re-create opening book (requires DB switch and OB change first)
-  * Eliminate hand-book
+  * Learned-reponse array through UCT tree sequences (use for rollouts)
+* Opening books guided adjustment:
+  * Allow it to analyze/expand path of sgfs to where the book drops out
+* Evaluation function possibilities
+  * Try weighted tuple of different virtual connection distances between edges
+* Tournament tool improvements:
+  * Script for automatic post-game sgf analysis with solver
+* Proof-set pruned states should perhaps be stored in DB/TT..?
 * Inferior cell improvements:
   * Implement algorithm developed with Laurie to find more dead cell patterns
   * Develop similar algorithm for captured
   * Create larger list of vulnerable and dominated from above work
-* Virtual-connection improvements:
-  * Backing-up connections
-  * Identify Noshita under special conditions (theory in progress)
 * Mustplay mask
+* Website stuff:
+  * Create handicap Java applet
