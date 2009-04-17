@@ -12,6 +12,7 @@ depcomp
 install-sh
 doc/benzene-doc/
 missing
+regression/html/
 src/config.h
 src/config.in
 src/stamp-h1
