@@ -62,21 +62,21 @@ cd fuego-0.3 || exit 1
 aclocal
 autoheader
 autoreconf -i
-./configure
+./configure --enable-assert
 run-checked "make" "FUEGO COMPILATION"
 
 # Benzene
 
 cd $TEST_DIR || exit 1
 rm -rf benzene
-svn co svn+ssh://games/usr/svnroot/project_wolve2.0/trunk/ benzene || exit 1
+git clone /usr/tees1/cshome/broderic/git/benzene.git/ benzene || exit 1
 cd benzene || exit 1
+git pull
 aclocal
 autoheader
 autoreconf -i
-env FUEGO_ROOT=$TEST_DIR/fuego-0.3 ./configure
+env FUEGO_ROOT=$TEST_DIR/fuego-0.3 ./configure --enable-assert
 run-checked "make" "BENZENE COMPILATION"
-
 run-checked "make check" "BENZENE MAKE CHECK"
 run-checked "src/test/benzene_unittest" "BENZENE UNIT TESTS"
 
