@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HashDB.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -18,9 +18,6 @@
 #include "Hash.hpp"
 
 //----------------------------------------------------------------------------
-
-namespace hex
-{
 
 /** Class supports Pack(), Unpack(), and PackedSize(). */
 template<class T>
@@ -46,11 +43,9 @@ struct HashDBStateConcept
     {
         boost::function_requires< boost::DefaultConstructibleConcept<T> >();
         boost::function_requires< boost::AssignableConcept<T> >();
-        boost::function_requires< hex::PackableConcept<T> >();
+        boost::function_requires< PackableConcept<T> >();
     }
 };
-
-}
 
 //----------------------------------------------------------------------------
 
@@ -58,7 +53,7 @@ struct HashDBStateConcept
 template<class T>
 class HashDB
 {
-    BOOST_CLASS_REQUIRE(T, hex, HashDBStateConcept);
+    BOOST_CLASS_REQUIRE(T, , HashDBStateConcept);
 
 public:
 

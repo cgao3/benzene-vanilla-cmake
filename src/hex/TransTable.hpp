@@ -13,16 +13,13 @@
 
 //----------------------------------------------------------------------------
 
-namespace hex
-{
-
 /** Concept of a state in a transposition table. */
 template<class T>
 struct TransTableStateConcept
 {
     void constraints() 
     {
-        boost::function_requires< hex::HashTableStateConcept<T> >();
+        boost::function_requires< HashTableStateConcept<T> >();
 
         const T a;
 
@@ -39,8 +36,6 @@ struct TransTableStateConcept
     }
 };
 
-}
-
 //----------------------------------------------------------------------------
 
 /** Transposition table. The state class must meet the requirements of
@@ -48,7 +43,7 @@ struct TransTableStateConcept
 template<class T>
 class TransTable
 {
-    BOOST_CLASS_REQUIRE(T, hex, TransTableStateConcept);
+    BOOST_CLASS_REQUIRE(T, , TransTableStateConcept);
 
 public:
 

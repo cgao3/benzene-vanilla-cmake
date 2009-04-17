@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HashTable.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -13,9 +13,6 @@
 
 //----------------------------------------------------------------------------
 
-namespace hex
-{
-
 /** Concept of a state in a hash table. */
 template<class T>
 struct HashTableStateConcept
@@ -27,9 +24,6 @@ struct HashTableStateConcept
     }
 };
 
-}
-
-
 //----------------------------------------------------------------------------
 
 /** 
@@ -40,7 +34,7 @@ struct HashTableStateConcept
 template<typename T>
 class HashTable
 {
-    BOOST_CLASS_REQUIRE(T, hex, HashTableStateConcept);
+    BOOST_CLASS_REQUIRE(T, , HashTableStateConcept);
 
 public:
 
