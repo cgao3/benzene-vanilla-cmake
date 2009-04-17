@@ -30,6 +30,7 @@ public:
     void CmdBookExpandParam(HtpCommand& cmd);
     void CmdBookPriorities(HtpCommand& cmd);
     void CmdBookExpand(HtpCommand& cmd);
+    void CmdBookRefresh(HtpCommand& cmd);
     void CmdParamBook(HtpCommand& cmd);
     void MoHexParam(HtpCommand& cmd);
 
