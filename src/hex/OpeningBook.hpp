@@ -257,8 +257,6 @@ private:
     /** Database for this book. */
     HashDB<OpeningBookNode> m_db;
 
-    hash_t GetHash(const StoneBoard& brd) const;
-
     std::size_t TreeSize(StoneBoard& brd, HexColor color,
                          std::map<hash_t, std::size_t>& solved) const;
 
@@ -304,6 +302,8 @@ inline void OpeningBook::Flush()
 */
 namespace OpeningBookUtil
 {
+    /** Returns the canonical hash for this boardstate. */
+    hash_t GetHash(const StoneBoard& brd);
 
     /** Returns the priority of expanding the child node. */
     float ComputePriority(const StoneBoard& brd, 

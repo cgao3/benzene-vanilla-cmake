@@ -99,28 +99,19 @@ float OpeningBook::InverseEval(float eval)
 
 //----------------------------------------------------------------------------
 
-/** Returns the canonical hash for this boardstate. */
-hash_t OpeningBook::GetHash(const StoneBoard& brd) const
-{
-    hash_t hash1 = brd.Hash();
-    StoneBoard rotatedBrd(brd);
-    rotatedBrd.rotateBoard();
-    hash_t hash2 = rotatedBrd.Hash();
-    return std::min(hash1, hash2);
-}
-
 bool OpeningBook::GetNode(const StoneBoard& brd, OpeningBookNode& node) const
 {
-    if (m_db.Get(GetHash(brd), node))
+    if (m_db.Get(OpeningBookUtil::GetHash(brd), node))
         return true;
     return false;
 }
 
 void OpeningBook::WriteNode(const StoneBoard& brd, const OpeningBookNode& node)
 {
-    m_db.Put(GetHash(brd), node);
+    m_db.Put(OpeningBookUtil::GetHash(brd), node);
 }
 
+/** @bug Currently broken? */
 int OpeningBook::GetMainLineDepth(const StoneBoard& pos, HexColor color) const
 {
     int depth = 0;
@@ -163,8 +154,9 @@ std::size_t OpeningBook::GetTreeSize(StoneBoard& brd, HexColor color) const
 std::size_t OpeningBook::TreeSize(StoneBoard& brd, HexColor color,
                                   std::map<hash_t, std::size_t>& solved) const
 {
-    if (solved.find(brd.Hash()) != solved.end())
-        return solved[brd.Hash()];
+    hash_t hash = OpeningBookUtil::GetHash(brd);
+    if (solved.find(hash) != solved.end())
+        return solved[hash];
 
     OpeningBookNode node;
     if (!GetNode(brd, node))
@@ -177,11 +169,20 @@ std::size_t OpeningBook::TreeSize(StoneBoard& brd, HexColor color,
         ret += TreeSize(brd, !color, solved);
         brd.undoMove(*p);
     }
-    solved[brd.Hash()] = ret;
+    solved[hash] = ret;
     return ret;
 }
 
 //----------------------------------------------------------------------------
+
+hash_t OpeningBookUtil::GetHash(const StoneBoard& brd)
+{
+    hash_t hash1 = brd.Hash();
+    StoneBoard rotatedBrd(brd);
+    rotatedBrd.rotateBoard();
+    hash_t hash2 = rotatedBrd.Hash();
+    return std::min(hash1, hash2);
+}
 
 float OpeningBookUtil::ComputePriority(const StoneBoard& brd, 
                                        const OpeningBookNode& parent,
@@ -248,6 +249,8 @@ HexPoint OpeningBookUtil::UpdatePriority(const OpeningBook& book,
         node.m_priority = bestPriority;
     return bestChild;
 }
+
+//----------------------------------------------------------------------------
 
 void OpeningBookUtil::DumpVisualizationData(const OpeningBook& book, 
                                             StoneBoard& brd, 

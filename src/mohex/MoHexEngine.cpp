@@ -24,6 +24,7 @@ MoHexEngine::MoHexEngine(std::istream& in, std::ostream& out,
 {
     RegisterCmd("book-expand", &MoHexEngine::CmdBookExpand);
     RegisterCmd("book-priorities", &MoHexEngine::CmdBookPriorities);
+    RegisterCmd("book-refresh", &MoHexEngine::CmdBookRefresh);
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
     RegisterCmd("param_book", &MoHexEngine::CmdParamBook);
 }
@@ -180,11 +181,19 @@ void MoHexEngine::CmdBookExpand(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     int iterations = cmd.IntArg(0, 1);
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-
     if (!StateMatchesBook(brd))
         return;
-
     m_bookBuilder.Expand(*m_book, brd, iterations);
+}
+
+/** Refreshes the current book. See BookBuilder::Refresh(). */
+void MoHexEngine::CmdBookRefresh(HtpCommand& cmd)
+{
+    UNUSED(cmd);
+    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    if (!StateMatchesBook(brd))
+        return;
+    m_bookBuilder.Refresh(*m_book, brd);
 }
 
 void MoHexEngine::CmdBookPriorities(HtpCommand& cmd)
