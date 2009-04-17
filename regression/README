@@ -5,11 +5,22 @@ To run the tests, do:
 
 % ./run.sh
 
+
 To see the available options:
 
 % ./run.sh -h
 
+Common options are:
+
+-l long output
+-p specify program and its configuration
+
 Some tests require certain settings if you want the results to match the 
-expected results in the script. These settings are in the 
-'settings-X.htp" for test 'X.st'. For example, the settings for 'vc.tst' 
-are in 'settings-vc.htp'.
+expected results in the script. These settings are in the 'settings-X.htp'
+for test 'X.st'. For example, the settings for 'vc.tst' are in
+'settings-vc.htp'.
+
+
+Example run:
+
+./run.sh -l -p "../src/wolve/wolve --config settings-vc.htp" vc.tst
