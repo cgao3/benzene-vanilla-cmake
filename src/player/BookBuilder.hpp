@@ -206,8 +206,8 @@ BookBuilder<PLAYER>::BookBuilder(PLAYER& player)
     : m_book(0),
       m_orig_player(player),
       m_brd(0),
-      m_alpha(35),
-      m_use_widening(false),
+      m_alpha(70),
+      m_use_widening(true),
       m_expand_width(8),
       m_expand_threshold(100),
       m_flush_iterations(100),
@@ -647,8 +647,9 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
 
 //----------------------------------------------------------------------------
 
-/** Refresh's each child of the given state. UpdateValue() and UpdatePriority() are
-    called on internal nodes. Returns true if state exists in book.
+/** Refresh's each child of the given state. UpdateValue() and
+    UpdatePriority() are called on internal nodes. Returns true if
+    state exists in book.  
     @ref bookrefresh
 */
 template<class PLAYER>
