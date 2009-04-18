@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HexException.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -31,6 +31,22 @@ public:
 private:
     std::string m_message;
 };
+
+inline HexException::HexException()
+    : m_message("")
+{ }
+
+inline HexException::HexException(const std::string& message)
+    : m_message(message)
+{ }
+
+inline HexException::~HexException() throw()
+{ }
+
+inline const char* HexException::what() const throw()
+{
+    return m_message.c_str();
+}
 
 //----------------------------------------------------------------------------
 

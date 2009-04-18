@@ -2,7 +2,6 @@ noinst_LIBRARIES = libutil.a
 
 libutil_a_SOURCES = \
 Bitset.cpp \
-HexException.cpp \
 Logger.cpp \
 lssolve.cpp \
 Misc.cpp \
