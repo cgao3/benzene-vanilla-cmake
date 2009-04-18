@@ -33,7 +33,7 @@ bool OpeningBookNode::IsTerminal() const
 
 bool OpeningBookNode::IsLeaf() const
 {
-    return m_priority == LEAF_PRIORITY;
+    return m_count == 0;
 }
 
 std::string OpeningBookNode::toString() const
