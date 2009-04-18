@@ -19,6 +19,22 @@
 
 //----------------------------------------------------------------------------
 
+/** @page bookrefresh Book Refresh
+    @ingroup openingbook
+
+    Due to transpositions, it is possible that a node's value changes,
+    but because the node has not been revisited yet the information is
+    not passed to its parent. Refreshing the book forces these
+    propagations.
+
+    BookBuilder::Refresh() computes the correct propagation value for
+    all internal nodes given the current set of leaf nodes. A node in
+    which OpeningBookNode::IsLeaf() is true is treated as a leaf even
+    if it has children in the book (ie, children from transpositions)
+*/
+
+//----------------------------------------------------------------------------
+
 /** Expands an OpeningBook using the given player to evaluate
     game positions positions. 
 
@@ -47,15 +63,8 @@ public:
     /** Expands the book by expanding numExpansions leaves. */
     void Expand(OpeningBook& book, const HexBoard& brd, int numExpansions);
 
-    /** Propagates leaf values up through the entire tree. 
-        Due to transpositions, it is possible that a node's value
-        changes but the information is not passed to its parent
-        because the node has not been revisited yet. This function
-        forces these types of propagations. May need to do state
-        evaluations if a node's children are all losing; in this case
-        it needs to ensure all possible children are losing, and so
-        forced widenings will be performed until the value can be
-        determined. */
+    /** Propagates leaf values up through the entire tree.  
+        @ref bookrefresh. */
     void Refresh(OpeningBook& book, HexBoard& board);
 
     //---------------------------------------------------------------------    
@@ -130,7 +139,7 @@ private:
 
     void DoExpansion(StoneBoard& brd, PointSequence& pv);
 
-    void Refresh(StoneBoard& brd, std::set<hash_t>& seen);
+    bool Refresh(StoneBoard& brd, std::set<hash_t>& seen, bool root);
 
     void CreateWorkers();
 
@@ -172,6 +181,12 @@ private:
     std::size_t m_value_updates;
 
     std::size_t m_priority_updates;
+
+    std::size_t m_internal_nodes;
+
+    std::size_t m_leaf_nodes;
+
+    std::size_t m_terminal_nodes;
 
     /** Boards for each thread. */
     std::vector<HexBoard*> m_boards;
@@ -338,12 +353,15 @@ void BookBuilder<PLAYER>::Refresh(OpeningBook& book, HexBoard& board)
     m_num_evals = 0;
     m_value_updates = 0;
     m_priority_updates = 0;
+    m_internal_nodes = 0;
+    m_leaf_nodes = 0;
+    m_terminal_nodes = 0;
 
     CreateWorkers();
 
     LogInfo() << "Refreshing DB..." << '\n';
     std::set<hash_t> seen;
-    Refresh(brd, seen);
+    Refresh(brd, seen, true);
 
     LogInfo() << "Flushing DB..." << '\n';
     m_book->Flush();
@@ -356,6 +374,9 @@ void BookBuilder<PLAYER>::Refresh(OpeningBook& book, HexBoard& board)
               << "      Total Time: " << Time::Formatted(e - s) << '\n'
               << "   Value Updates: " << m_value_updates << '\n'
               << "Priority Updates: " << m_priority_updates << '\n'
+              << "  Internal Nodes: " << m_internal_nodes << '\n'
+              << "  Terminal Nodes: " << m_terminal_nodes << '\n'
+              << "      Leaf Nodes: " << m_leaf_nodes << '\n'
               << "     Evaluations: " << m_num_evals 
               << std::fixed << std::setprecision(2)
               << " (" << (m_num_evals / (e - s)) << "/s)" << '\n';
@@ -538,6 +559,8 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
         m_num_evals += workToDo.size();
         return true;
     }
+    else
+        LogInfo() << "Children already evaluated." << '\n';
     return false;
 }
 
@@ -624,30 +647,52 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
 
 //----------------------------------------------------------------------------
 
-/** Refresh's each child, then calls UpdateValue() and
-    UpdatePriority(). */
+/** Refresh's each child of the given state. UpdateValue() and UpdatePriority() are
+    called on internal nodes. Returns true if state exists in book.
+    @ref bookrefresh
+*/
 template<class PLAYER>
-void BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen)
+bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
+                                  bool root)
 {
+    if (seen.count(OpeningBookUtil::GetHash(brd)))
+        return true;
     OpeningBookNode node;
-    if (seen.count(OpeningBookUtil::GetHash(brd)) || !GetNode(brd, node))
-        return;
-    for (BitsetIterator it(brd.getEmpty()); it; ++it)
+    if (!GetNode(brd, node))
+        return false;
+    if (node.IsTerminal())
     {
-        brd.playMove(brd.WhoseTurn(), *it);
-        Refresh(brd, seen);
-        brd.undoMove(*it);
+        m_terminal_nodes++;
+        return true;
+    }
+    if (node.IsLeaf())
+    {
+        m_leaf_nodes++;
+        return true;
     }
     double oldValue = node.Value(brd);
     double oldPriority = node.m_priority;
+    for (BitsetIterator it(brd.getEmpty()); it; ++it)
+    {
+        brd.playMove(brd.WhoseTurn(), *it);
+        Refresh(brd, seen, false);
+        if (root)
+            LogInfo() << "Finished " << *it << '\n';
+        brd.undoMove(*it);
+    }
     UpdateValue(node, brd);
     OpeningBookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
-    if (fabs(oldValue - node.Value(brd)) > 0.001)
+    if (fabs(oldValue - node.Value(brd)) > 0.0001)
         m_value_updates++;
-    if (fabs(oldPriority - node.m_priority) > 0.001)
+    if (fabs(oldPriority - node.m_priority) > 0.0001)
         m_priority_updates++;
     WriteNode(brd, node);
     seen.insert(OpeningBookUtil::GetHash(brd));
+    if (node.IsTerminal())
+        m_terminal_nodes++;
+    else
+        m_internal_nodes++;
+    return true;
 }
 
 //----------------------------------------------------------------------------
