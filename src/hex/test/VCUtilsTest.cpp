@@ -17,14 +17,12 @@ BOOST_AUTO_TEST_CASE(VCUtils_ValidEdgeBridge)
     StoneBoard brd(4, 4);
     brd.startNewGame();
 
-    HexPoint a1 = HexPointUtil::fromString("a1");
-    HexPoint a2 = HexPointUtil::fromString("a2");
-    HexPoint a3 = HexPointUtil::fromString("a3");
-    HexPoint a4 = HexPointUtil::fromString("a4");
-    HexPoint b1 = HexPointUtil::fromString("b1");
-    HexPoint b2 = HexPointUtil::fromString("b2");
-    HexPoint b3 = HexPointUtil::fromString("b3");
-    HexPoint b4 = HexPointUtil::fromString("b4");
+    HexPoint a1 = HEX_CELL_A1;
+    HexPoint a2 = HEX_CELL_A2;
+    HexPoint a3 = HEX_CELL_A3;
+    HexPoint b1 = HEX_CELL_B1;
+    HexPoint b2 = HEX_CELL_B2;
+    HexPoint b3 = HEX_CELL_B3;
 
     HexPoint e,p;
     bitset_t carrier;
@@ -58,7 +56,6 @@ BOOST_AUTO_TEST_CASE(VCUtils_ValidEdgeBridge)
     carrier.set(a3);
     BOOST_CHECK(!VCUtils::ValidEdgeBridge(brd, carrier, p, e));
     brd.undoMove(a2);
-    
 }
 
 }
