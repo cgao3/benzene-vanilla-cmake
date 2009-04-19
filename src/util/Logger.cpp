@@ -44,28 +44,35 @@ void Logger::ClearStreams()
 
 Logger::ThreadBuffer& Logger::GetThreadBuffer()
 {
+    int i;
     int first_empty = -1;
     pthread_t self = pthread_self();
-
-    // see if thread already has a buffer open
-    for (int i=0; i<MAX_THREADS; ++i) {
+    pthread_mutex_lock(&m_buffer_mutex);
+    // look for a pre-existing buffer for this thread
+    for (i = 0; i < MAX_THREADS; ++i) 
+    {
         if (m_thread_buffer[i].id == self)
-            return m_thread_buffer[i];
+            break;
         else if (m_thread_buffer[i].id == 0 && first_empty == -1)
             first_empty = i;
     }
-
-    // if not, set this free buffer for use by thread
-    if (first_empty != -1) {
-        pthread_mutex_lock(&m_buffer_mutex);
-        m_thread_buffer[first_empty].id = self;
-        pthread_mutex_unlock(&m_buffer_mutex);
-        return m_thread_buffer[first_empty];
+    if (i == MAX_THREADS)
+    {
+        // if one does not exist, use the first empty buffer
+        if (first_empty != -1) 
+        {
+            m_thread_buffer[first_empty].id = self;
+            i = first_empty;
+        }
+        else
+        {
+            // no free buffer... just return first buffer. This sucks!!
+            std::cerr << "####### LOG HAS NO FREE BUFFER! #######" << std::endl;
+            i = 0;
+        }
     }
-
-    // no free buffer... just return first buffer. This sucks!!
-    std::cerr << "####### LOG HAS NO FREE BUFFER! #######" << std::endl;
-    return m_thread_buffer[0];
+    pthread_mutex_unlock(&m_buffer_mutex);
+    return m_thread_buffer[i];
 }
 
 void Logger::SetLevel(LogLevel level)
