@@ -5,6 +5,8 @@
 
 #include "HashedPatternSet.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 HashedPatternSet::HashedPatternSet()

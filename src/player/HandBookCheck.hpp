@@ -8,6 +8,8 @@
 
 #include "BenzenePlayer.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Checks book before search. */
@@ -67,5 +69,7 @@ inline void HandBookCheck::SetEnabled(bool enable)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HANDBOOKCHECK_HPP

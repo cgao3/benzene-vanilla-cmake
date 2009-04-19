@@ -10,6 +10,8 @@
 #include "VC.hpp"
 #include "VCList.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 Connections::Connections(const ConstBoard& brd, HexColor color)

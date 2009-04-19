@@ -10,6 +10,8 @@
 #include "Move.hpp"
 #include "StoneBoard.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** History of moves played in the game. */
@@ -165,5 +167,7 @@ namespace GameUtil
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif  // GAME_HPP

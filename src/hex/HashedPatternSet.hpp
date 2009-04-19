@@ -9,6 +9,8 @@
 #include "Pattern.hpp"
 #include "RingGodel.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Hashes patterns by ring godel; use for fast checking.  
@@ -43,5 +45,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HASHED_PATTERN_HPP

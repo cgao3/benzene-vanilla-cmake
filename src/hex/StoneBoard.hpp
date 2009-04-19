@@ -10,6 +10,8 @@
 #include "ConstBoard.hpp"
 #include "ZobristHash.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //---------------------------------------------------------------------------
 
 /** Packed representation of a board-stat. Useful for storing
@@ -571,5 +573,7 @@ inline std::ostream& operator<<(std::ostream &os, const StoneBoard& b)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // STONEBOARD_HPP

@@ -9,6 +9,8 @@
 #include "WolveEngine.hpp"
 #include "WolvePlayer.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 namespace {

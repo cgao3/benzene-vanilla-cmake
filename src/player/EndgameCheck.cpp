@@ -6,6 +6,8 @@
 #include "EndgameCheck.hpp"
 #include "PlayerUtils.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 EndgameCheck::EndgameCheck(BenzenePlayer* player)

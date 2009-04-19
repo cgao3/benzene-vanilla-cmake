@@ -6,6 +6,8 @@
 #include "HandCodedPattern.hpp"
 #include "BoardUtils.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 HandCodedPattern::HandCodedPattern()

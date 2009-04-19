@@ -1,13 +1,10 @@
 //----------------------------------------------------------------------------
-/** @file
- */
-//----------------------------------------------------------------------------
+/** @file Resistance.cpp
 
-/** @file 
-    
     Resistance/energy calculatiosn based very closely on Six's circuit
     implementation.
-*/
+ */
+//----------------------------------------------------------------------------
 
 #include <cmath>
 
@@ -19,6 +16,8 @@
 #include "HashedPatternSet.hpp"
 
 #include "lssolve.h"
+
+using namespace benzene;
 
 //----------------------------------------------------------------------------
 

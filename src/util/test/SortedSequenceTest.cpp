@@ -7,6 +7,8 @@
 
 #include "SortedSequence.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

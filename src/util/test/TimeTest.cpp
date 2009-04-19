@@ -7,6 +7,8 @@
 
 #include "Time.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

@@ -10,6 +10,8 @@
 #include "HexEval.hpp"
 #include "HexBoard.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Adjacency between each pair of cells. */
@@ -193,5 +195,7 @@ namespace ResistanceUtil
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // RESISTANCE_HPP

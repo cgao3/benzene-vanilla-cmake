@@ -8,8 +8,11 @@
 
 #include "SgSystem.h"
 #include "SgRandom.h"
-
 #include <sstream>
+
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -51,5 +54,7 @@ inline hash_t HashUtil::RandomHash()
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HASH_HPP

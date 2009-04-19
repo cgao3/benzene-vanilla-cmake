@@ -12,7 +12,10 @@
 #include "HexException.hpp"
 #include "HexEval.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
+
 /** @defgroup openingbook Automatic Opening Book Construction
     Hex-specific opening book construction.
 
@@ -43,6 +46,7 @@
       and propagated value. 
     - Make game independent.
 */
+
 //----------------------------------------------------------------------------
 
 /** State in the Opening Book. 
@@ -329,5 +333,7 @@ namespace OpeningBookUtil
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // OPENINGBOOK_HPP

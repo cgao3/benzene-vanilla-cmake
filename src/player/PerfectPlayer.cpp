@@ -8,6 +8,8 @@
 #include "PerfectPlayer.hpp"
 #include "BitsetIterator.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 PerfectPlayer::PerfectPlayer(Solver* solver)

@@ -16,6 +16,8 @@
 #include "SolverDB.hpp"
 #include "HexEval.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------
 
 /** Transposition table for use in Solver. */
@@ -614,9 +616,10 @@ namespace SolverUtil
     void ShrinkProof(bitset_t& proof, 
                      const StoneBoard& board, HexColor loser, 
                      const ICEngine& ice);
-
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // SOLVER_H

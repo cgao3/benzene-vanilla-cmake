@@ -6,6 +6,8 @@
 
 #include "RingGodel.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

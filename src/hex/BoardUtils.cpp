@@ -14,6 +14,8 @@
 #include "Pattern.hpp"
 #include "HashedPatternSet.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 namespace {

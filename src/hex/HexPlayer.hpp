@@ -9,6 +9,8 @@
 #include "Game.hpp"
 #include "HexBoard.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Abstract base class for all players.
@@ -48,5 +50,7 @@ public:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXPLAYER_HPP

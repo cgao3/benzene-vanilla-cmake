@@ -10,6 +10,9 @@
 #include <boost/thread/barrier.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/shared_ptr.hpp>
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -184,5 +187,7 @@ void ThreadedWorker<I,O,W>::TellThreadsToQuit()
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // THREADEDWORKER_HPP

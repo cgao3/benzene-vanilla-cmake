@@ -11,6 +11,8 @@
 #include "BookBuilder.hpp"
 #include "MoHexPlayer.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Htp engine for MoHex. */
@@ -51,5 +53,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // MOHEXENGINE_HPP

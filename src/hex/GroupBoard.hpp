@@ -10,28 +10,28 @@
 #include "StoneBoard.hpp"
 #include "UnionFind.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
-/**
- * Groups cells of same color into a single group. Union-Find is used
- * to group cells of the same color into a single group.  This allows
- * entire groups of connected cells to be treated as a single entity.
- *
- * The group calculation must be stable!!  That is, computing the
- * groups from scratch or incrementally must always result in the same
- * groups and the same captains for each group.  Breaking this
- * contract will cause horrible problems in many different places.
- *
- * NOTE: WE ASSUME AN EDGE IS ALWAYS THE CAPTAIN OF ITS GROUP!
- *
- * GroupBoard does not automatically update the group information,
- * this needs to be done outside the class by calling absorb() or
- * absorb(cell, color).
- *
- * Groups also allow the state of the game to be determined easily. 
- * See the getWinner() and isGameOver() methods.
- *
- */
+/** Groups cells of same color into a single group. Union-Find is used
+    to group cells of the same color into a single group.  This allows
+    entire groups of connected cells to be treated as a single entity.
+ 
+    The group calculation must be stable!!  That is, computing the
+    groups from scratch or incrementally must always result in the
+    same groups and the same captains for each group.  Breaking this
+    contract will cause horrible problems in many different places.
+ 
+    NOTE: WE ASSUME AN EDGE IS ALWAYS THE CAPTAIN OF ITS GROUP!
+    
+    GroupBoard does not automatically update the group information,
+    this needs to be done outside the class by calling absorb() or
+    absorb(cell, color).
+    
+    Groups also allow the state of the game to be determined easily.
+    See the getWinner() and isGameOver() methods.
+*/
 class GroupBoard : public StoneBoard
 {
 public:
@@ -169,5 +169,7 @@ inline void GroupBoard::InvalidateCachedData()
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // GROUPBOARD_H

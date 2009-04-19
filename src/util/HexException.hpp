@@ -8,6 +8,9 @@
 
 #include <string>
 #include <exception>
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -49,5 +52,7 @@ inline const char* HexException::what() const throw()
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXEXCEPTION_H

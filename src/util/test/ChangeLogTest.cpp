@@ -7,6 +7,8 @@
 
 #include "ChangeLog.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

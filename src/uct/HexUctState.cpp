@@ -14,6 +14,8 @@
 #include "HexUctUtil.hpp"
 #include "PatternBoard.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 namespace

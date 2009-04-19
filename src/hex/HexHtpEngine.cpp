@@ -25,6 +25,8 @@
 #include "HexHtpEngine.hpp"
 #include "Time.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 HexHtpEngine::HexHtpEngine(std::istream& in, std::ostream& out,

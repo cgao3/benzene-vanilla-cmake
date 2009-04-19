@@ -7,11 +7,13 @@
 #define HEXHTPENGINE_H
 
 #include "GtpEngine.h"
+#include "SgNode.h"
+
 #include "Game.hpp"
 
 #include <boost/scoped_ptr.hpp>
 
-class SgNode;
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -103,5 +105,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXHTPENGINE_H

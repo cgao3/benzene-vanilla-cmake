@@ -11,6 +11,8 @@
 #include "ChangeLog.hpp"
 #include "GroupBoard.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

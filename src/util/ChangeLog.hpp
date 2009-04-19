@@ -10,6 +10,9 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -143,5 +146,7 @@ std::string ChangeLog<T>::dump() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // CHANGELOG_HPP

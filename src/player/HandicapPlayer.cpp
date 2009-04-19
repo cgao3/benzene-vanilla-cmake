@@ -7,6 +7,8 @@
 #include "HandicapPlayer.hpp"
 #include "BoardUtils.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 HandicapPlayer::HandicapPlayer(ICEngine* ice)

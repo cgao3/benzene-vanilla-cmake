@@ -8,6 +8,8 @@
 
 #include "BenzenePlayer.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Player using Handicap to generate moves. 
@@ -81,5 +83,7 @@ inline std::string HandicapPlayer::name() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXHANDICAPPLAYER_HPP

@@ -3,10 +3,16 @@
  */
 //----------------------------------------------------------------------------
 
+#ifndef MISC_HPP
+#define MISC_HPP
+
 #include <sstream>
 #include <string>
 #include <vector>
+#include "Benzene.hpp"
 #include "Types.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -42,3 +48,7 @@ std::string MiscUtil::PrintVector(const std::vector<TYPE>& v)
 } 
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
+
+#endif // MISC_HPP

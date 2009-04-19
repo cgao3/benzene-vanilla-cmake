@@ -9,6 +9,8 @@
 #include "Hex.hpp"
 #include "StoneBoard.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Special patterns that are too big to check with a PatternBoard (to
@@ -102,5 +104,7 @@ inline void HandCodedPattern::setMask(const bitset_t& mask)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif  // HAND_CODED_PATTERN_HPP

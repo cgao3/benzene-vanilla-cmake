@@ -8,6 +8,8 @@
 
 #include "Hex.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Base Ring godel class. */
@@ -149,5 +151,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // RING_GODEL_HPP

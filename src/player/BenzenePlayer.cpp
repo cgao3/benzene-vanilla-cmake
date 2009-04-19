@@ -7,6 +7,8 @@
 #include "PlayerUtils.hpp"
 #include "BoardUtils.cpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 BenzenePlayer::BenzenePlayer()

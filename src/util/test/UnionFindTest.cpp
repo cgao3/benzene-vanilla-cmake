@@ -8,6 +8,8 @@
 #include "Hex.hpp"
 #include "UnionFind.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

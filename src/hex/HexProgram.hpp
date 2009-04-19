@@ -14,6 +14,8 @@
 
 #include "Logger.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Program for playing Hex. 
@@ -143,5 +145,7 @@ inline std::string HexProgram::ConfigFileToExecute() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXPROGRAM_HPP

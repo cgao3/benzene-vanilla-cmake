@@ -8,6 +8,8 @@
 #include <cstring>
 #include "HexPoint.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 namespace

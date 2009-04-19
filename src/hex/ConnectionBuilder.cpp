@@ -13,6 +13,8 @@
 #include "VCPattern.hpp"
 #include "VCUtils.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 ConnectionBuilderParam::ConnectionBuilderParam()

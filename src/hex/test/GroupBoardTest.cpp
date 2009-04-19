@@ -8,6 +8,8 @@
 #include "GroupBoard.hpp"
 #include "BoardIterator.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

@@ -9,6 +9,8 @@
 #include "BenzenePlayer.hpp"
 #include "OpeningBook.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Checks book before search. */
@@ -114,5 +116,7 @@ inline void BookCheck::SetDepthValueAdjustment(float value)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // BOOKCHECK_HPP

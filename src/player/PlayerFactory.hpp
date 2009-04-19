@@ -8,6 +8,8 @@
 
 #include "BenzenePlayer.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Creates players. */
@@ -50,5 +52,7 @@ namespace PlayerFactory
 } // namespace PlayerFactory
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // PLAYERFACTORY_HPP

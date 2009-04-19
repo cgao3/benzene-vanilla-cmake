@@ -6,9 +6,10 @@
 #ifndef VCLIST_HPP
 #define VCLIST_HPP
 
+#include "ChangeLog.hpp"
 #include "VC.hpp"
 
-template<typename T> class ChangeLog;
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------
 
@@ -327,5 +328,7 @@ inline VCList::const_iterator VCList::end() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // VCLIST_HPP

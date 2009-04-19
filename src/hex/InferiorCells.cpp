@@ -14,6 +14,8 @@
 #include "BitsetIterator.hpp"
 #include "InferiorCells.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 InferiorCells::InferiorCells()

@@ -8,6 +8,8 @@
 
 #include "Hex.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Rules used to combine VCs. */
@@ -343,5 +345,7 @@ inline std::ostream& operator<<(std::ostream &os, const VC& vc)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif  // VC_H

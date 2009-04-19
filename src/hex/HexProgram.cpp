@@ -18,9 +18,10 @@
 
 namespace po = boost::program_options;
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
-/** Annonymous namespace */
 namespace 
 {
     std::ofstream g_logfile;
@@ -120,7 +121,7 @@ void HexProgram::InitializeHexSystem()
     LogConfig() << m_name << " v" << m_version << " " << m_date << "." << '\n';
     LogConfig() << "============ InitializeHexSystem ============" << '\n';
     SgProp::Init();
-    HexInitProp();
+    HexProp::Init();
     InitRandom();
     BoardUtils::InitializeDecompositions();
     ResistanceUtil::Initialize();

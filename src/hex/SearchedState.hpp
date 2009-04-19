@@ -9,6 +9,8 @@
 #include "Hex.hpp"
 #include "HexEval.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** State that has been search with Alpha-Beta. */
@@ -87,5 +89,7 @@ inline bool SearchedState::ReplaceWith(const SearchedState& other) const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // SEARCHEDSTATE_HPP

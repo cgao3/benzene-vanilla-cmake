@@ -7,6 +7,8 @@
 
 #include "GraphUtils.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

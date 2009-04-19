@@ -8,6 +8,8 @@
 
 #include "Hex.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Computes hash for two bitsets (used to compute hashes for
@@ -87,5 +89,7 @@ inline void ZobristHash::update(HexColor color, HexPoint cell)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // ZOBRISTHASH_HPP

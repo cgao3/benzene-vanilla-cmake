@@ -2,6 +2,8 @@
 
 #include "Hex.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

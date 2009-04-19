@@ -7,6 +7,8 @@
 #include "HexEval.hpp"
 #include "HexBoard.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 bool HexEvalUtil::IsValidEval(HexEval ev)

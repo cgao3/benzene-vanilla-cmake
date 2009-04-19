@@ -6,10 +6,12 @@
 #ifndef BENZENEPLAYER_HPP
 #define BENZENEPLAYER_HPP
 
-#include "ICEngine.hpp"
 #include "HexBoard.hpp"
 #include "HexEval.hpp"
 #include "HexPlayer.hpp"
+#include "ICEngine.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -243,5 +245,7 @@ BenzenePlayerFunctionality::post_search(HexPoint move,
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // BENZENEPLAYER_HPP

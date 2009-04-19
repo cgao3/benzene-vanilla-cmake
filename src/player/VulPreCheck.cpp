@@ -5,6 +5,8 @@
 
 #include "VulPreCheck.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 VulPreCheck::VulPreCheck(BenzenePlayer* player)

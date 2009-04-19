@@ -6,8 +6,9 @@
 #ifndef HEXASSERT_HPP
 #define HEXASSERT_HPP
 
-#define __HEX_ASSERT_VOID_CAST static_cast<void>
+//----------------------------------------------------------------------------
 
+#define __HEX_ASSERT_VOID_CAST static_cast<void>
 
 extern void HexAssertShutdown(const char* assertion, 
                               const char* file, int line,
@@ -29,6 +30,7 @@ extern void HexAssertShutdown(const char* assertion,
 
 #endif // NDEBUG
 
+//----------------------------------------------------------------------------
+
 #endif // HEXASSERT_HPP
 
-//----------------------------------------------------------------------------

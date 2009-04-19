@@ -19,6 +19,8 @@
 #include "hexboard.h"
 #include "hexgame.h"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 SixHtpEngine::SixHtpEngine(std::istream& in, std::ostream& out,

@@ -7,6 +7,8 @@
 #include "BoardUtils.hpp"
 #include "PatternBoard.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 const PatternMatcherData* PatternMatcherData::Get(const ConstBoard* brd)

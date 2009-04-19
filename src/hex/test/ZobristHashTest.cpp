@@ -7,6 +7,8 @@
 
 #include "ZobristHash.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

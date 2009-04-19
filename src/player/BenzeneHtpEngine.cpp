@@ -5,6 +5,7 @@
 
 #include "SgSystem.h"
 
+#include <cmath>
 #include "BoardUtils.hpp"
 #include "BookCheck.hpp"
 #include "BitsetIterator.hpp"
@@ -24,7 +25,7 @@
 #include "VCUtils.hpp"
 #include "VulPreCheck.hpp"
 
-#include <cmath>
+using namespace benzene;
 
 //----------------------------------------------------------------------------
 

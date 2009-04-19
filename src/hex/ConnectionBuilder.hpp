@@ -9,9 +9,10 @@
 #include "Hex.hpp"
 #include "VC.hpp"
 #include "VCList.hpp"
+#include "Connections.hpp"
+#include "GroupBoard.hpp"
 
-class Connections;
-class GroupBoard;
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -285,5 +286,7 @@ inline ConnectionBuilderStatistics ConnectionBuilder::Statistics() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // CONNECTIONBUILDER_HPP

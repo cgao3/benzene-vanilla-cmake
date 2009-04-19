@@ -8,6 +8,8 @@
 
 #include "HashTable.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

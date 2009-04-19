@@ -11,6 +11,8 @@
 #include "Hex.hpp"
 #include "HashTable.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Concept of a state in a transposition table. */
@@ -43,7 +45,7 @@ struct TransTableStateConcept
 template<class T>
 class TransTable
 {
-    BOOST_CLASS_REQUIRE(T, , TransTableStateConcept);
+    BOOST_CLASS_REQUIRE(T, benzene, TransTableStateConcept);
 
 public:
 
@@ -187,5 +189,7 @@ std::string TransTable<T>::stats() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // TRANSTABLE_H

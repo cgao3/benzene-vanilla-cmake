@@ -10,6 +10,8 @@
 #include "GraphUtils.hpp"
 #include "HexBoard.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 void ComputeVCNeighbours(const HexBoard& brd, HexColor c, 

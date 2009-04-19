@@ -7,17 +7,17 @@
 #define VCUTILS_HPP
 
 #include "Hex.hpp"
+#include "HexBoard.hpp"
 #include "StoneBoard.hpp"
 #include "VC.hpp"
 
-//----------------------------------------------------------------------------
+_BEGIN_BENZENE_NAMESPACE_
 
-class HexBoard;
+//----------------------------------------------------------------------------
 
 /** Utilities on VCs. */
 namespace VCUtils
 {
-
     /** Returns true if carrier defines a valid bridge to the
         edge. Edge and the other endpoint are stored if it is valid.
     */
@@ -38,5 +38,7 @@ namespace VCUtils
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // VCUTILS_HPP

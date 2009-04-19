@@ -6,6 +6,10 @@
 #ifndef SAFEBOOL_HPP
 #define SAFEBOOL_HPP
 
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Implements the Save Bool Idiom.  Classes deriving off of SafeBool
@@ -43,5 +47,7 @@ bool operator==(const SafeBool<T>& lhs, const SafeBool<U>& rhs)
 } 
 
 //---------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // SAFEBOOL_HPP

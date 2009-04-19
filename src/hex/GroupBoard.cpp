@@ -7,6 +7,8 @@
 #include "GraphUtils.hpp"
 #include "GroupBoard.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 GroupBoard::GroupBoard( unsigned size )

@@ -5,6 +5,8 @@
 
 #include "IcePatternSet.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 IcePatternSet::IcePatternSet()

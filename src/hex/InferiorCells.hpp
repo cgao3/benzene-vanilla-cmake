@@ -9,6 +9,8 @@
 #include "Hex.hpp"
 #include "Digraph.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 class VulnerableKiller
@@ -246,5 +248,7 @@ namespace InferiorCellsUtil
 }
 
 //------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // INFERIOR_CELLS_HPP

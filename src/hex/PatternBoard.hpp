@@ -11,6 +11,8 @@
 #include "Pattern.hpp"
 #include "HashedPatternSet.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Instance of a pattern matching a subset of the board.  */
@@ -306,5 +308,7 @@ inline int PatternBoard::updateRadius() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // PATTERNBOARD_HPP

@@ -5,6 +5,8 @@
 
 #include "Misc.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 void MiscUtil::WordToBytes(unsigned word, byte* out)

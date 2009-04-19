@@ -8,6 +8,8 @@
 #include "HexUctKnowledge.hpp"
 #include "PatternBoard.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 HexUctPriorKnowledge::HexUctPriorKnowledge(const HexUctState& state) 

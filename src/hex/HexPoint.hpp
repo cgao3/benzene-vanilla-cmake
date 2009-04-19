@@ -11,9 +11,12 @@
 #include <vector>
 #include <utility>
 
+#include "Benzene.hpp"
 #include "Bitset.hpp"
 #include "HexAssert.hpp"
 #include "HexColor.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -358,5 +361,7 @@ inline std::ostream& operator<<(std::ostream& os, HexPoint p)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXPOINT_HPP

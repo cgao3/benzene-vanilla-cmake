@@ -1,9 +1,5 @@
 //----------------------------------------------------------------------------
 /** @file
- */
-//----------------------------------------------------------------------------
-
-/** @file
 
     @todo Test a black pattern.
 
@@ -16,11 +12,14 @@
 
     @todo Test that incremental updates work the same as complete updates.
 */
+//----------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
 
 #include "Hex.hpp"
 #include "PatternBoard.hpp"
+
+using namespace benzene;
 
 //---------------------------------------------------------------------------
 

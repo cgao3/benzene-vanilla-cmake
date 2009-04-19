@@ -5,6 +5,8 @@
 
 #include "Game.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 Game::Game(StoneBoard& board)

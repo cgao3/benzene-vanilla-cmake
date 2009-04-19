@@ -5,6 +5,8 @@
 
 #include "Pattern.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 Pattern::Pattern()

@@ -13,6 +13,8 @@
 #include "SolverDB.hpp"
 #include "SortedSequence.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 /** Dumps some debug output. */

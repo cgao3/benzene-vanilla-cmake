@@ -8,6 +8,8 @@
 
 #include "Hex.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** A (HexColor, HexPoint) pair. */
@@ -45,5 +47,7 @@ inline HexPoint Move::point() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // MOVE_HPP

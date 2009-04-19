@@ -12,14 +12,23 @@
 #include "SgProp.h"
 #include "SgNode.h"
 
-void HexInitProp();
+#include "Benzene.hpp"
 
-namespace HexPropUtil
+_BEGIN_BENZENE_NAMESPACE_
+
+//----------------------------------------------------------------------------
+
+/** Properties for sgfs. */
+namespace HexProp
 {
+    void Init();
+
     SgProp* AddMoveProp(SgNode* node, SgMove move, SgBlackWhite player);
 }
   
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXPROP_HPP
 

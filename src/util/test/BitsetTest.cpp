@@ -7,6 +7,8 @@
 
 #include "Bitset.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

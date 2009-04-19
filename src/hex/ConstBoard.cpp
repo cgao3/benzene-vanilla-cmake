@@ -7,6 +7,8 @@
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 namespace {

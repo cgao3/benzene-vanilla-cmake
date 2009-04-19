@@ -10,6 +10,8 @@
 #include "HexUctSearch.hpp"
 #include "HexUctPolicy.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Player using UCT to generate moves. */
@@ -149,5 +151,7 @@ inline void MoHexPlayer::SetReuseSubtree(bool reuse)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // MOHEXPLAYER_HPP

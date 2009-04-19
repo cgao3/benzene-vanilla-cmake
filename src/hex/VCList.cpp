@@ -6,6 +6,8 @@
 #include "VCList.hpp"
 #include "ChangeLog.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 VCList::VCList(HexPoint x, HexPoint y, unsigned int soft)

@@ -10,6 +10,8 @@
 
 #include <boost/filesystem/path.hpp>
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 BookCheck::BookCheck(BenzenePlayer* player)

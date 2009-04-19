@@ -10,6 +10,8 @@
 #include "BoardIterator.hpp"
 #include "Pattern.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** @page boardrepresentation Board Representation
@@ -290,5 +292,7 @@ inline bool ConstBoard::operator!=(const ConstBoard& other) const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif  // CONSTBOARD_HPP

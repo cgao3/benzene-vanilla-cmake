@@ -15,6 +15,8 @@
 
 #include <boost/scoped_ptr.hpp>
 
+_BEGIN_BENZENE_NAMESPACE_
+
 class HexUctSearch;
 
 //----------------------------------------------------------------------------
@@ -235,5 +237,7 @@ inline HexColor HexUctState::GetColorToPlay() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXUCTSTATE_HPP

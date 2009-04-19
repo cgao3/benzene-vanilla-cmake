@@ -7,6 +7,8 @@
 
 #include "Hash.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

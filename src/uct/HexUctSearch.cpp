@@ -19,6 +19,8 @@
 #include "HexUctUtil.hpp"
 #include "PatternBoard.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 HexThreadStateFactory::HexThreadStateFactory(HexUctSharedPolicy* shared)

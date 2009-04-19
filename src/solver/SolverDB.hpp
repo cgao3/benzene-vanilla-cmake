@@ -12,6 +12,8 @@
 #include "StoneBoard.hpp"
 #include "HashDB.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Database of solved positions. */
@@ -190,5 +192,7 @@ namespace SolverDBUtil
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // SOLVERDB_H

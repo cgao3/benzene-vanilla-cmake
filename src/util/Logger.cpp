@@ -5,6 +5,8 @@
 
 #include "Logger.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 Logger::Logger()

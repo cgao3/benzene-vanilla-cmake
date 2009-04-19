@@ -8,6 +8,8 @@
 #include "Hex.hpp"
 #include "ICEngine.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

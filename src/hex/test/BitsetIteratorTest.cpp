@@ -6,6 +6,8 @@
 
 #include "BitsetIterator.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

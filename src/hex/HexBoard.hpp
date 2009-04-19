@@ -10,9 +10,12 @@
 
 #include "ChangeLog.hpp"
 #include "ConnectionBuilder.hpp"
+#include "Hex.hpp"
 #include "ICEngine.hpp"
 #include "PatternBoard.hpp"
 #include "VCPattern.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -334,5 +337,7 @@ inline void HexBoard::SetBackupIceInfo(bool enable)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXBOARD_H

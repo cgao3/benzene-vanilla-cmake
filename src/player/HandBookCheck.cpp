@@ -8,6 +8,8 @@
 
 #include <boost/filesystem/path.hpp>
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 HandBookCheck::HandBookCheck(BenzenePlayer* player)

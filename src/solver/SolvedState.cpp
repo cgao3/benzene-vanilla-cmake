@@ -6,6 +6,8 @@
 #include "Misc.hpp"
 #include "SolvedState.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 void SolvedState::CheckCollision(const SolvedState& other) const

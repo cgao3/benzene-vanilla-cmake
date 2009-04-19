@@ -7,6 +7,8 @@
 #include "BoardUtils.hpp"
 #include "StoneBoard.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

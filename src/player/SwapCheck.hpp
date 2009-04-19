@@ -8,6 +8,8 @@
 
 #include "BenzenePlayer.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Checks swap before search. */
@@ -35,5 +37,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // SWAPCHECK_HPP

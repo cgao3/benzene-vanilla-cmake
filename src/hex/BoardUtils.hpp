@@ -7,18 +7,19 @@
 #define BOARDUTILS_HPP
 
 #include "Hex.hpp"
+#include "ConstBoard.hpp"
+#include "StoneBoard.hpp"
+#include "GroupBoard.hpp"
+#include "HexBoard.hpp"
 
-class ConstBoard;
-class StoneBoard;
-class GroupBoard;
-class HexBoard;
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
 /** Utilities on Boards. */
 namespace BoardUtils
 {
-    //-------------------------------------------------------------------------
+    //------------------------------------------------------------------------
 
     /** @name Cells */
     // @{
@@ -147,5 +148,7 @@ namespace BoardUtils
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // BOARDUTILS_HPP

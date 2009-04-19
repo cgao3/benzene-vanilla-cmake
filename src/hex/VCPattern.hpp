@@ -9,6 +9,8 @@
 #include "Hex.hpp"
 #include "StoneBoard.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 class VCPattern;
@@ -108,5 +110,7 @@ inline HexPoint VCPattern::Endpoint(int i) const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // VC_PATTERN_HPP

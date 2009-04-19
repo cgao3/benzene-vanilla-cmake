@@ -6,6 +6,8 @@
 
 #include "Logger.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

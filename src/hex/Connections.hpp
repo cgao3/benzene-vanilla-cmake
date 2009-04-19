@@ -9,9 +9,10 @@
 #include "Hex.hpp"
 #include "VC.hpp"
 #include "VCList.hpp"
+#include "ChangeLog.hpp"
+#include "ConstBoard.hpp"
 
-class ConstBoard;
-template<typename T> class ChangeLog;
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -185,5 +186,7 @@ namespace ConUtil
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // CONNECTIONS_HPP

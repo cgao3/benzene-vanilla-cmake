@@ -11,6 +11,9 @@
 #include <vector>
 #include <iostream>
 #include <cassert>
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -454,5 +457,7 @@ Digraph<T>::FindStronglyConnectedComponents(std::vector< std::set<T> >& out)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // DIGRAPH_H

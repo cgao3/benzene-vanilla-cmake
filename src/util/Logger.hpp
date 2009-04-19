@@ -12,6 +12,9 @@
 #include <vector>
 #include <map>
 #include <pthread.h>
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -210,5 +213,7 @@ inline Logger& LogSevere()
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // LOGGER_HPP

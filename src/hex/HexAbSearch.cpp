@@ -12,6 +12,8 @@
 #include "PlayerUtils.hpp"
 #include "SequenceHash.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 /** Local utilities. */

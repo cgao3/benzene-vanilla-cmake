@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HexProp.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -7,9 +7,11 @@
 #include "SgProp.h"
 #include "HexProp.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
-void HexInitProp()
+void HexProp::Init()
 {
     SgProp* moveProp = new SgPropMove(0);
     SG_PROP_MOVE_BLACK 
@@ -22,8 +24,7 @@ void HexInitProp()
 
 //----------------------------------------------------------------------------
 
-SgProp* HexPropUtil::AddMoveProp(SgNode* node, SgMove move, 
-                                 SgBlackWhite player)
+SgProp* HexProp::AddMoveProp(SgNode* node, SgMove move, SgBlackWhite player)
 {
     SG_ASSERT_BW(player);
     SgProp* moveProp = node->AddMoveProp(move, player);

@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file UnionFind.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -8,11 +8,13 @@
 
 #include <cassert>
 #include <vector>
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** 
-    General union/find implementation. 
+/** General union/find implementation. 
     
     @todo instead of storing the group size, store the max depth of any
     element of the group, as per CLRS?
@@ -43,7 +45,6 @@ private:
 
     mutable std::vector<int> m_sets;
 };
-
 
 template<int S>
 inline UnionFind<S>::UnionFind()
@@ -95,6 +96,8 @@ inline int UnionFind<S>::unionGroups(int a, int b)
     return cap;
 }
 
-#endif // UNIONFIND_HPP
-
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
+
+#endif // UNIONFIND_HPP

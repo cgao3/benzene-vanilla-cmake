@@ -9,7 +9,10 @@
 #include <boost/concept_check.hpp>
 
 #include <vector>
+#include "Benzene.hpp"
 #include "Hash.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -34,7 +37,7 @@ struct HashTableStateConcept
 template<typename T>
 class HashTable
 {
-    BOOST_CLASS_REQUIRE(T, , HashTableStateConcept);
+    BOOST_CLASS_REQUIRE(T, benzene, HashTableStateConcept);
 
 public:
 
@@ -101,7 +104,8 @@ void HashTable<T>::clear()
     m_data = std::vector<T>(m_size);
 }
 
-#endif // HASHMAP_H
-
 //----------------------------------------------------------------------------
 
+_END_BENZENE_NAMESPACE_
+
+#endif // HASHMAP_H

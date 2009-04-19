@@ -14,6 +14,8 @@
 #include "Hex.hpp"
 #include "StoneBoard.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Utilities to convert from/to Hex and Sg. */
@@ -72,5 +74,7 @@ namespace HexSgUtil
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXSGUTIL_HPP

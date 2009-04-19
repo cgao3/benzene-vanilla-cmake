@@ -6,6 +6,8 @@
 #include <sstream>
 #include "Bitset.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 void BitsetUtil::BitsetToBytes(const bitset_t& b, byte* out, int numbits)
@@ -111,7 +113,8 @@ int BitsetUtil::FirstSetBit(const bitset_t& b)
 }
 //----------------------------------------------------------------------------
 
-bitset_t operator-(const bitset_t& b1, const bitset_t& b2)
+/** @note Must specify the namespace here for some reason. */
+bitset_t benzene::operator-(const bitset_t& b1, const bitset_t& b2)
 {
     return BitsetUtil::Subtract(b1, b2);
 }

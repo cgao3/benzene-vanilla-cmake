@@ -11,6 +11,8 @@
 
 #include "HexUctSearch.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Whether statistics on patterns should be collected or not.  This
@@ -190,5 +192,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXUCTPOLICY_H

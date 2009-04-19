@@ -11,7 +11,13 @@
 #include "WolveEngine.hpp"
 #include "WolvePlayer.hpp"
 
+using namespace benzene;
+
+namespace {
+
 const char* build_date = __DATE__;
+
+}
 
 //----------------------------------------------------------------------------
 

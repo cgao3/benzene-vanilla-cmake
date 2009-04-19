@@ -17,6 +17,8 @@
 #include "HexAbSearch.hpp"
 #include "Resistance.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 typedef enum 
@@ -363,5 +365,7 @@ inline void WolvePlayer::SetSearchDepths(const std::vector<int>& depths)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // WOLVEPLAYER_HPP

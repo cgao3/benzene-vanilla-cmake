@@ -10,6 +10,8 @@
 #include "HexBoard.hpp"
 #include "VCUtils.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 HexBoard::HexBoard(int width, int height, const ICEngine& ice,

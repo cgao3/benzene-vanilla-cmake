@@ -7,6 +7,8 @@
 #include "SgRandom.h"
 #include "ZobristHash.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 /** Use hashes defined in ZobrishHashes.hpp if this is true.

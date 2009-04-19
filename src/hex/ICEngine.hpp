@@ -12,6 +12,8 @@
 #include "HandCodedPattern.hpp"
 #include "PatternBoard.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Inferior Cell Engine. 
@@ -344,5 +346,7 @@ namespace IceUtil
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // ICENGINE_H

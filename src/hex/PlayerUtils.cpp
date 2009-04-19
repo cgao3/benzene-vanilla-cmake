@@ -7,6 +7,8 @@
 #include "BitsetIterator.hpp"
 #include "Connections.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 /** @page playingdeterminedstates Playing in Determined States

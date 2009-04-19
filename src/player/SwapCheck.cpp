@@ -6,6 +6,8 @@
 #include "BoardUtils.hpp"
 #include "SwapCheck.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 SwapCheck::SwapCheck(BenzenePlayer* player)

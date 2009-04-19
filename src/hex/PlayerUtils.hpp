@@ -10,6 +10,8 @@
 #include "HexBoard.hpp"
 #include "HexEval.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Utilities used by UofAPlayers and their engines. */
@@ -75,5 +77,7 @@ namespace PlayerUtils
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // PLAYERUTILS_HPP

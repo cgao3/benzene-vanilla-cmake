@@ -9,6 +9,8 @@
 #include "Hex.hpp"
 #include "RingGodel.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** @page patternencoding Pattern Encoding
@@ -416,5 +418,7 @@ inline int RotatedPattern::angle() const
 typedef std::vector<RotatedPattern> RotatedPatternList;
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // PATTERN_H

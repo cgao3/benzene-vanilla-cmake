@@ -6,8 +6,11 @@
 #ifndef BITSET_ITERATOR_HPP
 #define BITSET_ITERATOR_HPP
 
+#include "Benzene.hpp"
 #include "Hex.hpp"
 #include "SafeBool.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -66,5 +69,7 @@ inline bool BitsetIterator::boolean_test() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // BITSET_ITERATOR_HPP

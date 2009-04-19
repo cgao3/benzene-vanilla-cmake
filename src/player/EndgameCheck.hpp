@@ -8,6 +8,8 @@
 
 #include "BenzenePlayer.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Handles VC endgames and prunes the moves to consider to
@@ -72,5 +74,7 @@ inline void EndgameCheck::SetSearchSingleton(bool flag)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // ENDGAMECHECK_HPP

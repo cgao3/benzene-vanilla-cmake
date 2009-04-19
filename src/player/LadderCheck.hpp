@@ -8,6 +8,8 @@
 
 #include "BenzenePlayer.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Checks for bad ladder probes and removes them from the moves to 
@@ -47,5 +49,7 @@ inline void LadderCheck::SetEnabled(bool enable)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // LADDERCHECK_HPP

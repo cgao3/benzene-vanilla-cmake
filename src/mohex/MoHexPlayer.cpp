@@ -20,6 +20,8 @@
 #include "Time.hpp"
 #include "VCUtils.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 namespace {

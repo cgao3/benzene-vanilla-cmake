@@ -11,6 +11,8 @@
 
 #include "boost/filesystem/path.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Collection of Patterns and HashedPatterns for use in ICE. */
@@ -89,5 +91,7 @@ IcePatternSet::HashedDominated(HexColor color) const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // ICE_PATTERN_SET_HPP

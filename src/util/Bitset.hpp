@@ -12,7 +12,10 @@
 #include <string>
 #include <vector>
 
+#include "Benzene.hpp"
 #include "Types.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -189,5 +192,7 @@ inline bool BitsetUtil::IsLessThan(const bitset_t& b1, const bitset_t& b2)
 bitset_t operator-(const bitset_t& b1, const bitset_t& b2);
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // BITSET_HPP

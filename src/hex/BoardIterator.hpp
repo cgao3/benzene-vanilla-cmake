@@ -6,8 +6,11 @@
 #ifndef BOARD_ITERATOR_HPP
 #define BOARD_ITERATOR_HPP
 
+#include "Benzene.hpp"
 #include "Hex.hpp"
 #include "SafeBool.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------
 
@@ -97,5 +100,7 @@ inline BoardIterator& BoardIterator::operator++()
 }
 
 //----------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // BOARD_ITERATOR_HPP

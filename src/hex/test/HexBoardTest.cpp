@@ -8,6 +8,8 @@
 #include "HexBoard.hpp"
 #include "Connections.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

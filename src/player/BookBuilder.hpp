@@ -17,6 +17,8 @@
 #include "ThreadedWorker.hpp"
 #include "Time.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** @page bookrefresh Book Refresh
@@ -697,5 +699,7 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // BOOKBUILDER_HPP

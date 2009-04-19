@@ -6,6 +6,8 @@
 
 #include "VCUtils.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

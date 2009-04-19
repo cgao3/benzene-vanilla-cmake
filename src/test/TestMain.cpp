@@ -9,6 +9,8 @@
 #include "config.h"
 #include "HexProgram.hpp"
 
+using namespace benzene;
+
 #define BOOST_VERSION_MAJOR (BOOST_VERSION / 100000)
 #define BOOST_VERSION_MINOR (BOOST_VERSION / 100 % 1000)
 

@@ -11,6 +11,7 @@
 #include "SgPoint.h"
 #include "SgUctSearch.h"
 
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -56,6 +57,8 @@ namespace HexUctUtil
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // GOUCTUTIL_H
 

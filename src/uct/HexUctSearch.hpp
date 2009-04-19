@@ -8,12 +8,13 @@
 
 #include "SgBlackWhite.h"
 #include "SgPoint.h"
+#include "SgNode.h"
 #include "SgUctSearch.h"
 
 #include "HexUctState.hpp"
 #include "PatternBoard.hpp"
 
-class SgNode;
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -276,5 +277,7 @@ inline const StoneBoard& HexUctSearch::LastPositionSearched() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXUCTSEARCH_H

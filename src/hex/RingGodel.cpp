@@ -6,6 +6,8 @@
 #include "RingGodel.hpp"
 #include "Pattern.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 RingGodel::GlobalData::GlobalData()

@@ -13,6 +13,10 @@
 #include "HexProgram.hpp"
 #include "SixHtpEngine.hpp"
 
+using namespace benzene;
+
+//----------------------------------------------------------------------------
+
 int main(int argc, char** argv)
 {
     // Six specific initializations

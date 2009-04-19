@@ -21,6 +21,8 @@
 #include <algorithm>
 #include <boost/scoped_ptr.hpp>
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 /** Performs various proof-checking diagnostics. */

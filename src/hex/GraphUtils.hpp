@@ -9,6 +9,8 @@
 #include "Hex.hpp"
 #include "GroupBoard.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 class HexBoard;
@@ -77,5 +79,7 @@ namespace GraphUtils
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // GRAPHUTILS_HPP

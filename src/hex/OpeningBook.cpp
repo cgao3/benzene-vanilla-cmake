@@ -10,6 +10,8 @@
 #include "OpeningBook.hpp"
 #include "Time.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 /** Dump debug info. */

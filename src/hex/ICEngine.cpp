@@ -10,6 +10,8 @@
 
 #include "boost/filesystem/path.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 namespace {

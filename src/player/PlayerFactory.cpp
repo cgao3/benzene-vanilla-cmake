@@ -12,6 +12,8 @@
 #include "SwapCheck.hpp"
 #include "VulPreCheck.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 BenzenePlayer* PlayerFactory::CreatePlayer(BenzenePlayer* player)

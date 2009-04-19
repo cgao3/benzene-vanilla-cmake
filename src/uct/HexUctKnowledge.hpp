@@ -11,6 +11,8 @@
 
 #include "HexUctState.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 class HexUctPriorKnowledge : public SgUctPriorKnowledge
@@ -71,5 +73,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXUCTKNOWLEDGE_H

@@ -8,6 +8,8 @@
 #include "HexBoard.hpp"
 #include "BoardUtils.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 /** Number of cells in a MIAI (bridge). 

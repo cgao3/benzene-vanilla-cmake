@@ -8,6 +8,8 @@
 
 #include "Hex.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** A solved state. Stored in a TT or DB.  
@@ -138,5 +140,7 @@ inline bool SolvedState::ReplaceWith(const SolvedState& other) const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // SOLVEDSTATE_H

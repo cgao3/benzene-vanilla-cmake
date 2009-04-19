@@ -7,6 +7,11 @@
 #define TIME_HPP
 
 #include <string>
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
+
+//----------------------------------------------------------------------------
 
 namespace Time
 {
@@ -27,5 +32,7 @@ namespace Time
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // TIME_HPP

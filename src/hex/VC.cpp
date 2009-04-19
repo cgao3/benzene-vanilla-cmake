@@ -6,6 +6,8 @@
 #include <sstream>
 #include "VC.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 VC::VC()

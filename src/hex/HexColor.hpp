@@ -6,6 +6,10 @@
 #ifndef HEXCOLOR_HPP
 #define HEXCOLOR_HPP
 
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Available colors of a cell on a Hex board. 
@@ -268,6 +272,8 @@ inline HexColorSet ColorOrEmpty(HexColor color)
 
 } // namespace HexColorSetUtil
 
-#endif // HEXCOLOR_HPP
-
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
+
+#endif // HEXCOLOR_HPP

@@ -9,6 +9,8 @@
 #include <sstream>
 #include "Time.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 double Time::Get()

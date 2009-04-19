@@ -14,8 +14,11 @@
 
 #include <db.h>
 
+#include "Benzene.hpp"
 #include "Types.hpp"
 #include "Hash.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -53,7 +56,7 @@ struct HashDBStateConcept
 template<class T>
 class HashDB
 {
-    BOOST_CLASS_REQUIRE(T, , HashDBStateConcept);
+    BOOST_CLASS_REQUIRE(T, benzene, HashDBStateConcept);
 
 public:
 
@@ -309,6 +312,8 @@ DB* HashDB<T>::BerkelyDB()
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HASHDB_H
 

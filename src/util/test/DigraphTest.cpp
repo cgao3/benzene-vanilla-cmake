@@ -7,6 +7,8 @@
 
 #include "Digraph.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

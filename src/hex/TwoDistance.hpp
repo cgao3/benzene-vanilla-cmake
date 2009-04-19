@@ -10,6 +10,8 @@
 #include "HexEval.hpp"
 #include "HexBoard.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** TwoDistance Evaluation Function.
@@ -118,5 +120,7 @@ namespace TwoDistUtil
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // TWODISTANCE_HPP

@@ -15,6 +15,8 @@
 
 #include <boost/scoped_ptr.hpp>
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 class SixHtpEngine: public HexHtpEngine
@@ -70,5 +72,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // SIXHTPENGINE_H

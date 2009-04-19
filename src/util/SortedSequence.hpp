@@ -8,6 +8,9 @@
 
 #include <vector>
 #include <iostream>
+#include "Benzene.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -110,5 +113,7 @@ inline void SortedSequence::operator++()
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // SORTEDSEQUENCE_H

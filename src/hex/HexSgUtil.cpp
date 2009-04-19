@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HexSgUtil.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -11,6 +11,8 @@
 #include "Hex.hpp"
 #include "HexProp.hpp"
 #include "HexSgUtil.hpp"
+
+using namespace benzene;
 
 //----------------------------------------------------------------------------
 
@@ -61,7 +63,7 @@ void HexSgUtil::AddMoveToNode(SgNode* node, HexColor color,
 {
     SgPoint sgcell = HexSgUtil::HexPointToSgPoint(cell, height); 
     SgBlackWhite sgcolor = HexSgUtil::HexColorToSgColor(color);
-    HexPropUtil::AddMoveProp(node, sgcell, sgcolor);
+    HexProp::AddMoveProp(node, sgcell, sgcolor);
 }
 
 bool HexSgUtil::NodeHasSetupInfo(SgNode* node)

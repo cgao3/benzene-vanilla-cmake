@@ -1,13 +1,5 @@
 //---------------------------------------------------------------------------
 /** @file
- */
-//---------------------------------------------------------------------------
-#include <boost/test/auto_unit_test.hpp>
-
-#include "VCList.hpp"
-#include "ChangeLog.hpp"
-
-/** @file
 
     @todo Write tests for the following methods:
 
@@ -17,8 +9,14 @@
 
           Maybe do some more thorough testing of the softlimit
           stuff. But this is pretty good already, I think.
-
 */
+//---------------------------------------------------------------------------
+#include <boost/test/auto_unit_test.hpp>
+
+#include "VCList.hpp"
+#include "ChangeLog.hpp"
+
+using namespace benzene;
 
 //---------------------------------------------------------------------------
 

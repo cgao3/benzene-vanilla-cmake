@@ -11,7 +11,15 @@
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
 
+using namespace benzene;
+
+//----------------------------------------------------------------------------
+
+namespace {
+
 const char* build_date = __DATE__;
+
+}
 
 //----------------------------------------------------------------------------
 

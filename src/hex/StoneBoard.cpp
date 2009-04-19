@@ -6,6 +6,8 @@
 #include "BoardUtils.hpp"
 #include "StoneBoard.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 StoneBoard::StoneBoard(unsigned size)

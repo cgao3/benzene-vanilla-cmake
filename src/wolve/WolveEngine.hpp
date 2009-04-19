@@ -8,6 +8,8 @@
 
 #include "BenzeneHtpEngine.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Htp engine for Wolve. */
@@ -42,5 +44,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // WOLVEENGINE_HPP

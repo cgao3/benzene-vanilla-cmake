@@ -2,6 +2,8 @@
 
 #include "SequenceHash.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

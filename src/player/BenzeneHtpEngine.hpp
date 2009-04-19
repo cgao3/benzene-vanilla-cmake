@@ -6,14 +6,16 @@
 #ifndef BENZENEHTPENGINE_H
 #define BENZENEHTPENGINE_H
 
-#include "HexHtpEngine.hpp"
-#include "BenzenePlayer.hpp"
-#include "OpeningBook.hpp"
-#include "Solver.hpp"
-
 #include <boost/thread.hpp>
 #include <boost/thread/barrier.hpp>
 #include <boost/thread/mutex.hpp>
+
+#include "BenzenePlayer.hpp"
+#include "HexHtpEngine.hpp"
+#include "OpeningBook.hpp"
+#include "Solver.hpp"
+
+_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -212,5 +214,7 @@ template<typename T> T* BenzeneHtpEngine::GetInstanceOf(BenzenePlayer* player)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // BENZENEHTPENGINE_H

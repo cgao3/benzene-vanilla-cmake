@@ -6,6 +6,8 @@
 #include "LadderCheck.hpp"
 #include "VCPattern.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 LadderCheck::LadderCheck(BenzenePlayer* player)

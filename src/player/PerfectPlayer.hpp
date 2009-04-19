@@ -10,6 +10,8 @@
 #include "HexBoard.hpp"
 #include "BenzenePlayer.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 /** Player using Solver to generate moves. Works best on boards 7x7
@@ -70,5 +72,7 @@ inline void PerfectPlayer::SetDB(SolverDB* db)
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXSOLVERPLAYER_HPP

@@ -11,6 +11,8 @@
 #include "SequenceHash.hpp"
 #include "WolvePlayer.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 WolvePlayer::WolvePlayer()

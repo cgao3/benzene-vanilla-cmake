@@ -11,6 +11,8 @@
 #include "SearchedState.hpp"
 #include "TransTable.hpp"
 
+_BEGIN_BENZENE_NAMESPACE_
+
 //----------------------------------------------------------------------------
 
 typedef TransTable<SearchedState> SearchTT;
@@ -201,5 +203,7 @@ inline bool HexAbSearch::GuiFx() const
 }
 
 //----------------------------------------------------------------------------
+
+_END_BENZENE_NAMESPACE_
 
 #endif // HEXABSEARCH_HPP

@@ -8,6 +8,8 @@
 #include "Hex.hpp"
 #include "InferiorCells.hpp"
 
+using namespace benzene;
+
 //---------------------------------------------------------------------------
 
 namespace {

@@ -14,6 +14,8 @@
 #include "SgProp.h"
 #include "SgUctSearch.h"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 void GoGuiGfxStatus(const SgUctSearch& search, std::ostream& out)

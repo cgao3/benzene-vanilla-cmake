@@ -8,6 +8,8 @@
 #include "TwoDistance.hpp"
 #include "Connections.hpp"
 
+using namespace benzene;
+
 //----------------------------------------------------------------------------
 
 TwoDistance::TwoDistance(NeighbourType ntype)
