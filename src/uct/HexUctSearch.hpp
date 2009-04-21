@@ -82,11 +82,11 @@ public:
     /** @name Hex-specific functions */
     // @{
 
-    void SetBoard(PatternBoard& board);
+    void SetBoard(HexBoard& board);
 
-    PatternBoard& Board();
+    HexBoard& Board();
 
-    const PatternBoard& Board() const;
+    const HexBoard& Board() const;
 
     void SetInitialData(const HexUctInitialData* data);
 
@@ -173,11 +173,10 @@ protected:
     /** Nothing is done to this board. We do not own this pointer.
         Threads will synchronise with this board at the start of the
         search. */
-    PatternBoard* m_brd;
+    HexBoard* m_brd;
    
     /** Data for first few ply of the game. Shared amoung threads. */
     const HexUctInitialData* m_initial_data;
-
 
     StoneBoard m_lastPositionSearched;
 
@@ -195,17 +194,17 @@ protected:
     //void AppendGame(const std::vector<SgMove>& sequence);
 };
 
-inline void HexUctSearch::SetBoard(PatternBoard& board)
+inline void HexUctSearch::SetBoard(HexBoard& board)
 {
     m_brd = &board;
 }
 
-inline PatternBoard& HexUctSearch::Board()
+inline HexBoard& HexUctSearch::Board()
 {
     return *m_brd;
 }
 
-inline const PatternBoard& HexUctSearch::Board() const
+inline const HexBoard& HexUctSearch::Board() const
 {
     return *m_brd;
 }

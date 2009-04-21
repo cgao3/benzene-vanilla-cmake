@@ -10,7 +10,7 @@
 #include "SgPoint.h"
 #include "SgUctSearch.h"
 
-#include "PatternBoard.hpp"
+#include "HexBoard.hpp"
 #include "VC.hpp"
 
 #include <boost/scoped_ptr.hpp>
@@ -179,6 +179,8 @@ private:
 
     /** Board used during search. */
     boost::scoped_ptr<PatternBoard> m_bd;
+
+    boost::scoped_ptr<HexBoard> m_vc_brd;
 
     const HexUctInitialData* m_initial_data;
 

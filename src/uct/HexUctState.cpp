@@ -62,6 +62,7 @@ HexUctState::HexUctState(std::size_t threadId,
       m_assertionHandler(*this),
 
       m_bd(0),
+      m_vc_brd(0),
       m_initial_data(0),
       m_search(sch),
       m_policy(0),
@@ -171,9 +172,11 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
     HexAssert(m_new_game == (m_numStonesPlayed == 0));
 
     bitset_t moveset;
+    bool have_consider_set = false;
     if (m_new_game)
     {
         moveset = m_initial_data->ply1_moves_to_consider;
+        have_consider_set = true;
     }
     else if (m_numStonesPlayed == 1) 
     {
@@ -184,17 +187,41 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
 	HexAssert(it != m_initial_data->ply2_moves_to_consider.end());
 	opptMustplay = it->second;
         moveset = opptMustplay;
+        have_consider_set = true;
     } 
     else 
     {
         moveset = m_bd->getEmpty();
     }
 
+    bool truncateChildTrees = false;
+
+    if (count && !have_consider_set)
+    {
+        m_vc_brd->startNewGame();
+        m_vc_brd->setColor(BLACK, m_bd->getBlack());
+        m_vc_brd->setColor(WHITE, m_bd->getWhite());
+        m_vc_brd->setPlayed(m_bd->getPlayed());
+        m_vc_brd->ComputeAll(m_toPlay, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+
+        bitset_t mustplay = m_vc_brd->getMustplay(m_toPlay);
+
+        moveset &= mustplay;
+
+        if (mustplay.count() < m_vc_brd->getEmpty().count())
+        {
+            LogInfo() << "Got mustplay!" 
+                      << m_vc_brd->printBitset(mustplay) << '\n';
+
+        }
+        //truncateChildTrees = true;
+    }
+
     moves.clear();
     for (BitsetIterator it(moveset); it; ++it)
         moves.push_back(SgMoveInfo(*it));
 
-    return false;
+    return truncateChildTrees;
 }
 
 SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
@@ -213,13 +240,19 @@ void HexUctState::StartSearch()
 {
     LogInfo() << "StartSearch()[" << m_threadId <<"]" << '\n';
     m_initial_data = m_search.InitialData();
-    const PatternBoard& brd = m_search.Board();
+
+    // @todo Fix the interface to HexBoard so this can be constant!
+    // The problem is that VCBuilder (which is inside of HexBoard)
+    // expects a non-const reference to a VCBuilderParam object.
+    HexBoard& brd = const_cast<HexBoard&>(m_search.Board());
     
     if (!m_bd.get() 
         || m_bd->width() != brd.width() 
         || m_bd->height() != brd.height())
     {
         m_bd.reset(new PatternBoard(brd.width(), brd.height()));
+        m_vc_brd.reset(new HexBoard(brd.width(), brd.height(), 
+                                    brd.ICE(), brd.Builder().Parameters()));
     }
     m_bd->startNewGame();
     m_bd->setColor(BLACK, brd.getBlack());
