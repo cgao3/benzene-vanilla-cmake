@@ -186,19 +186,6 @@ hash_t OpeningBookUtil::GetHash(const StoneBoard& brd)
     return std::min(hash1, hash2);
 }
 
-float OpeningBookUtil::ComputePriority(const StoneBoard& brd, 
-                                       const OpeningBookNode& parent,
-                                       const OpeningBookNode& child,
-                                       double alpha)
-{
-    float delta 
-	= parent.Value(brd) - OpeningBook::InverseEval(child.Value(brd));
-    HexAssert(delta >= 0.0);
-    HexAssert(child.m_priority >= OpeningBookNode::LEAF_PRIORITY);
-    HexAssert(child.m_priority < OpeningBookNode::DUMMY_PRIORITY);
-    return alpha * delta + child.m_priority + 1;
-}
-
 void OpeningBookUtil::UpdateValue(const OpeningBook& book, 
                                   OpeningBookNode& node, StoneBoard& brd)
 {
@@ -220,6 +207,24 @@ void OpeningBookUtil::UpdateValue(const OpeningBook& book,
     }
     if (hasChild)
         node.m_value = bestValue;
+}
+
+/** @todo Maybe switch this to take a bestChildValue instead of of a
+    parent node. This would require flipping the parent in the caller
+    function and reverse the order of the subtraction. */
+float OpeningBookUtil::ComputePriority(const StoneBoard& brd, 
+                                       const OpeningBookNode& parent,
+                                       const OpeningBookNode& child,
+                                       double alpha)
+{
+    // Must adjust child value for swap, but not the parent because we
+    // are comparing with the best child's value, ie, the minmax
+    // value.
+    float delta = parent.m_value - OpeningBook::InverseEval(child.Value(brd));
+    HexAssert(delta >= 0.0);
+    HexAssert(child.m_priority >= OpeningBookNode::LEAF_PRIORITY);
+    HexAssert(child.m_priority < OpeningBookNode::DUMMY_PRIORITY);
+    return alpha * delta + child.m_priority + 1;
 }
 
 HexPoint OpeningBookUtil::UpdatePriority(const OpeningBook& book,
