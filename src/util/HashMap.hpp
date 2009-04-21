@@ -116,8 +116,11 @@ private:
     /** See count() */
     volatile unsigned m_count;
 
-    /** Pointer (into m_alloc) to data for this slot, 0 if slot is unused. */
-    boost::scoped_array<volatile Data*> m_used;
+    /** Pointer (into m_allocated) to data for this slot, 0 if slot is
+        unused. Note that the pointer itself is volatile, not the data
+        at which it is pointing.
+     */
+    boost::scoped_array<Data * volatile> m_used;
 
     /** Allocated space for entries in the table. */
     boost::scoped_array<Data> m_allocated;
@@ -129,7 +132,7 @@ HashMap<T>::HashMap(unsigned bits)
       m_size(1 << bits),
       m_mask(m_size - 1),
       m_count(0),
-      m_used(new volatile Data*[m_size]),
+      m_used(new Data * volatile[m_size]),
       m_allocated(new Data[m_size])
 {
     clear();
