@@ -29,7 +29,7 @@ class HexBoard : public PatternBoard
 public:
     
     /** Creates a rectangular board. */
-    HexBoard(int width, int size, const ICEngine& ice,
+    HexBoard(int width, int height, const ICEngine& ice,
              VCBuilderParam& param);
 
     /** Copy constructor. */
