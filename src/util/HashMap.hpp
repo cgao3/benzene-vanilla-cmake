@@ -97,6 +97,12 @@ public:
     void clear();
 
 private:    
+    
+    struct Data
+    {
+        hash_t key;
+        T value;
+    };
 
     /** See bits() */
     unsigned m_bits;
@@ -111,13 +117,10 @@ private:
     volatile unsigned m_count;
 
     /** Pointer (into m_alloc) to data for this slot, 0 if slot is unused. */
-    boost::scoped_array<volatile T*> m_used;
+    boost::scoped_array<volatile Data*> m_used;
 
     /** Allocated space for entries in the table. */
-    boost::scoped_array<T> m_allocated;
-
-    /** Key stored in each used slot. */
-    boost::scoped_array<hash_t> m_key;
+    boost::scoped_array<Data> m_allocated;
 };
 
 template<typename T>
@@ -126,9 +129,8 @@ HashMap<T>::HashMap(unsigned bits)
       m_size(1 << bits),
       m_mask(m_size - 1),
       m_count(0),
-      m_used(new volatile T*[m_size]),
-      m_allocated(new T[m_size]),
-      m_key(new hash_t[m_size])
+      m_used(new volatile Data*[m_size]),
+      m_allocated(new Data[m_size])
 {
     clear();
 }
@@ -160,32 +162,31 @@ inline unsigned HashMap<T>::count() const
 template<typename T>
 bool HashMap<T>::get(hash_t key, T& out)
 {
+    // Search for slot containing this key.
+    // Limit number of probes to a single pass: Table should never
+    // fill up, but I'm being extra paranoid anyway.
     hash_t index = key;
-
-    // Limit number of probes to a single pass. 
-    // Table should never fill up, but I'm being extra paranoid
-    // anyway.
     for (int guard = m_size; guard > 0; --guard)
     {
         index &= m_mask;
-        if (m_used[index] && m_key[index] == key)
+        if (!m_used[index])
+            return false;
+        if (m_used[index] && m_used[index]->key == key)
         {
-            out = *m_used[index];
+            out = m_used[index]->value;
             return true;
         }
-        else if (!m_used[index]) 
-            return false;
         index++;
     }
     return false;
 }
 
 template<typename T>
-void HashMap<T>::put(hash_t key, const T& obj)
+void HashMap<T>::put(hash_t key, const T& value)
 {
     if (m_count > m_size)
     {
-        LogSevere() << "HashMap: Full! Ugh oh..." << '\n';
+        LogSevere() << "HashMap: Full! Uhh oh..." << '\n';
         abort();
     }
     else if (m_count > m_size / 4)
@@ -193,19 +194,20 @@ void HashMap<T>::put(hash_t key, const T& obj)
 
     // Atomic: get offset into allocated memory and increment m_count.
     int offset = __sync_fetch_and_add(&m_count, 1);
-    m_allocated[offset] = obj;
-    T* addr_of_new_object = &m_allocated[offset];
 
+    // Copy data over
+    m_allocated[offset].key = key;
+    m_allocated[offset].value = value;
+    Data* addr_of_new_data = &m_allocated[offset];
+
+    // Find an empty slot
     hash_t index = key;
     while (true)
     {
         index &= m_mask;
-        // Atomic: if slot is unused, grab it for ourselves.
-        if (__sync_bool_compare_and_swap(&m_used[index], 0, addr_of_new_object))
-        {
-            m_key[index] = key;
+        // Atomic: grab slot if unused
+        if (__sync_bool_compare_and_swap(&m_used[index], 0, addr_of_new_data))
             break;
-        }
         index++;
     }
 }
