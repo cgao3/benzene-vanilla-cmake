@@ -105,7 +105,7 @@ public:
 
     void ExecutePlayout(SgMove move);
    
-    void GenerateAllMoves(std::vector<SgMove>& moves);
+    bool GenerateAllMoves(std::size_t count, std::vector<SgMoveInfo>& moves);
 
     SgMove GeneratePlayoutMove(bool& skipRaveUpdate);
     

@@ -15,7 +15,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-class HexUctPriorKnowledge : public SgUctPriorKnowledge
+class HexUctPriorKnowledge
 {
 public:
     // Constructor and Destructor.
@@ -53,23 +53,6 @@ private:
     // Stores likely good/bad responses.
     bitset_t m_goodResponses;
     bitset_t m_badResponses;
-};
-
-//----------------------------------------------------------------------------
-
-class HexUctPriorKnowledgeFactory : public SgUctPriorKnowledgeFactory
-{
-public:
-    // Constructor and Destructor.
-    HexUctPriorKnowledgeFactory(const std::string& config_dir);
-    ~HexUctPriorKnowledgeFactory();
-    
-    // Creation of knowledge class used for node initialization.
-    SgUctPriorKnowledge* Create(SgUctThreadState& state);
-
-private:
-    // Allows PriorKnowledge classes to find init pattern files.
-    std::string m_config_dir;
 };
 
 //----------------------------------------------------------------------------

@@ -117,7 +117,7 @@ void HexSgUtil::GetSetupPosition(const SgNode* node,
         SgPropPointList* prop = (SgPropPointList*)node->Get(SG_PROP_ADD_BLACK);
         SgList<SgPoint>& lst = prop->Value();
         for (int i=1; i<=lst.Length(); ++i) {
-            HexPoint cell = HexSgUtil::SgPointToHexPoint(lst[i], height);
+            HexPoint cell = HexSgUtil::SgPointToHexPoint(lst.At(i), height);
             black.push_back(cell);
         }
     }
@@ -126,7 +126,7 @@ void HexSgUtil::GetSetupPosition(const SgNode* node,
         SgPropPointList* prop = (SgPropPointList*)node->Get(SG_PROP_ADD_WHITE);
         SgList<SgPoint>& lst = prop->Value();
         for (int i=1; i<=lst.Length(); ++i) {
-            HexPoint cell = HexSgUtil::SgPointToHexPoint(lst[i], height);
+            HexPoint cell = HexSgUtil::SgPointToHexPoint(lst.At(i), height);
             white.push_back(cell);
         }
     }
@@ -135,7 +135,7 @@ void HexSgUtil::GetSetupPosition(const SgNode* node,
         SgPropPointList* prop = (SgPropPointList*)node->Get(SG_PROP_ADD_EMPTY);
         SgList<SgPoint>& lst = prop->Value();
         for (int i=1; i<=lst.Length(); ++i) {
-            HexPoint cell = HexSgUtil::SgPointToHexPoint(lst[i], height);
+            HexPoint cell = HexSgUtil::SgPointToHexPoint(lst.At(i), height);
             empty.push_back(cell);
         }
     }

@@ -165,7 +165,8 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
 }
 
 /** @todo Handle swap? */
-void HexUctState::GenerateAllMoves(std::vector<SgMove>& moves)
+bool HexUctState::GenerateAllMoves(std::size_t count, 
+                                   std::vector<SgMoveInfo>& moves)
 {
     HexAssert(m_new_game == (m_numStonesPlayed == 0));
 
@@ -191,7 +192,9 @@ void HexUctState::GenerateAllMoves(std::vector<SgMove>& moves)
 
     moves.clear();
     for (BitsetIterator it(moveset); it; ++it)
-        moves.push_back(*it);
+        moves.push_back(SgMoveInfo(*it));
+
+    return false;
 }
 
 SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)

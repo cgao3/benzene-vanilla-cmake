@@ -148,25 +148,3 @@ void HexUctPriorKnowledge::LoadBadPatterns(const std::string& filename)
 }
 
 //----------------------------------------------------------------------------
-
-HexUctPriorKnowledgeFactory::HexUctPriorKnowledgeFactory(const std::string&
-							 config_dir)
-    : m_config_dir(config_dir)
-{
-}
-
-HexUctPriorKnowledgeFactory::~HexUctPriorKnowledgeFactory()
-{
-}
-
-SgUctPriorKnowledge*
-HexUctPriorKnowledgeFactory::Create(SgUctThreadState& state)
-{
-    HexUctPriorKnowledge* hupk = new
-	HexUctPriorKnowledge(dynamic_cast<const HexUctState&>(state));
-    if (hupk)
-	hupk->LoadPatterns(m_config_dir);
-    return hupk;
-}
-
-//----------------------------------------------------------------------------
