@@ -130,12 +130,12 @@ HashMap<T>::HashMap(unsigned bits)
       m_allocated(new T[m_size]),
       m_key(new hash_t[m_size])
 {
+    clear();
 }
 
 template<typename T>
 HashMap<T>::~HashMap()
 {
-    clear();
 }
 
 template<typename T>
