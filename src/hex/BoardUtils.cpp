@@ -8,7 +8,7 @@
 
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "GraphUtils.hpp"
 #include "HexBoard.hpp"
 #include "Pattern.hpp"
@@ -301,7 +301,7 @@ bool BoardUtils::FindCombinatorialDecomposition(const HexBoard& brd,
     // If game is over or decided, don't do any work.
     HexPoint edge1 = HexPointUtil::colorEdge1(color);
     HexPoint edge2 = HexPointUtil::colorEdge2(color);
-    const Connections& cons = brd.Cons(color);
+    const VCSet& cons = brd.Cons(color);
     if (brd.isGameOver() || cons.Exists(edge1, edge2, VC::FULL)) {
 	captured.reset();
 	return false;

@@ -111,7 +111,7 @@ public:
     int add(const VCList& other, ChangeLog<VC>* log);
 
     /** 
-     * Force the addition of this vc.  Used by Connections::revert():
+     * Force the addition of this vc.  Used by VCSet::revert():
      *
      *    1) add(vc) can cause a superset to vc to be removed.
      *    2) this superset is then added to the log

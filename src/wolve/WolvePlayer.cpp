@@ -4,7 +4,7 @@
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "HexEval.hpp"
 #include "Misc.hpp"
 #include "PlayerUtils.hpp"

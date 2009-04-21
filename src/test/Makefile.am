@@ -13,7 +13,6 @@ benzene_unittest_SOURCES = \
 ../hex/test/BitsetIteratorTest.cpp \
 ../hex/test/BoardIteratorTest.cpp \
 ../hex/test/BoardUtilsTest.cpp \
-../hex/test/ConnectionsTest.cpp \
 ../hex/test/ConstBoardTest.cpp \
 ../hex/test/GraphUtilsTest.cpp \
 ../hex/test/GroupBoardTest.cpp \
@@ -27,6 +26,7 @@ benzene_unittest_SOURCES = \
 ../hex/test/SequenceHashTest.cpp \
 ../hex/test/StoneBoardTest.cpp \
 ../hex/test/VCListTest.cpp \
+../hex/test/VCSetTest.cpp \
 ../hex/test/VCTest.cpp \
 ../hex/test/VCUtilsTest.cpp \
 ../hex/test/ZobristHashTest.cpp \

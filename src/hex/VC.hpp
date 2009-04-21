@@ -71,7 +71,7 @@ class VC
 {  
 public:
     
-    /** Two types of Virtual Connections: FULL and SEMI. 
+    /** Two types of Virtual VCSet: FULL and SEMI. 
         
         FULL (or "0") connections are second-player strategies
         guaranteeing the connection even if the opponent goes first.
@@ -155,7 +155,7 @@ public:
         
         ONLY USE THIS IF YOU KNOW WHAT YOU ARE DOING!  
     
-        Should only be called inside of Connections.
+        Should only be called inside of VCSet.
     */
     void setProcessed(bool flag);
 

@@ -2,8 +2,6 @@ noinst_LIBRARIES = libhex.a
 
 libhex_a_SOURCES = \
 BoardUtils.cpp \
-ConnectionBuilder.cpp \
-Connections.cpp \
 ConstBoard.cpp \
 Game.cpp \
 GraphUtils.cpp \
@@ -31,8 +29,10 @@ SequenceHash.cpp \
 StoneBoard.cpp \
 TwoDistance.cpp \
 VC.cpp \
+VCBuilder.cpp \
 VCList.cpp \
 VCPattern.cpp \
+VCSet.cpp \
 VCUtils.cpp \
 ZobristHash.cpp
 
@@ -40,8 +40,6 @@ noinst_HEADERS = \
 BitsetIterator.hpp \
 BoardIterator.hpp \
 BoardUtils.hpp \
-ConnectionBuilder.hpp \
-Connections.hpp \
 ConstBoard.hpp \
 Game.hpp \
 GraphUtils.hpp \
@@ -80,8 +78,10 @@ StoneBoard.hpp \
 TransTable.hpp \
 TwoDistance.hpp \
 VC.hpp \
+VCBuilder.hpp \
 VCList.hpp \
 VCPattern.hpp \
+VCSet.hpp \
 VCUtils.hpp \
 ZobristHashes.hpp \
 ZobristHash.hpp

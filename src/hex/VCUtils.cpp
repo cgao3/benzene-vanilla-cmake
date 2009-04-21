@@ -4,7 +4,7 @@
 //----------------------------------------------------------------------------
 
 #include "VCUtils.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "HexBoard.hpp"
 #include "BoardUtils.hpp"
 

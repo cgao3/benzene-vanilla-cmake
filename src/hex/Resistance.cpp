@@ -10,7 +10,7 @@
 
 #include "Hex.hpp"
 #include "BitsetIterator.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "Resistance.hpp"
 #include "Pattern.hpp"
 #include "HashedPatternSet.hpp"

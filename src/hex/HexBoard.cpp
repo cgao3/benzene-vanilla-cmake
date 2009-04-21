@@ -6,7 +6,7 @@
 #include "Time.hpp"
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "HexBoard.hpp"
 #include "VCUtils.hpp"
 
@@ -15,7 +15,7 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 HexBoard::HexBoard(int width, int height, const ICEngine& ice,
-                   ConnectionBuilderParam& param)
+                   VCBuilderParam& param)
     : PatternBoard(width, height), 
       m_ice(&ice),
       m_builder(param),
@@ -43,7 +43,7 @@ HexBoard::HexBoard(const HexBoard& other)
 {
     for (BWIterator color; color; ++color)
     {
-        m_cons[*color].reset(new Connections(*other.m_cons[*color]));
+        m_cons[*color].reset(new VCSet(*other.m_cons[*color]));
         m_log[*color] = m_log[*color];
     }
 }
@@ -54,7 +54,7 @@ void HexBoard::Initialize()
 	      << "sizeof(HexBoard) = " << sizeof(HexBoard) << '\n';
 
     for (BWIterator c; c; ++c) 
-        m_cons[*c].reset(new Connections(Const(), *c));
+        m_cons[*c].reset(new VCSet(Const(), *c));
 
     ClearHistory();
 }

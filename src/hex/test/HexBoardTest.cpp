@@ -6,7 +6,7 @@
 #include <boost/test/auto_unit_test.hpp>
 
 #include "HexBoard.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 
 using namespace benzene;
 
@@ -19,7 +19,7 @@ namespace {
 BOOST_AUTO_TEST_CASE(HexBoard_PlayAndUndo)
 {
     ICEngine ice;
-    ConnectionBuilderParam param;
+    VCBuilderParam param;
     HexBoard brd(7, 7, ice, param);
 
     brd.startNewGame();
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(HexBoard_PlayAndUndo)
 BOOST_AUTO_TEST_CASE(HexBoard_CopyConstructor)
 {
     ICEngine ice;
-    ConnectionBuilderParam param;
+    VCBuilderParam param;
     HexBoard brd(7, 7, ice, param);
     
     brd.startNewGame();

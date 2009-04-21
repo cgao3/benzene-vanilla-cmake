@@ -5,7 +5,7 @@
 
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "HexEval.hpp"
 #include "GraphUtils.hpp"
 #include "HexBoard.hpp"
@@ -24,7 +24,8 @@ void ComputeVCNeighbours(const HexBoard& brd, HexColor c,
     }
     for (BoardIterator i(brd.Groups(not_other)); i; ++i) {
 	group_nbs[*i] 
-            = captains & ConUtil::ConnectedTo(brd.Cons(c), brd, *i, VC::FULL);
+            = captains & VCSetUtil::ConnectedTo(brd.Cons(c), brd, *i, 
+                                                VC::FULL);
     }
 }
 

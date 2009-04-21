@@ -6,8 +6,8 @@
 #include <boost/test/auto_unit_test.hpp>
 
 #include "BitsetIterator.hpp"
-#include "ConnectionBuilder.hpp"
-#include "Connections.hpp"
+#include "VCBuilder.hpp"
+#include "VCSet.hpp"
 #include "ChangeLog.hpp"
 #include "GroupBoard.hpp"
 
@@ -17,12 +17,12 @@ using namespace benzene;
 
 namespace {
 
-BOOST_AUTO_TEST_CASE(Connections_CheckCopy)
+BOOST_AUTO_TEST_CASE(VCSet_CheckCopy)
 {
     GroupBoard bd(11, 11);
-    Connections con1(bd.Const(), BLACK);
+    VCSet con1(bd.Const(), BLACK);
     con1.Add(VC(NORTH, SOUTH), 0);
-    Connections con2(con1);
+    VCSet con2(con1);
     BOOST_CHECK(con1 == con2);
 
     con1.Add(VC(NORTH, HEX_CELL_A1), 0);
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(Connections_CheckCopy)
 }
 
 /** @todo Make this test quicker! */
-BOOST_AUTO_TEST_CASE(Connections_CheckRevert)
+BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
 {
     GroupBoard bd(11, 11);
 
@@ -47,17 +47,17 @@ BOOST_AUTO_TEST_CASE(Connections_CheckRevert)
     bd.playMove(WHITE, HEX_CELL_H6);
 
     ChangeLog<VC> cl;
-    Connections con1(bd.Const(), BLACK);
+    VCSet con1(bd.Const(), BLACK);
     con1.SetSoftLimit(VC::FULL, 10);
     con1.SetSoftLimit(VC::SEMI, 25);
-    Connections con2(con1);
+    VCSet con2(con1);
 
-    ConnectionBuilderParam param;
+    VCBuilderParam param;
     param.max_ors = 4;
     param.and_over_edge = true;
     param.use_greedy_union = true;
 
-    ConnectionBuilder builder(param);
+    VCBuilder builder(param);
     builder.Build(con1, bd);
     builder.Build(con2, bd);
     BOOST_CHECK(con1 == con2);
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(Connections_CheckRevert)
         bd.undoMove(*p);
 
         BOOST_CHECK(cl.empty());
-        BOOST_CHECK(ConUtil::EqualOnGroups(con1, con2, bd));
+        BOOST_CHECK(VCSetUtil::EqualOnGroups(con1, con2, bd));
     }
 }
 

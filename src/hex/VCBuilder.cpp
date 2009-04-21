@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file VCBuilder.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -8,8 +8,8 @@
 #include "BitsetIterator.hpp"
 #include "GraphUtils.hpp"
 #include "ChangeLog.hpp"
-#include "ConnectionBuilder.hpp"
-#include "Connections.hpp"
+#include "VCBuilder.hpp"
+#include "VCSet.hpp"
 #include "VCPattern.hpp"
 #include "VCUtils.hpp"
 
@@ -17,7 +17,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-ConnectionBuilderParam::ConnectionBuilderParam()
+VCBuilderParam::VCBuilderParam()
     : max_ors(4),
       and_over_edge(false),
       use_patterns(false),
@@ -29,12 +29,12 @@ ConnectionBuilderParam::ConnectionBuilderParam()
 
 //----------------------------------------------------------------------------
 
-ConnectionBuilder::ConnectionBuilder(ConnectionBuilderParam& param)
+VCBuilder::VCBuilder(VCBuilderParam& param)
     : m_param(param)
 {
 }
 
-ConnectionBuilder::~ConnectionBuilder()
+VCBuilder::~VCBuilder()
 {
 }
 
@@ -42,7 +42,7 @@ ConnectionBuilder::~ConnectionBuilder()
 
 // Static VC construction
 
-void ConnectionBuilder::Build(Connections& con, const GroupBoard& brd)
+void VCBuilder::Build(VCSet& con, const GroupBoard& brd)
 {
     m_con = &con;
     m_color = con.Color();
@@ -51,7 +51,7 @@ void ConnectionBuilder::Build(Connections& con, const GroupBoard& brd)
 
     double s = Time::Get();
     m_con->Clear();
-    m_statistics = ConnectionBuilderStatistics();
+    m_statistics = VCBuilderStatistics();
     m_queue.clear();
 
     AddBaseVCs();
@@ -64,7 +64,7 @@ void ConnectionBuilder::Build(Connections& con, const GroupBoard& brd)
 }
 
 /** Computes the 0-connections defined by adjacency.*/
-void ConnectionBuilder::AddBaseVCs()
+void VCBuilder::AddBaseVCs()
 {
     HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(m_color);
     for (BoardIterator x(m_brd->Groups(not_other)); x; ++x) 
@@ -84,7 +84,7 @@ void ConnectionBuilder::AddBaseVCs()
 }
 
 /** Adds vcs obtained by pre-computed patterns. */
-void ConnectionBuilder::AddPatternVCs()
+void VCBuilder::AddPatternVCs()
 {
     const VCPatternSet& patterns 
         = VCPattern::GetPatterns(m_brd->width(), m_brd->height(), m_color);
@@ -111,9 +111,9 @@ void ConnectionBuilder::AddPatternVCs()
 //----------------------------------------------------------------------------
 // Incremental VC construction
 
-void ConnectionBuilder::Build(Connections& con, const GroupBoard& brd,
-                              bitset_t added[BLACK_AND_WHITE],
-                              ChangeLog<VC>* log)
+void VCBuilder::Build(VCSet& con, const GroupBoard& brd,
+                      bitset_t added[BLACK_AND_WHITE],
+                      ChangeLog<VC>* log)
 {
     HexAssert((added[BLACK] & added[WHITE]).none());
 
@@ -162,9 +162,9 @@ void ConnectionBuilder::Build(Connections& con, const GroupBoard& brd,
     TODO Finish this documentation!
             
 */
-void ConnectionBuilder::Merge(bitset_t added[BLACK_AND_WHITE])
+void VCBuilder::Merge(bitset_t added[BLACK_AND_WHITE])
 {
-    /** NOTE: ConnectionBuilder takes a constant board, and so we need
+    /** NOTE: VCBuilder takes a constant board, and so we need
         to guarantee that the board is the same when we leave this
         method as it was when we entered. This is the only method that
         should be modifying the board!
@@ -174,7 +174,7 @@ void ConnectionBuilder::Merge(bitset_t added[BLACK_AND_WHITE])
         corrupted and this check misses it.
 
         Ideally, we want to de-couple the group info from the board so
-        this would not be a problem. In which case, ConnectionBuilder
+        this would not be a problem. In which case, VCBuilder
         would not even see any board at all.
     */
 #ifndef NDEBUG
@@ -210,8 +210,8 @@ void ConnectionBuilder::Merge(bitset_t added[BLACK_AND_WHITE])
 #endif
 }
 
-void ConnectionBuilder::MergeAndShrink(const bitset_t& affected,
-                                       const bitset_t& added)
+void VCBuilder::MergeAndShrink(const bitset_t& affected,
+                               const bitset_t& added)
 {
     HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
     for (BoardIterator x(m_brd->Stones(not_other)); x; ++x) 
@@ -239,9 +239,9 @@ void ConnectionBuilder::MergeAndShrink(const bitset_t& affected,
     }
 }
 
-void ConnectionBuilder::MergeAndShrink(const bitset_t& added, 
-                                       HexPoint xin, HexPoint yin,
-                                       HexPoint xout, HexPoint yout)
+void VCBuilder::MergeAndShrink(const bitset_t& added, 
+                               HexPoint xin, HexPoint yin,
+                               HexPoint xout, HexPoint yout)
 {
     HexAssert(xin != yin);
     HexAssert(xout != yout);
@@ -331,8 +331,8 @@ void ConnectionBuilder::MergeAndShrink(const bitset_t& added,
     some unprocessed connections could have been brought under the
     softlimit.
 */
-void ConnectionBuilder::RemoveAllContaining(const GroupBoard& brd,
-                                            const bitset_t& bs)
+void VCBuilder::RemoveAllContaining(const GroupBoard& brd, 
+                                    const bitset_t& bs)
 {
     HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
     for (BoardIterator x(brd.Groups(not_other)); x; ++x) 
@@ -355,7 +355,7 @@ void ConnectionBuilder::RemoveAllContaining(const GroupBoard& brd,
 // VC Construction methods
 //----------------------------------------------------------------------------
 
-void ConnectionBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
+void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
 {
     VCList& semis = m_con->GetList(VC::SEMI, xc, yc);
     VCList& fulls = m_con->GetList(VC::FULL, xc, yc);
@@ -423,7 +423,7 @@ void ConnectionBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     } 
 }
 
-void ConnectionBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
+void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
 {
     VCList& fulls = m_con->GetList(VC::FULL, xc, yc);
     int soft = fulls.softlimit();
@@ -441,7 +441,7 @@ void ConnectionBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
     }
 }
 
-void ConnectionBuilder::DoSearch()
+void VCBuilder::DoSearch()
 {
     bool winning_connection = false;
     while (!m_queue.empty()) 
@@ -481,7 +481,7 @@ void ConnectionBuilder::DoSearch()
     vc. This function is a major bottleneck. Every operation in it
     needs to be as efficient as possible.
 */
-void ConnectionBuilder::andClosure(const VC& vc)
+void VCBuilder::andClosure(const VC& vc)
 {
     HexColor other = !m_color;
     HexColorSet not_other = HexColorSetUtil::NotColor(other);
@@ -519,8 +519,8 @@ void ConnectionBuilder::andClosure(const VC& vc)
 /** Performs pairwise comparisons of connections between a and b, adds
     those with empty intersection into out.
 */
-void ConnectionBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
-                              AndRule rule, const VC& vc, const VCList* old)
+void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
+                      AndRule rule, const VC& vc, const VCList* old)
 {
     if (old->empty())
         return;
@@ -565,13 +565,13 @@ void ConnectionBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
 
     @return number of connections successfully added.
 */
-int ConnectionBuilder::OrRule::operator()(const VC& vc, 
-                                          const VCList* semi_list, 
-                                          VCList* full_list, 
-                                          std::list<VC>& added, 
-                                          int max_ors,
-                                          ChangeLog<VC>* log, 
-                                          ConnectionBuilderStatistics& stats)
+int VCBuilder::OrRule::operator()(const VC& vc, 
+                                  const VCList* semi_list, 
+                                  VCList* full_list, 
+                                  std::list<VC>& added, 
+                                  int max_ors,
+                                  ChangeLog<VC>* log, 
+                                  VCBuilderStatistics& stats)
 {
     if (semi_list->empty())
         return 0;
@@ -673,41 +673,44 @@ int ConnectionBuilder::OrRule::operator()(const VC& vc,
 
 /** Performs Crossing-rule.
 
-    The crossing rule requires exactly 3 pairwise disjoint SCs between two
-    empty cells x and y such that at least two of the SCs have mustuse
-    (also called stepping stones). The crossing rule then concludes that
-    there exists an SC between one mustuse in an SC and one mustuse in the
-    other SC. This conclusion holds for any pair of mustuse, so long as they
-    are in different SCs.
+    The crossing rule requires exactly 3 pairwise disjoint SCs between
+    two empty cells x and y such that at least two of the SCs have
+    mustuse (also called stepping stones). The crossing rule then
+    concludes that there exists an SC between one mustuse in an SC and
+    one mustuse in the other SC. This conclusion holds for any pair of
+    mustuse, so long as they are in different SCs.
     
-    The key of this SC could be either x or y. As long as we discard superset
-    SCs produced by the crossing rule (i.e. SCs joining the same two points
-    but with a carrier that is a superset of a known SC) and the AND-rule
-    of H-search is in effect, then for all crossing rule SCs that are kept,
-    either x or y can be set as the key (i.e. both will work).
+    The key of this SC could be either x or y. As long as we discard
+    superset SCs produced by the crossing rule (i.e. SCs joining the
+    same two points but with a carrier that is a superset of a known
+    SC) and the AND-rule of H-search is in effect, then for all
+    crossing rule SCs that are kept, either x or y can be set as the
+    key (i.e. both will work).
     
-    Lastly, there is a special case when either x or y forms a bridge with
-    an edge (i.e. where the carrier will be captured). WLOG say x forms a
-    bridge. Then if we set x to be the key of the SCs we are trying to
-    produce, then it is allowable for the 3 SCs to not be pairwise disjoint;
-    they can overlap on this bridge carrier since it will be captured. This
-    helps find more important ladder-type connections near the edge. In this
-    case, the bridge carrier must be included in the carrier of the output SC.
+    Lastly, there is a special case when either x or y forms a bridge
+    with an edge (i.e. where the carrier will be captured). WLOG say x
+    forms a bridge. Then if we set x to be the key of the SCs we are
+    trying to produce, then it is allowable for the 3 SCs to not be
+    pairwise disjoint; they can overlap on this bridge carrier since
+    it will be captured. This helps find more important ladder-type
+    connections near the edge. In this case, the bridge carrier must
+    be included in the carrier of the output SC.
     
     A couple more notes:
-    1) Since the crossing rule requires two SCs with mustuse, it almost always
-    finds connections near an edge. Thus, do not use this rule unless you are
-    also using the option and_over_edge.
-    2) Because of mustuse this rule is as efficient (or more so) than the
-    AND/OR-rules of H-search. However, it does not find many connections, and
-    produces minimal strength gains in our AIs. Hopefully it can be extended
-    or inspire a more productive rule in the future.
-    3) For more details, see our publication (submitted to ACG 2009; the
-    usual trio of Phil, Broderick, and Ryan).
+    1) Since the crossing rule requires two SCs with mustuse, it
+    almost always finds connections near an edge. Thus, do not use
+    this rule unless you are also using the option and_over_edge.
+    2) Because of mustuse this rule is as efficient (or more so) than
+    the AND/OR-rules of H-search. However, it does not find many
+    connections, and produces minimal strength gains in our
+    AIs. Hopefully it can be extended or inspire a more productive
+    rule in the future.
+    3) For more details, see our publication (submitted to ACG 2009;
+    the usual trio of Phil, Broderick, and Ryan).
 
     TODO: Reuse std::vectors to reduce dynamic allocations?
 */
-void ConnectionBuilder::doCrossingRule(const VC& vc, const VCList* semi_list)
+void VCBuilder::doCrossingRule(const VC& vc, const VCList* semi_list)
 {
     if (m_brd->getColor(vc.x()) != EMPTY || m_brd->getColor(vc.y()) != EMPTY)
         return;
@@ -945,7 +948,7 @@ void ConnectionBuilder::doCrossingRule(const VC& vc, const VCList* semi_list)
     2) Adds (vc.x(), vc.y()) to the queue if vc was added inside the
     softlimit.
 */
-bool ConnectionBuilder::AddNewFull(const VC& vc)
+bool VCBuilder::AddNewFull(const VC& vc)
 {
     HexAssert(vc.type() == VC::FULL);
     VCList::AddResult result = m_con->Add(vc, m_log);
@@ -978,7 +981,7 @@ bool ConnectionBuilder::AddNewFull(const VC& vc)
     2) otherwise, if no full exists between (vc.x(), vc.y()), adds the
     or over the entire semi list.
 */
-bool ConnectionBuilder::AddNewSemi(const VC& vc)
+bool VCBuilder::AddNewSemi(const VC& vc)
 {
     VCList* out_full = &m_con->GetList(VC::FULL, vc.x(), vc.y());
     VCList* out_semi = &m_con->GetList(VC::SEMI, vc.x(), vc.y());
@@ -1014,7 +1017,7 @@ bool ConnectionBuilder::AddNewSemi(const VC& vc)
 
 //----------------------------------------------------------------------------
 
-std::string ConnectionBuilderStatistics::toString() const
+std::string VCBuilderStatistics::toString() const
 {
     std::ostringstream os;
     os << "["
@@ -1034,7 +1037,7 @@ std::string ConnectionBuilderStatistics::toString() const
 
 //----------------------------------------------------------------------------
 
-/** @page workqueue ConnectionBuilder Work Queue
+/** @page workqueue VCBuilder Work Queue
 
     WorkQueue stores the endpoints of any VCLists that need further
     processing. Endpoints are pushed onto the back of the queue and
@@ -1061,41 +1064,41 @@ std::string ConnectionBuilderStatistics::toString() const
     significant as 1-3% of the total run-time, especially on smaller
     boards.
 */
-ConnectionBuilder::WorkQueue::WorkQueue()
+VCBuilder::WorkQueue::WorkQueue()
     : m_head(0), 
       m_array(128)
 {
 }
 
-bool ConnectionBuilder::WorkQueue::empty() const
+bool VCBuilder::WorkQueue::empty() const
 {
     return m_head == m_array.size();
 }
 
-const HexPointPair& ConnectionBuilder::WorkQueue::front() const
+const HexPointPair& VCBuilder::WorkQueue::front() const
 {
     return m_array[m_head];
 }
 
-std::size_t ConnectionBuilder::WorkQueue::capacity() const
+std::size_t VCBuilder::WorkQueue::capacity() const
 {
     return m_array.capacity();
 }
 
-void ConnectionBuilder::WorkQueue::clear()
+void VCBuilder::WorkQueue::clear()
 {
     memset(m_seen, 0, sizeof(m_seen));
     m_array.clear();
     m_head = 0;
 }
 
-void ConnectionBuilder::WorkQueue::pop()
+void VCBuilder::WorkQueue::pop()
 {
     m_seen[front().first][front().second] = false;
     m_head++;
 }
 
-void ConnectionBuilder::WorkQueue::push(const HexPointPair& p)
+void VCBuilder::WorkQueue::push(const HexPointPair& p)
 {
     HexPoint a = std::min(p.first, p.second);
     HexPoint b = std::max(p.first, p.second);

@@ -9,7 +9,7 @@
 #include "BoardUtils.hpp"
 #include "BookCheck.hpp"
 #include "BitsetIterator.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "EndgameCheck.hpp"
 #include "GraphUtils.hpp"
 #include "HandBookCheck.hpp"
@@ -81,7 +81,7 @@ void ParamICE(ICEngine& ice, HtpCommand& cmd)
 
 void ParamVC(HexBoard& brd, HtpCommand& cmd)
 {
-    ConnectionBuilderParam& param = brd.Builder().Parameters();
+    VCBuilderParam& param = brd.Builder().Parameters();
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
@@ -919,7 +919,7 @@ void BenzeneHtpEngine::CmdGetCellsConnectedTo(HtpCommand& cmd)
     HexPoint from = MoveArg(cmd, 0);
     HexColor color = ColorArg(cmd, 1);
     VC::Type ctype = VCTypeArg(cmd, 2);
-    bitset_t pt = ConUtil::ConnectedTo(m_pe.brd->Cons(color), 
+    bitset_t pt = VCSetUtil::ConnectedTo(m_pe.brd->Cons(color), 
                                        *m_pe.brd, from, ctype);
     PrintBitsetToHTP(cmd, pt);
 }
@@ -1077,24 +1077,24 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
 
     // Pre-compute edge adjacencies
     bitset_t northNbs 
-        = ConUtil::ConnectedTo(brd.Cons(BLACK), brd, NORTH, VC::FULL);
+        = VCSetUtil::ConnectedTo(brd.Cons(BLACK), brd, NORTH, VC::FULL);
     bitset_t southNbs 
-        = ConUtil::ConnectedTo(brd.Cons(BLACK), brd, SOUTH, VC::FULL);
+        = VCSetUtil::ConnectedTo(brd.Cons(BLACK), brd, SOUTH, VC::FULL);
     bitset_t eastNbs 
-        = ConUtil::ConnectedTo(brd.Cons(WHITE), brd, EAST, VC::FULL);
+        = VCSetUtil::ConnectedTo(brd.Cons(WHITE), brd, EAST, VC::FULL);
     bitset_t westNbs 
-        = ConUtil::ConnectedTo(brd.Cons(WHITE), brd, WEST, VC::FULL);
+        = VCSetUtil::ConnectedTo(brd.Cons(WHITE), brd, WEST, VC::FULL);
 
     for (BoardIterator it(brd.Interior()); it; ++it) {
         if (brd.isOccupied(*it)) continue;
 
 	// Compute neighbours, giving over-estimation to edges
-	bitset_t b1 = ConUtil::ConnectedTo(brd.Cons(BLACK), brd, 
+	bitset_t b1 = VCSetUtil::ConnectedTo(brd.Cons(BLACK), brd, 
                                            *it, VC::FULL);
 	if (b1.test(NORTH)) b1 |= northNbs;
 	if (b1.test(SOUTH)) b1 |= southNbs;
 	b1 &= brd.getEmpty();
-	bitset_t b2 = ConUtil::ConnectedTo(brd.Cons(WHITE), brd, 
+	bitset_t b2 = VCSetUtil::ConnectedTo(brd.Cons(WHITE), brd, 
                                            *it, VC::FULL);
 	if (b2.test(EAST)) b2 |= eastNbs;
 	if (b2.test(WEST)) b2 |= westNbs;

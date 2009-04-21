@@ -9,7 +9,7 @@
 #include <boost/scoped_ptr.hpp>
 
 #include "ChangeLog.hpp"
-#include "ConnectionBuilder.hpp"
+#include "VCBuilder.hpp"
 #include "Hex.hpp"
 #include "ICEngine.hpp"
 #include "PatternBoard.hpp"
@@ -19,7 +19,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Combines GroupBoard, PatternBoard, and Connections into a board
+/** Combines GroupBoard, PatternBoard, and VCSet into a board
     that handles all updates automatically.
   
     @todo Document me!
@@ -30,7 +30,7 @@ public:
     
     /** Creates a rectangular board. */
     HexBoard(int width, int size, const ICEngine& ice,
-             ConnectionBuilderParam& param);
+             VCBuilderParam& param);
 
     /** Copy constructor. */
     HexBoard(const HexBoard& other);
@@ -144,16 +144,16 @@ public:
     const ICEngine& ICE() const;
 
     /** Returns the connection set for color. */
-    const Connections& Cons(HexColor color) const;
+    const VCSet& Cons(HexColor color) const;
 
     /** Returns the connection set for color. */
-    Connections& Cons(HexColor color);
+    VCSet& Cons(HexColor color);
 
     /** Returns the connection builder for this board. */
-    ConnectionBuilder& Builder();
+    VCBuilder& Builder();
 
     /** Returns the connection builder for this board. */
-    const ConnectionBuilder& Builder() const;
+    const VCBuilder& Builder() const;
 
 private:
 
@@ -223,10 +223,10 @@ private:
     const ICEngine* m_ice;
 
     /** Builder used to compute virtual connections. */
-    ConnectionBuilder m_builder;
+    VCBuilder m_builder;
 
     /** Connection sets for black and white. */
-    boost::scoped_ptr<Connections> m_cons[BLACK_AND_WHITE];
+    boost::scoped_ptr<VCSet> m_cons[BLACK_AND_WHITE];
 
     /** The vc changelogs for both black and white. */
     ChangeLog<VC> m_log[BLACK_AND_WHITE];
@@ -276,22 +276,22 @@ inline const ICEngine& HexBoard::ICE() const
     return *m_ice;
 }
 
-inline const Connections& HexBoard::Cons(HexColor color) const
+inline const VCSet& HexBoard::Cons(HexColor color) const
 {
     return *m_cons[color].get();
 }
 
-inline Connections& HexBoard::Cons(HexColor color)
+inline VCSet& HexBoard::Cons(HexColor color)
 {
     return *m_cons[color].get();
 }
 
-inline ConnectionBuilder& HexBoard::Builder()
+inline VCBuilder& HexBoard::Builder()
 {
     return m_builder;
 }
 
-inline const ConnectionBuilder& HexBoard::Builder() const
+inline const VCBuilder& HexBoard::Builder() const
 {
     return m_builder;
 }

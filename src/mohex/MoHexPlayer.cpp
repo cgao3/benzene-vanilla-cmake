@@ -10,7 +10,7 @@
 
 #include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "HexUctUtil.hpp"
 #include "HexUctKnowledge.hpp"
 #include "HexUctSearch.hpp"

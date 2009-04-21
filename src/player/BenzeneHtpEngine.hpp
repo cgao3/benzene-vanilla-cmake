@@ -29,7 +29,7 @@ struct HexEnvironment
 
     ICEngine ice;
 
-    ConnectionBuilderParam buildParam;
+    VCBuilderParam buildParam;
 
     boost::scoped_ptr<HexBoard> brd;
     

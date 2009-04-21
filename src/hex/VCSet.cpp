@@ -1,11 +1,11 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file VCSet.cpp
  */
 //----------------------------------------------------------------------------
 
 #include "Hex.hpp"
 #include "ChangeLog.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "GroupBoard.hpp"
 #include "VC.hpp"
 #include "VCList.hpp"
@@ -14,7 +14,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-Connections::Connections(const ConstBoard& brd, HexColor color)
+VCSet::VCSet(const ConstBoard& brd, HexColor color)
     : m_brd(&brd), 
       m_color(color)
 {
@@ -39,14 +39,14 @@ Connections::Connections(const ConstBoard& brd, HexColor color)
     }
 }
 
-Connections::Connections(const Connections& other)
+VCSet::VCSet(const VCSet& other)
     : m_brd(other.m_brd),
       m_color(other.m_color)
 {
     AllocateAndCopyLists(other);
 }
 
-void Connections::operator=(const Connections& other)
+void VCSet::operator=(const VCSet& other)
 {
     m_brd = other.m_brd;
     m_color = other.m_color;
@@ -54,7 +54,7 @@ void Connections::operator=(const Connections& other)
     AllocateAndCopyLists(other);
 }
 
-void Connections::AllocateAndCopyLists(const Connections& other)
+void VCSet::AllocateAndCopyLists(const VCSet& other)
 {
     for (BoardIterator y = m_brd->EdgesAndInterior(); y; ++y) {
         for (BoardIterator x = m_brd->EdgesAndInterior(); x; ++x) {
@@ -71,12 +71,12 @@ void Connections::AllocateAndCopyLists(const Connections& other)
     }
 }
 
-Connections::~Connections()
+VCSet::~VCSet()
 {
     FreeLists();
 }
 
-void Connections::FreeLists()
+void VCSet::FreeLists()
 {
     for (BoardIterator y = m_brd->EdgesAndInterior(); y; ++y) {
         for (BoardIterator x = m_brd->EdgesAndInterior(); x; ++x) {
@@ -89,12 +89,12 @@ void Connections::FreeLists()
 
 //----------------------------------------------------------------------------
 
-bool Connections::Exists(HexPoint x, HexPoint y, VC::Type type) const
+bool VCSet::Exists(HexPoint x, HexPoint y, VC::Type type) const
 {
     return !m_vc[type][x][y]->empty();
 }
 
-bool Connections::SmallestVC(HexPoint x, HexPoint y, 
+bool VCSet::SmallestVC(HexPoint x, HexPoint y, 
                              VC::Type type, VC& out) const
 {
     if (!Exists(x, y, type)) 
@@ -103,7 +103,7 @@ bool Connections::SmallestVC(HexPoint x, HexPoint y,
     return true;
 }
 
-void Connections::VCs(HexPoint x, HexPoint y, VC::Type type,
+void VCSet::VCs(HexPoint x, HexPoint y, VC::Type type,
                       std::vector<VC>& out) const
 {
     out.clear();
@@ -114,7 +114,7 @@ void Connections::VCs(HexPoint x, HexPoint y, VC::Type type,
 
 //----------------------------------------------------------------------------
 
-void Connections::SetSoftLimit(VC::Type type, int limit)
+void VCSet::SetSoftLimit(VC::Type type, int limit)
 {
     for (BoardIterator y(m_brd->EdgesAndInterior()); y; ++y) {
         for (BoardIterator x(m_brd->EdgesAndInterior()); *x != *y; ++x)
@@ -122,7 +122,7 @@ void Connections::SetSoftLimit(VC::Type type, int limit)
     }
 }
 
-void Connections::Clear()
+void VCSet::Clear()
 {
     for (BoardIterator y(m_brd->EdgesAndInterior()); y; ++y) {
         for (BoardIterator x(m_brd->EdgesAndInterior()); *x != *y; ++x) {
@@ -133,7 +133,7 @@ void Connections::Clear()
     }
 }
 
-void Connections::Revert(ChangeLog<VC>& log)
+void VCSet::Revert(ChangeLog<VC>& log)
 {
     while (!log.empty()) {
         int action = log.topAction();
@@ -165,7 +165,7 @@ void Connections::Revert(ChangeLog<VC>& log)
 
 //----------------------------------------------------------------------------
 
-bool Connections::operator==(const Connections& other) const
+bool VCSet::operator==(const VCSet& other) const
 {
     for (BoardIterator x(m_brd->EdgesAndInterior()); x; ++x) {
         for (BoardIterator y(m_brd->EdgesAndInterior()); *y != *x; ++y) {
@@ -181,14 +181,14 @@ bool Connections::operator==(const Connections& other) const
     return true;
 }
  
-bool Connections::operator!=(const Connections& other) const
+bool VCSet::operator!=(const VCSet& other) const
 {
     return !operator==(other);
 }
 
 //----------------------------------------------------------------------------
 
-bitset_t ConUtil::ConnectedTo(const Connections& con, const GroupBoard& brd, 
+bitset_t VCSetUtil::ConnectedTo(const VCSet& con, const GroupBoard& brd, 
                               HexPoint x, VC::Type type)
 {
     bitset_t ret;
@@ -199,7 +199,7 @@ bitset_t ConUtil::ConnectedTo(const Connections& con, const GroupBoard& brd,
     return ret;
 }
 
-void ConUtil::NumActiveConnections(const Connections& con,
+void VCSetUtil::NumActiveVCSet(const VCSet& con,
                                    const GroupBoard& brd, 
                                    int& fulls, int& semis)
 {
@@ -213,7 +213,7 @@ void ConUtil::NumActiveConnections(const Connections& con,
     }
 }
 
-bool ConUtil::EqualOnGroups(const Connections& c1, const Connections& c2,
+bool VCSetUtil::EqualOnGroups(const VCSet& c1, const VCSet& c2,
                             const GroupBoard& brd)
 {
     if (c1.Color() != c2.Color())

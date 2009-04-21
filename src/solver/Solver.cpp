@@ -6,7 +6,7 @@
 #include "SgSystem.h"
 
 #include "Hex.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "HexProp.hpp"
 #include "HexBoard.hpp"
 #include "GraphUtils.hpp"

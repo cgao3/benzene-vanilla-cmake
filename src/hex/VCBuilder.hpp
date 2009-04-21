@@ -1,23 +1,23 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file VCBuilder.hpp
  */
 //----------------------------------------------------------------------------
 
-#ifndef CONNECTIONBUILDER_HPP
-#define CONNECTIONBUILDER_HPP
+#ifndef VCBUILDER_HPP
+#define VCBUILDER_HPP
 
 #include "Hex.hpp"
 #include "VC.hpp"
 #include "VCList.hpp"
-#include "Connections.hpp"
+#include "VCSet.hpp"
 #include "GroupBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Settings for ConnectionBuilder. */
-struct ConnectionBuilderParam
+/** Settings for VCBuilder. */
+struct VCBuilderParam
 {
     /** Maximum number of VCs in the OR combining rule. */
     int max_ors;
@@ -43,14 +43,14 @@ struct ConnectionBuilderParam
     bool abort_on_winning_connection;
 
     /** Constructor. */
-    ConnectionBuilderParam();
+    VCBuilderParam();
 };
 
 
 //----------------------------------------------------------------------------
 
 /** Statistics for the last call to Build(). */
-struct ConnectionBuilderStatistics
+struct VCBuilderStatistics
 {
     /** Base connections built. */
     int base_attempts;
@@ -132,32 +132,32 @@ struct ConnectionBuilderStatistics
     - @ref mergeshrink
     - @ref workqueue
 */
-class ConnectionBuilder
+class VCBuilder
 {
 public:
 
     /** Constructor. */
-    ConnectionBuilder(ConnectionBuilderParam& param);
+    VCBuilder(VCBuilderParam& param);
     
     /** Destrutor. */
-    ~ConnectionBuilder();
+    ~VCBuilder();
 
     //----------------------------------------------------------------------
 
     /** Returns parameters used in search. */
-    ConnectionBuilderParam& Parameters();
+    VCBuilderParam& Parameters();
 
     /** Returns parameters used in search. */
-    const ConnectionBuilderParam& Parameters() const;
+    const VCBuilderParam& Parameters() const;
 
     /** Returns statistics for the last run. */
-    ConnectionBuilderStatistics Statistics() const;
+    VCBuilderStatistics Statistics() const;
 
     //----------------------------------------------------------------------
 
     /** Computes connections from scratch. Old connections are removed
         prior to starting. */
-    void Build(Connections& con, const GroupBoard& brd);
+    void Build(VCSet& con, const GroupBoard& brd);
    
     /** Computes connections on this board for the given set of added
         stones. Assumes existing vc data is valid for the state prior
@@ -165,7 +165,7 @@ public:
         not 0. Breaks all connections whose carrier contains a new
         stone unless a 1-connection of player color and p is the key;
         these are upgraded to 0-connections for player p.  */
-    void Build(Connections& cons, const GroupBoard& brd,
+    void Build(VCSet& cons, const GroupBoard& brd,
                bitset_t added[BLACK_AND_WHITE],
                ChangeLog<VC>* log);
 
@@ -210,7 +210,7 @@ private:
         int operator()(const VC& vc, const VCList* semi_list, 
                        VCList* full_list, std::list<VC>& added, 
                        int max_ors, ChangeLog<VC>* log, 
-                       ConnectionBuilderStatistics& stats);
+                       VCBuilderStatistics& stats);
 
     private:
         /** Vectors used in or rule computation are reused between
@@ -255,32 +255,32 @@ private:
     
     //-----------------------------------------------------------------------
 
-    ConnectionBuilderParam& m_param;
+    VCBuilderParam& m_param;
 
     WorkQueue m_queue;
 
-    ConnectionBuilderStatistics m_statistics;
+    VCBuilderStatistics m_statistics;
 
     const GroupBoard* m_brd;
 
-    Connections* m_con;
+    VCSet* m_con;
     
     HexColor m_color;
 
     ChangeLog<VC>* m_log;
 };
 
-inline ConnectionBuilderParam& ConnectionBuilder::Parameters()
+inline VCBuilderParam& VCBuilder::Parameters()
 {
     return m_param;
 }
 
-inline const ConnectionBuilderParam& ConnectionBuilder::Parameters() const
+inline const VCBuilderParam& VCBuilder::Parameters() const
 {
     return m_param;
 }
 
-inline ConnectionBuilderStatistics ConnectionBuilder::Statistics() const
+inline VCBuilderStatistics VCBuilder::Statistics() const
 {
     return m_statistics;
 }
@@ -289,4 +289,4 @@ inline ConnectionBuilderStatistics ConnectionBuilder::Statistics() const
 
 _END_BENZENE_NAMESPACE_
 
-#endif // CONNECTIONBUILDER_HPP
+#endif // VCBUILDER_HPP

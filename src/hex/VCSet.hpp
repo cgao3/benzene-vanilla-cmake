@@ -1,35 +1,35 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file VCSet.hpp
  */
 //----------------------------------------------------------------------------
 
-#ifndef CONNECTIONS_HPP
-#define CONNECTIONS_HPP
+#ifndef VCSET_HPP
+#define VCSET_HPP
 
+#include "ChangeLog.hpp"
+#include "ConstBoard.hpp"
+#include "GroupBoard.hpp"
 #include "Hex.hpp"
 #include "VC.hpp"
 #include "VCList.hpp"
-#include "ChangeLog.hpp"
-#include "ConstBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
 /** Stores the connections for a board and color. */
-class Connections
+class VCSet
 {
 public:
 
-    /** Creates a Connections class on the given board size for
-        color. */
-    Connections(const ConstBoard& brd, HexColor color);
+    /** Creates a VCSet class on the given board size for color. */
+    VCSet(const ConstBoard& brd, HexColor color);
 
     /** Copy constructor. */
-    Connections(const Connections& other);
+    VCSet(const VCSet& other);
 
     /** Destructor. */
-    virtual ~Connections();
+    virtual ~VCSet();
 
     //------------------------------------------------------------------------
     
@@ -40,7 +40,7 @@ public:
     const ConstBoard& Board() const;
 
     /** Returns soft limit for the given type of VC. This affects
-        ConnectionBuilder's performance! */
+        VCBuilder's performance! */
     int SoftLimit(VC::Type) const;
 
     /** Returns the VCList between (x, y). */
@@ -96,13 +96,13 @@ public:
     // @{
 
     /** Assignment operator. */
-    void operator=(const Connections& other);
+    void operator=(const VCSet& other);
 
     /** Returns true if other is isomorphic to us. */
-    bool operator==(const Connections& other) const;
+    bool operator==(const VCSet& other) const;
 
     /** Returns true if other is not isomorphic to us. */
-    bool operator!=(const Connections& other) const;
+    bool operator!=(const VCSet& other) const;
 
     // @}
 
@@ -110,7 +110,7 @@ private:
 
     /** Allocates space for, and copies lists from, the VCLists in
         other. */
-    void AllocateAndCopyLists(const Connections& other);
+    void AllocateAndCopyLists(const VCSet& other);
 
     /** Frees all allocated VCLists. */
     void FreeLists();
@@ -128,35 +128,35 @@ private:
 
 };
 
-inline HexColor Connections::Color() const
+inline HexColor VCSet::Color() const
 {
     return m_color;
 }
 
-inline const ConstBoard& Connections::Board() const
+inline const ConstBoard& VCSet::Board() const
 {
     return *m_brd;
 }
 
 inline const VCList& 
-Connections::GetList(VC::Type type, HexPoint x, HexPoint y) const
+VCSet::GetList(VC::Type type, HexPoint x, HexPoint y) const
 {
     return *m_vc[type][x][y];
 }
 
 inline VCList& 
-Connections::GetList(VC::Type type, HexPoint x, HexPoint y)
+VCSet::GetList(VC::Type type, HexPoint x, HexPoint y)
 {
     return *m_vc[type][x][y];
 }
 
 inline 
-VCList::AddResult Connections::Add(const VC& vc, ChangeLog<VC>* log)
+VCList::AddResult VCSet::Add(const VC& vc, ChangeLog<VC>* log)
 {
     return m_vc[vc.type()][vc.x()][vc.y()]->add(vc, log);
 }
 
-inline int Connections::SoftLimit(VC::Type type) const
+inline int VCSet::SoftLimit(VC::Type type) const
 {
     return m_vc[type]
         [HexPointUtil::colorEdge1(m_color)]
@@ -165,23 +165,21 @@ inline int Connections::SoftLimit(VC::Type type) const
 
 //----------------------------------------------------------------------------
 
-class GroupBoard;
-
-/** Utilities on Connections. */
-namespace ConUtil 
+/** Utilities on VCSet. */
+namespace VCSetUtil 
 {
     
     /** Returns set of cells connected to x. */
-    bitset_t ConnectedTo(const Connections& con, const GroupBoard& brd, 
+    bitset_t ConnectedTo(const VCSet& con, const GroupBoard& brd, 
                          HexPoint x, VC::Type type);
 
     /** Number of connections defined on groupset. */
-    void NumActiveConnections(const Connections& con, const GroupBoard& brd, 
+    void NumActiveVCSet(const VCSet& con, const GroupBoard& brd, 
                               int& fulls, int& semis);
 
     /** Returns true if connection sets are equal on the given
         groups. */
-    bool EqualOnGroups(const Connections& c1, const Connections& c2,
+    bool EqualOnGroups(const VCSet& c1, const VCSet& c2,
                        const GroupBoard& brd);
 }
 
@@ -189,4 +187,4 @@ namespace ConUtil
 
 _END_BENZENE_NAMESPACE_
 
-#endif // CONNECTIONS_HPP
+#endif // VCSET_HPP
