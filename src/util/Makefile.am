@@ -14,6 +14,7 @@ ChangeLog.hpp \
 Digraph.hpp \
 HashDB.hpp \
 Hash.hpp \
+HashMap.hpp \
 HashTable.hpp \
 HexException.hpp \
 Logger.hpp \
