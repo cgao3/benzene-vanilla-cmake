@@ -20,6 +20,7 @@ BOOST_AUTO_TEST_CASE(HashMap_AllTests)
 
     // check size()
     BOOST_CHECK_EQUAL(hm.size(), 32u);
+    BOOST_CHECK_EQUAL(hm.count(), 0);
 
     // table is empty, so get better fail!
     BOOST_CHECK(!hm.get(1, data));
@@ -29,13 +30,15 @@ BOOST_AUTO_TEST_CASE(HashMap_AllTests)
     BOOST_CHECK(hm.get(1, data));
     BOOST_CHECK_EQUAL(data, 5);
     BOOST_CHECK(!hm.get(2, data));
+    BOOST_CHECK_EQUAL(hm.count(), 1);
 
-    // check collision will not clobber values
+    // check collision will not clobber values (33 = 1 mod 32)
     hm.put(33, 11);
     BOOST_CHECK(hm.get(1, data));
     BOOST_CHECK_EQUAL(data, 5);
     BOOST_CHECK(hm.get(33, data));
     BOOST_CHECK_EQUAL(data, 11);
+    BOOST_CHECK_EQUAL(hm.count(), 2);
 }
 
 }
