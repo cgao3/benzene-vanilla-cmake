@@ -247,11 +247,11 @@ public:
     //---------------------------------------------------------------------
 
     /** Returns the depth of the mainline from the given position. */
-    int GetMainLineDepth(const StoneBoard& pos, HexColor color) const;
+    int GetMainLineDepth(const StoneBoard& pos) const;
 
     /** Returns the number of nodes in the tree rooted at the current
         position. */
-    std::size_t GetTreeSize(StoneBoard& brd, HexColor color) const;
+    std::size_t GetTreeSize(const StoneBoard& brd) const;
 
 private:
 
@@ -261,9 +261,8 @@ private:
     /** Database for this book. */
     HashDB<OpeningBookNode> m_db;
 
-    std::size_t TreeSize(StoneBoard& brd, HexColor color,
+    std::size_t TreeSize(StoneBoard& brd, 
                          std::map<hash_t, std::size_t>& solved) const;
-
 };
 
 inline bool 

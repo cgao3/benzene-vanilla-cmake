@@ -113,7 +113,7 @@ void OpeningBook::WriteNode(const StoneBoard& brd, const OpeningBookNode& node)
     m_db.Put(OpeningBookUtil::GetHash(brd), node);
 }
 
-int OpeningBook::GetMainLineDepth(const StoneBoard& pos, HexColor color) const
+int OpeningBook::GetMainLineDepth(const StoneBoard& pos) const
 {
     int depth = 0;
     StoneBoard brd(pos);
@@ -141,20 +141,20 @@ int OpeningBook::GetMainLineDepth(const StoneBoard& pos, HexColor color) const
         }
         if (move == INVALID_POINT)
             break;
-        brd.playMove(color, move);
-        color = !color;
+        brd.playMove(brd.WhoseTurn(), move);
         depth++;
     }
     return depth;
 }
 
-std::size_t OpeningBook::GetTreeSize(StoneBoard& brd, HexColor color) const
+std::size_t OpeningBook::GetTreeSize(const StoneBoard& board) const
 {
     std::map<hash_t, std::size_t> solved;
-    return TreeSize(brd, color, solved);
+    StoneBoard brd(board);
+    return TreeSize(brd, solved);
 }
 
-std::size_t OpeningBook::TreeSize(StoneBoard& brd, HexColor color,
+std::size_t OpeningBook::TreeSize(StoneBoard& brd,
                                   std::map<hash_t, std::size_t>& solved) const
 {
     hash_t hash = OpeningBookUtil::GetHash(brd);
@@ -168,8 +168,8 @@ std::size_t OpeningBook::TreeSize(StoneBoard& brd, HexColor color,
     std::size_t ret = 1;
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
-        brd.playMove(color, *p);
-        ret += TreeSize(brd, !color, solved);
+        brd.playMove(brd.WhoseTurn(), *p);
+        ret += TreeSize(brd, solved);
         brd.undoMove(*p);
     }
     solved[hash] = ret;

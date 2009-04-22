@@ -120,13 +120,13 @@ void BookCheck::ComputeBestChild(StoneBoard& brd, HexColor color,
     move = INVALID_POINT;
     
     // if book does not contain state with a minimum depth, just quit
-    if (book.GetMainLineDepth(brd, color) <= m_min_depth) 
+    if (book.GetMainLineDepth(brd) <= m_min_depth) 
         return;
 
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
 	brd.playMove(color, *p);
-	int depth = book.GetMainLineDepth(brd, !color);
+	int depth = book.GetMainLineDepth(brd);
 	if (depth >= m_min_depth) 
         {
             OpeningBookNode node;

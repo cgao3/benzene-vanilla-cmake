@@ -548,16 +548,13 @@ bool BenzeneHtpEngine::StateMatchesBook(const StoneBoard& board)
 
 void BenzeneHtpEngine::CmdBookMainLineDepth(HtpCommand& cmd)
 {
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    HexColor color = brd.WhoseTurn();
-
+    StoneBoard brd(m_game->Board());
     if (!StateMatchesBook(brd))
         return;
-
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
-        brd.playMove(color, *p);
-        cmd << " " << *p << " " << m_book->GetMainLineDepth(brd, !color);
+        brd.playMove(brd.WhoseTurn(), *p);
+        cmd << " " << *p << " " << m_book->GetMainLineDepth(brd);
         brd.undoMove(*p);
     }
 }
