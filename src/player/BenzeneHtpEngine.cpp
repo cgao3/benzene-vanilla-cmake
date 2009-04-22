@@ -6,6 +6,7 @@
 #include "SgSystem.h"
 
 #include <cmath>
+#include <functional>
 #include "BoardUtils.hpp"
 #include "BookCheck.hpp"
 #include "BitsetIterator.hpp"
@@ -581,22 +582,38 @@ void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
     if (!StateMatchesBook(brd))
         return;
 
+    BookCheck* book = GetInstanceOf<BookCheck>(&m_player);
+    if (!book)
+        throw HtpFailure() << "Player has no BookCheck!\n";
+    float countWeight = book->CountWeight();
+
+    std::map<HexPoint, HexEval> values;
+    std::vector<std::pair<float, HexPoint> > scores;
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);
         OpeningBookNode node;
         if (m_book->GetNode(brd, node))
         {
-            cmd << " " << *p;
-            HexEval value = OpeningBook::InverseEval(node.Value(brd));
-            if (HexEvalUtil::IsWin(value))
-                cmd << " W";
-            else if (HexEvalUtil::IsLoss(value))
-                cmd << " L";
-            else
-                cmd << " " << std::fixed << std::setprecision(3) << value;
+            values[*p] = OpeningBook::InverseEval(node.Value(brd));
+            scores.push_back(std::make_pair(-node.Score(brd, countWeight), *p));
         }
         brd.undoMove(*p);
+    }
+    std::stable_sort(scores.begin(), scores.end());
+    std::vector<std::pair<float, HexPoint> >::const_iterator it 
+        = scores.begin();
+    for (; it != scores.end(); ++it)
+    {
+        HexPoint p = it->second;
+        HexEval value = values[p];
+        cmd << ' ' << p;
+        if (HexEvalUtil::IsWin(value))
+            cmd << " W";
+        else if (HexEvalUtil::IsLoss(value))
+            cmd << " L";
+        else
+            cmd << " " << std::fixed << std::setprecision(3) << value;
     }
 }
 
