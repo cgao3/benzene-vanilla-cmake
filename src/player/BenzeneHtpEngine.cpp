@@ -389,24 +389,20 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
             << m_useParallelSolver << '\n';
         if (book) 
         {
-            cmd << "[string] book_depth_value_adjustment "
-                << book->DepthValueAdjustment() << '\n'
-                << "[string] book_max_depth "
-                << book->MaxDepth() << '\n'
-                << "[string] book_min_depth "
-                << book->MinDepth() << '\n';
+            cmd << "[string] book_count_weight "
+                << book->CountWeight() << '\n'
+                << "[string] book_min_count "
+                << book->MinCount() << '\n';
         }
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
 
-        if (book && name == "book_min_depth")
-            book->SetMinDepth(cmd.IntArg(1, 0));
-        else if (book && name == "book_max_depth")
-            book->SetMaxDepth(cmd.IntArg(1, 0));
-        else if (book && name == "book_depth_value_adjustment")
-            book->SetDepthValueAdjustment(cmd.FloatArg(1));
+        if (book && name == "book_min_count")
+            book->SetMinCount(cmd.SizeTypeArg(1, 0));
+        else if (book && name == "book_count_weight")
+            book->SetCountWeight(cmd.FloatArg(1));
 	else if (book && name == "use_book")
 	    book->SetEnabled(cmd.BoolArg(1));
         else if (endgame && name == "search_singleton")

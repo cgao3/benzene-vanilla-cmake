@@ -95,7 +95,10 @@ public:
     float Value(const StoneBoard& brd) const;
 
     /** Returns score for this node, taking into account the amount of
-        information in the subtree. Use to select moves when using book. */
+        information in the subtree. Use to select moves when using
+        book. Note the score is from the pov of the player moving into
+        this position, not for the player to move in this position.
+    */
     float Score(const StoneBoard& brd, float countWeight) const;
 
     //------------------------------------------------------------------------
@@ -328,6 +331,12 @@ namespace OpeningBookUtil
         node. Returns INVALID_POINT if node has no children. */
     HexPoint UpdatePriority(const OpeningBook& book, OpeningBookNode& node, 
                             StoneBoard& brd, float alpha);
+
+    /** Finds best response in book.
+        Returns INVALID_POINT if not in book or if node's count is 
+        less than minCount. */
+    HexPoint BestMove(const OpeningBook& book, const StoneBoard& pos,
+                      unsigned minCount, float countWeight);
 
     /** Writes a (score, depth) pair to output stream for each leaf in
         the book. Can be visualized with GnuPlot. */

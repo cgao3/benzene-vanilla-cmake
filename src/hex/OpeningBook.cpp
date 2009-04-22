@@ -27,10 +27,9 @@ float OpeningBookNode::Value(const StoneBoard& brd) const
     return m_value;
 }
 
-float OpeningBookNode::Score(const StoneBoard& brd, 
-                             float countWeight) const
+float OpeningBookNode::Score(const StoneBoard& brd, float countWeight) const
 {
-    float score = Value(brd);
+    float score = OpeningBook::InverseEval(Value(brd));
     if (!IsTerminal())
         score += log(m_count + 1) * countWeight;
     return score;	
@@ -265,6 +264,38 @@ HexPoint OpeningBookUtil::UpdatePriority(const OpeningBook& book,
     }
     if (hasChild)
         node.m_priority = bestPriority;
+    return bestChild;
+}
+
+//----------------------------------------------------------------------------
+
+HexPoint OpeningBookUtil::BestMove(const OpeningBook& book, 
+                                   const StoneBoard& pos,
+                                   unsigned minCount, float countWeight)
+{
+    OpeningBookNode node;
+    if (!book.GetNode(pos, node) || node.m_count < minCount)
+        return INVALID_POINT;
+
+    float bestScore = -1e9;
+    HexPoint bestChild = INVALID_POINT;
+    StoneBoard brd(pos);
+    for (BitsetIterator p(brd.getEmpty()); p; ++p)
+    {
+        brd.playMove(brd.WhoseTurn(), *p);
+        OpeningBookNode child;
+        if (book.GetNode(brd, child))
+        {
+            float score = child.Score(brd, countWeight);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestChild = *p;
+            }
+        }
+        brd.undoMove(*p);
+    }
+    HexAssert(bestChild != INVALID_POINT);
     return bestChild;
 }
 
