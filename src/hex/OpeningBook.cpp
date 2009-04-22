@@ -113,7 +113,6 @@ void OpeningBook::WriteNode(const StoneBoard& brd, const OpeningBookNode& node)
     m_db.Put(OpeningBookUtil::GetHash(brd), node);
 }
 
-/** @bug Currently broken? */
 int OpeningBook::GetMainLineDepth(const StoneBoard& pos, HexColor color) const
 {
     int depth = 0;
@@ -127,6 +126,7 @@ int OpeningBook::GetMainLineDepth(const StoneBoard& pos, HexColor color) const
         float value = -1e9;
         for (BitsetIterator p(brd.getEmpty()); p; ++p)
         {
+            brd.playMove(brd.WhoseTurn(), *p);
             OpeningBookNode child;
             if (GetNode(brd, child))
             {
@@ -137,6 +137,7 @@ int OpeningBook::GetMainLineDepth(const StoneBoard& pos, HexColor color) const
                     move = *p;
                 }
             }
+            brd.undoMove(*p);
         }
         if (move == INVALID_POINT)
             break;
