@@ -3,8 +3,8 @@
  */
 //----------------------------------------------------------------------------
 
-#ifndef HASHMAP_H
-#define HASHMAP_H
+#ifndef HASHTABLE_H
+#define HASHTABLE_H
 
 #include <boost/concept_check.hpp>
 
@@ -108,4 +108,4 @@ void HashTable<T>::clear()
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HASHMAP_H
+#endif // HASHTABLE_H

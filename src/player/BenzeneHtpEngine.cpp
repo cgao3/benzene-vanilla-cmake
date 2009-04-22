@@ -6,6 +6,7 @@
 #include "SgSystem.h"
 
 #include <cmath>
+#include <functional>
 #include "BoardUtils.hpp"
 #include "BookCheck.hpp"
 #include "BitsetIterator.hpp"
@@ -389,24 +390,20 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
             << m_useParallelSolver << '\n';
         if (book) 
         {
-            cmd << "[string] book_depth_value_adjustment "
-                << book->DepthValueAdjustment() << '\n'
-                << "[string] book_max_depth "
-                << book->MaxDepth() << '\n'
-                << "[string] book_min_depth "
-                << book->MinDepth() << '\n';
+            cmd << "[string] book_count_weight "
+                << book->CountWeight() << '\n'
+                << "[string] book_min_count "
+                << book->MinCount() << '\n';
         }
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
 
-        if (book && name == "book_min_depth")
-            book->SetMinDepth(cmd.IntArg(1, 0));
-        else if (book && name == "book_max_depth")
-            book->SetMaxDepth(cmd.IntArg(1, 0));
-        else if (book && name == "book_depth_value_adjustment")
-            book->SetDepthValueAdjustment(cmd.FloatArg(1));
+        if (book && name == "book_min_count")
+            book->SetMinCount(cmd.SizeTypeArg(1, 0));
+        else if (book && name == "book_count_weight")
+            book->SetCountWeight(cmd.FloatArg(1));
 	else if (book && name == "use_book")
 	    book->SetEnabled(cmd.BoolArg(1));
         else if (endgame && name == "search_singleton")
@@ -548,16 +545,13 @@ bool BenzeneHtpEngine::StateMatchesBook(const StoneBoard& board)
 
 void BenzeneHtpEngine::CmdBookMainLineDepth(HtpCommand& cmd)
 {
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    HexColor color = brd.WhoseTurn();
-
+    StoneBoard brd(m_game->Board());
     if (!StateMatchesBook(brd))
         return;
-
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
-        brd.playMove(color, *p);
-        cmd << " " << *p << " " << m_book->GetMainLineDepth(brd, !color);
+        brd.playMove(brd.WhoseTurn(), *p);
+        cmd << " " << *p << " " << m_book->GetMainLineDepth(brd);
         brd.undoMove(*p);
     }
 }
@@ -588,22 +582,41 @@ void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
     if (!StateMatchesBook(brd))
         return;
 
+    BookCheck* book = GetInstanceOf<BookCheck>(&m_player);
+    if (!book)
+        throw HtpFailure() << "Player has no BookCheck!\n";
+    float countWeight = book->CountWeight();
+
+    std::map<HexPoint, HexEval> values;
+    std::map<HexPoint, unsigned> counts;
+    std::vector<std::pair<float, HexPoint> > scores;
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);
         OpeningBookNode node;
         if (m_book->GetNode(brd, node))
         {
-            cmd << " " << *p;
-            HexEval value = OpeningBook::InverseEval(node.Value(brd));
-            if (HexEvalUtil::IsWin(value))
-                cmd << " W";
-            else if (HexEvalUtil::IsLoss(value))
-                cmd << " L";
-            else
-                cmd << " " << std::fixed << std::setprecision(3) << value;
+            counts[*p] = node.m_count;
+            values[*p] = OpeningBook::InverseEval(node.Value(brd));
+            scores.push_back(std::make_pair(-node.Score(brd, countWeight), *p));
         }
         brd.undoMove(*p);
+    }
+    std::stable_sort(scores.begin(), scores.end());
+    std::vector<std::pair<float, HexPoint> >::const_iterator it 
+        = scores.begin();
+    for (; it != scores.end(); ++it)
+    {
+        HexPoint p = it->second;
+        HexEval value = values[p];
+        cmd << ' ' << p;
+        if (HexEvalUtil::IsWin(value))
+            cmd << " W";
+        else if (HexEvalUtil::IsLoss(value))
+            cmd << " L";
+        else
+            cmd << " " << std::fixed << std::setprecision(3) << value;
+        cmd << '@' << counts[p];
     }
 }
 

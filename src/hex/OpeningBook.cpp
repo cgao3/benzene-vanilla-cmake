@@ -3,6 +3,7 @@
 */
 //----------------------------------------------------------------------------
 
+#include <cmath>
 #include <boost/numeric/conversion/bounds.hpp>
 
 #include "BitsetIterator.hpp"
@@ -24,6 +25,14 @@ float OpeningBookNode::Value(const StoneBoard& brd) const
     if (brd.isLegal(SWAP_PIECES))
         return std::max(m_value, OpeningBook::InverseEval(m_value));
     return m_value;
+}
+
+float OpeningBookNode::Score(const StoneBoard& brd, float countWeight) const
+{
+    float score = OpeningBook::InverseEval(Value(brd));
+    if (!IsTerminal())
+        score += log(m_count + 1) * countWeight;
+    return score;	
 }
 
 bool OpeningBookNode::IsTerminal() const
@@ -113,8 +122,7 @@ void OpeningBook::WriteNode(const StoneBoard& brd, const OpeningBookNode& node)
     m_db.Put(OpeningBookUtil::GetHash(brd), node);
 }
 
-/** @bug Currently broken? */
-int OpeningBook::GetMainLineDepth(const StoneBoard& pos, HexColor color) const
+int OpeningBook::GetMainLineDepth(const StoneBoard& pos) const
 {
     int depth = 0;
     StoneBoard brd(pos);
@@ -127,6 +135,7 @@ int OpeningBook::GetMainLineDepth(const StoneBoard& pos, HexColor color) const
         float value = -1e9;
         for (BitsetIterator p(brd.getEmpty()); p; ++p)
         {
+            brd.playMove(brd.WhoseTurn(), *p);
             OpeningBookNode child;
             if (GetNode(brd, child))
             {
@@ -137,23 +146,24 @@ int OpeningBook::GetMainLineDepth(const StoneBoard& pos, HexColor color) const
                     move = *p;
                 }
             }
+            brd.undoMove(*p);
         }
         if (move == INVALID_POINT)
             break;
-        brd.playMove(color, move);
-        color = !color;
+        brd.playMove(brd.WhoseTurn(), move);
         depth++;
     }
     return depth;
 }
 
-std::size_t OpeningBook::GetTreeSize(StoneBoard& brd, HexColor color) const
+std::size_t OpeningBook::GetTreeSize(const StoneBoard& board) const
 {
     std::map<hash_t, std::size_t> solved;
-    return TreeSize(brd, color, solved);
+    StoneBoard brd(board);
+    return TreeSize(brd, solved);
 }
 
-std::size_t OpeningBook::TreeSize(StoneBoard& brd, HexColor color,
+std::size_t OpeningBook::TreeSize(StoneBoard& brd,
                                   std::map<hash_t, std::size_t>& solved) const
 {
     hash_t hash = OpeningBookUtil::GetHash(brd);
@@ -167,8 +177,8 @@ std::size_t OpeningBook::TreeSize(StoneBoard& brd, HexColor color,
     std::size_t ret = 1;
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
-        brd.playMove(color, *p);
-        ret += TreeSize(brd, !color, solved);
+        brd.playMove(brd.WhoseTurn(), *p);
+        ret += TreeSize(brd, solved);
         brd.undoMove(*p);
     }
     solved[hash] = ret;
@@ -184,19 +194,6 @@ hash_t OpeningBookUtil::GetHash(const StoneBoard& brd)
     rotatedBrd.rotateBoard();
     hash_t hash2 = rotatedBrd.Hash();
     return std::min(hash1, hash2);
-}
-
-float OpeningBookUtil::ComputePriority(const StoneBoard& brd, 
-                                       const OpeningBookNode& parent,
-                                       const OpeningBookNode& child,
-                                       double alpha)
-{
-    float delta 
-	= parent.Value(brd) - OpeningBook::InverseEval(child.Value(brd));
-    HexAssert(delta >= 0.0);
-    HexAssert(child.m_priority >= OpeningBookNode::LEAF_PRIORITY);
-    HexAssert(child.m_priority < OpeningBookNode::DUMMY_PRIORITY);
-    return alpha * delta + child.m_priority + 1;
 }
 
 void OpeningBookUtil::UpdateValue(const OpeningBook& book, 
@@ -220,6 +217,24 @@ void OpeningBookUtil::UpdateValue(const OpeningBook& book,
     }
     if (hasChild)
         node.m_value = bestValue;
+}
+
+/** @todo Maybe switch this to take a bestChildValue instead of of a
+    parent node. This would require flipping the parent in the caller
+    function and reverse the order of the subtraction. */
+float OpeningBookUtil::ComputePriority(const StoneBoard& brd, 
+                                       const OpeningBookNode& parent,
+                                       const OpeningBookNode& child,
+                                       double alpha)
+{
+    // Must adjust child value for swap, but not the parent because we
+    // are comparing with the best child's value, ie, the minmax
+    // value.
+    float delta = parent.m_value - OpeningBook::InverseEval(child.Value(brd));
+    HexAssert(delta >= 0.0);
+    HexAssert(child.m_priority >= OpeningBookNode::LEAF_PRIORITY);
+    HexAssert(child.m_priority < OpeningBookNode::DUMMY_PRIORITY);
+    return alpha * delta + child.m_priority + 1;
 }
 
 HexPoint OpeningBookUtil::UpdatePriority(const OpeningBook& book,
@@ -249,6 +264,38 @@ HexPoint OpeningBookUtil::UpdatePriority(const OpeningBook& book,
     }
     if (hasChild)
         node.m_priority = bestPriority;
+    return bestChild;
+}
+
+//----------------------------------------------------------------------------
+
+HexPoint OpeningBookUtil::BestMove(const OpeningBook& book, 
+                                   const StoneBoard& pos,
+                                   unsigned minCount, float countWeight)
+{
+    OpeningBookNode node;
+    if (!book.GetNode(pos, node) || node.m_count < minCount)
+        return INVALID_POINT;
+
+    float bestScore = -1e9;
+    HexPoint bestChild = INVALID_POINT;
+    StoneBoard brd(pos);
+    for (BitsetIterator p(brd.getEmpty()); p; ++p)
+    {
+        brd.playMove(brd.WhoseTurn(), *p);
+        OpeningBookNode child;
+        if (book.GetNode(brd, child))
+        {
+            float score = child.Score(brd, countWeight);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestChild = *p;
+            }
+        }
+        brd.undoMove(*p);
+    }
+    HexAssert(bestChild != INVALID_POINT);
     return bestChild;
 }
 

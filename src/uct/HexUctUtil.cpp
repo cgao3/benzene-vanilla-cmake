@@ -59,11 +59,7 @@ void HexUctUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
         const SgUctNode& child = *it;
         if (child.MoveCount() == 0)
             continue;
-        float value = search.InverseEval(child.Mean());
-        // Scale to [-1,+1], black positive
-        double influence = value * 2 - 1;
-        if (toPlay == SG_WHITE)
-            influence *= -1;
+        float influence = search.InverseEval(child.Mean());
         SgPoint move = child.Move();
         out << ' ' << HexUctUtil::MoveString(move) << ' ' 
             << std::fixed << std::setprecision(2) << influence;

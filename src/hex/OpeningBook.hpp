@@ -93,7 +93,14 @@ public:
 
     /** Returns value of board, taking into account swap moves. */ 
     float Value(const StoneBoard& brd) const;
-    
+
+    /** Returns score for this node, taking into account the amount of
+        information in the subtree. Use to select moves when using
+        book. Note the score is from the pov of the player moving into
+        this position, not for the player to move in this position.
+    */
+    float Score(const StoneBoard& brd, float countWeight) const;
+
     //------------------------------------------------------------------------
 
     /** @name Additional properties */
@@ -247,11 +254,11 @@ public:
     //---------------------------------------------------------------------
 
     /** Returns the depth of the mainline from the given position. */
-    int GetMainLineDepth(const StoneBoard& pos, HexColor color) const;
+    int GetMainLineDepth(const StoneBoard& pos) const;
 
     /** Returns the number of nodes in the tree rooted at the current
         position. */
-    std::size_t GetTreeSize(StoneBoard& brd, HexColor color) const;
+    std::size_t GetTreeSize(const StoneBoard& brd) const;
 
 private:
 
@@ -261,9 +268,8 @@ private:
     /** Database for this book. */
     HashDB<OpeningBookNode> m_db;
 
-    std::size_t TreeSize(StoneBoard& brd, HexColor color,
+    std::size_t TreeSize(StoneBoard& brd, 
                          std::map<hash_t, std::size_t>& solved) const;
-
 };
 
 inline bool 
@@ -325,6 +331,12 @@ namespace OpeningBookUtil
         node. Returns INVALID_POINT if node has no children. */
     HexPoint UpdatePriority(const OpeningBook& book, OpeningBookNode& node, 
                             StoneBoard& brd, float alpha);
+
+    /** Finds best response in book.
+        Returns INVALID_POINT if not in book or if node's count is 
+        less than minCount. */
+    HexPoint BestMove(const OpeningBook& book, const StoneBoard& pos,
+                      unsigned minCount, float countWeight);
 
     /** Writes a (score, depth) pair to output stream for each leaf in
         the book. Can be visualized with GnuPlot. */

@@ -24,8 +24,8 @@ public:
     /** Destructor. */
     virtual ~BookCheck();
 
-    /** Checks the book for the current state if "player-use-book" is
-        true. If state found in book, returns book move. Otherwise
+    /** Checks the book for the current state if Enabled() is
+        true. If state is found in book, returns best book move. Otherwise
         calls player's pre_search() and returns the move it returns.
     */
     virtual HexPoint pre_search(HexBoard& brd, const Game& game_state,
@@ -36,43 +36,33 @@ public:
     
     void SetEnabled(bool enable);
 
-    int MinDepth() const;
+    /** Ignore nodes with counts below this. */
+    unsigned MinCount() const;
 
-    void SetMinDepth(int depth);
+    /** See MinCount() */
+    void SetMinCount(int count);
 
-    int MaxDepth() const;
+    /** Weight used to choose best move. */
+    float CountWeight() const;
     
-    void SetMaxDepth(int depth);
-    
-    float DepthValueAdjustment() const;
-    
-    void SetDepthValueAdjustment(float value);
+    /** See CountWeight() */
+    void SetCountWeight(float factor);
 
 private:
 
-    /** Stores the names and alpha-values of all opening books. */
-    void LoadOpeningBooks();
-    
-    /** Uses the opening books to determine a response (if possible).
-        @return INVALID_POINT on failure, valid move on success.
-    */
-    HexPoint BookResponse(HexBoard& brd, HexColor color);
-    
-    void ComputeBestChild(StoneBoard& brd, HexColor color,
-			  const OpeningBook& book, HexPoint& move,
-			  float& score);
-    
-    std::vector<std::string> m_openingBookFiles;
+    boost::scoped_ptr<OpeningBook> m_book;
 
-    bool m_openingBookLoaded;
+    bool m_bookLoaded;
 
     bool m_enabled;
+  
+    /** See MinCount() */
+    unsigned m_min_count;
 
-    int m_min_depth;
-    
-    int m_max_depth;
+    /** See CountWeight() */
+    float m_count_weight;
 
-    float m_depth_adjustment;
+    void LoadOpeningBook(const ConstBoard& brd);
 };
 
 inline bool BookCheck::Enabled() const
@@ -85,34 +75,24 @@ inline void BookCheck::SetEnabled(bool enable)
     m_enabled = enable;
 }
 
-inline int BookCheck::MinDepth() const
+inline unsigned BookCheck::MinCount() const
 {
-    return m_min_depth;
+    return m_min_count;
 }
 
-inline void BookCheck::SetMinDepth(int depth)
+inline void BookCheck::SetMinCount(int count)
 {
-    m_min_depth = depth;
+    m_min_count = count;
 }
 
-inline int BookCheck::MaxDepth() const
+inline float BookCheck::CountWeight() const
 {
-    return m_max_depth;
+    return m_count_weight;
 }
     
-inline void BookCheck::SetMaxDepth(int depth)
+inline void BookCheck::SetCountWeight(float weight)
 {
-    m_max_depth = depth;
-}
-
-inline float BookCheck::DepthValueAdjustment() const
-{
-    return m_depth_adjustment;
-}
-    
-inline void BookCheck::SetDepthValueAdjustment(float value)
-{
-    m_depth_adjustment = value;
+    m_count_weight= weight;
 }
 
 //----------------------------------------------------------------------------
