@@ -28,62 +28,37 @@ namespace {
 
 //----------------------------------------------------------------------------
 
-typedef enum 
+/** Performs the one-ply pre-search. */
+void ComputeSharedData(bool backupIceInfo, 
+                       HexBoard& brd, HexColor color,
+                       bitset_t& consider,
+                       HexUctSharedData& data,
+                       HexPoint& oneMoveWin)
 {
-    KEEP_GOING,
-    FOUND_WIN
-} WorkState;
+    // For each 1-ply move that we're told to consider:
+    // 1) If the move gives us a win, no need for UCT - just use this move
+    // 2) If the move is a loss, note this fact - we'll likely prune it later
+    // 3) Compute the 2nd-ply moves to consider so that only reasonable
+    //    opponent replies are considered
+    // 4) Store the state of the board fill-in to shorten rollouts and 
+    //    improve their accuracy
 
-struct WorkThread
-{
-    WorkThread(int threadId, HexBoard& brd, HexColor color,
-               const bitset_t& consider, 
-               WorkState& state, bitset_t& losing, HexPoint& oneMoveWin,
-               HexUctSharedData& data, boost::barrier& finished)
-        : threadId(threadId), brd(brd), color(color), 
-          consider(consider), state(state), losing(losing),
-          oneMoveWin(oneMoveWin), data(data), finished(finished)
-    {
-    }
-
-    void operator()();
-
-    int threadId;
-    HexBoard& brd;
-    HexColor color;
-    bitset_t consider;
-    WorkState& state;
-    bitset_t& losing;
-    HexPoint& oneMoveWin;
-    HexUctSharedData& data;
-    boost::barrier& finished;
-};
-
-void WorkThread::operator()()
-{
-    LogInfo() << "Thread " << threadId << " started." << '\n';
+    bitset_t losing;
+    data.root_to_play = color;
+    data.root_black_stones = brd.getBlack();
+    data.root_white_stones = brd.getWhite();
 
     HexColor other = !color;
     for (BitsetIterator p(consider); p; ++p) 
     {
-        // abort if some other thread found a win
-        if (state == FOUND_WIN) {
-            LogInfo() << threadId << ": Aborting due to win." << '\n';
-            break;
-        }
-
-        //LogInfo() << threadId << ": " << *p << '\n';
-
         brd.PlayMove(color, *p);
 
         // found a winning move!
         if (PlayerUtils::IsLostGame(brd, other))
         {
-            state = FOUND_WIN;
 	    oneMoveWin = *p;
             brd.UndoMove();
-            LogInfo() << "Thread " << threadId 
-		      << " found win: " << oneMoveWin << '\n';
+            LogInfo() << "Found win: " << oneMoveWin << '\n';
             break;
         }	
 
@@ -106,94 +81,6 @@ void WorkThread::operator()()
 
         brd.UndoMove();
     }
-
-    LogInfo() << "Thread " << threadId << " finished." << '\n';
-
-#if 0
-    LogInfo() << "Thread " << threadId << "'s consider set:"
-             << brd.printBitset(PlayerUtils::MovesToConsider(brd, color))
-             << '\n';
-#endif
-
-    finished.wait();
-}
-
-void SplitBitsetEvenly(const bitset_t& bs, int n, 
-                             std::vector<bitset_t>& out)
-{
-    int c=0;
-    for (BitsetIterator p(bs); p; ++p) {
-        out[c%n].set(*p);
-        c++;
-    }
-}
-
-void DoThreadedWork(int numthreads, HexBoard& brd, HexColor color,
-                    const bitset_t& consider,
-                    HexUctSharedData& data,
-                    bitset_t& losing,
-                    HexPoint& oneMoveWin)
-{
-    boost::barrier finished(numthreads+1);
-    std::vector<boost::thread*> thread(numthreads);
-    std::vector<HexUctSharedData> dataSet(numthreads);
-    std::vector<bitset_t> losingSet(numthreads);
-    std::vector<bitset_t> considerSet(numthreads);
-    std::vector<HexBoard*> boardSet(numthreads);
-    SplitBitsetEvenly(consider, numthreads, considerSet);
-
-    WorkState state = KEEP_GOING;
-    for (int i=0; i<numthreads; ++i) 
-    {
-        boardSet[i] = new HexBoard(brd);
-        thread[i] = new boost::thread
-            (WorkThread(i, *boardSet[i], color, considerSet[i],
-                        state, losingSet[i], oneMoveWin,
-                        dataSet[i], finished));
-    }
-    finished.wait();
-
-    // union data if we didn't find a win
-    // @todo Union it anyway even if we did find a win? 
-    if (state != FOUND_WIN) 
-    {
-        for (int i=0; i<numthreads; ++i) {
-            losing |= losingSet[i];
-            data.Union(dataSet[i]);
-            brd.AddDominationArcs(boardSet[i]->GetBackedUp());
-        }
-    }
-
-    // join threads and free memory
-    for (int i=0; i<numthreads; ++i) {
-        thread[i]->join();
-        delete thread[i];
-        delete boardSet[i];
-    }
-}
-
-/** Performs the one-ply pre-search. */
-void ComputeUctSharedData(int numthreads, bool backupIceInfo, 
-                          HexBoard& brd, HexColor color,
-                          bitset_t& consider,
-                          HexUctSharedData& data,
-                          HexPoint& oneMoveWin)
-{
-    // For each 1-ply move that we're told to consider:
-    // 1) If the move gives us a win, no need for UCT - just use this move
-    // 2) If the move is a loss, note this fact - we'll likely prune it later
-    // 3) Compute the 2nd-ply moves to consider so that only reasonable
-    //    opponent replies are considered
-    // 4) Store the state of the board fill-in to shorten rollouts and 
-    //    improve their accuracy
-
-    bitset_t losing;
-    data.root_to_play = color;
-    data.root_black_stones = brd.getBlack();
-    data.root_white_stones = brd.getWhite();
-
-    DoThreadedWork(numthreads, brd, color, consider, data,
-                   losing, oneMoveWin);
 
     // Abort out if we found a one-move win
     if (oneMoveWin != INVALID_POINT) 
@@ -330,9 +217,8 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     // set clock to use real-time if more than 1-thread
     SgTimer timer;
     timer.Start();
-    ComputeUctSharedData(m_search.NumberThreads(), 
-                         m_backup_ice_info, brd, color, 
-                         consider, data, oneMoveWin);
+    ComputeSharedData(m_backup_ice_info, brd, color, 
+                      consider, data, oneMoveWin);
     m_search.SetSharedData(&data);
     timer.Stop();
     double elapsed = timer.GetTime();
