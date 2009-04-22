@@ -3,6 +3,7 @@
 */
 //----------------------------------------------------------------------------
 
+#include <cmath>
 #include <boost/numeric/conversion/bounds.hpp>
 
 #include "BitsetIterator.hpp"
@@ -24,6 +25,15 @@ float OpeningBookNode::Value(const StoneBoard& brd) const
     if (brd.isLegal(SWAP_PIECES))
         return std::max(m_value, OpeningBook::InverseEval(m_value));
     return m_value;
+}
+
+float OpeningBookNode::Score(const StoneBoard& brd, 
+                             float countWeight) const
+{
+    float score = Value(brd);
+    if (!IsTerminal())
+        score += log(m_count + 1) * countWeight;
+    return score;	
 }
 
 bool OpeningBookNode::IsTerminal() const

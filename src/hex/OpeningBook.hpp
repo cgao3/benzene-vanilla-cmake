@@ -93,7 +93,11 @@ public:
 
     /** Returns value of board, taking into account swap moves. */ 
     float Value(const StoneBoard& brd) const;
-    
+
+    /** Returns score for this node, taking into account the amount of
+        information in the subtree. Use to select moves when using book. */
+    float Score(const StoneBoard& brd, float countWeight) const;
+
     //------------------------------------------------------------------------
 
     /** @name Additional properties */
