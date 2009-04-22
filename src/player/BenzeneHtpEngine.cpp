@@ -588,6 +588,7 @@ void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
     float countWeight = book->CountWeight();
 
     std::map<HexPoint, HexEval> values;
+    std::map<HexPoint, unsigned> counts;
     std::vector<std::pair<float, HexPoint> > scores;
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
@@ -595,6 +596,7 @@ void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
         OpeningBookNode node;
         if (m_book->GetNode(brd, node))
         {
+            counts[*p] = node.m_count;
             values[*p] = OpeningBook::InverseEval(node.Value(brd));
             scores.push_back(std::make_pair(-node.Score(brd, countWeight), *p));
         }
@@ -614,6 +616,7 @@ void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
             cmd << " L";
         else
             cmd << " " << std::fixed << std::setprecision(3) << value;
+        cmd << '@' << counts[p];
     }
 }
 
