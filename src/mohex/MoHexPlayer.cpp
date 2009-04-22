@@ -39,7 +39,7 @@ struct WorkThread
     WorkThread(int threadId, HexBoard& brd, HexColor color,
                const bitset_t& consider, 
                WorkState& state, bitset_t& losing, HexPoint& oneMoveWin,
-               HexUctInitialData& data, boost::barrier& finished)
+               HexUctSharedData& data, boost::barrier& finished)
         : threadId(threadId), brd(brd), color(color), 
           consider(consider), state(state), losing(losing),
           oneMoveWin(oneMoveWin), data(data), finished(finished)
@@ -55,7 +55,7 @@ struct WorkThread
     WorkState& state;
     bitset_t& losing;
     HexPoint& oneMoveWin;
-    HexUctInitialData& data;
+    HexUctSharedData& data;
     boost::barrier& finished;
 };
 
@@ -130,13 +130,13 @@ void SplitBitsetEvenly(const bitset_t& bs, int n,
 
 void DoThreadedWork(int numthreads, HexBoard& brd, HexColor color,
                     const bitset_t& consider,
-                    HexUctInitialData& data,
+                    HexUctSharedData& data,
                     bitset_t& losing,
                     HexPoint& oneMoveWin)
 {
     boost::barrier finished(numthreads+1);
     std::vector<boost::thread*> thread(numthreads);
-    std::vector<HexUctInitialData> dataSet(numthreads);
+    std::vector<HexUctSharedData> dataSet(numthreads);
     std::vector<bitset_t> losingSet(numthreads);
     std::vector<bitset_t> considerSet(numthreads);
     std::vector<HexBoard*> boardSet(numthreads);
@@ -173,11 +173,11 @@ void DoThreadedWork(int numthreads, HexBoard& brd, HexColor color,
 }
 
 /** Performs the one-ply pre-search. */
-void ComputeUctInitialData(int numthreads, bool backupIceInfo, 
-                           HexBoard& brd, HexColor color,
-                           bitset_t& consider,
-                           HexUctInitialData& data,
-                           HexPoint& oneMoveWin)
+void ComputeUctSharedData(int numthreads, bool backupIceInfo, 
+                          HexBoard& brd, HexColor color,
+                          bitset_t& consider,
+                          HexUctSharedData& data,
+                          HexPoint& oneMoveWin)
 {
     // For each 1-ply move that we're told to consider:
     // 1) If the move gives us a win, no need for UCT - just use this move
@@ -322,17 +322,17 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 
     // Create the initial state data
     HexPoint oneMoveWin = INVALID_POINT;
-    HexUctInitialData data;
+    HexUctSharedData data;
     data.root_last_move_played = lastMove;
     bitset_t consider = given_to_consider;
 
     // set clock to use real-time if more than 1-thread
     SgTimer timer;
     timer.Start();
-    ComputeUctInitialData(m_search.NumberThreads(), 
-                          m_backup_ice_info, brd, color, 
-                          consider, data, oneMoveWin);
-    m_search.SetInitialData(&data);
+    ComputeUctSharedData(m_search.NumberThreads(), 
+                         m_backup_ice_info, brd, color, 
+                         consider, data, oneMoveWin);
+    m_search.SetSharedData(&data);
     timer.Stop();
     double elapsed = timer.GetTime();
     time_remaining -= elapsed;

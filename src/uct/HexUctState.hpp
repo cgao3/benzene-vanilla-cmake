@@ -22,7 +22,7 @@ class HexUctSearch;
 //----------------------------------------------------------------------------
 
 /** Data for the start of a new game; fill-in, mtcs, etc...  */
-struct HexUctInitialData
+struct HexUctSharedData
 {
     /** Boardstate at root node. */
     HexColor root_to_play;
@@ -42,10 +42,10 @@ struct HexUctInitialData
 
     /** Combines consider data for 1ply and 2ply moves; ie. the
         ply1_[color]_stones and ply2_moves_to_consider maps. */
-    void Union(const HexUctInitialData& other);
+    void Union(const HexUctSharedData& other);
 };
 
-inline void HexUctInitialData::Union(const HexUctInitialData& other)
+inline void HexUctSharedData::Union(const HexUctSharedData& other)
 {
     ply1_black_stones.insert(other.ply1_black_stones.begin(), 
                              other.ply1_black_stones.end());
@@ -182,7 +182,7 @@ private:
 
     boost::scoped_ptr<HexBoard> m_vc_brd;
 
-    const HexUctInitialData* m_initial_data;
+    const HexUctSharedData* m_shared_data;
 
     const HexUctSearch& m_search;
 

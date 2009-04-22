@@ -63,7 +63,7 @@ HexUctState::HexUctState(std::size_t threadId,
 
       m_bd(0),
       m_vc_brd(0),
-      m_initial_data(0),
+      m_shared_data(0),
       m_search(sch),
       m_policy(0),
       m_treeUpdateRadius(treeUpdateRadius),
@@ -120,17 +120,17 @@ void HexUctState::ExecuteTreeMove(HexPoint move)
     {
 	// Play the first-ply cell and add its respective fill-in.
 	HexAssert(m_numStonesPlayed == 0);
-	HexAssert(m_toPlay == m_initial_data->root_to_play);
+	HexAssert(m_toPlay == m_shared_data->root_to_play);
 	
 	if (m_bd->getEmpty() != m_bd->getCells())
 	    m_bd->startNewGame();
 	HexAssert(m_bd->getEmpty() == m_bd->getCells());
 	PointToBitset::const_iterator it;
-	it = m_initial_data->ply1_black_stones.find(move);
-	HexAssert(it != m_initial_data->ply1_black_stones.end());
+	it = m_shared_data->ply1_black_stones.find(move);
+	HexAssert(it != m_shared_data->ply1_black_stones.end());
         m_bd->addColor(BLACK, it->second);
-        it = m_initial_data->ply1_white_stones.find(move);
-        HexAssert(it != m_initial_data->ply1_white_stones.end());
+        it = m_shared_data->ply1_white_stones.find(move);
+        HexAssert(it != m_shared_data->ply1_white_stones.end());
         m_bd->addColor(WHITE, it->second);
         m_bd->update();
 	
@@ -175,7 +175,7 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
     bool have_consider_set = false;
     if (m_new_game)
     {
-        moveset = m_initial_data->ply1_moves_to_consider;
+        moveset = m_shared_data->ply1_moves_to_consider;
         have_consider_set = true;
     }
     else if (m_numStonesPlayed == 1) 
@@ -183,8 +183,8 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
 	// We're about to play the second stone...
 	bitset_t opptMustplay;
 	PointToBitset::const_iterator it 
-	    = m_initial_data->ply2_moves_to_consider.find(m_lastMovePlayed);
-	HexAssert(it != m_initial_data->ply2_moves_to_consider.end());
+	    = m_shared_data->ply2_moves_to_consider.find(m_lastMovePlayed);
+	HexAssert(it != m_shared_data->ply2_moves_to_consider.end());
 	opptMustplay = it->second;
         moveset = opptMustplay;
         have_consider_set = true;
@@ -206,15 +206,18 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
 
         bitset_t mustplay = m_vc_brd->getMustplay(m_toPlay);
 
-        moveset &= mustplay;
-
-        if (mustplay.count() < m_vc_brd->getEmpty().count())
+        // FIXME: handle losing states!
+        if ((moveset & mustplay).any())
         {
-            LogInfo() << "Got mustplay!" 
-                      << m_vc_brd->printBitset(mustplay) << '\n';
-
+            moveset &= mustplay;
+            if (mustplay.count() < m_vc_brd->getEmpty().count())
+            {
+                LogInfo() << "Got mustplay!" 
+                          << m_vc_brd->printBitset(mustplay) << '\n';
+                
+            }
+            //truncateChildTrees = true;
         }
-        //truncateChildTrees = true;
     }
 
     moves.clear();
@@ -239,7 +242,7 @@ SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
 void HexUctState::StartSearch()
 {
     LogInfo() << "StartSearch()[" << m_threadId <<"]" << '\n';
-    m_initial_data = m_search.InitialData();
+    m_shared_data = m_search.SharedData();
 
     // @todo Fix the interface to HexBoard so this can be constant!
     // The problem is that VCBuilder (which is inside of HexBoard)
@@ -280,8 +283,8 @@ void HexUctState::GameStart()
     m_new_game = true;
     m_isInPlayout = false;
     m_numStonesPlayed = 0;
-    m_toPlay = m_initial_data->root_to_play;
-    m_lastMovePlayed = m_initial_data->root_last_move_played;
+    m_toPlay = m_shared_data->root_to_play;
+    m_lastMovePlayed = m_shared_data->root_last_move_played;
     m_bd->setUpdateRadius(m_treeUpdateRadius);
     m_bd->startNewGame();
     
@@ -291,8 +294,8 @@ void HexUctState::GameStart()
 	// position's stones to board. Otherwise we use pre-computed
 	// 1-ply filled-in positions.
 	HexAssert(m_bd->getEmpty() == m_bd->getCells());
-	m_bd->addColor(BLACK, m_initial_data->root_black_stones);
-	m_bd->addColor(WHITE, m_initial_data->root_white_stones);
+	m_bd->addColor(BLACK, m_shared_data->root_black_stones);
+	m_bd->addColor(WHITE, m_shared_data->root_white_stones);
         m_bd->update();
     }
 }
