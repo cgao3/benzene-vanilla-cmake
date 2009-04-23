@@ -13,6 +13,7 @@
 #include "HexUctPolicy.hpp"
 #include "HexUctUtil.hpp"
 #include "PatternBoard.hpp"
+#include "PlayerUtils.hpp"
 #include "SequenceHash.hpp"
 
 using namespace benzene;
@@ -176,29 +177,42 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
     bool truncateChildTrees = false;
     if (count && !have_consider_set)
     {
+        truncateChildTrees = true;
+
         m_vc_brd->SetState(*m_bd);
         m_vc_brd->ComputeAll(m_toPlay, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
-        bitset_t mustplay = m_vc_brd->getMustplay(m_toPlay);
 
-        // fill board with winner's stones if a losing state
-        if ((moveset & mustplay).none())
+        // Fill board with winner's stones if a determined state
+        if (PlayerUtils::IsDeterminedState(*m_vc_brd, m_toPlay))
         {
-            m_vc_brd->addColor(!m_toPlay, m_vc_brd->getEmpty());
+            moveset.reset();
+
+            HexColor winner = m_toPlay;
+            if (PlayerUtils::IsLostGame(*m_vc_brd, m_toPlay))
+                winner = !m_toPlay;
+
+            m_vc_brd->addColor(winner, m_vc_brd->getEmpty());
+            // Add fillin to m_bd because Evaluate() will be called
+            // immediately after SgUctSearch realizes this state has
+            // no children.  This is necessary only for this tree
+            // phase, subsequent tree phases will load up the fillin
+            // during the ExecuteMove() needed to arrive at this
+            // state.
+            m_bd->addColor(winner, m_bd->getEmpty());
+
 #if DEBUG_KNOWLEDGE
-            LogInfo() << "Found LOSING state: " << '\n' << *m_vc_brd << '\n';
+            LogInfo() << "Found win for " << winner << ": " << '\n' 
+                      << *m_vc_brd << '\n';
 #endif
-            // Add fillin because Evaluate() will be called
-            // immediately after SgUctSearch realizes this state has no
-            // children.  This is necessary only for this tree phase,
-            // subsequent tree phases will load up the fillin during
-            // the ExecuteMove() needed to arrive at this state.
-            m_bd->addColor(!m_toPlay, m_bd->getEmpty());
+        }
+        // Otherwise, prune the moves to consider
+        else
+        {
+            moveset &= PlayerUtils::MovesToConsider(*m_vc_brd, m_toPlay);
         }
 
-        moveset &= mustplay;
         m_shared_data->stones.put(SequenceHash::Hash(m_tree_sequence), 
                                   HexUctStoneData(*m_vc_brd));
-        truncateChildTrees = true;
 #if DEBUG_KNOWLEDGE
         LogInfo() << "===================================" << '\n'
                   << "Recomputed state:" << '\n' << *m_bd << '\n'
