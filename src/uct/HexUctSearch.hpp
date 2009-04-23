@@ -28,8 +28,7 @@ public:
 
     ~HexThreadStateFactory();
 
-    SgUctThreadState* Create(std::size_t threadId,
-                             const SgUctSearch& search);
+    SgUctThreadState* Create(std::size_t threadId, const SgUctSearch& search);
 private:
 
     HexUctSharedPolicy* m_shared_policy;
@@ -88,7 +87,9 @@ public:
 
     const HexBoard& Board() const;
 
-    void SetSharedData(const HexUctSharedData* data);
+    void SetSharedData(HexUctSharedData* data);
+
+    HexUctSharedData* SharedData();
 
     const HexUctSharedData* SharedData() const;
 
@@ -176,7 +177,7 @@ protected:
     HexBoard* m_brd;
    
     /** Data for first few ply of the game. Shared amoung threads. */
-    const HexUctSharedData* m_shared_data;
+    HexUctSharedData* m_shared_data;
 
     StoneBoard m_lastPositionSearched;
 
@@ -260,9 +261,14 @@ inline void HexUctSearch::SetPlayoutUpdateRadius(int radius)
     m_playoutUpdateRadius = radius;
 }
 
-inline void HexUctSearch::SetSharedData(const HexUctSharedData* data)
+inline void HexUctSearch::SetSharedData(HexUctSharedData* data)
 {
     m_shared_data = data;
+}
+
+inline HexUctSharedData* HexUctSearch::SharedData()
+{
+    return m_shared_data;
 }
 
 inline const HexUctSharedData* HexUctSearch::SharedData() const

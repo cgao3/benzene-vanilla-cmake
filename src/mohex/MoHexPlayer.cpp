@@ -45,8 +45,7 @@ void ComputeSharedData(bool backupIceInfo,
 
     bitset_t losing;
     data.root_to_play = color;
-    data.root_black_stones = brd.getBlack();
-    data.root_white_stones = brd.getWhite();
+    data.root_stones = HexUctStoneData(brd);
 
     HexColor other = !color;
     for (BitsetIterator p(consider); p; ++p) 
@@ -62,22 +61,10 @@ void ComputeSharedData(bool backupIceInfo,
             break;
         }	
 
-        // store the fill-in
-        data.ply1_black_stones[*p] = brd.getBlack();
-        data.ply1_white_stones[*p] = brd.getWhite();
+        data.stones.put(brd.Hash(), HexUctStoneData(brd));
 
-        // mark losing states and set moves to consider
         if (PlayerUtils::IsWonGame(brd, other))
-        {
             losing.set(*p);
-            data.ply2_moves_to_consider[*p] 
-                = PlayerUtils::MovesToConsiderInLosingState(brd, other);
-        } 
-        else 
-        {
-            data.ply2_moves_to_consider[*p] 
-                = PlayerUtils::MovesToConsider(brd, other);
-        }
 
         brd.UndoMove();
     }
@@ -127,8 +114,7 @@ void ComputeSharedData(bool backupIceInfo,
     HexAssert(consider.any());
     LogInfo()<< "Moves to consider:" << '\n' 
              << brd.printBitset(consider) << '\n';
-
-    data.ply1_moves_to_consider = consider;
+    data.root_consider = consider;
 }
 
 //----------------------------------------------------------------------------

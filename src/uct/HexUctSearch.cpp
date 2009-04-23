@@ -33,11 +33,12 @@ HexThreadStateFactory::~HexThreadStateFactory()
 }
 
 SgUctThreadState* 
-HexThreadStateFactory::Create(std::size_t threadId,
-                              const SgUctSearch& search)
+HexThreadStateFactory::Create(std::size_t threadId, const SgUctSearch& search)
 {
-    const HexUctSearch& hexSearch 
-        = dynamic_cast<const HexUctSearch&>(search);
+    // Need to do this since Fuego expects it be constant
+    SgUctSearch& srch = const_cast<SgUctSearch&>(search);
+    HexUctSearch& hexSearch 
+        = dynamic_cast<HexUctSearch&>(srch);
 
     LogInfo() << "Creating thread " << threadId << '\n';
 

@@ -16,6 +16,9 @@
 
 using namespace benzene;
 
+/** Prints output when knowledge is computed. */
+#define DEBUG_KNOWLEDGE 0
+
 //----------------------------------------------------------------------------
 
 namespace
@@ -55,7 +58,7 @@ void HexUctState::AssertionHandler::Run()
 //----------------------------------------------------------------------------
 
 HexUctState::HexUctState(std::size_t threadId,
-			 const HexUctSearch& sch,
+			 HexUctSearch& sch,
                          int treeUpdateRadius,
                          int playoutUpdateRadius)
     : SgUctThreadState(threadId, HexUctUtil::ComputeMaxNumMoves()),
@@ -116,31 +119,14 @@ void HexUctState::ExecutePlayout(SgMove sgmove)
 
 void HexUctState::ExecuteTreeMove(HexPoint move)
 {
-    if (m_new_game)
+    ExecutePlainMove(move, m_treeUpdateRadius);
+    HexUctStoneData stones;
+    if (m_shared_data->stones.get(m_bd->Hash(), stones))
     {
-	// Play the first-ply cell and add its respective fill-in.
-	HexAssert(m_numStonesPlayed == 0);
-	HexAssert(m_toPlay == m_shared_data->root_to_play);
-	
-	if (m_bd->getEmpty() != m_bd->getCells())
-	    m_bd->startNewGame();
-	HexAssert(m_bd->getEmpty() == m_bd->getCells());
-	PointToBitset::const_iterator it;
-	it = m_shared_data->ply1_black_stones.find(move);
-	HexAssert(it != m_shared_data->ply1_black_stones.end());
-        m_bd->addColor(BLACK, it->second);
-        it = m_shared_data->ply1_white_stones.find(move);
-        HexAssert(it != m_shared_data->ply1_white_stones.end());
-        m_bd->addColor(WHITE, it->second);
+        m_bd->setColor(BLACK, stones.black);
+        m_bd->setColor(WHITE, stones.white);
+        m_bd->setPlayed(stones.played);
         m_bd->update();
-	
-        m_new_game = false;
-	m_numStonesPlayed++;
-	m_lastMovePlayed = move;
-    }
-    else
-    {
-	ExecutePlainMove(move, m_treeUpdateRadius);
     }
 }
 
@@ -163,6 +149,7 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
     
     m_numStonesPlayed++;
     m_lastMovePlayed = cell;
+    m_new_game = false;
 }
 
 /** @todo Handle swap? */
@@ -175,48 +162,37 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
     bool have_consider_set = false;
     if (m_new_game)
     {
-        moveset = m_shared_data->ply1_moves_to_consider;
+        moveset = m_shared_data->root_consider;
         have_consider_set = true;
     }
-    else if (m_numStonesPlayed == 1) 
-    {
-	// We're about to play the second stone...
-	bitset_t opptMustplay;
-	PointToBitset::const_iterator it 
-	    = m_shared_data->ply2_moves_to_consider.find(m_lastMovePlayed);
-	HexAssert(it != m_shared_data->ply2_moves_to_consider.end());
-	opptMustplay = it->second;
-        moveset = opptMustplay;
-        have_consider_set = true;
-    } 
     else 
     {
         moveset = m_bd->getEmpty();
     }
 
     bool truncateChildTrees = false;
-
     if (count && !have_consider_set)
     {
-        m_vc_brd->startNewGame();
-        m_vc_brd->setColor(BLACK, m_bd->getBlack());
-        m_vc_brd->setColor(WHITE, m_bd->getWhite());
-        m_vc_brd->setPlayed(m_bd->getPlayed());
+        m_vc_brd->SetState(*m_bd);
         m_vc_brd->ComputeAll(m_toPlay, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
-
         bitset_t mustplay = m_vc_brd->getMustplay(m_toPlay);
 
         // FIXME: handle losing states!
         if ((moveset & mustplay).any())
         {
             moveset &= mustplay;
-            if (mustplay.count() < m_vc_brd->getEmpty().count())
-            {
-                LogInfo() << "Got mustplay!" 
-                          << m_vc_brd->printBitset(mustplay) << '\n';
-                
-            }
-            //truncateChildTrees = true;
+            m_shared_data->stones.put(m_bd->Hash(), HexUctStoneData(*m_bd));
+            truncateChildTrees = true;
+#if DEBUG_KNOWLEDGE
+            LogInfo() << "===================================" << '\n'
+                      << "Recomputed state:" << '\n' << *m_bd << '\n'
+                      << "Mustplay:" << m_vc_brd->printBitset(moveset) << '\n';
+#endif
+
+        }
+        else
+        {
+            LogInfo() << "Found LOSING state: " << '\n' << *m_vc_brd << '\n';
         }
     }
 
@@ -257,10 +233,6 @@ void HexUctState::StartSearch()
         m_vc_brd.reset(new HexBoard(brd.width(), brd.height(), 
                                     brd.ICE(), brd.Builder().Parameters()));
     }
-    m_bd->startNewGame();
-    m_bd->setColor(BLACK, brd.getBlack());
-    m_bd->setColor(WHITE, brd.getWhite());
-    m_bd->setPlayed(brd.getPlayed());
 }
 
 void HexUctState::TakeBackInTree(std::size_t nuMoves)
@@ -286,18 +258,12 @@ void HexUctState::GameStart()
     m_toPlay = m_shared_data->root_to_play;
     m_lastMovePlayed = m_shared_data->root_last_move_played;
     m_bd->setUpdateRadius(m_treeUpdateRadius);
+
     m_bd->startNewGame();
-    
-    if (!m_search.Tree().Root().HasChildren()) 
-    {
-	// If tree only consists of root node, then need to add root
-	// position's stones to board. Otherwise we use pre-computed
-	// 1-ply filled-in positions.
-	HexAssert(m_bd->getEmpty() == m_bd->getCells());
-	m_bd->addColor(BLACK, m_shared_data->root_black_stones);
-	m_bd->addColor(WHITE, m_shared_data->root_white_stones);
-        m_bd->update();
-    }
+    m_bd->setColor(BLACK, m_shared_data->root_stones.black);
+    m_bd->setColor(WHITE, m_shared_data->root_stones.white);
+    m_bd->setPlayed(m_shared_data->root_stones.played);
+    m_bd->update();
 }
 
 void HexUctState::StartPlayouts()
@@ -305,6 +271,8 @@ void HexUctState::StartPlayouts()
     m_isInPlayout = true;
     m_bd->setUpdateRadius(m_playoutUpdateRadius);
     
+    //LogInfo() << "Starting playout:" << *m_bd << '\n';
+
     /** Playout radius should normally be no bigger than tree radius,
 	but if it is, we need to do an extra update for each playout
 	during the transition from the tree phase to the playout

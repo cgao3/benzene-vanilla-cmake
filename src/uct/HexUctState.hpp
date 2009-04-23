@@ -10,6 +10,7 @@
 #include "SgPoint.h"
 #include "SgUctSearch.h"
 
+#include "HashMap.hpp"
 #include "HexBoard.hpp"
 #include "VC.hpp"
 
@@ -21,38 +22,49 @@ class HexUctSearch;
 
 //----------------------------------------------------------------------------
 
-/** Data for the start of a new game; fill-in, mtcs, etc...  */
-struct HexUctSharedData
+/** Black and white stones. */
+struct HexUctStoneData
 {
-    /** Boardstate at root node. */
-    HexColor root_to_play;
-    HexPoint root_last_move_played;
-    bitset_t root_black_stones;
-    bitset_t root_white_stones;
+    bitset_t black;
 
-    /** Moves to consider at root node. */
-    bitset_t ply1_moves_to_consider;
-    
-    /** Boardstate after each possible 1st-ply move. */
-    PointToBitset ply1_black_stones;
-    PointToBitset ply1_white_stones;
-    
-    /** Moves to consider for player on 2nd-ply. */
-    PointToBitset ply2_moves_to_consider;
+    bitset_t white;
 
-    /** Combines consider data for 1ply and 2ply moves; ie. the
-        ply1_[color]_stones and ply2_moves_to_consider maps. */
-    void Union(const HexUctSharedData& other);
+    bitset_t played;
+
+    /** Creates empty stone set. */
+    HexUctStoneData();
+
+    /** Copies stones from board. */
+    HexUctStoneData(const StoneBoard& brd);
 };
 
-inline void HexUctSharedData::Union(const HexUctSharedData& other)
+inline HexUctStoneData::HexUctStoneData()
 {
-    ply1_black_stones.insert(other.ply1_black_stones.begin(), 
-                             other.ply1_black_stones.end());
-    ply1_white_stones.insert(other.ply1_white_stones.begin(),
-                             other.ply1_white_stones.end());
-    ply2_moves_to_consider.insert(other.ply2_moves_to_consider.begin(),
-                                  other.ply2_moves_to_consider.end());
+}
+
+inline HexUctStoneData::HexUctStoneData(const StoneBoard& brd)
+    : black(brd.getBlack()),
+      white(brd.getWhite()),
+      played(brd.getPlayed())
+{
+}
+
+/** Data shared among all threads. */
+struct HexUctSharedData
+{
+    HexColor root_to_play;
+    HexPoint root_last_move_played;
+    bitset_t root_consider;
+    HexUctStoneData root_stones;
+
+    HashMap<HexUctStoneData> stones;
+
+    HexUctSharedData();
+};
+
+inline HexUctSharedData::HexUctSharedData()
+    : stones(16)
+{ 
 }
 
 //----------------------------------------------------------------------------
@@ -88,7 +100,7 @@ public:
         @param playoutUpdateRadius Pattern matching radius in playouts.
     */
     HexUctState(std::size_t threadId,
-		const HexUctSearch& sch,
+		HexUctSearch& sch,
                 int treeUpdateRadius,
                 int playoutUpdateRadius);
 
@@ -182,9 +194,9 @@ private:
 
     boost::scoped_ptr<HexBoard> m_vc_brd;
 
-    const HexUctSharedData* m_shared_data;
+    HexUctSharedData* m_shared_data;
 
-    const HexUctSearch& m_search;
+    HexUctSearch& m_search;
 
     HexUctSearchPolicy* m_policy;
     
