@@ -13,6 +13,7 @@
 #include "HexUctPolicy.hpp"
 #include "HexUctUtil.hpp"
 #include "PatternBoard.hpp"
+#include "SequenceHash.hpp"
 
 using namespace benzene;
 
@@ -100,6 +101,7 @@ void HexUctState::Dump(std::ostream& out) const
 
 float HexUctState::Evaluate()
 {
+    LogFine() << "Evaluate()" << '\n';
     HexAssert(GameOver(*m_bd));
     float score = (GetWinner(*m_bd) == m_toPlay) ? 1.0 : 0.0;
     return score;
@@ -120,8 +122,9 @@ void HexUctState::ExecutePlayout(SgMove sgmove)
 void HexUctState::ExecuteTreeMove(HexPoint move)
 {
     ExecutePlainMove(move, m_treeUpdateRadius);
+    m_tree_sequence.push_back(move);
     HexUctStoneData stones;
-    if (m_shared_data->stones.get(m_bd->Hash(), stones))
+    if (m_shared_data->stones.get(SequenceHash::Hash(m_tree_sequence), stones))
     {
         m_bd->setColor(BLACK, stones.black);
         m_bd->setColor(WHITE, stones.white);
@@ -177,23 +180,30 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
         m_vc_brd->ComputeAll(m_toPlay, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
         bitset_t mustplay = m_vc_brd->getMustplay(m_toPlay);
 
-        // FIXME: handle losing states!
-        if ((moveset & mustplay).any())
+        // fill board with winner's stones if a losing state
+        if ((moveset & mustplay).none())
         {
-            moveset &= mustplay;
-            m_shared_data->stones.put(m_bd->Hash(), HexUctStoneData(*m_bd));
-            truncateChildTrees = true;
+            m_vc_brd->addColor(!m_toPlay, m_vc_brd->getEmpty());
 #if DEBUG_KNOWLEDGE
-            LogInfo() << "===================================" << '\n'
-                      << "Recomputed state:" << '\n' << *m_bd << '\n'
-                      << "Mustplay:" << m_vc_brd->printBitset(moveset) << '\n';
-#endif
-
-        }
-        else
-        {
             LogInfo() << "Found LOSING state: " << '\n' << *m_vc_brd << '\n';
+#endif
+            // Add fillin because Evaluate() will be called
+            // immediately after SgUctSearch realizes this state has no
+            // children.  This is necessary only for this tree phase,
+            // subsequent tree phases will load up the fillin during
+            // the ExecuteMove() needed to arrive at this state.
+            m_bd->addColor(!m_toPlay, m_bd->getEmpty());
         }
+
+        moveset &= mustplay;
+        m_shared_data->stones.put(SequenceHash::Hash(m_tree_sequence), 
+                                  HexUctStoneData(*m_vc_brd));
+        truncateChildTrees = true;
+#if DEBUG_KNOWLEDGE
+        LogInfo() << "===================================" << '\n'
+                  << "Recomputed state:" << '\n' << *m_bd << '\n'
+                  << "Mustplay:" << m_vc_brd->printBitset(moveset) << '\n';
+#endif
     }
 
     moves.clear();
@@ -255,6 +265,7 @@ void HexUctState::GameStart()
     m_new_game = true;
     m_isInPlayout = false;
     m_numStonesPlayed = 0;
+    m_tree_sequence.clear();
     m_toPlay = m_shared_data->root_to_play;
     m_lastMovePlayed = m_shared_data->root_last_move_played;
     m_bd->setUpdateRadius(m_treeUpdateRadius);
@@ -271,8 +282,6 @@ void HexUctState::StartPlayouts()
     m_isInPlayout = true;
     m_bd->setUpdateRadius(m_playoutUpdateRadius);
     
-    //LogInfo() << "Starting playout:" << *m_bd << '\n';
-
     /** Playout radius should normally be no bigger than tree radius,
 	but if it is, we need to do an extra update for each playout
 	during the transition from the tree phase to the playout

@@ -17,6 +17,7 @@
 #include "HexUctPolicy.hpp"
 #include "MoHexPlayer.hpp"
 #include "PlayerUtils.hpp"
+#include "SequenceHash.hpp"
 #include "Time.hpp"
 #include "VCUtils.hpp"
 
@@ -48,9 +49,11 @@ void ComputeSharedData(bool backupIceInfo,
     data.root_stones = HexUctStoneData(brd);
 
     HexColor other = !color;
+    PointSequence seq;
     for (BitsetIterator p(consider); p; ++p) 
     {
         brd.PlayMove(color, *p);
+        seq.push_back(*p);
 
         // found a winning move!
         if (PlayerUtils::IsLostGame(brd, other))
@@ -61,11 +64,12 @@ void ComputeSharedData(bool backupIceInfo,
             break;
         }	
 
-        data.stones.put(brd.Hash(), HexUctStoneData(brd));
+        data.stones.put(SequenceHash::Hash(seq), HexUctStoneData(brd));
 
         if (PlayerUtils::IsWonGame(brd, other))
             losing.set(*p);
 
+        seq.pop_back();
         brd.UndoMove();
     }
 

@@ -214,6 +214,9 @@ private:
     /** True if in playout phase. */
     bool m_isInPlayout;
 
+    /** Moves played in the tree. */
+    PointSequence m_tree_sequence;
+
     /** Keeps track of last rollout move made
 	Used for pattern-generated rollouts when call HexUctSearchPolicy
      */
