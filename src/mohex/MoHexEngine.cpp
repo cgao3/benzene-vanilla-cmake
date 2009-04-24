@@ -21,6 +21,7 @@ MoHexEngine::MoHexEngine(std::istream& in, std::ostream& out,
     RegisterCmd("book-expand", &MoHexEngine::CmdBookExpand);
     RegisterCmd("book-priorities", &MoHexEngine::CmdBookPriorities);
     RegisterCmd("book-refresh", &MoHexEngine::CmdBookRefresh);
+    RegisterCmd("book-increase-width", &MoHexEngine::CmdBookIncreaseWidth);
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
     RegisterCmd("param_book", &MoHexEngine::CmdParamBook);
 }
@@ -190,6 +191,17 @@ void MoHexEngine::CmdBookRefresh(HtpCommand& cmd)
     if (!StateMatchesBook(brd))
         return;
     m_bookBuilder.Refresh(*m_book, brd);
+}
+
+/** Increases the width of all internal nodes that need to be
+    increased. See BookBuilder::IncreaseWidth().  */
+void MoHexEngine::CmdBookIncreaseWidth(HtpCommand& cmd)
+{
+    UNUSED(cmd);
+    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    if (!StateMatchesBook(brd))
+        return;
+    m_bookBuilder.IncreaseWidth(*m_book, brd);
 }
 
 void MoHexEngine::CmdBookPriorities(HtpCommand& cmd)

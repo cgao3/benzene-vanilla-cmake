@@ -33,6 +33,7 @@ public:
     void CmdBookPriorities(HtpCommand& cmd);
     void CmdBookExpand(HtpCommand& cmd);
     void CmdBookRefresh(HtpCommand& cmd);
+    void CmdBookIncreaseWidth(HtpCommand& cmd);
     void CmdParamBook(HtpCommand& cmd);
     void MoHexParam(HtpCommand& cmd);
 
