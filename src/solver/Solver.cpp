@@ -190,6 +190,9 @@ bool Solver::CheckDB(const HexBoard& brd, HexColor toplay,
                  << state.numstates << " states."
                  << '\n';
 
+        // Can't use proof stored in state.
+        // Could use it if this was a variation db, instead of
+        // a state-based db.
         HexColor winner = (state.win) ? toplay : !toplay;
         state.proof = DefaultProofForWinner(brd, winner);
 
@@ -219,6 +222,8 @@ bool Solver::CheckTT(const HexBoard& brd, HexColor toplay,
                              m_stoneboard->getWhite());
 #endif
 
+        // Can't use proof stored in state.
+        // No way to transfer proofs between variations.
         HexColor winner = (state.win) ? toplay : !toplay;
         state.proof = DefaultProofForWinner(brd, winner);
   
@@ -307,24 +312,23 @@ bool Solver::HandleTerminalNode(const HexBoard& brd, HexColor color,
     bitset_t proof;
     int numstones = m_stoneboard->numStones();
 
-    if (SolverUtil::isWinningState(brd, color, proof)) {
-
+    if (SolverUtil::isWinningState(brd, color, proof)) 
+    {
         state.win = true;
         state.nummoves = 0;
         state.numstates = 1;
         state.proof = proof;
         m_histogram.terminal[numstones]++;
         return true;
-
-    } else if (SolverUtil::isLosingState(brd, color, proof)) {
-
+    } 
+    else if (SolverUtil::isLosingState(brd, color, proof)) 
+    {
         state.win = false;
         state.nummoves = 0;
         state.numstates = 1;
         state.proof = proof;
         m_histogram.terminal[numstones]++;
         return true;
-
     } 
     return false;
 }
@@ -815,6 +819,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
     StoreState(SolvedState(m_stoneboard->numStones(), brd.Hash(), 
                            winning_state, solution.stats.total_states, 
                            solution.moves_to_connection, 
+                           solution.pv[0], 
                            solution.proof, winners_stones, 
                            m_stoneboard->getBlack(), 
                            m_stoneboard->getWhite()));

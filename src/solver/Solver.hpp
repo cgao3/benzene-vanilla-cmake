@@ -352,7 +352,8 @@ private:
     bool CheckTransposition(const HexBoard& brd, HexColor toplay, 
                             SolvedState& state) const;
 
-    /** Stores the solved state in the TT or DB. */
+    /** Stores the solved state in the TT or DB. Sets the state's
+        bestmove parameter to the best move computed by solver. */
     void StoreState(const SolvedState& state);
 
     bitset_t DefaultProofForWinner(const HexBoard& brd, 
@@ -382,6 +383,9 @@ private:
     bool HandleLeafNode(const HexBoard& brd, HexColor color, 
                         SolvedState& state, bool root_node) const;
 
+    /** Returns true if node is terminal. Fills in state if terminal. 
+        State's bestmove field is not specified here.
+     */
     bool HandleTerminalNode(const HexBoard& brd, HexColor color, 
                             SolvedState& state) const;
 
