@@ -721,11 +721,6 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
     OpeningBookNode node;
     if (!GetNode(brd, node))
         return false;
-    if (node.IsTerminal())
-    {
-        m_terminal_nodes++;
-        return true;
-    }
     if (node.IsLeaf())
     {
         m_leaf_nodes++;
