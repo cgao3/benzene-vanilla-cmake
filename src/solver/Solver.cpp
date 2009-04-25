@@ -152,6 +152,23 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
     // Solver currently cannot handle permanently inferior cells.
     HexAssert(!brd.ICE().FindPermanentlyInferior());
 
+    // Check if move already exists in db/tt before doing anything
+    {
+        SolvedState state;
+        if (CheckTransposition(brd, tomove, state))
+        {
+            LogInfo() << "Solver: Found cached result!" << '\n';
+            Result result = state.win ? Solver::WIN : Solver::LOSS;
+            solution.result = result;
+            solution.moves_to_connection = state.nummoves;
+            solution.pv.clear();
+            solution.pv.push_back(state.bestmove);
+            solution.proof = DefaultProofForWinner(brd, 
+                                         state.win ? tomove : !tomove);
+            return result;
+        }
+    }
+
     // Compute VCs/IC info for this state.
     brd.ComputeAll(tomove, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
 
