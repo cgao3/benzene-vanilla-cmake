@@ -173,7 +173,7 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
     brd.ComputeAll(tomove, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
 
     // Solve it!
-    m_completed.resize(100);
+    m_completed.resize(BITSETSIZE);
     PointSequence variation;
     bool win = solve_state(brd, tomove, variation, solution);
 
