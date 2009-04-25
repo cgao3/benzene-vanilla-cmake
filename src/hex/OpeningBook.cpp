@@ -196,6 +196,22 @@ hash_t OpeningBookUtil::GetHash(const StoneBoard& brd)
     return std::min(hash1, hash2);
 }
 
+unsigned OpeningBookUtil::NumChildren(const OpeningBook& book, 
+                                      const StoneBoard& board)
+{
+    unsigned num = 0;
+    StoneBoard brd(board);
+    for (BitsetIterator i(brd.getEmpty()); i; ++i) 
+    {
+	brd.playMove(brd.WhoseTurn(), *i);
+	OpeningBookNode child;
+        if (book.GetNode(brd, child))
+            ++num;
+        brd.undoMove(*i);
+    }
+    return num;
+}
+
 void OpeningBookUtil::UpdateValue(const OpeningBook& book, 
                                   OpeningBookNode& node, StoneBoard& brd)
 {

@@ -628,23 +628,24 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
 template<class PLAYER>
 void BookBuilder<PLAYER>::UpdateValue(OpeningBookNode& node, StoneBoard& brd)
 {
-    // Must be "+ 2" because "+ 1" is what we just expanded to!
-    std::size_t width = (node.m_count / m_expand_threshold + 2)
-        * m_expand_width;
-
     while (true)
     {
         OpeningBookUtil::UpdateValue(*m_book, node, brd);
         if (!HexEvalUtil::IsLoss(node.Value(brd)))
             break;
 
-        LogInfo() << "Forced Widening[" << width << "]" << '\n'
-                  << brd << '\n';
+        // Round up to next nearest multiple of m_expand_width that is
+        // larger than the current number of children.
+        unsigned numChildren = OpeningBookUtil::NumChildren(*m_book, brd);
+        std::size_t width = (numChildren / m_expand_width + 1) 
+            * m_expand_width;
+
+        LogInfo() << "Forced Widening[" << numChildren << "->" 
+                  << width << "]" << '\n' << brd << '\n';
         if (!ExpandChildren(brd, width))
             break;
 
         ++m_num_widenings;
-        width += m_expand_width;
     }
 }
 
