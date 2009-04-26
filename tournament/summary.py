@@ -27,6 +27,8 @@ def add_if_new(list, value):
 gamelen = Statistics()
 elapsedP1 = Statistics()
 elapsedP2 = Statistics()
+p1Overtime = Statistics()
+p2Overtime = Statistics()
 p1Wins = Statistics()
 p1WinsBlack = Statistics()
 p1WinsWhite = Statistics()
@@ -84,10 +86,18 @@ def analyzeTourney(fname, random, longOpening, maxvalid, showTable, timeLimit):
 
                 if (((timeBlack > timeLimit) and (bres[0] == 'B')) or
                     ((timeWhite > timeLimit) and (bres[0] == 'W'))):
+                    overtime = 0.0
+                    if (bres[0] == 'B'):
+                        overtime = timeBlack - timeLimit
+                    else:
+                        overtime = timeWhite - timeLimit
+                    
                     if (winner == progs[0]):
                         p1Timeouts = p1Timeouts + 1.0
+                        p1Overtime.add(overtime)
                     else:
                         p2Timeouts = p2Timeouts + 1.0
+                        p2Overtime.add(overtime)
 
                 gamelen.add(float(length))
                 p1Wins.add(valueForP1)
@@ -252,7 +262,7 @@ def showIterativeResults(numvalid, table, opencount, openings,
         print "    p1Time: " + elapsedP1.dump()
         print "    p2Time: " + elapsedP2.dump()
         print "-----------------------------------------------------------"
-        print "Statistics for \'" + progs[0] + "\':"                
+        print "Statistics for " + progs[0] + ":"                
         print "  All Wins: %.1f%% (+-%.1f)" % \
               (p1Wins.mean()*100.0, p1Wins.stderror()*100.0)
         print "  As Black: %.1f%% (+-%.1f)" % \
@@ -262,10 +272,12 @@ def showIterativeResults(numvalid, table, opencount, openings,
         
         if ((p1Timeouts > 0) or (p2Timeouts > 0)):
             print "-----------------------------------------------------------"
-            print "Timed out wins for \'" + progs[0] + "\': %i / %i" % \
-                  (p1Timeouts, p1Wins.sum())
-            print "Timed out wins for \'" + progs[1] + "\': %i / %i" % \
-                  (p2Timeouts, p1Wins.count() - p1Wins.sum())
+            print "Timeouts for " + progs[0] + ": %i/%i, %.1f (+-%.1f)" % \
+                  (p1Timeouts, p1Wins.sum(),
+                   p1Overtime.mean(), p1Overtime.stderror())
+            print "Timeouts for " + progs[1] + ": %i/%i, %.1f (+-%.1f)" % \
+                  (p2Timeouts, p1Wins.count() - p1Wins.sum(),
+                   p2Overtime.mean(), p2Overtime.stderror())
         
         print "==========================================================="
     else:
