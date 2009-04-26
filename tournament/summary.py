@@ -17,7 +17,7 @@ from statistics import Statistics
 def get_value(table, key):
     if (table.has_key(key)):
         return table[key]
-    return 0    
+    return 0
 
 def add_if_new(list, value):
     if (list.count(value)==0):
@@ -30,11 +30,11 @@ elapsedP2 = Statistics()
 p1Wins = Statistics()
 p1WinsBlack = Statistics()
 p1WinsWhite = Statistics()
-   
-def analyzeTourney(filename, random, longOpening, maxvalid, showTable):
-    print "Analyzing: \'" + filename + "\'..."
+
+def analyzeTourney(fname, random, longOpening, maxvalid, showTable, timeLimit):
+    print "Analyzing: \'" + fname + "\'..."
     
-    f = open(filename, "r")
+    f = open(fname, "r")
     line = f.readline()
     linenum = 1
 
@@ -43,7 +43,10 @@ def analyzeTourney(filename, random, longOpening, maxvalid, showTable):
     opencount = {}
     openings = []
     progs = []
-  
+    
+    p1Timeouts = 0.0
+    p2Timeouts = 0.0
+    
     while line != "":
         if line[0] != "#":
             array = string.split(line, "\t")
@@ -54,8 +57,8 @@ def analyzeTourney(filename, random, longOpening, maxvalid, showTable):
             bres = array[5]
             wres = array[6]
             length = array[7]
-            timeBlack = array[8]
-            timeWhite = array[9]
+            timeBlack = float(array[8])
+            timeWhite = float(array[9])
 
             if random or longOpening:
                 opening = string.strip(fullopening)
@@ -78,7 +81,14 @@ def analyzeTourney(filename, random, longOpening, maxvalid, showTable):
                 valueForP1 = 0.0
                 if (winner == progs[0]):
                     valueForP1 = 1.0
-                
+
+                if (((timeBlack > timeLimit) and (bres[0] == 'B')) or
+                    ((timeWhite > timeLimit) and (bres[0] == 'W'))):
+                    if (winner == progs[0]):
+                        p1Timeouts = p1Timeouts + 1.0
+                    else:
+                        p2Timeouts = p2Timeouts + 1.0
+
                 gamelen.add(float(length))
                 p1Wins.add(valueForP1)
                 if (progs[0] == black):
@@ -123,7 +133,8 @@ def analyzeTourney(filename, random, longOpening, maxvalid, showTable):
                           openings, progs, showTable)
     else:
         showIterativeResults(numvalid, table, opencount,
-                             openings, progs, showTable)
+                             openings, progs, showTable,
+                             p1Timeouts, p2Timeouts)
 
 #    for k in sorted(table.keys()):
 #       print k, table[k]
@@ -200,7 +211,7 @@ def showRandomResults(numvalid, table, opencount, openings, progs):
     print ""
 
 def showIterativeResults(numvalid, table, opencount, openings,
-                         progs, showTable):
+                         progs, showTable, p1Timeouts, p2Timeouts):
 
     if showTable:
         print "+-------------+--------+-------+-------+"
@@ -248,6 +259,14 @@ def showIterativeResults(numvalid, table, opencount, openings,
               (p1WinsBlack.mean()*100.0, p1WinsBlack.stderror()*100.0)
         print "  As White: %.1f%% (+-%.1f)" % \
               (p1WinsWhite.mean()*100.0, p1WinsWhite.stderror()*100.0)
+        
+        if ((p1Timeouts > 0) or (p2Timeouts > 0)):
+            print "-----------------------------------------------------------"
+            print "Timed out wins for \'" + progs[0] + "\': %i / %i" % \
+                  (p1Timeouts, p1Wins.sum())
+            print "Timed out wins for \'" + progs[1] + "\': %i / %i" % \
+                  (p2Timeouts, p1Wins.count() - p1Wins.sum())
+        
         print "==========================================================="
     else:
         print "No valid games."
@@ -262,6 +281,7 @@ def usage():
 def main():
 
     count = 50000
+    timeLimit = 123456.789
     longOpening = False
     random = False
     showTable = False
@@ -269,7 +289,7 @@ def main():
     
     try:
         options = "clr:sf:"
-        longOptions = ["count=", "long", "random","showTable", "file="]
+        longOptions = ["count=","long","random","showTable","file=","time="]
         opts, args = getopt.getopt(sys.argv[1:], options, longOptions)
     except getopt.GetoptError:
         usage()
@@ -279,6 +299,8 @@ def main():
             count = int(v)
         elif o in ("--file", "-f"):
             resfile = v
+        elif o in ("--time", "-t"):
+            timeLimit = float(v)
         elif o in ("--long"):
             longOpening = True
         elif o in ("--random"):
@@ -289,6 +311,6 @@ def main():
     if (resfile == ""):
         usage()
     
-    analyzeTourney(resfile, random, longOpening, count, showTable)
+    analyzeTourney(resfile, random, longOpening, count, showTable, timeLimit)
     
 main()

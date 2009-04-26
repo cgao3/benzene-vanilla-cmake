@@ -27,6 +27,9 @@ class Statistics:
     def max(self):
         return self._max
 
+    def sum(self):
+        return self._sum
+
     def variance(self):
         if (self._count == 0):
             return 0.0
