@@ -1413,11 +1413,11 @@ void BenzeneHtpEngine::SolverThread::operator()()
                                                      Solver::NO_TIME_LIMIT);
     if (result != Solver::UNKNOWN)
     {
-        if (!solution.pv.empty())
+        if (!solution.pv.empty() && solution.pv[0] != INVALID_POINT)
         {
             boost::mutex::scoped_lock lock(m_mutex);
             m_engine.m_parallelResult = solution.pv[0];
-            if (result == Solver::WIN && !solution.pv.empty()) 
+            if (result == Solver::WIN)
             {
                 LogInfo() << "*** FOUND WIN!!! ***" << '\n' << "PV: " 
                           << HexPointUtil::ToPointListString(solution.pv)

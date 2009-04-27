@@ -833,6 +833,14 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
     bitset_t winners_stones = 
         m_stoneboard->getColor(winner) & solution.proof;
 
+    /** @todo HANDLE BEST MOVES PROPERLY! 
+        This can only happen if the mustplay goes empty in an internal
+        state that wasn't determined initially, or in a decomp state
+        where the fillin causes a terminal state. 
+     */
+    if (solution.pv.empty())
+        solution.pv.push_back(INVALID_POINT);
+
     StoreState(SolvedState(m_stoneboard->numStones(), brd.Hash(), 
                            winning_state, solution.stats.total_states, 
                            solution.moves_to_connection, 
