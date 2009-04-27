@@ -15,8 +15,7 @@ void SolvedState::CheckCollision(const SolvedState& other) const
     CheckCollision(other.hash, other.black, other.white);
 }
 
-void SolvedState::CheckCollision(hash_t hash, 
-                                 const bitset_t& black,
+void SolvedState::CheckCollision(hash_t hash, const bitset_t& black,
                                  const bitset_t& white) const
 {
     if (this->hash == hash && (this->black != black || this->white != white))
@@ -41,11 +40,14 @@ int SolvedState::PackedSize() const
     return (sizeof(win) + 
             sizeof(flags) +
             sizeof(numstates) +
-            sizeof(nummoves));
+            sizeof(nummoves) +
+            sizeof(bestmove));
 }
 
+/** @bug NOT THREADSAFE! */
 byte* SolvedState::Pack() const
 {
+    // replace this to make it threadsafe
     static byte data[256];
     
     int index = 0;
@@ -59,6 +61,9 @@ byte* SolvedState::Pack() const
     index += 4;
 
     MiscUtil::WordToBytes(nummoves, &data[index]);
+    index += 4;
+
+    MiscUtil::WordToBytes(bestmove, &data[index]);
     index += 4;
 
     return data;
@@ -79,6 +84,8 @@ void SolvedState::Unpack(const byte* data)
 
     nummoves = MiscUtil::BytesToWord(&data[index]);
     index += 4;
+
+    bestmove = static_cast<HexPoint>(MiscUtil::BytesToWord(&data[index]));
 }
 
 //----------------------------------------------------------------------------

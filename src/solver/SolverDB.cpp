@@ -98,31 +98,33 @@ bool SolverDB::get(const StoneBoard& brd, SolvedState& state)
     if (0 < count && count <= m_settings.maxstones) {
 
         // check if exact boardstate exists in db
-        if (m_db.Get(brd.Hash(), state)) {
+        if (m_db.Get(brd.Hash(), state)) 
+        {
             m_stats.gets++;
             m_stats.saved += state.numstates;
             
             state.hash = brd.Hash();
             state.numstones = brd.numStones();
-
             return true;
         }
 
         // check if rotated boardstate exists in db
         StoneBoard rotated_brd(brd);
         rotated_brd.rotateBoard();
-        if (m_db.Get(rotated_brd.Hash(), state)) {
+        if (m_db.Get(rotated_brd.Hash(), state)) 
+        {
+            m_stats.gets++;
+            m_stats.saved += state.numstates;
 
-            // rotate proof so it matches the given board
+            // rotate data so it matches the given board
             state.proof = BoardUtils::Rotate(brd.Const(), state.proof);
             state.winners_stones = BoardUtils::Rotate(brd.Const(), 
                                                       state.winners_stones);
+            state.bestmove = BoardUtils::Rotate(brd.Const(), 
+                                                state.bestmove);
 
             state.hash = brd.Hash();
             state.numstones = brd.numStones();
-
-            m_stats.gets++;
-            m_stats.saved += state.numstates;
             return true;
         }
     }
@@ -358,6 +360,7 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
         | SolvedState::FLAG_MIRROR_TRANSPOSITION;
     ss.numstates = state.numstates;
     ss.nummoves = state.nummoves;
+    ss.bestmove = BoardUtils::Mirror(brd.Const(), state.bestmove);
     ss.proof = flippedProof;
     ss.winners_stones = (flippedWinner == BLACK) ? flippedBlack : flippedWhite;
     

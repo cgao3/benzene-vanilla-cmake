@@ -152,11 +152,28 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
     // Solver currently cannot handle permanently inferior cells.
     HexAssert(!brd.ICE().FindPermanentlyInferior());
 
+    // Check if move already exists in db/tt before doing anything
+    {
+        SolvedState state;
+        if (CheckTransposition(brd, tomove, state))
+        {
+            LogInfo() << "Solver: Found cached result!" << '\n';
+            Result result = state.win ? Solver::WIN : Solver::LOSS;
+            solution.result = result;
+            solution.moves_to_connection = state.nummoves;
+            solution.pv.clear();
+            solution.pv.push_back(state.bestmove);
+            solution.proof = DefaultProofForWinner(brd, 
+                                         state.win ? tomove : !tomove);
+            return result;
+        }
+    }
+
     // Compute VCs/IC info for this state.
     brd.ComputeAll(tomove, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
 
     // Solve it!
-    m_completed.resize(100);
+    m_completed.resize(BITSETSIZE);
     PointSequence variation;
     bool win = solve_state(brd, tomove, variation, solution);
 
@@ -190,6 +207,9 @@ bool Solver::CheckDB(const HexBoard& brd, HexColor toplay,
                  << state.numstates << " states."
                  << '\n';
 
+        // Can't use proof stored in state.
+        // Could use it if this was a variation db, instead of
+        // a state-based db.
         HexColor winner = (state.win) ? toplay : !toplay;
         state.proof = DefaultProofForWinner(brd, winner);
 
@@ -219,6 +239,8 @@ bool Solver::CheckTT(const HexBoard& brd, HexColor toplay,
                              m_stoneboard->getWhite());
 #endif
 
+        // Can't use proof stored in state.
+        // No way to transfer proofs between variations.
         HexColor winner = (state.win) ? toplay : !toplay;
         state.proof = DefaultProofForWinner(brd, winner);
   
@@ -307,24 +329,23 @@ bool Solver::HandleTerminalNode(const HexBoard& brd, HexColor color,
     bitset_t proof;
     int numstones = m_stoneboard->numStones();
 
-    if (SolverUtil::isWinningState(brd, color, proof)) {
-
+    if (SolverUtil::isWinningState(brd, color, proof)) 
+    {
         state.win = true;
         state.nummoves = 0;
         state.numstates = 1;
         state.proof = proof;
         m_histogram.terminal[numstones]++;
         return true;
-
-    } else if (SolverUtil::isLosingState(brd, color, proof)) {
-
+    } 
+    else if (SolverUtil::isLosingState(brd, color, proof)) 
+    {
         state.win = false;
         state.nummoves = 0;
         state.numstates = 1;
         state.proof = proof;
         m_histogram.terminal[numstones]++;
         return true;
-
     } 
     return false;
 }
@@ -812,9 +833,18 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
     bitset_t winners_stones = 
         m_stoneboard->getColor(winner) & solution.proof;
 
+    /** @todo HANDLE BEST MOVES PROPERLY! 
+        This can only happen if the mustplay goes empty in an internal
+        state that wasn't determined initially, or in a decomp state
+        where the fillin causes a terminal state. 
+     */
+    if (solution.pv.empty())
+        solution.pv.push_back(INVALID_POINT);
+
     StoreState(SolvedState(m_stoneboard->numStones(), brd.Hash(), 
                            winning_state, solution.stats.total_states, 
                            solution.moves_to_connection, 
+                           solution.pv[0], 
                            solution.proof, winners_stones, 
                            m_stoneboard->getBlack(), 
                            m_stoneboard->getWhite()));

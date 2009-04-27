@@ -315,6 +315,9 @@ namespace OpeningBookUtil
     /** Returns the canonical hash for this boardstate. */
     hash_t GetHash(const StoneBoard& brd);
 
+    /** Returns number of child states existing in this book. */
+    unsigned NumChildren(const OpeningBook& book, const StoneBoard& brd);
+
     /** Returns the priority of expanding the child node. */
     float ComputePriority(const StoneBoard& brd, 
                           const OpeningBookNode& parent,

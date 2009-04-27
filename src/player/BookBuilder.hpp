@@ -69,6 +69,16 @@ public:
         @ref bookrefresh. */
     void Refresh(OpeningBook& book, HexBoard& board);
 
+    /** Performs widening on all internal nodes that require it. Use
+        this after increasing ExpandWidth() or decreasing
+        ExpandThreshold() on an already existing book to update all
+        the internal nodes with the new required width. Will do
+        nothing unless parameters were changed accordingly.
+        
+        Does not propagate values up tree, run Refresh() afterwards to
+        do so. */
+    void IncreaseWidth(OpeningBook& book, HexBoard& board);
+
     //---------------------------------------------------------------------    
 
     /** The parameter alpha controls state expansion (big values give
@@ -143,6 +153,8 @@ private:
 
     bool Refresh(StoneBoard& brd, std::set<hash_t>& seen, bool root);
 
+    void IncreaseWidth(StoneBoard& brd, std::set<hash_t>& seen, bool root);
+
     void CreateWorkers();
 
     void DestroyWorkers();
@@ -179,6 +191,8 @@ private:
     //------------------------------------------------------------------------
 
     std::size_t m_num_evals;
+
+    std::size_t m_num_widenings;
 
     std::size_t m_value_updates;
 
@@ -295,6 +309,7 @@ void BookBuilder<PLAYER>::Expand(OpeningBook& book, const HexBoard& board,
     StoneBoard brd(board);
     double s = Time::Get();
     m_num_evals = 0;
+    m_num_widenings = 0;
 
     CreateWorkers();
     
@@ -342,7 +357,8 @@ void BookBuilder<PLAYER>::Expand(OpeningBook& book, const HexBoard& board,
               << " (" << (num / (e - s)) << "/s)" << '\n'
               << " Evaluations: " << m_num_evals 
               << std::fixed << std::setprecision(2)
-              << " (" << (m_num_evals / (e - s)) << "/s)" << '\n';
+              << " (" << (m_num_evals / (e - s)) << "/s)" << '\n'
+              << "   Widenings: " << m_num_widenings << '\n';
 }
 
 template<class PLAYER>
@@ -353,6 +369,7 @@ void BookBuilder<PLAYER>::Refresh(OpeningBook& book, HexBoard& board)
     StoneBoard brd(board);
     double s = Time::Get();
     m_num_evals = 0;
+    m_num_widenings = 0;
     m_value_updates = 0;
     m_priority_updates = 0;
     m_internal_nodes = 0;
@@ -379,6 +396,44 @@ void BookBuilder<PLAYER>::Refresh(OpeningBook& book, HexBoard& board)
               << "  Internal Nodes: " << m_internal_nodes << '\n'
               << "  Terminal Nodes: " << m_terminal_nodes << '\n'
               << "      Leaf Nodes: " << m_leaf_nodes << '\n'
+              << "     Evaluations: " << m_num_evals 
+              << std::fixed << std::setprecision(2)
+              << " (" << (m_num_evals / (e - s)) << "/s)" << '\n'
+              << "       Widenings: " << m_num_widenings << '\n';
+}
+
+template<class PLAYER>
+void BookBuilder<PLAYER>::IncreaseWidth(OpeningBook& book, HexBoard& board)
+{
+    if (!m_use_widening)
+    {
+        LogInfo() << "Widening not enabled!" << '\n';
+        return;
+    }
+
+    m_book = &book;
+    m_brd = const_cast<HexBoard*>(&board);
+    StoneBoard brd(board);
+    double s = Time::Get();
+    m_num_evals = 0;
+    m_num_widenings = 0;
+
+    CreateWorkers();
+
+    LogInfo() << "Increasing DB's width..." << '\n';
+    std::set<hash_t> seen;
+    IncreaseWidth(brd, seen, true);
+
+    LogInfo() << "Flushing DB..." << '\n';
+    m_book->Flush();
+
+    double e = Time::Get();
+
+    DestroyWorkers();
+
+    LogInfo() << '\n'
+              << "      Total Time: " << Time::Formatted(e - s) << '\n'
+              << "       Widenings: " << m_num_widenings << '\n'
               << "     Evaluations: " << m_num_evals 
               << std::fixed << std::setprecision(2)
               << " (" << (m_num_evals / (e - s)) << "/s)" << '\n';
@@ -573,22 +628,24 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
 template<class PLAYER>
 void BookBuilder<PLAYER>::UpdateValue(OpeningBookNode& node, StoneBoard& brd)
 {
-    // Must be "+ 2" because "+ 1" is what we just expanded to!
-    std::size_t width = (node.m_count / m_expand_threshold + 2)
-        * m_expand_width;
-
     while (true)
     {
         OpeningBookUtil::UpdateValue(*m_book, node, brd);
         if (!HexEvalUtil::IsLoss(node.Value(brd)))
             break;
 
-        LogInfo() << "Forced Widening[" << width << "]" << '\n'
-                  << brd << '\n';
+        // Round up to next nearest multiple of m_expand_width that is
+        // larger than the current number of children.
+        unsigned numChildren = OpeningBookUtil::NumChildren(*m_book, brd);
+        std::size_t width = (numChildren / m_expand_width + 1) 
+            * m_expand_width;
+
+        LogInfo() << "Forced Widening[" << numChildren << "->" 
+                  << width << "]" << '\n' << brd << '\n';
         if (!ExpandChildren(brd, width))
             break;
 
-        width += m_expand_width;
+        ++m_num_widenings;
     }
 }
 
@@ -618,6 +675,7 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
                               * m_expand_width;
             LogInfo() << "Widening[" << width << "]:" 
                       << HexPointUtil::ToPointListString(pv) << '\n';
+            ++m_num_widenings;
             ExpandChildren(brd, width);
         }
 
@@ -663,11 +721,6 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
     OpeningBookNode node;
     if (!GetNode(brd, node))
         return false;
-    if (node.IsTerminal())
-    {
-        m_terminal_nodes++;
-        return true;
-    }
     if (node.IsLeaf())
     {
         m_leaf_nodes++;
@@ -696,6 +749,35 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
     else
         m_internal_nodes++;
     return true;
+}
+
+//----------------------------------------------------------------------------
+
+template<class PLAYER>
+void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd, 
+                                        std::set<hash_t>& seen,
+                                        bool root)
+{
+    if (seen.count(OpeningBookUtil::GetHash(brd)))
+        return;
+    OpeningBookNode node;
+    if (!GetNode(brd, node))
+        return;
+    if (node.IsTerminal() || node.IsLeaf())
+        return;
+    for (BitsetIterator it(brd.getEmpty()); it; ++it)
+    {
+        brd.playMove(brd.WhoseTurn(), *it);
+        IncreaseWidth(brd, seen, false);
+        if (root)
+            LogInfo() << "Finished " << *it << '\n';
+        brd.undoMove(*it);
+    }
+    std::size_t width = (node.m_count / m_expand_threshold + 1)
+        * m_expand_width;
+    if (ExpandChildren(brd, width))
+        ++m_num_widenings;
+    seen.insert(OpeningBookUtil::GetHash(brd));
 }
 
 //----------------------------------------------------------------------------

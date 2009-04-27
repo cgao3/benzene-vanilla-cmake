@@ -13,14 +13,10 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** A solved state. Stored in a TT or DB.  
-    
     Matches HashTableStateConcept and TransTableStateConcept.
 */
 struct SolvedState
 {
-    
-    //--------------------------------------------------------------------
-
     /** Marks the proof as that of a transposition of some other
         state. */
     static const int FLAG_TRANSPOSITION = 1;
@@ -43,6 +39,13 @@ struct SolvedState
     /** Number of moves losing player can delay until winning
         player has a winning virtual connection. */
     int nummoves;
+
+    /** Best move in this state. 
+        Very important in winning states, not so important in losing
+        states. That is, in winning states this move *must* be a
+        winning move, in losing states this move is "most blocking",
+        but the definition is fuzzy. */
+    HexPoint bestmove;
 
     //--------------------------------------------------------------------
     
@@ -76,26 +79,18 @@ struct SolvedState
 
     /** Contructs state with default values.  Required by
         HashTableStateConcept and TransTableStateConcept. */
-    SolvedState()
-        : win(false), flags(0), numstates(0), 
-          nummoves(0), proof(), winners_stones(),
-          numstones(9999), hash(0), black(), white()
-    { }
+    SolvedState();
     
     /** Initializes state to given values. */
-    SolvedState(int d, hash_t h, 
-                bool w, int nstates, int nmoves, 
+    SolvedState(int d, hash_t h, bool w, int nstates, 
+                int nmoves, HexPoint bmove, 
                 const bitset_t& bp, const bitset_t& ws,
-                const bitset_t& bb, const bitset_t& bw)
-        : win(w), flags(0), numstates(nstates), nummoves(nmoves), 
-          proof(bp), winners_stones(ws),
-          numstones(d), hash(h), black(bb), white(bw)
-    { 
-        HexAssert(BitsetUtil::IsSubsetOf(winners_stones, proof)); 
-    }
+                const bitset_t& bb, const bitset_t& bw);
 
+    //--------------------------------------------------------------------
 
-    /** Returns true if the states are equal.  Calls CheckCollision(). */
+    /** Returns true if this state is not the same as that built by
+        the default constructor. */
     bool Initialized() const;
 
     /** Returns the hash value of this state. */
@@ -111,17 +106,40 @@ struct SolvedState
 
     /** Checks for hash collisions betweent his and the given
         hash/black/white bitsets. */
-    void CheckCollision(hash_t hash, 
-                        const bitset_t& black,
+    void CheckCollision(hash_t hash, const bitset_t& black,
                         const bitset_t& white) const;
 
-    // Methods for PackableConcept (so it can be used in a HashDB)
+    //--------------------------------------------------------------------
+
+    /** @name Methods for PackableConcept (needed byHashDB). */
+    // @{
+
     int PackedSize() const;
+
     byte* Pack() const;
+
     void Unpack(const byte* t);
 
-    //--------------------------------------------------------------------
+    // @}
 };
+
+inline SolvedState::SolvedState()
+    : win(false), flags(0), numstates(0), nummoves(0), 
+      bestmove(INVALID_POINT), proof(), winners_stones(),
+      numstones(9999), hash(0), black(), white()
+{ 
+}
+    
+inline SolvedState::SolvedState(int d, hash_t h, bool w, int nstates, 
+                                int nmoves, HexPoint bmove, 
+                                const bitset_t& bp, const bitset_t& ws,
+                                const bitset_t& bb, const bitset_t& bw)
+    : win(w), flags(0), numstates(nstates), nummoves(nmoves), 
+      bestmove(bmove), proof(bp), winners_stones(ws),
+      numstones(d), hash(h), black(bb), white(bw)
+{ 
+    HexAssert(BitsetUtil::IsSubsetOf(winners_stones, proof)); 
+}
 
 inline bool SolvedState::Initialized() const
 {
