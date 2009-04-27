@@ -81,6 +81,8 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
             << search.GuiFx() << '\n'
             << "[bool] use_threads "
             << search.UseThreads() << '\n'
+	    << "[string] panic_time "
+	    << wolve->PanicTime() << '\n'
             << "[string] ply_width " 
             << MiscUtil::PrintVector(wolve->PlyWidth()) << '\n'
             << "[string] search_depths "
@@ -91,6 +93,8 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
             search.SetBackupIceInfo(cmd.BoolArg(1));
+	else if (name == "panic_time")
+	    wolve->SetPanicTime(cmd.FloatArg(1));
         else if (name == "ply_width")
         {
             std::vector<int> plywidth;
