@@ -778,6 +778,11 @@ void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd,
     if (ExpandChildren(brd, width))
         ++m_num_widenings;
     seen.insert(OpeningBookUtil::GetHash(brd));
+    if ((seen.size() % 500) == 0)
+    {
+        m_book->Flush();
+        LogInfo() << "Flushed book." << '\n';
+    }
 }
 
 //----------------------------------------------------------------------------
