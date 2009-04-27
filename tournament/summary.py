@@ -272,12 +272,12 @@ def showIterativeResults(numvalid, table, opencount, openings,
         
         if ((p1Timeouts > 0) or (p2Timeouts > 0)):
             print "-----------------------------------------------------------"
-            print "Timeouts for " + progs[0] + ": %i/%i, %.1f (+-%.1f)" % \
+            print "Timeouts for " + progs[0] + ": %i/%i, %.1f (+-%.1f) max=%.1f" % \
                   (p1Timeouts, p1Wins.sum(),
-                   p1Overtime.mean(), p1Overtime.stderror())
-            print "Timeouts for " + progs[1] + ": %i/%i, %.1f (+-%.1f)" % \
+                   p1Overtime.mean(), p1Overtime.stderror(), p1Overtime.max())
+            print "Timeouts for " + progs[1] + ": %i/%i, %.1f (+-%.1f) max=%.1f" % \
                   (p2Timeouts, p1Wins.count() - p1Wins.sum(),
-                   p2Overtime.mean(), p2Overtime.stderror())
+                   p2Overtime.mean(), p2Overtime.stderror(), p2Overtime.max())
         
         print "==========================================================="
     else:
