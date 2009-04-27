@@ -66,7 +66,7 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.BiasTermConstant() << '\n'
             << "[string] expand_threshold "
             << search.ExpandThreshold() << '\n'
-            << "[string] knowledge_threshild "
+            << "[string] knowledge_threshold "
             << search.KnowledgeThreshold() << '\n'
             << "[string] livegfx_interval "
             << search.LiveGfxInterval() << '\n'
