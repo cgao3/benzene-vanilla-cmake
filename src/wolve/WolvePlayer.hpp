@@ -312,6 +312,13 @@ public:
     /** See UseIterativeDeepening() */
     void SetSearchDepths(const std::vector<int>& depths);
 
+    /** When time remaining is less than this, max search depth is set
+	to 2. */
+    double PanicTime() const;
+    
+    /** See PanicTime() */
+    void SetPanicTime(double time);
+
     // @}
 
 private: 
@@ -332,6 +339,9 @@ private:
 
     /** See SearchDepths() */
     std::vector<int> m_search_depths;
+
+    /** See PanicTime() */
+    double m_panic_time;
 };
 
 inline std::string WolvePlayer::name() const
@@ -362,6 +372,16 @@ inline const std::vector<int>& WolvePlayer::SearchDepths() const
 inline void WolvePlayer::SetSearchDepths(const std::vector<int>& depths)
 {
     m_search_depths = depths;
+}
+
+inline double WolvePlayer::PanicTime() const
+{
+    return m_panic_time;
+}
+
+inline void WolvePlayer::SetPanicTime(double time)
+{
+    m_panic_time = time;
 }
 
 //----------------------------------------------------------------------------

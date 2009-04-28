@@ -19,7 +19,8 @@ WolvePlayer::WolvePlayer()
     : BenzenePlayer(),
       m_tt(16), 
       m_plywidth(),
-      m_search_depths()
+      m_search_depths(),
+      m_panic_time(240)
 {
     LogFine() << "--- WolvePlayer" << '\n';
 
@@ -49,7 +50,18 @@ HexPoint WolvePlayer::search(HexBoard& brd,
                              double& score)
 {
     UNUSED(game_state);
-    UNUSED(time_remaining);
+    std::vector<int> search_depths = m_search_depths;
+
+    // If low on time, set a maximum search depth of 2.
+    if (time_remaining < m_panic_time)
+    {
+	std::vector<int> new_search_depths;
+	for (std::size_t i = 0; i < search_depths.size(); ++i)
+	    if (search_depths[i] <= 2)
+		new_search_depths.push_back(search_depths[i]);
+	search_depths = new_search_depths;
+	LogWarning() << "############# PANIC MODE #############" << '\n';
+    }
 
     m_search.SetRootMovesToConsider(consider);
     LogInfo() << "Using consider set:" << brd.printBitset(consider) << '\n'
@@ -57,7 +69,7 @@ HexPoint WolvePlayer::search(HexBoard& brd,
 	      << "Depths: " << MiscUtil::PrintVector(m_search_depths) << '\n';
 
     std::vector<HexPoint> PV;
-    score = m_search.Search(brd, color, m_plywidth, m_search_depths, -1, PV);
+    score = m_search.Search(brd, color, m_plywidth, search_depths, -1, PV);
 
     LogInfo() << m_search.DumpStats() << '\n';
 
