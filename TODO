@@ -2,9 +2,9 @@ Benzene TODO file
 =================
 
 broderic [090413] (in rough order of importance)
-* Mustplay/fillin in core of uct tree
-  * Fix reuse subtree in MoHex
-    * Add ponder ability to MoHex
+* Fix reuse subtree in MoHex
+  * Copy used entries in fillin hashmap to new hashmap
+  * Add ponder ability to MoHex
 * Create HexPosition class; make StoneBoard use it.
 * Better book visualization tools
 * Switch dead region/decomp detection to new Phil algo
