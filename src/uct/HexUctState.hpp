@@ -166,12 +166,16 @@ public:
 
 private:
 
+    bitset_t ComputeKnowledge();
+
     /** Frees policy if one is assigned; does nothing otherwise. */
     void FreePolicy();
     
     /** Executes a move. */
     void ExecuteTreeMove(HexPoint move);
+
     void ExecuteRolloutMove(HexPoint move);
+
     void ExecutePlainMove(HexPoint cell, int updateRadius);
 
     /** Assertion handler to dump the state of a HexUctState. */
@@ -192,6 +196,7 @@ private:
     /** Board used during search. */
     boost::scoped_ptr<PatternBoard> m_bd;
 
+    /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vc_brd;
 
     HexUctSharedData* m_shared_data;
@@ -217,14 +222,15 @@ private:
     /** Moves played in the tree. */
     PointSequence m_tree_sequence;
 
-    /** Keeps track of last rollout move made
-	Used for pattern-generated rollouts when call HexUctSearchPolicy
-     */
+    /** Keeps track of last playout move made.
+	Used for pattern-generated rollouts when call
+	HexUctSearchPolicy. */
     HexPoint m_lastMovePlayed;
 
     /** Number of stones played since initial board position */
     int m_numStonesPlayed;
 
+    /** True at the start of a game until the first move is played. */
     bool m_new_game;
 };
 

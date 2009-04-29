@@ -18,8 +18,8 @@
 
 using namespace benzene;
 
-/** Prints output when knowledge is computed. */
-#define DEBUG_KNOWLEDGE 0
+/** Prints output during knowledge is computation. */
+static const bool DEBUG_KNOWLEDGE = false;
 
 //----------------------------------------------------------------------------
 
@@ -170,54 +170,13 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
         have_consider_set = true;
     }
     else 
-    {
         moveset = m_bd->getEmpty();
-    }
 
     bool truncateChildTrees = false;
     if (count && !have_consider_set)
     {
         truncateChildTrees = true;
-
-        m_vc_brd->SetState(*m_bd);
-        m_vc_brd->ComputeAll(m_toPlay, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
-
-        // Fill board with winner's stones if a determined state
-        if (PlayerUtils::IsDeterminedState(*m_vc_brd, m_toPlay))
-        {
-            moveset.reset();
-
-            HexColor winner = m_toPlay;
-            if (PlayerUtils::IsLostGame(*m_vc_brd, m_toPlay))
-                winner = !m_toPlay;
-
-            m_vc_brd->addColor(winner, m_vc_brd->getEmpty());
-            // Add fillin to m_bd because Evaluate() will be called
-            // immediately after SgUctSearch realizes this state has
-            // no children.  This is necessary only for this tree
-            // phase, subsequent tree phases will load up the fillin
-            // during the ExecuteMove() needed to arrive at this
-            // state.
-            m_bd->addColor(winner, m_bd->getEmpty());
-
-#if DEBUG_KNOWLEDGE
-            LogInfo() << "Found win for " << winner << ": " << '\n' 
-                      << *m_vc_brd << '\n';
-#endif
-        }
-        // Otherwise, prune the moves to consider
-        else
-        {
-            moveset &= PlayerUtils::MovesToConsider(*m_vc_brd, m_toPlay);
-        }
-
-        m_shared_data->stones.put(SequenceHash::Hash(m_tree_sequence), 
-                                  HexUctStoneData(*m_vc_brd));
-#if DEBUG_KNOWLEDGE
-        LogInfo() << "===================================" << '\n'
-                  << "Recomputed state:" << '\n' << *m_bd << '\n'
-                  << "Mustplay:" << m_vc_brd->printBitset(moveset) << '\n';
-#endif
+        moveset &= ComputeKnowledge();
     }
 
     moves.clear();
@@ -313,4 +272,49 @@ void HexUctState::EndPlayout()
 {
 }
 
+/** Computes moves to consider and stores fillin into the shared data.
+    If state is determined, empty cells are filled with the winner's
+    color and an empty consider set is returned. This allows terminal
+    states to be handled during the uct search. */
+bitset_t HexUctState::ComputeKnowledge()
+{
+    /** @todo Use a more complicated scheme to update the connections?
+        For example, if state is close to last one, use incremental
+        builds to transition from old to current. */
+    m_vc_brd->SetState(*m_bd);
+    m_vc_brd->ComputeAll(m_toPlay, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+
+    // Consider set will be non-empty only if a non-determined state.
+    bitset_t consider;
+    if (PlayerUtils::IsDeterminedState(*m_vc_brd, m_toPlay))
+    {
+        HexColor winner = m_toPlay;
+        if (PlayerUtils::IsLostGame(*m_vc_brd, m_toPlay))
+            winner = !m_toPlay;
+
+        // Add fillin to m_bd because Evaluate() will be called
+        // immediately after SgUctSearch realizes this state has no
+        // children. This is necessary only for this tree phase,
+        // subsequent tree phases will load up the fillin during the
+        // ExecuteMove() needed to arrive at this state.
+        m_vc_brd->addColor(winner, m_vc_brd->getEmpty());
+        m_bd->addColor(winner, m_bd->getEmpty());
+        
+        if (DEBUG_KNOWLEDGE)
+            LogInfo() << "Found win for " << winner << ": " << '\n' 
+                      << *m_vc_brd << '\n';
+    }
+    else
+        consider = PlayerUtils::MovesToConsider(*m_vc_brd, m_toPlay);
+
+    m_shared_data->stones.put(SequenceHash::Hash(m_tree_sequence), 
+                              HexUctStoneData(*m_vc_brd));
+    if (DEBUG_KNOWLEDGE)
+        LogInfo() << "===================================" << '\n'
+                  << "Recomputed state:" << '\n' << *m_bd << '\n'
+                  << "Consider:" << m_vc_brd->printBitset(consider) << '\n';
+
+    return consider;
+}
+    
 //----------------------------------------------------------------------------
