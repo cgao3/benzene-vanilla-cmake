@@ -192,6 +192,7 @@ BenzenePlayerFunctionality::BenzenePlayerFunctionality(BenzenePlayer* player)
 
 inline BenzenePlayerFunctionality::~BenzenePlayerFunctionality()
 {
+    delete m_player;
 }
 
 inline BenzenePlayer* BenzenePlayerFunctionality::PlayerExtending()
