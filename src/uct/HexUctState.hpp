@@ -156,8 +156,8 @@ public:
 
     void Dump(std::ostream& out) const;
 
-    /** Sets random policy (takes control of pointer) and deletes the
-        old one, if it existed. */
+    /** Sets policy (takes control of pointer) and deletes the old
+        one, if it existed. */
     void SetPolicy(HexUctSearchPolicy* policy);
     
     HexPoint GetLastMovePlayed() const;
@@ -165,18 +165,6 @@ public:
     HexColor GetColorToPlay() const;
 
 private:
-
-    bitset_t ComputeKnowledge();
-
-    /** Frees policy if one is assigned; does nothing otherwise. */
-    void FreePolicy();
-    
-    /** Executes a move. */
-    void ExecuteTreeMove(HexPoint move);
-
-    void ExecuteRolloutMove(HexPoint move);
-
-    void ExecutePlainMove(HexPoint cell, int updateRadius);
 
     /** Assertion handler to dump the state of a HexUctState. */
     class AssertionHandler
@@ -199,22 +187,23 @@ private:
     /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vc_brd;
 
+    /** Playout policy. */
+    boost::scoped_ptr<HexUctSearchPolicy> m_policy;
+
+    /** Data shared between threads. */
     HexUctSharedData* m_shared_data;
 
+    /** Parent search object. */
     HexUctSearch& m_search;
-
-    HexUctSearchPolicy* m_policy;
-    
+   
     /** Color to play next. */
     HexColor m_toPlay;
 
-    /** @see HexUctSearch::TreeUpdateRadius() */
+    /** See HexUctSearch::TreeUpdateRadius() */
     int m_treeUpdateRadius;
 
-    /** @see HexUctSearch::PlayoutUpdateRadius() */
+    /** See HexUctSearch::PlayoutUpdateRadius() */
     int m_playoutUpdateRadius;
-
-    //----------------------------------------------------------------------
 
     /** True if in playout phase. */
     bool m_isInPlayout;
@@ -232,6 +221,16 @@ private:
 
     /** True at the start of a game until the first move is played. */
     bool m_new_game;
+
+    //----------------------------------------------------------------------
+
+    bitset_t ComputeKnowledge();
+
+    void ExecuteTreeMove(HexPoint move);
+
+    void ExecuteRolloutMove(HexPoint move);
+
+    void ExecutePlainMove(HexPoint cell, int updateRadius);
 };
 
 inline const PatternBoard& HexUctState::Board() const
@@ -241,7 +240,7 @@ inline const PatternBoard& HexUctState::Board() const
 
 inline HexUctSearchPolicy* HexUctState::Policy()
 {
-    return m_policy;
+    return m_policy.get();
 }
 
 inline bool HexUctState::IsInPlayout() const

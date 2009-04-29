@@ -68,10 +68,10 @@ HexUctState::HexUctState(std::size_t threadId,
 
       m_bd(0),
       m_vc_brd(0),
+      m_policy(0),
       m_shared_data(0),
       m_search(sch),
-      m_policy(0),
-      m_treeUpdateRadius(treeUpdateRadius),
+       m_treeUpdateRadius(treeUpdateRadius),
       m_playoutUpdateRadius(playoutUpdateRadius),
       m_isInPlayout(false)
 {
@@ -79,18 +79,11 @@ HexUctState::HexUctState(std::size_t threadId,
 
 HexUctState::~HexUctState()
 {
-    FreePolicy();
 }
 
-void HexUctState::FreePolicy()
-{
-    if (m_policy) 
-        delete m_policy;
-}
 void HexUctState::SetPolicy(HexUctSearchPolicy* policy)
 {
-    FreePolicy();
-    m_policy = policy;
+    m_policy.reset(policy);
 }
 
 void HexUctState::Dump(std::ostream& out) const
@@ -102,7 +95,6 @@ void HexUctState::Dump(std::ostream& out) const
 
 float HexUctState::Evaluate()
 {
-    LogFine() << "Evaluate()" << '\n';
     HexAssert(GameOver(*m_bd));
     float score = (GetWinner(*m_bd) == m_toPlay) ? 1.0 : 0.0;
     return score;
