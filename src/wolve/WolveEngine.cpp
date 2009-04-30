@@ -112,8 +112,10 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
         else if (name == "use_threads")
             search.SetUseThreads(cmd.BoolArg(1));
         else
-            throw HtpFailure("Unknown argument!");
+            throw HtpFailure() << "Unknown parameter: " << name;
     }
+    else
+        throw HtpFailure("Expected 0 or 2 arguments");
 }
 
 //----------------------------------------------------------------------------

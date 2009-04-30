@@ -76,8 +76,10 @@ void ParamICE(ICEngine& ice, HtpCommand& cmd)
         else if (name == "use_hand_coded_patterns")
             ice.SetUseHandCodedPatterns(cmd.BoolArg(1));
         else
-            throw HtpFailure() << "unknown parameter: " << name;
+            throw HtpFailure() << "Unknown parameter: " << name;
     }
+    else
+        throw HtpFailure() << "Expected 0 or 2 arguments";
 }
 
 void ParamVC(HexBoard& brd, HtpCommand& cmd)
@@ -131,8 +133,10 @@ void ParamVC(HexBoard& brd, HtpCommand& cmd)
             brd.Cons(WHITE).SetSoftLimit(VC::SEMI, limit);
         }
         else
-            throw HtpFailure() << "unknown parameter: " << name;
-    }    
+            throw HtpFailure() << "Unknown parameter: " << name;
+    }
+    else
+        throw HtpFailure() << "Expected 0 or 2 arguments";
 }
 
 void ParamBoard(HexBoard& brd, HtpCommand& cmd)
@@ -161,8 +165,10 @@ void ParamBoard(HexBoard& brd, HtpCommand& cmd)
         else if (name == "use_vcs")
             brd.SetUseVCs(cmd.BoolArg(1));
         else 
-            throw HtpFailure() << "unknown parameter: " << name;
+            throw HtpFailure() << "Unknown parameter: " << name;
     }
+    else
+        throw HtpFailure() << "Expected 0 or 2 arguments";
 }
 
 //----------------------------------------------------------------------------

@@ -125,6 +125,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetRaveWeightInitial(cmd.IntArg(1, 0));
         else if (name == "tree_update_radius")
             search.SetTreeUpdateRadius(cmd.IntArg(1, 0));
+        else
+            throw HtpFailure() << "Unknown parameter: " << name;
     }
     else 
         throw HtpFailure("Expected 0 or 2 arguments");
