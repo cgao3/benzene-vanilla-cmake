@@ -56,6 +56,7 @@ struct HexUctSharedData
     HexPoint root_last_move_played;
     bitset_t root_consider;
     HexUctStoneData root_stones;
+    std::vector<HexPoint> game_sequence;
 
     HashMap<HexUctStoneData> stones;
 
@@ -208,8 +209,8 @@ private:
     /** True if in playout phase. */
     bool m_isInPlayout;
 
-    /** Moves played in the tree. */
-    PointSequence m_tree_sequence;
+    /** Moves played the game plus moves in tree. */
+    PointSequence m_game_sequence;
 
     /** Keeps track of last playout move made.
 	Used for pattern-generated rollouts when call

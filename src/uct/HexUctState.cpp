@@ -21,6 +21,10 @@ using namespace benzene;
 /** Prints output during knowledge is computation. */
 static const bool DEBUG_KNOWLEDGE = false;
 
+/** Prints hash sequence before computing knowledge. 
+    Use to see what threads are doing knowledge computations. */
+static const bool TRACK_KNOWLEDGE = false;
+
 //----------------------------------------------------------------------------
 
 namespace
@@ -115,9 +119,9 @@ void HexUctState::ExecutePlayout(SgMove sgmove)
 void HexUctState::ExecuteTreeMove(HexPoint move)
 {
     ExecutePlainMove(move, m_treeUpdateRadius);
-    m_tree_sequence.push_back(move);
+    m_game_sequence.push_back(move);
     HexUctStoneData stones;
-    if (m_shared_data->stones.get(SequenceHash::Hash(m_tree_sequence), stones))
+    if (m_shared_data->stones.get(SequenceHash::Hash(m_game_sequence), stones))
     {
         m_bd->setColor(BLACK, stones.black);
         m_bd->setColor(WHITE, stones.white);
@@ -168,6 +172,14 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
     if (count && !have_consider_set)
     {
         truncateChildTrees = true;
+
+        if (TRACK_KNOWLEDGE)
+        {
+            hash_t hash = SequenceHash::Hash(m_game_sequence);
+            LogInfo() << m_threadId << ": " 
+                      << HashUtil::toString(hash) << '\n';
+        }
+
         moveset &= ComputeKnowledge();
     }
 
@@ -230,7 +242,7 @@ void HexUctState::GameStart()
     m_new_game = true;
     m_isInPlayout = false;
     m_numStonesPlayed = 0;
-    m_tree_sequence.clear();
+    m_game_sequence = m_shared_data->game_sequence;
     m_toPlay = m_shared_data->root_to_play;
     m_lastMovePlayed = m_shared_data->root_last_move_played;
     m_bd->setUpdateRadius(m_treeUpdateRadius);
@@ -299,7 +311,7 @@ bitset_t HexUctState::ComputeKnowledge()
     else
         consider = PlayerUtils::MovesToConsider(*m_vc_brd, m_toPlay);
 
-    m_shared_data->stones.put(SequenceHash::Hash(m_tree_sequence), 
+    m_shared_data->stones.put(SequenceHash::Hash(m_game_sequence), 
                               HexUctStoneData(*m_vc_brd));
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================" << '\n'

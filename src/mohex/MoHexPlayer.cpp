@@ -179,15 +179,6 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 
     double start = Time::Get();
 
-    HexPoint lastMove = INVALID_POINT;
-    if (!game_state.History().empty()) {
-	lastMove = game_state.History().back().point();
-	if (lastMove == SWAP_PIECES) {
-	  HexAssert(game_state.History().size() == 2);
-	  lastMove = game_state.History().front().point();
-	}
-    }
-
     LogInfo() << "--- MoHexPlayer::Search()" << '\n'
 	      << "Color: " << color << '\n'
 	      << "MaxGames: " << m_max_games << '\n'
@@ -198,14 +189,25 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 	      << '\n'
 	      << "TimeRemaining: " << time_remaining << '\n';
 
+    HexPoint lastMove = INVALID_POINT;
+    if (!game_state.History().empty()) 
+    {
+	lastMove = game_state.History().back().point();
+	if (lastMove == SWAP_PIECES) 
+        {
+            HexAssert(game_state.History().size() == 2);
+            lastMove = game_state.History().front().point();
+	}
+    }
+
     // Create the initial state data
-    HexPoint oneMoveWin = INVALID_POINT;
     HexUctSharedData data;
+    GameUtil::HistoryToSequence(game_state.History(), data.game_sequence);
     data.root_last_move_played = lastMove;
     bitset_t consider = given_to_consider;
 
     SgTimer timer;
-    timer.Start();
+    HexPoint oneMoveWin = INVALID_POINT;
     ComputeSharedData(m_backup_ice_info, brd, color, 
                       consider, data, oneMoveWin);
     m_search.SetSharedData(&data);
@@ -217,7 +219,8 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 	      << Time::Formatted(elapsed) << '\n';
     
     // If a winning VC is found after a one ply move, no need to search
-    if (oneMoveWin != INVALID_POINT) {
+    if (oneMoveWin != INVALID_POINT) 
+    {
 	LogInfo() << "Winning VC found before UCT search!" << '\n'
 		  << "Sequence: " << HexPointUtil::toString(oneMoveWin) 
 		  << '\n';
@@ -226,9 +229,10 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     }
 
     double timelimit = std::min(time_remaining, m_max_time);
-    if (timelimit < 0) {
+    if (timelimit < 0) 
+    {
         LogWarning() << "***** timelimit < 0!! *****" << '\n';
-        timelimit = 30;
+        timelimit = m_max_time;
     }
     LogInfo() << "timelimit: " << timelimit << '\n';
 
@@ -291,17 +295,16 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 /** @bug CURRENTLY BROKEN!  
     
     Need to do a few things before subtrees can be reused:
-    1) Switch sequence used to compute fillin hash to use the
-    entire game sequence.
-    2) After extracting the relevant subtree, must copy over
-    fillin states from old hashmap to new hashmap. 
-    3) Deal with new root-state knowledge. SgUctSearch has
-    a rootfilter that prunes moves in the root and is applied
-    when it is passed an initial tree, so we can use that
-    to apply more pruning to the new root node. Potential problem
-    if new root knowledge adds moves that weren't present when
-    knowledge was computed in the tree, but I don't think
-    this would happen very often (or matter). 
+    
+    1) After extracting the relevant subtree, must copy over fillin
+    states from old hashmap to new hashmap.
+
+    2) Deal with new root-state knowledge. SgUctSearch has a
+    rootfilter that prunes moves in the root and is applied when it is
+    passed an initial tree, so we can use that to apply more pruning
+    to the new root node. Potential problem if new root knowledge adds
+    moves that weren't present when knowledge was computed in the
+    tree, but I don't think this would happen very often (or matter).
 */
 SgUctTree* MoHexPlayer::TryReuseSubtree(const Game& game)
 {
