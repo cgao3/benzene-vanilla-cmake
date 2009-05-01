@@ -204,7 +204,6 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     data.root_last_move_played = lastMove;
     bitset_t consider = given_to_consider;
 
-    // set clock to use real-time if more than 1-thread
     SgTimer timer;
     timer.Start();
     ComputeSharedData(m_backup_ice_info, brd, color, 
@@ -290,16 +289,19 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 }
 
 /** @bug CURRENTLY BROKEN!  
-
-    Consider the search tree, A* -> B -> C (where * denotes fillin
-    being performed on that node). B and C will not have the moves
-    filled-in at A. Now suppose the best child from A is played and B
-    -> C is re-used. Then we compute fill-in for B during the
-    intialization phase, but do not remove those moves from C.
     
-    How to fix this: Not sure. Running down entire tree and pruning
-    moves seems bad. Truncating the subtrees of children will fillin
-    also seems bad.
+    Need to do a few things before subtrees can be reused:
+    1) Switch sequence used to compute fillin hash to use the
+    entire game sequence.
+    2) After extracting the relevant subtree, must copy over
+    fillin states from old hashmap to new hashmap. 
+    3) Deal with new root-state knowledge. SgUctSearch has
+    a rootfilter that prunes moves in the root and is applied
+    when it is passed an initial tree, so we can use that
+    to apply more pruning to the new root node. Potential problem
+    if new root knowledge adds moves that weren't present when
+    knowledge was computed in the tree, but I don't think
+    this would happen very often (or matter). 
 */
 SgUctTree* MoHexPlayer::TryReuseSubtree(const Game& game)
 {
@@ -339,6 +341,11 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const Game& game)
     
     SgUctTree& tree = m_search.GetTempTree();
     SgUctTreeUtil::ExtractSubtree(m_search.Tree(), tree, sequence, true, 10.0);
+
+    /** @todo Must traverse tree and copy fillin data from old
+        hashmap to new hashmap.
+    */
+
     std::size_t newTreeNodes = tree.NuNodes();
     std::size_t oldTreeNodes = m_search.Tree().NuNodes();
     if (oldTreeNodes > 1 && newTreeNodes > 1)
