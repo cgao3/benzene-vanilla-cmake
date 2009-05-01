@@ -107,7 +107,7 @@ void Logger::Flush()
         if (level < m_levels[i]) 
             continue;
         std::ostream& stream = *m_streams[i];
-        stream << pthread_self() << " " 
+        stream << std::hex << pthread_self() << " " 
                << LogLevelUtil::toString(level) << ": " 
                << buffer.buffer.str() << std::endl;
         stream.flush();

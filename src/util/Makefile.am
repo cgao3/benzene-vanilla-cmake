@@ -9,6 +9,7 @@ Time.cpp
 
 noinst_HEADERS = \
 Benzene.hpp \
+BenzeneBitset.hpp \
 Bitset.hpp \
 ChangeLog.hpp \
 Digraph.hpp \
