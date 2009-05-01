@@ -7,13 +7,28 @@
 #define BITSET_HPP
 
 #include <cassert>
-#include <bitset>
 #include <set>
 #include <string>
 #include <vector>
 
 #include "Benzene.hpp"
 #include "Types.hpp"
+
+/** If true, uses our own bitset, otherwise std::bitset.
+
+    Homebrewed bitset is a copy of std::bitset with subset and
+    less-than operations built in. Using the homebrewed bitset should
+    improve performance slightly.
+
+    If you are getting compile errors, switch to the stl bitset.
+ */
+#define USE_HOMEBREWED_BITSET   1
+
+#if USE_HOMEBREWED_BITSET
+#include "BenzeneBitset.hpp"
+#else
+#include <bitset>
+#endif
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -47,13 +62,8 @@ static const int BITSETSIZE = 128;
 
 //----------------------------------------------------------------------------
 
-/** Makes IsLessThan() and IsSubsetOf() faster. */
-#define OPTIMIZED_BITSET 1
-
-//----------------------------------------------------------------------------
-
 /** Standard-sized bitset. */
-typedef std::bitset<BITSETSIZE> bitset_t;
+typedef benzene_bitset<BITSETSIZE> bitset_t;
 
 /** Global empty bitset. */
 static const bitset_t EMPTY_BITSET;
@@ -84,7 +94,6 @@ namespace BitsetUtil
         removeFrom and returns true.  Otherwise, removeFrom is not
         changed and returns false. */
     bool SubtractIfLeavesAny(bitset_t& removeFrom, const bitset_t& remove);
-
 
     /** Returns true if b1 is a subset of b2. */
     bool IsSubsetOf(const bitset_t& b1, const bitset_t& b2);
@@ -148,17 +157,8 @@ bitset_t BitsetUtil::SetToBitset(const std::set<INT>& indices)
 
 inline bool BitsetUtil::IsSubsetOf(const bitset_t& b1, const bitset_t& b2)
 {
-#if OPTIMIZED_BITSET
-    const void* vb1 = &b1;
-    const void* vb2 = &b2;
-    const int* ib1 = (const int*)vb1;
-    const int* ib2 = (const int*)vb2;
-    static const int num = sizeof(bitset_t)/sizeof(int);
-    for (int i=0; i<num; ++i, ++ib1, ++ib2) {
-        if (*ib1 & ~(*ib2))
-            return false;
-    }
-    return true;
+#if USE_HOMEBREWED_BITSET
+    return b1.is_subset_of(b2);
 #else
     return ((b1 & b2) == b1);
 #endif
@@ -166,23 +166,15 @@ inline bool BitsetUtil::IsSubsetOf(const bitset_t& b1, const bitset_t& b2)
 
 inline bool BitsetUtil::IsLessThan(const bitset_t& b1, const bitset_t& b2)
 {
-#if OPTIMIZED_BITSET
-    const void* vb1 = &b1;
-    const void* vb2 = &b2;
-    const int* ib1 = (const int*)vb1;
-    const int* ib2 = (const int*)vb2;
-    const static int num = sizeof(bitset_t)/sizeof(int);
-    for (int i=0; i<num; ++i, ++ib1, ++ib2) {
-        if (*ib1 != *ib2) 
-            return (*ib1 < *ib2);
-    }
-    return false;
-#else 
-    for (int i=0; i<BITSETSIZE; i++) {
+#if USE_HOMEBREWED_BITSET
+    return b1.is_less_than(b2);
+#else
+    // holy crap this is sloooow!
+    for (int i = 0; i < BITSETSIZE; ++i) 
+    {
         if (b1[i] != b2[i]) 
             return !b1[i];
     }
-    return false;
 #endif
 }
 
