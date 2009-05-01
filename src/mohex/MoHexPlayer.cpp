@@ -134,7 +134,7 @@ MoHexPlayer::MoHexPlayer()
                HexUctUtil::ComputeMaxNumMoves()),
       m_backup_ice_info(true),
       m_max_games(500000),
-      m_max_time(9999999),
+      m_max_time(10),
       m_reuse_subtree(false)
 {
     LogFine() << "--- MoHexPlayer" << '\n';
