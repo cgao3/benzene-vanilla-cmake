@@ -64,8 +64,6 @@ void ComputeSharedData(bool backupIceInfo,
             break;
         }	
 
-        data.stones.put(SequenceHash::Hash(seq), HexUctStoneData(brd));
-
         if (PlayerUtils::IsWonGame(brd, other))
             losing.set(*p);
 
