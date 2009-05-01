@@ -163,7 +163,10 @@ namespace GameUtil
         from that position to the current end of the game. */
     bool SequenceFromPosition(const Game& game, const StoneBoard& pos, 
                               GameHistory& seq);
-    
+
+    /** Converts a game history into a sequence of points played. */
+    void HistoryToSequence(const GameHistory& history, 
+                           PointSequence& sequence);
 }
 
 //----------------------------------------------------------------------------

@@ -84,4 +84,16 @@ bool GameUtil::SequenceFromPosition(const Game& game, const StoneBoard& pos,
     return false;
 }
 
+void GameUtil::HistoryToSequence(const GameHistory& history, 
+                                 PointSequence& sequence)
+{
+    sequence.clear();
+    for (GameHistory::const_iterator it = history.begin(); 
+         it != history.end(); ++it)
+    {    
+        const Move& move = *it;
+        sequence.push_back(move.point());
+    }
+}
+
 //----------------------------------------------------------------------------
