@@ -41,7 +41,8 @@ namespace HashUtil
 inline std::string HashUtil::toString(hash_t hash)
 {
     std::ostringstream os;
-    os << "0x" << std::hex << hash;
+    os.fill('0');
+    os << "0x" << std::hex << std::setw(16) << hash;
     return os.str();
 }
 
