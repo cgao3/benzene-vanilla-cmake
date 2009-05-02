@@ -68,6 +68,7 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory,
     SetBiasTermConstant(0.0);
     SetExpandThreshold(1);
     SetKnowledgeThreshold(400);
+    SetLockFree(true);    
     SetMaxNodes(15000000);
     SetMoveSelect(SG_UCTMOVESELECT_COUNT);
     SetNumberThreads(1);    
