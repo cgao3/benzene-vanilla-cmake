@@ -16,16 +16,23 @@ benzene directory:
 % autoreconf -i
 % ./configure --enable-assert  --enable-optimize 
 
+(NOTE: This current build of Benzene is tested with revision 864
+(circa May 2009). It is possible that in the future the trunk version
+of fuego can differ drastically from this version. It may be necessary
+to checkout a branch in the fuego repository created near revision 864
+to get the compile to work, or to checkout revision 864 itself with
+the "-r 864" option to "svn co".)
+
 Include the "--enable-assert" if you will be doing development on
 Benzene. The compilation will fail if you want to use assertions in 
 Benzene but not in Fuego. 
 
-By default fuego is not built with optmizations on. Use "--enable-optimize"
-for O3 level optimization. Not doing this results in very slow code.
-
 If you will not be doing development or testing, or would prefer
 maximum speed and performance, then you can safely exclude the
 "--enable-assert" option.
+
+By default fuego is not built with optmizations on. Use "--enable-optimize"
+for O3 level optimization. Not doing this results in very slow code.
 
 % make
 
@@ -83,12 +90,9 @@ greatly speed up the build process.
 MoHex and Wolve executables can be found under src/mohex/ and src/wolve
 respectively. 
 
-To build the unit tests, do:
+To build and run the unit tests, do:
 
 % make check
-
-and run the unit tests with
-
 % src/test/benzene_unittests
 
 -------------
