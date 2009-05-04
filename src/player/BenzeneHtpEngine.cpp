@@ -4,6 +4,7 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
+#include "SgGameReader.h"
 
 #include <cmath>
 #include <functional>
@@ -14,6 +15,7 @@
 #include "EndgameCheck.hpp"
 #include "GraphUtils.hpp"
 #include "HandBookCheck.hpp"
+#include "HexSgUtil.hpp"
 #include "BenzeneHtpEngine.hpp"
 #include "LadderCheck.hpp"
 #include "OpeningBook.hpp"
@@ -228,6 +230,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("book-counts", &BenzeneHtpEngine::CmdBookCounts);
     RegisterCmd("book-scores", &BenzeneHtpEngine::CmdBookScores);
     RegisterCmd("book-visualize", &BenzeneHtpEngine::CmdBookVisualize);
+
+    RegisterCmd("handbook-add", &BenzeneHtpEngine::CmdHandbookAdd);
 
     RegisterCmd("compute-inferior", &BenzeneHtpEngine::CmdComputeInferior);
     RegisterCmd("compute-fillin", &BenzeneHtpEngine::CmdComputeFillin);
@@ -636,6 +640,82 @@ void BenzeneHtpEngine::CmdBookVisualize(HtpCommand& cmd)
         throw HtpFailure() << "Could not open file for output.";
     OpeningBookUtil::DumpVisualizationData(*m_book, brd, 0, f);
     f.close();
+}
+
+//----------------------------------------------------------------------
+
+/** Pulls moves out of the game for given color and appends them to
+    the given handbook file. Skips the first move (ie, the move from
+    the empty board). Performs no duplicate checking.
+
+    Usage: 
+      "handbook-add [handbook.txt] [sgf file] [color] [max move #] 
+*/
+void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(4);
+    std::string bookfilename = cmd.Arg(0);
+    std::string sgffilename = cmd.Arg(1);
+    HexColor colorToSave = ColorArg(cmd, 2);
+    int maxMove = cmd.IntArg(3, 0);
+    
+    std::ifstream sgffile(sgffilename.c_str());
+    if (!sgffile)
+        throw HtpFailure() << "cannot load sgf";
+
+    SgGameReader sgreader(sgffile, 11);
+    SgNode* root = sgreader.ReadGame(); 
+    if (root == 0)
+        throw HtpFailure() << "cannot load file";
+    sgreader.PrintWarnings(std::cerr);
+
+    if (HexSgUtil::NodeHasSetupInfo(root)) 
+        throw HtpFailure() << "Root has setup info!";
+
+    int size = root->GetIntProp(SG_PROP_SIZE);
+    if (size != m_game->Board().width() || 
+        size != m_game->Board().height())
+        throw HtpFailure() << "Sgf boardsize does not match board";
+
+    StoneBoard brd(m_game->Board());
+    brd.startNewGame();
+    HexColor color = FIRST_TO_PLAY;
+    PointSequence responses;
+    std::vector<hash_t> hashes;
+    SgNode* cur = root;
+    for (int moveNum = 0; moveNum < maxMove;) 
+    {
+        cur = cur->NodeInDirection(SgNode::NEXT);
+        if (!cur) 
+            break;
+
+        if (HexSgUtil::NodeHasSetupInfo(cur)) 
+            throw HtpFailure() << "Node has setup info";
+
+        if (!cur->HasNodeMove()) 
+            throw HtpFailure() << "Node has no move";
+
+        HexColor sgfColor = HexSgUtil::SgColorToHexColor(cur->NodePlayer());
+        HexPoint sgfPoint = HexSgUtil::SgPointToHexPoint(cur->NodeMove(), 
+                                                         brd.height());
+        if (color != sgfColor)
+            throw HtpFailure() << "Unexpected color to move";
+        
+        if (moveNum && color == colorToSave)
+        {
+            hashes.push_back(brd.Hash());
+            responses.push_back(sgfPoint);
+        }
+        brd.playMove(color, sgfPoint);
+        color = !color;
+        ++moveNum;
+    }
+    HexAssert(hashes.size() == respones.size());
+ 
+    std::ofstream out(bookfilename.c_str(), std::ios_base::app);
+    for (std::size_t i = 0 ; i < hashes.size(); ++i)
+        out << HashUtil::toString(hashes[i]) << ' ' << responses[i] << '\n';
+    out.close();
 }
 
 //----------------------------------------------------------------------

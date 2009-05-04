@@ -68,6 +68,8 @@ public:
     virtual void CmdBookScores(HtpCommand& cmd);
     virtual void CmdBookVisualize(HtpCommand& cmd);
 
+    void CmdHandbookAdd(HtpCommand& cmd);
+
     virtual void CmdComputeInferior(HtpCommand& cmd);
     virtual void CmdComputeFillin(HtpCommand& cmd);
     virtual void CmdComputeVulnerable(HtpCommand& cmd);
