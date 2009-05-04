@@ -4,26 +4,28 @@ Project Benzene README
  Building
 ----------
 
-You will need the fuego v0.3 includes and library objects. To get
-them, checkout fuego-0.3 from sourceforge.net. For example, from
-within your benzene directory:
+You will need the fuego includes and library objects. To get them,
+checkout fuego from sourceforge.net. For example, from within your
+benzene directory:
 
 % cd ..
-% svn co https://fuego.svn.sourceforge.net/svnroot/fuego/branches/VERSION_0_3_FIXES/ fuego-0.3/
-
-% cd fuego-0.3/
+% svn co https://fuego.svn.sourceforge.net/svnroot/fuego/trunk fuego
+% cd fuego
 % aclocal
 % autoheader
 % autoreconf -i
-% ./configure --enable-assert=yes [other options]
+% ./configure --enable-assert  --enable-optimize 
 
-Include the "--enable-assert=yes" if you will be doing development on
+Include the "--enable-assert" if you will be doing development on
 Benzene. The compilation will fail if you want to use assertions in 
 Benzene but not in Fuego. 
 
+By default fuego is not built with optmizations on. Use "--enable-optimize"
+for O3 level optimization. Not doing this results in very slow code.
+
 If you will not be doing development or testing, or would prefer
 maximum speed and performance, then you can safely exclude the
-"--enable-assert=yes" option.
+"--enable-assert" option.
 
 % make
 
@@ -31,7 +33,7 @@ Change back to the benzene directory.
 
 % cd ../benzene
 
-If you checked out your benzene code from an svn repository you will need
+If you checked out your benzene code from a git repository you will need
 to run autotools to create your configure script. If you downloaded a
 distribution tarball, go straight to the 'configure' step.
 
@@ -43,11 +45,11 @@ This should complete without error.
 
 Now run configure (skip to here if you downloaded a benzene tarball): 
 
-% ./configure FUEGO_ROOT=[absolute path to fuego-0.3] --enable-assert=yes
+% ./configure FUEGO_ROOT=[absolute path to fuego] --enable-assert=yes
 
 FUEGO_ROOT simply tells benzene where it can find the fuego files it
 needs.  Do not use a relative path as this will cause an error in the
-next step, ie, do not use "FUEGO_ROOT=../fuego-0.3/".
+next step, ie, do not use "FUEGO_ROOT=../fuego/".
 
 Recall that if you compiled Fuego without assertions then you cannot use
 assertions in Benzene, and so you should leave off the assert option
@@ -81,6 +83,14 @@ greatly speed up the build process.
 MoHex and Wolve executables can be found under src/mohex/ and src/wolve
 respectively. 
 
+To build the unit tests, do:
+
+% make check
+
+and run the unit tests with
+
+% src/test/benzene_unittests
+
 -------------
  Development
 -------------
@@ -89,7 +99,7 @@ If you are only modifying existing source files, then a simple 'make'
 is enough to build the new code properly. If you wish to add or remove
 source files, then you will have to edit the proper 'Makefile.am'
 files.  If you modify any 'Makefile.am', you will need to run
-'autoreconf' and 'configure' again. That is:
+'autoreconf -i' and 'configure' again. That is:
 
 [add some source files, make changes in all relevant Makefile.am]
 % autoreconf -i
