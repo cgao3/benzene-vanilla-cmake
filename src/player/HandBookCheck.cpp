@@ -32,12 +32,6 @@ HexPoint HandBookCheck::pre_search(HexBoard& brd, const Game& game_state,
 	HexPoint response = HandBookResponse(brd, color);
         if (response != INVALID_POINT)
             return response;
-	//StoneBoard b(brd);
-	//b.rotateBoard();
-	//response = HandBookResponse(b, color);
-	//if (response != INVALID_POINT)
-	//  return b.rotate(response);
-	
     }
     return m_player->pre_search(brd, game_state, color, consider,
 				time_remaining, score);
@@ -65,16 +59,19 @@ void HandBookCheck::LoadHandBook()
     
     // Extract board ID/response pairs from hand book
     std::string line;
-    while (getline(f, line)) {
+    while (getline(f, line)) 
+    {
 	std::istringstream iss;
 	iss.str(line);
-	std::string brdID;
-	iss >> brdID;
+	std::string hash;
+	iss >> hash;
 	// Comment lines should be ignored
-	if (brdID[0] != '#') {
-	    m_id.push_back(brdID);
+	if (hash[0] != '#') 
+        {
+	    m_id.push_back(hash);
 	    std::string response;
 	    iss >> response;
+            
 	    HexPoint p = HexPointUtil::fromString(response);
 	    HexAssert(p != INVALID_POINT);
 	    m_response.push_back(p);
@@ -95,10 +92,12 @@ HexPoint HandBookCheck::HandBookResponse(const StoneBoard& brd,
 	LoadHandBook();
     
     LogInfo() << "HandBookCheck: Seeking response" << '\n'
-	      << "Board ID: " << brd.GetBoardIDString() << '\n';
+	      << "Hash: " << HashUtil::toString(brd.Hash()) << '\n';
     
-    for (std::size_t i = 0; i < m_id.size(); ++i) {
-	if (brd.GetBoardIDString() == m_id[i]) {
+    for (std::size_t i = 0; i < m_id.size(); ++i) 
+    {
+	if (HashUtil::toString(brd.Hash()) == m_id[i]) 
+        {
 	    LogInfo() << "Found hand book response!" << '\n';
 	    HexAssert(m_response[i] != INVALID_POINT);
 	    HexAssert(brd.isEmpty(m_response[i]));
