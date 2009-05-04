@@ -39,9 +39,13 @@ HexPoint HandBookCheck::pre_search(HexBoard& brd, const Game& game_state,
 
 //----------------------------------------------------------------------------
 
+/** Reads in the hand-book from a file. 
+    Checks for duplicates and does not add if an entry with that hash
+    already exists, ie, the first hash is always used.
+*/
 void HandBookCheck::LoadHandBook()
 {
-    LogInfo() << "Loading hand book" << '\n';
+    LogInfo() << "HandBookCheck: Loading book..." << '\n';
     
     // Find hand book file
     using namespace boost::filesystem;
@@ -57,7 +61,7 @@ void HandBookCheck::LoadHandBook()
         return;
     }
     
-    // Extract board ID/response pairs from hand book
+    // Extract (hash, response) pairs from hand book
     std::string line;
     while (getline(f, line)) 
     {
@@ -65,44 +69,45 @@ void HandBookCheck::LoadHandBook()
 	iss.str(line);
 	std::string hash;
 	iss >> hash;
-	// Comment lines should be ignored
 	if (hash[0] != '#') 
         {
-	    m_id.push_back(hash);
 	    std::string response;
 	    iss >> response;
             
-	    HexPoint p = HexPointUtil::fromString(response);
-	    HexAssert(p != INVALID_POINT);
-	    m_response.push_back(p);
+	    HexPoint move = HexPointUtil::fromString(response);
+	    HexAssert(move != INVALID_POINT);
+
+            if (m_response.count(hash))
+                LogWarning() << "Duplicate entry in book: " << hash << '\n';
+            else
+                m_response[hash] = move;
 	}
     }
-    HexAssert(m_id.size() == m_response.size());
-    // note: file closes automatically
-    
     m_handBookLoaded = true;
+    LogInfo() << "HandBookCheck: Found " << m_response.size() << " states." << '\n';
 }
 
-HexPoint HandBookCheck::HandBookResponse(const StoneBoard& brd, 
-                                         HexColor color)
+/** Uses the hand book to determine a response (if possible).
+    @return INVALID_POINT on failure, valid move on success.
+*/
+HexPoint HandBookCheck::HandBookResponse(const StoneBoard& brd, HexColor color)
 {
     UNUSED(color);
 
     if (!m_handBookLoaded)
 	LoadHandBook();
     
-    LogInfo() << "HandBookCheck: Seeking response" << '\n'
-	      << "Hash: " << HashUtil::toString(brd.Hash()) << '\n';
+    LogInfo() << "HandBookCheck: Seeking " 
+              << HashUtil::toString(brd.Hash()) << '\n';
     
-    for (std::size_t i = 0; i < m_id.size(); ++i) 
+    std::string key = HashUtil::toString(brd.Hash());
+    if (m_response.count(key))
     {
-	if (HashUtil::toString(brd.Hash()) == m_id[i]) 
-        {
-	    LogInfo() << "Found hand book response!" << '\n';
-	    HexAssert(m_response[i] != INVALID_POINT);
-	    HexAssert(brd.isEmpty(m_response[i]));
-	    return m_response[i];
-	}
+        HexPoint response = m_response[key];
+        LogInfo() << "HandBookCheck: response = " << response << '\n';
+        HexAssert(response != INVALID_POINT);
+        HexAssert(brd.isEmpty(response));
+        return response;
     }
     
     LogInfo() << "HandBookCheck: No response found." << '\n';
