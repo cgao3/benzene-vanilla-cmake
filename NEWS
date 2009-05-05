@@ -1,4 +1,17 @@
 
+Benzene 0.8 (released 09/05/04)
+-------------------------------
+* New MoHex
+  * Uses VC knowledge in search tree
+  * Handles determined states during search  
+* Book tools totally rewritten
+  * Builder uses any BenzenePlayer evaluate positions
+  * Multi-threaded
+  * Handles swap moves
+  * Progressive widening
+* Parallel solver
+* Code refactoring/cleanup
+
 Benzene 0.7 (released 09/02/18)
 -------------------------------
 * Build system switched to autotools
