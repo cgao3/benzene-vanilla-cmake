@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT([benzene], [0.8.GIT])
+AC_INIT([benzene], [0.9.GIT])
 AC_PREREQ([2.59])
 AC_CONFIG_SRCDIR([src/hex/HexBoard.cpp])
 AM_CONFIG_HEADER(src/config.h)
