@@ -20,7 +20,7 @@ AX_BERKELEY_DB
 dnl TODO: Find a better (more portable) way to enable more optimizations by
 dnl default.
 AC_ARG_ENABLE([optimize],
-   AS_HELP_STRING([--enable-optimize], [set CXXFLAGS to -O2 -g (default is yes)]),
+   AS_HELP_STRING([--enable-optimize], [set CXXFLAGS to -O3 -g (default is yes)]),
    [optimize=$enableval],
    [optimize=yes])
 if test "x$optimize" = "xyes"
