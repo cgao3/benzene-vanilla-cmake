@@ -9,6 +9,7 @@
 #include "SgSystem.h"
 #include "SgRandom.h"
 #include <sstream>
+#include <iomanip>
 
 #include "Benzene.hpp"
 
