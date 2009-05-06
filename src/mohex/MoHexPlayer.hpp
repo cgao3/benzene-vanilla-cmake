@@ -89,8 +89,14 @@ protected:
 			    HexColor color, const bitset_t& consider,
                             double time_remaining, double& score);
 
-    /** Returns relevant subtree from previous searchtree, if
-        possible. */
+
+    HexPoint LastMoveFromHistory(const GameHistory& history);
+
+    bool PerformPreSearch(HexBoard& brd, HexColor color, bitset_t& consider, 
+                          PointSequence& winningSequence);
+
+    void PrintParameters(HexColor color, double remaining);
+    
     SgUctTree* TryReuseSubtree(const Game& game);
 
 };
