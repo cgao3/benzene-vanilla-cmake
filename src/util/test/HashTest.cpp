@@ -15,13 +15,13 @@ namespace {
 
 BOOST_AUTO_TEST_CASE(Hash_BasicTests)
 {
-    BOOST_CHECK_EQUAL(HashUtil::toString(0), "0x0");
-    BOOST_CHECK_EQUAL(HashUtil::toString(1), "0x1");
-    BOOST_CHECK_EQUAL(HashUtil::toString(9), "0x9");
-    BOOST_CHECK_EQUAL(HashUtil::toString(10), "0xa");
-    BOOST_CHECK_EQUAL(HashUtil::toString(15), "0xf");
-    BOOST_CHECK_EQUAL(HashUtil::toString(18), "0x12");
-    BOOST_CHECK_EQUAL(HashUtil::toString(4736785), "0x484711");
+    BOOST_CHECK_EQUAL(HashUtil::toString(0),       "0x0000000000000000");
+    BOOST_CHECK_EQUAL(HashUtil::toString(1),       "0x0000000000000001");
+    BOOST_CHECK_EQUAL(HashUtil::toString(9),       "0x0000000000000009");
+    BOOST_CHECK_EQUAL(HashUtil::toString(10),      "0x000000000000000a");
+    BOOST_CHECK_EQUAL(HashUtil::toString(15),      "0x000000000000000f");
+    BOOST_CHECK_EQUAL(HashUtil::toString(18),      "0x0000000000000012");
+    BOOST_CHECK_EQUAL(HashUtil::toString(4736785), "0x0000000000484711");
 }
 
 }
