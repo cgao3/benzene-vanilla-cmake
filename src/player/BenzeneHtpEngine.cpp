@@ -692,6 +692,15 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
         if (HexSgUtil::NodeHasSetupInfo(cur)) 
             throw HtpFailure() << "Node has setup info";
 
+        // SgGameReader does not support reading "resign" moves from
+        // an sgf, so any such node will have no move. This should not
+        // be treated as an error if it is the last node in the game.
+        // This isn't exact, but close enough.
+        if (!cur->HasNodeMove() && !cur->HasSon())
+            break;
+
+        // If node does not have a move and is *not* the last node in
+        // the game, then this sgf should not be passed in here.
         if (!cur->HasNodeMove()) 
             throw HtpFailure() << "Node has no move";
 
@@ -700,7 +709,7 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
                                                          brd.height());
         if (color != sgfColor)
             throw HtpFailure() << "Unexpected color to move";
-        
+
         if (moveNum && color == colorToSave)
         {
             hashes.push_back(brd.Hash());
