@@ -101,7 +101,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     data.root_last_move_played = LastMoveFromHistory(game_state.History());
     data.root_stones = HexUctStoneData(brd);
     data.root_consider = consider;
-    m_search.SetSharedData(&data);
+    m_search.SetSharedData(data);
     
     // Reuse the old subtree
     SgUctTree* initTree = 0;

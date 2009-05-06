@@ -87,11 +87,11 @@ public:
 
     const HexBoard& Board() const;
 
-    void SetSharedData(HexUctSharedData* data);
+    void SetSharedData(HexUctSharedData& data);
 
-    HexUctSharedData* SharedData();
+    HexUctSharedData& SharedData();
 
-    const HexUctSharedData* SharedData() const;
+    const HexUctSharedData& SharedData() const;
 
     /** @see SetKeepGames()
         @throws SgException if KeepGames() was false at last invocation of
@@ -177,7 +177,7 @@ protected:
     HexBoard* m_brd;
    
     /** Data for first few ply of the game. Shared amoung threads. */
-    HexUctSharedData* m_shared_data;
+    HexUctSharedData m_shared_data;
 
     StoneBoard m_lastPositionSearched;
 
@@ -261,17 +261,17 @@ inline void HexUctSearch::SetPlayoutUpdateRadius(int radius)
     m_playoutUpdateRadius = radius;
 }
 
-inline void HexUctSearch::SetSharedData(HexUctSharedData* data)
+inline void HexUctSearch::SetSharedData(HexUctSharedData& data)
 {
     m_shared_data = data;
 }
 
-inline HexUctSharedData* HexUctSearch::SharedData()
+inline HexUctSharedData& HexUctSearch::SharedData()
 {
     return m_shared_data;
 }
 
-inline const HexUctSharedData* HexUctSearch::SharedData() const
+inline const HexUctSharedData& HexUctSearch::SharedData() const
 {
     return m_shared_data;
 }

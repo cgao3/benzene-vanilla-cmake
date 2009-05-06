@@ -205,7 +205,7 @@ SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
 void HexUctState::StartSearch()
 {
     LogInfo() << "StartSearch()[" << m_threadId <<"]" << '\n';
-    m_shared_data = m_search.SharedData();
+    m_shared_data = &m_search.SharedData();
 
     // @todo Fix the interface to HexBoard so this can be constant!
     // The problem is that VCBuilder (which is inside of HexBoard)

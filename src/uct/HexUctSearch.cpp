@@ -62,7 +62,7 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory,
       m_playoutUpdateRadius(1),
 
       m_brd(0),
-      m_shared_data(0),
+      m_shared_data(),
       m_root(0)
 {
     SetBiasTermConstant(0.0);
@@ -190,7 +190,7 @@ void HexUctSearch::OnSearchIteration(std::size_t gameNumber, int threadId,
         std::ostringstream os;
         os << "gogui-gfx:\n";
         os << "uct\n";
-        HexColor initial_toPlay = m_shared_data->root_to_play;
+        HexColor initial_toPlay = m_shared_data.root_to_play;
         HexUctUtil::GoGuiGfx(*this, 
                              HexUctUtil::ToSgBlackWhite(initial_toPlay),
 			     os);
