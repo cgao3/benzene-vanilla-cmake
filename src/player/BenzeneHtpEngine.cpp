@@ -710,7 +710,7 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
         color = !color;
         ++moveNum;
     }
-    HexAssert(hashes.size() == respones.size());
+    HexAssert(hashes.size() == responses.size());
  
     std::ofstream out(bookfilename.c_str(), std::ios_base::app);
     for (std::size_t i = 0 ; i < hashes.size(); ++i)
