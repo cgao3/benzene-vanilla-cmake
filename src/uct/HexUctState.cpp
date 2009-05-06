@@ -1,5 +1,8 @@
 //----------------------------------------------------------------------------
 /** @file HexUctState.cpp
+
+    @note Use SG_ASSERT so that the assertion handler is used to dump
+    the state of each thread when an assertion fails.
  */
 //----------------------------------------------------------------------------
 
@@ -39,7 +42,7 @@ bool GameOver(const StoneBoard& brd)
 /** Determines the winner of a filled-in board. */
 HexColor GetWinner(const StoneBoard& brd)
 {
-    HexAssert(GameOver(brd));
+    SG_ASSERT(GameOver(brd));
     if (BoardUtils::ConnectedOnBitset(brd.Const(), brd.getColor(BLACK), 
                                       NORTH, SOUTH))
         return BLACK;
@@ -57,8 +60,7 @@ HexUctState::AssertionHandler::AssertionHandler(const HexUctState& state)
 
 void HexUctState::AssertionHandler::Run()
 {
-    /** @todo Make Logger an std::ostream! */
-    m_state.Dump(std::cerr);
+    LogSevere() << m_state.Dump() << '\n';
 }
 
 //----------------------------------------------------------------------------
@@ -90,16 +92,19 @@ void HexUctState::SetPolicy(HexUctSearchPolicy* policy)
     m_policy.reset(policy);
 }
 
-void HexUctState::Dump(std::ostream& out) const
+std::string HexUctState::Dump() const
 {
-    out << "HexUctState[" << m_threadId << "] ";
-    if (m_isInPlayout) out << "[playout]";
-    out << "board:" << m_bd;
+    std::ostringstream os;
+    os << "HexUctState[" << m_threadId << "] ";
+    if (m_isInPlayout) 
+        os << "[playout] ";
+    os << "board:" << *m_bd;
+    return os.str();
 }
 
 float HexUctState::Evaluate()
 {
-    HexAssert(GameOver(*m_bd));
+    SG_ASSERT(GameOver(*m_bd));
     float score = (GetWinner(*m_bd) == m_toPlay) ? 1.0 : 0.0;
     return score;
 }
@@ -138,8 +143,8 @@ void HexUctState::ExecuteRolloutMove(HexPoint move)
 void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
 {
     // Simply play a stone on the given cell.
-    HexAssert(m_bd->isEmpty(cell));
-    HexAssert(m_bd->updateRadius() == updateRadius);
+    SG_ASSERT(m_bd->isEmpty(cell));
+    SG_ASSERT(m_bd->updateRadius() == updateRadius);
     
     m_bd->playMove(m_toPlay, cell);
     if (updateRadius == 1)
@@ -156,7 +161,7 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
 bool HexUctState::GenerateAllMoves(std::size_t count, 
                                    std::vector<SgMoveInfo>& moves)
 {
-    HexAssert(m_new_game == (m_numStonesPlayed == 0));
+    SG_ASSERT(m_new_game == (m_numStonesPlayed == 0));
 
     bitset_t moveset;
     bool have_consider_set = false;
@@ -198,7 +203,7 @@ SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
         return SG_NULLMOVE;
         
     SgPoint move = m_policy->GenerateMove(*m_bd, m_toPlay, m_lastMovePlayed);
-    HexAssert(move != SG_NULLMOVE);
+    SG_ASSERT(move != SG_NULLMOVE);
     return move;
 }
 

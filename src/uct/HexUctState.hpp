@@ -155,7 +155,7 @@ public:
 
     bool IsInPlayout() const;
 
-    void Dump(std::ostream& out) const;
+    std::string Dump() const;
 
     /** Sets policy (takes control of pointer) and deletes the old
         one, if it existed. */
