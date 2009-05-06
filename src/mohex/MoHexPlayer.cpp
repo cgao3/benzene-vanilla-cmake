@@ -219,12 +219,9 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
         if (PlayerUtils::IsLostGame(brd, other))
         {
             winningSequence = seq;
-            brd.UndoMove();
-            LogInfo() << "Found win: " << seq[0] << '\n';
-            break;
+            foundWin = true;
         }	
-
-        if (PlayerUtils::IsWonGame(brd, other))
+        else if (PlayerUtils::IsWonGame(brd, other))
             losing.set(*p);
 
         seq.pop_back();
