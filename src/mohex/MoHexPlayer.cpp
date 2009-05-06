@@ -191,11 +191,10 @@ HexPoint MoHexPlayer::LastMoveFromHistory(const GameHistory& history)
 
 /** Does a 1-ply search.
 
-    For each move that in the consider set, if the move is a win,
-    returns true and the move. If the move is a loss, prune it out of
-    the consider set if there are non-losing moves in the consider
-    set.  If all moves are losing, perform no pruning, search will
-    resist.
+    For each move in the consider set, if the move is a win, returns
+    true and the move. If the move is a loss, prune it out of the
+    consider set if there are non-losing moves in the consider set.
+    If all moves are losing, perform no pruning, search will resist.
 
     Returns true if there is a win, false otherwise. 
 
