@@ -3,7 +3,15 @@
 
     @note Use SG_ASSERT so that the assertion handler is used to dump
     the state of each thread when an assertion fails.
- */
+
+    @bug Running with assertions and a non-zero knowledge threshold in
+    lock-free mode will cause some assertions to fail. In particular,
+    the way we handle terminal states (by deleting all children) can
+    cause SgUctChildIterator to discover it has no children (in
+    SgUctSearch::UpdateRaveValues and SgUctSearch::SelectChild) which
+    it asserts is not true. It is also possible for threads to play
+    into filled-in cells during the in-tree phase.
+*/
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -142,7 +150,17 @@ void HexUctState::ExecuteRolloutMove(HexPoint move)
 
 void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
 {
-    // Simply play a stone on the given cell.
+    // Lock-free mode: It is possible we are playing into a filled-in
+    // cell during the in-tree phase. This can occur if the thread
+    // happens upon this state after fillin was published but before
+    // the tree was pruned.
+    //   If assertions are off, this results in a board possibly
+    // containing cells of both colors and erroneous pattern state
+    // info, resulting in an inaccurate playout value. In practice,
+    // this does not seem to matter too much.
+    //   If assertions are on, this will cause the search to abort
+    // needlessly.
+    // @todo Handle case when assertions are on.
     SG_ASSERT(m_bd->isEmpty(cell));
     SG_ASSERT(m_bd->updateRadius() == updateRadius);
     

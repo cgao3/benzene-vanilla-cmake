@@ -1,10 +1,12 @@
 Benzene TODO file
 =================
 
-broderic [090413] (in rough order of importance)
+broderic [090506] (in rough order of importance)
 * Fix reuse subtree in MoHex
   * Copy used entries in fillin hashmap to new hashmap
   * Add ponder ability to MoHex
+* Handle terminal states properly in MoHex
+  Ie, do not use fillin and deletion to do this
 * Create HexPosition class; make StoneBoard use it.
 * Better book visualization tools
 * Switch dead region/decomp detection to new Phil algo
