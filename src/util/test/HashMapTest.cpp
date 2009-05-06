@@ -39,6 +39,14 @@ BOOST_AUTO_TEST_CASE(HashMap_AllTests)
     BOOST_CHECK(hm.get(33, data));
     BOOST_CHECK_EQUAL(data, 11);
     BOOST_CHECK_EQUAL(hm.count(), 2);
+
+    HashMap<int> mm(5);
+    mm = hm;
+    BOOST_CHECK(mm.get(1, data));
+    BOOST_CHECK_EQUAL(data, 5);
+    BOOST_CHECK(mm.get(33, data));
+    BOOST_CHECK_EQUAL(data, 11);
+    BOOST_CHECK_EQUAL(mm.count(), 2);
 }
 
 }

@@ -13,6 +13,7 @@
 #include "Benzene.hpp"
 #include "Hash.hpp"
 #include "Logger.hpp"
+#include <cassert>
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -95,6 +96,9 @@ public:
     
     /** Clears the table. */
     void clear();
+
+    /** Copys other's data, overwriting everything in this table. */
+    void operator=(const HashMap<T>& other);
 
 private:    
     
@@ -221,6 +225,18 @@ void HashMap<T>::clear()
 {
     for (unsigned i = 0; i < m_size; ++i)
         m_used[i] = EMPTY_SLOT;
+}
+
+template<typename T>
+void HashMap<T>::operator=(const HashMap<T>& other)
+{
+    assert(m_size == other.m_size);
+    m_count = other.m_count;
+    for (unsigned i = 0; i < m_size; ++i)
+    {
+        m_used[i] = other.m_used[i];
+        m_allocated[i] = other.m_allocated[i];
+    }
 }
 
 //----------------------------------------------------------------------------
