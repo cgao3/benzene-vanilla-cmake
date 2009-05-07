@@ -309,17 +309,9 @@ void MoHexPlayer::PrintParameters(HexColor color, double remaining)
 	      << "TimeRemaining: " << remaining << '\n';
 }
 
-/** @bug CURRENTLY BROKEN!  
-    
-    Need to do a few things before subtrees can be reused:
-    
-    1) Deal with new root-state knowledge. SgUctSearch has a
-    rootfilter that prunes moves in the root and is applied when it is
-    passed an initial tree, so we can use that to apply more pruning
-    to the new root node. Potential problem if new root knowledge adds
-    moves that weren't present when knowledge was computed in the
-    tree, but I don't think this would happen very often (or matter).
-*/
+/** Extracts relevant portion of old tree for use in upcoming search.
+    Returns valid pointer to new tree on success, 0 on failure.
+ */
 SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
                                         HexUctSharedData& newData)
 {
@@ -330,10 +322,6 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         LogInfo() << "ReuseSubtree: knowledge is off." << '\n';
         return 0;
     }
-
-    LogSevere() << "\"param_mohex reuse_subtree\" is currently broken!" << '\n'
-                << "Please see MoHexPlayer::TryReuseSubtree() in "
-                << "the documentation." << '\n';
 
     const MoveSequence& oldSequence = oldData.game_sequence;
     const MoveSequence& newSequence = newData.game_sequence;
