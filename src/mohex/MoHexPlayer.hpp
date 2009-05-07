@@ -98,12 +98,12 @@ protected:
     void PrintParameters(HexColor color, double remaining);
     
     SgUctTree* TryReuseSubtree(const HexUctSharedData& oldData,
-                               HexUctSharedData& data);
+                               HexUctSharedData& newData);
 
     void CopyKnowledgeData(const SgUctTree& tree, const SgUctNode& node,
                            HexColor color, MoveSequence& sequence,
                            const HexUctSharedData& oldData,
-                           HexUctSharedData& data) const;
+                           HexUctSharedData& newData) const;
 };
 
 inline std::string MoHexPlayer::name() const

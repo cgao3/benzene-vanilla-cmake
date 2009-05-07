@@ -321,7 +321,7 @@ void MoHexPlayer::PrintParameters(HexColor color, double remaining)
     tree, but I don't think this would happen very often (or matter).
 */
 SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
-                                        HexUctSharedData& data)
+                                        HexUctSharedData& newData)
 {
     // Must have knowledge on to reuse subtrees, since root has fillin
     // knowledge which affects the tree below.
@@ -336,22 +336,26 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
                 << "the documentation." << '\n';
 
     const MoveSequence& oldSequence = oldData.game_sequence;
-    const MoveSequence& newSequence = data.game_sequence;
+    const MoveSequence& newSequence = newData.game_sequence;
 
-    // If no knowledge in old data for current position, then we
-    // cannot use the tree (since the root is given its knowledge, and
-    // using this knowledge would require pruning the trees under the
-    // root's children). It is easier to just throw away the tree,
-    // since it must be pretty small.
+    // If no old knowledge for the current position, then we cannot
+    // reuse the tree (since the root is given its knowledge and using
+    // this knowledge would require pruning the trees under the root's
+    // children). It is easier to just throw away the tree, since it
+    // must be pretty small.
     {
-        HexUctStoneData data;
+        HexUctStoneData oldStateData;
         hash_t hash = SequenceHash::Hash(newSequence);
-        if (!oldData.stones.get(hash, data))
+        if (!oldData.stones.get(hash, oldStateData))
         {
             LogInfo() << "ReuseSubtree: No knowledge for state in old tree."
                       << '\n';
             return 0;
         }
+
+        // Check that the old knowledge is equal to the new knowledge
+        // in the would-be root node.
+        HexAssert(oldStateData == newData.root_stones);
     }
 
     LogInfo() << "Old: " << oldSequence << '\n';
@@ -407,13 +411,13 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
                   << " nodes (" << reusePercent << "%)" << '\n';
 
         MoveSequence moveSequence = newSequence;
-        CopyKnowledgeData(tree, tree.Root(), data.root_to_play,
-                          moveSequence, oldData, data);
-        float kReuse = static_cast<float>(data.stones.count())
+        CopyKnowledgeData(tree, tree.Root(), newData.root_to_play,
+                          moveSequence, oldData, newData);
+        float kReuse = static_cast<float>(newData.stones.count())
             / oldData.stones.count();
         int kReusePercent = static_cast<int>(100 * kReuse);
         LogInfo() << "MoHexPlayer: Reusing " 
-                  << data.stones.count() << " knowledge states ("
+                  << newData.stones.count() << " knowledge states ("
                   << kReusePercent << "%)" << '\n';
         return &tree;
     }
@@ -425,19 +429,19 @@ void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
                                     HexColor color,
                                     MoveSequence& sequence,
                                     const HexUctSharedData& oldData,
-                                    HexUctSharedData& data) const
+                                    HexUctSharedData& newData) const
 {
     hash_t hash = SequenceHash::Hash(sequence);
     HexUctStoneData stones;
     if (!oldData.stones.get(hash, stones))
         return;
-    data.stones.put(hash, stones);
+    newData.stones.put(hash, stones);
     if (!node.HasChildren())
         return;
     for (SgUctChildIterator it(tree, node); it; ++it)
     {
         sequence.push_back(Move(color, static_cast<HexPoint>((*it).Move())));
-        CopyKnowledgeData(tree, *it, !color, sequence, oldData, data);
+        CopyKnowledgeData(tree, *it, !color, sequence, oldData, newData);
         sequence.pop_back();
     }
 }

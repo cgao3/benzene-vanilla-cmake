@@ -37,6 +37,9 @@ struct HexUctStoneData
 
     /** Copies stones from board. */
     HexUctStoneData(const StoneBoard& brd);
+
+    /** Returns true only if all three sets are equal. */
+    bool operator==(const HexUctStoneData& other) const;
 };
 
 inline HexUctStoneData::HexUctStoneData()
@@ -49,6 +52,15 @@ inline HexUctStoneData::HexUctStoneData(const StoneBoard& brd)
       played(brd.getPlayed())
 {
 }
+
+inline bool HexUctStoneData::operator==(const HexUctStoneData& other) const
+{
+    return black == other.black 
+        && white == other.white
+        && played == other.played;
+}
+
+//----------------------------------------------------------------------------
 
 /** Data shared among all threads. */
 struct HexUctSharedData
