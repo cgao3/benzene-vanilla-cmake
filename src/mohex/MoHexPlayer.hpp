@@ -65,6 +65,12 @@ public:
     /** See ReuseSubtree() */
     void SetReuseSubtree(bool reuse);
 
+    /** Searches while waiting for a command. */
+    bool Ponder() const;
+
+    /** See Ponder() */
+    void SetPonder(bool flag);
+
     // @}
 
 protected:
@@ -84,6 +90,9 @@ protected:
     /** See ReuseSubtree() */
     bool m_reuse_subtree;
 
+    /** See Ponder() */
+    bool m_ponder;
+    
     /** Generates a move in the given gamestate using uct. */
     virtual HexPoint search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider,
@@ -159,6 +168,16 @@ inline bool MoHexPlayer::ReuseSubtree() const
 inline void MoHexPlayer::SetReuseSubtree(bool reuse)
 {
     m_reuse_subtree = reuse;
+}
+
+inline bool MoHexPlayer::Ponder() const
+{
+    return m_ponder;
+}
+
+inline void MoHexPlayer::SetPonder(bool flag)
+{
+    m_ponder = flag;
 }
 
 //----------------------------------------------------------------------------

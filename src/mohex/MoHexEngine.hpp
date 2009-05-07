@@ -40,8 +40,11 @@ public:
     // @} // @name
 
 #if GTPENGINE_PONDER
+
     virtual void Ponder();
+
     virtual void InitPonder();
+
     virtual void StopPonder();
 #endif
 

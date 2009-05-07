@@ -51,7 +51,8 @@ MoHexPlayer::MoHexPlayer()
       m_backup_ice_info(true),
       m_max_games(99999999),
       m_max_time(10),
-      m_reuse_subtree(false)
+      m_reuse_subtree(false),
+      m_ponder(false)
 {
     LogFine() << "--- MoHexPlayer" << '\n';
 }

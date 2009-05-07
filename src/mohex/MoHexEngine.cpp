@@ -55,6 +55,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << mohex->BackupIceInfo() << '\n'
             << "[bool] lock_free " 
             << search.LockFree() << '\n'
+            << "[bool] ponder "
+            << mohex->Ponder() << '\n'
             << "[bool] reuse_subtree " 
             << mohex->ReuseSubtree() << '\n'
             << "[bool] use_livegfx "
@@ -93,6 +95,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             mohex->SetBackupIceInfo(cmd.BoolArg(1));
         else if (name == "lock_free")
             search.SetLockFree(cmd.BoolArg(1));
+        else if (name == "ponder")
+            mohex->SetPonder(cmd.BoolArg(1));
         else if (name == "use_livegfx")
             search.SetLiveGfx(cmd.BoolArg(1));
         else if (name == "use_rave")
@@ -248,14 +252,47 @@ void MoHexEngine::CmdBookPriorities(HtpCommand& cmd)
 
 void MoHexEngine::InitPonder()
 {
+    SgSetUserAbort(false);
 }
 
 void MoHexEngine::Ponder()
 {
+    MoHexPlayer* mohex = GetInstanceOf<MoHexPlayer>(&m_player);
+    HexAssert(mohex);
+
+    if (!mohex->Ponder())
+        return;
+
+    if (!mohex->ReuseSubtree())
+    {
+        LogWarning() << "Pondering requires reuse_subtree." << '\n';
+        return;
+    }
+
+    // Call genmove() after 0.2 seconds delay to avoid calls 
+    // in very short intervals between received commands
+    boost::xtime time;
+    boost::xtime_get(&time, boost::TIME_UTC);
+    for (int i = 0; i < 200; ++i)
+    {
+        if (SgUserAbort())
+            return;
+        time.nsec += 1000000; // 1 msec
+        boost::thread::sleep(time);
+    }
+
+    LogInfo() << "MoHexEngine::Ponder: start" << '\n';
+
+    // Do a search for at most 10 minutes.
+    HexEval score;
+    m_player.genmove(m_pe.SyncBoard(m_game->Board()), *m_game,
+                     m_game->Board().WhoseTurn(), 600, score);
+
 }
 
 void MoHexEngine::StopPonder()
 {
+    SgSetUserAbort(true);
 }
 
 #endif // GTPENGINE_PONDER
