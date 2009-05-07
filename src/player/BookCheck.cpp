@@ -20,7 +20,7 @@ BookCheck::BookCheck(BenzenePlayer* player)
       m_bookLoaded(false),
       m_enabled(false),
       m_min_count(1),
-      m_count_weight(0.03)
+      m_count_weight(0.02)
 {
 }
 
