@@ -181,7 +181,7 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 		    return SWAP_PIECES;
 	    }
 	    /** On 9x9 and larger we can only make heuristic-based decisions.
-                @note: we specify losing from now on to make lists shorter.
+                @note: we specify non-swapped from now on for shorter lists.
             */
 	    else if (9 == brd.width()) {
 		/** @todo: choose openings to swap on 9x9. */
@@ -189,53 +189,69 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 		/** @todo: choose openings to swap on 10x10. */
 	    } else if (11 == brd.width()) {
 		if (m_player->name() == "wolve") {
+		    // Choices based on recent tournament performances
 		    if (firstMove != HexPointUtil::fromString("a1") &&
-			firstMove != HexPointUtil::fromString("k11") &&
-			firstMove != HexPointUtil::fromString("a8") &&
-			//firstMove != HexPointUtil::fromString("k4") &&
 			firstMove != HexPointUtil::fromString("b1") &&
-			firstMove != HexPointUtil::fromString("j11") &&
-			firstMove != HexPointUtil::fromString("b2") &&
-			firstMove != HexPointUtil::fromString("j10") &&
-			firstMove != HexPointUtil::fromString("c2") &&
-			firstMove != HexPointUtil::fromString("i10") &&
-			firstMove != HexPointUtil::fromString("c7") &&
-			firstMove != HexPointUtil::fromString("i5") &&
+			firstMove != HexPointUtil::fromString("c1") &&
 			firstMove != HexPointUtil::fromString("d1") &&
-			firstMove != HexPointUtil::fromString("h11") &&
-			firstMove != HexPointUtil::fromString("d2") &&
-			firstMove != HexPointUtil::fromString("h10") &&
-			firstMove != HexPointUtil::fromString("d6") &&
-			firstMove != HexPointUtil::fromString("h6") &&
-			firstMove != HexPointUtil::fromString("d7") &&
-			//firstMove != HexPointUtil::fromString("h5") &&
+			firstMove != HexPointUtil::fromString("e1") &&
 			firstMove != HexPointUtil::fromString("f1") &&
-			firstMove != HexPointUtil::fromString("f11") &&
-			firstMove != HexPointUtil::fromString("f2") &&
-			firstMove != HexPointUtil::fromString("f10") &&
-			firstMove != HexPointUtil::fromString("f4") &&
-			//firstMove != HexPointUtil::fromString("f8") &&
 			firstMove != HexPointUtil::fromString("g1") &&
-			firstMove != HexPointUtil::fromString("e11") &&
-			firstMove != HexPointUtil::fromString("g3") &&
-			firstMove != HexPointUtil::fromString("e9") &&
-			firstMove != HexPointUtil::fromString("h2") &&
-			firstMove != HexPointUtil::fromString("d10") &&
+			firstMove != HexPointUtil::fromString("h1") &&
 			firstMove != HexPointUtil::fromString("i1") &&
-			firstMove != HexPointUtil::fromString("c11") &&
 			firstMove != HexPointUtil::fromString("j1") &&
-			firstMove != HexPointUtil::fromString("b11") &&
 			firstMove != HexPointUtil::fromString("k1") &&
 			firstMove != HexPointUtil::fromString("a11") &&
-			// new non-swaps
-			//firstMove != HexPointUtil::fromString("k6") &&
+			firstMove != HexPointUtil::fromString("b11") &&
+			firstMove != HexPointUtil::fromString("c11") &&
 			firstMove != HexPointUtil::fromString("d11") &&
-			firstMove != HexPointUtil::fromString("g11")) {
+			firstMove != HexPointUtil::fromString("e11") &&
+			firstMove != HexPointUtil::fromString("f11") &&
+			firstMove != HexPointUtil::fromString("g11") &&
+			firstMove != HexPointUtil::fromString("h11") &&
+			firstMove != HexPointUtil::fromString("i11") &&
+			firstMove != HexPointUtil::fromString("j11") &&
+			firstMove != HexPointUtil::fromString("k11") &&
+			firstMove != HexPointUtil::fromString("a2") &&
+			firstMove != HexPointUtil::fromString("b2") &&
+			firstMove != HexPointUtil::fromString("k10") &&
+			firstMove != HexPointUtil::fromString("j10")) {
 			return SWAP_PIECES;
 		    }
 		} else if (m_player->name() == "mohex") {
+		    // Choices based on mohex-built opening book
 		    if (firstMove != HexPointUtil::fromString("a1") &&
+			firstMove != HexPointUtil::fromString("b1") &&
+			firstMove != HexPointUtil::fromString("c1") &&
+			firstMove != HexPointUtil::fromString("d1") &&
+			firstMove != HexPointUtil::fromString("e1") &&
+			firstMove != HexPointUtil::fromString("f1") &&
+			firstMove != HexPointUtil::fromString("g1") &&
+			firstMove != HexPointUtil::fromString("h1") &&
+			firstMove != HexPointUtil::fromString("i1") &&
+			firstMove != HexPointUtil::fromString("j1") &&
+			firstMove != HexPointUtil::fromString("b11") &&
+			firstMove != HexPointUtil::fromString("c11") &&
+			firstMove != HexPointUtil::fromString("d11") &&
+			firstMove != HexPointUtil::fromString("e11") &&
+			firstMove != HexPointUtil::fromString("f11") &&
+			firstMove != HexPointUtil::fromString("g11") &&
+			firstMove != HexPointUtil::fromString("h11") &&
+			firstMove != HexPointUtil::fromString("i11") &&
+			firstMove != HexPointUtil::fromString("j11") &&
 			firstMove != HexPointUtil::fromString("k11") &&
+			firstMove != HexPointUtil::fromString("a2") &&
+			firstMove != HexPointUtil::fromString("b2") &&
+			firstMove != HexPointUtil::fromString("c2") &&
+			firstMove != HexPointUtil::fromString("k10") &&
+			firstMove != HexPointUtil::fromString("j10") &&
+			firstMove != HexPointUtil::fromString("i10") &&
+			firstMove != HexPointUtil::fromString("a3") &&
+			firstMove != HexPointUtil::fromString("b3") &&
+			firstMove != HexPointUtil::fromString("k9") &&
+			firstMove != HexPointUtil::fromString("j9") &&
+			firstMove != HexPointUtil::fromString("a4") &&
+			firstMove != HexPointUtil::fromString("k8") &&
 			firstMove != HexPointUtil::fromString("a5") &&
 			firstMove != HexPointUtil::fromString("k7") &&
 			firstMove != HexPointUtil::fromString("a6") &&
@@ -244,34 +260,8 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 			firstMove != HexPointUtil::fromString("k5") &&
 			firstMove != HexPointUtil::fromString("a8") &&
 			firstMove != HexPointUtil::fromString("k4") &&
-			firstMove != HexPointUtil::fromString("b1") &&
-			firstMove != HexPointUtil::fromString("j11") &&
-			firstMove != HexPointUtil::fromString("c1") &&
-			firstMove != HexPointUtil::fromString("i11") &&
-			firstMove != HexPointUtil::fromString("c2") &&
-			firstMove != HexPointUtil::fromString("i10") &&
-			firstMove != HexPointUtil::fromString("d1") &&
-			firstMove != HexPointUtil::fromString("h11") &&
-			firstMove != HexPointUtil::fromString("d2") &&
-			firstMove != HexPointUtil::fromString("h10") &&
-			firstMove != HexPointUtil::fromString("e1") &&
-			firstMove != HexPointUtil::fromString("g11") &&
-			firstMove != HexPointUtil::fromString("f1") &&
-			firstMove != HexPointUtil::fromString("f11") &&
-			firstMove != HexPointUtil::fromString("g1") &&
-			firstMove != HexPointUtil::fromString("e11") &&
-			firstMove != HexPointUtil::fromString("g2") &&
-			firstMove != HexPointUtil::fromString("e10") &&
-			//firstMove != HexPointUtil::fromString("g3") &&
-			//firstMove != HexPointUtil::fromString("e9") &&
-			//firstMove != HexPointUtil::fromString("g4") &&
-			//firstMove != HexPointUtil::fromString("e8") &&
-			firstMove != HexPointUtil::fromString("h1") &&
-			firstMove != HexPointUtil::fromString("d11") &&
-			firstMove != HexPointUtil::fromString("i1") &&
-			firstMove != HexPointUtil::fromString("c11") &&
-			firstMove != HexPointUtil::fromString("j1") &&
-			firstMove != HexPointUtil::fromString("b11")) {
+			firstMove != HexPointUtil::fromString("a9") &&
+			firstMove != HexPointUtil::fromString("k3")) {
 			return SWAP_PIECES;
 		    }
 		} else {
