@@ -49,7 +49,7 @@ MoHexPlayer::MoHexPlayer()
       m_search(new HexThreadStateFactory(&m_shared_policy), 
                HexUctUtil::ComputeMaxNumMoves()),
       m_backup_ice_info(true),
-      m_max_games(500000),
+      m_max_games(99999999),
       m_max_time(10),
       m_reuse_subtree(false)
 {
