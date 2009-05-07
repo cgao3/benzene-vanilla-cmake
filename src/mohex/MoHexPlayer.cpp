@@ -405,6 +405,19 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
     std::size_t oldTreeNodes = m_search.Tree().NuNodes();
     if (oldTreeNodes > 1 && newTreeNodes > 1)
     {
+        // Fix root's children to be those in the consider set
+        std::vector<SgMove> moves;
+        for (BitsetIterator it(newData.root_consider); it; ++it)
+            moves.push_back(static_cast<SgMove>(*it));
+        tree.SetChildren(0, tree.Root(), moves);
+
+//         for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
+//         {
+//             LogInfo() << '(' << static_cast<HexPoint>((*it).Move())
+//                       << ", " << (*it).MoveCount() << ')';
+//         }
+//         LogInfo() << '\n';
+
         float reuse = static_cast<float>(newTreeNodes) / oldTreeNodes;
         int reusePercent = static_cast<int>(100 * reuse);
         LogInfo() << "MoHexPlayer: Reusing " << newTreeNodes
@@ -426,8 +439,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
 
 void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
                                     const SgUctNode& node,
-                                    HexColor color,
-                                    MoveSequence& sequence,
+                                    HexColor color, MoveSequence& sequence,
                                     const HexUctSharedData& oldData,
                                     HexUctSharedData& newData) const
 {
