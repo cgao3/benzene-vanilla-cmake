@@ -51,6 +51,8 @@ public:
     virtual void CmdLoadSgf(HtpCommand& cmd);
     virtual void CmdParamGame(HtpCommand& cmd);
 
+    void CmdExec(HtpCommand& cmd);
+
 #if GTPENGINE_INTERRUPT
     virtual void CmdInterrupt(HtpCommand& cmd);
 #endif
