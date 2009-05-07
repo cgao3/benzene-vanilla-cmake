@@ -25,7 +25,16 @@ public:
 
     /** Returns point of move. */
     HexPoint point() const;
-    
+
+    /** Outputs a [color, move] string. */
+    std::string toString() const;
+
+    /** Returns true if point and color are equal. */
+    bool operator==(const Move& other) const;
+
+    /** Returns true !operator==(other). */
+    bool operator!=(const Move& other) const;
+
 private:
     HexColor m_color;
     HexPoint m_point;
@@ -44,6 +53,45 @@ inline HexColor Move::color() const
 inline HexPoint Move::point() const
 {
     return m_point;
+}
+
+inline std::string Move::toString() const
+{
+    std::ostringstream os;
+    os << '[' << m_color << ", " << m_point << ']';
+    return os.str();
+}
+
+inline bool Move::operator==(const Move& other) const
+{
+    return m_color == other.m_color
+        && m_point == other.m_point;
+}
+
+inline bool Move::operator!=(const Move& other) const
+{
+    return !operator==(other);
+}
+
+//----------------------------------------------------------------------------
+
+/** Extends standard output operator to Moves. */
+inline std::ostream& operator<<(std::ostream& os, const Move& move)
+{
+    return os << move.toString();
+}
+
+//----------------------------------------------------------------------------
+
+/** Sequence of moves. */
+typedef std::vector<Move> MoveSequence;
+
+/** Extends standard output operator for MoveSequences. */
+inline std::ostream& operator<<(std::ostream& os, const MoveSequence& move)
+{
+    for (std::size_t i = 0; i < move.size(); ++i)
+        os << move[i] << ' ';
+    return os;
 }
 
 //----------------------------------------------------------------------------
