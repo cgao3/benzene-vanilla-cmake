@@ -344,6 +344,21 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
 
         // Check that the old knowledge is equal to the new knowledge
         // in the would-be root node.
+        if (!(oldStateData == newData.root_stones))
+        {
+            StoneBoard brd(11);
+            brd.startNewGame();
+            brd.setColor(BLACK, oldStateData.black);
+            brd.setColor(WHITE, oldStateData.white);
+            brd.setPlayed(oldStateData.played);
+            LogWarning() << "FILLIN DOES NOT MATCH" << '\n';
+            LogWarning() << brd << '\n';
+            brd.startNewGame();
+            brd.setColor(BLACK, newData.root_stones.black);
+            brd.setColor(WHITE, newData.root_stones.white);
+            brd.setPlayed(newData.root_stones.played);
+            LogWarning() << brd << '\n';
+        }
         HexAssert(oldStateData == newData.root_stones);
     }
 
