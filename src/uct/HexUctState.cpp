@@ -131,8 +131,8 @@ void HexUctState::ExecutePlayout(SgMove sgmove)
 
 void HexUctState::ExecuteTreeMove(HexPoint move)
 {
+    m_game_sequence.push_back(Move(m_toPlay, move));
     ExecutePlainMove(move, m_treeUpdateRadius);
-    m_game_sequence.push_back(move);
     HexUctStoneData stones;
     if (m_shared_data->stones.get(SequenceHash::Hash(m_game_sequence), stones))
     {

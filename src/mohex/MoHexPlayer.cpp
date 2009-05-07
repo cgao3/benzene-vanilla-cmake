@@ -25,6 +25,24 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+namespace {
+
+void CommonPrefix(const MoveSequence& a, const MoveSequence& b, 
+                  std::size_t& prefixLen)
+{
+    prefixLen = 0;
+    for (std::size_t i = 0; i < a.size() && i < b.size(); ++i)
+    {
+        if (a[i] != b[i])
+            break;
+        ++prefixLen;
+    }
+}
+
+}
+
+//----------------------------------------------------------------------------
+
 MoHexPlayer::MoHexPlayer()
     : BenzenePlayer(),
       m_shared_policy(),
@@ -97,16 +115,21 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     // Create the initial state data
     HexUctSharedData data;
     data.root_to_play = color;
-    GameUtil::HistoryToSequence(game_state.History(), data.game_sequence);
+    data.game_sequence = game_state.History();
     data.root_last_move_played = LastMoveFromHistory(game_state.History());
     data.root_stones = HexUctStoneData(brd);
     data.root_consider = consider;
-    m_search.SetSharedData(data);
     
     // Reuse the old subtree
     SgUctTree* initTree = 0;
     if (m_reuse_subtree)
-        initTree = TryReuseSubtree(game_state);
+    {
+        HexUctSharedData oldData = m_search.SharedData();        
+        initTree = TryReuseSubtree(oldData, data);
+        if (!initTree)
+            LogInfo() << "No subtree to reuse." << '\n';
+    }
+    m_search.SetSharedData(data);
 
     // Compute timelimit for this search. Use the minimum of the time
     // left in the game and the m_max_time parameter.
@@ -174,7 +197,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 /** Returns INVALID_POINT if history is empty, otherwise last move
     played to the board, ie, skips swap move.
 */
-HexPoint MoHexPlayer::LastMoveFromHistory(const GameHistory& history)
+HexPoint MoHexPlayer::LastMoveFromHistory(const MoveSequence& history)
 {
     HexPoint lastMove = INVALID_POINT;
     if (!history.empty()) 
@@ -290,58 +313,65 @@ void MoHexPlayer::PrintParameters(HexColor color, double remaining)
     
     Need to do a few things before subtrees can be reused:
     
-    1) After extracting the relevant subtree, must copy over fillin
-    states from old hashmap to new hashmap.
-
-    2) Deal with new root-state knowledge. SgUctSearch has a
+    1) Deal with new root-state knowledge. SgUctSearch has a
     rootfilter that prunes moves in the root and is applied when it is
     passed an initial tree, so we can use that to apply more pruning
     to the new root node. Potential problem if new root knowledge adds
     moves that weren't present when knowledge was computed in the
     tree, but I don't think this would happen very often (or matter).
 */
-SgUctTree* MoHexPlayer::TryReuseSubtree(const Game& game)
+SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
+                                        HexUctSharedData& data)
 {
     LogSevere() << "\"param_mohex reuse_subtree\" is currently broken!" << '\n'
                 << "Please see MoHexPlayer::TryReuseSubtree() in "
                 << "the documentation." << '\n';
-    abort();
 
-    const StoneBoard& lastPosition = m_search.LastPositionSearched();
+    const MoveSequence& oldSequence = oldData.game_sequence;
+    const MoveSequence& newSequence = data.game_sequence;
 
-    /** @todo This is evil. Come up with better way to determine
-        if a search has been done before, other than checking if
-        lastPosition is an undefined board. 
-    */
-    if (!&lastPosition.Const())
-        return 0;
+    LogInfo() << "Old: " << oldSequence << '\n';
+    LogInfo() << "New: "<< newSequence << '\n';
 
-    LogInfo() << "Old Search Position:" << lastPosition << '\n';
-
-    GameHistory gameSeq;
-    if (!GameUtil::SequenceFromPosition(game, lastPosition, gameSeq))
-        return 0;
-
-    // Ensure alternating colors p
-    for (std::size_t i = 1; i < gameSeq.size(); ++i)
-        if (gameSeq[i].color() == gameSeq[i-1].color())
-            return 0;
-
-    LogInfo() << "Moves played:";            
-    std::vector<SgMove> sequence;
-    for (std::size_t i = 0; i < gameSeq.size(); ++i)
+    if (oldSequence.size() > newSequence.size())
     {
-        LogInfo() << ' ' << gameSeq[i].point();
-        sequence.push_back(gameSeq[i].point());
+        LogInfo() << "ReuseSubtree: Backtracked to an earlier state." << '\n';
+        return 0;
     }
-    LogInfo() << '\n';
+
+    std::size_t prefixLen = 0;
+    if (!oldSequence.empty())
+    {
+        CommonPrefix(oldSequence, newSequence, prefixLen);
+        if (prefixLen == 0)
+        {
+            LogInfo() << "ReuseSubtree: No common prefix." << '\n';
+            return 0;
+        }
+    }
+
+    // Ensure alternating colors and extract suffix
+    MoveSequence suffix;
+    std::vector<SgMove> sequence;
+    for (std::size_t i = prefixLen; i < newSequence.size(); ++i)
+    {
+        if (i &&newSequence[i-1].color() == newSequence[i].color())
+        {
+            LogInfo() << "ReuseSubtree: Colors do not alternate." << '\n';
+            return 0;
+        }
+        suffix.push_back(newSequence[i]);
+        sequence.push_back(newSequence[i].point());
+    }
+    LogInfo() << "MovesPlayed: " << suffix << '\n';
     
+    // @todo Return original tree if in same state as before?
+    if (!suffix.size())
+        return 0;
+
+    // Extract the tree
     SgUctTree& tree = m_search.GetTempTree();
     SgUctTreeUtil::ExtractSubtree(m_search.Tree(), tree, sequence, true, 10.0);
-
-    /** @todo Must traverse tree and copy fillin data from old
-        hashmap to new hashmap.
-    */
 
     std::size_t newTreeNodes = tree.NuNodes();
     std::size_t oldTreeNodes = m_search.Tree().NuNodes();
@@ -349,10 +379,44 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const Game& game)
     {
         float reuse = static_cast<float>(newTreeNodes) / oldTreeNodes;
         int reusePercent = static_cast<int>(100 * reuse);
-        LogInfo() << "HexUctPlayer: Reusing " << newTreeNodes
-                  << " nodes (" << reusePercent << "%)\n";
+        LogInfo() << "MoHexPlayer: Reusing " << newTreeNodes
+                  << " nodes (" << reusePercent << "%)" << '\n';
+
+        // Copy knowledge data to new filling data
+        MoveSequence moveSequence = newSequence;
+        CopyKnowledgeData(tree, tree.Root(), data.root_to_play,
+                          moveSequence, oldData, data);
+        float kReuse = static_cast<float>(data.stones.count())
+            / oldData.stones.count();
+        int kReusePercent = static_cast<int>(100 * kReuse);
+        LogInfo() << "MoHexPlayer: Reusing " 
+                  << data.stones.count() << " knowledge states ("
+                  << kReusePercent << "%)" << '\n';
+        return &tree;
     }
-    return &tree;
+    return 0;
+}
+
+void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
+                                    const SgUctNode& node,
+                                    HexColor color,
+                                    MoveSequence& sequence,
+                                    const HexUctSharedData& oldData,
+                                    HexUctSharedData& data) const
+{
+    hash_t hash = SequenceHash::Hash(sequence);
+    HexUctStoneData stones;
+    if (!oldData.stones.get(hash, stones))
+        return;
+    data.stones.put(hash, stones);
+    if (!node.HasChildren())
+        return;
+    for (SgUctChildIterator it(tree, node); it; ++it)
+    {
+        sequence.push_back(Move(color, static_cast<HexPoint>((*it).Move())));
+        CopyKnowledgeData(tree, *it, !color, sequence, oldData, data);
+        sequence.pop_back();
+    }
 }
 
 //----------------------------------------------------------------------------

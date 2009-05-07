@@ -57,7 +57,7 @@ void Game::UndoMove()
 //----------------------------------------------------------------------------
 
 bool GameUtil::SequenceFromPosition(const Game& game, const StoneBoard& pos, 
-                                    GameHistory& seq)
+                                    MoveSequence& seq)
 {
     if (game.Board().Const() != pos.Const())
         return false;
@@ -68,8 +68,8 @@ bool GameUtil::SequenceFromPosition(const Game& game, const StoneBoard& pos,
         seq = game.History();
         return true;
     }
-    const GameHistory& history = game.History();
-    for (GameHistory::const_iterator it = history.begin(); 
+    const MoveSequence& history = game.History();
+    for (MoveSequence::const_iterator it = history.begin(); 
          it != history.end(); ++it)
     {    
         const Move& move = *it;
@@ -84,11 +84,11 @@ bool GameUtil::SequenceFromPosition(const Game& game, const StoneBoard& pos,
     return false;
 }
 
-void GameUtil::HistoryToSequence(const GameHistory& history, 
+void GameUtil::HistoryToSequence(const MoveSequence& history, 
                                  PointSequence& sequence)
 {
     sequence.clear();
-    for (GameHistory::const_iterator it = history.begin(); 
+    for (MoveSequence::const_iterator it = history.begin(); 
          it != history.end(); ++it)
     {    
         const Move& move = *it;

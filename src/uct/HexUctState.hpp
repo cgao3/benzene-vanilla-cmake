@@ -12,6 +12,7 @@
 
 #include "HashMap.hpp"
 #include "HexBoard.hpp"
+#include "Move.hpp"
 #include "VC.hpp"
 
 #include <boost/scoped_ptr.hpp>
@@ -56,7 +57,7 @@ struct HexUctSharedData
     HexPoint root_last_move_played;
     bitset_t root_consider;
     HexUctStoneData root_stones;
-    std::vector<HexPoint> game_sequence;
+    MoveSequence game_sequence;
 
     HashMap<HexUctStoneData> stones;
 
@@ -210,7 +211,7 @@ private:
     bool m_isInPlayout;
 
     /** Moves played the game plus moves in tree. */
-    PointSequence m_game_sequence;
+    MoveSequence m_game_sequence;
 
     /** Keeps track of last playout move made.
 	Used for pattern-generated rollouts when call

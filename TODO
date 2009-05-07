@@ -3,7 +3,7 @@ Benzene TODO file
 
 broderic [090506] (in rough order of importance)
 * Fix reuse subtree in MoHex
-  * Copy used entries in fillin hashmap to new hashmap
+  * Handle case where root backup-ice-info adds move to consider
   * Add ponder ability to MoHex
 * Handle terminal states properly in MoHex
   Ie, do not use fillin and deletion to do this

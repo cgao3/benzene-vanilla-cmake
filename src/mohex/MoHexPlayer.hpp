@@ -90,15 +90,20 @@ protected:
                             double time_remaining, double& score);
 
 
-    HexPoint LastMoveFromHistory(const GameHistory& history);
+    HexPoint LastMoveFromHistory(const MoveSequence& history);
 
     bool PerformPreSearch(HexBoard& brd, HexColor color, bitset_t& consider, 
                           PointSequence& winningSequence);
 
     void PrintParameters(HexColor color, double remaining);
     
-    SgUctTree* TryReuseSubtree(const Game& game);
+    SgUctTree* TryReuseSubtree(const HexUctSharedData& oldData,
+                               HexUctSharedData& data);
 
+    void CopyKnowledgeData(const SgUctTree& tree, const SgUctNode& node,
+                           HexColor color, MoveSequence& sequence,
+                           const HexUctSharedData& oldData,
+                           HexUctSharedData& data) const;
 };
 
 inline std::string MoHexPlayer::name() const

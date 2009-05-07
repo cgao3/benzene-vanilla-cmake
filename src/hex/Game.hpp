@@ -14,11 +14,6 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** History of moves played in the game. */
-typedef std::vector<Move> GameHistory;
-
-//----------------------------------------------------------------------------
-
 /** A Game of Hex. 
     
     @todo Store time-info in history, so that undoing moves fixes the
@@ -72,7 +67,7 @@ public:
     void SetBoard(StoneBoard& brd);
     
     /** Returns the history of moves. */
-    const GameHistory& History() const;
+    const MoveSequence& History() const;
 
     /** Whether swap move is allowed to be played or not. */
     bool AllowSwap() const;
@@ -92,7 +87,7 @@ private:
 
     StoneBoard* m_board;
 
-    GameHistory m_history;
+    MoveSequence m_history;
 
     double m_time_remaining[BLACK_AND_WHITE];
 
@@ -118,7 +113,7 @@ inline void Game::SetBoard(StoneBoard& brd)
     m_board = &brd;
 }
 
-inline const GameHistory& Game::History() const
+inline const MoveSequence& Game::History() const
 {
     return m_history;
 }
@@ -158,14 +153,13 @@ inline void Game::SetGameTime(double time)
 /** Utilities on Games. */
 namespace GameUtil
 {
-
     /** If game contains the given position, returns the move history
         from that position to the current end of the game. */
     bool SequenceFromPosition(const Game& game, const StoneBoard& pos, 
-                              GameHistory& seq);
+                              MoveSequence& seq);
 
     /** Converts a game history into a sequence of points played. */
-    void HistoryToSequence(const GameHistory& history, 
+    void HistoryToSequence(const MoveSequence& history, 
                            PointSequence& sequence);
 }
 
