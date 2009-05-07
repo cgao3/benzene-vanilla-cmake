@@ -58,6 +58,9 @@ public:
     /** Constructs a hashmap with 2^bits slots. */
     HashMap(unsigned bits);
 
+    /** Copy constructor. */
+    HashMap(const HashMap<T>& other);
+
     /** Destructor. */
     ~HashMap();
 
@@ -71,7 +74,7 @@ public:
     unsigned count() const;
 
     /** Retrieves object with key. Returns true on success. */
-    bool get(hash_t key, T& out);
+    bool get(hash_t key, T& out) const;
 
     /** Stores a (key, object) pair. 
      
@@ -129,6 +132,8 @@ private:
 
     /** Allocated space for entries in the table. */
     boost::scoped_array<Data> m_allocated;
+
+    void CopyFrom(const HashMap<T>& other);
 };
 
 template<typename T>
@@ -141,6 +146,18 @@ HashMap<T>::HashMap(unsigned bits)
       m_allocated(new Data[m_size])
 {
     clear();
+}
+
+template<typename T>
+HashMap<T>::HashMap(const HashMap<T>& other)
+    : m_bits(other.m_bits),
+      m_size(other.m_size),
+      m_mask(other.m_mask),
+      m_count(other.m_count),
+      m_used(new volatile int[m_size]),
+      m_allocated(new Data[m_size])
+{
+    CopyFrom(other);
 }
 
 template<typename T>
@@ -168,7 +185,7 @@ inline unsigned HashMap<T>::count() const
 
 /** Performs linear probing to find key. */
 template<typename T>
-bool HashMap<T>::get(hash_t key, T& out)
+bool HashMap<T>::get(hash_t key, T& out) const
 {
     // Search for slot containing this key.
     // Limit number of probes to a single pass: Table should never
@@ -228,7 +245,7 @@ void HashMap<T>::clear()
 }
 
 template<typename T>
-void HashMap<T>::operator=(const HashMap<T>& other)
+void HashMap<T>::CopyFrom(const HashMap<T>& other)
 {
     assert(m_size == other.m_size);
     m_count = other.m_count;
@@ -237,6 +254,12 @@ void HashMap<T>::operator=(const HashMap<T>& other)
         m_used[i] = other.m_used[i];
         m_allocated[i] = other.m_allocated[i];
     }
+}
+
+template<typename T>
+void HashMap<T>::operator=(const HashMap<T>& other)
+{
+    CopyFrom(other);
 }
 
 //----------------------------------------------------------------------------
