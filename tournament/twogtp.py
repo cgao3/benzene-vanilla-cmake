@@ -177,10 +177,10 @@ class Tournament:
             
         bcmd = "nice " + blackCmd + \
                " --seed %SRAND" + \
-               " --logfile-name " + self._outdir + "/" + blackName + ".log"
+               " --logfile-name " + self._outdir + "/" + blackName + "-" + str(gameIndex) + ".log"
         wcmd = "nice " + whiteCmd + \
                " --seed %SRAND" + \
-               " --logfile-name " + self._outdir + "/" + whiteName + ".log"
+               " --logfile-name " + self._outdir + "/" + whiteName + "-" + str(gameIndex) + ".log"
         
         black = Program("B", bcmd, verbose)
         white = Program("W", wcmd, verbose)
