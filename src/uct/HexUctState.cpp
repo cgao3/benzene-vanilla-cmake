@@ -136,6 +136,7 @@ void HexUctState::ExecuteTreeMove(HexPoint move)
     HexUctStoneData stones;
     if (m_shared_data->stones.get(SequenceHash::Hash(m_game_sequence), stones))
     {
+        m_bd->startNewGame();
         m_bd->setColor(BLACK, stones.black);
         m_bd->setColor(WHITE, stones.white);
         m_bd->setPlayed(stones.played);
@@ -308,7 +309,10 @@ bitset_t HexUctState::ComputeKnowledge()
     /** @todo Use a more complicated scheme to update the connections?
         For example, if state is close to last one, use incremental
         builds to transition from old to current. */
-    m_vc_brd->SetState(*m_bd);
+    m_vc_brd->startNewGame();
+    m_vc_brd->setColor(BLACK, m_bd->getBlack() & m_bd->getPlayed());
+    m_vc_brd->setColor(WHITE, m_bd->getWhite() & m_bd->getPlayed());
+    m_vc_brd->setPlayed(m_bd->getPlayed());
     m_vc_brd->ComputeAll(m_toPlay, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
 
     // Consider set will be non-empty only if a non-determined state.
