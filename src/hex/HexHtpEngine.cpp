@@ -37,6 +37,7 @@ HexHtpEngine::HexHtpEngine(std::istream& in, std::ostream& out,
 {
     RegisterCmd("name", &HexHtpEngine::CmdName);
     RegisterCmd("version", &HexHtpEngine::CmdVersion);
+    RegisterCmd("exec", &HexHtpEngine::CmdExec);
     RegisterCmd("play", &HexHtpEngine::CmdPlay);
     RegisterCmd("genmove", &HexHtpEngine::CmdGenMove);
     RegisterCmd("undo", &HexHtpEngine::CmdUndo);
@@ -159,6 +160,19 @@ void HexHtpEngine::CmdName(HtpCommand& cmd)
 void HexHtpEngine::CmdVersion(HtpCommand& cmd)
 {
     cmd << HexProgram::Get().getVersion();
+}
+
+void HexHtpEngine::CmdExec(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    std::string filename = cmd.Arg(0);
+
+    try {
+        ExecuteFile(filename, std::cerr);
+    }
+    catch (std::exception& e) {
+        LogInfo() << "Errors occured." << '\n';
+    }
 }
 
 #if GTPENGINE_INTERRUPT
