@@ -230,6 +230,8 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 			firstMove != HexPointUtil::fromString("h1") &&
 			firstMove != HexPointUtil::fromString("i1") &&
 			firstMove != HexPointUtil::fromString("j1") &&
+			firstMove != HexPointUtil::fromString("k1") &&
+			firstMove != HexPointUtil::fromString("a11") &&
 			firstMove != HexPointUtil::fromString("b11") &&
 			firstMove != HexPointUtil::fromString("c11") &&
 			firstMove != HexPointUtil::fromString("d11") &&
@@ -242,14 +244,10 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 			firstMove != HexPointUtil::fromString("k11") &&
 			firstMove != HexPointUtil::fromString("a2") &&
 			firstMove != HexPointUtil::fromString("b2") &&
-			firstMove != HexPointUtil::fromString("c2") &&
 			firstMove != HexPointUtil::fromString("k10") &&
 			firstMove != HexPointUtil::fromString("j10") &&
-			firstMove != HexPointUtil::fromString("i10") &&
 			firstMove != HexPointUtil::fromString("a3") &&
-			firstMove != HexPointUtil::fromString("b3") &&
 			firstMove != HexPointUtil::fromString("k9") &&
-			firstMove != HexPointUtil::fromString("j9") &&
 			firstMove != HexPointUtil::fromString("a4") &&
 			firstMove != HexPointUtil::fromString("k8") &&
 			firstMove != HexPointUtil::fromString("a5") &&
