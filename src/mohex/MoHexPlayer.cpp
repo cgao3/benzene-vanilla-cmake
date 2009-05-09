@@ -27,16 +27,15 @@ using namespace benzene;
 
 namespace {
 
-void CommonPrefix(const MoveSequence& a, const MoveSequence& b, 
-                  std::size_t& prefixLen)
+/** Returns true if one is a prefix of the other. */
+bool IsPrefixOf(const MoveSequence& a, const MoveSequence& b)
 {
-    prefixLen = 0;
     for (std::size_t i = 0; i < a.size() && i < b.size(); ++i)
     {
         if (a[i] != b[i])
-            break;
-        ++prefixLen;
+            return false;
     }
+    return true;
 }
 
 }
@@ -326,13 +325,28 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         return 0;
     }
 
-    // Board size must be the same
+    // Board size must be the same. This also catches the case where
+    // no previous search has been performed.
     if (oldData.board_width != newData.board_width ||
         oldData.board_height != newData.board_height)
         return 0;
 
     const MoveSequence& oldSequence = oldData.game_sequence;
     const MoveSequence& newSequence = newData.game_sequence;
+
+    LogInfo() << "Old: " << oldSequence << '\n';
+    LogInfo() << "New: "<< newSequence << '\n';
+
+    if (oldSequence.size() > newSequence.size())
+    {
+        LogInfo() << "ReuseSubtree: Backtracked to an earlier state." << '\n';
+        return 0;
+    }
+    if (!IsPrefixOf(oldSequence, newSequence))
+    {
+        LogInfo() << "ReuseSubtree: Not a continuation." << '\n';
+        return 0;
+    }
 
     bool samePosition = (oldSequence == newSequence
                          && oldData.root_to_play == newData.root_to_play
@@ -342,11 +356,10 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
     if (samePosition)
         LogInfo() << "ReuseSubtree: in same position as last time!" << '\n';
 
-    // If no old knowledge for the current position, then we cannot
-    // reuse the tree (since the root is given its knowledge and using
-    // this knowledge would require pruning the trees under the root's
-    // children). It is easier to just throw away the tree, since it
-    // must be pretty small.
+    // If no old knowledge for the new root in the old tree, then we
+    // cannot reuse the tree (since the root is given its knowledge
+    // and using this knowledge would require pruning the trees under
+    // the root's children). 
     if (!samePosition)
     {
         HexUctStoneData oldStateData;
@@ -378,30 +391,10 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         HexAssert(oldStateData == newData.root_stones);
     }
 
-    LogInfo() << "Old: " << oldSequence << '\n';
-    LogInfo() << "New: "<< newSequence << '\n';
-
-    if (oldSequence.size() > newSequence.size())
-    {
-        LogInfo() << "ReuseSubtree: Backtracked to an earlier state." << '\n';
-        return 0;
-    }
-
-    std::size_t prefixLen = 0;
-    if (!oldSequence.empty())
-    {
-        CommonPrefix(oldSequence, newSequence, prefixLen);
-        if (prefixLen == 0)
-        {
-            LogInfo() << "ReuseSubtree: No common prefix." << '\n';
-            return 0;
-        }
-    }
-
     // Ensure alternating colors and extract suffix
     MoveSequence suffix;
     std::vector<SgMove> sequence;
-    for (std::size_t i = prefixLen; i < newSequence.size(); ++i)
+    for (std::size_t i = oldSequence.size(); i < newSequence.size(); ++i)
     {
         if (i && newSequence[i-1].color() == newSequence[i].color())
         {
@@ -427,13 +420,6 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         for (BitsetIterator it(newData.root_consider); it; ++it)
             moves.push_back(static_cast<SgMove>(*it));
         tree.SetChildren(0, tree.Root(), moves);
-
-//         for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
-//         {
-//             LogInfo() << '(' << static_cast<HexPoint>((*it).Move())
-//                       << ", " << (*it).MoveCount() << ')';
-//         }
-//         LogInfo() << '\n';
 
         float reuse = static_cast<float>(newTreeNodes) / oldTreeNodes;
         int reusePercent = static_cast<int>(100 * reuse);
