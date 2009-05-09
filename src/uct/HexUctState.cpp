@@ -171,7 +171,6 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
     else
 	m_bd->update(cell);
     
-    m_numStonesPlayed++;
     m_lastMovePlayed = cell;
     m_new_game = false;
 }
@@ -180,8 +179,6 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
 bool HexUctState::GenerateAllMoves(std::size_t count, 
                                    std::vector<SgMoveInfo>& moves)
 {
-    SG_ASSERT(m_new_game == (m_numStonesPlayed == 0));
-
     bitset_t moveset;
     bool have_consider_set = false;
     if (m_new_game)
@@ -265,7 +262,6 @@ void HexUctState::GameStart()
 {
     m_new_game = true;
     m_isInPlayout = false;
-    m_numStonesPlayed = 0;
     m_game_sequence = m_shared_data->game_sequence;
     m_toPlay = m_shared_data->root_to_play;
     m_lastMovePlayed = m_shared_data->root_last_move_played;

@@ -230,9 +230,6 @@ private:
 	HexUctSearchPolicy. */
     HexPoint m_lastMovePlayed;
 
-    /** Number of stones played since initial board position */
-    int m_numStonesPlayed;
-
     /** True at the start of a game until the first move is played. */
     bool m_new_game;
 
