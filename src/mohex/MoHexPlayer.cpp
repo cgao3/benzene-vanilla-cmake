@@ -167,7 +167,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 #endif
     os << "Elapsed Time   " << Time::Formatted(end - start) << '\n';
     m_search.WriteStatistics(os);
-    os << "Score          " << score << "\n"
+    os << "Score          " << std::setprecision(2) << score << "\n"
        << "Sequence      ";
     for (int i=0; i<(int)sequence.size(); i++) 
         os << " " << HexUctUtil::MoveString(sequence[i]);
