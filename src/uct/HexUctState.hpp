@@ -65,19 +65,39 @@ inline bool HexUctStoneData::operator==(const HexUctStoneData& other) const
 /** Data shared among all threads. */
 struct HexUctSharedData
 {
-    HexColor root_to_play;
-    HexPoint root_last_move_played;
-    bitset_t root_consider;
+    /** Width of board used in last search. */
+    int board_width;
+
+    /** Height of board used in last search. */ 
+    int board_height;
+
+    /** Stones in root position. */
     HexUctStoneData root_stones;
+
+    /** Moves from begining of game leading to this position. */
     MoveSequence game_sequence;
 
+    /** Color to play. */
+    HexColor root_to_play;
+
+    /** Move played that led to this state.
+        @todo Remove and use game_sequence to get this info?
+    */
+    HexPoint root_last_move_played;
+
+    /** Set of moves to consider from the root. */
+    bitset_t root_consider;
+
+    /** Stores fillin information for states in the tree. */
     HashMap<HexUctStoneData> stones;
 
     HexUctSharedData();
 };
 
 inline HexUctSharedData::HexUctSharedData()
-    : stones(16)
+    : board_width(-1), 
+      board_height(-1), 
+      stones(16)
 { 
 }
 
