@@ -56,11 +56,9 @@ run-checked() {
 # Fuego-0.3
 
 cd $TEST_DIR || exit 1
-rm -rf fuego-0.3
-svn co https://fuego.svn.sourceforge.net/svnroot/fuego/branches/VERSION_0_3_FIXES/ fuego-0.3 || exit 1
-cd fuego-0.3 || exit 1
-aclocal
-autoheader
+rm -rf fuego
+svn co https://fuego.svn.sourceforge.net/svnroot/fuego/trunk fuego || exit 1
+cd fuego || exit 1
 autoreconf -i
 ./configure --enable-assert
 run-checked "make" "FUEGO COMPILATION"
@@ -72,10 +70,8 @@ rm -rf benzene
 git clone /usr/tees1/cshome/broderic/git/benzene.git/ benzene || exit 1
 cd benzene || exit 1
 git pull
-aclocal
-autoheader
 autoreconf -i
-env FUEGO_ROOT=$TEST_DIR/fuego-0.3 ./configure --enable-assert
+env FUEGO_ROOT=$TEST_DIR/fuego ./configure --enable-assert
 run-checked "make" "BENZENE COMPILATION"
 run-checked "make check" "BENZENE MAKE CHECK"
 run-checked "src/test/benzene_unittest" "BENZENE UNIT TESTS"
