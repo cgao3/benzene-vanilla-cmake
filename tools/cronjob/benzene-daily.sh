@@ -84,7 +84,7 @@ make -s
 
 tar czf benzene-doc.tar.gz benzene-doc/
 scp benzene-doc.tar.gz $WEBPAGE
-cd $WEBPAGE && rm -rf benzene-doc && tar xzf benzene-doc.tar.gz && chmod a+rx -R benzene-doc
+cd $WEBPAGE && rm -rf benzene-doc && tar xzf benzene-doc.tar.gz && chmod a+rX -R benzene-doc
 
 echo -e "$(date +'%F')\tSUCCESS" >> $RESULT_TABLE_LOCAL
 cp $RESULT_TABLE_LOCAL $RESULT_TABLE
