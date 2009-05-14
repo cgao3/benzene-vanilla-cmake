@@ -5,7 +5,7 @@
 #
 NAME1=mohex-$1
 
-DIRECTORY="jobs/"$NAME1"-vs-six
+DIRECTORY="jobs/"$NAME1"-vs-six"
 mkdir -p $DIRECTORY
 
 ./twogtp.py \
