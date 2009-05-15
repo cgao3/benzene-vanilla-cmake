@@ -115,7 +115,8 @@ public:
     /** Flushes the log. */
     void Flush();
 
-    /** Pipes text into the log. */
+    /** Pipes text into the log. If text ends in a '\n', log is
+        flushed. */
     template<typename TYPE>
     Logger& operator<<(const TYPE& type);
 
@@ -161,17 +162,11 @@ private:
 template<typename TYPE>
 Logger& Logger::operator<<(const TYPE& type)
 {
-    GetThreadBuffer().buffer << type;
-    return *this;
-}
-
-template<>
-inline Logger& Logger::operator<< <char> (const char& type)
-{
-    if (type == '\n')
-	Flush();
-    else
-	GetThreadBuffer().buffer << type;
+    ThreadBuffer& tb = GetThreadBuffer();
+    tb.buffer << type;
+    std::string str(tb.buffer.str());
+    if (!str.empty() && str[str.size() - 1] == '\n')
+        Flush();
     return *this;
 }
 

@@ -67,7 +67,7 @@ Logger::ThreadBuffer& Logger::GetThreadBuffer()
         else
         {
             // no free buffer... just return first buffer. This sucks!!
-            std::cerr << "####### LOG HAS NO FREE BUFFER! #######" << std::endl;
+            std::cerr << "####### LOG HAS NO FREE BUFFER! #######\n";
             i = 0;
         }
     }
@@ -109,7 +109,7 @@ void Logger::Flush()
         std::ostream& stream = *m_streams[i];
         stream << std::hex << pthread_self() << " " 
                << LogLevelUtil::toString(level) << ": " 
-               << buffer.buffer.str() << std::endl;
+               << buffer.buffer.str();
         stream.flush();
     }
 
