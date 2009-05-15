@@ -13,6 +13,7 @@
 #include "Resistance.hpp"
 #include "Solver.hpp"
 #include "Time.hpp"
+#include "VCUtils.hpp"
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
 #include "PlayerUtils.hpp"
@@ -1032,7 +1033,7 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
                     HexPoint edge2 = HexPointUtil::colorEdge2(color);
                     if (brd.Cons(color).Exists(edge1, edge2, VC::SEMI))
                         winning_semi_exists = true;
-                    bitset_t mp = brd.getMustplay(other);
+                    bitset_t mp = VCUtils::GetMustplay(brd, other);
                     mustplay_size = mp.count();
                 } 
                 
@@ -1345,11 +1346,9 @@ bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color,
 bitset_t SolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
                                      bitset_t& proof)
 {
-    bitset_t ret = brd.getMustplay(color);
+    bitset_t ret = VCUtils::GetMustplay(brd, color);
     if (ret.none()) 
-    {
         LogWarning() << "EMPTY MUSTPLAY!" << '\n' << brd << '\n';
-    }
     HexAssert(ret.any());
     
     const InferiorCells& inf = brd.getInferiorCells();

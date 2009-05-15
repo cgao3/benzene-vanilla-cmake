@@ -71,10 +71,6 @@ public:
 
     //-----------------------------------------------------------------------
 
-    /** Returns the vc mustplay for color (ie, the intersection of all
-        of the other color's winning semi-connections). */
-    bitset_t getMustplay(HexColor color) const;
-
     /** Copies state of stoneboard into this board. */
     void SetState(const StoneBoard& brd);
 
@@ -147,37 +143,8 @@ public:
     const VCBuilder& Builder() const;
 
 private:
-
-    void Initialize();
-
-    /** No assignments allowed! Use the copy constructor if you must
-        make a copy, but you shouldn't be copying boards around very
-        often. */
-    void operator=(const HexBoard& other);
-
-    void ComputeInferiorCells(HexColor color_to_move, 
-                              EndgameFillin endgame_mode);
-
-    void BuildVCs();
-
-    void BuildVCs(bitset_t added[BLACK_AND_WHITE], bool mark_the_log = true);
-
-    void RevertVCs();
-
-    /** In non-terminal states, checks for combinatorial decomposition
-        with a vc using FindCombinatorialDecomposition(). Plays the carrier
-	using AddStones(). Loops until no more decompositions are found. */
-    void HandleVCDecomposition(HexColor color_to_move, 
-                               EndgameFillin endgame_mode);
-
-    void ClearHistory();
-
-    void PushHistory(HexColor color, HexPoint cell);
-
-    void PopHistory();
-
-    //-----------------------------------------------------------------------
-
+    
+    /** Stores state of the board. */
     struct History
     {
         /** Saved board state. */
@@ -201,10 +168,10 @@ private:
     //-----------------------------------------------------------------------
 
     /** @name Member variables. 
-        
-        @warning If you change anything here, be sure to 
-        update the copy constructor!!
+        @warning If you change anything here, be sure to update the
+        copy constructor!!
     */
+
     // @{
 
     /** ICEngine used to compute inferior cells. */
@@ -238,6 +205,33 @@ private:
     bool m_backup_ice_info;
 
     // @}
+    
+    //-----------------------------------------------------------------------
+
+    /** No assignments allowed! Use the copy constructor if you must
+        make a copy, but you shouldn't be copying boards around very
+        often. */
+    void operator=(const HexBoard& other);
+
+    void Initialize();
+
+    void ComputeInferiorCells(HexColor color_to_move, 
+                              EndgameFillin endgame_mode);
+
+    void BuildVCs();
+
+    void BuildVCs(bitset_t added[BLACK_AND_WHITE], bool mark_the_log = true);
+
+    void RevertVCs();
+
+    void HandleVCDecomposition(HexColor color_to_move, 
+                               EndgameFillin endgame_mode);
+
+    void ClearHistory();
+
+    void PushHistory(HexColor color, HexPoint cell);
+
+    void PopHistory();
 };
 
 inline bitset_t HexBoard::getDead() const

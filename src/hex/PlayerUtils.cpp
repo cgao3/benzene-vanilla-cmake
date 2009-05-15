@@ -6,6 +6,7 @@
 #include "PlayerUtils.hpp"
 #include "BitsetIterator.hpp"
 #include "VCSet.hpp"
+#include "VCUtils.hpp"
 
 using namespace benzene;
 
@@ -255,24 +256,21 @@ bitset_t PlayerUtils::MovesToConsider(const HexBoard& brd, HexColor color)
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(!IsDeterminedState(brd, color));
     
-    bitset_t consider = brd.getMustplay(color);
+    bitset_t consider = VCUtils::GetMustplay(brd, color);
     HexAssert(consider.any());
     
-    // prune out as many inferior moves as possible
+    // Prune out as many inferior moves as possible
     TightenMoveBitset(consider, brd.getInferiorCells());
     if (consider.count() == 1) 
-    {
-        LogFine() << "Mustplay is singleton." << '\n';
-    }
+        LogFine() << "Mustplay is singleton.\n";
 
     LogFine() << "Moves to consider for " << color << ":" 
-             << brd.printBitset(consider)
-             << '\n';
+             << brd.printBitset(consider) << '\n';
     return consider;
 }
 
-bitset_t 
-PlayerUtils::MovesToConsiderInLosingState(const HexBoard& brd, HexColor color)
+bitset_t PlayerUtils::MovesToConsiderInLosingState(const HexBoard& brd, 
+                                                   HexColor color)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(!IsLostGame(brd, color));
@@ -283,8 +281,7 @@ PlayerUtils::MovesToConsiderInLosingState(const HexBoard& brd, HexColor color)
     TightenMoveBitset(consider, brd.getInferiorCells());
 
     LogFine() << "Losing moves to consider for " << color << ":" 
-             << brd.printBitset(consider)
-             << '\n';
+              << brd.printBitset(consider) << '\n';
 
     return consider;
 }

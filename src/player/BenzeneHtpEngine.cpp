@@ -1036,7 +1036,7 @@ void BenzeneHtpEngine::CmdGetMustPlay(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = ColorArg(cmd, 0);
-    bitset_t mustplay = m_pe.brd->getMustplay(color);
+    bitset_t mustplay = VCUtils::GetMustplay(*m_pe.brd, color);
     InferiorCells inf(m_pe.brd->getInferiorCells());
     inf.ClearVulnerable();
     inf.ClearDominated();
