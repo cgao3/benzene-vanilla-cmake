@@ -70,42 +70,12 @@ void HexBoard::SetState(const StoneBoard& brd)
 
 //----------------------------------------------------------------------------
 
-void HexBoard::ComputeInferiorCells(HexColor color_to_move, 
-                                    EndgameFillin endgame_mode)
+void HexBoard::ComputeInferiorCells(HexColor color_to_move)
 {
     if (m_use_ice) 
     {
         InferiorCells inf;
         m_ice->ComputeInferiorCells(color_to_move, *this, inf);
-
-        if (endgame_mode == REMOVE_WINNING_FILLIN && isGameOver()) 
-        {
-            LogFine() << "Captured cells caused win! Removing...\n";
-
-            HexColor winner = getWinner();
-            HexAssert(winner != EMPTY);
-
-            // Need to remove winner's captured, since may cause game
-            // to be over, resulting in a finished game with no
-            // available moves.  Likewise, after removing the captured
-            // the dead may also provide a win, so we need to remove
-            // them as well. This is because the dead are a function
-            // of the captured.
-            removeColor(winner, inf.Captured(winner));
-            removeColor(winner, inf.PermInf(winner));
-            removeColor(DEAD_COLOR, inf.Dead());
-
-            inf.ClearPermInf(winner);
-            inf.ClearCaptured(winner);
-            inf.ClearDead();
-            
-            update();
-            absorb();
-            
-            HexAssert(!isGameOver());
-        } 
-
-        // update the set of inferior cells with this new data
         IceUtil::Update(m_inf, inf, *this);
     }
 }
@@ -137,8 +107,7 @@ void HexBoard::RevertVCs()
     with a vc using BoardUtils::FindCombinatorialDecomposition(). 
     Plays the carrier using AddStones(). Loops until no more
     decompositions are found. */
-void HexBoard::HandleVCDecomposition(HexColor color_to_move, 
-                                     EndgameFillin endgame_mode)
+void HexBoard::HandleVCDecomposition(HexColor color_to_move)
 {
     if (!m_use_decompositions) 
         return;
@@ -162,7 +131,7 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move,
 			  << *c << "." << '\n' 
                           << printBitset(captured) << '\n';
             
-                AddStones(*c, captured, color_to_move, endgame_mode);
+                AddStones(*c, captured, color_to_move);
                 m_inf.AddCaptured(*c, captured);
             
                 LogFine() << "After decomposition " << decompositions 
@@ -179,7 +148,7 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move,
     LogFine() << "Found " << decompositions << " decompositions.\n";
 }
 
-void HexBoard::ComputeAll(HexColor color_to_move, EndgameFillin endgame_mode)
+void HexBoard::ComputeAll(HexColor color_to_move)
 {
     double s = Time::Get();
     
@@ -189,7 +158,7 @@ void HexBoard::ComputeAll(HexColor color_to_move, EndgameFillin endgame_mode)
 
     bitset_t old_black = getColor(BLACK);
     bitset_t old_white = getColor(WHITE);
-    ComputeInferiorCells(color_to_move, endgame_mode);
+    ComputeInferiorCells(color_to_move);
 
     bitset_t added[BLACK_AND_WHITE];
     added[BLACK] = getColor(BLACK) - old_black;
@@ -198,7 +167,7 @@ void HexBoard::ComputeAll(HexColor color_to_move, EndgameFillin endgame_mode)
     if (m_use_vcs)
     {
         BuildVCs();
-        HandleVCDecomposition(color_to_move, endgame_mode);
+        HandleVCDecomposition(color_to_move);
     }
 
     double e = Time::Get();
@@ -218,7 +187,7 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
     update(cell);
     absorb(cell);
 
-    ComputeInferiorCells(!color, DO_NOT_REMOVE_WINNING_FILLIN);
+    ComputeInferiorCells(!color);
 
     bitset_t added[BLACK_AND_WHITE];
     added[BLACK] = getColor(BLACK) - old_black;
@@ -227,7 +196,7 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
     if (m_use_vcs)
     {
         BuildVCs(added);
-        HandleVCDecomposition(!color, DO_NOT_REMOVE_WINNING_FILLIN);
+        HandleVCDecomposition(!color);
     }
     double e = Time::Get();
     LogFine() << (e-s) << "s to play stones.\n";
@@ -249,7 +218,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
     update(played);
     absorb(played);
 
-    ComputeInferiorCells(color_to_move, DO_NOT_REMOVE_WINNING_FILLIN);
+    ComputeInferiorCells(color_to_move);
 
     bitset_t added[BLACK_AND_WHITE];
     added[BLACK] = getColor(BLACK) - old_black;
@@ -258,8 +227,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
     if (m_use_vcs)
     {
         BuildVCs(added);
-        HandleVCDecomposition(color_to_move, 
-                              DO_NOT_REMOVE_WINNING_FILLIN);
+        HandleVCDecomposition(color_to_move);
     }
 
     double e = Time::Get();
@@ -267,8 +235,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 }
 
 void HexBoard::AddStones(HexColor color, const bitset_t& played,
-                         HexColor color_to_move, 
-                         EndgameFillin endgame_mode)
+                         HexColor color_to_move)
 {
     HexAssert(BitsetUtil::IsSubsetOf(played, getEmpty()));
     LogFine() << "Adding (" << color << ", "
@@ -282,7 +249,7 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     update(played);
     absorb(played);
 
-    ComputeInferiorCells(color_to_move, endgame_mode);
+    ComputeInferiorCells(color_to_move);
 
     bitset_t added[BLACK_AND_WHITE];
     added[BLACK] = getColor(BLACK) - old_black;

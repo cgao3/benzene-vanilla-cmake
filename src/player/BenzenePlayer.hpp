@@ -118,19 +118,8 @@ public:
 
 private:
 
-    /** Finds inferior cells, builds vcs. Sets moves to consider to
-        all empty cells. 
-        @param brd
-        @param color
-        @param consider
-        @param max_time
-        @param score
-        @return INVALID_POINT if a non-terminal state, otherwise the
-        move to play in the terminal state.
-    */
     HexPoint init_search(HexBoard& brd, HexColor color, 
-                         bitset_t& consider,
-                         double max_time, double& score);
+                         bitset_t& consider, double& score);
 };
 
 //----------------------------------------------------------------------------

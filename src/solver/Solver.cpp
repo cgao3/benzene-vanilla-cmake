@@ -171,7 +171,7 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
     }
 
     // Compute VCs/IC info for this state.
-    brd.ComputeAll(tomove, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    brd.ComputeAll(tomove);
 
     // Solve it!
     m_completed.resize(BITSETSIZE);

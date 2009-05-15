@@ -76,20 +76,8 @@ public:
 
     //-----------------------------------------------------------------------
 
-    /** Controls how to deal with endgames caused by fill-in. */
-    typedef enum 
-    { 
-        /** All of the winning player's fill-in is removed if the fill-in
-            creates a solid winning chain. */
-        REMOVE_WINNING_FILLIN,
-
-        /** Winning fill-in is not removed. */
-        DO_NOT_REMOVE_WINNING_FILLIN 
-
-    } EndgameFillin;
-
     /** Clears history.  Computes dead/vcs for current state. */
-    virtual void ComputeAll(HexColor color, EndgameFillin endgame_mode);
+    virtual void ComputeAll(HexColor color);
 
     /** Stores old state on stack, plays move to board, updates
         ics/vcs.  Hash is modified by the move.  Allows ice info to
@@ -109,8 +97,7 @@ public:
         onto stack, so a call to UndoMove() will undo these changes
         along with the last changes that changed the stack. */
     virtual void AddStones(HexColor color, const bitset_t& played,
-                           HexColor color_to_move, 
-                           EndgameFillin endgame_mode);
+                           HexColor color_to_move);
 
     /** Reverts to last state stored on the stack, restoring all state
         info. If the option is on, also backs up inferior cell
@@ -215,8 +202,7 @@ private:
 
     void Initialize();
 
-    void ComputeInferiorCells(HexColor color_to_move, 
-                              EndgameFillin endgame_mode);
+    void ComputeInferiorCells(HexColor color_to_move);
 
     void BuildVCs();
 
@@ -224,8 +210,7 @@ private:
 
     void RevertVCs();
 
-    void HandleVCDecomposition(HexColor color_to_move, 
-                               EndgameFillin endgame_mode);
+    void HandleVCDecomposition(HexColor color_to_move);
 
     void ClearHistory();
 

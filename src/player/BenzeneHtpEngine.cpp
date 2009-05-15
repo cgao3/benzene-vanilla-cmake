@@ -807,7 +807,7 @@ void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.ComputeAll(BLACK, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    brd.ComputeAll(BLACK);
 
     bitset_t capturedVC;
     if (BoardUtils::FindCombinatorialDecomposition(brd, color, capturedVC)) {
@@ -822,14 +822,14 @@ void BenzeneHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.ComputeAll(BLACK, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    brd.ComputeAll(BLACK);
     HexPoint group;
     bitset_t capturedVC;
     if (BoardUtils::FindSplittingDecomposition(brd, color, group,
-					       capturedVC)) {
+					       capturedVC)) 
+    {
         LogInfo() << "Found split decomp: "
-                 << HexPointUtil::toString(group) << "!"
-                 << '\n';
+                  << HexPointUtil::toString(group) << "!\n";
         PrintBitsetToHTP(cmd, capturedVC);
     }
 }
@@ -942,7 +942,7 @@ void BenzeneHtpEngine::CmdBuildStatic(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.ComputeAll(color, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    brd.ComputeAll(color);
     cmd << brd.getInferiorCells().GuiOutput();
     if (!PlayerUtils::IsDeterminedState(brd, color))
     {
@@ -1110,7 +1110,7 @@ void BenzeneHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.ComputeAll(color, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    brd.ComputeAll(color);
     TwoDistance twod(TwoDistance::ADJACENT);
     twod.Evaluate(brd);
 
@@ -1131,7 +1131,7 @@ void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.ComputeAll(color, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    brd.ComputeAll(color);
     Resistance resist;
     resist.Evaluate(brd);
 
@@ -1156,7 +1156,7 @@ void BenzeneHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.ComputeAll(color, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    brd.ComputeAll(color);
     Resistance resist;
     resist.Evaluate(brd);
     HexEval base = resist.Score();
@@ -1181,7 +1181,7 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.ComputeAll(color, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    brd.ComputeAll(color);
 
     // Pre-compute edge adjacencies
     bitset_t northNbs 
@@ -1306,7 +1306,7 @@ void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)
     }
 
     HexBoard& brd = m_se.SyncBoard(m_game->Board());
-    brd.ComputeAll(color, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    brd.ComputeAll(color);
     bitset_t consider = PlayerUtils::MovesToConsider(brd, color);
     bitset_t winning;
 

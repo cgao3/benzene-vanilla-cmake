@@ -309,7 +309,7 @@ bitset_t HexUctState::ComputeKnowledge()
     m_vc_brd->setColor(BLACK, m_bd->getBlack() & m_bd->getPlayed());
     m_vc_brd->setColor(WHITE, m_bd->getWhite() & m_bd->getPlayed());
     m_vc_brd->setPlayed(m_bd->getPlayed());
-    m_vc_brd->ComputeAll(m_toPlay, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    m_vc_brd->ComputeAll(m_toPlay);
 
     // Consider set will be non-empty only if a non-determined state.
     bitset_t consider;

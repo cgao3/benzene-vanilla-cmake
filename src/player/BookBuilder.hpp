@@ -550,7 +550,7 @@ bool BookBuilder<PLAYER>::GenerateMoves(const StoneBoard& brd,
     bool useICE = m_brd->UseICE();
     m_brd->SetUseICE(false);
     m_brd->SetState(brd);
-    m_brd->ComputeAll(toMove, HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    m_brd->ComputeAll(toMove);
     m_brd->SetUseICE(useICE);
 
     if (PlayerUtils::IsDeterminedState(*m_brd, toMove, value))

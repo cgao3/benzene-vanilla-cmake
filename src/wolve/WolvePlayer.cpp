@@ -301,17 +301,11 @@ void WolveSearch::OnSearchComplete()
 
 void WolveSearch::SetupNonFillinBoard()
 {
-    m_no_fillin_board->startNewGame();
-    m_no_fillin_board->setColor(BLACK, m_brd->getBlack());
-    m_no_fillin_board->setColor(WHITE, m_brd->getWhite());    
-    m_no_fillin_board->setPlayed(m_brd->getPlayed());
+    m_no_fillin_board->SetState(*m_brd);
     // do not use ICE or decomps on our board
     m_no_fillin_board->SetUseICE(false);
     m_no_fillin_board->SetUseDecompositions(false);
-    m_no_fillin_board->ComputeAll(m_toplay, 
-                                  // note this does not really matter
-                                  // since we aren't using ice anyway!
-                                  HexBoard::DO_NOT_REMOVE_WINNING_FILLIN);
+    m_no_fillin_board->ComputeAll(m_toplay); 
 }
 
 void WolveSearch::ComputeResistance(Resistance& resist)
