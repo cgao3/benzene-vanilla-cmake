@@ -123,15 +123,6 @@ public:
 
     //-----------------------------------------------------------------------
 
-    /** Returns domination arcs added from backing-up. */
-    const std::set<HexPointPair>& GetBackedUp() const;
-
-    /** Adds domination arcs in dom to set of inferior cells for this
-        state. */
-    void AddDominationArcs(const std::set<HexPointPair>& dom);
-
-    //-----------------------------------------------------------------------
-
     /** Returns the set of dead cells on the board. This is the union
         of all cells found dead previously during the history of moves
         since the last ComputeAll() call.  */
@@ -195,9 +186,6 @@ private:
         /** The inferior cell data for this state. */
         InferiorCells inf;
 
-        /** Domination arcs added from backing-up. */
-        std::set<HexPointPair> backedup;
-
         /** Color to play from this state. */
         HexColor to_play;
         
@@ -205,8 +193,8 @@ private:
         HexPoint last_played;
 
         History(const StoneBoard& b, const InferiorCells& i, 
-                const std::set<HexPointPair>& back, HexColor tp, HexPoint lp)
-            : board(b), inf(i), backedup(back), to_play(tp), last_played(lp) 
+                HexColor tp, HexPoint lp)
+            : board(b), inf(i), to_play(tp), last_played(lp) 
         { }
     };
 
@@ -237,10 +225,6 @@ private:
     /** The set of inferior cells for the current boardstate. */
     InferiorCells m_inf;
 
-    /** Domination arcs added from backing-up ic info from moves
-        played from this state. */
-    std::set<HexPointPair> m_backedup;
-
     /** See UseVCs() */
     bool m_use_vcs;
 
@@ -264,11 +248,6 @@ inline bitset_t HexBoard::getDead() const
 inline const InferiorCells& HexBoard::getInferiorCells() const
 {
     return m_inf;
-}
-
-inline const std::set<HexPointPair>& HexBoard::GetBackedUp() const
-{
-    return m_backedup;
 }
 
 inline const ICEngine& HexBoard::ICE() const

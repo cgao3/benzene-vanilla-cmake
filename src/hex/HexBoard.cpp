@@ -35,7 +35,6 @@ HexBoard::HexBoard(const HexBoard& other)
       m_builder(other.m_builder),
       m_history(other.m_history),
       m_inf(other.m_inf),
-      m_backedup(other.m_backedup),
       m_use_vcs(other.m_use_vcs),
       m_use_ice(other.m_use_ice),
       m_use_decompositions(other.m_use_decompositions),
@@ -131,9 +130,6 @@ void HexBoard::ComputeInferiorCells(HexColor color_to_move,
 
         // update the set of inferior cells with this new data
         IceUtil::Update(m_inf, inf, *this);
-
-        // clear the set of backed-up domination arcs
-        m_backedup.clear();
     }
 }
 
@@ -349,10 +345,12 @@ void HexBoard::ClearHistory()
 
 void HexBoard::PushHistory(HexColor color, HexPoint cell)
 {
-    History hist(*this, m_inf, m_backedup, color, cell);
+    History hist(*this, m_inf, color, cell);
     m_history.push_back(hist);
 }
 
+/** Restores the old board position, backs up ice info, and reverts
+    virtual connections. */
 void HexBoard::PopHistory()
 {
     HexAssert(!m_history.empty());
@@ -360,36 +358,17 @@ void HexBoard::PopHistory()
     History hist = m_history.back();
     m_history.pop_back();
 
-    // restore the old board position
-    startNewGame();
-    setColor(BLACK, hist.board.getBlack());
-    setColor(WHITE, hist.board.getWhite());
-    setPlayed(hist.board.getPlayed());
-
-    // backup the ice info
+    SetState(hist.board);
     if (m_backup_ice_info && hist.last_played != INVALID_POINT)
     {
         bitset_t a = getEmpty() - hist.inf.All();
         a &= m_inf.Dead() | m_inf.Captured(hist.to_play);
 
-        for (BitsetIterator p(a); p; ++p) {
+        for (BitsetIterator p(a); p; ++p) 
             hist.inf.AddDominated(*p, hist.last_played);
-            hist.backedup.insert(std::make_pair(*p, hist.last_played));
-        }
     }
-
     m_inf = hist.inf;
-    m_backedup = hist.backedup;
-
     RevertVCs();
-}
-
-void HexBoard::AddDominationArcs(const std::set<HexPointPair>& dom)
-{
-    std::set<HexPointPair>::const_iterator it;
-    for (it=dom.begin(); it!=dom.end(); ++it) {
-        m_inf.AddDominated(it->first, it->second);
-    }
 }
 
 //----------------------------------------------------------------------------
