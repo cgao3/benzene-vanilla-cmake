@@ -283,8 +283,7 @@ void HexBoard::ClearHistory()
 
 void HexBoard::PushHistory(HexColor color, HexPoint cell)
 {
-    History hist(*this, m_inf, color, cell);
-    m_history.push_back(hist);
+    m_history.push_back(History(*this, m_inf, color, cell));
 }
 
 /** Restores the old board position, backs up ice info, and reverts
@@ -299,6 +298,9 @@ void HexBoard::PopHistory()
     SetState(hist.board);
     if (m_backup_ice_info && hist.last_played != INVALID_POINT)
     {
+        // Cells that were not marked as inferior in parent state
+        // and are either dead or captured (for the color to play in the
+        // parent state) are marked as dominated. 
         bitset_t a = getEmpty() - hist.inf.All();
         a &= m_inf.Dead() | m_inf.Captured(hist.to_play);
 
