@@ -38,6 +38,16 @@ void MoHexEngine::RegisterCmd(const std::string& name,
     Register(name, new GtpCallback<MoHexEngine>(this, method));
 }
 
+double MoHexEngine::TimeForMove(HexColor color)
+{
+    /** @todo Use a proper time control mechanism! */
+    MoHexPlayer* mohex = GetInstanceOf<MoHexPlayer>(&m_player);
+    if (!mohex)
+        throw HtpFailure("No MoHex instance!");
+
+    return std::min(m_game->TimeRemaining(color), mohex->MaxTime());
+}
+
 //----------------------------------------------------------------------------
 
 void MoHexEngine::MoHexParam(HtpCommand& cmd)

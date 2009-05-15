@@ -20,7 +20,7 @@ VulPreCheck::~VulPreCheck()
 
 HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
 				 HexColor color, bitset_t& consider,
-				 double time_remaining, double& score)
+				 double max_time, double& score)
 {
     LogWarning() << "Performing vulnerable pre-check..." << '\n';
     
@@ -80,7 +80,7 @@ HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
     }
     
     return m_player->pre_search(brd, game_state, color, consider,
-				time_remaining, score);
+				max_time, score);
 }
 
 //----------------------------------------------------------------------------

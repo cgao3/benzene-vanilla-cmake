@@ -66,7 +66,8 @@ void WolveEngine::RegisterCmd(const std::string& name,
 void WolveEngine::WolveParam(HtpCommand& cmd)
 {
     
-    WolvePlayer* wolve = BenzeneHtpEngine::GetInstanceOf<WolvePlayer>(&m_player);
+    WolvePlayer* wolve 
+        = BenzeneHtpEngine::GetInstanceOf<WolvePlayer>(&m_player);
 
     if (!wolve)
         throw HtpFailure("No Wolve instance!");

@@ -123,7 +123,7 @@ protected:
 
     virtual void NewGame(int width, int height);
     
-    virtual HexPoint GenMove(HexColor color, double time_remaining);
+    virtual HexPoint GenMove(HexColor color, double max_time);
 
     /** Searches through the player decorators to find an instance
         of type T. Returns 0 on failure. */
@@ -165,9 +165,9 @@ private:
     public:
         PlayerThread(BenzeneHtpEngine& engine, boost::mutex& mutex,
                      boost::barrier& barrier, HexColor color, 
-                     double time_remaining)
+                     double max_time)
             : m_engine(engine), m_mutex(mutex), m_barrier(barrier),
-              m_color(color), m_time_remaining(time_remaining) {};
+              m_color(color), m_max_time(max_time) {};
 
         void operator()();
     private:
@@ -175,7 +175,7 @@ private:
         boost::mutex& m_mutex;
         boost::barrier& m_barrier;
         HexColor m_color;
-        double m_time_remaining;
+        double m_max_time;
     };
 
     friend class SolverThread;
@@ -200,7 +200,7 @@ private:
 
     HexPoint m_parallelResult;
 
-    HexPoint ParallelGenMove(HexColor color, double time_remainging);
+    HexPoint ParallelGenMove(HexColor color, double max_time);
 };
 
 template<typename T> T* BenzeneHtpEngine::GetInstanceOf(BenzenePlayer* player)

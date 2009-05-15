@@ -48,6 +48,8 @@ public:
     virtual void StopPonder();
 #endif
 
+    double TimeForMove(HexColor color);
+
 private:
 
     BookBuilder<MoHexPlayer> m_bookBuilder;

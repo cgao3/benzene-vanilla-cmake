@@ -161,9 +161,9 @@ void SixHtpEngine::NewGame(int width, int height)
                                 m_game->AllowSwap()));
 }
 
-HexPoint SixHtpEngine::GenMove(HexColor color, double time_remaining)
+HexPoint SixHtpEngine::GenMove(HexColor color, double max_time)
 {
-    UNUSED(time_remaining);
+    UNUSED(max_time);
 
     HexMark mark = SixColor(color);
 

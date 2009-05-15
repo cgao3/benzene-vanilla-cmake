@@ -2,7 +2,7 @@ Benzene TODO file
 =================
 
 broderic [090506] (in rough order of importance)
-* Fix ponder ability in MoHex
+* Add time control to mohex
 * Handle terminal states properly in MoHex
   Ie, do not use fillin and deletion to do this
 * Create HexPosition class; make StoneBoard use it.

@@ -54,12 +54,12 @@ public:
                the board position as that of the game board. 
         @param game_state Game history up to this position.
         @param color Color to move in this position.
-        @param time_remaining Time in minutes remaining in game.
+        @param max_time Time in minutes remaining in game.
         @param score Return score of move here. 
     */
     HexPoint genmove(HexBoard& brd, 
                      const Game& game_state, HexColor color,
-                     double time_remaining, double& score);
+                     double max_time, double& score);
 
     //----------------------------------------------------------------------
 
@@ -76,14 +76,14 @@ public:
         @param color
         @param consider Moves to consider in this state. Can be
                modified. Passed into search().
-        @param time_remaining
+        @param max_time
         @param score
         @return INVALID_POINT on failure, otherwise a valid move on
         success.
     */
     virtual HexPoint pre_search(HexBoard& brd, const Game& game_state,
 				HexColor color, bitset_t& consider,
-                                double time_remaining, double& score);
+                                double max_time, double& score);
 
     /** Generates a move in the given gamestate.  Derived classes
         should extend this method. Score can be stored in score.
@@ -92,13 +92,13 @@ public:
         @param game_state
         @param color
         @param consider Moves to consider in this state. 
-        @param time_remaining
+        @param max_time
         @param score
         @return The move to play.
     */
     virtual HexPoint search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider,
-                            double time_remaining, double& score);
+                            double max_time, double& score);
     
     /** This method performs post processing on the move returned by
         search().  An example usage might be to check that the move
@@ -108,12 +108,12 @@ public:
         @param brd
         @param color
         @param move The move returned by search(). 
-        @param time_remaining
+        @param max_time
         @param score
         @return The modified move that will be played instead.  
     */
     virtual HexPoint post_search(HexPoint move, HexBoard& brd, 
-                                 HexColor color, double time_remaining, 
+                                 HexColor color, double max_time, 
                                  double& score);
 
 private:
@@ -123,14 +123,14 @@ private:
         @param brd
         @param color
         @param consider
-        @param time_remaining
+        @param max_time
         @param score
         @return INVALID_POINT if a non-terminal state, otherwise the
         move to play in the terminal state.
     */
     HexPoint init_search(HexBoard& brd, HexColor color, 
                          bitset_t& consider,
-                         double time_remaining, double& score);
+                         double max_time, double& score);
 };
 
 //----------------------------------------------------------------------------
@@ -163,7 +163,7 @@ public:
     */
     virtual HexPoint pre_search(HexBoard& brd, const Game& game_state,
 				HexColor color, bitset_t& consider,
-                                double time_remaining, double& score);
+                                double max_time, double& score);
     
     /** Extends BenzenePlayer::post_search(). If this implementation
         fails, postsearch() should call post_search() of player it is
@@ -171,7 +171,7 @@ public:
         chained together.
     */
     virtual HexPoint post_search(HexPoint move, HexBoard& brd, 
-                                 HexColor color, double time_remaining, 
+                                 HexColor color, double max_time, 
                                  double& score);
     
 protected:
@@ -179,7 +179,7 @@ protected:
     /** Calls search() method of player it is extending. */
     HexPoint search(HexBoard& brd, const Game& game_state,
 		    HexColor color, const bitset_t& consider,
-                    double time_remaining, double& score);
+                    double max_time, double& score);
 
     BenzenePlayer* m_player;
 };
@@ -210,14 +210,14 @@ BenzenePlayerFunctionality::pre_search(HexBoard& brd,
                                        const Game& game_state,
                                        HexColor color,
                                        bitset_t& consider,
-                                       double time_remaining,
+                                       double max_time,
                                        double& score)
 {
     UNUSED(brd); 
     UNUSED(game_state);
     UNUSED(color);
     UNUSED(consider);
-    UNUSED(time_remaining);
+    UNUSED(max_time);
     UNUSED(score);
     return INVALID_POINT;
 }
@@ -225,22 +225,22 @@ BenzenePlayerFunctionality::pre_search(HexBoard& brd,
 inline HexPoint 
 BenzenePlayerFunctionality::search(HexBoard& brd, const Game& game_state,
                                    HexColor color, const bitset_t& consider,
-                                   double time_remaining, double& score)
+                                   double max_time, double& score)
 {
     return m_player->search(brd, game_state, color, consider,
-			    time_remaining, score);
+			    max_time, score);
 }
 
 inline HexPoint 
 BenzenePlayerFunctionality::post_search(HexPoint move, 
                                         HexBoard& brd,
                                         HexColor color,
-                                        double time_remaining,
+                                        double max_time,
                                         double& score)
 {
     UNUSED(brd); 
     UNUSED(color);
-    UNUSED(time_remaining);
+    UNUSED(max_time);
     UNUSED(score);
     return move;
 }

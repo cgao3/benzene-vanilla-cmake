@@ -319,13 +319,13 @@ void BenzeneHtpEngine::NewGame(int width, int height)
 }
 
 /** Generates a move. */
-HexPoint BenzeneHtpEngine::GenMove(HexColor color, double time_remaining)
+HexPoint BenzeneHtpEngine::GenMove(HexColor color, double max_time)
 {
     if (m_useParallelSolver)
-        return ParallelGenMove(color, time_remaining);
+        return ParallelGenMove(color, max_time);
     double score;
     return m_player.genmove(m_pe.SyncBoard(m_game->Board()), *m_game, 
-                            color, time_remaining, score);
+                            color, max_time, score);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1484,7 +1484,7 @@ void BenzeneHtpEngine::PlayerThread::operator()()
     double score;
     HexBoard& brd = m_engine.m_pe.SyncBoard(m_engine.m_game->Board());
     HexPoint move = m_engine.m_player.genmove(brd, *m_engine.m_game,
-                                              m_color, m_time_remaining, 
+                                              m_color, m_max_time, 
                                               score);
     {
         boost::mutex::scoped_lock lock(m_mutex);

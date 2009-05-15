@@ -25,7 +25,7 @@ HandBookCheck::~HandBookCheck()
 
 HexPoint HandBookCheck::pre_search(HexBoard& brd, const Game& game_state,
 				   HexColor color, bitset_t& consider,
-				   double time_remaining, double& score)
+				   double max_time, double& score)
 {
     if (m_enabled) 
     {
@@ -34,7 +34,7 @@ HexPoint HandBookCheck::pre_search(HexBoard& brd, const Game& game_state,
             return response;
     }
     return m_player->pre_search(brd, game_state, color, consider,
-				time_remaining, score);
+				max_time, score);
 }
 
 //----------------------------------------------------------------------------

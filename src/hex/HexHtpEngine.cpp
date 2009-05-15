@@ -111,11 +111,17 @@ void HexHtpEngine::Play(HexColor color, HexPoint move)
     }
 }
 
-HexPoint HexHtpEngine::GenMove(HexColor color, double time_remaining)
+HexPoint HexHtpEngine::GenMove(HexColor color, double max_time)
 {
     UNUSED(color);
-    UNUSED(time_remaining);
+    UNUSED(max_time);
     return BoardUtils::RandomEmptyCell(m_game->Board());
+}
+
+/** Returns time remaining in the game. */
+double HexHtpEngine::TimeForMove(HexColor color)
+{
+    return m_game->TimeRemaining(color);
 }
  
 void HexHtpEngine::NewGame(int width, int height)
@@ -223,7 +229,7 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
     SgTimer timer;
     timer.Start();
     double oldTimeRemaining = m_game->TimeRemaining(color);
-    HexPoint move = GenMove(color, oldTimeRemaining);
+    HexPoint move = GenMove(color, TimeForMove(color));
     timer.Stop();
 
     m_game->SetTimeRemaining(color, oldTimeRemaining - timer.GetTime());

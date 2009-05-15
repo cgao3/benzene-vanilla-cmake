@@ -39,7 +39,7 @@ protected:
     /** Generates a move in the given gamestate using Solver. */
     virtual HexPoint search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider,
-                            double time_remaining, double& score);
+                            double max_time, double& score);
 
     Solver* m_solver;
 

@@ -86,7 +86,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
                              const Game& game_state,
 			     HexColor color,
                              const bitset_t& given_to_consider,
-                             double time_remaining,
+                             double max_time,
                              double& score)
 {
    
@@ -94,7 +94,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     HexAssert(!brd.isGameOver());
 
     double start = Time::Get();
-    PrintParameters(color, time_remaining);
+    PrintParameters(color, max_time);
 
     // Do presearch and abort if win found.
     SgTimer timer;
@@ -109,7 +109,6 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     }
     timer.Stop();
     double elapsed = timer.GetTime();
-    time_remaining -= elapsed;
     LogInfo() << "Time for PreSearch: " << Time::Formatted(elapsed) << '\n';
 
     // Create the initial state data
@@ -133,16 +132,6 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     }
     m_search.SetSharedData(data);
 
-    // Compute timelimit for this search. Use the minimum of the time
-    // left in the game and the m_max_time parameter.
-    double timelimit = std::min(time_remaining, m_max_time);
-    if (timelimit < 0) 
-    {
-        LogWarning() << "***** timelimit < 0!! *****" << '\n';
-        timelimit = m_max_time;
-    }
-    LogInfo() << "timelimit: " << timelimit << '\n';
-
     brd.ClearPatternCheckStats();
     int old_radius = brd.updateRadius();
     brd.setUpdateRadius(m_search.TreeUpdateRadius());
@@ -151,7 +140,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     std::vector<SgMove> sequence;
     std::vector<SgMove> rootFilter;
     m_search.SetBoard(brd);
-    score = m_search.Search(m_max_games, timelimit, sequence,
+    score = m_search.Search(m_max_games, max_time, sequence,
                             rootFilter, initTree, 0);
 
     brd.setUpdateRadius(old_radius);

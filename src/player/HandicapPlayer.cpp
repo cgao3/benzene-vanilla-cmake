@@ -29,11 +29,11 @@ HexPoint HandicapPlayer::search(HexBoard& brd,
                                 const Game& game_state,
 				HexColor color, 
                                 const bitset_t& consider,
-				double time_remaining, 
+				double max_time, 
                                 double& score)
 {
     UNUSED(consider);
-    UNUSED(time_remaining); 
+    UNUSED(max_time); 
     UNUSED(score);
 // NOTE: 'color' is currently used only in a few HexAsserts below. 
 // Remove this if it will be used outside of the HexAsserts!

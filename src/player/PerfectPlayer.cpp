@@ -30,12 +30,12 @@ HexPoint PerfectPlayer::search(HexBoard& brd,
                                const Game& game_state,
 			       HexColor color,
                                const bitset_t& consider,
-                               double time_remaining,
+                               double max_time,
                                double& score)
 {
     UNUSED(game_state);
     UNUSED(consider); 
-    UNUSED(time_remaining); 
+    UNUSED(max_time); 
 
     bool need_to_run_solver = true;
 

@@ -74,6 +74,10 @@ public:
 
 protected:
 
+    StoneBoard m_board;
+
+    boost::scoped_ptr<Game> m_game;
+
     /** Clears SgAbortFlag() */
     void BeforeHandleCommand();
 
@@ -89,17 +93,18 @@ protected:
     /** Plays a move. */
     virtual void Play(HexColor color, HexPoint move);
 
-
     /** Creates a new game on a board with given dimensions. */
     virtual void NewGame(int width, int height);
 
     /** Generates a move. */
-    virtual HexPoint GenMove(HexColor color, double time_remaining);
+    virtual HexPoint GenMove(HexColor color, double max_time);
+
+    /** Returns time available for the player to make their move. 
+        Default implementation returns time remaining in the game.
+     */
+    virtual double TimeForMove(HexColor color);
 
     void SetPosition(const SgNode* node);
-
-    StoneBoard m_board;
-    boost::scoped_ptr<Game> m_game;
 
 private:
     void RegisterCmd(const std::string& name,
