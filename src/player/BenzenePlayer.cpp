@@ -83,7 +83,7 @@ HexPoint BenzenePlayer::init_search(HexBoard& brd, HexColor color,
         brd.SetUseICE(false);
         brd.ComputeAll(color);
         brd.SetUseICE(oldUseIce);
-        HexAssert(!isGameOver());
+        HexAssert(!brd.isGameOver());
     } 
 
     consider = brd.getEmpty();
