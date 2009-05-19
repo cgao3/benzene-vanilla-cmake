@@ -28,7 +28,6 @@ HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
 	// Setup the board as it was prior to the opponent's last move.
 	MoveSequence gh = game_state.History();
 	PatternBoard b(brd.width(), brd.height());
-	b.startNewGame();
 	for (std::size_t i = 0; i + 1 < gh.size(); ++i) {
 	    HexPoint p = gh[i].point();
 	    HexColor c = gh[i].color();

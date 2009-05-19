@@ -365,7 +365,6 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         if (!(oldStateData == newData.root_stones))
         {
             StoneBoard brd(11);
-            brd.startNewGame();
             brd.setColor(BLACK, oldStateData.black);
             brd.setColor(WHITE, oldStateData.white);
             brd.setPlayed(oldStateData.played);

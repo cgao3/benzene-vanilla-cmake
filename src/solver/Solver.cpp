@@ -1407,6 +1407,7 @@ bitset_t SolverUtil::InitialProof(const HexBoard& brd, HexColor color)
     return proof;
 }
 
+/** @bug NOT THREADSAFE!!! */
 void SolverUtil::ShrinkProof(bitset_t& proof, 
                              const StoneBoard& board, HexColor loser, 
                              const ICEngine& ice)

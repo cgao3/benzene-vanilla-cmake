@@ -236,11 +236,6 @@ public:
     /** Return a string containing the pattern checking statistics. */
     std::string DumpPatternCheckStats();
 
-protected:
-
-    /** Clears pattern info. */
-    virtual void clear();
-
 private:
 
     /** Clears current pattern matching info. */

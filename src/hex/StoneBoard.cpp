@@ -10,20 +10,21 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+StoneBoard::StoneBoard()
+    : m_const(0)
+{
+}
+
 StoneBoard::StoneBoard(unsigned size)
     : m_const(&ConstBoard::Get(size))
 {
-    Init();
+    startNewGame();
 }
 
 StoneBoard::StoneBoard(unsigned width, unsigned height)
     : m_const(&ConstBoard::Get(width, height))
 {
-    Init();
-}
-
-void StoneBoard::Init()
-{
+    startNewGame();
 }
 
 StoneBoard::~StoneBoard()
@@ -165,8 +166,10 @@ void StoneBoard::ComputeHash()
 
 void StoneBoard::startNewGame()
 {
-    clear();
-    for (BWIterator it; it; ++it) {
+    m_played.reset();
+    for (BWIterator it; it; ++it) 
+    {
+        m_stones[*it].reset();
         playMove(*it, HexPointUtil::colorEdge1(*it));
         playMove(*it, HexPointUtil::colorEdge2(*it));
     }
@@ -348,19 +351,6 @@ std::string StoneBoard::printBitset(const bitset_t& b) const
     }
 
     return out.str();
-}
-
-//----------------------------------------------------------------------
-// protected members
-//----------------------------------------------------------------------
-
-void StoneBoard::clear()
-{
-    m_played.reset();
-    m_hash.reset();
-    for (BWIterator it; it; ++it)
-        m_stones[*it].reset();
-    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------

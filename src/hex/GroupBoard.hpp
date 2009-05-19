@@ -114,9 +114,7 @@ public:
         group. Old absorb information is cleared beforehand. */
     void absorb();
 
-protected:
-
-    virtual void clear();
+private:
 
     UnionFind<BITSETSIZE> m_groups;
 
@@ -130,8 +128,6 @@ protected:
     /** Computed neighbours.  A map<HexPoint, bitset> is too slow. */
     mutable bool m_nbs_computed;
     mutable bitset_t m_nbs[BLACK_WHITE_EMPTY][BITSETSIZE];
-
-private:
 
     void init();
 

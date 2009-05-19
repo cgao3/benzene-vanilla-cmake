@@ -276,10 +276,6 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
 
     RegisterCmd("misc-debug", &BenzeneHtpEngine::CmdMiscDebug);
 
-    // FIXME: remove these lines once StoneBoard is no longer inherited from
-    m_pe.brd->startNewGame();
-    m_se.brd->startNewGame();
-
     // Set some defaults
     m_se.buildParam.max_ors = 3;
     m_se.buildParam.and_over_edge = false;
@@ -678,7 +674,6 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
         throw HtpFailure() << "Sgf boardsize does not match board";
 
     StoneBoard brd(m_game->Board());
-    brd.startNewGame();
     HexColor color = FIRST_TO_PLAY;
     PointSequence responses;
     std::vector<hash_t> hashes;

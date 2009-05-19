@@ -180,14 +180,6 @@ bitset_t GroupBoard::Nbs(HexPoint group) const
 // All methods need to ensure that InvalidateCachedData() is called
 // before they return control to caller.
 
-void GroupBoard::clear()
-{
-    StoneBoard::clear();
-    
-    m_groups.clear();
-    InvalidateCachedData();
-}
-
 /** Does the actual absorb; does not invalidate the cached
     data--caller should do so after calling this for each cell that
     needs to be absorbed. */

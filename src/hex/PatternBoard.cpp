@@ -396,12 +396,6 @@ std::string PatternBoard::DumpPatternCheckStats()
     return os.str();
 }
 
-void PatternBoard::clear()
-{    
-    GroupBoard::clear();
-    clearGodels();
-}
-
 void PatternBoard::clearGodels()
 {
     memset(m_slice_godel, 0, sizeof(m_slice_godel));

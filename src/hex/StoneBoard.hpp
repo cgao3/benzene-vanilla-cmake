@@ -325,12 +325,6 @@ public:
 
     //-----------------------------------------------------------------------
 
-protected:
-
-    /** Removes all stones from the board. Derived classes should
-        extend this method if needed. */
-    virtual void clear();
-
 private:
 
     ConstBoard* m_const;
@@ -350,20 +344,12 @@ private:
 
     //----------------------------------------------------------------------
 
-    void Init();
-
     void ComputeHash();
 
     void MarkAsDirty();
 
     bool BlackWhiteDisjoint();
-
 };
-
-inline StoneBoard::StoneBoard()
-    : m_const(0)
-{
-}
 
 inline const ConstBoard& StoneBoard::Const() const
 {

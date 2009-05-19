@@ -299,7 +299,6 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
     bitset_t flippedWhite = BoardUtils::Mirror(brd.Const(),
                             brd.getBlack() & brd.getPlayed() & brd.getCells());
     StoneBoard flippedBrd(brd.width(), brd.height());
-    flippedBrd.startNewGame();
     flippedBrd.addColor(BLACK, flippedBlack);
     flippedBrd.addColor(WHITE, flippedWhite);
     flippedBrd.setPlayed(flippedBlack | flippedWhite);
