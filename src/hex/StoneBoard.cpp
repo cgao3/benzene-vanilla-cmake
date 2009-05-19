@@ -13,16 +13,16 @@ using namespace benzene;
 StoneBoard::StoneBoard(unsigned size)
     : m_const(&ConstBoard::Get(size))
 {
-    init();
+    Init();
 }
 
 StoneBoard::StoneBoard(unsigned width, unsigned height)
     : m_const(&ConstBoard::Get(width, height))
 {
-    init();
+    Init();
 }
 
-void StoneBoard::init()
+void StoneBoard::Init()
 {
 }
 
@@ -98,7 +98,7 @@ const BoardIterator& StoneBoard::Stones(HexColorSet colorset) const
 
 //----------------------------------------------------------------------------
 
-void StoneBoard::modified()
+void StoneBoard::MarkAsDirty()
 {
     m_stones_calculated = false;
 }
@@ -108,7 +108,7 @@ void StoneBoard::addColor(HexColor color, const bitset_t& b)
     HexAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] |= b;
     HexAssert(BlackWhiteDisjoint());
-    if (b.any()) modified();
+    if (b.any()) MarkAsDirty();
 }
 
 void StoneBoard::removeColor(HexColor color, const bitset_t& b)
@@ -116,7 +116,7 @@ void StoneBoard::removeColor(HexColor color, const bitset_t& b)
     HexAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] = m_stones[color] - b;
     HexAssert(BlackWhiteDisjoint());
-    if (b.any()) modified();
+    if (b.any()) MarkAsDirty();
 }
 
 void StoneBoard::setColor(HexColor color, HexPoint cell)
@@ -132,7 +132,7 @@ void StoneBoard::setColor(HexColor color, HexPoint cell)
         HexAssert(BlackWhiteDisjoint());
     }
 
-    modified();
+    MarkAsDirty();
 }
 
 void StoneBoard::setColor(HexColor color, const bitset_t& bs)
@@ -144,19 +144,19 @@ void StoneBoard::setColor(HexColor color, const bitset_t& bs)
     m_stones[color] = bs;
     HexAssert(BlackWhiteDisjoint());
 
-    modified();
+    MarkAsDirty();
 }
 
 void StoneBoard::setPlayed(const bitset_t& played)
 {
     m_played = played;
-    computeHash();
-    modified();
+    ComputeHash();
+    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------------
 
-void StoneBoard::computeHash()
+void StoneBoard::ComputeHash()
 {
     // do not include swap in hash value
     bitset_t mask = m_played & getLocations();
@@ -170,8 +170,8 @@ void StoneBoard::startNewGame()
         playMove(*it, HexPointUtil::colorEdge1(*it));
         playMove(*it, HexPointUtil::colorEdge2(*it));
     }
-    computeHash();
-    modified();
+    ComputeHash();
+    MarkAsDirty();
 }
 
 void StoneBoard::playMove(HexColor color, HexPoint cell)
@@ -184,7 +184,7 @@ void StoneBoard::playMove(HexColor color, HexPoint cell)
         m_hash.update(color, cell);
     setColor(color, cell);
 
-    modified();
+    MarkAsDirty();
 }
 
 void StoneBoard::undoMove(HexPoint cell)
@@ -198,7 +198,7 @@ void StoneBoard::undoMove(HexPoint cell)
         m_hash.update(color, cell);
     setColor(EMPTY, cell);
 
-    modified();
+    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------------
@@ -208,8 +208,8 @@ void StoneBoard::rotateBoard()
     m_played = BoardUtils::Rotate(Const(), m_played);
     for (BWIterator it; it; ++it)
         m_stones[*it] = BoardUtils::Rotate(Const(), m_stones[*it]);
-    computeHash();
-    modified();
+    ComputeHash();
+    MarkAsDirty();
 }
 
 void StoneBoard::mirrorBoard()
@@ -217,8 +217,8 @@ void StoneBoard::mirrorBoard()
     m_played = BoardUtils::Mirror(Const(), m_played);
     for (BWIterator it; it; ++it)
         m_stones[*it] = BoardUtils::Mirror(Const(), m_stones[*it]);
-    computeHash();
-    modified();
+    ComputeHash();
+    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------------
@@ -291,8 +291,8 @@ void StoneBoard::SetState(const BoardID& id)
             playMove(color, *p);
     }
 
-    computeHash();
-    modified();
+    ComputeHash();
+    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------------
@@ -360,7 +360,7 @@ void StoneBoard::clear()
     m_hash.reset();
     for (BWIterator it; it; ++it)
         m_stones[*it].reset();
-    modified();
+    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------

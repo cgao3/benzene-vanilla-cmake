@@ -331,18 +331,7 @@ protected:
         extend this method if needed. */
     virtual void clear();
 
-    /** Notifies derived classes that the board was modified. */
-    virtual void modified();
-
 private:
-
-    void init();
-
-    void computeHash();
-
-    bool BlackWhiteDisjoint();
-
-    //----------------------------------------------------------------------
 
     ConstBoard* m_const;
 
@@ -358,6 +347,17 @@ private:
 
     /** @see Hash() */
     ZobristHash m_hash;
+
+    //----------------------------------------------------------------------
+
+    void Init();
+
+    void ComputeHash();
+
+    void MarkAsDirty();
+
+    bool BlackWhiteDisjoint();
+
 };
 
 inline StoneBoard::StoneBoard()
