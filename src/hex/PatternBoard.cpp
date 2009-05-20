@@ -160,7 +160,7 @@ void PatternBoard::update(HexPoint cell)
     if (HexPointUtil::isEdge(cell)) 
         goto handleEdge;
     
-    for (BoardIterator p = ConstNbs(cell, r); p; ++p) 
+    for (BoardIterator p = Const().Nbs(cell, r); p; ++p) 
     {
         int slice = m_data->played_in_slice[*p][cell];
         int godel = m_data->played_in_godel[*p][cell];
@@ -175,7 +175,7 @@ void PatternBoard::update(HexPoint cell)
  handleEdge:
 
     int edge = cell - FIRST_EDGE;
-    for (BoardIterator p = ConstNbs(cell, r); p; ++p) 
+    for (BoardIterator p = Const().Nbs(cell, r); p; ++p) 
     {
         for (int slice=0; slice<Pattern::NUM_SLICES; slice++) 
         {

@@ -91,9 +91,9 @@ ConstBoard::~ConstBoard()
 
 bool ConstBoard::Adjacent(HexPoint p1, HexPoint p2) const
 {
-    for (BoardIterator it = ConstNbs(p1); it; ++it) {
-        if (*it == p2) return true;
-    }
+    for (BoardIterator it(Nbs(p1)); it; ++it)
+        if (*it == p2) 
+            return true;
     return false;
 }
 

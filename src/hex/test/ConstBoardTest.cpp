@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     // testing immediate neighbours iterator
     allAdjacent = true;
     allUnique = true;
-    for (BoardIterator it(cb->ConstNbs(FIRST_CELL)); it; ++it) {
+    for (BoardIterator it(cb->Nbs(FIRST_CELL)); it; ++it) {
 	allAdjacent = allAdjacent && cb->Adjacent(FIRST_CELL, *it);
 	allUnique = allUnique && (!b.test(*it));
 	b.set(*it);
@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allAdjacent = true;
     allUnique = true;
-    for (BoardIterator it(cb->ConstNbs(WEST)); it; ++it) {
+    for (BoardIterator it(cb->Nbs(WEST)); it; ++it) {
 	allAdjacent = allAdjacent && cb->Adjacent(WEST, *it);
 	allUnique = allUnique && (!b.test(*it));
 	b.set(*it);
@@ -181,7 +181,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allAdjacent = true;
     allUnique = true;
-    for (BoardIterator it(cb->ConstNbs(HexPointUtil::fromString("b6"))); it; ++it) {
+    for (BoardIterator it(cb->Nbs(HexPointUtil::fromString("b6"))); it; ++it) {
 	allAdjacent = allAdjacent && cb->Adjacent(HexPointUtil::fromString("b6"), *it);
 	allUnique = allUnique && (!b.test(*it));
 	b.set(*it);
@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->ConstNbs(HexPointUtil::fromString("f6"), radius)); it; ++it) {
+    for (BoardIterator it(cb->Nbs(HexPointUtil::fromString("f6"), radius)); it; ++it) {
 	int curDistance = cb->Distance(HexPointUtil::fromString("f6"), *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
@@ -212,7 +212,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->ConstNbs(HexPointUtil::fromString("f6"), radius)); it; ++it) {
+    for (BoardIterator it(cb->Nbs(HexPointUtil::fromString("f6"), radius)); it; ++it) {
 	int curDistance = cb->Distance(HexPointUtil::fromString("f6"), *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->ConstNbs(HexPointUtil::fromString("d3"), radius)); it; ++it) {
+    for (BoardIterator it(cb->Nbs(HexPointUtil::fromString("d3"), radius)); it; ++it) {
 	int curDistance = cb->Distance(HexPointUtil::fromString("d3"), *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->ConstNbs(SOUTH, radius)); it; ++it) {
+    for (BoardIterator it(cb->Nbs(SOUTH, radius)); it; ++it) {
 	int curDistance = cb->Distance(SOUTH, *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
@@ -252,7 +252,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->ConstNbs(EAST, radius)); it; ++it) {
+    for (BoardIterator it(cb->Nbs(EAST, radius)); it; ++it) {
 	int curDistance = cb->Distance(EAST, *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
@@ -266,7 +266,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->ConstNbs(WEST, radius)); it; ++it) {
+    for (BoardIterator it(cb->Nbs(WEST, radius)); it; ++it) {
 	int curDistance = cb->Distance(WEST, *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
@@ -280,7 +280,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->ConstNbs(WEST, radius)); it; ++it) {
+    for (BoardIterator it(cb->Nbs(WEST, radius)); it; ++it) {
 	int curDistance = cb->Distance(WEST, *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));

@@ -126,11 +126,11 @@ public:
     /** Returns iterator to the first neighbour of cell. 
         @see @ref cellneighbours
     */
-    BoardIterator ConstNbs(HexPoint cell) const;
+    BoardIterator Nbs(HexPoint cell) const;
 
     /** Returns iterator to the neighbourhood extending outward by
         radius cells of cell. */
-    BoardIterator ConstNbs(HexPoint cell, int radius) const;
+    BoardIterator Nbs(HexPoint cell, int radius) const;
 
     //------------------------------------------------------------------------
 
@@ -267,13 +267,13 @@ inline BoardIterator ConstBoard::AllValid() const
     return BoardIterator(&m_points[m_all_index]);
 }
 
-inline BoardIterator ConstBoard::ConstNbs(HexPoint cell) const
+inline BoardIterator ConstBoard::Nbs(HexPoint cell) const
 {
     HexAssert(isLocation(cell));
     return BoardIterator(m_neighbours[cell][1]);
 }
 
-inline BoardIterator ConstBoard::ConstNbs(HexPoint cell, int radius) const
+inline BoardIterator ConstBoard::Nbs(HexPoint cell, int radius) const
 {
     HexAssert(isLocation(cell));
     HexAssert(0 <= radius && radius <= Pattern::MAX_EXTENSION);

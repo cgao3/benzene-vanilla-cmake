@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(StoneBoard_AddRemoveSetColor)
     
     // test removeColor when nothing removed
     b.flip();
-    b &= sb.getCells();
+    b &= sb.Const().getCells();
     sb.removeColor(WHITE, b);
     BOOST_CHECK_EQUAL(sb.getBlack().count(), 4u);
     BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);

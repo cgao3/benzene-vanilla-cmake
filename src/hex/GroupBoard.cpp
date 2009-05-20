@@ -144,7 +144,7 @@ bitset_t GroupBoard::Nbs(HexPoint group, HexColor nb_color) const
         for (BoardIterator p(EdgesAndInterior()); p; ++p) {
             HexPoint pcap = getCaptain(*p);
             HexColor pcolor = getColor(*p);
-            for (BoardIterator nb(ConstNbs(*p)); nb; ++nb) {
+            for (BoardIterator nb(Const().Nbs(*p)); nb; ++nb) {
                 HexPoint ncap = getCaptain(*nb);
                 HexColor ncolor = getColor(*nb);
                 if (ncap != pcap) {
@@ -188,7 +188,7 @@ void GroupBoard::internal_absorb(HexPoint cell)
     HexColor color = getColor(cell);
     /// @todo leave early if absorbing empty cell?
     HexAssert(color != EMPTY);            
-    for (BoardIterator i(ConstNbs(cell)); i; ++i)
+    for (BoardIterator i(Const().Nbs(cell)); i; ++i)
         if (getColor(*i) == color)
             m_groups.unionGroups(cell, *i);
 }

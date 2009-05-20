@@ -44,7 +44,7 @@ void GraphUtils::ComputeDigraph(const GroupBoard& brd, HexColor color,
    
     // Go through groups of color
     for (BitsetIterator p(brd.getEmpty()); p; ++p) {
-        for (BoardIterator nb(brd.ConstNbs(*p)); nb; ++nb) {
+        for (BoardIterator nb(brd.Const().Nbs(*p)); nb; ++nb) {
             if (brd.getColor(*nb) == color) {
                 nbs[*p] |= nbs[brd.getCaptain(*nb)];
                 nbs[*p].reset(*p);  // ensure p doesn't point to p

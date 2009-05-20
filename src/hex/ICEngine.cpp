@@ -290,7 +290,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color,
 	HexPoint edgeNbr = INVALID_POINT;
 	
         // Categorize neighbours as either 'empty' or 'color'. 
-        for (BoardIterator nb(brd.ConstNbs(*p)); nb; ++nb) {
+        for (BoardIterator nb(brd.Const().Nbs(*p)); nb; ++nb) {
             HexColor ncolor = brd.getColor(*nb);
             if (ncolor == EMPTY) {
                 enbs.insert(*nb);

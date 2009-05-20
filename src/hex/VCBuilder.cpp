@@ -195,7 +195,7 @@ void VCBuilder::Merge(bitset_t added[BLACK_AND_WHITE])
     // the affected set along with the played stones.
     bitset_t affected = added[m_color];
     for (BitsetIterator x(added[m_color]); x; ++x)
-        for (BoardIterator y(brd->ConstNbs(*x)); y; ++y)
+        for (BoardIterator y(brd->Const().Nbs(*x)); y; ++y)
             if (brd->getColor(*y) == m_color)
                 affected.set(brd->getCaptain(*y));                    
 

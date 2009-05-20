@@ -258,14 +258,6 @@ public:
     /** Returns iterator that runs over all valid moves. */
     BoardIterator AllValid() const;
 
-    /** Returns iterator to the first neighbour of cell. 
-        @see @ref cellneighbours */
-    BoardIterator ConstNbs(HexPoint cell) const;
-
-    /** Returns iterator to the neighbourhood extending outward by
-        radius cells of cell. */
-    BoardIterator ConstNbs(HexPoint cell, int radius) const;
-
     /** Returns iterator over all stones in colorset. */
     const BoardIterator& Stones(HexColorSet colorset) const;
 
@@ -331,16 +323,6 @@ inline BoardIterator StoneBoard::EdgesAndInterior() const
 inline BoardIterator StoneBoard::AllValid() const
 { 
     return m_const->AllValid();
-}
-
-inline BoardIterator StoneBoard::ConstNbs(HexPoint cell) const
-{
-    return m_const->ConstNbs(cell);
-}
-
-inline BoardIterator StoneBoard::ConstNbs(HexPoint cell, int radius) const
-{
-    return m_const->ConstNbs(cell, radius);
 }
 
 inline hash_t StoneBoard::Hash() const

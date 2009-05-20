@@ -268,24 +268,25 @@ bitset_t BoardUtils::ReachableOnBitset(const ConstBoard& brd,
                                        HexPoint start)
 {
     HexAssert(carrier.test(start));
-
     bitset_t seen;
     std::queue<HexPoint> q;
     q.push(start);
     seen.set(start);
-
-    while (!q.empty()) {
+    while (!q.empty()) 
+    {
         HexPoint p = q.front();
         q.pop();
-        if (stopset.test(p)) continue;
-        for (BoardIterator nb(brd.ConstNbs(p)); nb; ++nb) {
-            if (carrier.test(*nb) && !seen.test(*nb)) {
+        if (stopset.test(p)) 
+            continue;
+        for (BoardIterator nb(brd.Nbs(p)); nb; ++nb) 
+        {
+            if (carrier.test(*nb) && !seen.test(*nb)) 
+            {
                 q.push(*nb);
                 seen.set(*nb);
             }
         }
     }
-
     return seen;
 }
 

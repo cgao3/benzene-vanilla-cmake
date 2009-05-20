@@ -57,8 +57,8 @@ bool VCUtils::ValidEdgeBridge(const StoneBoard& brd,
 
     // find the two cells adjacent to both
     std::vector<HexPoint> adj;
-    for (BoardIterator n1(brd.ConstNbs(miai[0])); n1; ++n1)
-        for (BoardIterator n2(brd.ConstNbs(miai[1])); n2; ++n2)
+    for (BoardIterator n1(brd.Const().Nbs(miai[0])); n1; ++n1)
+        for (BoardIterator n2(brd.Const().Nbs(miai[1])); n2; ++n2)
             if (*n1 == *n2) adj.push_back(*n1);
     HexAssert(adj.size() == 2);
 
@@ -103,9 +103,9 @@ bool isBridge(const StoneBoard& brd, HexColor color, const VC& vc)
     // the rollout pattern will not match)
     bitset_t commonNbs;
     bool bridgePatternMatches = true;
-    for (BoardIterator it1 = brd.ConstNbs(miai[0]); it1; ++it1)  
+    for (BoardIterator it1 = brd.Const().Nbs(miai[0]); it1; ++it1)  
     {
-	for (BoardIterator it2 = brd.ConstNbs(miai[1]); it2; ++it2) 
+	for (BoardIterator it2 = brd.Const().Nbs(miai[1]); it2; ++it2) 
         {
 	    if (*it1 == *it2) 
             {

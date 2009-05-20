@@ -180,11 +180,11 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     StoneBoard sb = StoneBoard(2, 2);
     
     p = BoardUtils::RandomEmptyCell(sb);
-    BOOST_CHECK(sb.isCell(p));
+    BOOST_CHECK(sb.Const().isCell(p));
     sb.startNewGame();
     BOOST_CHECK(!sb.isLegal(SWAP_PIECES));
     p = BoardUtils::RandomEmptyCell(sb);
-    BOOST_CHECK(sb.isCell(p));
+    BOOST_CHECK(sb.Const().isCell(p));
     sb.playMove(BLACK, HEX_CELL_A1);
     BOOST_CHECK(sb.isLegal(SWAP_PIECES));
     sb.playMove(WHITE, HEX_CELL_A2);
@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     BOOST_CHECK(!sb.isEmpty(HEX_CELL_A2));
     
     p = BoardUtils::RandomEmptyCell(sb);
-    BOOST_CHECK(sb.isCell(p));
+    BOOST_CHECK(sb.Const().isCell(p));
     BOOST_CHECK(sb.isEmpty(p));
     BOOST_CHECK(p != HEX_CELL_A1);
     BOOST_CHECK(p != HEX_CELL_A2);
