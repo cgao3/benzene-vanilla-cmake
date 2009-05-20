@@ -35,7 +35,7 @@ StoneBoard::~StoneBoard()
 
 HexColor StoneBoard::getColor(HexPoint cell) const
 {
-    HexAssert(isValid(cell));
+    HexAssert(Const().isValid(cell));
     if (isBlack(cell)) return BLACK;
     if (isWhite(cell)) return WHITE;
     return EMPTY;
@@ -61,13 +61,13 @@ bitset_t StoneBoard::getLegal() const
 	legal.set(SWAP_PIECES);
     }
     
-    HexAssert(isValid(legal));
+    HexAssert(Const().isValid(legal));
     return legal;
 }
 
 bool StoneBoard::isLegal(HexPoint cell) const
 {
-    HexAssert(isValid(cell));
+    HexAssert(Const().isValid(cell));
     return getLegal().test(cell);
 }
 
@@ -106,7 +106,7 @@ void StoneBoard::MarkAsDirty()
 
 void StoneBoard::addColor(HexColor color, const bitset_t& b)
 {
-    HexAssert(HexColorUtil::isIsBlackWhite(color));
+    HexAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] |= b;
     HexAssert(IsBlackWhiteDisjoint());
     if (b.any()) MarkAsDirty();
@@ -123,7 +123,7 @@ void StoneBoard::removeColor(HexColor color, const bitset_t& b)
 void StoneBoard::setColor(HexColor color, HexPoint cell)
 {
     HexAssert(HexColorUtil::isValidColor(color));
-    HexAssert(isValid(cell));
+    HexAssert(Const().isValid(cell));
 
     if (color == EMPTY) {
 	for (BWIterator it; it; ++it)
@@ -140,7 +140,7 @@ void StoneBoard::setColor(HexColor color, const bitset_t& bs)
 {
     /** @todo Should we make this support EMPTY color too? */
     HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(isValid(bs));
+    HexAssert(Const().isValid(bs));
 
     m_stones[color] = bs;
     HexAssert(IsBlackWhiteDisjoint());
@@ -180,7 +180,7 @@ void StoneBoard::startNewGame()
 void StoneBoard::playMove(HexColor color, HexPoint cell)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(isValid(cell));
+    HexAssert(Const().isValid(cell));
 
     m_played.set(cell);
     if (Const().isLocation(cell))
@@ -192,7 +192,7 @@ void StoneBoard::playMove(HexColor color, HexPoint cell)
 
 void StoneBoard::undoMove(HexPoint cell)
 {
-    HexAssert(isValid(cell));
+    HexAssert(Const().isValid(cell));
     HexColor color = getColor(cell);
     HexAssert(color != EMPTY);
 

@@ -131,7 +131,7 @@ PatternBoard::~PatternBoard()
 
 void PatternBoard::updateRingGodel(HexPoint cell)
 {
-    HexAssert(isCell(cell));
+    HexAssert(Const().isCell(cell));
     HexColor color = getColor(cell);
     HexAssert(HexColorUtil::isBlackWhite(color));
 
@@ -151,7 +151,7 @@ void PatternBoard::update(HexPoint cell)
     if (HexPointUtil::isSwap(cell)) 
         return;
 
-    HexAssert(isLocation(cell));
+    HexAssert(Const().isLocation(cell));
 
     int r = m_update_radius;
     HexColor color = getColor(cell);
@@ -334,7 +334,7 @@ bool PatternBoard::checkRotatedPattern(HexPoint cell,
                                        std::vector<HexPoint>& moves1,
                                        std::vector<HexPoint>& moves2) const
 {
-    HexAssert(isCell(cell));
+    HexAssert(Const().isCell(cell));
 
     m_statistics.pattern_checks++;
 

@@ -359,32 +359,32 @@ inline bitset_t StoneBoard::getOccupied() const
 
 inline bool StoneBoard::isBlack(HexPoint cell) const    
 {
-    HexAssert(isValid(cell));
+    HexAssert(Const().isValid(cell));
     return m_stones[BLACK].test(cell);
 }
 
 inline bool StoneBoard::isWhite(HexPoint cell) const    
 {
-    HexAssert(isValid(cell));
+    HexAssert(Const().isValid(cell));
     return m_stones[WHITE].test(cell);
 }
 
 inline bool StoneBoard::isColor(HexPoint cell, HexColor color) const
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(isLocation(cell));
+    HexAssert(Const().isLocation(cell));
     return m_stones[color].test(cell);
 }
 
 inline bool StoneBoard::isEmpty(HexPoint cell) const
 {
-    HexAssert(isLocation(cell));
+    HexAssert(Const().isLocation(cell));
     return !isOccupied(cell);
 }
 
 inline bool StoneBoard::isOccupied(HexPoint cell) const
 {
-    HexAssert(isLocation(cell));
+    HexAssert(Const().isLocation(cell));
     return (isBlack(cell) || isWhite(cell));
 }
 
@@ -395,7 +395,7 @@ inline bitset_t StoneBoard::getPlayed() const
 
 inline bool StoneBoard::isPlayed(HexPoint cell) const
 {
-    HexAssert(isValid(cell));
+    HexAssert(Const().isValid(cell));
     return m_played.test(cell);
 }
 

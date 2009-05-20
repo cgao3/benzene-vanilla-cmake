@@ -126,7 +126,7 @@ bitset_t GroupBoard::GroupMembers(HexPoint cell) const
 
 bitset_t GroupBoard::CaptainizeBitset(bitset_t locations) const
 {
-    HexAssert(isLocation(locations));
+    HexAssert(Const().isLocation(locations));
     bitset_t captains;
     for (BitsetIterator i(locations); i; ++i) {
         captains.set(getCaptain(*i));
