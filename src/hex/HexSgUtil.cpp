@@ -80,12 +80,12 @@ void HexSgUtil::SetPositionInNode(SgNode* node,
                                   HexColor color)
 {
     int height = brd.height();
-    SgList<SgPoint> blist = 
-        HexSgUtil::BitsetToSgList(brd.getBlack()&brd.getCells(), height);
-    SgList<SgPoint> wlist = 
-        HexSgUtil::BitsetToSgList(brd.getWhite()&brd.getCells(), height);
-    SgList<SgPoint> elist = 
-        HexSgUtil::BitsetToSgList(brd.getEmpty()&brd.getCells(), height);
+    SgList<SgPoint> blist = HexSgUtil::BitsetToSgList(brd.getBlack() 
+                                       & brd.Const().getCells(), height);
+    SgList<SgPoint> wlist = HexSgUtil::BitsetToSgList(brd.getWhite()
+                                       & brd.Const().getCells(), height);
+    SgList<SgPoint> elist = HexSgUtil::BitsetToSgList(brd.getEmpty()
+                                       & brd.Const().getCells(), height);
 
     SgPropPlayer *pprop = new SgPropPlayer(SG_PROP_PLAYER);
     SgPropAddStone *bprop = new SgPropAddStone(SG_PROP_ADD_BLACK);

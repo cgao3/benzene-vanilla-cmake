@@ -233,7 +233,7 @@ bitset_t PatternBoard::matchPatternsOnBoard(const bitset_t& consider,
                                             const 
 {
     bitset_t ret;    
-    for (BitsetIterator p(consider & getCells()); p; ++p) 
+    for (BitsetIterator p(consider & Const().getCells()); p; ++p) 
     {
         matchPatternsOnCell(patset, *p, mode, hits[*p]);
         if (!hits[*p].empty())
@@ -247,7 +247,7 @@ bitset_t PatternBoard::matchPatternsOnBoard(const bitset_t& consider,
                                             const
 {
     bitset_t ret;    
-    for (BitsetIterator p(consider & getCells()); p; ++p) 
+    for (BitsetIterator p(consider & Const().getCells()); p; ++p) 
     {
         PatternHits hits;
         matchPatternsOnCell(patset, *p, STOP_AT_FIRST_HIT, hits);

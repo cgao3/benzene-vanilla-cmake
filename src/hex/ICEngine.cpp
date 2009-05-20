@@ -31,7 +31,8 @@ bitset_t ComputeEdgeUnreachableRegions(const StoneBoard& brd, HexColor c,
                                        bool flowFrom2=true)
 {
     bitset_t reachable1, reachable2;
-    bitset_t flowSet = (brd.getEmpty() | brd.getColor(c)) & brd.getCells();
+    bitset_t flowSet = (brd.getEmpty() | brd.getColor(c)) 
+                     & brd.Const().getCells();
     if (flowFrom1) 
     {
         bitset_t flowSet1 = flowSet;
@@ -100,15 +101,15 @@ bitset_t FindType1Cliques(const GroupBoard& brd)
     // Find two cells that are adjacent through some group, but not directly.
     for (BitsetIterator x(empty); x; ++x) {
 	for (BitsetIterator y(empty); *y != *x; ++y) {
-	    if (brd.Adjacent(*x, *y)) continue;
+	    if (brd.Const().Adjacent(*x, *y)) continue;
 	    bitset_t xyNbs = brd.Nbs(*x, NOT_EMPTY) & brd.Nbs(*y, NOT_EMPTY);
 	    if (xyNbs.none()) continue;
 	    
 	    // Find a 3rd cell directly adjacent to the first two, but not
 	    // adjacent to some group that connects them.
 	    for (BitsetIterator z(empty); z; ++z) {
-		if (!brd.Adjacent(*x, *z)) continue;
-		if (!brd.Adjacent(*y, *z)) continue;
+		if (!brd.Const().Adjacent(*x, *z)) continue;
+		if (!brd.Const().Adjacent(*y, *z)) continue;
 		HexAssert(*x != *z);
 		HexAssert(*y != *z);
 		bitset_t xyExclusiveNbs = xyNbs - brd.Nbs(*z, NOT_EMPTY);
@@ -167,7 +168,7 @@ bitset_t FindType2Cliques(const GroupBoard& brd)
 		// groups that are directly adjacent to one another.
 		for (BitsetIterator x(g1Exclusive); x; ++x) {
 		    for (BitsetIterator y(g2Exclusive); y; ++y) {
-			if (!brd.Adjacent(*x, *y)) continue;
+			if (!brd.Const().Adjacent(*x, *y)) continue;
 			
 			// Cells x, y and the common neighbours of
 			// groups g1, g2 form a clique.

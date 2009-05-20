@@ -322,10 +322,10 @@ void GraphUtils::ComputeShortestVCPathMoveOrdering(const HexBoard& brd,
     for (BitsetIterator i(cellsToOrder); i; ++i) {
 
 	int distFromCentre = 0;
-	distFromCentre 
-            += brd.Distance(*i, BoardUtils::CenterPointLeft(brd.Const()));
-	distFromCentre 
-            += brd.Distance(*i, BoardUtils::CenterPointRight(brd.Const()));
+	distFromCentre += brd.Const().Distance(*i, 
+                          BoardUtils::CenterPointLeft(brd.Const()));
+	distFromCentre += brd.Const().Distance(*i, 
+                          BoardUtils::CenterPointRight(brd.Const()));
 	
 	double value = 0.5 - (0.01 * distFromCentre);
 	if (ordering.test(*i)) {

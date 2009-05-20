@@ -118,31 +118,7 @@ public:
         @todo Why did we agree on this? :)
     */
     // @{
-
-    /** Returns a bitset with all valid board cells. 
-        Shorthand for Const().getCells(). */
-    bitset_t getCells() const;
-
-    /** Returns a bitset with all valid board locations (cells and
-	edges). Same as Const().getLocations(). */
-    bitset_t getLocations() const;
-
-    /** Returns true if cell is a valid cell on this board. Same as
-        Const().isCell(). */
-    bool isCell(HexPoint cell) const;
-
-    /** Returns true if bs encodes a set of valid cells. Same as
-        Const().isCell(). */
-    bool isCell(const bitset_t& bs) const;
-    
-    /** Returns true if cell is a location on this board. Same as
-        Const().isLocation(). */
-    bool isLocation(HexPoint cell) const;
-
-    /** Returns true if bs encodes a set of valid locations. Same as
-        Const().isLocation(). */
-    bool isLocation(const bitset_t& bs) const;
-    
+   
     /** Returns the set of BLACK stones. */
     bitset_t getBlack() const;
     
@@ -167,34 +143,12 @@ public:
     /** Returns true if cell is occupied (not empty). */
     bool isOccupied(HexPoint cell) const;
 
-    /** Returns true if p1 is adjacent to p2. Iterates over neighbour
-        list of p1, so not O(1). Same as Const().Adjacent(). */
-    bool Adjacent(HexPoint p1, HexPoint p2) const;
-
-    /** Returns the distance between two valid HexPoints. Same as
-        Const().Adjacent(). */
-    int Distance(HexPoint x, HexPoint y) const;
-
     // @}
 
     //-----------------------------------------------------------------------
 
     /** @name Methods defined on all valid moves. */
     // @{ 
-
-    /** Returns a bitset of cells comprising all valid moves (this
-	includes swap and resign). Same as Const().getValid(). */
-    bitset_t getValid() const;
-
-    /** Returns true if cell is a valid move on this board. Same as
-        Const().isValid(). Note that occupied cells will be reported
-        as valid, but they are not legal. */
-    bool isValid(HexPoint cell) const;
-
-    /** Returns true if bs encodes a set of valid moves. Same as
-        Const().isValid(). Note that occupied cells will be reported
-        as valid, but they are not legal. */
-    bool isValid(const bitset_t& bs) const;
 
     /** Returns true if cell is BLACK. */
     bool isBlack(HexPoint cell) const;
@@ -364,61 +318,6 @@ inline int StoneBoard::height() const
     return m_const->height();
 }
 
-inline bitset_t StoneBoard::getCells() const
-{
-    return m_const->getCells();
-}
-
-inline bitset_t StoneBoard::getLocations() const
-{
-    return m_const->getLocations();
-}
-
-inline bitset_t StoneBoard::getValid() const
-{
-    return m_const->getValid();
-}
-
-inline bool StoneBoard::isCell(HexPoint cell) const
-{
-    return m_const->isCell(cell);
-}
-
-inline bool StoneBoard::isCell(const bitset_t& bs) const
-{
-    return m_const->isCell(bs);
-}
-
-inline bool StoneBoard::isLocation(HexPoint cell) const
-{
-    return m_const->isLocation(cell);
-}
-
-inline bool StoneBoard::isLocation(const bitset_t& bs) const
-{
-    return m_const->isLocation(bs);
-}
-
-inline bool StoneBoard::isValid(HexPoint cell) const
-{
-    return m_const->isValid(cell);
-}
-
-inline bool StoneBoard::isValid(const bitset_t& bs) const
-{
-    return m_const->isValid(bs);
-}
-
-inline bool StoneBoard::Adjacent(HexPoint p1, HexPoint p2) const
-{
-    return m_const->Adjacent(p1, p2);
-}
-
-inline int StoneBoard::Distance(HexPoint x, HexPoint y) const
-{
-    return m_const->Distance(x, y);
-}
-
 inline BoardIterator StoneBoard::Interior() const
 {
     return m_const->Interior();
@@ -451,29 +350,29 @@ inline hash_t StoneBoard::Hash() const
 
 inline bitset_t StoneBoard::getBlack() const
 {
-    return m_stones[BLACK] & getLocations();
+    return m_stones[BLACK] & Const().getLocations();
 }
 
 inline bitset_t StoneBoard::getWhite() const
 {
-    return m_stones[WHITE] & getLocations();
+    return m_stones[WHITE] & Const().getLocations();
 }
 
 inline bitset_t StoneBoard::getColor(HexColor color) const
 {
     HexAssert(HexColorUtil::isValidColor(color));
     if (color == EMPTY) return getEmpty();
-    return m_stones[color] & getLocations();
+    return m_stones[color] & Const().getLocations();
 }
 
 inline bitset_t StoneBoard::getEmpty() const
 {
-    return getLocations() - getOccupied();
+    return Const().getLocations() - getOccupied();
 }
 
 inline bitset_t StoneBoard::getOccupied() const
 {
-    return (getBlack() | getWhite()) & getLocations();
+    return (getBlack() | getWhite()) & Const().getLocations();
 }
 
 inline bool StoneBoard::isBlack(HexPoint cell) const    
@@ -520,7 +419,7 @@ inline bool StoneBoard::isPlayed(HexPoint cell) const
 
 inline int StoneBoard::numStones() const
 {
-    return (getOccupied() & getPlayed() & getCells()).count();
+    return (getOccupied() & getPlayed() & Const().getCells()).count();
 }
 
 inline bool StoneBoard::operator==(const StoneBoard& other) const
@@ -539,8 +438,9 @@ inline bool StoneBoard::operator!=(const StoneBoard& other) const
 
 inline HexColor StoneBoard::WhoseTurn() const
 {
-    int first = (getColor(FIRST_TO_PLAY) & getPlayed() & getCells()).count();
-    int second = (getColor(!FIRST_TO_PLAY) & getPlayed() & getCells()).count();
+    bitset_t mask = getPlayed() & Const().getCells();
+    int first = (getColor(FIRST_TO_PLAY) & mask).count();
+    int second = (getColor(!FIRST_TO_PLAY) & mask).count();
     return (first > second) ? !FIRST_TO_PLAY : FIRST_TO_PLAY;
 }
 

@@ -28,7 +28,7 @@ void Game::NewGame()
 
 Game::ReturnType Game::PlayMove(HexColor color, HexPoint cell)
 {
-    if (cell < 0 || cell >= FIRST_INVALID || !m_board->isValid(cell))
+    if (cell < 0 || cell >= FIRST_INVALID || !m_board->Const().isValid(cell))
         return INVALID_MOVE;
     if (color == EMPTY) 
         return INVALID_MOVE;

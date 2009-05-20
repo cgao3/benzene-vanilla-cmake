@@ -48,7 +48,7 @@ bitset_t StoneBoard::getLegal() const
     
     legal = getPlayed();
     legal.flip();
-    legal &= getCells();
+    legal &= Const().getCells();
     legal.set(RESIGN);
     
     // swap is available only when 4 edges and exactly
@@ -160,7 +160,7 @@ void StoneBoard::setPlayed(const bitset_t& played)
 void StoneBoard::ComputeHash()
 {
     // do not include swap in hash value
-    bitset_t mask = m_played & getLocations();
+    bitset_t mask = m_played & Const().getLocations();
     m_hash.compute(m_stones[BLACK] & mask, m_stones[WHITE] & mask);
 }
 
@@ -183,7 +183,7 @@ void StoneBoard::playMove(HexColor color, HexPoint cell)
     HexAssert(isValid(cell));
 
     m_played.set(cell);
-    if (isLocation(cell))
+    if (Const().isLocation(cell))
         m_hash.update(color, cell);
     setColor(color, cell);
 
@@ -197,7 +197,7 @@ void StoneBoard::undoMove(HexPoint cell)
     HexAssert(color != EMPTY);
 
     m_played.reset(cell);
-    if (isLocation(cell))
+    if (Const().isLocation(cell))
         m_hash.update(color, cell);
     setColor(EMPTY, cell);
 

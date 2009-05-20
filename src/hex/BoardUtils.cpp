@@ -66,8 +66,11 @@ void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
     HexAssert(g_BoardUtilsDecompsInitialized);
 
     adjByMiai.clear();
-    for (BWIterator color; color; ++color) {
-        for (BitsetIterator p(brd.getColor(*color) & brd.getCells()); p; ++p) {
+    for (BWIterator color; color; ++color) 
+    {
+        for (BitsetIterator p(brd.getColor(*color) & brd.Const().getCells()); 
+             p; ++p) 
+        {
 
             PatternHits hits;
             brd.matchPatternsOnCell(*g_hash_oppmiai[*color], *p, 
@@ -176,7 +179,7 @@ HexPoint BoardUtils::CenterPointLeft(const ConstBoard& brd)
 
 HexPoint BoardUtils::RandomEmptyCell(const StoneBoard& brd)
 {
-    bitset_t moves = brd.getEmpty() & brd.getCells();
+    bitset_t moves = brd.getEmpty() & brd.Const().getCells();
     int count = moves.count();
     if (count == 0) 
         return INVALID_POINT;
@@ -390,7 +393,7 @@ bool BoardUtils::FindSplittingDecomposition(const HexBoard& brd,
 
     // @note must & with getCells() because we want non-edge groups;
     // this assumes that edges are always captains. 
-    bitset_t adjToBothEdges = adjto1 & adjto2 & brd.getCells();
+    bitset_t adjToBothEdges = adjto1 & adjto2 & brd.Const().getCells();
 
     // if there is a group adjacent to both opponent edges, return it.
     if (adjToBothEdges.any()) {

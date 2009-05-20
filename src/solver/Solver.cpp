@@ -456,7 +456,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
 		  << brd.Write(carrier[s]) << '\n';
 
         bool win = false;
-        brd.PlayStones(!color, carrier[s^1] & brd.getCells(), color);
+        brd.PlayStones(!color, carrier[s^1] & brd.Const().getCells(), color);
 
         // check if new stones caused terminal state; if not, solve it
         if (HandleTerminalNode(brd, color, state)) {
@@ -1423,7 +1423,7 @@ void SolverUtil::ShrinkProof(bitset_t& proof,
     brd->startNewGame();
 
     // give loser all cells outside proof
-    bitset_t cells_outside_proof = (~proof & brd->getCells());
+    bitset_t cells_outside_proof = (~proof & brd->Const().getCells());
     brd->addColor(loser, cells_outside_proof);
 
     // give winner only his stones inside proof; 

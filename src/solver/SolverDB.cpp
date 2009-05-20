@@ -223,12 +223,12 @@ int SolverDBUtil::StoreTranspositions(SolverDB& db,
     HexColor winner = (state.win) ? toplay : other;
 
     // Loser can use his stones as well as all those outside the proof
-    bitset_t outside = (~state.proof & brd.getEmpty()) | 
-                       (brd.getColor(loser) & brd.getCells());
+    bitset_t outside = (~state.proof & brd.getEmpty()) 
+        | (brd.getColor(loser) & brd.Const().getCells());
 
     // Winner can use his stones
     // @todo fix this so only relevant stones to the proof are used.
-    bitset_t winners = brd.getColor(winner) & brd.getCells();
+    bitset_t winners = brd.getColor(winner) & brd.Const().getCells();
 
     // store the players' stones as lists of sorted indices  
     std::vector<HexPoint> black, white;
@@ -295,9 +295,9 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
     // Start by computing the flipped board position.
     // This involves mirroring the stones and *flipping their colour*.
     bitset_t flippedBlack = BoardUtils::Mirror(brd.Const(), 
-                            brd.getWhite() & brd.getPlayed() & brd.getCells());
+                    brd.getWhite() & brd.getPlayed() & brd.Const().getCells());
     bitset_t flippedWhite = BoardUtils::Mirror(brd.Const(),
-                            brd.getBlack() & brd.getPlayed() & brd.getCells());
+                    brd.getBlack() & brd.getPlayed() & brd.Const().getCells());
     StoneBoard flippedBrd(brd.width(), brd.height());
     flippedBrd.addColor(BLACK, flippedBlack);
     flippedBrd.addColor(WHITE, flippedWhite);

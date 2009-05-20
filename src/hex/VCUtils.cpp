@@ -52,7 +52,7 @@ bool VCUtils::ValidEdgeBridge(const StoneBoard& brd,
     BitsetUtil::BitsetToVector(carrier, miai);
     
     // carrier cells must be neighbours to qualify as bridge
-    if (!brd.Adjacent(miai[0], miai[1])) 
+    if (!brd.Const().Adjacent(miai[0], miai[1])) 
         return false;
 
     // find the two cells adjacent to both
@@ -95,7 +95,7 @@ bool isBridge(const StoneBoard& brd, HexColor color, const VC& vc)
     BitsetUtil::BitsetToVector(vc.carrier(), miai);
     
     // carrier cells must be neighbours to qualify as bridge
-    if (!brd.Adjacent(miai[0], miai[1])) 
+    if (!brd.Const().Adjacent(miai[0], miai[1])) 
         return false;
     
     // lastly, we need to check that the two cells adjacent
