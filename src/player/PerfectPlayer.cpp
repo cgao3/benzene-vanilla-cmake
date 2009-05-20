@@ -53,7 +53,7 @@ HexPoint PerfectPlayer::search(HexBoard& brd,
 
     }
 
-    LogInfo() << brd.printBitset(proof) << '\n';
+    LogInfo() << brd.Write(proof) << '\n';
     if (HexEvalUtil::IsWin(score)) {
         LogInfo() << "Win in " << HexEvalUtil::PlyToWin(score) << "." << '\n';
     } else {

@@ -339,7 +339,7 @@ bitset_t HexUctState::ComputeKnowledge()
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================" << '\n'
                   << "Recomputed state:" << '\n' << *m_bd << '\n'
-                  << "Consider:" << m_vc_brd->printBitset(consider) << '\n';
+                  << "Consider:" << m_vc_brd->Write(consider) << '\n';
 
     return consider;
 }

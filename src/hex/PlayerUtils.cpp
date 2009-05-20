@@ -265,7 +265,7 @@ bitset_t PlayerUtils::MovesToConsider(const HexBoard& brd, HexColor color)
         LogFine() << "Mustplay is singleton.\n";
 
     LogFine() << "Moves to consider for " << color << ":" 
-             << brd.printBitset(consider) << '\n';
+             << brd.Write(consider) << '\n';
     return consider;
 }
 
@@ -281,7 +281,7 @@ bitset_t PlayerUtils::MovesToConsiderInLosingState(const HexBoard& brd,
     TightenMoveBitset(consider, brd.getInferiorCells());
 
     LogFine() << "Losing moves to consider for " << color << ":" 
-              << brd.printBitset(consider) << '\n';
+              << brd.Write(consider) << '\n';
 
     return consider;
 }

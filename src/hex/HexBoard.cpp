@@ -129,7 +129,7 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move)
             {
                 LogFine() << "Decomposition " << decompositions << ": for " 
 			  << *c << "." << '\n' 
-                          << printBitset(captured) << '\n';
+                          << Write(captured) << '\n';
             
                 AddStones(*c, captured, color_to_move);
                 m_inf.AddCaptured(*c, captured);

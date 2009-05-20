@@ -64,7 +64,7 @@ HexPoint WolvePlayer::search(HexBoard& brd,
     }
 
     m_search.SetRootMovesToConsider(consider);
-    LogInfo() << "Using consider set:" << brd.printBitset(consider) << '\n'
+    LogInfo() << "Using consider set:" << brd.Write(consider) << '\n'
 	      << "Plywidths: " << MiscUtil::PrintVector(m_plywidth) << '\n'
 	      << "Depths: " << MiscUtil::PrintVector(m_search_depths) << '\n';
 

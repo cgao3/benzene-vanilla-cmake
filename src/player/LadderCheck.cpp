@@ -54,7 +54,7 @@ HexPoint LadderCheck::pre_search(HexBoard& brd, const Game& game_state,
         if (badProbes.any()) {
             consider = consider - badProbes;
             LogInfo() << "Removed bad probes:"
-                      << brd.printBitset(badProbes) << '\n';
+                      << brd.Write(badProbes) << '\n';
         }
     }
 

@@ -159,10 +159,10 @@ int SolverDB::write(const StoneBoard& brd, const SolvedState& state)
                      << "old win = " << old_state.win << '\n'
                      << "new win = " << state.win << '\n'
                      << "old_proof = " 
-                     << brd.printBitset(old_state.proof & brd.getEmpty())
+                     << brd.Write(old_state.proof & brd.getEmpty())
                      << '\n'
                      << "new_proof = " 
-                     << brd.printBitset(state.proof & brd.getEmpty()) 
+                     << brd.Write(state.proof & brd.getEmpty()) 
                      << '\n';
             HexAssert(false);
         }
@@ -243,14 +243,14 @@ int SolverDBUtil::StoreTranspositions(SolverDB& db,
 #if 0
     LogInfo() << "[" << numstones << "]" 
 	      << " StoreTranspositions" << '\n'
-	      << brd.printBitset(state.proof & brd.getEmpty()) << '\n'
+	      << brd.Write(state.proof & brd.getEmpty()) << '\n'
 	      << "Winner: " << winner << '\n'
 	      << "Black positions: " << black.size() << '\n'
 	      << HexPointUtil::ToPointListString(black)<< '\n'
 	      << "White positions: " << white.size() << '\n'
 	      << HexPointUtil::ToPointListString(white)<< '\n'
 	      << "outside proof:" << '\n'
-	      << brd.printBitset(outside) << '\n';
+	      << brd.Write(outside) << '\n';
 #endif
 
     // write each transposition 
@@ -322,7 +322,7 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
     bitset_t flippedOutside = (~flippedProof & flippedBrd.getEmpty());
 #if PRINT_OUTPUT
     LogInfo() << "Flipped proof:"
-	     << flippedBrd.printBitset(flippedProof) << '\n';
+	     << flippedBrd.Write(flippedProof) << '\n';
 #endif
     
     // We need to determine what stones we can add or remove.

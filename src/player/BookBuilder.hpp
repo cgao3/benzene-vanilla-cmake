@@ -608,7 +608,7 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
     if (!workToDo.empty())
     {
         LogInfo() << "Will evaluate these children: " 
-                  << brd.printBitset(childrenToDo) << '\n';
+                  << brd.Write(childrenToDo) << '\n';
         std::vector<std::pair<StoneBoard, HexEval> > scores;
         m_threadedWorker->DoWork(workToDo, scores);
         for (std::size_t i = 0; i < scores.size(); ++i)

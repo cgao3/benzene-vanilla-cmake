@@ -48,7 +48,7 @@ HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
 	bitset_t lastMoveOnly;
 	lastMoveOnly.set(lastCell);
 	LogWarning() << "Last move on this board:"
-                     << b.printBitset(lastMoveOnly) << '\n';
+                     << b.Write(lastMoveOnly) << '\n';
 	HexAssert(gh.back().color() == !color);
 	InferiorCells inf;
 	brd.ICE().FindVulnerable(b, !color, lastMoveOnly, inf);

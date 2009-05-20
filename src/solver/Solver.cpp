@@ -269,7 +269,7 @@ void Solver::StoreInDB(const SolvedState& state)
     int numwritten = m_db->put(*m_stoneboard, state);
     if (numwritten && numstones == m_db->maxstones()) {
         LogInfo() << "Stored DB[" << numstones << "] result: "
-		  << m_stoneboard->printBitset(state.proof & 
+		  << m_stoneboard->Write(state.proof & 
 					       m_stoneboard->getEmpty())
 		  << '\n'
 		  << ((state.win)?"Win":"Loss") << ", " 
@@ -288,7 +288,7 @@ void Solver::StoreInTT(const SolvedState& state)
     {
         LogFine() << "Storing proof in " << HashUtil::toString(state.hash) 
 		  << "(win " << state.win << ")"             
-		  << m_stoneboard->printBitset(state.proof) << '\n';
+		  << m_stoneboard->Write(state.proof) << '\n';
         
         m_tt->put(state);
     }
@@ -443,8 +443,8 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
         GraphUtils::BFS(HexPointUtil::colorEdge2(!color), nbs, stopset);
 
     if ((carrier[0] & carrier[1]).any()) {
-        LogFine() << "Side0:" << brd.printBitset(carrier[0]) << '\n'
-		  << "Side1:" << brd.printBitset(carrier[1]) << '\n';
+        LogFine() << "Side0:" << brd.Write(carrier[0]) << '\n'
+		  << "Side1:" << brd.Write(carrier[1]) << '\n';
         HexAssert(false);
     }
         
@@ -453,7 +453,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
     SolutionSet dsolution[2];
     for (int s=0; s<2; ++s) {
         LogFine() << "----------- Side" << s << ":" 
-		  << brd.printBitset(carrier[s]) << '\n';
+		  << brd.Write(carrier[s]) << '\n';
 
         bool win = false;
         brd.PlayStones(!color, carrier[s^1] & brd.getCells(), color);
@@ -481,7 +481,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
         // abort if we won this side
         if (win) {
             LogFine() << "##### WON SIDE " << s << " #####" << '\n'
-		      << brd.printBitset(dsolution[s].proof) << '\n'
+		      << brd.Write(dsolution[s].proof) << '\n'
 		      << "explored_states: " 
 		      << dsolution[s].stats.explored_states << '\n';
             
@@ -518,7 +518,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
 	      << "Side0: " << s0 << " explored." << '\n'
 	      << "Side1: " << s1 << " explored." << '\n'
 	      << "Saved: " << (s0*s1) - (s0+s1) << '\n'
-	      << brd.printBitset(solution.proof) << '\n';
+	      << brd.Write(solution.proof) << '\n';
     return false;
 }
 
@@ -594,7 +594,7 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
     // If mustplay is empty then this is a losing state.
     if (mustplay.none()) {
         LogFine() << "Empty reduced mustplay." << '\n'
-		  << brd.printBitset(solution.proof) << '\n';
+		  << brd.Write(solution.proof) << '\n';
 
         m_histogram.terminal[numstones]++;
 
@@ -774,7 +774,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
         LogWarning() << color << " to play." << '\n'
 		     << loser << " loses." << '\n'
 		     << "Losing stones hit proof:" << '\n'
-		     << brd.printBitset(solution.proof) << '\n'
+		     << brd.Write(solution.proof) << '\n'
 		     << brd << '\n'
 		     << SolverUtil::PrintVariation(variation) << '\n';
         HexAssert(false);
@@ -785,7 +785,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
         LogWarning() << color << " to play." << '\n'
 		     << loser << " loses." << '\n'
 		     << "Dead cells hit proof:" << '\n'
-		     << brd.printBitset(solution.proof) << '\n'
+		     << brd.Write(solution.proof) << '\n'
 		     << brd << '\n'
 		     << SolverUtil::PrintVariation(variation) << '\n';
         HexAssert(false);
@@ -820,9 +820,9 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
                                        HexPointUtil::colorEdge2(winner)))
     {
         LogWarning() << "Proof does not touch both edges!" << '\n'
-		     << brd.printBitset(solution.proof) << '\n'
+		     << brd.Write(solution.proof) << '\n'
 		     << "Original proof:" << '\n'
-		     << brd.printBitset(old_proof) << '\n'
+		     << brd.Write(old_proof) << '\n'
 		     << brd << '\n'
 		     << color << " to play." << '\n'
 		     << SolverUtil::PrintVariation(variation) << '\n';
@@ -1092,8 +1092,8 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
             if (new_mustplay.count() < mustplay.count())
 	    {
                 LogFine() << "Pruned mustplay with backing-up info."
-			  << brd.printBitset(mustplay)
-			  << brd.printBitset(new_mustplay) << '\n';
+			  << brd.Write(mustplay)
+			  << brd.Write(new_mustplay) << '\n';
 
                 mustplay = new_mustplay;
                 solution.proof = new_initial_proof;
@@ -1389,18 +1389,18 @@ bitset_t SolverUtil::MustplayCarrier(const HexBoard& brd, HexColor color)
 bitset_t SolverUtil::InitialProof(const HexBoard& brd, HexColor color)
 {
     LogFine() << "mustplay-carrier:" << '\n'
-	      << brd.printBitset(MustplayCarrier(brd, color)) << '\n';
+	      << brd.Write(MustplayCarrier(brd, color)) << '\n';
 
     bitset_t proof = 
         (MustplayCarrier(brd, color) | brd.getColor(!color)) - brd.getDead();
 
     LogFine() << "Initial mustplay-carrier:" << '\n'
-	      << brd.printBitset(proof) << '\n';
+	      << brd.Write(proof) << '\n';
 
     if ((proof & brd.getColor(color)).any()) 
     {
         LogSevere() << "Initial mustplay hits toPlay's stones!" << '\n' 
-		    << brd << '\n' << brd.printBitset(proof) << '\n';
+		    << brd << '\n' << brd.Write(proof) << '\n';
         HexAssert(false);
     }
     
@@ -1447,10 +1447,10 @@ void SolverUtil::ShrinkProof(bitset_t& proof,
 		  << loser << " loses on: "
 		  << board << '\n'
 		  << "Original proof: "
-		  << board.printBitset(proof) << '\n'
+		  << board.Write(proof) << '\n'
 		  << "Shrunk (removed " 
 		  << (proof.count() - shrunk_proof.count()) << " cells):"
-		  << brd->printBitset(shrunk_proof) << '\n'
+		  << brd->Write(shrunk_proof) << '\n'
 		  << *brd << '\n'
 		  << "**********************" << '\n';
     }

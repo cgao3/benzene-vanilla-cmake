@@ -948,8 +948,8 @@ void IceUtil::Update(InferiorCells& out, const InferiorCells& in,
     bitset_t pc[BLACK_AND_WHITE];
     pc[BLACK] = out.PermInfCarrier(BLACK);
     pc[WHITE] = out.PermInfCarrier(WHITE);
-    //LogInfo() << brd.printBitset(pc[BLACK]) << '\n'
-    //          << brd.printBitset(pc[WHITE]) << '\n';
+    //LogInfo() << brd.Write(pc[BLACK]) << '\n'
+    //          << brd.Write(pc[WHITE]) << '\n';
 
     for (BitsetIterator d(in.Dead()); d; ++d) {
         //LogFine() << *d << '\n';

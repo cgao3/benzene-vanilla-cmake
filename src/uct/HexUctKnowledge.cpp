@@ -38,7 +38,7 @@ void HexUctPriorKnowledge::ProcessPosition(bool& deepenTree)
 	m_badResponses = brd.matchPatternsOnBoard(brd.getEmpty(),
                                                   m_hash_bad_patterns[toPlay]);
 	//LogSevere() << "BAD:"
-        //         << brd.printBitset(m_badResponses) << '\n';
+        //         << brd.Write(m_badResponses) << '\n';
     }
     
     // Among cells close to the last move played, determine which of
@@ -57,7 +57,7 @@ void HexUctPriorKnowledge::ProcessPosition(bool& deepenTree)
 	    m_goodResponses.set(p);
 	}
 	//LogSevere() << "GOOD:"
-        //         << brd.printBitset(m_goodResponses) << '\n';
+        //         << brd.Write(m_goodResponses) << '\n';
     }
 }
 

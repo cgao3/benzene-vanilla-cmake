@@ -259,7 +259,7 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
         {
             consider = new_consider;       
             LogFine() << "$$$$$$ new moves to consider $$$$$$" 
-                      << brd.printBitset(consider) << '\n';
+                      << brd.Write(consider) << '\n';
         }
     }
 
@@ -277,13 +277,13 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
         else 
         {
             LogFine() << "Removed losing moves: " 
-		      << brd.printBitset(losing) << '\n';
+		      << brd.Write(losing) << '\n';
 	    consider = consider - losing;
 	}
     }
     HexAssert(consider.any());
     LogInfo()<< "Moves to consider:" << '\n' 
-             << brd.printBitset(consider) << '\n';
+             << brd.Write(consider) << '\n';
     return false;
 }
 

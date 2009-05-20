@@ -1260,7 +1260,7 @@ void BenzeneHtpEngine::CmdSolveState(HtpCommand& cmd)
     if (result != Solver::UNKNOWN) {
         winner = (result==Solver::WIN) ? color : !color;
         LogInfo() << winner << " wins!" << '\n'
-		  << brd.printBitset(solution.proof) << '\n';
+		  << brd.Write(solution.proof) << '\n';
     } else {
         LogInfo() << "Search aborted!" << '\n';
     }
@@ -1330,7 +1330,7 @@ void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)
             : m_solver->Solve(brd, other, solution);
         m_solver->DumpStats(solution);
         LogInfo()
-                 << "Proof:" << brd.printBitset(solution.proof)
+                 << "Proof:" << brd.Write(solution.proof)
                  << '\n';
 
         if (result != Solver::UNKNOWN) {
@@ -1352,7 +1352,7 @@ void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)
 
     LogInfo()
              << "****** Winning Moves ******" << '\n'
-             << m_game->Board().printBitset(winning) << '\n';
+             << m_game->Board().Write(winning) << '\n';
 
     cmd << HexPointUtil::ToPointListString(winning);
 }

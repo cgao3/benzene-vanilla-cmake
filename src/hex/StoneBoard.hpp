@@ -31,9 +31,6 @@ typedef std::vector<byte> BoardID;
     for a cell to be BLACK or WHITE and not played.  Played stones
     contribute to the board hash and id, unplayed stones do not.     
     @see Hash(), GetBoardID(), setPlayed(). 
-    
-    @note You MUST call StoneBoard::startNewGame() before playing any
-    moves.
 */
 class StoneBoard
 {
@@ -100,12 +97,14 @@ public:
         moves first and alternating play. */
     HexColor WhoseTurn() const;
 
+    //-----------------------------------------------------------------------
+
     /** Returns a string representation of the board. */
-    virtual std::string print() const;
+    std::string Write() const;
 
     /** Returns a string representation of the board with the cells
         marked in the given bitset denoted by a '*'. */
-    virtual std::string printBitset(const bitset_t& b) const;
+    std::string Write(const bitset_t& b) const;
 
     //-----------------------------------------------------------------------
 
@@ -234,10 +233,10 @@ public:
     void removeColor(HexColor color, const bitset_t& b);
 
     /** Sets color of cell. Does not modify hash. */
-    virtual void setColor(HexColor color, HexPoint cell);
+    void setColor(HexColor color, HexPoint cell);
 
     /** Sets color of cells in bitset. Does not modify hash. */
-    virtual void setColor(HexColor color, const bitset_t& bs);
+    void setColor(HexColor color, const bitset_t& bs);
     
     // @}
 
@@ -246,9 +245,8 @@ public:
     /** @name Methods modifying Hash() and BoardID() */
     // @{
 
-    /** Clears the board and plays the edge stones. This method MUST
-        be called before any user moves can be played. */
-    virtual void startNewGame();
+    /** Clears the board and plays the edge stones. */
+    void startNewGame();
 
     /** Sets the played stones. These stones, and only these stones,
         will contribute to the board hash and board id. Hash is
@@ -348,7 +346,7 @@ private:
 
     void MarkAsDirty();
 
-    bool BlackWhiteDisjoint();
+    bool IsBlackWhiteDisjoint();
 };
 
 inline const ConstBoard& StoneBoard::Const() const
@@ -554,7 +552,7 @@ inline const BoardIterator& StoneBoard::Stones(HexColor color) const
 /** Prints board to output stream. */
 inline std::ostream& operator<<(std::ostream &os, const StoneBoard& b)
 {
-    os << b.print();
+    os << b.Write();
     return os;
 }
 

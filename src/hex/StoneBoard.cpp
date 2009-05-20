@@ -106,9 +106,9 @@ void StoneBoard::MarkAsDirty()
 
 void StoneBoard::addColor(HexColor color, const bitset_t& b)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    HexAssert(HexColorUtil::isIsBlackWhite(color));
     m_stones[color] |= b;
-    HexAssert(BlackWhiteDisjoint());
+    HexAssert(IsBlackWhiteDisjoint());
     if (b.any()) MarkAsDirty();
 }
 
@@ -116,7 +116,7 @@ void StoneBoard::removeColor(HexColor color, const bitset_t& b)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] = m_stones[color] - b;
-    HexAssert(BlackWhiteDisjoint());
+    HexAssert(IsBlackWhiteDisjoint());
     if (b.any()) MarkAsDirty();
 }
 
@@ -130,7 +130,7 @@ void StoneBoard::setColor(HexColor color, HexPoint cell)
 	    m_stones[*it].reset(cell);
     } else {
         m_stones[color].set(cell);
-        HexAssert(BlackWhiteDisjoint());
+        HexAssert(IsBlackWhiteDisjoint());
     }
 
     MarkAsDirty();
@@ -143,7 +143,7 @@ void StoneBoard::setColor(HexColor color, const bitset_t& bs)
     HexAssert(isValid(bs));
 
     m_stones[color] = bs;
-    HexAssert(BlackWhiteDisjoint());
+    HexAssert(IsBlackWhiteDisjoint());
 
     MarkAsDirty();
 }
@@ -300,33 +300,32 @@ void StoneBoard::SetState(const BoardID& id)
 
 //----------------------------------------------------------------------------
 
-std::string StoneBoard::print() const
+std::string StoneBoard::Write() const
 {
-    bitset_t empty;
-    return printBitset(empty);
+    return Write(EMPTY_BITSET);
 }
 
-std::string StoneBoard::printBitset(const bitset_t& b) const
+std::string StoneBoard::Write(const bitset_t& b) const
 {
-    int i,j;
     std::ostringstream out;
-    out << std::endl;
-    out << "  " << HashUtil::toString(Hash()) << std::endl;
+    out << '\n';
+    out << "  " << HashUtil::toString(Hash()) << '\n';
     out << "  ";
-    for (i=0; i<width(); i++) {
-        out << (char)('a'+i) << "  ";
-    }
-    out << std::endl;
-    for (i=0; i<height(); i++) {
-        for (j=0; j<i; j++) out << " ";
-
-        if (i+1 < 10) out << " ";
-        out << (i+1) << "\\";
-        for (j=0; j<width(); j++) {
+    for (int i = 0; i < width(); i++) 
+        out << (char)('a' + i) << "  ";
+    out << '\n';
+    for (int i = 0; i < height(); i++) 
+    {
+        for (int j = 0; j < i; j++) 
+            out << " ";
+        if (i + 1 < 10) 
+            out << " ";
+        out << (i + 1) << "\\";
+        for (int j = 0; j < width(); j++) 
+        {
             HexPoint p = HexPointUtil::coordsToPoint(j, i);
-
-            if (j) out << "  ";
-
+            if (j) 
+                out << "  ";
             if (b.test(p))
                 out << "*";
             else if (isBlack(p) && isPlayed(p))
@@ -341,23 +340,18 @@ std::string StoneBoard::printBitset(const bitset_t& b) const
                 out << ".";
         }
         out << "\\";
-        out << (i+1); 
-        out << std::endl;
+        out << (i + 1); 
+        out << '\n';
     }
-    for (j=0; j<height(); j++) out << " ";
+    for (int j = 0; j < height(); j++) 
+        out << " ";
     out << "   ";
-    for (i=0; i<width(); i++) {
-        out << (char)('a'+i) << "  ";
-    }
-
+    for (int i = 0; i < width(); i++)
+        out << (char)('a' + i) << "  ";
     return out.str();
 }
 
-//----------------------------------------------------------------------
-// private members
-//----------------------------------------------------------------------
-
-bool StoneBoard::BlackWhiteDisjoint()
+bool StoneBoard::IsBlackWhiteDisjoint()
 {
     if ((m_stones[BLACK] & m_stones[WHITE]).any()) {
         for (BWIterator it; it; ++it)
