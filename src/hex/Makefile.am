@@ -21,7 +21,7 @@ IcePatternSet.cpp \
 InferiorCells.cpp \
 OpeningBook.cpp \
 Pattern.cpp\
-PatternBoard.cpp\
+PatternState.cpp\
 PlayerUtils.cpp \
 Resistance.cpp \
 RingGodel.cpp \
@@ -67,7 +67,7 @@ IcePatternSet.hpp \
 InferiorCells.hpp \
 Move.hpp \
 OpeningBook.hpp \
-PatternBoard.hpp \
+PatternState.hpp \
 Pattern.hpp \
 PlayerUtils.hpp \
 Resistance.hpp \

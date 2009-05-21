@@ -22,7 +22,7 @@ benzene_unittest_SOURCES = \
 ../hex/test/HexPointTest.cpp \
 ../hex/test/ICEngineTest.cpp \
 ../hex/test/InferiorCellsTest.cpp \
-../hex/test/PatternBoardTest.cpp \
+../hex/test/PatternStateTest.cpp \
 ../hex/test/RingGodelTest.cpp \
 ../hex/test/SequenceHashTest.cpp \
 ../hex/test/StoneBoardTest.cpp \

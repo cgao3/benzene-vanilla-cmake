@@ -10,7 +10,7 @@
 #include "InferiorCells.hpp"
 #include "IcePatternSet.hpp"
 #include "HandCodedPattern.hpp"
-#include "PatternBoard.hpp"
+#include "PatternState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 

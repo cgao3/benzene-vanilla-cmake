@@ -5,7 +5,7 @@
 
 #include "Hex.hpp"
 #include "Misc.hpp"
-#include "PatternBoard.hpp"
+#include "PatternState.hpp"
 #include "HexUctPolicy.hpp"
 
 #include <boost/filesystem/path.hpp>

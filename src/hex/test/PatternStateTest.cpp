@@ -17,7 +17,7 @@
 #include <boost/test/auto_unit_test.hpp>
 
 #include "Hex.hpp"
-#include "PatternBoard.hpp"
+#include "PatternState.hpp"
 
 using namespace benzene;
 
@@ -25,7 +25,7 @@ using namespace benzene;
 
 namespace {
 
-BOOST_AUTO_TEST_CASE(PatternBoard_Tests)
+BOOST_AUTO_TEST_CASE(PatternState_Tests)
 {
     //              W !
     //             W * W                         [7/0]

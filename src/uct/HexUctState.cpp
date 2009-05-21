@@ -23,7 +23,7 @@
 #include "BitsetIterator.hpp"
 #include "HexUctPolicy.hpp"
 #include "HexUctUtil.hpp"
-#include "PatternBoard.hpp"
+#include "PatternState.hpp"
 #include "PlayerUtils.hpp"
 #include "SequenceHash.hpp"
 

@@ -1,11 +1,11 @@
 //----------------------------------------------------------------------------
-/** @file PatternBoard.cpp
+/** @file PatternState.cpp
  */
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
-#include "PatternBoard.hpp"
+#include "PatternState.hpp"
 
 using namespace benzene;
 

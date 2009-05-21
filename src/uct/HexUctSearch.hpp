@@ -12,7 +12,7 @@
 #include "SgUctSearch.h"
 
 #include "HexUctState.hpp"
-#include "PatternBoard.hpp"
+#include "PatternState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 

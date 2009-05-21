@@ -12,7 +12,7 @@
 #include "VCBuilder.hpp"
 #include "Hex.hpp"
 #include "ICEngine.hpp"
-#include "PatternBoard.hpp"
+#include "PatternState.hpp"
 #include "VCPattern.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_

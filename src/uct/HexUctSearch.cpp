@@ -17,7 +17,7 @@
 #include "HexUctSearch.hpp"
 #include "HexUctState.hpp"
 #include "HexUctUtil.hpp"
-#include "PatternBoard.hpp"
+#include "PatternState.hpp"
 
 using namespace benzene;
 

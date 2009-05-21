@@ -6,7 +6,7 @@
 #include "SgSystem.h"
 
 #include "HexUctKnowledge.hpp"
-#include "PatternBoard.hpp"
+#include "PatternState.hpp"
 
 using namespace benzene;
 

@@ -8,7 +8,7 @@ broderic [090506] (in rough order of importance)
 * Create HexPosition class; make StoneBoard use it.
 * Better book visualization tools
 * Switch dead region/decomp detection to new Phil algo
-* Make GroupBoard and PatternBoard not derive off of StoneBoard
+* Make GroupBoard not derive off of StoneBoard
 * Add HexBoard::Resize() method; use in SyncBoard()
 * Have Wolve check TT for losing moves in move generation.
   * Phil says `maybe': if solve strong moves but not weak, then Wolve will
