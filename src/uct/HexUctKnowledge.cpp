@@ -30,13 +30,13 @@ void HexUctPriorKnowledge::ProcessPosition(bool& deepenTree)
     // Get previous move and current board state.
     HexPoint prevMove = m_state.GetLastMovePlayed();
     HexColor toPlay = m_state.GetColorToPlay();
-    const PatternBoard& brd = m_state.Board();
+    const PatternState& pastate = m_state.GetPatternState();
     
     // Among all cells, compute which moves are bad (dead/vulnerable)
     if (m_use_bad) 
     {
-	m_badResponses = brd.matchPatternsOnBoard(brd.getEmpty(),
-                                                  m_hash_bad_patterns[toPlay]);
+	m_badResponses = pastate.MatchOnBoard(pastate.Board().getEmpty(),
+                                              m_hash_bad_patterns[toPlay]);
 	//LogSevere() << "BAD:"
         //         << brd.Write(m_badResponses) << '\n';
     }
@@ -49,9 +49,9 @@ void HexUctPriorKnowledge::ProcessPosition(bool& deepenTree)
 	if (prevMove == INVALID_POINT) return;
 	
 	PatternHits hits;
-	brd.matchPatternsOnCell(m_hash_good_patterns[toPlay], prevMove,
-				PatternBoard::MATCH_ALL, hits);
-	for (unsigned i=0; i<hits.size(); ++i) 
+	pastate.MatchOnCell(m_hash_good_patterns[toPlay], prevMove,
+                            PatternState::MATCH_ALL, hits);
+	for (unsigned i = 0; i < hits.size(); ++i) 
         {
 	    HexPoint p = hits[i].moves1()[0];
 	    m_goodResponses.set(p);

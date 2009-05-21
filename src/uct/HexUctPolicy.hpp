@@ -147,7 +147,7 @@ public:
         - Pattern move (if enabled)
         - Purely random
     */
-    virtual HexPoint GenerateMove(PatternBoard& brd, 
+    virtual HexPoint GenerateMove(PatternState& pastate, 
                                   HexColor color, 
                                   HexPoint lastMove);
 
@@ -167,19 +167,19 @@ private:
     /** Randomly picks a pattern move from the set of patterns that hit
         the last move, weighted by the pattern's weight. 
         If no pattern matches, returns INVALID_POINT. */
-    HexPoint PickRandomPatternMove(const PatternBoard& brd, 
+    HexPoint PickRandomPatternMove(const PatternState& pastate, 
                                    const HashedPatternSet& patterns, 
                                    HexColor toPlay, 
                                    HexPoint lastMove);
 
     /** Uses PickRandomPatternMove() with the shared PlayPatterns(). */
-    HexPoint GeneratePatternMove(const PatternBoard& brd, HexColor color, 
+    HexPoint GeneratePatternMove(const PatternState& pastate, HexColor color, 
                                  HexPoint lastMove);
 
     //----------------------------------------------------------------------
 
     /** Selects random move among the empty cells on the board. */
-    HexPoint GenerateRandomMove(const PatternBoard& brd);
+    HexPoint GenerateRandomMove(const StoneBoard& brd);
 
     //----------------------------------------------------------------------
 

@@ -245,13 +245,16 @@ void SimulateAndOverEdge1(const HexBoard& brd, HexColor color,
     HexAssert(g_ResistanceUtilInitialized);
 
     bitset_t adjToEdge;
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) {
+    for (BitsetIterator p(brd.getEmpty()); p; ++p) 
+    {
         PatternHits hits;
-        brd.matchPatternsOnCell(*s_hash_capmiai[color], *p, 
-                                PatternBoard::MATCH_ALL, hits);
-        for (unsigned j=0; j<hits.size(); ++j) {
+        brd.GetPatternState().MatchOnCell(*s_hash_capmiai[color], *p, 
+                                          PatternState::MATCH_ALL, hits);
+        for (unsigned j=0; j<hits.size(); ++j) 
+        {
             HexPoint cj = brd.getCaptain(hits[j].moves1()[0]);
-            if (cj == edge) {
+            if (cj == edge) 
+            {
                 augment.set(*p);
                 break;
             }

@@ -45,8 +45,8 @@ BOOST_AUTO_TEST_CASE(PatternBoard_Tests)
     HashedPatternSet hashpat;
     hashpat.hash(patterns);
     
-    PatternBoard brd(11, 11);
-    brd.startNewGame();
+    StoneBoard brd(11, 11);
+    PatternState pastate(brd);
     
     //       0x5765ad24894d45fc
     //   a  b  c  d  e  f  g  h  i  j  k  
@@ -73,11 +73,11 @@ BOOST_AUTO_TEST_CASE(PatternBoard_Tests)
     brd.playMove(WHITE, HEX_CELL_B4);
 
     brd.playMove(WHITE, HEX_CELL_J9);
-    brd.update();
+    pastate.Update();
 
     std::vector<PatternHits> hits(FIRST_INVALID);
-    bitset_t found = brd.matchPatternsOnBoard(brd.getEmpty(), hashpat, 
-                                              PatternBoard::MATCH_ALL, hits);
+    bitset_t found = pastate.MatchOnBoard(brd.getEmpty(), hashpat, 
+                                          PatternState::MATCH_ALL, hits);
 
     // Ensure a, d, e, g were found
     BOOST_CHECK_EQUAL(found.count(), 6u);

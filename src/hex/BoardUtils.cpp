@@ -71,13 +71,12 @@ void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
         for (BitsetIterator p(brd.getColor(*color) & brd.Const().getCells()); 
              p; ++p) 
         {
-
             PatternHits hits;
-            brd.matchPatternsOnCell(*g_hash_oppmiai[*color], *p, 
-                                    PatternBoard::MATCH_ALL, hits);
-            
+            brd.GetPatternState().MatchOnCell(*g_hash_oppmiai[*color], *p, 
+                                              PatternState::MATCH_ALL, hits);
             HexPoint cp = brd.getCaptain(*p);
-            for (unsigned j=0; j<hits.size(); ++j) {
+            for (unsigned j=0; j<hits.size(); ++j) 
+            {
                 HexPoint cj = brd.getCaptain(hits[j].moves1()[0]);
                 adjByMiai[cj].set(cp);
                 adjByMiai[cp].set(cj);

@@ -132,9 +132,9 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     }
     m_search.SetSharedData(data);
 
-    brd.ClearPatternCheckStats();
-    int old_radius = brd.updateRadius();
-    brd.setUpdateRadius(m_search.TreeUpdateRadius());
+    brd.GetPatternState().ClearPatternCheckStats();
+    int old_radius = brd.GetPatternState().UpdateRadius();
+    brd.GetPatternState().SetUpdateRadius(m_search.TreeUpdateRadius());
 
     // Do the search
     std::vector<SgMove> sequence;
@@ -143,7 +143,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
     score = m_search.Search(m_max_games, max_time, sequence,
                             rootFilter, initTree, 0);
 
-    brd.setUpdateRadius(old_radius);
+    brd.GetPatternState().SetUpdateRadius(old_radius);
 
     double end = Time::Get();
 

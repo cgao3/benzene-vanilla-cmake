@@ -140,7 +140,7 @@ void HexUctState::ExecuteTreeMove(HexPoint move)
         m_bd->setColor(BLACK, stones.black);
         m_bd->setColor(WHITE, stones.white);
         m_bd->setPlayed(stones.played);
-        m_bd->update();
+        m_pastate->Update();
     }
 }
 
@@ -163,13 +163,13 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
     // needlessly.
     // @todo Handle case when assertions are on.
     SG_ASSERT(m_bd->isEmpty(cell));
-    SG_ASSERT(m_bd->updateRadius() == updateRadius);
+    SG_ASSERT(m_pastate->UpdateRadius() == updateRadius);
     
     m_bd->playMove(m_toPlay, cell);
     if (updateRadius == 1)
-	m_bd->updateRingGodel(cell);
+	m_pastate->UpdateRingGodel(cell);
     else
-	m_bd->update(cell);
+	m_pastate->Update(cell);
     
     m_lastMovePlayed = cell;
     m_new_game = false;
@@ -218,7 +218,8 @@ SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
     if (GameOver(*m_bd))
         return SG_NULLMOVE;
         
-    SgPoint move = m_policy->GenerateMove(*m_bd, m_toPlay, m_lastMovePlayed);
+    SgPoint move = m_policy->GenerateMove(*m_pastate, m_toPlay,
+                                          m_lastMovePlayed);
     SG_ASSERT(move != SG_NULLMOVE);
     return move;
 }
@@ -237,7 +238,8 @@ void HexUctState::StartSearch()
         || m_bd->width() != brd.width() 
         || m_bd->height() != brd.height())
     {
-        m_bd.reset(new PatternBoard(brd.width(), brd.height()));
+        m_bd.reset(new GroupBoard(brd.width(), brd.height()));
+        m_pastate.reset(new PatternState(*m_bd));
         m_vc_brd.reset(new HexBoard(brd.width(), brd.height(), 
                                     brd.ICE(), brd.Builder().Parameters()));
     }
@@ -265,26 +267,26 @@ void HexUctState::GameStart()
     m_game_sequence = m_shared_data->game_sequence;
     m_toPlay = m_shared_data->root_to_play;
     m_lastMovePlayed = m_shared_data->root_last_move_played;
-    m_bd->setUpdateRadius(m_treeUpdateRadius);
+    m_pastate->SetUpdateRadius(m_treeUpdateRadius);
 
     m_bd->startNewGame();
     m_bd->setColor(BLACK, m_shared_data->root_stones.black);
     m_bd->setColor(WHITE, m_shared_data->root_stones.white);
     m_bd->setPlayed(m_shared_data->root_stones.played);
-    m_bd->update();
+    m_pastate->Update();
 }
 
 void HexUctState::StartPlayouts()
 {
     m_isInPlayout = true;
-    m_bd->setUpdateRadius(m_playoutUpdateRadius);
+    m_pastate->SetUpdateRadius(m_playoutUpdateRadius);
     
     /** Playout radius should normally be no bigger than tree radius,
 	but if it is, we need to do an extra update for each playout
 	during the transition from the tree phase to the playout
 	phase. */
     if (m_playoutUpdateRadius > m_treeUpdateRadius)
-	m_bd->update();
+	m_pastate->Update();
 }
 
 void HexUctState::StartPlayout()

@@ -19,12 +19,11 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Combines GroupBoard, PatternBoard, and VCSet into a board
-    that handles all updates automatically.
+/** Board that updates groups, pattern states, and vcs. 
   
     @todo Document me!
 */
-class HexBoard : public PatternBoard
+class HexBoard : public GroupBoard
 {
 public:
     
@@ -117,6 +116,10 @@ public:
     /** Returns the Inferior Cell Engine the board is using. */
     const ICEngine& ICE() const;
 
+    const PatternState& GetPatternState() const;
+
+    PatternState& GetPatternState();
+
     /** Returns the connection set for color. */
     const VCSet& Cons(HexColor color) const;
 
@@ -163,6 +166,8 @@ private:
 
     /** ICEngine used to compute inferior cells. */
     const ICEngine* m_ice;
+
+    PatternState m_patterns;
 
     /** Builder used to compute virtual connections. */
     VCBuilder m_builder;
@@ -232,6 +237,16 @@ inline const InferiorCells& HexBoard::getInferiorCells() const
 inline const ICEngine& HexBoard::ICE() const
 {
     return *m_ice;
+}
+
+inline const PatternState& HexBoard::GetPatternState() const
+{
+    return m_patterns;
+}
+
+inline PatternState& HexBoard::GetPatternState()
+{
+    return m_patterns;
 }
 
 inline const VCSet& HexBoard::Cons(HexColor color) const

@@ -172,10 +172,11 @@ void HexUctPolicy::InitializeForRollout(const StoneBoard& brd)
     ShuffleVector(m_moves, m_random);
 }
 
-HexPoint HexUctPolicy::GenerateRandomMove(const PatternBoard& brd)
+HexPoint HexUctPolicy::GenerateRandomMove(const StoneBoard& brd)
 {
     HexPoint ret = INVALID_POINT;
-    while (true) {
+    while (true) 
+    {
 	HexAssert(!m_moves.empty());
         ret = m_moves.back();
         m_moves.pop_back();
@@ -185,7 +186,7 @@ HexPoint HexUctPolicy::GenerateRandomMove(const PatternBoard& brd)
     return ret;
 }
 
-HexPoint HexUctPolicy::GenerateMove(PatternBoard& brd, 
+HexPoint HexUctPolicy::GenerateMove(PatternState& pastate, 
                                     HexColor toPlay, 
                                     HexPoint lastMove)
 {
@@ -200,7 +201,7 @@ HexPoint HexUctPolicy::GenerateMove(PatternBoard& brd,
     if (config.patternHeuristic 
         && PercentChance(config.pattern_check_percent, m_random))
     {
-        move = GeneratePatternMove(brd, toPlay, lastMove);
+        move = GeneratePatternMove(pastate, toPlay, lastMove);
     }
     
     // select random move if invalid point from pattern heuristic
@@ -209,7 +210,7 @@ HexPoint HexUctPolicy::GenerateMove(PatternBoard& brd,
 #if COLLECT_PATTERN_STATISTICS
 	stats.random_moves++;
 #endif
-        move = GenerateRandomMove(brd);
+        move = GenerateRandomMove(pastate.Board());
     } 
     else 
     {
@@ -219,17 +220,16 @@ HexPoint HexUctPolicy::GenerateMove(PatternBoard& brd,
 #endif
     }
     
-    HexAssert(brd.isEmpty(move));
+    HexAssert(pastate.Board().isEmpty(move));
 #if COLLECT_PATTERN_STATISTICS
     stats.total_moves++;
 #endif
-
     return move;
 }
 
 //--------------------------------------------------------------------------
 
-HexPoint HexUctPolicy::PickRandomPatternMove(const PatternBoard& brd, 
+HexPoint HexUctPolicy::PickRandomPatternMove(const PatternState& pastate, 
                                              const HashedPatternSet& patterns, 
                                              HexColor toPlay,
                                              HexPoint lastMove)
@@ -244,9 +244,9 @@ HexPoint HexUctPolicy::PickRandomPatternMove(const PatternBoard& brd,
     HexPoint patternMoves[MAX_VOTES];
 
     PatternHits hits;
-    brd.matchPatternsOnCell(patterns, lastMove, PatternBoard::MATCH_ALL, hits);
+    pastate.MatchOnCell(patterns, lastMove, PatternState::MATCH_ALL, hits);
 
-    for (unsigned i=0; i<hits.size(); ++i) 
+    for (unsigned i = 0; i < hits.size(); ++i) 
     {
 #if COLLECT_PATTERN_STATISTICS
         // record that this pattern hit
@@ -254,7 +254,7 @@ HexPoint HexUctPolicy::PickRandomPatternMove(const PatternBoard& brd,
 #endif
             
         // number of entries added to array is equal to the pattern's weight
-        for (int j=0; j<hits[i].pattern()->getWeight(); ++j) 
+        for (int j = 0; j < hits[i].pattern()->getWeight(); ++j) 
         {
             patternIndex[num] = i;
             patternMoves[num] = hits[i].moves1()[0];
@@ -278,11 +278,11 @@ HexPoint HexUctPolicy::PickRandomPatternMove(const PatternBoard& brd,
     return patternMoves[i];
 }
 
-HexPoint HexUctPolicy::GeneratePatternMove(const PatternBoard& brd, 
+HexPoint HexUctPolicy::GeneratePatternMove(const PatternState& pastate, 
                                            HexColor toPlay, 
                                            HexPoint lastMove)
 {
-    return PickRandomPatternMove(brd, m_shared->PlayPatterns(toPlay),
+    return PickRandomPatternMove(pastate, m_shared->PlayPatterns(toPlay),
                                  toPlay, lastMove);
 }
 

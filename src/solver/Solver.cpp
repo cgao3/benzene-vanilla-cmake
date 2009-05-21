@@ -1407,34 +1407,26 @@ bitset_t SolverUtil::InitialProof(const HexBoard& brd, HexColor color)
     return proof;
 }
 
-/** @bug NOT THREADSAFE!!! */
 void SolverUtil::ShrinkProof(bitset_t& proof, 
                              const StoneBoard& board, HexColor loser, 
                              const ICEngine& ice)
 {
-    static boost::scoped_ptr<PatternBoard> brd;
+    GroupBoard brd(board.width(), board.height());
+    PatternState pastate(brd);
 
-    // never been here before or boardsize changed since last call
-    if (!brd.get() || 
-        (brd->width() != board.width() || brd->height() != board.height()))
-    {
-        brd.reset(new PatternBoard(board.width(), board.height()));
-    }
-    brd->startNewGame();
+    // Give loser all cells outside proof
+    bitset_t cells_outside_proof = (~proof & brd.Const().getCells());
+    brd.addColor(loser, cells_outside_proof);
 
-    // give loser all cells outside proof
-    bitset_t cells_outside_proof = (~proof & brd->Const().getCells());
-    brd->addColor(loser, cells_outside_proof);
-
-    // give winner only his stones inside proof; 
+    // Give winner only his stones inside proof; 
     HexColor winner = !loser;
-    brd->addColor(winner, board.getColor(winner) & board.getPlayed() & proof);
-    brd->update();
-    brd->absorb();
+    brd.addColor(winner, board.getColor(winner) & board.getPlayed() & proof);
+    pastate.Update();
+    brd.absorb();
 
-    // compute fillin and remove captured cells from the proof
+    // Compute fillin and remove captured cells from the proof
     InferiorCells inf;
-    ice.ComputeFillin(loser, *brd, inf, HexColorSetUtil::Only(loser));
+    ice.ComputeFillin(loser, brd, pastate, inf, HexColorSetUtil::Only(loser));
     HexAssert(inf.Captured(winner).none());
 
     bitset_t filled = inf.Dead() | inf.Captured(loser);
@@ -1450,12 +1442,11 @@ void SolverUtil::ShrinkProof(bitset_t& proof,
 		  << board.Write(proof) << '\n'
 		  << "Shrunk (removed " 
 		  << (proof.count() - shrunk_proof.count()) << " cells):"
-		  << brd->Write(shrunk_proof) << '\n'
-		  << *brd << '\n'
+		  << brd.Write(shrunk_proof) << '\n'
+		  << brd << '\n'
 		  << "**********************" << '\n';
     }
 #endif
-
     proof = shrunk_proof;
 }
 

@@ -62,6 +62,7 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
     builder.Build(con2, bd);
     BOOST_CHECK(con1 == con2);
 
+#if 0
     for (BitsetIterator p(bd.getEmpty()); p; ++p) {
         bitset_t added[BLACK_AND_WHITE];
         added[BLACK].set(*p);
@@ -79,6 +80,7 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
         BOOST_CHECK(cl.empty());
         BOOST_CHECK(VCSetUtil::EqualOnGroups(con1, con2, bd));
     }
+#endif
 }
 
 }

@@ -21,8 +21,6 @@ BOOST_AUTO_TEST_CASE(HexBoard_PlayAndUndo)
     ICEngine ice;
     VCBuilderParam param;
     HexBoard brd(7, 7, ice, param);
-
-    brd.startNewGame();
     brd.ComputeAll(BLACK);
     BOOST_CHECK(!brd.Cons(BLACK).Exists(NORTH, HEX_CELL_A4, VC::FULL));
 
@@ -40,8 +38,6 @@ BOOST_AUTO_TEST_CASE(HexBoard_CopyConstructor)
     ICEngine ice;
     VCBuilderParam param;
     HexBoard brd(7, 7, ice, param);
-    
-    brd.startNewGame();
     brd.ComputeAll(BLACK);
     brd.PlayMove(BLACK, HEX_CELL_B2);
     BOOST_CHECK_EQUAL(brd.getColor(HEX_CELL_B2), BLACK);

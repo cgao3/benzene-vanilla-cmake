@@ -113,7 +113,7 @@ public:
 
     /** Generate a move in the random play-out phase of
         HexUctSearch. */
-    virtual HexPoint GenerateMove(PatternBoard& brd, HexColor color, 
+    virtual HexPoint GenerateMove(PatternState& pastate, HexColor color, 
                                   HexPoint lastMove) = 0;
 
     virtual void InitializeForRollout(const StoneBoard& brd) = 0;
@@ -182,7 +182,9 @@ public:
 
     //-----------------------------------------------------------------------
 
-    const PatternBoard& Board() const;
+    const GroupBoard& Board() const;
+
+    const PatternState& GetPatternState() const;
 
     HexUctSearchPolicy* Policy();
 
@@ -215,8 +217,10 @@ private:
 
     AssertionHandler m_assertionHandler;
 
+    boost::scoped_ptr<GroupBoard> m_bd;
+
     /** Board used during search. */
-    boost::scoped_ptr<PatternBoard> m_bd;
+    boost::scoped_ptr<PatternState> m_pastate;
 
     /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vc_brd;
@@ -264,9 +268,14 @@ private:
     void ExecutePlainMove(HexPoint cell, int updateRadius);
 };
 
-inline const PatternBoard& HexUctState::Board() const
+inline const GroupBoard& HexUctState::Board() const
 {
     return *m_bd;
+}
+
+inline const PatternState& HexUctState::GetPatternState() const
+{
+    return *m_pastate;
 }
 
 inline HexUctSearchPolicy* HexUctState::Policy()

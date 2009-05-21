@@ -732,14 +732,14 @@ void BenzeneHtpEngine::CmdComputeInferior(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.update();
+    brd.GetPatternState().Update();
     brd.absorb();
 
     InferiorCells inf;
-    m_pe.ice.ComputeInferiorCells(color, brd, inf);
+    m_pe.ice.ComputeInferiorCells(color, brd, brd.GetPatternState(), inf);
 
     cmd << inf.GuiOutput();
-    cmd << "\n";
+    cmd << '\n';
 }
 
 /** Computes fillin for the given board. Color argument affects order
@@ -750,15 +750,15 @@ void BenzeneHtpEngine::CmdComputeFillin(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.update();
+    brd.GetPatternState().Update();
     brd.absorb();
 
     InferiorCells inf;
-    m_pe.ice.ComputeFillin(color, brd, inf);
+    m_pe.ice.ComputeFillin(color, brd, brd.GetPatternState(), inf);
     inf.ClearVulnerable();
 
     cmd << inf.GuiOutput();
-    cmd << "\n";
+    cmd << '\n';
 }
 
 /** Computes vulnerable cells on the current board for the given color. */
@@ -768,14 +768,14 @@ void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
     HexColor col = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.update();
+    brd.GetPatternState().Update();
     brd.absorb();
 
     InferiorCells inf;
-    m_pe.ice.FindVulnerable(brd, col, brd.getEmpty(), inf);
+    m_pe.ice.FindVulnerable(brd.GetPatternState(), col, brd.getEmpty(), inf);
 
     cmd << inf.GuiOutput();
-    cmd << "\n";
+    cmd << '\n';
 }
 
 /** Computes dominated cells on the current board for the given color. */
@@ -785,14 +785,14 @@ void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
     HexColor col = ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.update();
+    brd.GetPatternState().Update();
     brd.absorb();
 
     InferiorCells inf;
-    m_pe.ice.FindDominated(brd, col, brd.getEmpty(), inf);
+    m_pe.ice.FindDominated(brd.GetPatternState(), col, brd.getEmpty(), inf);
 
     cmd << inf.GuiOutput();
-    cmd << "\n";
+    cmd << '\n';
 }
 
 // tries to find a combinatorial decomposition of the board state
@@ -806,7 +806,7 @@ void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
 
     bitset_t capturedVC;
     if (BoardUtils::FindCombinatorialDecomposition(brd, color, capturedVC)) {
-        LogInfo() << "Found decomposition!" << '\n';
+        LogInfo() << "Found decomposition!\n";
         PrintBitsetToHTP(cmd, capturedVC);
     }
 }

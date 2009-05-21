@@ -271,7 +271,8 @@ bool IsClique(const ConstBoard& brd, const std::vector<HexPoint>& vn,
     local patterns. The board will have any found dead cells
     filled-in. */
 void UseGraphTheoryToFindDeadVulnerable(HexColor color, 
-                                        PatternBoard& brd, 
+                                        GroupBoard& brd, 
+                                        PatternState& pastate,
                                         InferiorCells& inf)
 {
     bitset_t simplicial;
@@ -282,19 +283,23 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color,
     consider = consider - adj_to_both_edges;
     
     // find presimplicial cells and their dominators
-    for (BitsetIterator p(consider); p; ++p) {
-	
+    for (BitsetIterator p(consider); p; ++p) 
+    {
         std::set<HexPoint> enbs, cnbs;
         bitset_t empty_adj_to_group;
         bool adj_to_edge = false;
 	HexPoint edgeNbr = INVALID_POINT;
 	
         // Categorize neighbours as either 'empty' or 'color'. 
-        for (BoardIterator nb(brd.Const().Nbs(*p)); nb; ++nb) {
+        for (BoardIterator nb(brd.Const().Nbs(*p)); nb; ++nb) 
+        {
             HexColor ncolor = brd.getColor(*nb);
-            if (ncolor == EMPTY) {
+            if (ncolor == EMPTY) 
+            {
                 enbs.insert(*nb);
-            } else if (ncolor == color) {
+            } 
+            else if (ncolor == color) 
+            {
                 HexPoint cap = brd.getCaptain(*nb);
                 bitset_t adj = brd.Nbs(cap, EMPTY);
                 adj.reset(*p);
@@ -305,16 +310,21 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color,
                 // Otherwise, add as a color group (helps us to
                 // identify cliques later).  Lastly, edges are a
                 // special case - always added as a group.
-                if (HexPointUtil::isColorEdge(cap, color)) {
+                if (HexPointUtil::isColorEdge(cap, color)) 
+                {
 		    HexAssert(!adj_to_edge || edgeNbr == cap);
                     adj_to_edge = true;
 		    edgeNbr = cap;
                     cnbs.insert(cap);
                     empty_adj_to_group |= adj;
-                } else if (adj.count() == 1) {
+                } 
+                else if (adj.count() == 1) 
+                {
                     enbs.insert(static_cast<HexPoint>
                                 (BitsetUtil::FindSetBit(adj)));
-                } else if (adj.count() >= 2) {
+                } 
+                else if (adj.count() >= 2) 
+                {
                     cnbs.insert(cap);
                     empty_adj_to_group |= adj;
                 }
@@ -323,37 +333,39 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color,
         
         // Remove empty neighbours that are adjacent to a color neighbour.
         std::set<HexPoint>::iterator it;
-        for (it = enbs.begin(); it != enbs.end(); ) {
-            if (empty_adj_to_group.test(*it)) {
+        for (it = enbs.begin(); it != enbs.end(); ) 
+        {
+            if (empty_adj_to_group.test(*it)) 
+            {
                 enbs.erase(it);
                 it = enbs.begin();
-            } else {
+            } 
+            else 
                 ++it;
-            }
         }
 	
         ////////////////////////////////////////////////////////////
         // if adjacent to one empty cell, or a single group of
         // your color, then neighbours are a clique, so *p is dead.
-        if (enbs.size() + cnbs.size() <= 1) {
+        if (enbs.size() + cnbs.size() <= 1)
             simplicial.set(*p);
-        }
         // Handle cells adjacent to the edge and those adjacent to
         // multiple groups of color (2 or 3). Need to test whether
         // the edge/a group's neighbours include all other groups'
         // neighbours, possibly omitting one. This, along with at most
         // one empty neighbour, makes the cell dead or vulnerable.
-        else if (adj_to_edge || cnbs.size() >= 2) {
-
-	    if (enbs.size() >= 2) continue;
+        else if (adj_to_edge || cnbs.size() >= 2) 
+        {
+	    if (enbs.size() >= 2) 
+                continue;
 	    
-	    if (cnbs.size() == 1) {
-
+	    if (cnbs.size() == 1) 
+            {
 		HexAssert(adj_to_edge && enbs.size() == 1);
                 inf.AddVulnerable(*p, *enbs.begin());
-
-	    } else {
-
+	    } 
+            else 
+            {
 		HexAssert(!adj_to_edge || 
                           HexPointUtil::isColorEdge(edgeNbr, color));
 
@@ -362,53 +374,54 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color,
 		
 		// Determine if *p is dead (flag if vulnerable)
 		for (std::set<HexPoint>::iterator i = cnbs.begin();
-                     i != cnbs.end(); 
-                     ++i) 
-               {
-
-		    // When adjacent to the edge, only the edge can
+                     i != cnbs.end(); ++i) 
+                {
+ 		    // When adjacent to the edge, only the edge can
 		    // trump other groups' adjacencies.
 		    if (adj_to_edge && *i != edgeNbr) continue;
 
 		    bitset_t remainingNbs = 
                         empty_adj_to_group - brd.Nbs(*i, EMPTY);
 		    
-		    if (remainingNbs.count() == 0) {
-			if (enbs.size() == 0) {
+		    if (remainingNbs.count() == 0) 
+                    {
+			if (enbs.size() == 0)
 			    simplicial.set(*p);
-			} else {
+                        else 
+                        {
 			    HexAssert(enbs.size() == 1);
 			    isPreSimp = true;
 			    killers_bs.set(*enbs.begin());
 			}
-		    } else if (remainingNbs.count() == 1 && enbs.size() == 0) {
+		    } 
+                    else if (remainingNbs.count() == 1 && enbs.size() == 0) 
+                    {
 			isPreSimp = true;
 			killers_bs.set(BitsetUtil::FindSetBit(remainingNbs));
 		    }
 		}
 		
-		if (!simplicial.test(*p) && isPreSimp) {
+                if (!simplicial.test(*p) && isPreSimp) 
+                {
 		    HexAssert(killers_bs.any());
-                    for (BitsetIterator k(killers_bs); k; ++k) {
+                    for (BitsetIterator k(killers_bs); k; ++k)
                         inf.AddVulnerable(*p, *k);
-		    }
 		}
 	    }
 
         }
 	// If many neighbours and previous cases didn't apply, 
         // then most likely *p is not dead or vulnerable.
-	else if (enbs.size() + cnbs.size() >= 4) {
-            
+	else if (enbs.size() + cnbs.size() >= 4) 
+        {
             // do nothing
-
 	}
-	
-	// If adjacent to one group and some empty cells, then *p
+        // If adjacent to one group and some empty cells, then *p
 	// cannot be dead, but might be vulnerable.
-	else if (cnbs.size() == 1) {
-
-	    if (enbs.size() > 1) continue;
+	else if (cnbs.size() == 1) 
+        {
+	    if (enbs.size() > 1) 
+                continue;
 
 	    HexAssert(enbs.size() == 1);
 	    HexAssert(empty_adj_to_group.count() >= 2);
@@ -416,53 +429,49 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color,
 	    // The single empty neighbour always kills *p
             inf.AddVulnerable(*p, *enbs.begin());
 	    
-	    if (empty_adj_to_group.count() == 2) {
+	    if (empty_adj_to_group.count() == 2) 
+            {
 		// If the single group has only two neighbours, it is
 		// possible that one or both of its neighbours are
 		// adjacent to the single direct neighbour, causing us
 		// to have more killers of *p
 		HexPoint omit = *enbs.begin();
-                for (BitsetIterator i(empty_adj_to_group); i; ++i) {
+                for (BitsetIterator i(empty_adj_to_group); i; ++i)
                     enbs.insert(*i);
-		}
 		
 		// determine the additional killers of this vulnerable
 		// cell
 		std::vector<HexPoint> vn(enbs.begin(), enbs.end());
-		for (unsigned ex=0; ex<vn.size(); ++ex) {
-		    if (vn[ex] == omit) continue;
-		    if (IsClique(brd.Const(), vn, vn[ex])) {
+		for (unsigned ex=0; ex<vn.size(); ++ex) 
+                {
+		    if (vn[ex] == omit) 
+                        continue;
+		    if (IsClique(brd.Const(), vn, vn[ex]))
                         inf.AddVulnerable(*p, vn[ex]);
-		    }
 		}
 	    }
 	}
-        else {
-
+        else 
+        {
             // If all empty neighbours form a clique, is dead. Otherwise
             // check if eliminating one makes the rest a clique.
             HexAssert(cnbs.size() == 0);
             std::vector<HexPoint> vn(enbs.begin(), enbs.end());
 
-            if (IsClique(brd.Const(), vn)) {
-
+            if (IsClique(brd.Const(), vn))
                 simplicial.set(*p);
-
-            } else {
-
-                for (unsigned ex=0; ex<vn.size(); ++ex) {
-                    if (IsClique(brd.Const(), vn, vn[ex])) {
+            else 
+            {
+                for (unsigned ex=0; ex<vn.size(); ++ex)
+                    if (IsClique(brd.Const(), vn, vn[ex]))
                         inf.AddVulnerable(*p, vn[ex]);
-                    }
-                }
             }
         }
     }
-
-    // add the simplicial stones to the board
+    // Add the simplicial stones to the board
     inf.AddDead(simplicial);
     brd.addColor(DEAD_COLOR, simplicial);
-    brd.update(simplicial);
+    pastate.Update(simplicial);
     brd.absorb(simplicial);
 }
 
@@ -496,7 +505,7 @@ void ICEngine::LoadHandCodedPatterns()
 {
     HandCodedPattern::CreatePatterns(m_hand_coded);
     LogFine() << "ICEngine: " << m_hand_coded.size()
-             << " hand coded patterns." << '\n';
+              << " hand coded patterns." << '\n';
 }
 
 void ICEngine::LoadPatterns()
@@ -511,26 +520,26 @@ void ICEngine::LoadPatterns()
 
 //----------------------------------------------------------------------------
 
-int ICEngine::ComputeDeadCaptured(PatternBoard& board, 
+int ICEngine::ComputeDeadCaptured(GroupBoard& board, PatternState& pastate,
                                   InferiorCells& inf, 
                                   HexColorSet colors_to_capture) const
 {
     // find dead and captured cells and fill them in. 
     int count = 0;
-    while (true) {
-
+    while (true) 
+    {
         // search for dead; if some are found, fill them in
         // and iterate again.
-        while (true) {
-
-            /** @todo This can be optmized quite a bit. */
-            bitset_t dead = FindDead(board, board.getEmpty());
-            if (dead.none()) break;
-
+        while (true) 
+        {
+            /** @todo This can be optimized quite a bit. */
+            bitset_t dead = FindDead(pastate, board.getEmpty());
+            if (dead.none()) 
+                break;
             count += dead.count();
             inf.AddDead(dead);
             board.addColor(DEAD_COLOR, dead);
-            board.update(dead);
+            pastate.Update(dead);
             board.absorb(dead);
         }
 
@@ -538,14 +547,14 @@ int ICEngine::ComputeDeadCaptured(PatternBoard& board,
         // fill them in and go back to look for more dead. 
         {
             bitset_t black;
-            if (HexColorSetUtil::InSet(BLACK, colors_to_capture)) {
-                black = FindCaptured(board, BLACK, board.getEmpty());
-            }
-            if (black.any()) {
+            if (HexColorSetUtil::InSet(BLACK, colors_to_capture))
+                black = FindCaptured(pastate, BLACK, board.getEmpty());
+            if (black.any()) 
+            {
                 count += black.count();
                 inf.AddCaptured(BLACK, black);
                 board.addColor(BLACK, black);
-                board.update(black);
+                pastate.Update(black);
                 board.absorb(black);
                 continue;
             }
@@ -555,28 +564,26 @@ int ICEngine::ComputeDeadCaptured(PatternBoard& board,
         // them in and go back to look for more dead/black captured.
         {
             bitset_t white;
-            if (HexColorSetUtil::InSet(WHITE, colors_to_capture)) {
-                white = FindCaptured(board, WHITE, board.getEmpty());
-            }
-            if (white.any()) {
+            if (HexColorSetUtil::InSet(WHITE, colors_to_capture))
+                white = FindCaptured(pastate, WHITE, board.getEmpty());
+            if (white.any()) 
+            {
                 count += white.count();
                 inf.AddCaptured(WHITE, white);
                 board.addColor(WHITE, white);
-                board.update(white);
+                pastate.Update(white);
                 board.absorb(white);
                 continue;
             }
         }
-
         // did not find any fillin, so abort.
         break;
     }
-
     return count;
 }
 
-int ICEngine::FillinPermanentlyInferior(PatternBoard& board, HexColor color, 
-                                        InferiorCells& out, 
+int ICEngine::FillinPermanentlyInferior(GroupBoard& brd, PatternState& pastate,
+                                        HexColor color, InferiorCells& out, 
                                         HexColorSet colors_to_capture) const
 {
     if (!m_find_permanently_inferior) 
@@ -585,147 +592,157 @@ int ICEngine::FillinPermanentlyInferior(PatternBoard& board, HexColor color,
         return 0;
 
     bitset_t carrier;
-    bitset_t perm = FindPermanentlyInferior(board, color, board.getEmpty(), 
+    bitset_t perm = FindPermanentlyInferior(pastate, color, brd.getEmpty(), 
                                             carrier);
     out.AddPermInf(color, perm, carrier);
-    board.addColor(color, perm);
-    board.update(perm);
-    board.absorb(perm);
+    brd.addColor(color, perm);
+    pastate.Update(perm);
+    brd.absorb(perm);
     return perm.count();
 }
 
-int ICEngine::FillInVulnerable(HexColor color, PatternBoard& board, 
-                               InferiorCells& inf, 
+int ICEngine::FillInVulnerable(HexColor color, GroupBoard& brd, 
+                               PatternState& pastate, InferiorCells& inf, 
                                HexColorSet colors_to_capture) const
 {
     int count = 0;
     inf.ClearVulnerable();
 
-    UseGraphTheoryToFindDeadVulnerable(color, board, inf);
+    UseGraphTheoryToFindDeadVulnerable(color, brd, pastate, inf);
 
     // Find vulnerable cells with local patterns--do not ignore the
     // presimplicial cells previously found because a pattern
     // may encode another dominator.
-    bitset_t consider = board.getEmpty() - inf.Dead();
-    FindVulnerable(board, color, consider, inf);
+    bitset_t consider = brd.getEmpty() - inf.Dead();
+    FindVulnerable(pastate, color, consider, inf);
     
     // Fill in presimplicial pairs only if we are doing fillin for the
     // other player.
     if (HexColorSetUtil::InSet(!color, colors_to_capture)) 
     {
         bitset_t captured = inf.FindPresimplicialPairs();
-        if (captured.any()) {
+        if (captured.any()) 
+        {
             inf.AddCaptured(!color, captured);
-            board.addColor(!color, captured);
-            board.update(captured);
-            board.absorb(captured);
+            brd.addColor(!color, captured);
+            pastate.Update(captured);
+            brd.absorb(captured);
         }
         count += captured.count();
     }
     return count;
 }
 
-int ICEngine::FillInUnreachable(PatternBoard& board, 
+int ICEngine::FillInUnreachable(GroupBoard& brd, PatternState& pastate,
                                 InferiorCells& out) const
 {
-    bitset_t notReachable = ComputeDeadRegions(board);
+    bitset_t notReachable = ComputeDeadRegions(brd);
 
     if (m_find_three_sided_dead_regions)
-        notReachable |= FindThreeSetCliques(board);
+        notReachable |= FindThreeSetCliques(brd);
     
     if (notReachable.any()) 
     {
         out.AddDead(notReachable);
-        board.addColor(DEAD_COLOR, notReachable);
-        board.update(notReachable);
-        board.absorb(notReachable);
+        brd.addColor(DEAD_COLOR, notReachable);
+        pastate.Update(notReachable);
+        brd.absorb(notReachable);
     }
     return notReachable.count();
 }
 
-void ICEngine::ComputeFillin(HexColor color, PatternBoard& board, 
-                             InferiorCells& out,
+void ICEngine::ComputeFillin(HexColor color, GroupBoard& brd, 
+                             PatternState& pastate, InferiorCells& out,
                              HexColorSet colors_to_capture) const
 {
     out.Clear();
     for (int iteration=0; ; ++iteration) 
     {
         int count=0;
-        count += ComputeDeadCaptured(board, out, colors_to_capture);
-        count += FillinPermanentlyInferior(board, color, out, 
+        count += ComputeDeadCaptured(brd, pastate, out, colors_to_capture);
+        count += FillinPermanentlyInferior(brd, pastate, color, out, 
                                            colors_to_capture);
-        count += FillinPermanentlyInferior(board, !color, out, 
+        count += FillinPermanentlyInferior(brd, pastate, !color, out, 
                                            colors_to_capture);
-        count += FillInVulnerable(!color, board, out, colors_to_capture);
-        count += FillInVulnerable(color, board, out, colors_to_capture);
-
+        count += FillInVulnerable(!color, brd, pastate, out, 
+                                  colors_to_capture);
+        count += FillInVulnerable(color, brd, pastate, out, 
+                                  colors_to_capture);
         if (m_iterative_dead_regions)
-            count += FillInUnreachable(board, out);
+            count += FillInUnreachable(brd, pastate, out);
 
         if (count == 0)
             break;
     }
     
     if (!m_iterative_dead_regions)
-        FillInUnreachable(board, out);
+        FillInUnreachable(brd, pastate, out);
 }
 
-void ICEngine::ComputeInferiorCells(HexColor color, PatternBoard& board,
+void ICEngine::ComputeInferiorCells(HexColor color, GroupBoard& brd,
+                                    PatternState& pastate,
                                     InferiorCells& out) const
 {
 #ifndef NDEBUG
-    StoneBoard oldBoard(board);
+    StoneBoard oldBoard(brd);
 #endif
     double startTime = Time::Get();
 
-    ComputeFillin(color, board, out);
+    ComputeFillin(color, brd, pastate, out);
 
     {
-        bitset_t consider = board.getEmpty() - out.Vulnerable();
-        FindDominated(board, color, consider, out);
+        bitset_t consider = brd.getEmpty() - out.Vulnerable();
+        FindDominated(pastate, color, consider, out);
     }
 
     // Play opponent in all empty cells, any dead they created
     // are actually vulnerable to the move played. 
     if (m_backup_opponent_dead) 
     {
-        int found = BackupOpponentDead(color, board, out);
+        int found = BackupOpponentDead(color, brd, pastate, out);
         if (found) {
             LogFine() << "Found " << found 
-                     << " cells vulnerable to opponent moves." << '\n';
+                      << " cells vulnerable to opponent moves.\n";
         }
     }
     
     double endTime = Time::Get();
     LogFine() << "  " << (endTime - startTime) 
-             << "s to find inferior cells." << '\n';
+              << "s to find inferior cells.\n";
 #ifndef NDEBUG
-    HexAssert(board.Hash() == oldBoard.Hash());
+    HexAssert(brd.Hash() == oldBoard.Hash());
 #endif
 }
 
-int ICEngine::BackupOpponentDead(HexColor color, const PatternBoard& board, 
+int ICEngine::BackupOpponentDead(HexColor color, const GroupBoard& board,
+                                 PatternState& pastate,
                                  InferiorCells& out) const
 {
-    PatternBoard brd(board);
+    GroupBoard brd(board);
+    PatternState ps(brd);
+    ps.CopyState(pastate);
+
     bitset_t dominated = out.Dominated();
 
     int found = 0;
-    for (BitsetIterator p(board.getEmpty()); p; ++p) {
+    for (BitsetIterator p(board.getEmpty()); p; ++p) 
+    {
         brd.startNewGame();
         brd.setColor(BLACK, board.getBlack());
         brd.setColor(WHITE, board.getWhite());
         brd.playMove(!color, *p);
         brd.absorb();
-        brd.update();
+        ps.Update();
 
         InferiorCells inf;
-        ComputeFillin(color, brd, inf);
+        ComputeFillin(color, brd, ps, inf);
         bitset_t filled = inf.Fillin(BLACK) | inf.Fillin(WHITE);
 
-        for (BitsetIterator d(inf.Dead()); d; ++d) {
+        for (BitsetIterator d(inf.Dead()); d; ++d) 
+        {
             /** @todo Add if already vulnerable? */
-            if (!out.Vulnerable().test(*d) && !dominated.test(*d)) {
+            if (!out.Vulnerable().test(*d) && !dominated.test(*d)) 
+            {
                 bitset_t carrier = filled;
                 carrier.reset(*d);
                 carrier.reset(*p);
@@ -739,86 +756,80 @@ int ICEngine::BackupOpponentDead(HexColor color, const PatternBoard& board,
 
 //----------------------------------------------------------------------------
 
-bitset_t ICEngine::FindDead(const PatternBoard& board,
+bitset_t ICEngine::FindDead(const PatternState& pastate,
                             const bitset_t& consider) const
 {
-    return board.matchPatternsOnBoard(consider, m_patterns.HashedDead());
+    return pastate.MatchOnBoard(consider, m_patterns.HashedDead());
 }
 
-bitset_t ICEngine::FindCaptured(const PatternBoard& board, HexColor color, 
+bitset_t ICEngine::FindCaptured(const PatternState& pastate, HexColor color, 
                                 const bitset_t& consider) const
 {
     bitset_t captured;
-    for (BitsetIterator p(consider); p; ++p) {
-        if (captured.test(*p)) continue;
+    for (BitsetIterator p(consider); p; ++p) 
+    {
+        if (captured.test(*p)) 
+            continue;
         
         PatternHits hits;
-        board.matchPatternsOnCell(m_patterns.HashedCaptured(color), *p,
-                                  PatternBoard::STOP_AT_FIRST_HIT, hits);
+        pastate.MatchOnCell(m_patterns.HashedCaptured(color), *p,
+                            PatternState::STOP_AT_FIRST_HIT, hits);
 
-        // mark carrier as captured if carrier does not intersect the
+        // Mark carrier as captured if carrier does not intersect the
         // set of captured cells found in this pass. 
-        if (!hits.empty()) {
+        if (!hits.empty()) 
+        {
             HexAssert(hits.size() == 1);
             const std::vector<HexPoint>& moves = hits[0].moves2();
 
             bitset_t carrier;
-            for (unsigned i=0; i<moves.size(); ++i) {
+            for (unsigned i = 0; i < moves.size(); ++i)
                 carrier.set(moves[i]);
-            }
             carrier.set(*p);
-
-            if ((carrier & captured).none()) {
+            if ((carrier & captured).none())
                 captured |= carrier;
-            }
         }
     }
     return captured;
 }
 
-bitset_t ICEngine::FindPermanentlyInferior(const PatternBoard& board, 
+bitset_t ICEngine::FindPermanentlyInferior(const PatternState& pastate, 
                                            HexColor color, 
                                            const bitset_t& consider,
                                            bitset_t& carrier) const
 {
     std::vector<PatternHits> hits(FIRST_INVALID);
-    bitset_t ret 
-        = board.matchPatternsOnBoard(consider, 
-                                     m_patterns.HashedPermInf(color), 
-                                     PatternBoard::STOP_AT_FIRST_HIT, hits);
-
+    bitset_t ret = pastate.MatchOnBoard(consider, 
+                                 m_patterns.HashedPermInf(color), 
+                                 PatternState::STOP_AT_FIRST_HIT, hits);
     for (BitsetIterator p(ret); p; ++p) 
     {
         HexAssert(hits[*p].size()==1);
         const std::vector<HexPoint>& moves = hits[*p][0].moves2();
-        for (unsigned i=0; i<moves.size(); ++i) {
+        for (unsigned i=0; i<moves.size(); ++i)
             carrier.set(moves[i]);
-        }
     }
-    
     // @todo Ensure that no dead cells intersect perm.inf. carrier.
     // If cell a is dead and belongs to black's perm.inf. carrier,
     // then make a black captured instead. 
     // ^^^ DO WE STILL WANT THIS? WHAT IS THIS? --broderic
-    
     return ret;
 }
 
-void ICEngine::FindVulnerable(const PatternBoard& board, HexColor color,
+void ICEngine::FindVulnerable(const PatternState& pastate, HexColor color,
                               const bitset_t& consider,
                               InferiorCells& inf) const
 {
-    PatternBoard::MatchMode matchmode = PatternBoard::STOP_AT_FIRST_HIT;
+    PatternState::MatchMode matchmode = PatternState::STOP_AT_FIRST_HIT;
     if (m_find_all_pattern_killers)
-        matchmode = PatternBoard::MATCH_ALL;
+        matchmode = PatternState::MATCH_ALL;
 
     std::vector<PatternHits> hits(FIRST_INVALID);
-    bitset_t vul 
-        = board.matchPatternsOnBoard(consider, 
+    bitset_t vul = pastate.MatchOnBoard(consider, 
                                      m_patterns.HashedVulnerable(color),
                                      matchmode, hits);
 
-    // add the new vulnerable cells with their killers
+    // Add the new vulnerable cells with their killers
     for (BitsetIterator p(vul); p; ++p) 
     {
         for (unsigned j=0; j<hits[*p].size(); ++j) 
@@ -837,33 +848,32 @@ void ICEngine::FindVulnerable(const PatternBoard& board, HexColor color,
     }
 }
 
-void ICEngine::FindDominated(const PatternBoard& board, HexColor color, 
+void ICEngine::FindDominated(const PatternState& pastate, HexColor color, 
                              const bitset_t& consider,
                              InferiorCells& inf) const
 {
-    PatternBoard::MatchMode matchmode = PatternBoard::STOP_AT_FIRST_HIT;
+    PatternState::MatchMode matchmode = PatternState::STOP_AT_FIRST_HIT;
     if (m_find_all_pattern_dominators)
-        matchmode = PatternBoard::MATCH_ALL;
+        matchmode = PatternState::MATCH_ALL;
 
-    // find dominators using patterns
+    // Find dominators using patterns
     std::vector<PatternHits> hits(FIRST_INVALID);
-    bitset_t dom = board.matchPatternsOnBoard(consider, 
-                                             m_patterns.HashedDominated(color),
-                                              matchmode, hits);
-
-    // add the new dominated cells with their dominators
-    for (BitsetIterator p(dom); p; ++p) {
-        for (unsigned j=0; j<hits[*p].size(); ++j) {
+    bitset_t dom = pastate.MatchOnBoard(consider,
+                                        m_patterns.HashedDominated(color),
+                                        matchmode, hits);
+    // Add the new dominated cells with their dominators
+    for (BitsetIterator p(dom); p; ++p) 
+    {
+        for (unsigned j = 0; j < hits[*p].size(); ++j) 
+        {
             const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
             HexAssert(moves1.size() == 1);
             inf.AddDominated(*p, moves1[0]);
         }
     }
-
-    // add dominators found via hand coded patterns
-    if (m_use_handcoded_patterns) {
-        FindHandCodedDominated(board, color, consider, inf);
-    }
+    // Add dominators found via hand coded patterns
+    if (m_use_handcoded_patterns)
+        FindHandCodedDominated(pastate.Board(), color, consider, inf);
 }
 
 void ICEngine::FindHandCodedDominated(const StoneBoard& board, 
@@ -874,12 +884,11 @@ void ICEngine::FindHandCodedDominated(const StoneBoard& board,
     // If board is rectangular, these hand-coded patterns should not
     // be used because they need to be mirrored (which is not a valid
     // operation on non-square boards).
-    if (board.width() != board.height()) return;
-    
-    for (unsigned i=0; i<m_hand_coded.size(); ++i) {
+    if (board.width() != board.height()) 
+        return;
+    for (unsigned i=0; i<m_hand_coded.size(); ++i)
         CheckHandCodedDominates(board, color, m_hand_coded[i], 
                                 consider, inf);
-    }
 }
 
 void ICEngine::CheckHandCodedDominates(const StoneBoard& brd,
@@ -890,42 +899,35 @@ void ICEngine::CheckHandCodedDominates(const StoneBoard& brd,
 {
     if (brd.width() < 4 || brd.height() < 3)
         return;
-
     HandCodedPattern pat(pattern);
-
-    // mirror and flip colors if checking for white
-    if (color == WHITE) {
+    // Mirror and flip colors if checking for white
+    if (color == WHITE) 
+    {
         pat.mirror(brd.Const());
         pat.flipColors();
     }
-
-    // do top corner
-    if (consider.test(pat.dominatee()) && pat.check(brd)) {
+    // Top corner
+    if (consider.test(pat.dominatee()) && pat.check(brd))
         inf.AddDominated(pat.dominatee(), pat.dominator());
-    }
-
-    // do bottom corner
+    // Bottom corner
     pat.rotate(brd.Const());
-    if (consider.test(pat.dominatee()) && pat.check(brd)) {
+    if (consider.test(pat.dominatee()) && pat.check(brd))
         inf.AddDominated(pat.dominatee(), pat.dominator());
-    }
 }
 
 //----------------------------------------------------------------------------
 
-void IceUtil::Update(InferiorCells& out, const InferiorCells& in, 
-                     PatternBoard& brd)
+void IceUtil::Update(InferiorCells& out, const InferiorCells& in)
 {
-    UNUSED(brd);
-
-    // overwrite old vulnerable/dominated with new vulnerable/dominated 
+    // Overwrite old vulnerable/dominated with new vulnerable/dominated 
     out.ClearVulnerable();
     out.ClearDominated();
     out.AddVulnerableFrom(in);
     out.AddDominatedFrom(in);
 
-    // add the new fillin to the old fillin
-    for (BWIterator c; c; ++c) {
+    // Add the new fillin to the old fillin
+    for (BWIterator c; c; ++c) 
+    {
         out.AddCaptured(*c, in.Captured(*c));
         out.AddPermInfFrom(*c, in);
     }

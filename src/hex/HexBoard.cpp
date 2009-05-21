@@ -16,8 +16,9 @@ using namespace benzene;
 
 HexBoard::HexBoard(int width, int height, const ICEngine& ice,
                    VCBuilderParam& param)
-    : PatternBoard(width, height), 
+    : GroupBoard(width, height), 
       m_ice(&ice),
+      m_patterns(*this),
       m_builder(param),
       m_use_vcs(true),
       m_use_ice(true),
@@ -30,8 +31,9 @@ HexBoard::HexBoard(int width, int height, const ICEngine& ice,
 /** @warning This is not very maintainable! How to make this
     copy-constructable nicely, even though it has a scoped_ptr? */
 HexBoard::HexBoard(const HexBoard& other)
-    : PatternBoard(other),
+    : GroupBoard(other),
       m_ice(other.m_ice),
+      m_patterns(*this),
       m_builder(other.m_builder),
       m_history(other.m_history),
       m_inf(other.m_inf),
@@ -40,6 +42,7 @@ HexBoard::HexBoard(const HexBoard& other)
       m_use_decompositions(other.m_use_decompositions),
       m_backup_ice_info(other.m_backup_ice_info)
 {
+    m_patterns.CopyState(other.GetPatternState());
     for (BWIterator color; color; ++color)
     {
         m_cons[*color].reset(new VCSet(*other.m_cons[*color]));
@@ -75,8 +78,8 @@ void HexBoard::ComputeInferiorCells(HexColor color_to_move)
     if (m_use_ice) 
     {
         InferiorCells inf;
-        m_ice->ComputeInferiorCells(color_to_move, *this, inf);
-        IceUtil::Update(m_inf, inf, *this);
+        m_ice->ComputeInferiorCells(color_to_move, *this, m_patterns, inf);
+        IceUtil::Update(m_inf, inf);
     }
 }
 
@@ -152,7 +155,7 @@ void HexBoard::ComputeAll(HexColor color_to_move)
 {
     double s = Time::Get();
     
-    update();
+    m_patterns.Update();
     absorb();
     m_inf.Clear();
 
@@ -184,7 +187,7 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
     bitset_t old_white = getColor(WHITE);
 
     playMove(color, cell);
-    update(cell);
+    m_patterns.Update(cell);
     absorb(cell);
 
     ComputeInferiorCells(!color);
@@ -215,7 +218,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
     bitset_t old_white = getColor(WHITE);
 
     addColor(color, played);
-    update(played);
+    m_patterns.Update(played);
     absorb(played);
 
     ComputeInferiorCells(color_to_move);
@@ -246,7 +249,7 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     bitset_t old_white = getColor(WHITE);
 
     addColor(color, played);
-    update(played);
+    m_patterns.Update(played);
     absorb(played);
 
     ComputeInferiorCells(color_to_move);
@@ -267,7 +270,7 @@ void HexBoard::UndoMove()
     double s = Time::Get();
 
     PopHistory();
-    update();
+    m_patterns.Update();
     absorb();
 
     double e = Time::Get();
