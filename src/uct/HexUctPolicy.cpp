@@ -172,20 +172,6 @@ void HexUctPolicy::InitializeForRollout(const StoneBoard& brd)
     ShuffleVector(m_moves, m_random);
 }
 
-HexPoint HexUctPolicy::GenerateRandomMove(const StoneBoard& brd)
-{
-    HexPoint ret = INVALID_POINT;
-    while (true) 
-    {
-	HexAssert(!m_moves.empty());
-        ret = m_moves.back();
-        m_moves.pop_back();
-        if (brd.isEmpty(ret))
-            break;
-    }
-    return ret;
-}
-
 HexPoint HexUctPolicy::GenerateMove(PatternState& pastate, 
                                     HexColor toPlay, 
                                     HexPoint lastMove)
@@ -229,6 +215,24 @@ HexPoint HexUctPolicy::GenerateMove(PatternState& pastate,
 
 //--------------------------------------------------------------------------
 
+/** Selects random move among the empty cells on the board. */
+HexPoint HexUctPolicy::GenerateRandomMove(const StoneBoard& brd)
+{
+    HexPoint ret = INVALID_POINT;
+    while (true) 
+    {
+	HexAssert(!m_moves.empty());
+        ret = m_moves.back();
+        m_moves.pop_back();
+        if (brd.isEmpty(ret))
+            break;
+    }
+    return ret;
+}
+
+/** Randomly picks a pattern move from the set of patterns that hit
+    the last move, weighted by the pattern's weight. 
+    If no pattern matches, returns INVALID_POINT. */
 HexPoint HexUctPolicy::PickRandomPatternMove(const PatternState& pastate, 
                                              const HashedPatternSet& patterns, 
                                              HexColor toPlay,
@@ -278,6 +282,7 @@ HexPoint HexUctPolicy::PickRandomPatternMove(const PatternState& pastate,
     return patternMoves[i];
 }
 
+/** Uses PickRandomPatternMove() with the shared PlayPatterns(). */
 HexPoint HexUctPolicy::GeneratePatternMove(const PatternState& pastate, 
                                            HexColor toPlay, 
                                            HexPoint lastMove)
