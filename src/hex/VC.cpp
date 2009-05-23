@@ -183,7 +183,7 @@ VC::Type VCTypeUtil::fromString(std::string name)
 
     std::istringstream is(name);    
     int num = 0;
-#ifndef NDEBUG
+#ifdef NDEBUG
     is >> num;
 #else
     HexAssert(is >> num);
