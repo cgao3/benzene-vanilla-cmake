@@ -117,6 +117,8 @@ public:
                                   HexPoint lastMove) = 0;
 
     virtual void InitializeForRollout(const StoneBoard& brd) = 0;
+
+    virtual void InitializeForSearch() = 0;
 };
 
 //----------------------------------------------------------------------------

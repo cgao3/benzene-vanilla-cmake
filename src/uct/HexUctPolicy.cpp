@@ -43,6 +43,7 @@ bool PercentChance(int percent, SgRandom& random)
 
 HexUctPolicyConfig::HexUctPolicyConfig()
     : patternHeuristic(true),
+      responseHeuristic(true),
       pattern_update_radius(1),
       pattern_check_percent(100)
 {
@@ -166,6 +167,17 @@ HexUctPolicy::~HexUctPolicy()
 
 //----------------------------------------------------------------------------
 
+
+/** @todo Pass initialial tree and initialize off of that? */
+void HexUctPolicy::InitializeForSearch()
+{
+    for (int i = 0; i < BITSETSIZE; ++i)
+    {
+        m_response[BLACK][i].clear();
+        m_response[WHITE][i].clear();
+    }
+}
+
 void HexUctPolicy::InitializeForRollout(const StoneBoard& brd)
 {
     BitsetUtil::BitsetToVector(brd.getEmpty(), m_moves);
@@ -190,6 +202,12 @@ HexPoint HexUctPolicy::GenerateMove(PatternState& pastate,
         move = GeneratePatternMove(pastate, toPlay, lastMove);
     }
     
+    if (move == INVALID_POINT
+        && config.responseHeuristic)
+    {
+        move = GenerateResponseMove(toPlay, lastMove, pastate.Board());
+    }
+
     // select random move if invalid point from pattern heuristic
     if (move == INVALID_POINT) 
     {
@@ -214,6 +232,19 @@ HexPoint HexUctPolicy::GenerateMove(PatternState& pastate,
 }
 
 //--------------------------------------------------------------------------
+
+HexPoint HexUctPolicy::GenerateResponseMove(HexColor toPlay, HexPoint lastMove,
+                                            const StoneBoard& brd)
+{
+    std::size_t num = m_response[toPlay][lastMove].size();
+    if (num > 100)
+    {
+        HexPoint move = m_response[toPlay][lastMove][m_random.Int(num)];
+        if (brd.isEmpty(move))
+            return move;
+    }
+    return INVALID_POINT;
+}
 
 /** Selects random move among the empty cells on the board. */
 HexPoint HexUctPolicy::GenerateRandomMove(const StoneBoard& brd)

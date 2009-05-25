@@ -131,6 +131,13 @@ void HexUctState::ExecutePlayout(SgMove sgmove)
 
 void HexUctState::ExecuteTreeMove(HexPoint move)
 {
+    {
+        HexUctPolicy* blah = dynamic_cast<HexUctPolicy*>(m_policy.get());
+        if (!blah)
+            abort();
+        blah->AddResponse(m_toPlay, m_lastMovePlayed, move);
+    }
+
     m_game_sequence.push_back(Move(m_toPlay, move));
     ExecutePlainMove(move, m_treeUpdateRadius);
     HexUctStoneData stones;
@@ -243,6 +250,8 @@ void HexUctState::StartSearch()
         m_vc_brd.reset(new HexBoard(brd.width(), brd.height(), 
                                     brd.ICE(), brd.Builder().Parameters()));
     }
+
+    m_policy->InitializeForSearch();
 }
 
 void HexUctState::TakeBackInTree(std::size_t nuMoves)

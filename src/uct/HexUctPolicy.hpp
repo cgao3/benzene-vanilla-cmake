@@ -25,6 +25,8 @@ _BEGIN_BENZENE_NAMESPACE_
 struct HexUctPolicyConfig
 {
     bool patternHeuristic;
+    
+    bool responseHeuristic;
 
     int pattern_update_radius;
 
@@ -153,6 +155,10 @@ public:
         calls to GenerateMove(). */
     void InitializeForRollout(const StoneBoard& brd);
 
+    void InitializeForSearch();
+
+    void AddResponse(HexColor toPlay, HexPoint lastMove, HexPoint response);
+
 private:
 
     static const int MAX_VOTES = 1024;
@@ -160,6 +166,8 @@ private:
     HexUctSharedPolicy* m_shared;
 
     std::vector<HexPoint> m_moves;
+
+    std::vector<HexPoint> m_response[BLACK_AND_WHITE][BITSETSIZE];
 
     /** Generator for this policy. */
     SgRandom m_random;
@@ -174,8 +182,18 @@ private:
     HexPoint GeneratePatternMove(const PatternState& pastate, HexColor color, 
                                  HexPoint lastMove);
 
+    HexPoint GenerateResponseMove(HexColor toPlay, HexPoint lastMove,
+                                  const StoneBoard& brd);
+
     HexPoint GenerateRandomMove(const StoneBoard& brd);
 };
+
+inline void HexUctPolicy::AddResponse(HexColor toPlay, HexPoint lastMove,
+                                      HexPoint response)
+{
+    if (m_shared->Config().responseHeuristic)
+        m_response[toPlay][lastMove].push_back(response);
+}
 
 //----------------------------------------------------------------------------
 
