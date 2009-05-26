@@ -48,7 +48,7 @@ bool PercentChance(int percent, SgRandom& random)
 
 HexUctPolicyConfig::HexUctPolicyConfig()
     : patternHeuristic(true),
-      responseHeuristic(true),
+      responseHeuristic(false),
       pattern_update_radius(1),
       pattern_check_percent(100),
       response_threshold(100)
