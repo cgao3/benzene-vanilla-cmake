@@ -34,6 +34,12 @@ public:
     /** Returns the search. */
     const HexUctSearch& Search() const;
 
+    /** Returns the shared policy. */
+    HexUctSharedPolicy& SharedPolicy();
+
+    /** Returns the shared policy. */
+    const HexUctSharedPolicy& SharedPolicy() const;
+
     /** Copy settings from other player. */
     void CopySettingsFrom(const MoHexPlayer& other);
 
@@ -128,6 +134,16 @@ inline HexUctSearch& MoHexPlayer::Search()
 inline const HexUctSearch& MoHexPlayer::Search() const
 {
     return m_search;
+}
+
+inline HexUctSharedPolicy& MoHexPlayer::SharedPolicy()
+{
+    return m_shared_policy;
+}
+
+inline const HexUctSharedPolicy& MoHexPlayer::SharedPolicy() const
+{
+    return m_shared_policy;
 }
 
 inline bool MoHexPlayer::BackupIceInfo() const

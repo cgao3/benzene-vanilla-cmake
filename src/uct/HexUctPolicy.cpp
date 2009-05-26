@@ -1,5 +1,10 @@
 //----------------------------------------------------------------------------
 /** @file HexUctPolicy.cpp
+    
+    @todo Pattern statistics are collected for each thread. Add
+    functionality to combine the stats from each thread before
+    displaying them. Only do this if pattern statistics are actually
+    required, obviously.
  */
 //----------------------------------------------------------------------------
 
@@ -53,9 +58,6 @@ HexUctPolicyConfig::HexUctPolicyConfig()
 
 HexUctSharedPolicy::HexUctSharedPolicy()
     : m_config()
-#if COLLECT_PATTERN_STATISTICS
-    , m_statistics()
-#endif
 {
     LogFine() << "--- HexUctSharedPolicy" << '\n';
     LoadPatterns();
@@ -101,8 +103,87 @@ void HexUctSharedPolicy::LoadPlayPatterns(const std::string& filename)
         m_hash_patterns[*color].hash(m_patterns[*color]);
 }
 
+//----------------------------------------------------------------------------
+
+HexUctPolicy::HexUctPolicy(const HexUctSharedPolicy* shared)
+    : m_shared(shared)
 #if COLLECT_PATTERN_STATISTICS
-std::string HexUctSharedPolicy::DumpStatistics()
+    , m_statistics()
+#endif
+{
+}
+
+HexUctPolicy::~HexUctPolicy()
+{
+}
+
+//----------------------------------------------------------------------------
+
+/** @todo Pass initialial tree and initialize off of that? */
+void HexUctPolicy::InitializeForSearch()
+{
+    for (int i = 0; i < BITSETSIZE; ++i)
+    {
+        m_response[BLACK][i].clear();
+        m_response[WHITE][i].clear();
+    }
+}
+
+void HexUctPolicy::InitializeForRollout(const StoneBoard& brd)
+{
+    BitsetUtil::BitsetToVector(brd.getEmpty(), m_moves);
+    ShuffleVector(m_moves, m_random);
+}
+
+HexPoint HexUctPolicy::GenerateMove(PatternState& pastate, 
+                                    HexColor toPlay, 
+                                    HexPoint lastMove)
+{
+    HexPoint move = INVALID_POINT;
+    bool pattern_move = false;
+    const HexUctPolicyConfig& config = m_shared->Config();
+#if COLLECT_PATTERN_STATISTICS
+    HexUctPolicyStatistics& stats = m_statistics;
+#endif
+
+    // patterns applied probabilistically (if heuristic is turned on)
+    if (config.patternHeuristic 
+        && PercentChance(config.pattern_check_percent, m_random))
+    {
+        move = GeneratePatternMove(pastate, toPlay, lastMove);
+    }
+    
+    if (move == INVALID_POINT
+        && config.responseHeuristic)
+    {
+        move = GenerateResponseMove(toPlay, lastMove, pastate.Board());
+    }
+
+    // select random move if invalid point from pattern heuristic
+    if (move == INVALID_POINT) 
+    {
+#if COLLECT_PATTERN_STATISTICS
+	stats.random_moves++;
+#endif
+        move = GenerateRandomMove(pastate.Board());
+    } 
+    else 
+    {
+	pattern_move = true;
+#if COLLECT_PATTERN_STATISTICS
+        stats.pattern_moves++;
+#endif
+    }
+    
+    HexAssert(pastate.Board().isEmpty(move));
+#if COLLECT_PATTERN_STATISTICS
+    stats.total_moves++;
+#endif
+    return move;
+}
+
+#if COLLECT_PATTERN_STATISTICS
+std::string HexUctPolicy::DumpStatistics()
 {
     std::ostringstream os;
 
@@ -153,83 +234,6 @@ std::string HexUctSharedPolicy::DumpStatistics()
     return os.str();
 }
 #endif
-
-//----------------------------------------------------------------------------
-
-HexUctPolicy::HexUctPolicy(HexUctSharedPolicy* shared)
-    : m_shared(shared)
-{
-}
-
-HexUctPolicy::~HexUctPolicy()
-{
-}
-
-//----------------------------------------------------------------------------
-
-
-/** @todo Pass initialial tree and initialize off of that? */
-void HexUctPolicy::InitializeForSearch()
-{
-    for (int i = 0; i < BITSETSIZE; ++i)
-    {
-        m_response[BLACK][i].clear();
-        m_response[WHITE][i].clear();
-    }
-}
-
-void HexUctPolicy::InitializeForRollout(const StoneBoard& brd)
-{
-    BitsetUtil::BitsetToVector(brd.getEmpty(), m_moves);
-    ShuffleVector(m_moves, m_random);
-}
-
-HexPoint HexUctPolicy::GenerateMove(PatternState& pastate, 
-                                    HexColor toPlay, 
-                                    HexPoint lastMove)
-{
-    HexPoint move = INVALID_POINT;
-    bool pattern_move = false;
-    const HexUctPolicyConfig& config = m_shared->Config();
-#if COLLECT_PATTERN_STATISTICS
-    HexUctPolicyStatistics& stats = m_shared->Statistics();
-#endif
-
-    // patterns applied probabilistically (if heuristic is turned on)
-    if (config.patternHeuristic 
-        && PercentChance(config.pattern_check_percent, m_random))
-    {
-        move = GeneratePatternMove(pastate, toPlay, lastMove);
-    }
-    
-    if (move == INVALID_POINT
-        && config.responseHeuristic)
-    {
-        move = GenerateResponseMove(toPlay, lastMove, pastate.Board());
-    }
-
-    // select random move if invalid point from pattern heuristic
-    if (move == INVALID_POINT) 
-    {
-#if COLLECT_PATTERN_STATISTICS
-	stats.random_moves++;
-#endif
-        move = GenerateRandomMove(pastate.Board());
-    } 
-    else 
-    {
-	pattern_move = true;
-#if COLLECT_PATTERN_STATISTICS
-        stats.pattern_moves++;
-#endif
-    }
-    
-    HexAssert(pastate.Board().isEmpty(move));
-#if COLLECT_PATTERN_STATISTICS
-    stats.total_moves++;
-#endif
-    return move;
-}
 
 //--------------------------------------------------------------------------
 

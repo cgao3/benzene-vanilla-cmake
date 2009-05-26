@@ -23,6 +23,7 @@ MoHexEngine::MoHexEngine(std::istream& in, std::ostream& out,
     RegisterCmd("book-refresh", &MoHexEngine::CmdBookRefresh);
     RegisterCmd("book-increase-width", &MoHexEngine::CmdBookIncreaseWidth);
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
+    RegisterCmd("param_mohex_policy", &MoHexEngine::MoHexPolicyParam);
     RegisterCmd("param_book", &MoHexEngine::CmdParamBook);
 }
 
@@ -49,6 +50,38 @@ double MoHexEngine::TimeForMove(HexColor color)
 }
 
 //----------------------------------------------------------------------------
+
+void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
+{
+   MoHexPlayer* mohex = GetInstanceOf<MoHexPlayer>(&m_player);
+    if (!mohex)
+        throw HtpFailure("No MoHex instance!");
+    HexUctPolicyConfig& config = mohex->SharedPolicy().Config();
+    if (cmd.NuArg() == 0)
+    {
+        cmd << '\n'
+            << "pattern_check_percent "
+            << config.pattern_check_percent << '\n'
+            << "pattern_heuristic "
+            << config.patternHeuristic << '\n'
+            << "response_heuristic "
+            << config.responseHeuristic << '\n';
+    }
+    else if (cmd.NuArg() == 2)
+    {
+        std::string name = cmd.Arg(0);
+        if (name == "pattern_check_percent")
+            config.pattern_check_percent = cmd.IntArg(1, 0, 100);
+        else if (name == "pattern_heuristic")
+            config.patternHeuristic = cmd.BoolArg(1);
+        else if (name == "response_heuristic")
+            config.responseHeuristic = cmd.BoolArg(1);
+        else
+            throw HtpFailure("Unknown option!");
+    }
+    else
+        throw HtpFailure("Expected 0 or 2 arguments!");
+}
 
 void MoHexEngine::MoHexParam(HtpCommand& cmd)
 {

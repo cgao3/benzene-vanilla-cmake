@@ -38,15 +38,15 @@ struct HexUctPolicyConfig
 /** Statistics over all threads. */
 struct HexUctPolicyStatistics
 {
-    int total_moves;
+    std::size_t total_moves;
 
-    int random_moves;
+    std::size_t random_moves;
 
-    int pattern_moves;
+    std::size_t pattern_moves;
 
-    std::map<const Pattern*, int> pattern_counts[BLACK_AND_WHITE];
+    std::map<const Pattern*, size_t> pattern_counts[BLACK_AND_WHITE];
 
-    std::map<const Pattern*, int> pattern_picked[BLACK_AND_WHITE];
+    std::map<const Pattern*, size_t> pattern_picked[BLACK_AND_WHITE];
 
     HexUctPolicyStatistics()
         : total_moves(0),
@@ -74,31 +74,19 @@ public:
     /** Returns set of patterns used to guide playouts. */
     const HashedPatternSet& PlayPatterns(HexColor color) const;
 
-#if COLLECT_PATTERN_STATISTICS    
-    /** Returns a string containing formatted statistics
-        information. */
-    std::string DumpStatistics();
-#endif
-
     //----------------------------------------------------------------------
+
+    /** Returns reference to configuration settings controlling all
+        policies. */
+    HexUctPolicyConfig& Config();
 
     /** Returns constant reference to configuration settings
         controlling all policies. */
     const HexUctPolicyConfig& Config() const;
 
-#if COLLECT_PATTERN_STATISTICS    
-    /** Returns reference to current statistics so that threads can
-        update this information. */        
-    HexUctPolicyStatistics& Statistics();
-#endif
-   
 private:
 
     HexUctPolicyConfig m_config;
-
-#if COLLECT_PATTERN_STATISTICS
-    HexUctPolicyStatistics m_statistics;
-#endif
 
     std::vector<Pattern> m_patterns[BLACK_AND_WHITE];
 
@@ -109,17 +97,15 @@ private:
     void LoadPlayPatterns(const std::string& filename);
 };
 
-inline const HexUctPolicyConfig& HexUctSharedPolicy::Config() const
+inline HexUctPolicyConfig& HexUctSharedPolicy::Config()
 {
     return m_config;
 }
 
-#if COLLECT_PATTERN_STATISTICS
-inline HexUctPolicyStatistics& HexUctSharedPolicy::Statistics()
+inline const HexUctPolicyConfig& HexUctSharedPolicy::Config() const
 {
-    return m_statistics;
+    return m_config;
 }
-#endif
 
 inline const HashedPatternSet& 
 HexUctSharedPolicy::PlayPatterns(HexColor color) const
@@ -138,7 +124,7 @@ class HexUctPolicy : public HexUctSearchPolicy
 public:
 
     /** Constructor. Creates a policy. */
-    HexUctPolicy(HexUctSharedPolicy* shared);
+    HexUctPolicy(const HexUctSharedPolicy* shared);
 
     /* Destructor. */
     ~HexUctPolicy();
@@ -159,11 +145,20 @@ public:
 
     void AddResponse(HexColor toPlay, HexPoint lastMove, HexPoint response);
 
+#if COLLECT_PATTERN_STATISTICS    
+    /** Returns a string containing formatted statistics
+        information. */
+    std::string DumpStatistics();
+
+    /** Returns the collected statistics. */
+    const HexUctPolicyStatistics& Statistics() const;
+#endif
+
 private:
 
     static const int MAX_VOTES = 1024;
 
-    HexUctSharedPolicy* m_shared;
+    const HexUctSharedPolicy* m_shared;
 
     std::vector<HexPoint> m_moves;
 
@@ -171,6 +166,10 @@ private:
 
     /** Generator for this policy. */
     SgRandom m_random;
+
+#if COLLECT_PATTERN_STATISTICS
+    HexUctPolicyStatistics m_statistics;
+#endif
 
     //----------------------------------------------------------------------
 
@@ -194,6 +193,13 @@ inline void HexUctPolicy::AddResponse(HexColor toPlay, HexPoint lastMove,
     if (m_shared->Config().responseHeuristic)
         m_response[toPlay][lastMove].push_back(response);
 }
+
+#if COLLECT_PATTERN_STATISTICS
+inline const HexUctPolicyStatistics& HexUctPolicy::Statistics() const
+{
+    return m_statistics;
+}
+#endif
 
 //----------------------------------------------------------------------------
 

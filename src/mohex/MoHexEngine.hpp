@@ -36,6 +36,7 @@ public:
     void CmdBookIncreaseWidth(HtpCommand& cmd);
     void CmdParamBook(HtpCommand& cmd);
     void MoHexParam(HtpCommand& cmd);
+    void MoHexPolicyParam(HtpCommand& cmd);
 
     // @} // @name
 
