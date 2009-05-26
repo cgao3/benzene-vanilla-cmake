@@ -57,7 +57,7 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory,
     : SgUctSearch(factory, maxMoves),
       m_keepGames(false),
       m_liveGfx(false),
-      m_liveGfxInterval(5000),
+      m_liveGfxInterval(20000),
       m_treeUpdateRadius(2),
       m_playoutUpdateRadius(1),
 
