@@ -65,7 +65,9 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
             << "pattern_heuristic "
             << config.patternHeuristic << '\n'
             << "response_heuristic "
-            << config.responseHeuristic << '\n';
+            << config.responseHeuristic << '\n'
+            << "response_threshold "
+            << config.response_threshold << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -76,6 +78,8 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
             config.patternHeuristic = cmd.BoolArg(1);
         else if (name == "response_heuristic")
             config.responseHeuristic = cmd.BoolArg(1);
+        else if (name == "response_threshold")
+            config.response_threshold = cmd.SizeTypeArg(1, 0);
         else
             throw HtpFailure("Unknown option!");
     }

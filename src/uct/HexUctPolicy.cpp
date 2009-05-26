@@ -50,7 +50,8 @@ HexUctPolicyConfig::HexUctPolicyConfig()
     : patternHeuristic(true),
       responseHeuristic(true),
       pattern_update_radius(1),
-      pattern_check_percent(100)
+      pattern_check_percent(100),
+      response_threshold(100)
 {
 }
 
@@ -241,7 +242,7 @@ HexPoint HexUctPolicy::GenerateResponseMove(HexColor toPlay, HexPoint lastMove,
                                             const StoneBoard& brd)
 {
     std::size_t num = m_response[toPlay][lastMove].size();
-    if (num > 100)
+    if (num > m_shared->Config().response_threshold)
     {
         HexPoint move = m_response[toPlay][lastMove][m_random.Int(num)];
         if (brd.isEmpty(move))

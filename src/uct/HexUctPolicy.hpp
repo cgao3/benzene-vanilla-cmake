@@ -24,13 +24,19 @@ _BEGIN_BENZENE_NAMESPACE_
 /** Configuration options for policies. */
 struct HexUctPolicyConfig
 {
+    /** Generate pattern moves. */
     bool patternHeuristic;
-    
+
+    /** Play learned responses. */    
     bool responseHeuristic;
 
     int pattern_update_radius;
 
+    /** Percent chance to check for pattern moves. */
     int pattern_check_percent;
+
+    /** Threshold at which the reponse heuristic is used. */
+    std::size_t response_threshold;
 
     HexUctPolicyConfig();
 };
