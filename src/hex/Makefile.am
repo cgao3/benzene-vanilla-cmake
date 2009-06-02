@@ -6,6 +6,7 @@ ConstBoard.cpp \
 Game.cpp \
 GraphUtils.cpp \
 GroupBoard.cpp \
+Groups.cpp \
 HandCodedPattern.cpp\
 HashedPatternSet.cpp\
 HexAbSearch.cpp \
@@ -44,6 +45,7 @@ ConstBoard.hpp \
 Game.hpp \
 GraphUtils.hpp \
 GroupBoard.hpp \
+Groups.hpp \
 HandCodedPattern.hpp \
 HashedPatternSet.hpp \
 Hex.hpp \
