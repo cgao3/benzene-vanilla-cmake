@@ -170,6 +170,48 @@ BOOST_AUTO_TEST_CASE(Groups_Members)
     BOOST_CHECK_EQUAL(grp.Captain(), SOUTH);
 }
 
+BOOST_AUTO_TEST_CASE(Groups_Iterator)
+{
+    StoneBoard brd(3, 3);
+    Groups groups;
+    //  a  b  c   
+    // 1\.  .  W\1
+    //  2\W  W  B\2
+    //   3\B  .  W\3
+    //      a  b  c 
+    brd.playMove(WHITE, HEX_CELL_C1);
+    brd.playMove(WHITE, HEX_CELL_A2);
+    brd.playMove(WHITE, HEX_CELL_B2);
+    brd.playMove(BLACK, HEX_CELL_C2);
+    brd.playMove(BLACK, HEX_CELL_A3);
+    brd.playMove(WHITE, HEX_CELL_C3);
+    GroupBuilder::Build(brd, groups);
+
+    GroupIterator g(groups);
+    BOOST_CHECK(g);
+    BOOST_CHECK_EQUAL(g->Captain(), NORTH);
+    ++g;
+    BOOST_CHECK(g);
+    BOOST_CHECK_EQUAL(g->Captain(), EAST);
+    ++g;
+    BOOST_CHECK(g);
+    BOOST_CHECK_EQUAL(g->Captain(), SOUTH);
+    ++g;
+    BOOST_CHECK(g);
+    BOOST_CHECK_EQUAL(g->Captain(), HEX_CELL_A1);
+    ++g;
+    BOOST_CHECK(g);
+    BOOST_CHECK_EQUAL(g->Captain(), HEX_CELL_B1);
+    ++g;
+    BOOST_CHECK(g);
+    BOOST_CHECK_EQUAL(g->Captain(), HEX_CELL_C2);
+    ++g;
+    BOOST_CHECK(g);
+    BOOST_CHECK_EQUAL(g->Captain(), HEX_CELL_B3);
+    ++g;
+    BOOST_CHECK(!g);
+}
+
 //----------------------------------------------------------------------------
 
 } // namespace

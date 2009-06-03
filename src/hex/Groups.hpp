@@ -138,6 +138,9 @@ public:
     /** Returns current group. */
     const Group& operator*() const;
 
+    /** Allows access to current groups methods. */
+    const Group* operator->() const;
+
     /** Moves to the next group. */
     void operator++();
 
@@ -160,6 +163,11 @@ inline GroupIterator::GroupIterator(const Groups& groups)
 inline const Group& GroupIterator::operator*() const
 {
     return m_groups->m_groups[m_index];
+}
+
+inline const Group* GroupIterator::operator->() const
+{
+    return &m_groups->m_groups[m_index];
 }
 
 inline void GroupIterator::operator++()
