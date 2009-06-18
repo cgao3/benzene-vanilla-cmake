@@ -245,7 +245,7 @@ void HexUctState::StartSearch()
         || m_bd->width() != brd.width() 
         || m_bd->height() != brd.height())
     {
-        m_bd.reset(new GroupBoard(brd.width(), brd.height()));
+        m_bd.reset(new StoneBoard(brd.width(), brd.height()));
         m_pastate.reset(new PatternState(*m_bd));
         m_vc_brd.reset(new HexBoard(brd.width(), brd.height(), 
                                     brd.ICE(), brd.Builder().Parameters()));

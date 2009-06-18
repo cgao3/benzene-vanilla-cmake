@@ -56,33 +56,32 @@ bitset_t ComputeEdgeUnreachableRegions(const StoneBoard& brd, HexColor c,
     neighbour set. This finds dead regions that cannot be identified
     using only local patterns/properties.
 */
-bitset_t ComputeDeadRegions(const GroupBoard& brd)
+bitset_t ComputeDeadRegions(const Groups& groups)
 {
-    if (brd.isGameOver())
+    const StoneBoard& brd = groups.Board();
+    if (groups.IsGameOver())
 	return brd.getEmpty();
     
     bitset_t dead;
-    for (BoardIterator i(brd.Groups(NOT_EMPTY)); i; ++i) 
+    for (GroupIterator i(groups, NOT_EMPTY); i; ++i) 
     {
         /** @note We believe single stone groups cannot isolate regions by
 	    themselves (i.e. they need to be combined with a non-singleton
 	    group to create a dead region. This should be proven [Phil]. */
-	HexAssert(brd.isCaptain(*i));
-	if (brd.GroupMembers(*i).count() == 1)
+	if (i->Size() == 1)
             continue;
 	
-	HexColor c = brd.getColor(*i);
+	HexColor c = i->Color();
 	HexAssert(HexColorUtil::isBlackWhite(c));
 	
 	/** Compute which empty cells are reachable from the edges when we
 	    cannot go through this group's empty neighbours (which form a
 	    clique). If the clique covers one edge, we only compute
 	    reachability from the opposite edge. */
-	bitset_t cliqueCutset = brd.Nbs(*i, EMPTY);
-	dead |=
-	    ComputeEdgeUnreachableRegions(brd, c, cliqueCutset,
-					  *i != HexPointUtil::colorEdge1(c),
-					  *i != HexPointUtil::colorEdge2(c));
+	bitset_t cliqueCutset = i->Nbs() & brd.getEmpty();
+	dead |= ComputeEdgeUnreachableRegions(brd, c, cliqueCutset,
+                                 i->Captain() != HexPointUtil::colorEdge1(c),
+                                 i->Captain() != HexPointUtil::colorEdge2(c));
     }
     
     // Areas not reachable due to one or more clique cutsets are dead.
@@ -93,16 +92,18 @@ bitset_t ComputeDeadRegions(const GroupBoard& brd)
 /** Finds dead regions formed by one group as well as a single cell adjacent
     to two of the group's neighbours (but not the group itself).
 */
-bitset_t FindType1Cliques(const GroupBoard& brd)
+bitset_t FindType1Cliques(const Groups& groups)
 {
     bitset_t dead;
+    const StoneBoard& brd = groups.Board();
     bitset_t empty = brd.getEmpty();
     
     // Find two cells that are adjacent through some group, but not directly.
     for (BitsetIterator x(empty); x; ++x) {
 	for (BitsetIterator y(empty); *y != *x; ++y) {
 	    if (brd.Const().Adjacent(*x, *y)) continue;
-	    bitset_t xyNbs = brd.Nbs(*x, NOT_EMPTY) & brd.Nbs(*y, NOT_EMPTY);
+	    bitset_t xyNbs 
+                = groups.Nbs(*x, NOT_EMPTY) & groups.Nbs(*y, NOT_EMPTY);
 	    if (xyNbs.none()) continue;
 	    
 	    // Find a 3rd cell directly adjacent to the first two, but not
@@ -112,7 +113,7 @@ bitset_t FindType1Cliques(const GroupBoard& brd)
 		if (!brd.Const().Adjacent(*y, *z)) continue;
 		HexAssert(*x != *z);
 		HexAssert(*y != *z);
-		bitset_t xyExclusiveNbs = xyNbs - brd.Nbs(*z, NOT_EMPTY);
+		bitset_t xyExclusiveNbs = xyNbs - groups.Nbs(*z, NOT_EMPTY);
 		if (xyExclusiveNbs.none()) continue;
 		
 		// The 3 cells x,y,z form a clique.
@@ -142,21 +143,22 @@ bitset_t FindType1Cliques(const GroupBoard& brd)
     common empty neighbours and a direct adjacency between two of
     their exclusive neighbours.
 */
-bitset_t FindType2Cliques(const GroupBoard& brd)
+bitset_t FindType2Cliques(const Groups& groups)
 {
+    const StoneBoard& brd = groups.Board();
     bitset_t dead;
     bitset_t empty = brd.getEmpty();
     
     // Find two non-edge groups of the same color with both common
     // empty neighbours in common and also exclusive empty neighbours.
     for (BWIterator c; c; ++c) {
-	for (BoardIterator g1(brd.Groups(*c)); g1; ++g1) {
-	    if (HexPointUtil::isEdge(*g1)) continue;
-	    bitset_t g1_nbs = brd.Nbs(*g1, EMPTY);
+	for (GroupIterator g1(groups, *c); g1; ++g1) {
+	    if (HexPointUtil::isEdge(g1->Captain())) continue;
+	    bitset_t g1_nbs = groups.Nbs(*g1, EMPTY);
 	    
-	    for (BoardIterator g2(brd.Groups(*c)); *g2 != *g1; ++g2) {
-		if (HexPointUtil::isEdge(*g2)) continue;
-		bitset_t g2_nbs = brd.Nbs(*g2, EMPTY);
+	    for (GroupIterator g2(groups, *c); &*g2 != &*g1; ++g2) {
+                if (HexPointUtil::isEdge(g2->Captain())) continue;
+		bitset_t g2_nbs = groups.Nbs(*g2, EMPTY);
 		if ((g1_nbs & g2_nbs).none()) continue;
 		
 		bitset_t g1Exclusive = g1_nbs - g2_nbs;
@@ -189,26 +191,27 @@ bitset_t FindType2Cliques(const GroupBoard& brd)
 /** Finds dead regions cutoff by cliques created by 3 groups of the
     same color.
 */
-bitset_t FindType3Cliques(const GroupBoard& brd)
+bitset_t FindType3Cliques(const Groups& groups)
 {
+    const StoneBoard& brd = groups.Board();
     bitset_t dead;
     bitset_t empty = brd.getEmpty();
     
     // Find 3 non-edge groups of the same color such that each pair has
     // a non-empty intersection of their empty neighbours.
     for (BWIterator c; c; ++c) {
-	for (BoardIterator g1(brd.Groups(*c)); g1; ++g1) {
-	    if (HexPointUtil::isEdge(*g1)) continue;
-	    bitset_t g1_nbs = brd.Nbs(*g1, EMPTY);
+	for (GroupIterator g1(groups, *c); g1; ++g1) {
+	    if (HexPointUtil::isEdge(g1->Captain())) continue;
+	    bitset_t g1_nbs = groups.Nbs(*g1, EMPTY);
 	    
-	    for (BoardIterator g2(brd.Groups(*c)); *g2 != *g1; ++g2) {
-		if (HexPointUtil::isEdge(*g2)) continue;
-		bitset_t g2_nbs = brd.Nbs(*g2, EMPTY);
+	    for (GroupIterator g2(groups, *c); &*g2 != &*g1; ++g2) {
+		if (HexPointUtil::isEdge(g2->Captain())) continue;
+		bitset_t g2_nbs = groups.Nbs(*g2, EMPTY);
 		if ((g1_nbs & g2_nbs).none()) continue;
 		
-		for (BoardIterator g3(brd.Groups(*c)); *g3 != *g2; ++g3) {
-		    if (HexPointUtil::isEdge(*g3)) continue;
-		    bitset_t g3_nbs = brd.Nbs(*g3, EMPTY);
+		for (GroupIterator g3(groups, *c); &*g3 != &*g2; ++g3) {
+		    if (HexPointUtil::isEdge(g3->Captain())) continue;
+		    bitset_t g3_nbs = groups.Nbs(*g3, EMPTY);
 		    if ((g1_nbs & g3_nbs).none()) continue;
 		    if ((g2_nbs & g3_nbs).none()) continue;
 		    
@@ -235,14 +238,14 @@ bitset_t FindType3Cliques(const GroupBoard& brd)
     
     This finds additional regions not identified via local patterns.
 */
-bitset_t FindThreeSetCliques(const GroupBoard& brd)
+bitset_t FindThreeSetCliques(const Groups& groups)
 {
-    if (brd.isGameOver())
-	return brd.getEmpty();
+    if (groups.IsGameOver())
+	return groups.Board().getEmpty();
 
-    bitset_t dead1 = FindType1Cliques(brd);
-    bitset_t dead2 = FindType2Cliques(brd);
-    bitset_t dead3 = FindType3Cliques(brd);
+    bitset_t dead1 = FindType1Cliques(groups);
+    bitset_t dead2 = FindType2Cliques(groups);
+    bitset_t dead3 = FindType3Cliques(groups);
 
     return dead1 | dead2 | dead3;
 }
@@ -270,15 +273,15 @@ bool IsClique(const ConstBoard& brd, const std::vector<HexPoint>& vn,
 /** Finds dead and vulnerable cells using graph theory; ie, not using
     local patterns. The board will have any found dead cells
     filled-in. */
-void UseGraphTheoryToFindDeadVulnerable(HexColor color, 
-                                        GroupBoard& brd, 
+void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
                                         PatternState& pastate,
                                         InferiorCells& inf)
 {
+    StoneBoard& brd = groups.Board();
     bitset_t simplicial;
     bitset_t adj_to_both_edges = 
-        brd.Nbs(HexPointUtil::colorEdge1(color), EMPTY) &
-        brd.Nbs(HexPointUtil::colorEdge2(color), EMPTY);
+        groups.Nbs(HexPointUtil::colorEdge1(color), EMPTY) &
+        groups.Nbs(HexPointUtil::colorEdge2(color), EMPTY);
     bitset_t consider = brd.getEmpty();
     consider = consider - adj_to_both_edges;
     
@@ -300,8 +303,8 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color,
             } 
             else if (ncolor == color) 
             {
-                HexPoint cap = brd.getCaptain(*nb);
-                bitset_t adj = brd.Nbs(cap, EMPTY);
+                HexPoint cap = groups.CaptainOf(*nb);
+                bitset_t adj = groups.Nbs(cap, EMPTY);
                 adj.reset(*p);
 		
                 // Ignore color groups with no empty neighbours (after
@@ -381,7 +384,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color,
 		    if (adj_to_edge && *i != edgeNbr) continue;
 
 		    bitset_t remainingNbs = 
-                        empty_adj_to_group - brd.Nbs(*i, EMPTY);
+                        empty_adj_to_group - groups.Nbs(*i, EMPTY);
 		    
 		    if (remainingNbs.count() == 0) 
                     {
@@ -472,7 +475,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color,
     inf.AddDead(simplicial);
     brd.addColor(DEAD_COLOR, simplicial);
     pastate.Update(simplicial);
-    brd.absorb(simplicial);
+    GroupBuilder::Build(brd, groups);
 }
 
 //----------------------------------------------------------------------------
@@ -520,10 +523,11 @@ void ICEngine::LoadPatterns()
 
 //----------------------------------------------------------------------------
 
-int ICEngine::ComputeDeadCaptured(GroupBoard& board, PatternState& pastate,
+int ICEngine::ComputeDeadCaptured(Groups& groups, PatternState& pastate,
                                   InferiorCells& inf, 
                                   HexColorSet colors_to_capture) const
 {
+    StoneBoard& brd = groups.Board();
     // find dead and captured cells and fill them in. 
     int count = 0;
     while (true) 
@@ -533,14 +537,13 @@ int ICEngine::ComputeDeadCaptured(GroupBoard& board, PatternState& pastate,
         while (true) 
         {
             /** @todo This can be optimized quite a bit. */
-            bitset_t dead = FindDead(pastate, board.getEmpty());
+            bitset_t dead = FindDead(pastate, brd.getEmpty());
             if (dead.none()) 
                 break;
             count += dead.count();
             inf.AddDead(dead);
-            board.addColor(DEAD_COLOR, dead);
+            brd.addColor(DEAD_COLOR, dead);
             pastate.Update(dead);
-            board.absorb(dead);
         }
 
         // search for black captured cells; if some are found,
@@ -548,14 +551,13 @@ int ICEngine::ComputeDeadCaptured(GroupBoard& board, PatternState& pastate,
         {
             bitset_t black;
             if (HexColorSetUtil::InSet(BLACK, colors_to_capture))
-                black = FindCaptured(pastate, BLACK, board.getEmpty());
+                black = FindCaptured(pastate, BLACK, brd.getEmpty());
             if (black.any()) 
             {
                 count += black.count();
                 inf.AddCaptured(BLACK, black);
-                board.addColor(BLACK, black);
+                brd.addColor(BLACK, black);
                 pastate.Update(black);
-                board.absorb(black);
                 continue;
             }
         }
@@ -565,24 +567,25 @@ int ICEngine::ComputeDeadCaptured(GroupBoard& board, PatternState& pastate,
         {
             bitset_t white;
             if (HexColorSetUtil::InSet(WHITE, colors_to_capture))
-                white = FindCaptured(pastate, WHITE, board.getEmpty());
+                white = FindCaptured(pastate, WHITE, brd.getEmpty());
             if (white.any()) 
             {
                 count += white.count();
                 inf.AddCaptured(WHITE, white);
-                board.addColor(WHITE, white);
+                brd.addColor(WHITE, white);
                 pastate.Update(white);
-                board.absorb(white);
                 continue;
             }
         }
         // did not find any fillin, so abort.
         break;
     }
+    if (count)
+        GroupBuilder::Build(brd, groups);
     return count;
 }
 
-int ICEngine::FillinPermanentlyInferior(GroupBoard& brd, PatternState& pastate,
+int ICEngine::FillinPermanentlyInferior(Groups& groups, PatternState& pastate,
                                         HexColor color, InferiorCells& out, 
                                         HexColorSet colors_to_capture) const
 {
@@ -591,29 +594,30 @@ int ICEngine::FillinPermanentlyInferior(GroupBoard& brd, PatternState& pastate,
     if (!HexColorSetUtil::InSet(color, colors_to_capture)) 
         return 0;
 
+    StoneBoard& brd = groups.Board();
     bitset_t carrier;
     bitset_t perm = FindPermanentlyInferior(pastate, color, brd.getEmpty(), 
                                             carrier);
     out.AddPermInf(color, perm, carrier);
     brd.addColor(color, perm);
     pastate.Update(perm);
-    brd.absorb(perm);
+    GroupBuilder::Build(brd, groups);
     return perm.count();
 }
 
-int ICEngine::FillInVulnerable(HexColor color, GroupBoard& brd, 
+int ICEngine::FillInVulnerable(HexColor color, Groups& groups, 
                                PatternState& pastate, InferiorCells& inf, 
                                HexColorSet colors_to_capture) const
 {
     int count = 0;
     inf.ClearVulnerable();
 
-    UseGraphTheoryToFindDeadVulnerable(color, brd, pastate, inf);
+    UseGraphTheoryToFindDeadVulnerable(color, groups, pastate, inf);
 
     // Find vulnerable cells with local patterns--do not ignore the
     // presimplicial cells previously found because a pattern
     // may encode another dominator.
-    bitset_t consider = brd.getEmpty() - inf.Dead();
+    bitset_t consider = groups.Board().getEmpty() - inf.Dead();
     FindVulnerable(pastate, color, consider, inf);
     
     // Fill in presimplicial pairs only if we are doing fillin for the
@@ -624,34 +628,34 @@ int ICEngine::FillInVulnerable(HexColor color, GroupBoard& brd,
         if (captured.any()) 
         {
             inf.AddCaptured(!color, captured);
-            brd.addColor(!color, captured);
+            groups.Board().addColor(!color, captured);
             pastate.Update(captured);
-            brd.absorb(captured);
+            GroupBuilder::Build(groups.Board(), groups);
         }
         count += captured.count();
     }
     return count;
 }
 
-int ICEngine::FillInUnreachable(GroupBoard& brd, PatternState& pastate,
+int ICEngine::FillInUnreachable(Groups& groups, PatternState& pastate,
                                 InferiorCells& out) const
 {
-    bitset_t notReachable = ComputeDeadRegions(brd);
+    bitset_t notReachable = ComputeDeadRegions(groups);
 
     if (m_find_three_sided_dead_regions)
-        notReachable |= FindThreeSetCliques(brd);
+        notReachable |= FindThreeSetCliques(groups);
     
     if (notReachable.any()) 
     {
         out.AddDead(notReachable);
-        brd.addColor(DEAD_COLOR, notReachable);
+        groups.Board().addColor(DEAD_COLOR, notReachable);
         pastate.Update(notReachable);
-        brd.absorb(notReachable);
+        GroupBuilder::Build(groups.Board(), groups);
     }
     return notReachable.count();
 }
 
-void ICEngine::ComputeFillin(HexColor color, GroupBoard& brd, 
+void ICEngine::ComputeFillin(HexColor color, Groups& groups, 
                              PatternState& pastate, InferiorCells& out,
                              HexColorSet colors_to_capture) const
 {
@@ -659,39 +663,40 @@ void ICEngine::ComputeFillin(HexColor color, GroupBoard& brd,
     for (int iteration=0; ; ++iteration) 
     {
         int count=0;
-        count += ComputeDeadCaptured(brd, pastate, out, colors_to_capture);
-        count += FillinPermanentlyInferior(brd, pastate, color, out, 
+        count += ComputeDeadCaptured(groups, pastate, out, colors_to_capture);
+        count += FillinPermanentlyInferior(groups, pastate, color, out, 
                                            colors_to_capture);
-        count += FillinPermanentlyInferior(brd, pastate, !color, out, 
+        count += FillinPermanentlyInferior(groups, pastate, !color, out, 
                                            colors_to_capture);
-        count += FillInVulnerable(!color, brd, pastate, out, 
+        count += FillInVulnerable(!color, groups, pastate, out, 
                                   colors_to_capture);
-        count += FillInVulnerable(color, brd, pastate, out, 
+        count += FillInVulnerable(color, groups, pastate, out, 
                                   colors_to_capture);
         if (m_iterative_dead_regions)
-            count += FillInUnreachable(brd, pastate, out);
+            count += FillInUnreachable(groups, pastate, out);
 
         if (count == 0)
             break;
     }
     
     if (!m_iterative_dead_regions)
-        FillInUnreachable(brd, pastate, out);
+        FillInUnreachable(groups, pastate, out);
 }
 
-void ICEngine::ComputeInferiorCells(HexColor color, GroupBoard& brd,
+void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
                                     PatternState& pastate,
                                     InferiorCells& out) const
 {
 #ifndef NDEBUG
-    StoneBoard oldBoard(brd);
+    HexAssert(groups.Board() == pastate.Board());
+    StoneBoard oldBoard(groups.Board());
 #endif
     double startTime = Time::Get();
 
-    ComputeFillin(color, brd, pastate, out);
+    ComputeFillin(color, groups, pastate, out);
 
     {
-        bitset_t consider = brd.getEmpty() - out.Vulnerable();
+        bitset_t consider = groups.Board().getEmpty() - out.Vulnerable();
         FindDominated(pastate, color, consider, out);
     }
 
@@ -699,7 +704,7 @@ void ICEngine::ComputeInferiorCells(HexColor color, GroupBoard& brd,
     // are actually vulnerable to the move played. 
     if (m_backup_opponent_dead) 
     {
-        int found = BackupOpponentDead(color, brd, pastate, out);
+        int found = BackupOpponentDead(color, groups.Board(), pastate, out);
         if (found) {
             LogFine() << "Found " << found 
                       << " cells vulnerable to opponent moves.\n";
@@ -710,15 +715,15 @@ void ICEngine::ComputeInferiorCells(HexColor color, GroupBoard& brd,
     LogFine() << "  " << (endTime - startTime) 
               << "s to find inferior cells.\n";
 #ifndef NDEBUG
-    HexAssert(brd.Hash() == oldBoard.Hash());
+    HexAssert(groups.Board().Hash() == oldBoard.Hash());
 #endif
 }
 
-int ICEngine::BackupOpponentDead(HexColor color, const GroupBoard& board,
+int ICEngine::BackupOpponentDead(HexColor color, const StoneBoard& board,
                                  PatternState& pastate,
                                  InferiorCells& out) const
 {
-    GroupBoard brd(board);
+    StoneBoard brd(board);
     PatternState ps(brd);
     ps.CopyState(pastate);
 
@@ -731,11 +736,12 @@ int ICEngine::BackupOpponentDead(HexColor color, const GroupBoard& board,
         brd.setColor(BLACK, board.getBlack());
         brd.setColor(WHITE, board.getWhite());
         brd.playMove(!color, *p);
-        brd.absorb();
         ps.Update();
+        Groups groups;
+        GroupBuilder::Build(brd, groups);
 
         InferiorCells inf;
-        ComputeFillin(color, brd, ps, inf);
+        ComputeFillin(color, groups, ps, inf);
         bitset_t filled = inf.Fillin(BLACK) | inf.Fillin(WHITE);
 
         for (BitsetIterator d(inf.Dead()); d; ++d) 

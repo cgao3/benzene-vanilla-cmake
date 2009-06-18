@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file GraphUtils.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -7,7 +7,7 @@
 #define GRAPHUTILS_HPP
 
 #include "Hex.hpp"
-#include "GroupBoard.hpp"
+#include "Groups.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -21,7 +21,7 @@ namespace GraphUtils
     /** Computes neighbours of all empty cells going through groups of
         color. Neighbours of groups of color are also included in
         nbs. */
-    void ComputeDigraph(const GroupBoard& brd, HexColor color, 
+    void ComputeDigraph(const Groups& brd, HexColor color, 
                         PointToBitset& nbs);
 
     //----------------------------------------------------------------------
@@ -39,42 +39,6 @@ namespace GraphUtils
      */
     bitset_t BFS(HexPoint p, PointToBitset& group_nbs, bitset_t stopSet,
 		 int* distFromEdge=NULL, int* numShortestPathsThrough=NULL);
-
-    //----------------------------------------------------------------------
-
-    /** Compute which cells are on a shortest edge-to-edge path for
-	the given colour using the adjacencies given. If no
-	adjacencies are given, uses the default (direct and through
-	groups of colour c).  If numPaths is passed in, the number of
-	shortest paths each cell is on will be stored there.
-     */
-    bitset_t CellsOnShortestWinningPaths(const GroupBoard& brd, HexColor c);
-    bitset_t CellsOnShortestWinningPaths(const GroupBoard& brd, HexColor c,
-					 PointToBitset& nbs,
-					 int distFromStart[2][BITSETSIZE],
-					 int numPaths[2][BITSETSIZE]=NULL);
-
-
-    //----------------------------------------------------------------------
-    
-    /** Computes the frequency with which each cell is on a shortest path
-     */
-    bitset_t FrequencyOnShortestWinningVCPaths(const HexBoard& brd, 
-					       HexColor c,
-					       bool inclEdges,
-					       int numPaths[BITSETSIZE],
-					       bool preferKeys=false);
-    
-    /** Computes which cells are on shortest edge-to-edge VC paths
-	for the given colour. */
-    bitset_t CellsOnShortestWinningVCPaths(const HexBoard& brd, 
-                                           HexColor c, bool inclEdges);
-    
-    /** Computes move ordering based on frequency of cell on shortest
-	winning VC paths for both players
-     */
-    void ComputeShortestVCPathMoveOrdering(const HexBoard& brd, HexColor c,
-					   bitset_t cellsToOrder);
 
 };
 

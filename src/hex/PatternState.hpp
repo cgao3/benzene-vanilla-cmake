@@ -7,9 +7,9 @@
 #define PATTERNBOARD_HPP
 
 #include "Hex.hpp"
-#include "GroupBoard.hpp"
-#include "Pattern.hpp"
 #include "HashedPatternSet.hpp"
+#include "Pattern.hpp"
+#include "StoneBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 

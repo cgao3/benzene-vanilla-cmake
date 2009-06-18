@@ -50,7 +50,7 @@ void Resistance::Evaluate(const HexBoard& brd,
         ResistanceUtil::SimulateAndOverEdge(brd, graph);
 
     for (BWIterator c; c; ++c) 
-        ComputeScores(*c, brd, graph[*c], values, m_scores[*c]);
+        ComputeScores(*c, brd.GetGroups(), graph[*c], values, m_scores[*c]);
     ComputeScore();
 }
 
@@ -87,18 +87,19 @@ namespace
     }
 }
 
-void Resistance::ComputeScores(HexColor color, const GroupBoard& brd,
+void Resistance::ComputeScores(HexColor color, const Groups& groups,
                                const AdjacencyGraph& graph, 
                                const ConductanceValues& values, 
                                HexEval* out)
 {
+    const StoneBoard& brd = groups.Board();
     SetAllToInfinity(brd, out);
 
     int ic,jc;
     HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(color);
     HexPoint source = HexPointUtil::colorEdge1(color);
     HexPoint sink = HexPointUtil::colorEdge2(color);
-    int n = brd.NumGroups(not_other);
+    int n = groups.NumGroups(not_other);
 
     Mat<double> G(n, n);   // conductances
     Vec<double> sinkG(n);  // conductances from sink to each group
@@ -109,29 +110,31 @@ void Resistance::ComputeScores(HexColor color, const GroupBoard& brd,
     I = 0.0;
     
     // put some current on the source
-    I[brd.GroupIndex(not_other, source)] = 1.0;
+    I[groups.GroupIndex(source, not_other)] = 1.0;
 
     // compute conductance between groups
-    ic=0;
-    for (BoardIterator i(brd.Groups(not_other)); i; ++i, ++ic) 
+    ic = 0;
+    for (GroupIterator i(groups, not_other); i; ++i, ++ic) 
     {
-        jc=0;
-        for (BoardIterator j(brd.Groups(not_other)); *j != *i; ++j, ++jc) 
+        jc = 0;
+        HexPoint icap = i->Captain();
+        for (GroupIterator j(groups, not_other); &*j != &*i; ++j, ++jc) 
         {
-            double conductance = Conductance(brd, color, *i, *j, 
-                                             graph[*i][*j], values);
+            HexPoint jcap = j->Captain();
+            double conductance = Conductance(brd, color, icap, jcap, 
+                                             graph[icap][jcap], values);
             
-            if (*i != sink) 
+            if (icap != sink) 
                 G(ic, ic) += conductance;
             else 
                 sinkG(jc) += conductance;
 
-            if (*j != sink)
+            if (jcap != sink)
                 G(jc, jc) += conductance;
             else 
                 sinkG(ic) += conductance;
 
-            if (*i != sink && *j != sink) 
+            if (icap != sink && jcap != sink) 
             {
                 G(ic, jc) -= conductance;
                 G(jc, ic) -= conductance;
@@ -142,19 +145,17 @@ void Resistance::ComputeScores(HexColor color, const GroupBoard& brd,
     // solve for voltages
     const Vec<double>& V = lsSolve(G, I);
 
-    m_resistance[color] = fabs(V[brd.GroupIndex(not_other, source)]);
+    m_resistance[color] = fabs(V[groups.GroupIndex(source, not_other)]);
 
     // compute energy for each cell
-    ic=0;
-    for (BoardIterator i(brd.Groups(not_other)); i; ++i, ++ic) 
+    ic = 0;
+    for (GroupIterator i(groups, not_other); i; ++i, ++ic) 
     {
-        jc=0;
+        jc = 0;
         double sum = fabs(sinkG[ic] * V[ic]);
-        for (BoardIterator j(brd.Groups(not_other)); j; ++j, ++jc) 
-        {
+        for (GroupIterator j(groups, not_other); j; ++j, ++jc) 
             sum += fabs(G(ic, jc) * (V[ic] - V[jc]));
-        }
-        out[*i] = sum;
+        out[i->Captain()] = sum;
     }
 }
 
@@ -184,8 +185,8 @@ void AddAdjacent(HexColor color, const HexBoard& brd,
     {
         for (BoardIterator y(brd.Stones(not_other)); *y != *x; ++y) 
         {
-            HexPoint cx = brd.getCaptain(*x);
-            HexPoint cy = brd.getCaptain(*y);
+            HexPoint cx = brd.GetGroups().CaptainOf(*x);
+            HexPoint cy = brd.GetGroups().CaptainOf(*y);
             if ((cx==cy) || brd.Cons(color).Exists(cx, cy, VC::FULL))
             {
                 graph[*x][*y] = true;
@@ -239,7 +240,7 @@ void InitializeCapMiai()
 void SimulateAndOverEdge1(const HexBoard& brd, HexColor color, 
                          HexPoint edge, AdjacencyGraph& graph)
 {
-    bitset_t augment = brd.Nbs(edge, EMPTY);
+    bitset_t augment = brd.GetGroups().Nbs(edge, EMPTY);
 
     // add in miai-captured empty cells adjacent to edge
     HexAssert(g_ResistanceUtilInitialized);
@@ -252,7 +253,7 @@ void SimulateAndOverEdge1(const HexBoard& brd, HexColor color,
                                           PatternState::MATCH_ALL, hits);
         for (unsigned j=0; j<hits.size(); ++j) 
         {
-            HexPoint cj = brd.getCaptain(hits[j].moves1()[0]);
+            HexPoint cj = brd.GetGroups().CaptainOf(hits[j].moves1()[0]);
             if (cj == edge) 
             {
                 augment.set(*p);

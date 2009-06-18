@@ -64,8 +64,9 @@ HexPoint BenzenePlayer::init_search(HexBoard& brd, HexColor color,
                                     bitset_t& consider, double& score)
 {
     // Resign if the game is already over
-    brd.absorb();
-    if (brd.isGameOver()) 
+    Groups groups;
+    GroupBuilder::Build(brd, groups);
+    if (groups.IsGameOver()) 
     {
         score = IMMEDIATE_LOSS;
         return RESIGN;
@@ -75,7 +76,7 @@ HexPoint BenzenePlayer::init_search(HexBoard& brd, HexColor color,
     brd.ComputeAll(color);
 
     // If fillin causes win, remove and re-compute without ice.
-    if (brd.isGameOver()) 
+    if (brd.GetGroups().IsGameOver()) 
     {
         LogFine() << "Captured cells caused win! Removing...\n";
         brd.SetState(original);
@@ -83,7 +84,7 @@ HexPoint BenzenePlayer::init_search(HexBoard& brd, HexColor color,
         brd.SetUseICE(false);
         brd.ComputeAll(color);
         brd.SetUseICE(oldUseIce);
-        HexAssert(!brd.isGameOver());
+        HexAssert(!brd.GetGroups().IsGameOver());
     } 
 
     consider = brd.getEmpty();

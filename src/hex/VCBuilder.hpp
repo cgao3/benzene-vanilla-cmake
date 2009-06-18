@@ -10,7 +10,7 @@
 #include "VC.hpp"
 #include "VCList.hpp"
 #include "VCSet.hpp"
-#include "GroupBoard.hpp"
+#include "Groups.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -157,16 +157,16 @@ public:
 
     /** Computes connections from scratch. Old connections are removed
         prior to starting. */
-    void Build(VCSet& con, const GroupBoard& brd);
+    void Build(VCSet& con, const Groups& groups);
    
-    /** Computes connections on this board for the given set of added
-        stones. Assumes existing vc data is valid for the state prior
-        to these stones being played. Logging is used if passed log is
-        not 0. Breaks all connections whose carrier contains a new
-        stone unless a 1-connection of player color and p is the key;
-        these are upgraded to 0-connections for player p.  */
-    void Build(VCSet& cons, const GroupBoard& brd,
-               bitset_t added[BLACK_AND_WHITE],
+    /** Updates connections from oldGroups to newGroups Assumes
+        existing vc data is valid for oldGroups. Logging is used if
+        passed log is not 0. Breaks all connections whose carrier
+        contains a new stone unless a 1-connection of player color and
+        p is the key; these are upgraded to 0-connections for player
+        p.  */
+    void Build(VCSet& cons, const Groups& oldGroups,
+               const Groups& newGroups, bitset_t added[BLACK_AND_WHITE],
                ChangeLog<VC>* log);
 
 private:
@@ -242,7 +242,7 @@ private:
     void AbsorbMergeShrinkUpgrade(const bitset_t& added_black,
                                   const bitset_t& added_white);
 
-    void Merge(bitset_t added[BLACK_AND_WHITE]);
+    void Merge(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE]);
 
     void MergeAndShrink(const bitset_t& affected,
                         const bitset_t& added);
@@ -251,7 +251,7 @@ private:
                         HexPoint xin, HexPoint yin,
                         HexPoint xout, HexPoint yout);
     
-    void RemoveAllContaining(const GroupBoard& brd, const bitset_t& bs);
+    void RemoveAllContaining(const Groups& groups, const bitset_t& bs);
     
     //-----------------------------------------------------------------------
 
@@ -261,7 +261,9 @@ private:
 
     VCBuilderStatistics m_statistics;
 
-    const GroupBoard* m_brd;
+    const Groups* m_groups;
+
+    const StoneBoard* m_brd;
 
     VCSet* m_con;
     

@@ -6,6 +6,7 @@
 #include "Time.hpp"
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
+#include "Groups.hpp"
 #include "VCSet.hpp"
 #include "HexBoard.hpp"
 #include "VCUtils.hpp"
@@ -16,8 +17,9 @@ using namespace benzene;
 
 HexBoard::HexBoard(int width, int height, const ICEngine& ice,
                    VCBuilderParam& param)
-    : GroupBoard(width, height), 
+    : StoneBoard(width, height), 
       m_ice(&ice),
+      m_groups(),
       m_patterns(*this),
       m_builder(param),
       m_use_vcs(true),
@@ -31,8 +33,9 @@ HexBoard::HexBoard(int width, int height, const ICEngine& ice,
 /** @warning This is not very maintainable! How to make this
     copy-constructable nicely, even though it has a scoped_ptr? */
 HexBoard::HexBoard(const HexBoard& other)
-    : GroupBoard(other),
+    : StoneBoard(other),
       m_ice(other.m_ice),
+      m_groups(other.m_groups),
       m_patterns(*this),
       m_builder(other.m_builder),
       m_history(other.m_history),
@@ -52,6 +55,7 @@ HexBoard::HexBoard(const HexBoard& other)
 
 void HexBoard::Initialize()
 {
+    GroupBuilder::Build(*this, m_groups);
     for (BWIterator c; c; ++c) 
         m_cons[*c].reset(new VCSet(Const(), *c));
     ClearHistory();
@@ -78,7 +82,7 @@ void HexBoard::ComputeInferiorCells(HexColor color_to_move)
     if (m_use_ice) 
     {
         InferiorCells inf;
-        m_ice->ComputeInferiorCells(color_to_move, *this, m_patterns, inf);
+        m_ice->ComputeInferiorCells(color_to_move, m_groups, m_patterns, inf);
         IceUtil::Update(m_inf, inf);
     }
 }
@@ -86,17 +90,18 @@ void HexBoard::ComputeInferiorCells(HexColor color_to_move)
 void HexBoard::BuildVCs()
 {
     for (BWIterator c; c; ++c)
-        m_builder.Build(*m_cons[*c], *this);
+        m_builder.Build(*m_cons[*c], m_groups);
 }
 
-void HexBoard::BuildVCs(bitset_t added[BLACK_AND_WHITE], bool markLog)
+void HexBoard::BuildVCs(const Groups& oldGroups, 
+                        bitset_t added[BLACK_AND_WHITE], bool markLog)
 {
     HexAssert((added[BLACK] & added[WHITE]).none());
     for (BWIterator c; c; ++c) 
     {
         if (markLog)
             m_log[*c].push(ChangeLog<VC>::MARKER, VC());
-        m_builder.Build(*m_cons[*c], *this, added, &m_log[*c]);
+        m_builder.Build(*m_cons[*c], oldGroups, m_groups, added, &m_log[*c]);
     }
 }
 
@@ -117,7 +122,7 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move)
 
     /** @todo Check for a vc win/loss here instead of just solid
 	chains. */
-    if (isGameOver()) 
+    if (m_groups.IsGameOver()) 
         return;
 
     int decompositions = 0;
@@ -156,7 +161,7 @@ void HexBoard::ComputeAll(HexColor color_to_move)
     double s = Time::Get();
     
     m_patterns.Update();
-    absorb();
+    GroupBuilder::Build(*this, m_groups);
     m_inf.Clear();
 
     bitset_t old_black = getColor(BLACK);
@@ -188,7 +193,8 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
 
     playMove(color, cell);
     m_patterns.Update(cell);
-    absorb(cell);
+    Groups oldGroups(m_groups);
+    GroupBuilder::Build(*this, m_groups);
 
     ComputeInferiorCells(!color);
 
@@ -198,7 +204,7 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
 
     if (m_use_vcs)
     {
-        BuildVCs(added);
+        BuildVCs(oldGroups, added, true);
         HandleVCDecomposition(!color);
     }
     double e = Time::Get();
@@ -219,7 +225,8 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 
     addColor(color, played);
     m_patterns.Update(played);
-    absorb(played);
+    Groups oldGroups(m_groups);
+    GroupBuilder::Build(*this, m_groups);
 
     ComputeInferiorCells(color_to_move);
 
@@ -229,7 +236,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 
     if (m_use_vcs)
     {
-        BuildVCs(added);
+        BuildVCs(oldGroups, added, true);
         HandleVCDecomposition(color_to_move);
     }
 
@@ -250,7 +257,8 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
 
     addColor(color, played);
     m_patterns.Update(played);
-    absorb(played);
+    Groups oldGroups(m_groups);
+    GroupBuilder::Build(*this, m_groups);
 
     ComputeInferiorCells(color_to_move);
 
@@ -259,7 +267,7 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     added[WHITE] = getColor(WHITE) - old_white;
 
     if (m_use_vcs)
-        BuildVCs(added, false); 
+        BuildVCs(oldGroups, added, false); 
 
     double e = Time::Get();
     LogFine() << (e-s) << "s to add stones.\n";
@@ -271,7 +279,6 @@ void HexBoard::UndoMove()
 
     PopHistory();
     m_patterns.Update();
-    absorb();
 
     double e = Time::Get();
     LogFine() << (e-s) << "s to undo move.\n";
@@ -286,7 +293,7 @@ void HexBoard::ClearHistory()
 
 void HexBoard::PushHistory(HexColor color, HexPoint cell)
 {
-    m_history.push_back(History(*this, m_inf, color, cell));
+    m_history.push_back(History(*this, m_groups, m_inf, color, cell));
 }
 
 /** Restores the old board position, backs up ice info, and reverts
@@ -311,6 +318,7 @@ void HexBoard::PopHistory()
             hist.inf.AddDominated(*p, hist.last_played);
     }
     m_inf = hist.inf;
+    m_groups = hist.groups;
     RevertVCs();
 }
 

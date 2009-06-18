@@ -183,8 +183,8 @@ HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
 
 bool PlayerUtils::IsWonGame(const HexBoard& brd, HexColor color)
 {
-    if (brd.isGameOver())
-        return (brd.getWinner() == color);
+    if (brd.GetGroups().IsGameOver())
+        return (brd.GetGroups().GetWinner() == color);
     if (brd.Cons(color).Exists(HexPointUtil::colorEdge1(color), 
                                HexPointUtil::colorEdge2(color), 
                                VC::SEMI)) 
@@ -202,8 +202,8 @@ bool PlayerUtils::IsWonGame(const HexBoard& brd, HexColor color)
 
 bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color)
 {
-    if (brd.isGameOver())
-        return (brd.getWinner() != color);
+    if (brd.GetGroups().IsGameOver())
+        return (brd.GetGroups().GetWinner() != color);
     if (brd.Cons(!color).Exists(HexPointUtil::colorEdge1(!color),
                                 HexPointUtil::colorEdge2(!color),
                                 VC::FULL))
@@ -242,7 +242,7 @@ HexPoint PlayerUtils::PlayDeterminedState(const HexBoard& brd, HexColor color)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(IsDeterminedState(brd, color));
-    HexAssert(!brd.isGameOver());
+    HexAssert(!brd.GetGroups().IsGameOver());
 
     if (IsWonGame(brd, color))
         return PlayWonGame(brd, color);

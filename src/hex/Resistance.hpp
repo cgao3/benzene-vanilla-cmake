@@ -9,6 +9,7 @@
 #include "Hex.hpp"
 #include "HexEval.hpp"
 #include "HexBoard.hpp"
+#include "Groups.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -132,7 +133,7 @@ public:
 private:
     
     /** Compute the evaluation for a single color. */
-    void ComputeScores(HexColor color, const GroupBoard& brd,
+    void ComputeScores(HexColor color, const Groups& brd,
                        const AdjacencyGraph& graph, 
                        const ConductanceValues& values, 
                        HexEval* out);

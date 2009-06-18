@@ -8,7 +8,7 @@
 
 #include "ChangeLog.hpp"
 #include "ConstBoard.hpp"
-#include "GroupBoard.hpp"
+#include "Groups.hpp"
 #include "Hex.hpp"
 #include "VC.hpp"
 #include "VCList.hpp"
@@ -170,17 +170,17 @@ namespace VCSetUtil
 {
     
     /** Returns set of cells connected to x. */
-    bitset_t ConnectedTo(const VCSet& con, const GroupBoard& brd, 
+    bitset_t ConnectedTo(const VCSet& con, const Groups& groups, 
                          HexPoint x, VC::Type type);
 
     /** Number of connections defined on groupset. */
-    void NumActiveVCSet(const VCSet& con, const GroupBoard& brd, 
+    void NumActiveVCSet(const VCSet& con, const Groups& groups, 
                               int& fulls, int& semis);
 
     /** Returns true if connection sets are equal on the given
         groups. */
     bool EqualOnGroups(const VCSet& c1, const VCSet& c2,
-                       const GroupBoard& brd);
+                       const Groups& groups);
 }
 
 //----------------------------------------------------------------------------

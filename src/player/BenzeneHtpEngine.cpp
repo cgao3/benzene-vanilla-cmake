@@ -255,7 +255,6 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("vc-get-mustplay", &BenzeneHtpEngine::CmdGetMustPlay);
     RegisterCmd("vc-intersection", &BenzeneHtpEngine::CmdVCIntersection);
     RegisterCmd("vc-union", &BenzeneHtpEngine::CmdVCUnion);
-    RegisterCmd("vc-maintain", &BenzeneHtpEngine::CmdVCMaintain);
 
     RegisterCmd("vc-build", &BenzeneHtpEngine::CmdBuildStatic);
     RegisterCmd("vc-build-incremental", &BenzeneHtpEngine::CmdBuildIncremental);
@@ -336,7 +335,7 @@ void BenzeneHtpEngine::CmdRegGenMove(HtpCommand& cmd)
     HexPoint move = m_player.genmove(m_pe.SyncBoard(m_game->Board()),
                                      *m_game, ColorArg(cmd, 0),
                                      -1, score);
-    cmd << HexPointUtil::toString(move);
+    cmd << move;
 }
 
 /** Returns the set of stones this stone is part of. */
@@ -344,25 +343,17 @@ void BenzeneHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexPoint cell = MoveArg(cmd, 0);
-    GroupBoard brd(m_game->Board().width(), m_game->Board().height());
-    brd.setColor(BLACK, m_game->Board().getBlack());
-    brd.setColor(WHITE, m_game->Board().getWhite());
-    brd.absorb();
-
-    if (brd.getColor(cell) == EMPTY)
+    if (m_game->Board().getColor(cell) == EMPTY)
         return;
 
-    HexPoint captain = brd.getCaptain(cell);
-    cmd << HexPointUtil::toString(captain);
+    Groups groups;
+    GroupBuilder::Build(m_game->Board(), groups);
 
-    int c = 1;
-    for (BoardIterator p(brd.EdgesAndInterior()); p; ++p) {
-        if (*p == captain) continue;
-        if (brd.getCaptain(*p) == captain) {
-            cmd << " " << HexPointUtil::toString(*p);
-            if ((++c % 10) ==  0) cmd << "\n";
-        }
-    }
+    const Group& group = groups.GetGroup(cell);
+    cmd << group.Captain();
+    for (BitsetIterator p(group.Members()); p; ++p) 
+        if (*p != group.Captain()) 
+            cmd << ' ' << *p;
 }
 
 //---------------------------------------------------------------------------
@@ -733,11 +724,11 @@ void BenzeneHtpEngine::CmdComputeInferior(HtpCommand& cmd)
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.GetPatternState().Update();
-    brd.absorb();
+    GroupBuilder::Build(brd, brd.GetGroups());
 
     InferiorCells inf;
-    m_pe.ice.ComputeInferiorCells(color, brd, brd.GetPatternState(), inf);
-
+    m_pe.ice.ComputeInferiorCells(color, brd.GetGroups(), 
+                                  brd.GetPatternState(), inf);
     cmd << inf.GuiOutput();
     cmd << '\n';
 }
@@ -751,10 +742,10 @@ void BenzeneHtpEngine::CmdComputeFillin(HtpCommand& cmd)
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.GetPatternState().Update();
-    brd.absorb();
+    GroupBuilder::Build(brd, brd.GetGroups());
 
     InferiorCells inf;
-    m_pe.ice.ComputeFillin(color, brd, brd.GetPatternState(), inf);
+    m_pe.ice.ComputeFillin(color, brd.GetGroups(), brd.GetPatternState(), inf);
     inf.ClearVulnerable();
 
     cmd << inf.GuiOutput();
@@ -769,7 +760,7 @@ void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.GetPatternState().Update();
-    brd.absorb();
+    GroupBuilder::Build(brd, brd.GetGroups());
 
     InferiorCells inf;
     m_pe.ice.FindVulnerable(brd.GetPatternState(), col, brd.getEmpty(), inf);
@@ -786,7 +777,7 @@ void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.GetPatternState().Update();
-    brd.absorb();
+    GroupBuilder::Build(brd, brd.GetGroups());
 
     InferiorCells inf;
     m_pe.ice.FindDominated(brd.GetPatternState(), col, brd.getEmpty(), inf);
@@ -986,8 +977,8 @@ void BenzeneHtpEngine::CmdGetVCsBetween(HtpCommand& cmd)
     VC::Type ctype = VCTypeArg(cmd, 3);
 
     HexBoard& brd = *m_pe.brd;
-    HexPoint fcaptain = brd.getCaptain(from);
-    HexPoint tcaptain = brd.getCaptain(to);
+    HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
+    HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
 
     std::vector<VC> vc;
     brd.Cons(color).VCs(fcaptain, tcaptain, ctype, vc);
@@ -1023,7 +1014,7 @@ void BenzeneHtpEngine::CmdGetCellsConnectedTo(HtpCommand& cmd)
     HexColor color = ColorArg(cmd, 1);
     VC::Type ctype = VCTypeArg(cmd, 2);
     bitset_t pt = VCSetUtil::ConnectedTo(m_pe.brd->Cons(color), 
-                                       *m_pe.brd, from, ctype);
+                                         m_pe.brd->GetGroups(), from, ctype);
     PrintBitsetToHTP(cmd, pt);
 }
 
@@ -1053,8 +1044,8 @@ void BenzeneHtpEngine::CmdVCIntersection(HtpCommand& cmd)
     VC::Type ctype = VCTypeArg(cmd, 3);
 
     HexBoard& brd = *m_pe.brd;
-    HexPoint fcaptain = brd.getCaptain(from);
-    HexPoint tcaptain = brd.getCaptain(to);
+    HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
+    HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
     bitset_t intersection = lst.hardIntersection();
 
@@ -1070,29 +1061,12 @@ void BenzeneHtpEngine::CmdVCUnion(HtpCommand& cmd)
     VC::Type ctype = VCTypeArg(cmd, 3);
 
     HexBoard& brd = *m_pe.brd;
-    HexPoint fcaptain = brd.getCaptain(from);
-    HexPoint tcaptain = brd.getCaptain(to);
+    HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
+    HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
     bitset_t un = lst.getGreedyUnion(); // FIXME: shouldn't be greedy!!
 
     PrintBitsetToHTP(cmd, un);
-}
-
-/** Returns a list of VCs that can be maintained by mohex for the
-    player of the appropriate color. */
-void BenzeneHtpEngine::CmdVCMaintain(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
-
-    HexBoard& brd = *m_pe.brd;
-    std::vector<VC> maintain;
-    VCUtils::findMaintainableVCs(brd, color, maintain);
-
-    cmd << "\n";
-    std::vector<VC>::const_iterator it;
-    for (it = maintain.begin(); it != maintain.end(); ++it) 
-        PrintVC(cmd, *it, color);
 }
 
 //----------------------------------------------------------------------------
@@ -1179,26 +1153,27 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
     brd.ComputeAll(color);
 
     // Pre-compute edge adjacencies
+    const Groups& groups = brd.GetGroups();
     bitset_t northNbs 
-        = VCSetUtil::ConnectedTo(brd.Cons(BLACK), brd, NORTH, VC::FULL);
+        = VCSetUtil::ConnectedTo(brd.Cons(BLACK), groups, NORTH, VC::FULL);
     bitset_t southNbs 
-        = VCSetUtil::ConnectedTo(brd.Cons(BLACK), brd, SOUTH, VC::FULL);
+        = VCSetUtil::ConnectedTo(brd.Cons(BLACK), groups, SOUTH, VC::FULL);
     bitset_t eastNbs 
-        = VCSetUtil::ConnectedTo(brd.Cons(WHITE), brd, EAST, VC::FULL);
+        = VCSetUtil::ConnectedTo(brd.Cons(WHITE), groups, EAST, VC::FULL);
     bitset_t westNbs 
-        = VCSetUtil::ConnectedTo(brd.Cons(WHITE), brd, WEST, VC::FULL);
+        = VCSetUtil::ConnectedTo(brd.Cons(WHITE), groups, WEST, VC::FULL);
 
     for (BoardIterator it(brd.Interior()); it; ++it) {
         if (brd.isOccupied(*it)) continue;
 
 	// Compute neighbours, giving over-estimation to edges
-	bitset_t b1 = VCSetUtil::ConnectedTo(brd.Cons(BLACK), brd, 
-                                           *it, VC::FULL);
+	bitset_t b1 = VCSetUtil::ConnectedTo(brd.Cons(BLACK), brd.GetGroups(),
+                                             *it, VC::FULL);
 	if (b1.test(NORTH)) b1 |= northNbs;
 	if (b1.test(SOUTH)) b1 |= southNbs;
 	b1 &= brd.getEmpty();
-	bitset_t b2 = VCSetUtil::ConnectedTo(brd.Cons(WHITE), brd, 
-                                           *it, VC::FULL);
+	bitset_t b2 = VCSetUtil::ConnectedTo(brd.Cons(WHITE), brd.GetGroups(),
+                                             *it, VC::FULL);
 	if (b2.test(EAST)) b2 |= eastNbs;
 	if (b2.test(WEST)) b2 |= westNbs;
 	b2 &= brd.getEmpty();

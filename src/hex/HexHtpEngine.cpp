@@ -19,7 +19,7 @@
 
 #include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
-#include "GroupBoard.hpp"
+#include "Groups.hpp"
 #include "HexSgUtil.hpp"
 #include "HexProgram.hpp"
 #include "HexHtpEngine.hpp"
@@ -285,11 +285,9 @@ void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
  */
 void HexHtpEngine::CmdFinalScore(HtpCommand& cmd)
 {
-    GroupBoard brd(m_game->Board().width(), m_game->Board().height());
-    brd.setColor(BLACK, m_game->Board().getBlack());
-    brd.setColor(WHITE, m_game->Board().getWhite());
-    brd.absorb();
-    HexColor winner = brd.getWinner();
+    Groups groups;
+    GroupBuilder::Build(m_game->Board(), groups);
+    HexColor winner = groups.GetWinner();
     std::string ret = "cannot score";
     if (winner == BLACK)
         ret = "B+";

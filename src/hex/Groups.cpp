@@ -41,6 +41,7 @@ void Flow(const StoneBoard& brd, HexPoint start, HexColor color,
 void GroupBuilder::Build(const StoneBoard& brd, Groups& groups)
 {
     bitset_t visited;
+    groups.m_brd = const_cast<StoneBoard*>(&brd);
     groups.m_groups.clear();
     groups.m_group_index.resize(FIRST_INVALID);
     for (BoardIterator p(brd.EdgesAndInterior()); p; ++p)
@@ -69,6 +70,60 @@ void GroupBuilder::Build(const StoneBoard& brd, Groups& groups)
             }
         }
     }
+}
+
+//----------------------------------------------------------------------------
+
+std::size_t Groups::NumGroups(HexColorSet colorset) const
+{
+    std::size_t num = 0;
+    for (GroupIterator g(*this, colorset); g; ++g)
+        ++num;
+    return num;
+}
+
+std::size_t Groups::GroupIndex(HexPoint point, HexColorSet colorset) const
+{
+    std::size_t count = 0;
+    for (GroupIterator g(*this, colorset); g; ++g)
+    {
+        if (g->IsMember(point))
+            break;
+        ++count;
+    }
+    return count;
+}
+
+bitset_t Groups::Nbs(HexPoint point, HexColorSet colorset) const
+{
+    bitset_t ret;
+    for (BitsetIterator p(Nbs(point)); p; ++p)
+        if (HexColorSetUtil::InSet(GetGroup(*p).Color(), colorset))
+            ret.set(*p);
+    return ret;
+}
+
+bool Groups::IsGameOver() const
+{
+    return (GetWinner() != EMPTY);
+}
+
+HexColor Groups::GetWinner() const
+{
+    for (BWIterator c; c; ++c) 
+        if (m_group_index[HexPointUtil::colorEdge1(*c)] ==
+            m_group_index[HexPointUtil::colorEdge2(*c)])
+            return *c;
+    return EMPTY;
+}
+
+bitset_t Groups::CaptainizeBitset(bitset_t locations) const
+{
+    HexAssert(m_brd->Const().isLocation(locations));
+    bitset_t captains;
+    for (BitsetIterator i(locations); i; ++i)
+        captains.set(CaptainOf(*i));
+    return captains;
 }
 
 //----------------------------------------------------------------------------

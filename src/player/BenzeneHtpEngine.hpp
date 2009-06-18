@@ -92,7 +92,6 @@ public:
     virtual void CmdGetMustPlay(HtpCommand& cmd);
     virtual void CmdVCIntersection(HtpCommand& cmd);
     virtual void CmdVCUnion(HtpCommand& cmd);
-    virtual void CmdVCMaintain(HtpCommand& cmd);
 
     virtual void CmdBuildStatic(HtpCommand& cmd);
     virtual void CmdBuildIncremental(HtpCommand& cmd);

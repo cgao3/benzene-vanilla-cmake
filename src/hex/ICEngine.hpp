@@ -7,6 +7,7 @@
 #define ICENGINE_H
 
 #include "Digraph.hpp"
+#include "Groups.hpp"
 #include "InferiorCells.hpp"
 #include "IcePatternSet.hpp"
 #include "HandCodedPattern.hpp"
@@ -42,14 +43,14 @@ public:
     /** Categorizes cells as dead, captured, etc. Board will be
         modified with the fill-in.
     */
-    void ComputeInferiorCells(HexColor color, GroupBoard& board,
+    void ComputeInferiorCells(HexColor color, Groups& board,
                               PatternState& pastate, 
                               InferiorCells& out) const;
     
     /** Computes fill-in; dominated and vulnerable cells are not
         stored.
     */
-    void ComputeFillin(HexColor color, GroupBoard& board, 
+    void ComputeFillin(HexColor color, Groups& board, 
                        PatternState& pastate, InferiorCells& out,
                        HexColorSet colors_to_capture=ALL_COLORS) const;
 
@@ -57,7 +58,7 @@ public:
         modified to have the captured cells filled-in. Returns number of
         cells filled-in.
     */
-    int ComputeDeadCaptured(GroupBoard& board, PatternState& pastate,
+    int ComputeDeadCaptured(Groups& board, PatternState& pastate,
                             InferiorCells& inf, 
                             HexColorSet colors_to_capture) const;
     
@@ -177,7 +178,7 @@ private:
     /** Calls FindPermanentlyInferior() and adds any found to the
         board and the set of inferior cells. 
     */
-    int FillinPermanentlyInferior(GroupBoard& brd, 
+    int FillinPermanentlyInferior(Groups& groups, 
                                   PatternState& board, HexColor color,
                                   InferiorCells& out, 
                                   HexColorSet colors_to_capture) const; 
@@ -185,7 +186,7 @@ private:
     /** Calls ComputeDeadRegions() and FindThreeSetCliques() and adds
         fill-in to board and set of inferior cells.
     */
-    int FillInUnreachable(GroupBoard& board, PatternState& pastate, 
+    int FillInUnreachable(Groups& groups, PatternState& pastate, 
                           InferiorCells& out) const;
 
     /** For each empty cell on the board, the move is played with the
@@ -197,13 +198,13 @@ private:
         @todo Link to the "ice-backup-opp-dead" option, or link it's
         documentation here.
     */
-    int BackupOpponentDead(HexColor color, const GroupBoard& board, 
+    int BackupOpponentDead(HexColor color, const StoneBoard& board, 
                            PatternState& pastate, InferiorCells& out) const;
 
     /** Finds vulnerable cells for color and finds presimplicial pairs
         and fills them in for the other color.  Simplicial stones will
         be added as dead and played to the board as DEAD_COLOR. */
-    int FillInVulnerable(HexColor color, GroupBoard& board, 
+    int FillInVulnerable(HexColor color, Groups& groups, 
                          PatternState& pastate, InferiorCells& inf, 
                          HexColorSet colors_to_capture) const;
 

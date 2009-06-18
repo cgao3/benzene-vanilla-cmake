@@ -38,13 +38,13 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckCopy)
 /** @todo Make this test quicker! */
 BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
 {
-    GroupBoard bd(11, 11);
-
-    bd.startNewGame();
+    StoneBoard bd(11, 11);
     bd.playMove(BLACK, HEX_CELL_A9);
     bd.playMove(WHITE, HEX_CELL_F5);
     bd.playMove(BLACK, HEX_CELL_I4);
     bd.playMove(WHITE, HEX_CELL_H6);
+    Groups groups;
+    GroupBuilder::Build(bd, groups);
 
     ChangeLog<VC> cl;
     VCSet con1(bd.Const(), BLACK);
@@ -58,8 +58,8 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
     param.use_greedy_union = true;
 
     VCBuilder builder(param);
-    builder.Build(con1, bd);
-    builder.Build(con2, bd);
+    builder.Build(con1, groups);
+    builder.Build(con2, groups);
     BOOST_CHECK(con1 == con2);
 
 #if 0

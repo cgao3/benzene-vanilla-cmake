@@ -184,7 +184,7 @@ public:
 
     //-----------------------------------------------------------------------
 
-    const GroupBoard& Board() const;
+    const StoneBoard& Board() const;
 
     const PatternState& GetPatternState() const;
 
@@ -219,7 +219,7 @@ private:
 
     AssertionHandler m_assertionHandler;
 
-    boost::scoped_ptr<GroupBoard> m_bd;
+    boost::scoped_ptr<StoneBoard> m_bd;
 
     /** Board used during search. */
     boost::scoped_ptr<PatternState> m_pastate;
@@ -270,7 +270,7 @@ private:
     void ExecutePlainMove(HexPoint cell, int updateRadius);
 };
 
-inline const GroupBoard& HexUctState::Board() const
+inline const StoneBoard& HexUctState::Board() const
 {
     return *m_bd;
 }

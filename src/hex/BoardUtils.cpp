@@ -74,10 +74,10 @@ void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
             PatternHits hits;
             brd.GetPatternState().MatchOnCell(*g_hash_oppmiai[*color], *p, 
                                               PatternState::MATCH_ALL, hits);
-            HexPoint cp = brd.getCaptain(*p);
+            HexPoint cp = brd.GetGroups().CaptainOf(*p);
             for (unsigned j=0; j<hits.size(); ++j) 
             {
-                HexPoint cj = brd.getCaptain(hits[j].moves1()[0]);
+                HexPoint cj = brd.GetGroups().CaptainOf(hits[j].moves1()[0]);
                 adjByMiai[cj].set(cp);
                 adjByMiai[cp].set(cj);
             }
@@ -305,7 +305,8 @@ bool BoardUtils::FindCombinatorialDecomposition(const HexBoard& brd,
     HexPoint edge1 = HexPointUtil::colorEdge1(color);
     HexPoint edge2 = HexPointUtil::colorEdge2(color);
     const VCSet& cons = brd.Cons(color);
-    if (brd.isGameOver() || cons.Exists(edge1, edge2, VC::FULL)) {
+    if (brd.GetGroups().IsGameOver() || cons.Exists(edge1, edge2, VC::FULL)) 
+    {
 	captured.reset();
 	return false;
     }
@@ -318,22 +319,24 @@ bool BoardUtils::FindCombinatorialDecomposition(const HexBoard& brd,
     PointToBitset adjTo;
     PointToBitset adjByMiai;
     ComputeAdjacentByMiai(brd, adjByMiai);
-    for (BoardIterator g(brd.Groups(color)); g; ++g) {
-	bitset_t opptNbs = adjByMiai[*g] | brd.Nbs(*g, !color);
-	if (opptNbs.count() >= 2) {
-	    adjTo[*g] = opptNbs;
-	}
+    for (GroupIterator g(brd.GetGroups(), color); g; ++g) 
+    {
+	bitset_t opptNbs = adjByMiai[g->Captain()] 
+            | (g->Nbs() & brd.getColor(!color));
+	if (opptNbs.count() >= 2)
+	    adjTo[g->Captain()] = opptNbs;
     }
     // The two color edges are in the list. If no other groups are, then quit.
     HexAssert(adjTo.size() >= 2);
-    if (adjTo.size() == 2) {
+    if (adjTo.size() == 2) 
+    {
 	captured.reset();
 	return false;
     }
     
     // Compute graph representing board from color's perspective.
     PointToBitset graphNbs;
-    GraphUtils::ComputeDigraph(brd, color, graphNbs);
+    GraphUtils::ComputeDigraph(brd.GetGroups(), color, graphNbs);
     
     // Find (ordered) pairs of color groups that are VC-connected and have at
     // least two adjacent opponent groups in common.
@@ -386,17 +389,19 @@ bool BoardUtils::FindSplittingDecomposition(const HexBoard& brd,
     // compute nbrs of color edges
     PointToBitset adjByMiai;
     ComputeAdjacentByMiai(brd, adjByMiai);
+    const Groups& groups = brd.GetGroups();
     HexPoint edge1 = HexPointUtil::colorEdge1(!color);
     HexPoint edge2 = HexPointUtil::colorEdge2(!color);
-    bitset_t adjto1 = adjByMiai[edge1] | brd.Nbs(edge1, color);
-    bitset_t adjto2 = adjByMiai[edge2] | brd.Nbs(edge2, color);
+    bitset_t adjto1 = adjByMiai[edge1] | groups.Nbs(edge1, color);
+    bitset_t adjto2 = adjByMiai[edge2] | groups.Nbs(edge2, color);
 
     // @note must & with getCells() because we want non-edge groups;
     // this assumes that edges are always captains. 
     bitset_t adjToBothEdges = adjto1 & adjto2 & brd.Const().getCells();
 
     // if there is a group adjacent to both opponent edges, return it.
-    if (adjToBothEdges.any()) {
+    if (adjToBothEdges.any()) 
+    {
 	captured.reset();
 	group = static_cast<HexPoint>
             (BitsetUtil::FirstSetBit(adjToBothEdges));

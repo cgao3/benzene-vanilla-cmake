@@ -91,7 +91,7 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 {
    
     HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(!brd.isGameOver());
+    HexAssert(!brd.GetGroups().IsGameOver());
 
     double start = Time::Get();
     PrintParameters(color, max_time);

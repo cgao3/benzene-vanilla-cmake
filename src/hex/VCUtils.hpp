@@ -30,16 +30,6 @@ namespace VCUtils
                          const bitset_t& carrier, 
                          HexPoint& endpoint,
                          HexPoint& edge);
-   
-    /** This method examines a HexBoard (with VCs up-to-date) and
-	finds which chains are virtually-connected for player c.
-	It then returns a list of VCs between chains to maintain,
-	excluding bridges and AND-rule VCs that can be covered by
-	smaller VCs in the list.
-     */
-    void findMaintainableVCs(const HexBoard& brd, HexColor c,
-			     std::vector<VC>& maintain,
-                             std::size_t max=999999);
 };
 
 //----------------------------------------------------------------------------

@@ -167,8 +167,10 @@ void VCSet::Revert(ChangeLog<VC>& log)
 
 bool VCSet::operator==(const VCSet& other) const
 {
-    for (BoardIterator x(m_brd->EdgesAndInterior()); x; ++x) {
-        for (BoardIterator y(m_brd->EdgesAndInterior()); *y != *x; ++y) {
+    for (BoardIterator x(m_brd->EdgesAndInterior()); x; ++x) 
+    {
+        for (BoardIterator y(m_brd->EdgesAndInterior()); *y != *x; ++y) 
+        {
             const VCList& full1 = *m_vc[VC::FULL][*x][*y];
             const VCList& full2 = *other.m_vc[VC::FULL][*x][*y];
             if (full1 != full2) return false;
@@ -188,33 +190,35 @@ bool VCSet::operator!=(const VCSet& other) const
 
 //----------------------------------------------------------------------------
 
-bitset_t VCSetUtil::ConnectedTo(const VCSet& con, const GroupBoard& brd, 
+bitset_t VCSetUtil::ConnectedTo(const VCSet& con, const Groups& groups, 
                               HexPoint x, VC::Type type)
 {
     bitset_t ret;
+    const StoneBoard& brd = groups.Board();
     HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(con.Color());
     for (BoardIterator y(brd.Stones(not_other)); y; ++y) 
-        if (con.Exists(brd.getCaptain(x), brd.getCaptain(*y), type))
+        if (con.Exists(groups.CaptainOf(x), groups.CaptainOf(*y), type))
             ret.set(*y);
     return ret;
 }
 
-void VCSetUtil::NumActiveVCSet(const VCSet& con,
-                                   const GroupBoard& brd, 
-                                   int& fulls, int& semis)
+void VCSetUtil::NumActiveVCSet(const VCSet& con, const Groups& groups, 
+                               int& fulls, int& semis)
 {
     fulls = semis = 0;
     HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(con.Color());
-    for (BoardIterator x(brd.Groups(not_other)); x; ++x) {
-        for (BoardIterator y(brd.Groups(not_other)); *y != *x; ++y) {
-            fulls += con.GetList(VC::FULL, *x, *y).size();
-            semis += con.GetList(VC::SEMI, *x, *y).size();
+    for (GroupIterator x(groups, not_other); x; ++x) 
+    {
+        for (GroupIterator y(groups, not_other); &*y != &*x; ++y) 
+        {
+            fulls += con.GetList(VC::FULL, x->Captain(), y->Captain()).size();
+            semis += con.GetList(VC::SEMI, x->Captain(), y->Captain()).size();
         }
     }
 }
 
 bool VCSetUtil::EqualOnGroups(const VCSet& c1, const VCSet& c2,
-                            const GroupBoard& brd)
+                              const Groups& groups)
 {
     if (c1.Color() != c2.Color())
         return false;
@@ -222,24 +226,26 @@ bool VCSetUtil::EqualOnGroups(const VCSet& c1, const VCSet& c2,
         return false;
 
     HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(c1.Color());    
-    for (BoardIterator x(brd.Groups(not_other)); x; ++x) 
+    for (GroupIterator x(groups, not_other); x; ++x) 
     {
-        for (BoardIterator y(brd.Groups(not_other)); *y != *x; ++y) 
+        HexPoint xc = x->Captain();
+        for (GroupIterator y(groups, not_other); &*y != &*x; ++y) 
         {
-            if (c1.GetList(VC::FULL, *x, *y) != c2.GetList(VC::FULL, *x, *y)) 
+            HexPoint yc = y->Captain();
+            if (c1.GetList(VC::FULL, xc, yc) != c2.GetList(VC::FULL, xc, yc)) 
             {
-                std::cout << "FULL " << *x << ", " << *y << "\n";
-                std::cout << c1.GetList(VC::FULL, *x, *y).dump() << '\n';
+                std::cout << "FULL " << xc << ", " << yc << "\n";
+                std::cout << c1.GetList(VC::FULL, xc, yc).dump() << '\n';
                 std::cout << "==============\n";
-                std::cout << c2.GetList(VC::FULL, *x, *y).dump() << '\n';
+                std::cout << c2.GetList(VC::FULL, xc, yc).dump() << '\n';
                 return false;
             }
-            if (c1.GetList(VC::SEMI, *x, *y) != c2.GetList(VC::SEMI, *x, *y))
+            if (c1.GetList(VC::SEMI, xc, yc) != c2.GetList(VC::SEMI, xc, yc))
             {
-                std::cout << "SEMI " << *x << ", " << *y << "\n";
-                std::cout << c1.GetList(VC::SEMI, *x, *y).dump() << '\n';
+                std::cout << "SEMI " << xc << ", " << yc << "\n";
+                std::cout << c1.GetList(VC::SEMI, xc, yc).dump() << '\n';
                 std::cout << "==============\n";
-                std::cout << c2.GetList(VC::SEMI, *x, *y).dump() << '\n';
+                std::cout << c2.GetList(VC::SEMI, xc, yc).dump() << '\n';
                 return false;
             }
         }

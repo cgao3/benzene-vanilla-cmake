@@ -42,11 +42,12 @@ VCBuilder::~VCBuilder()
 
 // Static VC construction
 
-void VCBuilder::Build(VCSet& con, const GroupBoard& brd)
+void VCBuilder::Build(VCSet& con, const Groups& groups)
 {
     m_con = &con;
     m_color = con.Color();
-    m_brd = &brd;
+    m_groups = &groups;
+    m_brd = &m_groups->Board();
     m_log = 0;
 
     double s = Time::Get();
@@ -60,19 +61,18 @@ void VCBuilder::Build(VCSet& con, const GroupBoard& brd)
     DoSearch();
 
     double e = Time::Get();
-    LogFine() << "  " << (e-s) << "s to build vcs." << '\n';
+    LogFine() << "  " << (e-s) << "s to build vcs.\n";
 }
 
 /** Computes the 0-connections defined by adjacency.*/
 void VCBuilder::AddBaseVCs()
 {
     HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(m_color);
-    for (BoardIterator x(m_brd->Groups(not_other)); x; ++x) 
+    for (GroupIterator x(*m_groups, not_other); x; ++x) 
     {
-        bitset_t adj = m_brd->Nbs(*x, EMPTY);
-        for (BitsetIterator y(adj); y; ++y) 
+        for (BitsetIterator y(x->Nbs() & m_brd->getEmpty()); y; ++y) 
         {
-            VC vc(*x, *y);
+            VC vc(x->Captain(), *y);
             m_statistics.base_attempts++;
             if (m_con->Add(vc, m_log))
             {
@@ -111,30 +111,29 @@ void VCBuilder::AddPatternVCs()
 //----------------------------------------------------------------------------
 // Incremental VC construction
 
-void VCBuilder::Build(VCSet& con, const GroupBoard& brd,
-                      bitset_t added[BLACK_AND_WHITE],
+void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
+                      const Groups& newGroups, bitset_t added[BLACK_AND_WHITE],
                       ChangeLog<VC>* log)
 {
     HexAssert((added[BLACK] & added[WHITE]).none());
 
     m_con = &con;
     m_color = con.Color();
-    m_brd = &brd;
+    m_groups = &newGroups;
+    m_brd = &m_groups->Board();
     m_log = log;
 
     double s = Time::Get();
     m_statistics = Statistics();
     m_queue.clear();
 
-    Merge(added);
+    Merge(oldGroups, added);
     if (m_param.use_patterns)
         AddPatternVCs();
     DoSearch();
 
     double e = Time::Get();
-    LogFine()
-             << "  " << (e-s) << "s to build vcs incrementally." 
-             << '\n';
+    LogFine() << "  " << (e-s) << "s to build vcs incrementally.\n" ;
 }
 
 /** @page mergeshrink Incremental Update Algorithm
@@ -162,52 +161,28 @@ void VCBuilder::Build(VCSet& con, const GroupBoard& brd,
     TODO Finish this documentation!
             
 */
-void VCBuilder::Merge(bitset_t added[BLACK_AND_WHITE])
+void VCBuilder::Merge(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE])
 {
-    /** NOTE: VCBuilder takes a constant board, and so we need
-        to guarantee that the board is the same when we leave this
-        method as it was when we entered. This is the only method that
-        should be modifying the board!
-
-        Here we check that the cells are the same at exit as on
-        entering, but it's possible the group/pattern info is
-        corrupted and this check misses it.
-
-        Ideally, we want to de-couple the group info from the board so
-        this would not be a problem. In which case, VCBuilder
-        would not even see any board at all.
-    */
-#ifndef NDEBUG
-    StoneBoard old(*m_brd);
-#endif
-    GroupBoard* brd = const_cast<GroupBoard*>(m_brd);
-
-    // Remove added stones and compute groups for the original state.
-    brd->setColor(m_color, m_brd->getColor(m_color) - added[m_color]);
-    brd->absorb();
-        
     // Kill connections containing stones the opponent just played.
     // NOTE: This *must* be done in the original state, not in the
-    // state with the newly added stones. 
-    RemoveAllContaining(*brd, added[!m_color]);
+    // state with the newly added stones. If we are adding stones of
+    // both colors there could be two groups of our stones that are
+    // going to be merged, but we need to kill connections touching
+    // the opponent stones before we do so. 
+    RemoveAllContaining(oldGroups, added[!m_color]);
         
     // Find groups adjacent to any played stone of color; add them to
     // the affected set along with the played stones.
     bitset_t affected = added[m_color];
     for (BitsetIterator x(added[m_color]); x; ++x)
-        for (BoardIterator y(brd->Const().Nbs(*x)); y; ++y)
-            if (brd->getColor(*y) == m_color)
-                affected.set(brd->getCaptain(*y));                    
-
-    // Replace removed stones and update group info
-    brd->addColor(m_color, added[m_color]);
-    brd->absorb(added[m_color]);
+        for (BoardIterator y(m_brd->Const().Nbs(*x)); y; ++y)
+        {
+            const Group& grp = oldGroups.GetGroup(*y);
+            if (grp.Color() == m_color)
+                affected.set(grp.Captain());
+        }
 
     MergeAndShrink(affected, added[m_color]);
-
-#ifndef NDEBUG
-    HexAssert(*m_brd == old);
-#endif
 }
 
 void VCBuilder::MergeAndShrink(const bitset_t& affected,
@@ -216,14 +191,14 @@ void VCBuilder::MergeAndShrink(const bitset_t& affected,
     HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
     for (BoardIterator x(m_brd->Stones(not_other)); x; ++x) 
     {
-        if (!m_brd->isCaptain(*x) && !affected.test(*x)) 
+        if (!m_groups->IsCaptain(*x) && !affected.test(*x)) 
             continue;
         for (BoardIterator y(m_brd->Stones(not_other)); *y != *x; ++y) 
         {
-            if (!m_brd->isCaptain(*y) && !affected.test(*y)) 
+            if (!m_groups->IsCaptain(*y) && !affected.test(*y)) 
                 continue;
-            HexPoint cx = m_brd->getCaptain(*x);
-            HexPoint cy = m_brd->getCaptain(*y);
+            HexPoint cx = m_groups->CaptainOf(*x);
+            HexPoint cy = m_groups->CaptainOf(*y);
 
             // Lists between (cx, cx) are never used, so only do work
             // if it's worthwhile. This can occur if y was recently
@@ -331,22 +306,30 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     some unprocessed connections could have been brought under the
     softlimit.
 */
-void VCBuilder::RemoveAllContaining(const GroupBoard& brd, 
+void VCBuilder::RemoveAllContaining(const Groups& oldGroups,
                                     const bitset_t& bs)
 {
+    // Use old groupset, but skip old groups that are 
+    // now the opponent's color--don't need to do anything for those.
     HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
-    for (BoardIterator x(brd.Groups(not_other)); x; ++x) 
-    {
-        for (BoardIterator y(brd.Groups(not_other)); *y != *x; ++y) 
+    for (GroupIterator x(oldGroups, not_other); x; ++x) 
+    { 
+        HexPoint xc = x->Captain();
+	if (m_groups->GetGroup(xc).Color() == !m_color)
+	    continue;
+        for (GroupIterator y(oldGroups, not_other); &*y != &*x; ++y) 
         {
-            int cur0 = m_con->GetList(VC::FULL,*x, *y)
+            HexPoint yc = y->Captain();
+	    if (m_groups->GetGroup(yc).Color() == !m_color)
+	        continue;
+            int cur0 = m_con->GetList(VC::FULL, xc, yc)
                 .removeAllContaining(bs, m_log);
             m_statistics.killed0 += cur0; 
-            int cur1 = m_con->GetList(VC::SEMI,*x, *y)
+            int cur1 = m_con->GetList(VC::SEMI, xc, yc)
                 .removeAllContaining(bs, m_log);
             m_statistics.killed1 += cur1;
             if (cur0 || cur1)
-                m_queue.push(std::make_pair(*x, *y));
+                m_queue.push(std::make_pair(xc, yc));
         }
     }
 }
@@ -469,8 +452,8 @@ void VCBuilder::DoSearch()
     // Process the side-to-side semi list to ensure we have a full if
     // mustplay is empty.
     // TODO: IS THIS STILL NEEDED?
-    ProcessSemis(m_brd->getCaptain(HexPointUtil::colorEdge1(m_color)),
-                 m_brd->getCaptain(HexPointUtil::colorEdge2(m_color)));
+    ProcessSemis(m_groups->CaptainOf(HexPointUtil::colorEdge1(m_color)),
+                 m_groups->CaptainOf(HexPointUtil::colorEdge2(m_color)));
 }
 
 //----------------------------------------------------------------------------
@@ -487,30 +470,36 @@ void VCBuilder::andClosure(const VC& vc)
     HexColorSet not_other = HexColorSetUtil::NotColor(other);
 
     HexPoint endp[2];
-    endp[0] = m_brd->getCaptain(vc.x());
-    endp[1] = m_brd->getCaptain(vc.y());
+    endp[0] = m_groups->CaptainOf(vc.x());
+    endp[1] = m_groups->CaptainOf(vc.y());
     HexColor endc[2];
     endc[0] = m_brd->getColor(endp[0]);
     endc[1] = m_brd->getColor(endp[1]);
 
+    if (endc[0] == other || endc[1] == other) {
+        LogInfo() << *m_brd << '\n';
+        LogInfo() << vc << '\n';
+    }
+    
     HexAssert(endc[0] != other);
     HexAssert(endc[1] != other);
-    for (BoardIterator z(m_brd->Groups(not_other)); z; ++z) 
+    for (GroupIterator g(*m_groups, not_other); g; ++g) 
     {
-        if (*z == endp[0] || *z == endp[1]) continue;
-        if (vc.carrier().test(*z)) continue;
+        HexPoint z = g->Captain();
+        if (z == endp[0] || z == endp[1]) continue;
+        if (vc.carrier().test(z)) continue;
         for (int i=0; i<2; i++) 
         {
             int j = (i + 1) & 1;
             if (m_param.and_over_edge || !HexPointUtil::isEdge(endp[i])) 
             {
-                VCList* fulls = &m_con->GetList(VC::FULL, *z, endp[i]);
+                VCList* fulls = &m_con->GetList(VC::FULL, z, endp[i]);
                 if ((fulls->softIntersection() & vc.carrier()).any())
                     continue;
                 
                 AndRule rule = (endc[i] == EMPTY) ? CREATE_SEMI : CREATE_FULL;
-                doAnd(*z, endp[i], endp[j], rule, vc, 
-                      &m_con->GetList(VC::FULL, *z, endp[i]));
+                doAnd(z, endp[i], endp[j], rule, vc, 
+                      &m_con->GetList(VC::FULL, z, endp[i]));
             }
         }
     }
@@ -526,7 +515,7 @@ void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
         return;
 
     bitset_t stones;
-    stones.set(m_brd->getCaptain(over));
+    stones.set(m_groups->CaptainOf(over));
 
     int soft = old->softlimit();
     VCList::const_iterator i = old->begin();
@@ -735,7 +724,7 @@ void VCBuilder::doCrossingRule(const VC& vc, const VCList* semi_list)
     // track if an SC has empty mustuse and get captains for vc's mustuse
     bitset_t mu[3];
     bool has_empty_mustuse0 = vc.stones().none();
-    mu[0] = m_brd->CaptainizeBitset(vc.stones());
+    mu[0] = m_groups->CaptainizeBitset(vc.stones());
 
     for (std::size_t i=0; i<semi.size(); ++i) {
         const VC& vi = semi[i];
@@ -780,7 +769,7 @@ void VCBuilder::doCrossingRule(const VC& vc, const VCList* semi_list)
                 
         // get captains for vi's mustuse and check for intersection
         // with mu[0].
-	mu[1] = m_brd->CaptainizeBitset(vi.stones());
+	mu[1] = m_groups->CaptainizeBitset(vi.stones());
         if ((mu[0] & mu[1]).any()) continue;
 	
 
@@ -853,7 +842,7 @@ void VCBuilder::doCrossingRule(const VC& vc, const VCList* semi_list)
 	    
             // get captains for vj's mustuse and check for intersection
             // with mu[0] and mu[1].
-	    mu[2] = m_brd->CaptainizeBitset(vj.stones());
+	    mu[2] = m_groups->CaptainizeBitset(vj.stones());
 	    if ((mu[2] & (mu[0] | mu[1])).any()) continue;
             
             // (vc, vi, vj) are pairwise disjoint and only one of the

@@ -14,6 +14,7 @@
 #include "ICEngine.hpp"
 #include "PatternState.hpp"
 #include "VCPattern.hpp"
+#include "Groups.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -23,7 +24,7 @@ _BEGIN_BENZENE_NAMESPACE_
   
     @todo Document me!
 */
-class HexBoard : public GroupBoard
+class HexBoard : public StoneBoard
 {
 public:
     
@@ -116,6 +117,10 @@ public:
     /** Returns the Inferior Cell Engine the board is using. */
     const ICEngine& ICE() const;
 
+    const Groups& GetGroups() const;
+
+    Groups& GetGroups();
+
     const PatternState& GetPatternState() const;
 
     PatternState& GetPatternState();
@@ -140,6 +145,9 @@ private:
         /** Saved board state. */
         StoneBoard board;
 
+        /** Groups on this board state. */
+        Groups groups;
+
         /** The inferior cell data for this state. */
         InferiorCells inf;
 
@@ -149,9 +157,9 @@ private:
         /** Move last played from this state. */
         HexPoint last_played;
 
-        History(const StoneBoard& b, const InferiorCells& i, 
+        History(const StoneBoard& b, const Groups& g, const InferiorCells& i, 
                 HexColor tp, HexPoint lp)
-            : board(b), inf(i), to_play(tp), last_played(lp) 
+            : board(b), groups(g), inf(i), to_play(tp), last_played(lp) 
         { }
     };
 
@@ -166,6 +174,8 @@ private:
 
     /** ICEngine used to compute inferior cells. */
     const ICEngine* m_ice;
+
+    Groups m_groups;
 
     PatternState m_patterns;
 
@@ -211,7 +221,8 @@ private:
 
     void BuildVCs();
 
-    void BuildVCs(bitset_t added[BLACK_AND_WHITE], bool mark_the_log = true);
+    void BuildVCs(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE], 
+                  bool markLog);
 
     void RevertVCs();
 
@@ -237,6 +248,16 @@ inline const InferiorCells& HexBoard::getInferiorCells() const
 inline const ICEngine& HexBoard::ICE() const
 {
     return *m_ice;
+}
+
+inline const Groups& HexBoard::GetGroups() const
+{
+    return m_groups;
+}
+
+inline Groups& HexBoard::GetGroups()
+{
+    return m_groups;
 }
 
 inline const PatternState& HexBoard::GetPatternState() const

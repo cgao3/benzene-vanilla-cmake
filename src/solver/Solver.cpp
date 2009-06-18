@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file Solver.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -433,7 +433,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
 
     // compute the carriers for each side 
     PointToBitset nbs;
-    GraphUtils::ComputeDigraph(brd, !color, nbs);
+    GraphUtils::ComputeDigraph(brd.GetGroups(), !color, nbs);
     bitset_t stopset = nbs[group];
 
     bitset_t carrier[2];
@@ -1285,9 +1285,9 @@ int SolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
 bool SolverUtil::isWinningState(const HexBoard& brd, HexColor color, 
                                 bitset_t& proof)
 {
-    if (brd.isGameOver()) 
+    if (brd.GetGroups().IsGameOver()) 
     {
-        if (brd.getWinner() == color) 
+        if (brd.GetGroups().GetWinner() == color) 
         {
             // Surprisingly, this situation *can* happen: opponent plays a
             // move in the mustplay causing a sequence of presimplicial-pairs 
@@ -1316,9 +1316,9 @@ bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color,
                                bitset_t& proof)
 {
     HexColor other = !color;
-    if (brd.isGameOver()) 
+    if (brd.GetGroups().IsGameOver()) 
     {
-        if (brd.getWinner() == other) 
+        if (brd.GetGroups().GetWinner() == other) 
         {
             // This occurs very rarely, but definetly cannot be ruled out.
             LogFine() << "#### Solid chain loss ####" << '\n';
@@ -1411,8 +1411,9 @@ void SolverUtil::ShrinkProof(bitset_t& proof,
                              const StoneBoard& board, HexColor loser, 
                              const ICEngine& ice)
 {
-    GroupBoard brd(board.width(), board.height());
+    StoneBoard brd(board.width(), board.height());
     PatternState pastate(brd);
+    Groups groups;
 
     // Give loser all cells outside proof
     bitset_t cells_outside_proof = (~proof & brd.Const().getCells());
@@ -1422,11 +1423,12 @@ void SolverUtil::ShrinkProof(bitset_t& proof,
     HexColor winner = !loser;
     brd.addColor(winner, board.getColor(winner) & board.getPlayed() & proof);
     pastate.Update();
-    brd.absorb();
+    GroupBuilder::Build(brd, groups);
 
     // Compute fillin and remove captured cells from the proof
     InferiorCells inf;
-    ice.ComputeFillin(loser, brd, pastate, inf, HexColorSetUtil::Only(loser));
+    ice.ComputeFillin(loser, groups, pastate, inf, 
+                      HexColorSetUtil::Only(loser));
     HexAssert(inf.Captured(winner).none());
 
     bitset_t filled = inf.Dead() | inf.Captured(loser);

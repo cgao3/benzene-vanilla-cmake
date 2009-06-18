@@ -7,9 +7,6 @@
 #define BOARDUTILS_HPP
 
 #include "Hex.hpp"
-#include "ConstBoard.hpp"
-#include "StoneBoard.hpp"
-#include "GroupBoard.hpp"
 #include "HexBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
