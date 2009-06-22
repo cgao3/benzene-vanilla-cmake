@@ -472,10 +472,13 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
         }
     }
     // Add the simplicial stones to the board
-    inf.AddDead(simplicial);
-    brd.addColor(DEAD_COLOR, simplicial);
-    pastate.Update(simplicial);
-    GroupBuilder::Build(brd, groups);
+    if (simplicial.any())
+    {
+        inf.AddDead(simplicial);
+        brd.addColor(DEAD_COLOR, simplicial);
+        pastate.Update(simplicial);
+        GroupBuilder::Build(brd, groups);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -598,10 +601,13 @@ int ICEngine::FillinPermanentlyInferior(Groups& groups, PatternState& pastate,
     bitset_t carrier;
     bitset_t perm = FindPermanentlyInferior(pastate, color, brd.getEmpty(), 
                                             carrier);
-    out.AddPermInf(color, perm, carrier);
-    brd.addColor(color, perm);
-    pastate.Update(perm);
-    GroupBuilder::Build(brd, groups);
+    if (perm.any())
+    {
+        out.AddPermInf(color, perm, carrier);
+        brd.addColor(color, perm);
+        pastate.Update(perm);
+        GroupBuilder::Build(brd, groups);
+    }
     return perm.count();
 }
 
