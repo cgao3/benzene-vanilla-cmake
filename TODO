@@ -1,14 +1,13 @@
 Benzene TODO file
 =================
 
-broderic [090506] (in rough order of importance)
+broderic [090624] (in rough order of importance)
 * Add time control to mohex
 * Handle terminal states properly in MoHex
   Ie, do not use fillin and deletion to do this
 * Create HexPosition class; make StoneBoard use it.
 * Better book visualization tools
 * Switch dead region/decomp detection to new Phil algo
-* Make GroupBoard not derive off of StoneBoard
 * Add HexBoard::Resize() method; use in SyncBoard()
 * Have Wolve check TT for losing moves in move generation.
   * Phil says `maybe': if solve strong moves but not weak, then Wolve will
