@@ -55,20 +55,14 @@ void GroupBuilder::Build(const StoneBoard& brd, Groups& groups)
         visited |= members;
         for (BitsetIterator m(members); m; ++m)
             groups.m_group_index[*m] = groups.m_groups.size();
-        groups.m_groups.push_back(Group(color, *p, members, nbs));
+        groups.m_groups.push_back(Group(&groups, color, *p, members, nbs));
     }
     for (std::size_t i = 0; i < groups.m_groups.size(); ++i)
     {
         Group& g = groups.m_groups[i];
-        for (BitsetIterator p(g.Nbs()); p; ++p)
-        {
-            const Group& nb = groups.GetGroup(*p);
-            if (nb.Captain() != *p)
-            {
-                g.m_nbs.reset(*p);
-                g.m_nbs.set(nb.Captain());
-            }
-        }
+        g.m_nbs = groups.CaptainizeBitset(g.m_nbs);
+        for (BitsetIterator p(g.m_nbs); p; ++p)
+            g.m_nbs_index.push_back(groups.m_group_index[*p]);
     }
 }
 
@@ -94,15 +88,6 @@ std::size_t Groups::GroupIndex(HexPoint point, HexColorSet colorset) const
     return count;
 }
 
-bitset_t Groups::Nbs(HexPoint point, HexColorSet colorset) const
-{
-    bitset_t ret;
-    for (BitsetIterator p(Nbs(point)); p; ++p)
-        if (HexColorSetUtil::InSet(GetGroup(*p).Color(), colorset))
-            ret.set(*p);
-    return ret;
-}
-
 bool Groups::IsGameOver() const
 {
     return (GetWinner() != EMPTY);
@@ -124,6 +109,32 @@ bitset_t Groups::CaptainizeBitset(bitset_t locations) const
     for (BitsetIterator i(locations); i; ++i)
         captains.set(CaptainOf(*i));
     return captains;
+}
+
+//----------------------------------------------------------------------------
+
+const bitset_t& Group::Nbs(HexColorSet colorset) const
+{
+    if (!m_colorsets_computed)
+    {
+        ComputeColorsetNbs();
+        m_colorsets_computed = true;
+    }
+    return m_nbs_colorset[colorset];
+}
+
+void Group::ComputeColorsetNbs() const
+{
+    for (int cs = 0; cs < NUM_COLOR_SETS; ++cs) 
+    {
+        HexColorSet colorset = static_cast<HexColorSet>(cs);
+        for (std::size_t i = 0; i < m_nbs_index.size(); ++i)
+        {
+            const Group* nb = &m_groups->m_groups[m_nbs_index[i]];
+            if (HexColorSetUtil::InSet(nb->Color(), colorset))
+                m_nbs_colorset[colorset].set(nb->Captain());
+        }
+    }
 }
 
 //----------------------------------------------------------------------------

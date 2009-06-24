@@ -9,34 +9,50 @@
 #include "Hex.hpp"
 #include "SafeBool.hpp"
 #include "StoneBoard.hpp"
+#include <boost/utility.hpp>
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //---------------------------------------------------------------------------
 
-/** A group on the board. */
+class Groups;
+
+/** A group on the board. 
+    
+    A group is a maximal set of like-colored stones. Groups of 
+    color EMPTY are always singletons.
+*/
 class Group
 {
 public:
 
-    /** Creates an empty invalid group. */
+    /** Creates an empty invalid group. 
+        Only GroupBuilder can construct valid groups.
+    */
     Group();
 
-    /** Creates a group with the given data. */
-    Group(HexColor color, HexPoint captain, 
-          const bitset_t& members, const bitset_t& nbs);
-
+    /** Number of stones in group. */
     std::size_t Size() const;
 
+    /** Color of the group. */
     HexColor Color() const;
 
+    /** Point used as the representative of this group. */
     HexPoint Captain() const;
 
+    /** Returns true if point is a member of group, false otherwise. */
     bool IsMember(HexPoint point) const;
 
+    /** Returns the members. */
     const bitset_t& Members() const;
 
+    /** Returns neighbours. */
     const bitset_t& Nbs() const;
+    
+    /** Returns the captains of neighboring groups whose color belongs
+        to colorset. If first time, neighbors in each colorset will be
+        computed. */
+    const bitset_t& Nbs(HexColorSet colorset) const;
 
 private:
 
@@ -49,24 +65,49 @@ private:
     bitset_t m_members;
 
     bitset_t m_nbs;
+
+    /** Pointer to Groups object which this Group belongs. */
+    const Groups* m_groups;
+
+    /** Indices of neighbouring groups in parent Groups's list of
+        groups. We don't use pointers because then it would be
+        difficult to copy a Groups object. */
+    std::vector<int> m_nbs_index;
+
+    /** True if the colorset neighbours have been computed yet. */
+    mutable bool m_colorsets_computed;
+
+    /** Computed colorset neighbours. */
+    mutable bitset_t m_nbs_colorset[NUM_COLOR_SETS];
+
+    Group(const Groups* groups, HexColor color, HexPoint captain, 
+          const bitset_t& members, const bitset_t& nbs);
+
+    void ComputeColorsetNbs() const;
 };
 
 inline Group::Group()
-    : m_captain(INVALID_POINT)
+    : m_captain(INVALID_POINT),
+      m_groups(0),
+      m_colorsets_computed(false)
 {
 }
 
-inline Group::Group(HexColor color, HexPoint captain, 
+/** Used only by GroupBuilder::Build(). */
+inline Group::Group(const Groups* groups, HexColor color, HexPoint captain, 
                     const bitset_t& members, const bitset_t& nbs)
     : m_color(color),
       m_captain(captain),
       m_members(members),
-      m_nbs(nbs)
+      m_nbs(nbs),
+      m_groups(groups),
+      m_colorsets_computed(false)
 {
 }
 
 inline std::size_t Group::Size() const
 {
+    /** @todo Cache group size for speed? */
     return m_members.count();
 }
 
@@ -97,28 +138,54 @@ inline const bitset_t& Group::Nbs() const
 
 //---------------------------------------------------------------------------
 
-/** Collection of groups. */
+/** Collection of groups. 
+
+   @todo If a HexPosition class is ever created, store the 
+   HexPosition for which these groups were computed.
+*/
 class Groups
 {
 public:
 
+    /** Creates an empty set of groups. */
     Groups();
 
-    std::size_t NumGroups() const;
-
-    std::size_t NumGroups(HexColorSet colorset) const;
-
-    std::size_t NumGroups(HexColor color) const;
-
-    std::size_t GroupIndex(HexPoint point, HexColorSet colorset) const;
-
-    std::size_t GroupIndex(HexPoint point, HexColor color) const;
-
+    /** Returns point's group. */
     const Group& GetGroup(HexPoint point) const;
 
+    /** Returns captain of point's group. */
     HexPoint CaptainOf(HexPoint point) const;
 
+    /** Returns true if point is captain of its group. */
     bool IsCaptain(HexPoint point) const;
+
+    /** @name Group indexing methods. */
+    // @{
+
+    /** Returns number of groups. */
+    std::size_t NumGroups() const;
+
+    /** Returns number of groups with color belonging to colorset. */
+    std::size_t NumGroups(HexColorSet colorset) const;
+
+    /** Returns number of groups of color. */
+    std::size_t NumGroups(HexColor color) const;
+
+    /** Returns index of point's group in all groups belonging to
+        to colorset. 
+        @todo Take this out? Only used in Resistance.
+    */
+    std::size_t GroupIndex(HexPoint point, HexColorSet colorset) const;
+
+    /** Returns index of point's group in all groups of color. 
+        @todo Take this out? Only used in Resistance.
+    */
+    std::size_t GroupIndex(HexPoint point, HexColor color) const;
+
+    // @}
+
+    /** @name Neighbor convenience methods. */
+    // @{
 
     bitset_t Nbs(HexPoint point) const;
 
@@ -132,20 +199,29 @@ public:
 
     bitset_t Nbs(const Group& group, HexColor color) const;
 
-    /** Returns true black or white has won. */
+    // @}
+
+    /** Returns true if black or white has won. */
     bool IsGameOver() const;
 
-    /** Returns color of winning player. */
+    /** Returns color of winning player, EMPTY if IsGameOver() is
+        false. */
     HexColor GetWinner() const;
 
     /** Returns bitset with only the captains of any set groups. */
     bitset_t CaptainizeBitset(bitset_t locations) const;
 
+    /** Returns reference to board groups were computed on. Does not
+        guarantee the board is in the same state it was in when groups
+        where computed. */
     StoneBoard& Board();
 
+    /** See Board(). */
     const StoneBoard& Board() const;
 
 private:
+
+    friend class Group;
 
     friend class GroupBuilder;
 
@@ -190,22 +266,27 @@ inline bitset_t Groups::Nbs(HexPoint point) const
 
 inline bitset_t Groups::Nbs(HexPoint point, HexColor color) const
 {
-    return Nbs(point, HexColorSetUtil::Only(color));
+    return GetGroup(point).Nbs(HexColorSetUtil::Only(color));
+}
+
+inline bitset_t Groups::Nbs(HexPoint point, HexColorSet colorset) const
+{
+    return GetGroup(point).Nbs(colorset);
 }
 
 inline bitset_t Groups::Nbs(const Group& group) const
 {
-    return Nbs(group.Captain());
-}
-
-inline bitset_t Groups::Nbs(const Group& group, HexColorSet colorset) const
-{
-    return Nbs(group.Captain(), colorset);
+    return GetGroup(group.Captain()).Nbs();
 }
 
 inline bitset_t Groups::Nbs(const Group& group, HexColor color) const
 {
-    return Nbs(group.Captain(), color);
+    return GetGroup(group.Captain()).Nbs(HexColorSetUtil::Only(color));
+}
+
+inline bitset_t Groups::Nbs(const Group& group, HexColorSet colorset) const
+{
+    return GetGroup(group.Captain()).Nbs(colorset);
 }
 
 inline HexPoint Groups::CaptainOf(HexPoint point) const
@@ -234,17 +315,20 @@ inline const StoneBoard& Groups::Board() const
 class GroupIterator : public SafeBool<GroupIterator>
 {
 public:
-    
+
+    /** Creates an iterator over all groups. */
     GroupIterator(const Groups& groups);
 
+    /** Creates an iterator over only those groups in colorset. */
     GroupIterator(const Groups& groups, HexColorSet colorset);
 
+    /** Creates an iterator over only those groups of color. */
     GroupIterator(const Groups& groups, HexColor color);
 
     /** Returns current group. */
     const Group& operator*() const;
 
-    /** Allows access to current groups methods. */
+    /** Allows access to current group's methods. */
     const Group* operator->() const;
 
     /** Moves to the next group. */
