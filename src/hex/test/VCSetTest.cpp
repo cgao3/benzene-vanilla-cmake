@@ -9,7 +9,6 @@
 #include "VCBuilder.hpp"
 #include "VCSet.hpp"
 #include "ChangeLog.hpp"
-#include "GroupBoard.hpp"
 
 using namespace benzene;
 
@@ -19,7 +18,7 @@ namespace {
 
 BOOST_AUTO_TEST_CASE(VCSet_CheckCopy)
 {
-    GroupBoard bd(11, 11);
+    StoneBoard bd(11, 11);
     VCSet con1(bd.Const(), BLACK);
     con1.Add(VC(NORTH, SOUTH), 0);
     VCSet con2(con1);

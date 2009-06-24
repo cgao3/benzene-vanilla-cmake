@@ -6,7 +6,6 @@
 #include "Hex.hpp"
 #include "ChangeLog.hpp"
 #include "VCSet.hpp"
-#include "GroupBoard.hpp"
 #include "VC.hpp"
 #include "VCList.hpp"
 
