@@ -12,7 +12,7 @@ BOOST_AUTO_TEST_CASE(SequenceHash_Hash)
 {
     PointSequence a, b;
 
-    BOOST_CHECK_EQUAL(SequenceHash::Hash(a), 0);
+    BOOST_CHECK_EQUAL(SequenceHash::Hash(a), 0u);
     
     a.push_back(HEX_CELL_A1);
     b.push_back(HEX_CELL_A1);

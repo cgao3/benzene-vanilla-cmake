@@ -20,27 +20,27 @@ BOOST_AUTO_TEST_CASE(Bitset_Basics)
     // operations to still work as expected
     bitset_t b1, b2;
     BOOST_REQUIRE(BITSETSIZE > 1);
-    BOOST_CHECK_EQUAL(b1.count(), 0);
+    BOOST_CHECK_EQUAL(b1.count(), 0u);
     b1.flip();
-    BOOST_CHECK_EQUAL(b1.count(), BITSETSIZE);
+    BOOST_CHECK_EQUAL(b1.count(), (std::size_t)BITSETSIZE);
     BOOST_CHECK(b1.test(0));
     BOOST_CHECK(b1.test(BITSETSIZE-1));
     BOOST_CHECK(!b2.test(0));
     BOOST_CHECK(!b2.test(BITSETSIZE-1));
     BOOST_CHECK(!b2.any());
     BOOST_CHECK(b2.none());
-    BOOST_CHECK_EQUAL(b1.size(), BITSETSIZE);
+    BOOST_CHECK_EQUAL(b1.size(), (std::size_t)BITSETSIZE);
     BOOST_CHECK(!b1.none());
     b1.reset();
     BOOST_CHECK(b1.none());
     b1.set(0);
-    BOOST_CHECK_EQUAL(b1.count(), 1);
+    BOOST_CHECK_EQUAL(b1.count(), 1u);
     b2.set(1);
-    BOOST_CHECK_EQUAL(b2.count(), 1);
+    BOOST_CHECK_EQUAL(b2.count(), 1u);
     b2 |= b1;
-    BOOST_CHECK_EQUAL(b2.count(), 2);
+    BOOST_CHECK_EQUAL(b2.count(), 2u);
     b1 ^= b2;
-    BOOST_CHECK_EQUAL(b1.count(), 1);
+    BOOST_CHECK_EQUAL(b1.count(), 1u);
     BOOST_CHECK(!b1.test(0));
     BOOST_CHECK(b1.test(1));
     BOOST_CHECK(b2.test(0));
@@ -119,22 +119,23 @@ BOOST_AUTO_TEST_CASE(Bitset_Subtraction)
     // b1=100...0, b2=110...0
     BOOST_CHECK(BitsetUtil::Subtract(b1, b2).none());
     BOOST_CHECK((b1 - b2).none());
-    BOOST_CHECK_EQUAL(BitsetUtil::Subtract(b2, b1).count(), 1);
-    BOOST_CHECK_EQUAL((b2 - b1).count(), 1);
+    BOOST_CHECK_EQUAL(BitsetUtil::Subtract(b2, b1).count(), 1u);
+    BOOST_CHECK_EQUAL((b2 - b1).count(), 1u);
     b2 ^= b1;
     b1.flip();
     // b1=011...1, b2=010...0
     BOOST_CHECK(BitsetUtil::Subtract(b2, b1).none());
     BOOST_CHECK((b2 - b1).none());
-    BOOST_CHECK_EQUAL(BitsetUtil::Subtract(b1, b2).count(), BITSETSIZE-2);
-    BOOST_CHECK_EQUAL((b1 - b2).count(), BITSETSIZE-2);
+    BOOST_CHECK_EQUAL(BitsetUtil::Subtract(b1, b2).count(), 
+                      (std::size_t)(BITSETSIZE-2));
+    BOOST_CHECK_EQUAL((b1 - b2).count(), (std::size_t)(BITSETSIZE-2));
     b2.flip();
-    BOOST_CHECK_EQUAL(BitsetUtil::Subtract(b1, b2).count(), 1);
-    BOOST_CHECK_EQUAL((b1 - b2).count(), 1);
+    BOOST_CHECK_EQUAL(BitsetUtil::Subtract(b1, b2).count(), 1u);
+    BOOST_CHECK_EQUAL((b1 - b2).count(), 1u);
     BOOST_CHECK(BitsetUtil::Subtract(b1, b2).test(1));
     BOOST_CHECK((b1 - b2).test(1));
-    BOOST_CHECK_EQUAL(BitsetUtil::Subtract(b2, b1).count(), 1);
-    BOOST_CHECK_EQUAL((b2 - b1).count(), 1);
+    BOOST_CHECK_EQUAL(BitsetUtil::Subtract(b2, b1).count(), 1u);
+    BOOST_CHECK_EQUAL((b2 - b1).count(), 1u);
     BOOST_CHECK(BitsetUtil::Subtract(b2, b1).test(0));
     BOOST_CHECK((b2 - b1).test(0));
 }
@@ -260,16 +261,16 @@ BOOST_AUTO_TEST_CASE(Bitset_ConversionToVector)
     BOOST_REQUIRE(BITSETSIZE >= 16);
     b.set(1);
     BitsetUtil::BitsetToVector(b, moves);
-    BOOST_CHECK_EQUAL(moves.size(), 1);
+    BOOST_CHECK_EQUAL(moves.size(), 1u);
     BOOST_CHECK_EQUAL(moves[0], 1);
     b.set(14);
     BitsetUtil::BitsetToVector(b, moves);
-    BOOST_CHECK_EQUAL(moves.size(), 2);
+    BOOST_CHECK_EQUAL(moves.size(), 2u);
     BOOST_CHECK_EQUAL(moves[0], 1);
     BOOST_CHECK_EQUAL(moves[1], 14);
     b.flip();
     BitsetUtil::BitsetToVector(b, moves);
-    BOOST_CHECK_EQUAL(moves.size(), BITSETSIZE-2);
+    BOOST_CHECK_EQUAL(moves.size(), (std::size_t)(BITSETSIZE-2));
     BOOST_CHECK_EQUAL(moves[moves.size()-1], BITSETSIZE-1);
 }
 

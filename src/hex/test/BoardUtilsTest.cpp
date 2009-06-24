@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(BoardUtils_BitsetPacking)
     b1.flip();
     b2 = BoardUtils::PackBitset(*cb, b1);
     BOOST_CHECK_EQUAL(BoardUtils::UnpackBitset(*cb, b2), b1 & cb->getCells());
-    BOOST_CHECK_EQUAL(b1.count(), BITSETSIZE);
+    BOOST_CHECK_EQUAL(b1.count(), (std::size_t)BITSETSIZE);
     BOOST_CHECK_EQUAL(b2.count(), cb->getCells().count());
     b1.reset();
     b1.set(SWAP_PIECES);
@@ -35,8 +35,8 @@ BOOST_AUTO_TEST_CASE(BoardUtils_BitsetPacking)
 	adjustment = 0;
     }
     b2 = BoardUtils::PackBitset(*cb, b1);
-    BOOST_CHECK_EQUAL(b1.count(), 4 - adjustment);
-    BOOST_CHECK_EQUAL(b2.count(), 1);
+    BOOST_CHECK_EQUAL(b1.count(), (std::size_t)(4 - adjustment));
+    BOOST_CHECK_EQUAL(b2.count(), 1u);
     BOOST_CHECK_EQUAL(BoardUtils::UnpackBitset(*cb, b2), b1 & cb->getCells());
 }
 
@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     BOOST_CHECK(sb.isLegal(SWAP_PIECES));
     sb.playMove(WHITE, HEX_CELL_A2);
     BOOST_CHECK(!sb.isLegal(SWAP_PIECES));
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 6);
+    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 6u);
     BOOST_CHECK(!sb.isEmpty(HEX_CELL_A1));
     BOOST_CHECK(!sb.isEmpty(HEX_CELL_A2));
     

@@ -49,6 +49,8 @@ boost::unit_test::test_suite* init_unit_test_suite(int argc, char* argv[])
 #include <boost/test/auto_unit_test.hpp>
 boost::unit_test::test_suite* init_unit_test_suite(int argc, char* argv[])
 {
+    UNUSED(argc);
+    UNUSED(argv);
     Initialize();
     return boost::unit_test::auto_unit_test_suite();
 }

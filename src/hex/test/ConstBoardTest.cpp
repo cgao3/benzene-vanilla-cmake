@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_CellsLocationsValid)
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 3);
     ConstBoard* cb = &ConstBoard::Get(5, 3);
     bitset_t b1 = cb->getCells();
-    BOOST_CHECK_EQUAL(b1.count(), 15);
+    BOOST_CHECK_EQUAL(b1.count(), 15u);
     BOOST_CHECK(b1.test(FIRST_CELL));
     BOOST_CHECK(!b1.test(FIRST_CELL-1));
     BOOST_CHECK(!b1.test(NORTH));
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allAdjacent);
     BOOST_CHECK(allUnique);
-    BOOST_CHECK_EQUAL(b.count(), 4);
+    BOOST_CHECK_EQUAL(b.count(), 4u);
     
     b.reset();
     allAdjacent = true;
@@ -176,7 +176,8 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allAdjacent);
     BOOST_CHECK(allUnique);
-    BOOST_CHECK_EQUAL(b.count(), cb->height()+2); // interior cells + nbr edges
+    // interior cells + nbr edges
+    BOOST_CHECK_EQUAL(b.count(), (std::size_t)(cb->height()+2));
     
     b.reset();
     allAdjacent = true;
@@ -188,7 +189,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allAdjacent);
     BOOST_CHECK(allUnique);
-    BOOST_CHECK_EQUAL(b.count(), 6);
+    BOOST_CHECK_EQUAL(b.count(), 6u);
     
     // testing radius neighbours iterator
     cb = &ConstBoard::Get(11, 11);
@@ -206,7 +207,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allUnique);
     BOOST_CHECK(allWithinRadius);
-    BOOST_CHECK_EQUAL(b.count(), 18);
+    BOOST_CHECK_EQUAL(b.count(), 18u);
     
     radius = 3;
     b.reset();
@@ -220,7 +221,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allUnique);
     BOOST_CHECK(allWithinRadius);
-    BOOST_CHECK_EQUAL(b.count(), 36);
+    BOOST_CHECK_EQUAL(b.count(), 36u);
     
     b.reset();
     allUnique = true;
@@ -233,7 +234,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allUnique);
     BOOST_CHECK(allWithinRadius);
-    BOOST_CHECK_EQUAL(b.count(), 33);
+    BOOST_CHECK_EQUAL(b.count(), 33u);
     
     b.reset();
     allUnique = true;
@@ -246,7 +247,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allUnique);
     BOOST_CHECK(allWithinRadius);
-    BOOST_CHECK_EQUAL(b.count(), radius*cb->width() + 2);
+    BOOST_CHECK_EQUAL(b.count(), (std::size_t)(radius*cb->width() + 2));
     
     cb = &ConstBoard::Get(1, 1);
     b.reset();
@@ -260,7 +261,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allUnique);
     BOOST_CHECK(allWithinRadius);
-    BOOST_CHECK_EQUAL(b.count(), 3); // interior cell + 2 nbg edges
+    BOOST_CHECK_EQUAL(b.count(), 3u); // interior cell + 2 nbg edges
     
     cb = &ConstBoard::Get(3, 8);
     b.reset();
@@ -282,14 +283,14 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     allWithinRadius = true;
     for (BoardIterator it(cb->Nbs(WEST, radius)); it; ++it) {
 	int curDistance = cb->Distance(WEST, *it);
-	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
+	allWithinRadius = allWithinRadius 
+            && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
 	b.set(*it);
     }
     BOOST_CHECK(allUnique);
     BOOST_CHECK(allWithinRadius);
-    BOOST_CHECK_EQUAL(b.count(), radius*cb->height() + 2);
-   
+    BOOST_CHECK_EQUAL((int)b.count(), radius*cb->height() + 2);
 }
 
 BOOST_AUTO_TEST_CASE(ConstBoard_DistanceAndAdjacency)

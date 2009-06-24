@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(GraphUtils_ComputeDigraph)
 
     BOOST_CHECK(dg[groups.CaptainOf(b2)] == groups.Nbs(b2, EMPTY));
 
-    BOOST_CHECK_EQUAL(dg[a3].count(), 6);
+    BOOST_CHECK_EQUAL(dg[a3].count(), 6u);
     BOOST_CHECK(dg[a3].test(b1));
     BOOST_CHECK(dg[a3].test(c1));
     BOOST_CHECK(dg[a3].test(c2));
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(GraphUtils_ComputeDigraph)
 
     BOOST_CHECK(dg[groups.CaptainOf(c3)] == groups.Nbs(c3, EMPTY));
 
-    BOOST_CHECK_EQUAL(dg[b1].count(), 5);
+    BOOST_CHECK_EQUAL(dg[b1].count(), 5u);
     BOOST_CHECK(dg[b1].test(a1));
     BOOST_CHECK(dg[b1].test(c1));
     BOOST_CHECK(dg[b1].test(a3));
