@@ -248,16 +248,6 @@ public:
     /** @name Iterators */
     // @{
 
-    /** Returns iterator to the interior board cells. */
-    BoardIterator Interior() const;
-    
-    /** Returns iterator to the board cells, starting on the outer
-        edges. */
-    BoardIterator EdgesAndInterior() const;
-
-    /** Returns iterator that runs over all valid moves. */
-    BoardIterator AllValid() const;
-
     /** Returns iterator over all stones in colorset. */
     const BoardIterator& Stones(HexColorSet colorset) const;
 
@@ -308,21 +298,6 @@ inline int StoneBoard::width() const
 inline int StoneBoard::height() const
 {
     return m_const->height();
-}
-
-inline BoardIterator StoneBoard::Interior() const
-{
-    return m_const->Interior();
-}
-
-inline BoardIterator StoneBoard::EdgesAndInterior() const
-{ 
-    return m_const->EdgesAndInterior();
-}
-
-inline BoardIterator StoneBoard::AllValid() const
-{ 
-    return m_const->AllValid();
 }
 
 inline hash_t StoneBoard::Hash() const

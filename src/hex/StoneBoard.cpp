@@ -79,7 +79,7 @@ const BoardIterator& StoneBoard::Stones(HexColorSet colorset) const
             m_stones_list[i].clear();
         }
 
-        for (BoardIterator p(EdgesAndInterior()); p; ++p) {
+        for (BoardIterator p(Const().EdgesAndInterior()); p; ++p) {
             for (int i=0; i<NUM_COLOR_SETS; ++i) {
                 if (HexColorSetUtil::InSet(getColor(*p), (HexColorSet)i))
                     m_stones_list[i].push_back(*p);
@@ -240,7 +240,7 @@ BoardID StoneBoard::GetBoardID() const
     std::size_t i = 0;
     std::vector<byte> val(n, 0);
     bitset_t played = getPlayed();
-    for (BoardIterator p(Interior()); p; ++p, ++i) {
+    for (BoardIterator p(Const().Interior()); p; ++p, ++i) {
         val[i] = (played.test(*p)) 
             ? static_cast<byte>(getColor(*p))
             : static_cast<byte>(EMPTY);
@@ -288,7 +288,7 @@ void StoneBoard::SetState(const BoardID& id)
         See note in implementation of GetBoardID(). */
     startNewGame();
     std::size_t i = 0;
-    for (BoardIterator p(Interior()); p; ++p, ++i) {
+    for (BoardIterator p(Const().Interior()); p; ++p, ++i) {
         HexColor color = static_cast<HexColor>(val[i]);
         if (color == BLACK || color == WHITE)
             playMove(color, *p);

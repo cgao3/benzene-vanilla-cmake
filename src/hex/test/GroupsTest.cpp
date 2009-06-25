@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(Groups_Captains)
     BOOST_CHECK(groups.GetGroup(SOUTH).Captain() == SOUTH);
     BOOST_CHECK(groups.GetGroup(EAST).Captain() == EAST);
     BOOST_CHECK(groups.GetGroup(WEST).Captain() == WEST);
-    for (BoardIterator p(brd.Interior()); p; ++p)
+    for (BoardIterator p(brd.Const().Interior()); p; ++p)
         BOOST_CHECK(groups.GetGroup(*p).Captain() == *p);
 
     // Check that FIRST_CELL is absorbed into the north group;
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(Groups_Members)
     BOOST_CHECK_EQUAL(groups.NumGroups(), 20u);
 
     // Check all empties are singletons
-    for (BoardIterator p(brd.Interior()); p; ++p)
+    for (BoardIterator p(brd.Const().Interior()); p; ++p)
         if (brd.getColor(*p) == EMPTY)
         {
             BOOST_CHECK_EQUAL(groups.GetGroup(*p).Size(), 1u);

@@ -39,7 +39,7 @@ void TwoDistance::ComputeScores(HexColor color, HexEval* out)
     ComputeDistanceToEdge(color, HexPointUtil::colorEdge1(color), dist[0]);
     ComputeDistanceToEdge(color, HexPointUtil::colorEdge2(color), dist[1]);
 
-    for (BoardIterator it(m_brd->Interior()); it; ++it) {
+    for (BoardIterator it(m_brd->Const().Interior()); it; ++it) {
         if (m_brd->isOccupied(*it)) {
             out[*it] = 0;
         } else {
@@ -157,9 +157,8 @@ void TwoDistance::ComputeDistanceToEdge(HexColor color,
 
 void TwoDistance::SetAllToInfinity(HexEval* out)
 {
-    for (BoardIterator it(m_brd->Interior()); it; ++it) {
+    for (BoardIterator it(m_brd->Const().Interior()); it; ++it)
         out[*it] = EVAL_INFINITY;
-    }
 }
 
 //----------------------------------------------------------------------------

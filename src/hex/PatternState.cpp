@@ -216,7 +216,7 @@ void PatternState::Update()
 void PatternState::ClearGodels()
 {
     memset(m_slice_godel, 0, sizeof(m_slice_godel));
-    for (BoardIterator p(m_brd.Interior()); p; ++p)
+    for (BoardIterator p(m_brd.Const().Interior()); p; ++p)
         m_ring_godel[*p].SetEmpty();
 }
 

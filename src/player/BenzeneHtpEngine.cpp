@@ -1083,7 +1083,7 @@ void BenzeneHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
     TwoDistance twod(TwoDistance::ADJACENT);
     twod.Evaluate(brd);
 
-    for (BoardIterator it(brd.Interior()); it; ++it) {
+    for (BoardIterator it(brd.Const().Interior()); it; ++it) {
         if (brd.isOccupied(*it)) continue;
         HexEval energy = twod.Score(*it, color);
         if (energy == EVAL_INFINITY)
@@ -1108,7 +1108,7 @@ void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
         << " rew " << std::fixed << std::setprecision(3) << resist.Resist(WHITE)
         << " reb " << std::fixed << std::setprecision(3) << resist.Resist(BLACK);
 
-    for (BoardIterator it(brd.Interior()); it; ++it) {
+    for (BoardIterator it(brd.Const().Interior()); it; ++it) {
         if (brd.isOccupied(*it)) continue;
         HexEval energy = resist.Score(*it, color);
         if (energy == EVAL_INFINITY)
@@ -1163,7 +1163,7 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
     bitset_t westNbs 
         = VCSetUtil::ConnectedTo(brd.Cons(WHITE), groups, WEST, VC::FULL);
 
-    for (BoardIterator it(brd.Interior()); it; ++it) {
+    for (BoardIterator it(brd.Const().Interior()); it; ++it) {
         if (brd.isOccupied(*it)) continue;
 
 	// Compute neighbours, giving over-estimation to edges

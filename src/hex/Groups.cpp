@@ -44,7 +44,7 @@ void GroupBuilder::Build(const StoneBoard& brd, Groups& groups)
     groups.m_brd = const_cast<StoneBoard*>(&brd);
     groups.m_groups.clear();
     groups.m_group_index.resize(FIRST_INVALID);
-    for (BoardIterator p(brd.EdgesAndInterior()); p; ++p)
+    for (BoardIterator p(brd.Const().EdgesAndInterior()); p; ++p)
     {
         if (visited.test(*p))
             continue;

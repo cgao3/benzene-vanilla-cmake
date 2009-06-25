@@ -79,7 +79,7 @@ void HandicapPlayer::buildResponseMap(const StoneBoard& brd)
     m_responseMap.clear();
     offset = (m_width > brd.height()) ? 1 : -1;
     //Naive mirroring. Ignores handicap stones
-    for (BoardIterator it = brd.Interior(); it; ++it)
+    for (BoardIterator it = brd.Const().Interior(); it; ++it)
     {
         HexPointUtil::pointToCoords(*it, x, y);
         if (y > x)

@@ -61,7 +61,7 @@ namespace
     /** Sets all cell scores to an explicitly undefined value. */
     void SetAllToInfinity(const StoneBoard& brd, HexEval* out)
     {
-        for (BoardIterator it(brd.Interior()); it; ++it) 
+        for (BoardIterator it(brd.Const().Interior()); it; ++it) 
             out[*it] = EVAL_INFINITY;
     }
 
@@ -264,7 +264,7 @@ void SimulateAndOverEdge1(const HexBoard& brd, HexColor color,
 
     // add the edge's connections to all cells in augment
     for (BitsetIterator p(augment); p; ++p) {
-        for (BoardIterator q(brd.EdgesAndInterior()); q; ++q) {
+        for (BoardIterator q(brd.Const().EdgesAndInterior()); q; ++q) {
             graph[*p][*q] = graph[*p][*q] || graph[edge][*q];
             graph[*q][*p] = graph[*q][*p] || graph[edge][*q];
         }
