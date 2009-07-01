@@ -3,11 +3,13 @@ noinst_LIBRARIES = libsolver.a
 libsolver_a_SOURCES = \
 SolvedState.cpp \
 SolverDB.cpp \
+SolverDFPN.cpp \
 Solver.cpp
 
 noinst_HEADERS = \
 SolvedState.hpp \
 SolverDB.hpp \
+SolverDFPN.hpp \
 Solver.hpp
 
 libsolver_a_CPPFLAGS = \

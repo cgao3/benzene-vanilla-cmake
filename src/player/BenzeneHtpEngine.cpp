@@ -216,6 +216,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
       m_pe(m_board.width(), m_board.height()),
       m_se(m_board.width(), m_board.height()),
       m_solver(new Solver()),
+      m_solverDfpn(new SolverDFPN()),
       m_solver_tt(new SolverTT(20)), // TT with 10^6 entries
       m_book(0),
       m_db(0),
@@ -249,6 +250,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("param_solver_vc", &BenzeneHtpEngine::CmdParamSolverVC);
     RegisterCmd("param_solver_board", &BenzeneHtpEngine::CmdParamSolverBoard);
     RegisterCmd("param_solver", &BenzeneHtpEngine::CmdParamSolver);
+    RegisterCmd("param_solver_dfpn", &BenzeneHtpEngine::CmdParamSolverDfpn);
 
     RegisterCmd("vc-between-cells", &BenzeneHtpEngine::CmdGetVCsBetween);
     RegisterCmd("vc-connected-to", &BenzeneHtpEngine::CmdGetCellsConnectedTo);
@@ -266,6 +268,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("eval-influence", &BenzeneHtpEngine::CmdEvalInfluence);
 
     RegisterCmd("solve-state", &BenzeneHtpEngine::CmdSolveState);
+    RegisterCmd("solve-state-dfpn", &BenzeneHtpEngine::CmdSolveStateDfpn);
     RegisterCmd("solver-clear-tt", &BenzeneHtpEngine::CmdSolverClearTT);
     RegisterCmd("solver-find-winning", &BenzeneHtpEngine::CmdSolverFindWinning);
 
@@ -505,6 +508,31 @@ void BenzeneHtpEngine::CmdParamSolver(HtpCommand& cmd)
             throw HtpFailure() << "unknown parameter: " << name;
     }
 }
+
+void BenzeneHtpEngine::CmdParamSolverDfpn(HtpCommand& cmd)
+{
+    if (cmd.NuArg() == 0)
+    {
+        cmd << '\n'
+            << "[bool] show_progress "
+            << m_solverDfpn->ShowProgress() << '\n'
+            << "[string] progress_depth "
+            << m_solverDfpn->ProgressDepth() << '\n';
+    }
+    else if (cmd.NuArg() == 2)
+    {
+        std::string name = cmd.Arg(0);
+        if (name == "show_progress")
+            m_solverDfpn->SetShowProgress(cmd.BoolArg(1));
+        else if (name == "progress_depth")
+            m_solverDfpn->SetProgressDepth(cmd.IntArg(1, 0));
+        else
+            throw GtpFailure() << "Unknown parameter: " << name;
+    }
+    else
+        throw GtpFailure() << "Expected 0 or 2 arguments";
+}
+
 
 //----------------------------------------------------------------------
 
@@ -1239,6 +1267,15 @@ void BenzeneHtpEngine::CmdSolveState(HtpCommand& cmd)
     } else {
         LogInfo() << "Search aborted!" << '\n';
     }
+    cmd << winner;
+}
+
+void BenzeneHtpEngine::CmdSolveStateDfpn(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    HexColor color = ColorArg(cmd, 0);
+    HexBoard& brd = m_se.SyncBoard(m_game->Board());
+    HexColor winner = m_solverDfpn->StartSearch(color, brd);
     cmd << winner;
 }
 

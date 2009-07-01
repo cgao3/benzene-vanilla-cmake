@@ -14,6 +14,7 @@
 #include "HexHtpEngine.hpp"
 #include "OpeningBook.hpp"
 #include "Solver.hpp"
+#include "SolverDFPN.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -86,6 +87,7 @@ public:
     virtual void CmdParamSolverVC(HtpCommand& cmd);
     virtual void CmdParamSolverBoard(HtpCommand& cmd);
     virtual void CmdParamSolver(HtpCommand& cmd);
+    virtual void CmdParamSolverDfpn(HtpCommand& cmd);
 
     virtual void CmdGetVCsBetween(HtpCommand& cmd);
     virtual void CmdGetCellsConnectedTo(HtpCommand& cmd);
@@ -103,6 +105,7 @@ public:
     virtual void CmdEvalInfluence(HtpCommand& cmd);
 
     virtual void CmdSolveState(HtpCommand& cmd);
+    virtual void CmdSolveStateDfpn(HtpCommand& cmd);
     virtual void CmdSolverClearTT(HtpCommand& cmd);
     virtual void CmdSolverFindWinning(HtpCommand& cmd);
 
@@ -141,6 +144,8 @@ protected:
     HexEnvironment m_se;
 
     boost::scoped_ptr<Solver> m_solver;
+
+    boost::scoped_ptr<SolverDFPN> m_solverDfpn;
 
     boost::scoped_ptr<SolverTT> m_solver_tt;
 
