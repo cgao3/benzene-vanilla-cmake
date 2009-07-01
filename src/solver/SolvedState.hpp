@@ -100,10 +100,6 @@ struct SolvedState
         @note ALWAYS RETURNS TRUE FOR NOW!  */
     bool ReplaceWith(const SolvedState& other) const;
     
-    /** Checks for hash collisions between this and other. Required by
-        TransTableStateConcept. */
-    void CheckCollision(const SolvedState& other) const;
-
     /** Checks for hash collisions betweent his and the given
         hash/black/white bitsets. */
     void CheckCollision(hash_t hash, const bitset_t& black,

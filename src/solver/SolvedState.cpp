@@ -10,11 +10,6 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-void SolvedState::CheckCollision(const SolvedState& other) const
-{
-    CheckCollision(other.hash, other.black, other.white);
-}
-
 void SolvedState::CheckCollision(hash_t hash, const bitset_t& black,
                                  const bitset_t& white) const
 {

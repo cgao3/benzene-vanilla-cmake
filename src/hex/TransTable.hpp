@@ -15,7 +15,10 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Concept of a state in a transposition table. */
+/** Concept of a state in a transposition table. 
+ 
+    @todo WHY IS HASH REQUIRED HERE? WHAT WAS I THINKING?!?!
+ */
 template<class T>
 struct TransTableStateConcept
 {
@@ -32,7 +35,6 @@ struct TransTableStateConcept
         hash++; // to avoid compiler warning
 
         const T b;
-        a.CheckCollision(b);
 
         if (a.ReplaceWith(b)) { }
     }
@@ -64,11 +66,8 @@ public:
     /** Clears the table. */
     void clear();
 
-    /** Stores data in slot determined by data.Hash().  New data
-        overwrites old only if "new < old".
-
-        Will check for hash collisions if CHECK_HASH_COLLISIONS is
-        defined and non-zero. 
+    /** Stores data in slot determined by data.Hash(). New data
+        overwrites old only if "old.ReplaceWith(new)" is true.
     */
     bool put(const T& data);
     
@@ -144,10 +143,6 @@ template<typename T>
 bool TransTable<T>::put(const T& data)
 {
     hash_t hash = data.Hash();
-
-#if CHECK_HASH_COLLISION
-    m_hashtable[hash].CheckCollision(data);
-#endif
 
     if (m_hashtable[hash].ReplaceWith(data)) {
         m_stats.writes++;
