@@ -93,9 +93,8 @@ private:
         unsigned reads;
         unsigned hits;
         unsigned writes;
-        unsigned collisions;
 
-        Statistics() : reads(0), hits(0), writes(0), collisions(0) { }
+        Statistics() : reads(0), hits(0), writes(0) { }
     };
    
     // -----------------------------------------------------------------------
@@ -167,10 +166,9 @@ std::string TransTable<T>::stats() const
     std::ostringstream os;
     os << '\n'
        << "TT statistics\n"
-       << "      reads: " << m_stats.reads << std::endl
-       << "       hits: " << m_stats.hits << " (" 
-       << "     writes: " << m_stats.writes << std::endl
-       << " collisions: " << m_stats.collisions << std::endl;
+       << "   reads: " << m_stats.reads << std::endl
+       << "    hits: " << m_stats.hits << std::endl
+       << "  writes: " << m_stats.writes << std::endl;
     return os.str();
 }
 
