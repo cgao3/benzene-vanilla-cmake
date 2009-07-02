@@ -92,13 +92,10 @@ private:
     {
         unsigned reads;
         unsigned hits;
-        unsigned states_below_hits;
         unsigned writes;
         unsigned collisions;
-        unsigned winning;
 
-        Statistics() : reads(0), hits(0), states_below_hits(0),
-                       writes(0), collisions(0), winning(0) { }
+        Statistics() : reads(0), hits(0), writes(0), collisions(0) { }
     };
    
     // -----------------------------------------------------------------------
@@ -160,8 +157,6 @@ bool TransTable<T>::get(hash_t hash, T& data)
     if (ret) {
         data = old;
         m_stats.hits++; 
-//         if (data.win) m_stats.winning++;
-//         m_stats.states_below_hits += data.numstates;
     }
     return ret;
 }
@@ -170,16 +165,12 @@ template<typename T>
 std::string TransTable<T>::stats() const
 {  
     std::ostringstream os;
-    os << '\n';
-    os << "TT statistics" << std::endl;
-    os << "      reads: " << m_stats.reads << std::endl;
-    os << "       hits: " << m_stats.hits << " (" 
-       << m_stats.winning << "W/" << (m_stats.hits-m_stats.winning) 
-       << "L)" << std::endl;
-    os << "      saved: " << m_stats.states_below_hits << std::endl;    
-    os << "     writes: " << m_stats.writes << std::endl;
-    os << " collisions: " << m_stats.collisions << std::endl;
-
+    os << '\n'
+       << "TT statistics\n"
+       << "      reads: " << m_stats.reads << std::endl
+       << "       hits: " << m_stats.hits << " (" 
+       << "     writes: " << m_stats.writes << std::endl
+       << " collisions: " << m_stats.collisions << std::endl;
     return os.str();
 }
 
