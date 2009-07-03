@@ -3,6 +3,9 @@
  */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
+#include "SgTimer.h"
+
 #include "SolverDFPN.hpp"
 #include "PlayerUtils.hpp"
 
@@ -54,6 +57,7 @@ HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
     m_hashTable.reset(new DfpnHashTable(m_ttsize));
     m_numVisits.clear();
     m_children.clear();
+    m_terminal.clear();
     m_seen.clear();
 
     m_numTerminal = 0;
@@ -62,22 +66,21 @@ HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
     m_workBoard = &board;
 
     DfpnBounds root(INFTY, INFTY);
+    SgTimer timer;
     MID(root, 0);
+    timer.Stop();
 
     DfpnData data;
-    bool b = m_hashTable->get(m_brd->Hash(), data);
-    HexAssert(b);
+    m_hashTable->get(m_brd->Hash(), data);
     LogInfo() << "Root proof number is " << data.m_bounds.phi << "\n";
     LogInfo() << "Root disproof number is " << data.m_bounds.delta << "\n\n";
 
-    LogInfo() << "  Unique nodes: " << m_numVisits.size() << "\n";
     LogInfo() << "     MID calls: " << m_numMIDcalls << "\n";
+    LogInfo() << "  Unique nodes: " << m_numVisits.size() << "\n";
     LogInfo() << "Terminal nodes: " << m_numTerminal << "\n";
-    LogInfo() << "\n";
-    //LogInfo() << "    TT lookups: " << m_hashTable->NuLookups() << "\n";
-    //LogInfo() << "    TT matches: " << m_hashTable->NuFound() << "\n";
-    //LogInfo() << "     TT stored: " << m_hashTable->NuStores() << "\n";
-    //LogInfo() << "\n";
+    LogInfo() << "  Elapsed Time: " << timer.GetTime() << '\n';
+    LogInfo() << "      MIDs/sec: " << m_numMIDcalls/timer.GetTime() << '\n';
+    LogInfo() << m_hashTable->stats() << '\n';
 
     std::vector<HexPoint> pv;
     GetVariation(*m_brd, pv);
@@ -106,7 +109,8 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         }
     }
 
-    // Check if terminal if we've never been here before
+    // If we've never been here before, check if it's terminal.
+    // Compute children and store them if not terminal.
     HexColor colorToMove = m_brd->WhoseTurn();
     if (!m_seen.count(m_brd->Hash()))
     {
@@ -127,6 +131,7 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
                 terminal.phi = INFTY;
                 terminal.delta = 0;
             }
+            m_terminal[m_brd->Hash()] = terminal;
             TTStore(m_brd->Hash(), terminal, INVALID_POINT);
             ++m_numTerminal;
 
@@ -141,8 +146,17 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         // Store children
         m_children[m_brd->Hash()] 
             = PlayerUtils::MovesToConsider(*m_workBoard, colorToMove);
-    }    
+    }
+    // If we have been here before and this state is marked as terminal,
+    // put it back in the TT.
+    else if (m_terminal.count(m_brd->Hash()))
+    {
+        TTStore(m_brd->Hash(), m_terminal[m_brd->Hash()], INVALID_POINT);
+        return;
+    }
 
+    // We've been to this state before and it is not a terminal,
+    // so look up children.
     HexAssert(m_children.count(m_brd->Hash()));
     bitset_t childrenSet = m_children[m_brd->Hash()];
     std::vector<HexPoint> children;

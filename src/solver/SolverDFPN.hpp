@@ -35,8 +35,8 @@ struct DfpnBounds
 };
 
 inline DfpnBounds::DfpnBounds()
-    : phi(0), 
-      delta(0)
+    : phi(INFTY), 
+      delta(INFTY)
 {
 }
 
@@ -166,6 +166,8 @@ private:
     std::map<hash_t, size_t> m_numVisits;
 
     std::map<hash_t, bitset_t> m_children;
+
+    std::map<hash_t, DfpnBounds> m_terminal;
 
     void MID(const DfpnBounds& n, int depth);
 
