@@ -17,6 +17,7 @@ SolverDFPN::SolverDFPN()
     : m_hashTable(0),
       m_showProgress(false),
       m_progressDepth(1),
+      m_useGuiFx(false),
       m_ttsize(20)
 {
 }
@@ -188,6 +189,9 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
 
         // Update bounds for best child
         LookupBounds(childrenBounds[bestIndex], colorToMove, bestMove);
+
+        if (depth == 0 && m_useGuiFx)
+            DumpGuiFx(children, childrenBounds);
     }
 
     // Store search results
@@ -268,14 +272,43 @@ void SolverDFPN::TTStore(const DfpnData& data)
     m_hashTable->put(data);
 }
 
+void SolverDFPN::DumpGuiFx(const std::vector<HexPoint>& children,
+                           const std::vector<DfpnBounds>& childBounds) const
+{
+    std::ostringstream os;
+    os << "gogui-gfx:\n";
+    os << "dfpn\n";
+    os << "VAR";
+    // FIXME: do we have a variation to dump?
+    os << '\n';
+    os << "LABEL";
+    for (std::size_t i = 0; i < children.size(); ++i)
+    {
+        os << ' ' << children[i];
+        if (0 == childBounds[i].phi)
+            os << " L";
+        else if (0 == childBounds[i].delta)
+            os << " W";
+        else 
+            os << ' ' << childBounds[i].phi 
+               << ':' << childBounds[i].delta;
+    }
+    os << '\n';
+    os << "TEXT";
+    os << '\n';
+    os << '\n';
+    std::cout << os.str();
+    std::cout.flush();
+}
+
 void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const
 {
     HexAssert(bounds.phi <= INFTY);
     HexAssert(bounds.delta <= INFTY);
     HexAssert(0 != bounds.phi || INFTY == bounds.delta);
     HexAssert(0 != bounds.delta || INFTY == bounds.phi);
-    HexAssert(INFTY != bounds.phi || 0 == bounds.delta ||INFTY == bounds.delta);
-    HexAssert(INFTY != bounds.delta || 0 == bounds.phi ||INFTY == bounds.phi);
+    HexAssert(INFTY!= bounds.phi || 0 == bounds.delta ||INFTY == bounds.delta);
+    HexAssert(INFTY!= bounds.delta || 0 == bounds.phi ||INFTY == bounds.phi);
 }
 
 //----------------------------------------------------------------------------

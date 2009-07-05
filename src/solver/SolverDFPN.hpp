@@ -154,6 +154,12 @@ public:
     /** See ProgressDepth() */
     void SetProgressDepth(int depth);
  
+    /** Dumps output about root state what gui can display. */
+    bool UseGuiFx() const;
+
+    /** See UseGuiFx() */
+    void SetUseGuiFx(bool enable);
+
 private:
 
     typedef TransTable<DfpnData> DfpnHashTable;
@@ -165,8 +171,10 @@ private:
     boost::scoped_ptr<DfpnHashTable> m_hashTable;
 
     bool m_showProgress;
-
+    
     int m_progressDepth;
+
+    bool m_useGuiFx;
 
     int m_ttsize;
 
@@ -190,9 +198,13 @@ private:
 
     void TTStore(const DfpnData& data);
 
-    void GetVariation(const StoneBoard& state, std::vector<HexPoint>& pv) const;
+    void GetVariation(const StoneBoard& state, 
+                      std::vector<HexPoint>& pv) const;
 
     std::string PrintVariation(const std::vector<HexPoint>& pv) const;
+
+    void DumpGuiFx(const std::vector<HexPoint>& children,
+                   const std::vector<DfpnBounds>& childBounds) const;
 };
 
 inline bool SolverDFPN::ShowProgress() const
@@ -213,6 +225,16 @@ inline int SolverDFPN::ProgressDepth() const
 inline void SolverDFPN::SetProgressDepth(int depth)
 {
     m_progressDepth = depth;
+}
+
+inline bool SolverDFPN::UseGuiFx() const
+{
+    return m_useGuiFx;
+}
+
+inline void SolverDFPN::SetUseGuiFx(bool enable)
+{
+    m_useGuiFx = enable;
 }
 
 //----------------------------------------------------------------------------
