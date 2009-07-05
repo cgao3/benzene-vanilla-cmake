@@ -55,7 +55,6 @@ std::string SolverDFPN::PrintVariation(const std::vector<HexPoint>& pv) const
 HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
 {
     m_hashTable.reset(new DfpnHashTable(m_ttsize));
-    m_numVisits.clear();
     m_children.clear();
     m_terminal.clear();
     m_seen.clear();
@@ -76,7 +75,7 @@ HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
     LogInfo() << "Root disproof number is " << data.m_bounds.delta << "\n\n";
 
     LogInfo() << "     MID calls: " << m_numMIDcalls << "\n";
-    LogInfo() << "  Unique nodes: " << m_numVisits.size() << "\n";
+    LogInfo() << "  Unique nodes: " << m_seen.size() << "\n";
     LogInfo() << "Terminal nodes: " << m_numTerminal << "\n";
     LogInfo() << "  Elapsed Time: " << timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls/timer.GetTime() << '\n';
@@ -162,8 +161,6 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
     std::vector<HexPoint> children;
     BitsetUtil::BitsetToVector(childrenSet, children);
 
-    if (m_numVisits.size() < 1000000)
-        ++m_numVisits[m_brd->Hash()];
     ++m_numMIDcalls;
 
     // Not thread safe: perhaps move into while loop below later...

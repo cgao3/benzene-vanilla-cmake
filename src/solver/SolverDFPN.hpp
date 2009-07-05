@@ -172,8 +172,6 @@ private:
 
     std::set<hash_t> m_seen;
 
-    std::map<hash_t, size_t> m_numVisits;
-
     std::map<hash_t, bitset_t> m_children;
 
     std::map<hash_t, DfpnBounds> m_terminal;
