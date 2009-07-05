@@ -54,6 +54,14 @@ inline std::string DfpnBounds::Print() const
     return os.str();
 }
 
+
+/** Extends global output operator for DfpnBounds. */
+inline std::ostream& operator<<(std::ostream& os, const DfpnBounds& bounds)
+{
+    os << bounds.Print();
+    return os;
+}
+
 //----------------------------------------------------------------------------
 
 class DfpnData

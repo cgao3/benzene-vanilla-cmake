@@ -138,7 +138,7 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
             if (m_showProgress && depth <= m_progressDepth) 
             {
                 std::string spaces(2*depth, ' ');
-                LogInfo() << spaces << "Terminal! " << terminal.Print() << '\n';
+                LogInfo() << spaces << "Terminal! " << terminal << '\n';
             }
             return;
         }
@@ -182,9 +182,8 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
             if (m_showProgress && depth <= m_progressDepth) 
             {
                 std::string spaces(2*depth, ' ');
-                LogInfo() << spaces << bounds.Print() << " -> " 
-                          << currentBounds.Print() 
-                          << " Bounds Exceeded!\n";
+                LogInfo() << spaces << bounds << " -> " 
+                          << currentBounds << " Bounds Exceeded!\n";
             }
             break;
         }
@@ -205,10 +204,8 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         if (m_showProgress && depth <= m_progressDepth) 
         {
             std::string spaces(2*depth, ' ');
-            LogInfo() << spaces 
-                      << bounds.Print() << " -> " 
-                      << currentBounds.Print() << ": "
-                      << bestMove << '\n';
+            LogInfo() << spaces << bounds << " -> " 
+                      << currentBounds << ": " << bestMove << '\n';
         }
 
         // Recurse on best child
