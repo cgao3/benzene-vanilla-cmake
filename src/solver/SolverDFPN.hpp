@@ -17,7 +17,8 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-static const std::size_t INFTY = (std::numeric_limits<int>::max() - 1);
+/** Maximum bound. */
+static const std::size_t INFTY = 2000000000;
 
 /** Bounds used in Dfpn search. */
 struct DfpnBounds
