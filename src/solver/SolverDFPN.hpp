@@ -72,11 +72,14 @@ public:
 
     DfpnBounds m_bounds;
 
+    bitset_t m_children;
+
     HexPoint m_bestMove;
 
     DfpnData();
 
-    DfpnData(hash_t hash, const DfpnBounds& bounds, HexPoint bestMove);
+    DfpnData(hash_t hash, const DfpnBounds& bounds, const bitset_t& children, 
+             HexPoint bestMove);
 
     ~DfpnData();
 
@@ -98,9 +101,10 @@ inline DfpnData::DfpnData()
 }
 
 inline DfpnData::DfpnData(hash_t hash, const DfpnBounds& bounds, 
-                          HexPoint bestMove)
+                          const bitset_t& children,  HexPoint bestMove)
     : m_hash(hash), 
       m_bounds(bounds),
+      m_children(children),
       m_bestMove(bestMove),
       m_initialized(true)
 { 
@@ -172,10 +176,6 @@ private:
 
     std::set<hash_t> m_seen;
 
-    std::map<hash_t, bitset_t> m_children;
-
-    std::map<hash_t, DfpnBounds> m_terminal;
-
     void MID(const DfpnBounds& n, int depth);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
@@ -188,7 +188,7 @@ private:
 
     void LookupBounds(DfpnBounds& bound, HexColor colorToMove, HexPoint cell);
 
-    void TTStore(hash_t hash, const DfpnBounds& bound, HexPoint bestMove);
+    void TTStore(const DfpnData& data);
 
     void GetVariation(const StoneBoard& state, std::vector<HexPoint>& pv) const;
 

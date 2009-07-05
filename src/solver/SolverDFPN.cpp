@@ -55,10 +55,6 @@ std::string SolverDFPN::PrintVariation(const std::vector<HexPoint>& pv) const
 HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
 {
     m_hashTable.reset(new DfpnHashTable(m_ttsize));
-    m_children.clear();
-    m_terminal.clear();
-    m_seen.clear();
-
     m_numTerminal = 0;
     m_numMIDcalls = 0;
     m_brd.reset(new StoneBoard(board));
@@ -75,7 +71,6 @@ HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
     LogInfo() << "Root disproof number is " << data.m_bounds.delta << "\n\n";
 
     LogInfo() << "     MID calls: " << m_numMIDcalls << "\n";
-    LogInfo() << "  Unique nodes: " << m_seen.size() << "\n";
     LogInfo() << "Terminal nodes: " << m_numTerminal << "\n";
     LogInfo() << "  Elapsed Time: " << timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls/timer.GetTime() << '\n';
@@ -97,28 +92,24 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
     CheckBounds(bounds);
     HexAssert(bounds.phi > 1);
     HexAssert(bounds.delta > 1);
-    {
-        // Check thresholds
-        // FIXME: remove this!
-        DfpnData data;
-        if (m_hashTable->get(m_brd->Hash(), data)) 
-        {
-            HexAssert(bounds.phi > data.m_bounds.phi);
-            HexAssert(bounds.delta > data.m_bounds.delta);
-        }
-    }
 
-    // If we've never been here before, check if it's terminal.
-    // Compute children and store them if not terminal.
+    bitset_t childrenSet;
     HexColor colorToMove = m_brd->WhoseTurn();
-    if (!m_seen.count(m_brd->Hash()))
-    {
-        m_seen.insert(m_brd->Hash());
 
+    DfpnData data;
+    if (m_hashTable->get(m_brd->Hash(), data)) 
+    {
+        childrenSet = data.m_children;
+        HexAssert(bounds.phi > data.m_bounds.phi);
+        HexAssert(bounds.delta > data.m_bounds.delta);
+    }
+    else
+    {
         m_workBoard->SetState(*m_brd);
         m_workBoard->ComputeAll(colorToMove);
         if (PlayerUtils::IsDeterminedState(*m_workBoard, colorToMove))
         {
+            ++m_numTerminal;
             DfpnBounds terminal;
             if (PlayerUtils::IsWonGame(*m_workBoard, colorToMove))
             {
@@ -130,10 +121,8 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
                 terminal.phi = INFTY;
                 terminal.delta = 0;
             }
-            m_terminal[m_brd->Hash()] = terminal;
-            TTStore(m_brd->Hash(), terminal, INVALID_POINT);
-            ++m_numTerminal;
-
+            TTStore(DfpnData(m_brd->Hash(), terminal, 
+                             EMPTY_BITSET, INVALID_POINT));
             if (m_showProgress && depth <= m_progressDepth) 
             {
                 std::string spaces(2*depth, ' ');
@@ -141,27 +130,14 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
             }
             return;
         }
-
-        // Store children
-        m_children[m_brd->Hash()] 
-            = PlayerUtils::MovesToConsider(*m_workBoard, colorToMove);
+        childrenSet = PlayerUtils::MovesToConsider(*m_workBoard, colorToMove);
     }
-    // If we have been here before and this state is marked as terminal,
-    // put it back in the TT.
-    else if (m_terminal.count(m_brd->Hash()))
-    {
-        TTStore(m_brd->Hash(), m_terminal[m_brd->Hash()], INVALID_POINT);
-        return;
-    }
-
-    // We've been to this state before and it is not a terminal,
-    // so look up children.
-    HexAssert(m_children.count(m_brd->Hash()));
-    bitset_t childrenSet = m_children[m_brd->Hash()];
-    std::vector<HexPoint> children;
-    BitsetUtil::BitsetToVector(childrenSet, children);
 
     ++m_numMIDcalls;
+
+    HexAssert(childrenSet.any());
+    std::vector<HexPoint> children;
+    BitsetUtil::BitsetToVector(childrenSet, children);
 
     // Not thread safe: perhaps move into while loop below later...
     std::vector<DfpnBounds> childrenBounds(children.size());
@@ -193,7 +169,7 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         bestMove = children[bestIndex];
 
         // Update thresholds
-        child.phi += bounds.delta - currentBounds.delta;
+        child.phi = bounds.delta - (currentBounds.delta - child.phi);
         child.delta = std::min(bounds.phi, delta2 + 1);
         HexAssert(child.phi > childrenBounds[bestIndex].phi);
         HexAssert(child.delta > childrenBounds[bestIndex].delta);
@@ -215,7 +191,7 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
     }
 
     // Store search results
-    TTStore(m_brd->Hash(), currentBounds, bestMove);
+    TTStore(DfpnData(m_brd->Hash(), currentBounds, childrenSet, bestMove));
 }
 
 void SolverDFPN::SelectChild(int& bestIndex, std::size_t& delta2,
@@ -286,11 +262,10 @@ void SolverDFPN::LookupBounds(DfpnBounds& bounds, HexColor colorToMove,
     }
 }
 
-void SolverDFPN::TTStore(hash_t hash, const DfpnBounds& bounds,
-                         HexPoint bestMove) 
+void SolverDFPN::TTStore(const DfpnData& data)
 {
-    CheckBounds(bounds);
-    m_hashTable->put(DfpnData(hash, bounds, bestMove));
+    CheckBounds(data.m_bounds);
+    m_hashTable->put(data);
 }
 
 void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const
