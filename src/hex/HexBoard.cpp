@@ -94,11 +94,14 @@ void HexBoard::BuildVCs()
 }
 
 void HexBoard::BuildVCs(const Groups& oldGroups, 
-                        bitset_t added[BLACK_AND_WHITE])
+                        bitset_t added[BLACK_AND_WHITE], bool use_changelog)
 {
     HexAssert((added[BLACK] & added[WHITE]).none());
-    for (BWIterator c; c; ++c) 
-        m_builder.Build(*m_cons[*c], oldGroups, m_groups, added, &m_log[*c]);
+    for (BWIterator c; c; ++c)
+    {
+        ChangeLog<VC>* log = (use_changelog) ? &m_log[*c] : 0;
+        m_builder.Build(*m_cons[*c], oldGroups, m_groups, added, log);
+    }
 }
 
 void HexBoard::MarkChangeLog()
@@ -114,10 +117,10 @@ void HexBoard::RevertVCs()
 }
 
 /** In non-terminal states, checks for combinatorial decomposition
-    with a vc using BoardUtils::FindCombinatorialDecomposition(). 
+    with a vc using BoardUtils::FindCombinatorialDecomposition().
     Plays the carrier using AddStones(). Loops until no more
     decompositions are found. */
-void HexBoard::HandleVCDecomposition(HexColor color_to_move)
+void HexBoard::HandleVCDecomposition(HexColor color_to_move, bool use_changelog)
 {
     if (!m_use_decompositions) 
         return;
@@ -138,10 +141,9 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move)
 							   captured))
             {
                 LogFine() << "Decomposition " << decompositions << ": for " 
-			  << *c << "." << '\n' 
-                          << Write(captured) << '\n';
+			  << *c << "." << '\n' << Write(captured) << '\n';
             
-                AddStones(*c, captured, color_to_move);
+                AddStones(*c, captured, color_to_move, use_changelog);
                 m_inf.AddCaptured(*c, captured);
             
                 LogFine() << "After decomposition " << decompositions 
@@ -161,7 +163,7 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move)
 void HexBoard::ComputeAll(HexColor color_to_move)
 {
     double s = Time::Get();
-    
+
     m_patterns.Update();
     GroupBuilder::Build(*this, m_groups);
     m_inf.Clear();
@@ -171,7 +173,7 @@ void HexBoard::ComputeAll(HexColor color_to_move)
     if (m_use_vcs)
     {
         BuildVCs();
-        HandleVCDecomposition(color_to_move);
+        HandleVCDecomposition(color_to_move, false);
     }
 
     double e = Time::Get();
@@ -201,8 +203,8 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
     if (m_use_vcs)
     {
         MarkChangeLog();
-        BuildVCs(oldGroups, added);
-        HandleVCDecomposition(!color);
+        BuildVCs(oldGroups, added, true);
+        HandleVCDecomposition(!color, true);
     }
     double e = Time::Get();
     LogFine() << (e-s) << "s to play stones.\n";
@@ -234,16 +236,21 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
     if (m_use_vcs)
     {
         MarkChangeLog();
-        BuildVCs(oldGroups, added);
-        HandleVCDecomposition(color_to_move);
+        BuildVCs(oldGroups, added, true);
+        HandleVCDecomposition(color_to_move, true);
     }
 
     double e = Time::Get();
     LogFine() << (e-s) << "s to play stones.\n";
 }
 
+/** Adds stones for color to board with color_to_move about to
+    play next; added stones must be a subset of the empty cells.
+    Does not affect the hash of this state. State is not pushed
+    onto stack, so a call to UndoMove() will undo these changes
+    along with the last changes that changed the stack. */
 void HexBoard::AddStones(HexColor color, const bitset_t& played,
-                         HexColor color_to_move)
+                         HexColor color_to_move, bool use_changelog)
 {
     HexAssert(BitsetUtil::IsSubsetOf(played, getEmpty()));
     LogFine() << "Adding (" << color << ", "
@@ -265,7 +272,7 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     added[WHITE] = getColor(WHITE) - old_white;
 
     if (m_use_vcs)
-        BuildVCs(oldGroups, added); 
+        BuildVCs(oldGroups, added, use_changelog); 
 
     double e = Time::Get();
     LogFine() << (e-s) << "s to add stones.\n";

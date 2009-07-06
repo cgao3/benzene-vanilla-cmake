@@ -91,14 +91,6 @@ public:
     virtual void PlayStones(HexColor color, const bitset_t& played,
                             HexColor color_to_move);
         
-    /** Adds stones for color to board with color_to_move about to
-        play next; added stones must be a subset of the empty cells.
-        Does not affect the hash of this state. State is not pushed
-        onto stack, so a call to UndoMove() will undo these changes
-        along with the last changes that changed the stack. */
-    virtual void AddStones(HexColor color, const bitset_t& played,
-                           HexColor color_to_move);
-
     /** Reverts to last state stored on the stack, restoring all state
         info. If the option is on, also backs up inferior cell
         info. */
@@ -221,13 +213,17 @@ private:
 
     void BuildVCs();
 
-    void BuildVCs(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE]);
+    void BuildVCs(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE],
+                  bool use_changelog);
 
     void MarkChangeLog();
 
     void RevertVCs();
 
-    void HandleVCDecomposition(HexColor color_to_move);
+    void HandleVCDecomposition(HexColor color_to_move, bool use_changelog);
+
+    void AddStones(HexColor color, const bitset_t& played,
+                   HexColor color_to_move, bool use_changelog);
 
     void ClearHistory();
 
