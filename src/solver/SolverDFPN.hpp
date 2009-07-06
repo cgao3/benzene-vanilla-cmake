@@ -182,8 +182,6 @@ private:
 
     size_t m_numMIDcalls;
 
-    std::set<hash_t> m_seen;
-
     void MID(const DfpnBounds& n, int depth);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
