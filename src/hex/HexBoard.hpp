@@ -221,8 +221,9 @@ private:
 
     void BuildVCs();
 
-    void BuildVCs(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE], 
-                  bool markLog);
+    void BuildVCs(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE]);
+
+    void MarkChangeLog();
 
     void RevertVCs();
 

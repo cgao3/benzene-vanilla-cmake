@@ -94,15 +94,17 @@ void HexBoard::BuildVCs()
 }
 
 void HexBoard::BuildVCs(const Groups& oldGroups, 
-                        bitset_t added[BLACK_AND_WHITE], bool markLog)
+                        bitset_t added[BLACK_AND_WHITE])
 {
     HexAssert((added[BLACK] & added[WHITE]).none());
     for (BWIterator c; c; ++c) 
-    {
-        if (markLog)
-            m_log[*c].push(ChangeLog<VC>::MARKER, VC());
         m_builder.Build(*m_cons[*c], oldGroups, m_groups, added, &m_log[*c]);
-    }
+}
+
+void HexBoard::MarkChangeLog()
+{
+    m_log[BLACK].push(ChangeLog<VC>::MARKER, VC());
+    m_log[WHITE].push(ChangeLog<VC>::MARKER, VC());
 }
 
 void HexBoard::RevertVCs()
@@ -198,7 +200,8 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
 
     if (m_use_vcs)
     {
-        BuildVCs(oldGroups, added, true);
+        MarkChangeLog();
+        BuildVCs(oldGroups, added);
         HandleVCDecomposition(!color);
     }
     double e = Time::Get();
@@ -230,7 +233,8 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 
     if (m_use_vcs)
     {
-        BuildVCs(oldGroups, added, true);
+        MarkChangeLog();
+        BuildVCs(oldGroups, added);
         HandleVCDecomposition(color_to_move);
     }
 
@@ -261,7 +265,7 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     added[WHITE] = getColor(WHITE) - old_white;
 
     if (m_use_vcs)
-        BuildVCs(oldGroups, added, false); 
+        BuildVCs(oldGroups, added); 
 
     double e = Time::Get();
     LogFine() << (e-s) << "s to add stones.\n";
