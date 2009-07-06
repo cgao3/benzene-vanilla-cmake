@@ -164,14 +164,8 @@ void HexBoard::ComputeAll(HexColor color_to_move)
     GroupBuilder::Build(*this, m_groups);
     m_inf.Clear();
 
-    bitset_t old_black = getColor(BLACK);
-    bitset_t old_white = getColor(WHITE);
     ComputeInferiorCells(color_to_move);
 
-    bitset_t added[BLACK_AND_WHITE];
-    added[BLACK] = getColor(BLACK) - old_black;
-    added[WHITE] = getColor(WHITE) - old_white;
-    
     if (m_use_vcs)
     {
         BuildVCs();
