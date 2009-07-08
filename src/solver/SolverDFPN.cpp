@@ -282,11 +282,15 @@ void SolverDFPN::DumpGuiFx(const std::vector<HexPoint>& children,
     // FIXME: do we have a variation to dump?
     os << '\n';
     os << "LABEL";
+    int numLosses = 0;
     for (std::size_t i = 0; i < children.size(); ++i)
     {
         os << ' ' << children[i];
         if (0 == childBounds[i].phi)
+        {
+            numLosses++;
             os << " L";
+        }
         else if (0 == childBounds[i].delta)
             os << " W";
         else 
@@ -294,8 +298,8 @@ void SolverDFPN::DumpGuiFx(const std::vector<HexPoint>& children,
                << ':' << childBounds[i].delta;
     }
     os << '\n';
-    os << "TEXT";
-    os << '\n';
+    os << "TEXT ";
+    os << numLosses << '/' << children.size() << " proven losses.\n";
     os << '\n';
     std::cout << os.str();
     std::cout.flush();
