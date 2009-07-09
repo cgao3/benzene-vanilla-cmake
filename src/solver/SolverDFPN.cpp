@@ -13,8 +13,96 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+SolverDFPN::GuiFx::GuiFx()
+    : m_move(INVALID_POINT),
+      m_timeOfLastWrite(0.0),
+      m_delay(1.0)
+{
+}
+
+void SolverDFPN::GuiFx::SetChildren(const std::vector<HexPoint>& children,
+                                    const std::vector<DfpnBounds>& bounds)
+{
+    m_children = children;
+    m_bounds = bounds;
+}
+
+void SolverDFPN::GuiFx::PlayMove(HexColor color, HexPoint move) 
+{
+    m_color = color;
+    m_move = move;
+}
+
+void SolverDFPN::GuiFx::UndoMove()
+{
+    m_move = INVALID_POINT;
+}
+
+void SolverDFPN::GuiFx::UpdateCurrentBounds(const DfpnBounds& bounds)
+{
+    HexAssert(m_move != INVALID_POINT);
+    for (std::size_t i = 0; i < m_children.size(); ++i)
+        if (m_children[i] == m_move)
+            m_bounds[i] = bounds;
+}
+
+/** Always writes output. */
+void SolverDFPN::GuiFx::WriteForced()
+{
+    DoWrite();
+}
+
+/** Writes output only if last write was more than m_delay seconds
+    ago. */
+void SolverDFPN::GuiFx::Write()
+{
+    double currentTime = SgTime::Get();
+    if (currentTime < m_timeOfLastWrite + m_delay)
+        return;
+    m_timeOfLastWrite = currentTime;
+
+    DoWrite();
+}
+
+/** Writes progress indication. */
+void SolverDFPN::GuiFx::DoWrite()
+{
+    std::ostringstream os;
+    os << "gogui-gfx:\n";
+    os << "dfpn\n";
+    os << "VAR";
+    if (m_move != INVALID_POINT)
+        os << ' ' << (m_color == BLACK ? 'B' : 'W') << ' ' << m_move;
+    os << '\n';
+    os << "LABEL";
+    int numLosses = 0;
+    for (std::size_t i = 0; i < m_children.size(); ++i)
+    {
+        os << ' ' << m_children[i];
+        if (0 == m_bounds[i].phi)
+        {
+            numLosses++;
+            os << " L";
+        }
+        else if (0 == m_bounds[i].delta)
+            os << " W";
+        else
+            os << ' ' << m_bounds[i].phi 
+               << ':' << m_bounds[i].delta;
+    }
+    os << '\n';
+    os << "TEXT ";
+    os << numLosses << '/' << m_children.size() << " proven losses\n";
+    os << '\n';
+    std::cout << os.str();
+    std::cout.flush();
+}
+
+//----------------------------------------------------------------------------
+
 SolverDFPN::SolverDFPN()
     : m_hashTable(0),
+      m_guiFx(),
       m_showProgress(false),
       m_progressDepth(1),
       m_useGuiFx(false),
@@ -144,11 +232,14 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
     std::vector<DfpnBounds> childrenBounds(children.size());
     for (size_t i = 0; i < children.size(); ++i)
         LookupBounds(childrenBounds[i], colorToMove, children[i]);
-    
+   
     HexPoint bestMove = INVALID_POINT;
     DfpnBounds currentBounds;
     while (true) 
     {
+        if (m_useGuiFx && depth == 0)
+            m_guiFx.SetChildren(children, childrenBounds);
+
         UpdateBounds(currentBounds, childrenBounds);
         if (bounds.phi <= currentBounds.phi 
             || bounds.delta <= currentBounds.delta)
@@ -160,6 +251,12 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
                           << currentBounds << " Bounds Exceeded!\n";
             }
             break;
+        }
+
+        if (m_useGuiFx && depth == 1)
+        {
+            m_guiFx.UpdateCurrentBounds(currentBounds);
+            m_guiFx.Write();
         }
 
         // Select most proving child
@@ -182,6 +279,9 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
                       << currentBounds << ": " << bestMove << '\n';
         }
 
+        if (m_useGuiFx && depth == 0)
+            m_guiFx.PlayMove(colorToMove, bestMove);
+
         // Recurse on best child
         m_brd->playMove(colorToMove, bestMove);
         MID(child, depth + 1);
@@ -190,10 +290,13 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         // Update bounds for best child
         LookupBounds(childrenBounds[bestIndex], colorToMove, bestMove);
 
-        if (depth == 0 && m_useGuiFx)
-            DumpGuiFx(children, childrenBounds);
+        if (m_useGuiFx && depth == 0)
+            m_guiFx.UndoMove();
     }
 
+    if (m_useGuiFx && depth == 0)
+        m_guiFx.WriteForced();
+    
     // Store search results
     TTStore(DfpnData(m_brd->Hash(), currentBounds, childrenSet, bestMove));
 }
@@ -270,39 +373,6 @@ void SolverDFPN::TTStore(const DfpnData& data)
 {
     CheckBounds(data.m_bounds);
     m_hashTable->put(data);
-}
-
-void SolverDFPN::DumpGuiFx(const std::vector<HexPoint>& children,
-                           const std::vector<DfpnBounds>& childBounds) const
-{
-    std::ostringstream os;
-    os << "gogui-gfx:\n";
-    os << "dfpn\n";
-    os << "VAR";
-    // FIXME: do we have a variation to dump?
-    os << '\n';
-    os << "LABEL";
-    int numLosses = 0;
-    for (std::size_t i = 0; i < children.size(); ++i)
-    {
-        os << ' ' << children[i];
-        if (0 == childBounds[i].phi)
-        {
-            numLosses++;
-            os << " L";
-        }
-        else if (0 == childBounds[i].delta)
-            os << " W";
-        else 
-            os << ' ' << childBounds[i].phi 
-               << ':' << childBounds[i].delta;
-    }
-    os << '\n';
-    os << "TEXT ";
-    os << numLosses << '/' << children.size() << " proven losses.\n";
-    os << '\n';
-    std::cout << os.str();
-    std::cout.flush();
 }
 
 void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const

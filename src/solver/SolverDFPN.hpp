@@ -164,11 +164,50 @@ private:
 
     typedef TransTable<DfpnData> DfpnHashTable;
 
+    /** Handles guifx output. */
+    class GuiFx
+    {
+    public:
+
+        GuiFx();
+
+        void SetChildren(const std::vector<HexPoint>& children,
+                         const std::vector<DfpnBounds>& bounds);
+
+        void PlayMove(HexColor color, HexPoint move);
+
+        void UndoMove();
+
+        void UpdateCurrentBounds(const DfpnBounds& bounds);
+
+        void Write();
+
+        void WriteForced();
+
+    private:
+        
+        std::vector<HexPoint> m_children;
+
+        std::vector<DfpnBounds> m_bounds;
+
+        HexColor m_color;
+
+        HexPoint m_move;
+
+        double m_timeOfLastWrite;
+
+        double m_delay;
+
+        void DoWrite();
+    };
+
     boost::scoped_ptr<StoneBoard> m_brd;
 
     HexBoard* m_workBoard;
 
     boost::scoped_ptr<DfpnHashTable> m_hashTable;
+
+    GuiFx m_guiFx;
 
     bool m_showProgress;
     
