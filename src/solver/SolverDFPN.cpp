@@ -228,25 +228,24 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
     std::vector<DfpnBounds> childrenBounds(children.size());
     for (size_t i = 0; i < children.size(); ++i)
         LookupBounds(childrenBounds[i], colorToMove, children[i]);
+    if (m_useGuiFx && depth == 0)
+        m_guiFx.SetChildren(children, childrenBounds);
    
     HexPoint bestMove = INVALID_POINT;
     DfpnBounds currentBounds;
     while (true) 
     {
-        if (m_useGuiFx && depth == 0)
-            m_guiFx.SetChildren(children, childrenBounds);
-
         UpdateBounds(currentBounds, childrenBounds);
-        if (bounds.phi <= currentBounds.phi 
-            || bounds.delta <= currentBounds.delta)
-        {
-            break;
-        }
-
         if (m_useGuiFx && depth == 1)
         {
             m_guiFx.UpdateCurrentBounds(currentBounds);
             m_guiFx.Write();
+        }
+
+        if (bounds.phi <= currentBounds.phi 
+            || bounds.delta <= currentBounds.delta)
+        {
+            break;
         }
 
         // Select most proving child
@@ -270,11 +269,11 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         MID(child, depth + 1);
         m_brd->undoMove(bestMove);
 
-        // Update bounds for best child
-        LookupBounds(childrenBounds[bestIndex], colorToMove, bestMove);
-
         if (m_useGuiFx && depth == 0)
             m_guiFx.UndoMove();
+
+        // Update bounds for best child
+        LookupBounds(childrenBounds[bestIndex], colorToMove, bestMove);
     }
 
     if (m_useGuiFx && depth == 0)
