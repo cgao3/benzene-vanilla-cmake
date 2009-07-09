@@ -514,29 +514,20 @@ void BenzeneHtpEngine::CmdParamSolverDfpn(HtpCommand& cmd)
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
-            << "[bool] show_progress "
-            << m_solverDfpn->ShowProgress() << '\n'
             << "[bool] use_guifx "
-            << m_solverDfpn->UseGuiFx() << '\n'
-            << "[string] progress_depth "
-            << m_solverDfpn->ProgressDepth() << '\n';
+            << m_solverDfpn->UseGuiFx() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
-        if (name == "show_progress")
-            m_solverDfpn->SetShowProgress(cmd.BoolArg(1));
-        else if (name == "use_guifx")
+        if (name == "use_guifx")
             m_solverDfpn->SetUseGuiFx(cmd.BoolArg(1));
-        else if (name == "progress_depth")
-            m_solverDfpn->SetProgressDepth(cmd.IntArg(1, 0));
         else
             throw GtpFailure() << "Unknown parameter: " << name;
     }
     else
         throw GtpFailure() << "Expected 0 or 2 arguments";
 }
-
 
 //----------------------------------------------------------------------
 

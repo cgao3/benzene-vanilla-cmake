@@ -142,18 +142,6 @@ public:
 
     HexColor StartSearch(HexColor colorToMove, HexBoard& game);
     
-    /** Displays progress of search near root state. */
-    bool ShowProgress() const;
-
-    /** See ShowProgress() */
-    void SetShowProgress(bool enable);
-
-    /** Depth that will report progress. */
-    int ProgressDepth() const;
-    
-    /** See ProgressDepth() */
-    void SetProgressDepth(int depth);
- 
     /** Dumps output about root state what gui can display. */
     bool UseGuiFx() const;
 
@@ -196,6 +184,8 @@ private:
 
         double m_timeOfLastWrite;
 
+        HexPoint m_moveAtLastWrite;
+
         double m_delay;
 
         void DoWrite();
@@ -208,10 +198,6 @@ private:
     boost::scoped_ptr<DfpnHashTable> m_hashTable;
 
     GuiFx m_guiFx;
-
-    bool m_showProgress;
-    
-    int m_progressDepth;
 
     bool m_useGuiFx;
 
@@ -243,26 +229,6 @@ private:
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;
 };
-
-inline bool SolverDFPN::ShowProgress() const
-{
-    return m_showProgress;
-}
-
-inline void SolverDFPN::SetShowProgress(bool enable)
-{
-    m_showProgress = enable;
-}
-
-inline int SolverDFPN::ProgressDepth() const
-{
-    return m_progressDepth;
-}
-
-inline void SolverDFPN::SetProgressDepth(int depth)
-{
-    m_progressDepth = depth;
-}
 
 inline bool SolverDFPN::UseGuiFx() const
 {

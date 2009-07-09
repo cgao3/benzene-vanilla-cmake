@@ -53,14 +53,17 @@ void SolverDFPN::GuiFx::WriteForced()
 }
 
 /** Writes output only if last write was more than m_delay seconds
-    ago. */
+    ago or if the move is different. */
 void SolverDFPN::GuiFx::Write()
 {
     double currentTime = SgTime::Get();
-    if (currentTime < m_timeOfLastWrite + m_delay)
-        return;
+    if (m_moveAtLastWrite == m_move)
+    {
+        if (currentTime < m_timeOfLastWrite + m_delay)
+            return;
+    }
     m_timeOfLastWrite = currentTime;
-
+    m_moveAtLastWrite = m_move;
     DoWrite();
 }
 
@@ -103,8 +106,6 @@ void SolverDFPN::GuiFx::DoWrite()
 SolverDFPN::SolverDFPN()
     : m_hashTable(0),
       m_guiFx(),
-      m_showProgress(false),
-      m_progressDepth(1),
       m_useGuiFx(false),
       m_ttsize(20)
 {
@@ -212,11 +213,6 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
             }
             TTStore(DfpnData(m_brd->Hash(), terminal, 
                              EMPTY_BITSET, INVALID_POINT));
-            if (m_showProgress && depth <= m_progressDepth) 
-            {
-                std::string spaces(2*depth, ' ');
-                LogInfo() << spaces << "Terminal! " << terminal << '\n';
-            }
             return;
         }
         childrenSet = PlayerUtils::MovesToConsider(*m_workBoard, colorToMove);
@@ -244,12 +240,6 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         if (bounds.phi <= currentBounds.phi 
             || bounds.delta <= currentBounds.delta)
         {
-            if (m_showProgress && depth <= m_progressDepth) 
-            {
-                std::string spaces(2*depth, ' ');
-                LogInfo() << spaces << bounds << " -> " 
-                          << currentBounds << " Bounds Exceeded!\n";
-            }
             break;
         }
 
@@ -271,13 +261,6 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         child.delta = std::min(bounds.phi, delta2 + 1);
         HexAssert(child.phi > childrenBounds[bestIndex].phi);
         HexAssert(child.delta > childrenBounds[bestIndex].delta);
-
-        if (m_showProgress && depth <= m_progressDepth) 
-        {
-            std::string spaces(2*depth, ' ');
-            LogInfo() << spaces << bounds << " -> " 
-                      << currentBounds << ": " << bestMove << '\n';
-        }
 
         if (m_useGuiFx && depth == 0)
             m_guiFx.PlayMove(colorToMove, bestMove);
