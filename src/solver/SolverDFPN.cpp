@@ -211,6 +211,11 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
                 terminal.phi = INFTY;
                 terminal.delta = 0;
             }
+            if (m_useGuiFx && depth == 1)
+            {
+                m_guiFx.UpdateCurrentBounds(terminal);
+                m_guiFx.Write();
+            }
             TTStore(DfpnData(m_brd->Hash(), terminal, 
                              EMPTY_BITSET, INVALID_POINT));
             return;
