@@ -144,6 +144,7 @@ std::string SolverDFPN::PrintVariation(const std::vector<HexPoint>& pv) const
 
 HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
 {
+    m_aborted = false;
     m_hashTable.reset(new DfpnHashTable(m_ttsize));
     m_numTerminal = 0;
     m_numMIDcalls = 0;
@@ -155,26 +156,51 @@ HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
     MID(root, 0);
     timer.Stop();
 
-    DfpnData data;
-    m_hashTable->get(m_brd->Hash(), data);
-    LogInfo() << "Root proof number is " << data.m_bounds.phi << "\n";
-    LogInfo() << "Root disproof number is " << data.m_bounds.delta << "\n\n";
-
     LogInfo() << "     MID calls: " << m_numMIDcalls << "\n";
     LogInfo() << "Terminal nodes: " << m_numTerminal << "\n";
     LogInfo() << "  Elapsed Time: " << timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls/timer.GetTime() << '\n';
     LogInfo() << m_hashTable->stats() << '\n';
 
-    std::vector<HexPoint> pv;
-    GetVariation(*m_brd, pv);
-    LogInfo() << "PV: " << PrintVariation(pv) << '\n';
+    if (!m_aborted)
+    {
+        DfpnData data;
+        m_hashTable->get(m_brd->Hash(), data);
+        CheckBounds(data.m_bounds);
 
-    CheckBounds(data.m_bounds);
-    if (0 == data.m_bounds.phi)
-        return colorToMove;
-    else
-        return !colorToMove;
+        HexColor winner 
+            = (0 == data.m_bounds.phi) ? colorToMove : !colorToMove;
+        LogInfo() << winner << " wins!\n";
+
+        std::vector<HexPoint> pv;
+        GetVariation(*m_brd, pv);
+        LogInfo() << "PV: " << PrintVariation(pv) << '\n';
+
+        return winner;
+    }
+    LogInfo() << "Search aborted.\n";
+    return EMPTY;
+}
+
+bool SolverDFPN::CheckAbort()
+{
+    if (!m_aborted)
+    {
+        if (SgUserAbort()) 
+        {
+            m_aborted = true;
+            LogInfo() << "SolverDFPN::CheckAbort(): Abort flag!\n";
+        }
+#if 0
+        else if ((m_settings.time_limit > 0) && 
+                 ((Time::Get() - m_start_time) > m_settings.time_limit))
+        {
+            m_aborted = true;
+            LogInfo() << "SolverDFPN::CheckAbort(): Timelimit!" << '\n';
+        }
+#endif
+    }
+    return m_aborted;
 }
 
 void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
@@ -182,6 +208,9 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
     CheckBounds(bounds);
     HexAssert(bounds.phi > 1);
     HexAssert(bounds.delta > 1);
+
+    if (CheckAbort())
+        return;
 
     bitset_t childrenSet;
     HexColor colorToMove = m_brd->WhoseTurn();
@@ -238,7 +267,7 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
    
     HexPoint bestMove = INVALID_POINT;
     DfpnBounds currentBounds;
-    while (true) 
+    while (!m_aborted) 
     {
         UpdateBounds(currentBounds, childrenBounds);
         if (m_useGuiFx && depth == 1)
@@ -285,7 +314,8 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         m_guiFx.WriteForced();
     
     // Store search results
-    TTStore(DfpnData(m_brd->Hash(), currentBounds, childrenSet, bestMove));
+    if (!m_aborted)
+        TTStore(DfpnData(m_brd->Hash(), currentBounds, childrenSet, bestMove));
 }
 
 void SolverDFPN::SelectChild(int& bestIndex, std::size_t& delta2,

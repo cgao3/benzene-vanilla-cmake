@@ -132,6 +132,7 @@ inline bool DfpnData::Initialized() const
 
 //----------------------------------------------------------------------------
 
+/** Hex solver using DFPN search. */
 class SolverDFPN 
 {
 public:
@@ -197,6 +198,8 @@ private:
 
     boost::scoped_ptr<DfpnHashTable> m_hashTable;
 
+    bool m_aborted;
+
     GuiFx m_guiFx;
 
     bool m_useGuiFx;
@@ -214,6 +217,8 @@ private:
 
     void UpdateBounds(DfpnBounds& bounds, 
                       const std::vector<DfpnBounds>& childBounds) const;
+
+    bool CheckAbort();
 
     void CheckBounds(const DfpnBounds& bounds) const;
 
