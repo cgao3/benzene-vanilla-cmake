@@ -23,7 +23,7 @@ typedef unsigned long long hash_t;
 //----------------------------------------------------------------------------
 
 /** Turn on hash collision detection. */
-#define CHECK_HASH_COLLISION   1
+#define CHECK_HASH_COLLISION   0
 
 //----------------------------------------------------------------------------
 
