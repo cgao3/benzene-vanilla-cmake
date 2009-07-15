@@ -9,33 +9,24 @@
 #include <boost/concept_check.hpp>
 
 #include "Hex.hpp"
-#include "HashTable.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Concept of a state in a transposition table. 
- 
-    @todo WHY IS HASH REQUIRED HERE? WHAT WAS I THINKING?!?!
- */
+/** Concept of a state in a transposition table. */
 template<class T>
 struct TransTableStateConcept
 {
     void constraints() 
     {
-        boost::function_requires< HashTableStateConcept<T> >();
+        boost::function_requires< boost::DefaultConstructibleConcept<T> >();
+        boost::function_requires< boost::AssignableConcept<T> >();
 
         const T a;
-
-        // FIXME: are these done properly?
         if (a.Initialized()) { }
 
-        hash_t hash = a.Hash();
-        hash++; // to avoid compiler warning
-
         const T b;
-
         if (a.ReplaceWith(b)) { }
     }
 };
@@ -58,26 +49,22 @@ public:
     ~TransTable();
 
     /** Returns lg2 of number of entries. */
-    unsigned bits() const;
+    std::size_t bits() const;
 
     /** Returns the number of slots in the TT. */
-    unsigned size() const;
+    std::size_t size() const;
 
     /** Clears the table. */
     void clear();
 
-    /** Stores data in slot determined by data.Hash(). New data
+    /** Stores data in slot for hash. New data
         overwrites old only if "old.ReplaceWith(new)" is true.
     */
-    bool put(const T& data);
+    bool put(hash_t hash, const T& data);
     
     /** Returns true if the slot for hash contains a state with that
         hash value, data is copied into data if so. Otherwise, nothing
         is copied into data.
-
-        Does not check for hash collisions; calling code is
-        responsible for that if CHECK_HASH_COLLISIONS is defined and
-        non-zero.
     */
     bool get(hash_t hash, T& data);
 
@@ -98,8 +85,12 @@ private:
     };
    
     // -----------------------------------------------------------------------
-
-    HashTable<T> m_hashtable;
+    
+    int m_bits;
+    std::size_t m_size;
+    std::size_t m_mask;
+    std::vector<T> m_data;
+    std::vector<hash_t> m_hash;
     Statistics m_stats;
 };
 
@@ -107,9 +98,14 @@ private:
 
 template<typename T>
 TransTable<T>::TransTable(int bits)
-    : m_hashtable(bits),
+    : m_bits(bits),
+      m_size(1 << bits), 
+      m_mask(m_size - 1),
+      m_data(m_size),
+      m_hash(m_size, 0),
       m_stats()
 {
+    clear();
 }
 
 template<typename T>
@@ -118,31 +114,36 @@ TransTable<T>::~TransTable()
 }
 
 template<typename T>
-inline unsigned TransTable<T>::bits() const
+inline std::size_t TransTable<T>::bits() const
 {
-    return m_hashtable.bits();
+    return m_bits;
 }
 
 template<typename T>
-inline unsigned TransTable<T>::size() const
+inline std::size_t TransTable<T>::size() const
 {
-    return m_hashtable.size();
+    return m_size;
 }
 
 template<typename T>
 inline void TransTable<T>::clear()
 {
-    m_hashtable.clear();
+    for (std::size_t i = 0; i < m_size; ++i)
+    {
+        m_data[i] = T();
+        m_hash[i] = 0;
+    }
 }
 
 template<typename T>
-bool TransTable<T>::put(const T& data)
+bool TransTable<T>::put(hash_t hash, const T& data)
 {
-    hash_t hash = data.Hash();
-
-    if (m_hashtable[hash].ReplaceWith(data)) {
+    std::size_t slot = hash & m_mask;
+    if (m_data[slot].ReplaceWith(data)) 
+    {
         m_stats.writes++;
-        m_hashtable[hash] = data;
+        m_data[slot] = data;
+        m_hash[slot] = hash;
     }
     return true;
 }
@@ -151,9 +152,11 @@ template<typename T>
 bool TransTable<T>::get(hash_t hash, T& data)
 {
     m_stats.reads++;
-    T& old = m_hashtable[hash];
-    bool ret = old.Initialized() && (old.Hash() == hash);
-    if (ret) {
+    std::size_t slot = hash & m_mask;
+    T& old = m_data[slot];
+    bool ret = old.Initialized() && (m_hash[slot] == hash);
+    if (ret) 
+    {
         data = old;
         m_stats.hits++; 
     }

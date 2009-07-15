@@ -270,7 +270,7 @@ void Solver::StoreInDB(const SolvedState& state)
     if (numwritten && numstones == m_db->maxstones()) {
         LogInfo() << "Stored DB[" << numstones << "] result: "
 		  << m_stoneboard->Write(state.proof & 
-					       m_stoneboard->getEmpty())
+                                         m_stoneboard->getEmpty())
 		  << '\n'
 		  << ((state.win)?"Win":"Loss") << ", " 
 		  << state.numstates << " states."
@@ -282,24 +282,23 @@ void Solver::StoreInDB(const SolvedState& state)
     }
 }
 
-void Solver::StoreInTT(const SolvedState& state)
+void Solver::StoreInTT(hash_t hash, const SolvedState& state)
 {
     if (m_tt) 
     {
         LogFine() << "Storing proof in " << HashUtil::toString(state.hash) 
 		  << "(win " << state.win << ")"             
 		  << m_stoneboard->Write(state.proof) << '\n';
-        
-        m_tt->put(state);
+        m_tt->put(hash, state);
     }
 }
 
-void Solver::StoreState(const SolvedState& state) 
+void Solver::StoreState(hash_t hash, const SolvedState& state) 
 {
     if (m_settings.use_db && m_stoneboard->numStones() <= m_db->maxstones()) {
         StoreInDB(state);
     } else {
-        StoreInTT(state);
+        StoreInTT(hash, state);
     }
 }
 
@@ -842,7 +841,8 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
     if (solution.pv.empty())
         solution.pv.push_back(INVALID_POINT);
 
-    StoreState(SolvedState(m_stoneboard->numStones(), brd.Hash(), 
+    StoreState(brd.Hash(), 
+               SolvedState(m_stoneboard->numStones(), brd.Hash(), 
                            winning_state, solution.stats.total_states, 
                            solution.moves_to_connection, 
                            solution.pv[0], 

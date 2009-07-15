@@ -224,7 +224,7 @@ private:
 
     void LookupBounds(DfpnBounds& bound, HexColor colorToMove, HexPoint cell);
 
-    void TTStore(const DfpnData& data);
+    void TTStore(hash_t hash, const DfpnData& data);
 
     void GetVariation(const StoneBoard& state, 
                       std::vector<HexPoint>& pv) const;

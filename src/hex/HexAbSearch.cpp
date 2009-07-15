@@ -368,7 +368,7 @@ HexEval HexAbSearch::SearchState(const std::vector<int>& plywidth,
         if (bestvalue <= old_alpha) bound = SearchedState::UPPER_BOUND;
         if (bestvalue >= old_beta) bound = SearchedState::LOWER_BOUND;
         SearchedState ss(m_brd->Hash(), depth, bound, bestvalue, bestmove);
-        m_tt->put(ss);
+        m_tt->put(m_brd->Hash(), ss);
     }
 
     AfterStateSearched();

@@ -245,8 +245,9 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
                 m_guiFx.UpdateCurrentBounds(terminal);
                 m_guiFx.Write();
             }
-            TTStore(DfpnData(m_brd->Hash(), terminal, 
-                             EMPTY_BITSET, INVALID_POINT));
+            TTStore(m_brd->Hash(), 
+                    DfpnData(m_brd->Hash(), terminal, EMPTY_BITSET, 
+                             INVALID_POINT));
             return;
         }
         childrenSet = PlayerUtils::MovesToConsider(*m_workBoard, colorToMove);
@@ -315,7 +316,8 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
     
     // Store search results
     if (!m_aborted)
-        TTStore(DfpnData(m_brd->Hash(), currentBounds, childrenSet, bestMove));
+        TTStore(m_brd->Hash(), DfpnData(m_brd->Hash(), currentBounds, 
+                                        childrenSet, bestMove));
 }
 
 void SolverDFPN::SelectChild(int& bestIndex, std::size_t& delta2,
@@ -386,10 +388,10 @@ void SolverDFPN::LookupBounds(DfpnBounds& bounds, HexColor colorToMove,
     }
 }
 
-void SolverDFPN::TTStore(const DfpnData& data)
+void SolverDFPN::TTStore(hash_t hash, const DfpnData& data)
 {
     CheckBounds(data.m_bounds);
-    m_hashTable->put(data);
+    m_hashTable->put(hash, data);
 }
 
 void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const

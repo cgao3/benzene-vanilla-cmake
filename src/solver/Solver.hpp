@@ -354,7 +354,7 @@ private:
 
     /** Stores the solved state in the TT or DB. Sets the state's
         bestmove parameter to the best move computed by solver. */
-    void StoreState(const SolvedState& state);
+    void StoreState(hash_t hash, const SolvedState& state);
 
     bitset_t DefaultProofForWinner(const HexBoard& brd, 
                                    HexColor winner) const;
@@ -365,7 +365,7 @@ private:
     bool CheckTT(const HexBoard& brd, HexColor toplay, 
                  SolvedState& state) const;
 
-    void StoreInTT(const SolvedState& state);
+    void StoreInTT(hash_t hash, const SolvedState& state);
 
     void StoreInDB(const SolvedState& state);
 
