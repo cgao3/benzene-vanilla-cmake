@@ -286,7 +286,7 @@ void WolveSearch::AfterStateSearched()
         bitset_t new_consider 
             = PlayerUtils::MovesToConsider(*m_brd, m_toplay) & old_consider;
         hash_t hash = SequenceHash::Hash(m_sequence);
-        m_varTT.put(hash, VariationInfo(hash, m_current_depth, new_consider));
+        m_varTT.put(hash, VariationInfo(m_current_depth, new_consider));
     }
 
     m_consider.pop_back();

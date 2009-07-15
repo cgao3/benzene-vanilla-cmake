@@ -60,18 +60,16 @@ struct WolveWorkThread
 struct VariationInfo
 {
     VariationInfo()
-        : hash(0), depth(-1)
+        : depth(-1)
     { }
     
-    VariationInfo(hash_t h, int d, const bitset_t& con)
-        : hash(h), depth(d), consider(con)
+    VariationInfo(int d, const bitset_t& con)
+        : depth(d), consider(con)
     { }
 
     ~VariationInfo();
     
     bool Initialized() const;
-
-    hash_t Hash() const;
 
     void CheckCollision(const VariationInfo& other) const;
 
@@ -79,9 +77,6 @@ struct VariationInfo
 
     //------------------------------------------------------------------------
 
-    /** Hash for this variation. */
-    hash_t hash;
-   
     /** Depth state was searched. */
     int depth;
 
@@ -98,15 +93,9 @@ inline bool VariationInfo::Initialized() const
     return (depth != -1);
 }
 
-inline hash_t VariationInfo::Hash() const
-{
-    return hash;
-}
-
 inline void VariationInfo::CheckCollision(const VariationInfo& other) const
 {
     UNUSED(other);
-    /** @todo Check for hash variation collisions. */
 }
 
 inline bool VariationInfo::ReplaceWith(const VariationInfo& other) const
