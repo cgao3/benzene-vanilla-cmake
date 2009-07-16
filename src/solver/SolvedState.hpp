@@ -12,8 +12,8 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** A solved state. Stored in a TT or DB.  
-    Matches HashTableStateConcept and TransTableStateConcept.
+/** A solved state. Stored in a TT or DB. Matches
+    TransTableStateConcept.
 */
 struct SolvedState
 {
@@ -74,8 +74,8 @@ struct SolvedState
 
     //--------------------------------------------------------------------
 
-    /** Contructs state with default values.  Required by
-        HashTableStateConcept and TransTableStateConcept. */
+    /** Contructs state with default values. Required by
+        TransTableStateConcept. */
     SolvedState();
     
     /** Initializes state to given values. */
