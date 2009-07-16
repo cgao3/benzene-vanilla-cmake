@@ -102,8 +102,7 @@ bool SolverDB::get(const StoneBoard& brd, SolvedState& state)
         {
             m_stats.gets++;
             m_stats.saved += state.numstates;
-            
-            state.hash = brd.Hash();
+           
             state.numstones = brd.numStones();
             return true;
         }
@@ -123,7 +122,6 @@ bool SolverDB::get(const StoneBoard& brd, SolvedState& state)
             state.bestmove = BoardUtils::Rotate(brd.Const(), 
                                                 state.bestmove);
 
-            state.hash = brd.Hash();
             state.numstones = brd.numStones();
             return true;
         }

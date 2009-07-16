@@ -10,20 +10,17 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-void SolvedState::CheckCollision(hash_t hash, const bitset_t& black,
-                                 const bitset_t& white) const
+void SolvedState::CheckCollision(const SolvedState& other) const
 {
-    if (this->hash == hash && (this->black != black || this->white != white))
+    if (this->black != other.black || this->white != other.white)
     {
         LogSevere() << "HASH COLLISION!" << '\n'
 		    << "this:" << '\n'
-		    << HashUtil::toString(this->hash) << '\n'
 		    << HexPointUtil::ToPointListString(this->black) << '\n'
 		    << HexPointUtil::ToPointListString(this->white) << '\n'
 		    << "other:" << '\n'
-		    << HashUtil::toString(hash) << '\n'
-		    << HexPointUtil::ToPointListString(black) << '\n'
-		    << HexPointUtil::ToPointListString(white) << '\n';
+		    << HexPointUtil::ToPointListString(other.black) << '\n'
+		    << HexPointUtil::ToPointListString(other.white) << '\n';
 	abort();
     } 
 }

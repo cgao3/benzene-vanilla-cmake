@@ -68,8 +68,6 @@ class DfpnData
 {
 public:
 
-    hash_t m_hash;
-
     DfpnBounds m_bounds;
 
     bitset_t m_children;
@@ -78,13 +76,11 @@ public:
 
     DfpnData();
 
-    DfpnData(hash_t hash, const DfpnBounds& bounds, const bitset_t& children, 
+    DfpnData( const DfpnBounds& bounds, const bitset_t& children, 
              HexPoint bestMove);
 
     ~DfpnData();
-
-    hash_t Hash() const;
-
+    
     bool Initialized() const;
 
     bool ReplaceWith(const DfpnData& data) const;
@@ -100,10 +96,9 @@ inline DfpnData::DfpnData()
 { 
 }
 
-inline DfpnData::DfpnData(hash_t hash, const DfpnBounds& bounds, 
+inline DfpnData::DfpnData(const DfpnBounds& bounds, 
                           const bitset_t& children,  HexPoint bestMove)
-    : m_hash(hash), 
-      m_bounds(bounds),
+    : m_bounds(bounds),
       m_children(children),
       m_bestMove(bestMove),
       m_initialized(true)
@@ -112,11 +107,6 @@ inline DfpnData::DfpnData(hash_t hash, const DfpnBounds& bounds,
 
 inline DfpnData::~DfpnData()
 {
-}
-
-inline hash_t DfpnData::Hash() const
-{
-    return m_hash;
 }
 
 inline bool DfpnData::ReplaceWith(const DfpnData& data) const

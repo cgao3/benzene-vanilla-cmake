@@ -228,16 +228,13 @@ bool Solver::CheckTT(const HexBoard& brd, HexColor toplay,
     
 #if OUTPUT_TT_HITS
         LogFine() << "TT [" << state.numstones << "] "
-		  << HashUtil::toString(state.hash) << " "
 		  << state.numstates << " " 
 		  << ((state.win) ? "Win" : "Loss")
 		  << brd << '\n';
 #endif
 
 #if CHECK_HASH_COLLISION
-        state.CheckCollision(brd.Hash(), 
-                             m_stoneboard->getBlack(), 
-                             m_stoneboard->getWhite());
+#       error "Implement hash collision detection!"
 #endif
 
         // Can't use proof stored in state.
@@ -286,7 +283,7 @@ void Solver::StoreInTT(hash_t hash, const SolvedState& state)
 {
     if (m_tt) 
     {
-        LogFine() << "Storing proof in " << HashUtil::toString(state.hash) 
+        LogFine() << "Storing proof in " << HashUtil::toString(hash) 
 		  << "(win " << state.win << ")"             
 		  << m_stoneboard->Write(state.proof) << '\n';
         m_tt->put(hash, state);
@@ -842,7 +839,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
         solution.pv.push_back(INVALID_POINT);
 
     StoreState(brd.Hash(), 
-               SolvedState(m_stoneboard->numStones(), brd.Hash(), 
+               SolvedState(m_stoneboard->numStones(),
                            winning_state, solution.stats.total_states, 
                            solution.moves_to_connection, 
                            solution.pv[0], 
