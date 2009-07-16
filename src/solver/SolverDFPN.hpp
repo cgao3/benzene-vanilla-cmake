@@ -33,6 +33,12 @@ struct DfpnBounds
 
     /** Print bounds in human readable format. */
     std::string Print() const;
+
+    /** Sets the bounds to (0, INFTY). */
+    static void SetToWinning(DfpnBounds& bounds);
+
+    /** Sets the bounds to (INFTY, 0). */
+    static void SetToLosing(DfpnBounds& bounds);
 };
 
 inline DfpnBounds::DfpnBounds()
@@ -54,6 +60,17 @@ inline std::string DfpnBounds::Print() const
     return os.str();
 }
 
+inline void DfpnBounds::SetToWinning(DfpnBounds& bounds)
+{
+    bounds.phi = 0;
+    bounds.delta = INFTY;
+}
+
+inline void DfpnBounds::SetToLosing(DfpnBounds& bounds)
+{
+    bounds.phi = INFTY;
+    bounds.delta = 0;
+}
 
 /** Extends global output operator for DfpnBounds. */
 inline std::ostream& operator<<(std::ostream& os, const DfpnBounds& bounds)

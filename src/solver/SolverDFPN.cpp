@@ -231,15 +231,10 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
             ++m_numTerminal;
             DfpnBounds terminal;
             if (PlayerUtils::IsWonGame(*m_workBoard, colorToMove))
-            {
-                terminal.phi = 0;
-                terminal.delta = INFTY;
-            } 
+                DfpnBounds::SetToWinning(terminal);
             else 
-            {
-                terminal.phi = INFTY;
-                terminal.delta = 0;
-            }
+                DfpnBounds::SetToLosing(terminal);
+
             if (m_useGuiFx && depth == 1)
             {
                 m_guiFx.UpdateCurrentBounds(terminal);
