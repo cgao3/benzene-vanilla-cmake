@@ -139,7 +139,7 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
     HexEval result = Solver::UNKNOWN;
 
     /** @todo Make this an option? */
-    m_solver->GetTT()->clear();
+    m_solver->GetTT()->Clear();
     
     // solve the state; try to use the db if possible
     if (m_db) 

@@ -49,27 +49,27 @@ public:
     ~TransTable();
 
     /** Returns lg2 of number of entries. */
-    std::size_t bits() const;
+    std::size_t Bits() const;
 
     /** Returns the number of slots in the TT. */
-    std::size_t size() const;
+    std::size_t Size() const;
 
     /** Clears the table. */
-    void clear();
+    void Clear();
 
     /** Stores data in slot for hash. New data
         overwrites old only if "old.ReplaceWith(new)" is true.
     */
-    bool put(hash_t hash, const T& data);
+    bool Put(hash_t hash, const T& data);
     
     /** Returns true if the slot for hash contains a state with that
         hash value, data is copied into data if so. Otherwise, nothing
         is copied into data.
     */
-    bool get(hash_t hash, T& data);
+    bool Get(hash_t hash, T& data);
 
     /** Returns statistics in string form. */
-    std::string stats() const;
+    std::string Stats() const;
 
 private:
 
@@ -87,10 +87,15 @@ private:
     // -----------------------------------------------------------------------
     
     int m_bits;
+
     std::size_t m_size;
+
     std::size_t m_mask;
+
     std::vector<T> m_data;
+
     std::vector<hash_t> m_hash;
+
     Statistics m_stats;
 };
 
@@ -105,7 +110,7 @@ TransTable<T>::TransTable(int bits)
       m_hash(m_size, 0),
       m_stats()
 {
-    clear();
+    Clear();
 }
 
 template<typename T>
@@ -114,19 +119,19 @@ TransTable<T>::~TransTable()
 }
 
 template<typename T>
-inline std::size_t TransTable<T>::bits() const
+inline std::size_t TransTable<T>::Bits() const
 {
     return m_bits;
 }
 
 template<typename T>
-inline std::size_t TransTable<T>::size() const
+inline std::size_t TransTable<T>::Size() const
 {
     return m_size;
 }
 
 template<typename T>
-inline void TransTable<T>::clear()
+inline void TransTable<T>::Clear()
 {
     for (std::size_t i = 0; i < m_size; ++i)
     {
@@ -136,7 +141,7 @@ inline void TransTable<T>::clear()
 }
 
 template<typename T>
-bool TransTable<T>::put(hash_t hash, const T& data)
+bool TransTable<T>::Put(hash_t hash, const T& data)
 {
     std::size_t slot = hash & m_mask;
     if (m_data[slot].ReplaceWith(data)) 
@@ -149,7 +154,7 @@ bool TransTable<T>::put(hash_t hash, const T& data)
 }
 
 template<typename T>
-bool TransTable<T>::get(hash_t hash, T& data)
+bool TransTable<T>::Get(hash_t hash, T& data)
 {
     m_stats.reads++;
     std::size_t slot = hash & m_mask;
@@ -164,7 +169,7 @@ bool TransTable<T>::get(hash_t hash, T& data)
 }
 
 template<typename T>
-std::string TransTable<T>::stats() const
+std::string TransTable<T>::Stats() const
 {  
     std::ostringstream os;
     os << '\n'

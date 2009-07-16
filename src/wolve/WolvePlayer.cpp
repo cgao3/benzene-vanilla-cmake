@@ -144,7 +144,7 @@ WolveSearch::~WolveSearch()
 
 void WolveSearch::OnStartSearch()
 {
-    m_varTT.clear();  // *MUST* clear old variation TT!
+    m_varTT.Clear();  // *MUST* clear old variation TT!
     m_consider.clear();
 
     if (!m_no_fillin_board.get() ||
@@ -201,7 +201,7 @@ void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
     bitset_t consider;
 
     VariationInfo varInfo;
-    if (m_varTT.get(SequenceHash::Hash(m_sequence), varInfo))
+    if (m_varTT.Get(SequenceHash::Hash(m_sequence), varInfo))
     {
         LogFine() << "Using consider set from TT." << '\n'
 		  << HexPointUtil::ToPointListString(m_sequence) << '\n'
@@ -286,7 +286,7 @@ void WolveSearch::AfterStateSearched()
         bitset_t new_consider 
             = PlayerUtils::MovesToConsider(*m_brd, m_toplay) & old_consider;
         hash_t hash = SequenceHash::Hash(m_sequence);
-        m_varTT.put(hash, VariationInfo(m_current_depth, new_consider));
+        m_varTT.Put(hash, VariationInfo(m_current_depth, new_consider));
     }
 
     m_consider.pop_back();

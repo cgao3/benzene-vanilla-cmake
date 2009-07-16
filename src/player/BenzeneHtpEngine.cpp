@@ -474,7 +474,7 @@ void BenzeneHtpEngine::CmdParamSolver(HtpCommand& cmd)
             << "[string] progress_depth "
             << m_solver->ProgressDepth() << '\n'
             << "[string] tt_bits "  
-            << m_solver_tt->bits() << '\n'
+            << m_solver_tt->Bits() << '\n'
             << "[string] update_depth "  
             << m_solver->UpdateDepth() << '\n';
     }
@@ -1277,7 +1277,7 @@ void BenzeneHtpEngine::CmdSolveStateDfpn(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdSolverClearTT(HtpCommand& cmd)
 {
     UNUSED(cmd);
-    m_solver_tt->clear();
+    m_solver_tt->Clear();
 }
 
 void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)

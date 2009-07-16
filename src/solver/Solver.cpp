@@ -223,7 +223,7 @@ bool Solver::CheckDB(const HexBoard& brd, HexColor toplay,
 bool Solver::CheckTT(const HexBoard& brd, HexColor toplay, 
                      SolvedState& state) const
 {
-    if (m_tt && m_tt->get(brd.Hash(), state)) 
+    if (m_tt && m_tt->Get(brd.Hash(), state)) 
     {
     
 #if OUTPUT_TT_HITS
@@ -286,7 +286,7 @@ void Solver::StoreInTT(hash_t hash, const SolvedState& state)
         LogFine() << "Storing proof in " << HashUtil::toString(hash) 
 		  << "(win " << state.win << ")"             
 		  << m_stoneboard->Write(state.proof) << '\n';
-        m_tt->put(hash, state);
+        m_tt->Put(hash, state);
     }
 }
 
@@ -1235,7 +1235,7 @@ void Solver::DumpStats(const SolutionSet& solution) const
    
     if (m_tt) 
     {
-        LogInfo() << m_tt->stats()
+        LogInfo() << m_tt->Stats()
 		  << "########################################" << '\n';
     }
     

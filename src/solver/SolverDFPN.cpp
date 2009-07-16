@@ -122,7 +122,7 @@ void SolverDFPN::GetVariation(const StoneBoard& state,
     while (true) 
     {
         DfpnData data;
-        if (!m_hashTable->get(brd.Hash(), data))
+        if (!m_hashTable->Get(brd.Hash(), data))
             break;
         if (data.m_bestMove == INVALID_POINT)
             break;
@@ -160,12 +160,12 @@ HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
     LogInfo() << "Terminal nodes: " << m_numTerminal << "\n";
     LogInfo() << "  Elapsed Time: " << timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls/timer.GetTime() << '\n';
-    LogInfo() << m_hashTable->stats() << '\n';
+    LogInfo() << m_hashTable->Stats() << '\n';
 
     if (!m_aborted)
     {
         DfpnData data;
-        m_hashTable->get(m_brd->Hash(), data);
+        m_hashTable->Get(m_brd->Hash(), data);
         CheckBounds(data.m_bounds);
 
         HexColor winner 
@@ -216,7 +216,7 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
     HexColor colorToMove = m_brd->WhoseTurn();
 
     DfpnData data;
-    if (m_hashTable->get(m_brd->Hash(), data)) 
+    if (m_hashTable->Get(m_brd->Hash(), data)) 
     {
         childrenSet = data.m_children;
         HexAssert(bounds.phi > data.m_bounds.phi);
@@ -372,7 +372,7 @@ void SolverDFPN::LookupBounds(DfpnBounds& bounds, HexColor colorToMove,
     m_brd->undoMove(cell);
 
     DfpnData data;
-    if (m_hashTable->get(hash, data)) 
+    if (m_hashTable->Get(hash, data)) 
         bounds = data.m_bounds;
     else 
     {
@@ -384,7 +384,7 @@ void SolverDFPN::LookupBounds(DfpnBounds& bounds, HexColor colorToMove,
 void SolverDFPN::TTStore(hash_t hash, const DfpnData& data)
 {
     CheckBounds(data.m_bounds);
-    m_hashTable->put(hash, data);
+    m_hashTable->Put(hash, data);
 }
 
 void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const
