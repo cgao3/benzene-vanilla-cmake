@@ -13,11 +13,13 @@ install-sh
 doc/benzene-doc/
 missing
 regression/html/
+share/book.db
 src/config.h
 src/config.in
 src/mohex/mohex
 src/six/six
 src/wolve/wolve
+src/test/benzene_unittest
 src/stamp-h1
 Makefile
 TAGS
