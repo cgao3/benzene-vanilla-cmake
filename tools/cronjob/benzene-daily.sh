@@ -71,7 +71,7 @@ git clone /usr/tees1/cshome/broderic/git/benzene.git/ benzene || exit 1
 cd benzene || exit 1
 git pull
 autoreconf -i
-env FUEGO_ROOT=$TEST_DIR/fuego ./configure --enable-assert
+./configure --enable-assert --with-fuego-root=$TEST_DIR/fuego
 run-checked "make" "BENZENE COMPILATION"
 run-checked "make check" "BENZENE MAKE CHECK"
 run-checked "src/test/benzene_unittest" "BENZENE UNIT TESTS"

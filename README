@@ -52,11 +52,11 @@ This should complete without error.
 
 Now run configure (skip to here if you downloaded a benzene tarball): 
 
-% ./configure FUEGO_ROOT=[absolute path to fuego] --enable-assert=yes
+% ./configure --with-fuego-root=[absolute path to fuego] --enable-assert=yes
 
-FUEGO_ROOT simply tells benzene where it can find the fuego files it
+"--with-fuego-root" simply tells benzene where it can find the fuego files it
 needs.  Do not use a relative path as this will cause an error in the
-next step, ie, do not use "FUEGO_ROOT=../fuego/".
+next step, ie, do not use "--with-fuego-root=../fuego/".
 
 Recall that if you compiled Fuego without assertions then you cannot use
 assertions in Benzene, and so you should leave off the assert option
@@ -107,7 +107,7 @@ files.  If you modify any 'Makefile.am', you will need to run
 
 [add some source files, make changes in all relevant Makefile.am]
 % autoreconf -i
-% ./configure FUEGO_ROOT=[abs path to fuego-0.3] --enable-assert=[yes/no]
+% ./configure --with-fuego-root=[abs path to fuego-0.3] --enable-assert=[yes/no]
 % make
 
 ------------
