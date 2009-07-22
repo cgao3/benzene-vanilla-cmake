@@ -17,10 +17,11 @@ AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_UNIT_TEST_FRAMEWORK
 AX_BERKELEY_DB
 
-dnl TODO: Find a better (more portable) way to enable more optimizations by
-dnl default.
+dnl TODO: Find a better (more portable) way to enable more
+dnl optimizations by default.
 AC_ARG_ENABLE([optimize],
-   AS_HELP_STRING([--enable-optimize], [set CXXFLAGS to -O3 -g (default is yes)]),
+   AS_HELP_STRING([--enable-optimize], 
+                  [add "-O3" to CXXFLAGS (default is yes)]),
    [optimize=$enableval],
    [optimize=yes])
 if test "x$optimize" = "xyes"
@@ -37,6 +38,7 @@ then
 	CXXFLAGS="$CXXFLAGS -DNDEBUG"
 fi
 
+dnl Enable various extra-large boardsizes
 AC_ARG_ENABLE([upto19x19],
    AS_HELP_STRING([--enable-upto19x19], 
                   [support boards up to 19x19 (default is no)]),
@@ -66,14 +68,43 @@ then
         CXXFLAGS="$CXXFLAGS -DSUPPORT_13x13"
 fi
 
-if test "x$FUEGO_ROOT" == "x"; then
-   AC_MSG_ERROR(Environment variable FUEGO_ROOT must be set to define the location of the Fuego source package.)
+dnl Location of the fuego source and libraries
+AC_ARG_WITH([fuego-root],
+	    AS_HELP_STRING([--with-fuego-root=DIR],
+                           [location of the root of the Fuego source tree]),
+	    [fuegoroot=$withval],
+	    [])
+
+AC_ARG_WITH([fuego-build],
+	    AS_HELP_STRING([--with-fuego-build=DIR],
+                           [location of the root of the Fuego build tree]),
+	    [fuegobuild=$withval],
+	    [])
+
+if test "x$fuegoroot" = "x"; then
+   AC_MSG_ERROR([The path to the Fuego source tree must be set using the "--with-fuego-root" option.])
+elif test "x$fuegoroot" = "xyes"; then
+   AC_MSG_ERROR([The option "--with-fuego-root" requires a path to the Fuego source tree.])
+elif test "x$fuegoroot" = "xno"; then
+   AC_MSG_ERROR([A Fuego source tree is required to build Benzene.])
+else
+   FUEGO_ROOT=$fuegoroot
 fi
-if test "x$FUEGO_BUILD_ROOT" == "x"; then
-   FUEGO_BUILD_ROOT="$FUEGO_ROOT"
+
+if test "x$fuegobuild" != "x"; then
+    if test "x$fuegobuild" = "xyes"; then
+       AC_MSG_ERROR([The option "--with-fuego-build" requires a path to the Fuego build tree.])
+    elif test "x$fuegobuild" != "xno"; then
+       FUEGO_BUILD=$fuegobuild
+    fi
 fi
+
+if test "x$FUEGO_BUILD" = "x"; then
+   FUEGO_BUILD=$FUEGO_ROOT
+fi
+
 AC_SUBST(FUEGO_ROOT)
-AC_SUBST(FUEGO_BUILD_ROOT)
+AC_SUBST(FUEGO_BUILD)
 
 AX_CXXFLAGS_WARN_ALL
 AX_CXXFLAGS_GCC_OPTION(-Wextra)

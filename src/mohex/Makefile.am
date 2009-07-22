@@ -15,8 +15,8 @@ mohex_LDADD = \
 ../uct/libuct.a \
 ../hex/libhex.a \
 ../util/libutil.a \
-$(FUEGO_BUILD_ROOT)/smartgame/libfuego_smartgame.a \
-$(FUEGO_BUILD_ROOT)/gtpengine/libfuego_gtpengine.a \
+$(FUEGO_BUILD)/smartgame/libfuego_smartgame.a \
+$(FUEGO_BUILD)/gtpengine/libfuego_gtpengine.a \
 $(DB_LIBS) \
 $(BOOST_FILESYSTEM_LIB) \
 $(BOOST_PROGRAM_OPTIONS_LIB) \
@@ -29,8 +29,8 @@ mohex_DEPENDENCIES = \
 ../solver/libsolver.a \
 ../player/libplayer.a \
 ../uct/libuct.a \
-$(FUEGO_BUILD_ROOT)/smartgame/libfuego_smartgame.a \
-$(FUEGO_BUILD_ROOT)/gtpengine/libfuego_gtpengine.a
+$(FUEGO_BUILD)/smartgame/libfuego_smartgame.a \
+$(FUEGO_BUILD)/gtpengine/libfuego_gtpengine.a
 
 mohex_LDFLAGS = $(BOOST_LDFLAGS)
 
