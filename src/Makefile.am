@@ -9,5 +9,4 @@ solver \
 player \
 wolve \
 mohex \
-six \
 test

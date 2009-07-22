@@ -92,6 +92,5 @@ src/solver/Makefile
 src/player/Makefile 
 src/wolve/Makefile 
 src/mohex/Makefile
-src/six/Makefile
 src/test/Makefile
 ])

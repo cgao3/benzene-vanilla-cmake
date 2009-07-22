@@ -1,9 +1,10 @@
 # Runs a tournament between mohex and six.
 #
 # Usage:
-#     run-mohex-vs-six [config1].htp
+#     run-mohex-vs-six [six executable] [config1].htp
 #
-NAME1=mohex-$1
+SIX=$1
+NAME1=mohex-$2
 
 DIRECTORY="jobs/"$NAME1"-vs-six"
 mkdir -p $DIRECTORY
@@ -12,6 +13,6 @@ mkdir -p $DIRECTORY
 --dir $DIRECTORY \
 --openings openings/11x11-all-1ply \
 --size 11 --rounds 10 \
---p1cmd "../src/mohex/mohex --quiet --config $1.htp" --p1name $NAME1 \
---p2cmd "../src/six/six --quiet" --p2name six
+--p1cmd "../src/mohex/mohex --quiet --config $2.htp" --p1name $NAME1 \
+--p2cmd "$SIX --quiet" --p2name six
 
