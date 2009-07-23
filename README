@@ -11,10 +11,8 @@ benzene directory:
 % cd ..
 % svn co https://fuego.svn.sourceforge.net/svnroot/fuego/trunk fuego
 % cd fuego
-% aclocal
-% autoheader
 % autoreconf -i
-% ./configure --enable-assert  --enable-optimize 
+% ./configure --enable-assert --enable-optimize 
 
 (NOTE: This current build of Benzene is tested with revision 872
 (circa May 2009). It is possible that in the future the trunk version
@@ -44,8 +42,6 @@ If you checked out your benzene code from a git repository you will need
 to run autotools to create your configure script. If you downloaded a
 distribution tarball, go straight to the 'configure' step.
 
-% aclocal
-% autoheader
 % autoreconf -i
 
 This should complete without error. 
