@@ -20,42 +20,18 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 ZobristHash::GlobalData::GlobalData()
-    : initialized(false)
 {
+    SetPointers();
+    GetHashes();
 }
 
-//----------------------------------------------------------------------------
-
-ZobristHash::ZobristHash()
+void ZobristHash::GlobalData::SetPointers()
 {
-    Initialize();
-    reset();
+    m_black_hashes = &m_hashes[1024];
+    m_white_hashes = &m_hashes[2048];
+    m_color_hashes[BLACK] = m_black_hashes;
+    m_color_hashes[WHITE] = m_white_hashes;
 }
-
-ZobristHash::ZobristHash(const bitset_t& black, const bitset_t& white)
-{
-    Initialize();
-    compute(black, white);
-}
-
-void ZobristHash::compute(const bitset_t& black, const bitset_t& white)
-{
-    reset();
-    for (int p = 0; p < BITSETSIZE; ++p) 
-    {
-        if (black.test(p)) m_hash ^= GetGlobalData().zkey_color[BLACK][p];
-        if (white.test(p)) m_hash ^= GetGlobalData().zkey_color[WHITE][p];
-    }
-}
-
-//----------------------------------------------------------------------------
-
-ZobristHash::GlobalData& ZobristHash::GetGlobalData()
-{
-    static GlobalData s_data;
-    return s_data;
-}
-
 
 #if USE_PREDEFINED_HASHES
 
@@ -64,50 +40,50 @@ namespace
 #include "ZobristHashes.hpp"
 }
 
-void ZobristHash::Initialize()
+void ZobristHash::GlobalData::GetHashes()
 {
-    if (GetGlobalData().initialized) 
-        return;
-
-    GetGlobalData().zkey_base = base_hash;
-    int n = 0;
-    for (int j=0; j<BITSETSIZE; ++j) 
-    {
-        HexAssert(n < NUM_HASHES);
-        GetGlobalData().zkey_color[BLACK][j] = hashes[n++];
-    }
-    for (int j=0; j<BITSETSIZE; ++j)
-    {
-        HexAssert(n < NUM_HASHES);
-        GetGlobalData().zkey_color[WHITE][j] = hashes[n++];
-    }
-
-    GetGlobalData().initialized = true;
+    for (int i = 0; i < NUM_HASHES; ++i)
+        m_hashes[i] = s_predefined_hashes[i];
 }
 
 #else
 
-void ZobristHash::Initialize()
+void ZobristHash::GlobalData::GetHashes()
 {
-    if (GetGlobalData().initialized) 
-        return;
-
     int old_seed = SgRandom::Global().Seed();
     SgRandom::Global().SetSeed(1);
-
-    GetGlobalData().zkey_base = HashUtil::RandomHash();
-    for (BWIterator it; it; ++it) 
-    {
-        for (int j=0; j<BITSETSIZE; j++) 
-        {
-            GetGlobalData().zkey_color[*it][j] = HashUtil::RandomHash();
-        }
-    }
+    for (int i = 0; i < NUM_HASHES; ++i)
+        m_hashes[i] = HashUtil::RandomHash();
     SgRandom::SetSeed(old_seed);
-
-    GetGlobalData().initialized = true;
 }
 
 #endif
+
+//----------------------------------------------------------------------------
+
+ZobristHash::ZobristHash(int width, int height)
+    : m_base(GetGlobalData().m_hashes[30 * width + height])
+{
+    HexAssert(1 <= width && width <= MAX_WIDTH);
+    HexAssert(1 <= width && width <= MAX_HEIGHT);
+    HexAssert(30 * width + height < 1024);
+    Reset();
+}
+
+ZobristHash::GlobalData& ZobristHash::GetGlobalData()
+{
+    static GlobalData s_data;
+    return s_data;
+}
+
+void ZobristHash::Compute(const bitset_t& black, const bitset_t& white)
+{
+    Reset();
+    for (int p = 0; p < BITSETSIZE; ++p) 
+    {
+        if (black.test(p)) m_hash ^= GetGlobalData().m_black_hashes[p];
+        if (white.test(p)) m_hash ^= GetGlobalData().m_white_hashes[p];
+    }
+}
 
 //----------------------------------------------------------------------------

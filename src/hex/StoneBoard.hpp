@@ -302,7 +302,7 @@ inline int StoneBoard::height() const
 
 inline hash_t StoneBoard::Hash() const
 {
-    return m_hash.hash();
+    return m_hash.Hash();
 }
 
 inline bitset_t StoneBoard::getBlack() const

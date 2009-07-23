@@ -12,80 +12,77 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Computes hash for two bitsets (used to compute hashes for
-    boardstates where each bitset represents the stones for each
-    color).
-    
+/** Zobrist Hashing.
+
     Hash values are shared amoung all instances of ZobristHash.
+
+    Each unique boardsize has its own base hash, so hashes of
+    positions on different boardsizes should never collide.
 */
 class ZobristHash
 {
 public:
-    /** Constructs a ZobristHash object with the current hash set to
-        the base hash value. */
-    ZobristHash();
-
-    /** Constructs a ZobristHash object with the current hash set to
-        the base hash value updated with the cells in black and
-        white. */
-    ZobristHash(const bitset_t& black, const bitset_t& white);
+    /** Constructs a ZobristHash object for the given boardsize. */
+    ZobristHash(int width, int height);
 
     /** Returns the current hash value. */
-    hash_t hash() const;
+    hash_t Hash() const;
     
     /** Reset hash to the base hash value. */
-    void reset();
+    void Reset();
 
     /** Sets the hash to base hash value updated with the played
         stones in black and white. */
-    void compute(const bitset_t& black, const bitset_t& white);
+    void Compute(const bitset_t& black, const bitset_t& white);
 
     /** Incrementally updates the hash value with the given move. */
-    void update(HexColor color, HexPoint cell);
-
-    //-----------------------------------------------------------------------
-
-    /** Initialize the set of hashes. */
-    static void Initialize();
+    void Update(HexColor color, HexPoint cell);
 
 private:
 
     /** Hash for the current state. */
     hash_t m_hash;
 
+    /** Base hash. */
+    hash_t m_base;
+
     //----------------------------------------------------------------------
 
     /** Data shared amoungst all instances of ZobristHash. */
     struct GlobalData
     {
-        bool initialized;
-        hash_t zkey_base;
-        hash_t zkey_color[BLACK_AND_WHITE][BITSETSIZE];
+        static const int NUM_HASHES = 4096;
+        hash_t m_hashes[NUM_HASHES];
+        hash_t* m_black_hashes;
+        hash_t* m_white_hashes;
+        hash_t* m_color_hashes[BLACK_AND_WHITE];
 
         GlobalData();
+        void SetPointers();
+        void GetHashes();
     };
 
-    /** Returns a reference to a static local variable, so that it is
+    /** Returns a reference to a static local variable so that it is
         initialized on first use if some global variable is
         initialized. */
     static GlobalData& GetGlobalData(); 
 };
 
-inline hash_t ZobristHash::hash() const
+inline hash_t ZobristHash::Hash() const
 {
     return m_hash;
 }
 
-inline void ZobristHash::reset()
+inline void ZobristHash::Reset()
 {
-    m_hash = GetGlobalData().zkey_base;
+    m_hash = m_base;
 }
 
-inline void ZobristHash::update(HexColor color, HexPoint cell)
+inline void ZobristHash::Update(HexColor color, HexPoint cell)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(0 <= cell && cell < BITSETSIZE);
-    m_hash ^= GetGlobalData().zkey_color[color][cell];
+    m_hash ^= GetGlobalData().m_color_hashes[color][cell];
 }
 
 //----------------------------------------------------------------------------

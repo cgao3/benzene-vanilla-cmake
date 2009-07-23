@@ -11,18 +11,21 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 StoneBoard::StoneBoard()
-    : m_const(0)
+    : m_const(0),
+      m_hash(0, 0)
 {
 }
 
 StoneBoard::StoneBoard(unsigned size)
-    : m_const(&ConstBoard::Get(size))
+    : m_const(&ConstBoard::Get(size)),
+      m_hash(size, size)
 {
     startNewGame();
 }
 
 StoneBoard::StoneBoard(unsigned width, unsigned height)
-    : m_const(&ConstBoard::Get(width, height))
+    : m_const(&ConstBoard::Get(width, height)),
+      m_hash(width, height)
 {
     startNewGame();
 }
@@ -161,7 +164,7 @@ void StoneBoard::ComputeHash()
 {
     // do not include swap in hash value
     bitset_t mask = m_played & Const().getLocations();
-    m_hash.compute(m_stones[BLACK] & mask, m_stones[WHITE] & mask);
+    m_hash.Compute(m_stones[BLACK] & mask, m_stones[WHITE] & mask);
 }
 
 void StoneBoard::startNewGame()
@@ -184,7 +187,7 @@ void StoneBoard::playMove(HexColor color, HexPoint cell)
 
     m_played.set(cell);
     if (Const().isLocation(cell))
-        m_hash.update(color, cell);
+        m_hash.Update(color, cell);
     setColor(color, cell);
 
     MarkAsDirty();
@@ -198,7 +201,7 @@ void StoneBoard::undoMove(HexPoint cell)
 
     m_played.reset(cell);
     if (Const().isLocation(cell))
-        m_hash.update(color, cell);
+        m_hash.Update(color, cell);
     setColor(EMPTY, cell);
 
     MarkAsDirty();
