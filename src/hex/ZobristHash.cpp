@@ -64,16 +64,14 @@ void ZobristHash::GlobalData::GetHashes()
 ZobristHash::ZobristHash(int width, int height)
     : m_base(GetGlobalData().m_hashes[30 * width + height])
 {
-    HexAssert(1 <= width && width <= MAX_WIDTH);
-    HexAssert(1 <= width && width <= MAX_HEIGHT);
     HexAssert(30 * width + height < 1024);
     Reset();
 }
 
 ZobristHash::GlobalData& ZobristHash::GetGlobalData()
 {
-    static GlobalData s_data;
-    return s_data;
+    static GlobalData data;
+    return data;
 }
 
 void ZobristHash::Compute(const bitset_t& black, const bitset_t& white)
