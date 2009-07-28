@@ -1,3 +1,8 @@
+Benzene 0.9 (current development version)
+-----------------------------------------
+* New DFPN solver
+* Six no longer packaged with Benzene
+* Code cleanup/bug fixes
 
 Benzene 0.8 (released 09/05/04)
 -------------------------------
