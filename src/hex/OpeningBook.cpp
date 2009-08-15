@@ -338,4 +338,51 @@ void OpeningBookUtil::DumpVisualizationData(const OpeningBook& book,
     }
 }
 
+namespace {
+
+void DumpNonTerminalStates(const OpeningBook& book, StoneBoard& brd,
+                           int numstones, std::set<hash_t>& seen,
+                           PointSequence& pv, std::ostream& out)
+{
+    hash_t hash = OpeningBookUtil::GetHash(brd);
+    if (seen.find(hash) != seen.end())
+        return;
+    OpeningBookNode node;
+    if (!book.GetNode(brd, node))
+        return;
+    if (brd.numStones() > numstones)
+        return;
+    else if (brd.numStones() == numstones && !node.IsTerminal())
+    {
+        out << HexPointUtil::ToPointListString(pv) << '\n';
+        seen.insert(hash);
+    }
+    else if (brd.numStones() < numstones)
+    {
+        if (node.IsLeaf() || node.IsTerminal())
+            return;
+        for (BitsetIterator i(brd.getEmpty()); i; ++i) 
+        {
+            brd.playMove(brd.WhoseTurn(), *i);
+            pv.push_back(*i);
+            DumpNonTerminalStates(book, brd, numstones, seen, pv, out);
+            pv.pop_back();
+            brd.undoMove(*i);
+        }
+        seen.insert(hash);
+    } 
+}
+
+}
+
+void OpeningBookUtil::DumpNonTerminalStates(const OpeningBook& book, 
+                                            StoneBoard& brd,
+                                            int numstones,
+                                            PointSequence& pv, 
+                                            std::ostream& out)
+{
+    std::set<hash_t> seen;
+    ::DumpNonTerminalStates(book, brd, numstones, seen, pv, out);
+}
+
 //----------------------------------------------------------------------------

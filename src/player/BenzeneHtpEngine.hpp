@@ -68,6 +68,7 @@ public:
     virtual void CmdBookCounts(HtpCommand& cmd);
     virtual void CmdBookScores(HtpCommand& cmd);
     virtual void CmdBookVisualize(HtpCommand& cmd);
+    virtual void CmdBookDumpNonTerminal(HtpCommand& cmd);
 
     void CmdHandbookAdd(HtpCommand& cmd);
 

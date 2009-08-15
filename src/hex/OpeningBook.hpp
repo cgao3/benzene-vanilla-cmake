@@ -345,6 +345,13 @@ namespace OpeningBookUtil
         the book. Can be visualized with GnuPlot. */
     void DumpVisualizationData(const OpeningBook& book, StoneBoard& brd, 
                                int depth, std::ostream& out);
+
+    /** Writes variations leading to non-terminal states at given
+        depth. Variation must be the variation leading to the current
+        state of the board. */
+    void DumpNonTerminalStates(const OpeningBook& book, StoneBoard& brd,
+                               int numstones, PointSequence& pv, 
+                               std::ostream& out);
 }
 
 //----------------------------------------------------------------------------

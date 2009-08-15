@@ -231,6 +231,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("book-counts", &BenzeneHtpEngine::CmdBookCounts);
     RegisterCmd("book-scores", &BenzeneHtpEngine::CmdBookScores);
     RegisterCmd("book-visualize", &BenzeneHtpEngine::CmdBookVisualize);
+    RegisterCmd("book-dump-non-terminal", 
+                &BenzeneHtpEngine::CmdBookDumpNonTerminal);
 
     RegisterCmd("handbook-add", &BenzeneHtpEngine::CmdHandbookAdd);
 
@@ -645,10 +647,34 @@ void BenzeneHtpEngine::CmdBookVisualize(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
     StoneBoard brd(m_game->Board());
+    if (!StateMatchesBook(brd))
+        return;
     std::ofstream f(filename.c_str());
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
     OpeningBookUtil::DumpVisualizationData(*m_book, brd, 0, f);
+    f.close();
+}
+
+/** Dumps variations leading to non-terminal states with n stones in
+    the current book.
+    Usage:
+      book-dump-non-terminal [num stones] [output file]
+*/
+void BenzeneHtpEngine::CmdBookDumpNonTerminal(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(2);
+    int numstones = cmd.IntArg(0, 0);
+    std::string filename = cmd.Arg(1);
+    StoneBoard brd(m_game->Board());
+    if (!StateMatchesBook(brd))
+        return;
+    PointSequence pv;
+    GameUtil::HistoryToSequence(m_game->History(), pv);
+    std::ofstream f(filename.c_str());
+    if (!f)
+        throw HtpFailure() << "Could not open file for output.";
+    OpeningBookUtil::DumpNonTerminalStates(*m_book, brd, numstones, pv, f);
     f.close();
 }
 
@@ -657,9 +683,8 @@ void BenzeneHtpEngine::CmdBookVisualize(HtpCommand& cmd)
 /** Pulls moves out of the game for given color and appends them to
     the given handbook file. Skips the first move (ie, the move from
     the empty board). Performs no duplicate checking.
-
     Usage: 
-      "handbook-add [handbook.txt] [sgf file] [color] [max move #] 
+      handbook-add [handbook.txt] [sgf file] [color] [max move #] 
 */
 void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
 {
