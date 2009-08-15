@@ -233,6 +233,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("book-visualize", &BenzeneHtpEngine::CmdBookVisualize);
     RegisterCmd("book-dump-non-terminal", 
                 &BenzeneHtpEngine::CmdBookDumpNonTerminal);
+    RegisterCmd("book-set-value", &BenzeneHtpEngine::CmdBookSetValue);
 
     RegisterCmd("handbook-add", &BenzeneHtpEngine::CmdHandbookAdd);
 
@@ -676,6 +677,35 @@ void BenzeneHtpEngine::CmdBookDumpNonTerminal(HtpCommand& cmd)
         throw HtpFailure() << "Could not open file for output.";
     OpeningBookUtil::DumpNonTerminalStates(*m_book, brd, numstones, pv, f);
     f.close();
+}
+
+/** Sets value of current state in the book.
+    Usage:
+      book-set-value [value]
+    Where [value] can be one of W, L, or value in rage [0, 1]. 
+ */
+void BenzeneHtpEngine::CmdBookSetValue(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    float value = 0.5;
+    std::string vstr = cmd.ArgToLower(0);
+    if (vstr == "w")
+        value = IMMEDIATE_WIN;
+    else if (vstr == "l")
+        value = IMMEDIATE_LOSS;
+    else
+        value = cmd.FloatArg(0);
+    if (!StateMatchesBook(m_game->Board()))
+        return;
+    OpeningBookNode node;
+    if (!m_book->GetNode(m_game->Board(), node))
+        m_book->WriteNode(m_game->Board(), OpeningBookNode(value));
+    else
+    {
+        node.m_value = value;
+        m_book->WriteNode(m_game->Board(), node);
+    }
+    m_book->Flush();
 }
 
 //----------------------------------------------------------------------
