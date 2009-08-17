@@ -15,6 +15,7 @@
 #include "EndgameCheck.hpp"
 #include "GraphUtils.hpp"
 #include "HandBookCheck.hpp"
+#include "HexProgram.hpp"
 #include "HexSgUtil.hpp"
 #include "BenzeneHtpEngine.hpp"
 #include "LadderCheck.hpp"
@@ -222,6 +223,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
       m_db(0),
       m_useParallelSolver(false)
 {
+    RegisterCmd("benzene-license", &BenzeneHtpEngine::CmdLicense);
+
     RegisterCmd("reg_genmove", &BenzeneHtpEngine::CmdRegGenMove);
 
     RegisterCmd("get_absorb_group", &BenzeneHtpEngine::CmdGetAbsorbGroup);
@@ -332,6 +335,16 @@ HexPoint BenzeneHtpEngine::GenMove(HexColor color, double max_time)
 ////////////////////////////////////////////////////////////////////////
 // Commands
 ////////////////////////////////////////////////////////////////////////
+
+void BenzeneHtpEngine::CmdLicense(HtpCommand& cmd)
+{
+    cmd << 
+        HexProgram::Get().getName() << " " <<
+        HexProgram::Get().getVersion() << " " <<
+        HexProgram::Get().getDate() << "\n"
+        "Copyright (C) 2009 by the authors of the Benzene project.\n"
+        "This version is for private use only. DO NOT DISTRIBUTE.\n\n";
+}
 
 /** Generates a move, but does not play it. */
 void BenzeneHtpEngine::CmdRegGenMove(HtpCommand& cmd)

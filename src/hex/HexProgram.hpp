@@ -46,6 +46,9 @@ public:
     /** Sets the name, version, etc, for this program. */
     void SetInfo(std::string name, std::string version, std::string date);
 
+    /** Prints program information and some license details. */
+    void PrintStartupMessage();
+
     /** Returns the name of the program. */
     std::string getName() const;
 

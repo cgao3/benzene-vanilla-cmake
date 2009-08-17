@@ -59,6 +59,8 @@ public:
     // @{
     // The callback functions are documented in the cpp file
 
+    virtual void CmdLicense(HtpCommand& cmd);
+
     virtual void CmdRegGenMove(HtpCommand& cmd);
 
     virtual void CmdGetAbsorbGroup(HtpCommand& cmd);

@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 {
     HexProgram& program = HexProgram::Get();
     program.SetInfo("Wolve", VERSION, build_date);
+    program.PrintStartupMessage();
     program.Initialize(argc, argv);
 
     boost::scoped_ptr<BenzenePlayer> 
