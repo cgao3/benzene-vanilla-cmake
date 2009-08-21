@@ -1,22 +1,23 @@
 Benzene TODO file
 =================
 
-broderic [090624] (in rough order of importance)
-* Add time control to mohex
+broderic [090821] (in rough order of importance)
+* Improve DFPN:
+  * avoid double counting in proof/disproof numbers
+  * "Proof simulation"
+  * db read/write
 * Handle terminal states properly in MoHex
   Ie, do not use fillin and deletion to do this
+* Create scripts to build book/solve deep states
+* Add time control to mohex
+* Switch dead region/decomp detection to new Phil algo
 * Create HexPosition class; make StoneBoard use it.
 * Better book visualization tools
-* Switch dead region/decomp detection to new Phil algo
 * Add HexBoard::Resize() method; use in SyncBoard()
-* Have Wolve check TT for losing moves in move generation.
-  * Phil says `maybe': if solve strong moves but not weak, then Wolve will
-    have to play a weaker move, and so this may weaken the player :(
+* Have Wolve check dfpn TT for losing moves during move generation.
+* Have MoHex update its tree if dfpn solved states?
 * Support reading installed shared data in $(pkgdatadir)
 * Remove lssolve from src/util/ and replace with boost::ublas
-* Proof class in Solver
-  * Proof class should do assertions, reductions
-  * Support permanently inferior in solver
 
 ph [090416]
 * Unique probe sequence for solver:
