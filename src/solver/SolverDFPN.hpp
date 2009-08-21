@@ -163,6 +163,10 @@ inline bool DfpnData::Initialized() const
 
 //----------------------------------------------------------------------------
 
+typedef TransTable<DfpnData> DfpnHashTable;
+
+//----------------------------------------------------------------------------
+
 /** Hex solver using DFPN search. */
 class SolverDFPN 
 {
@@ -172,7 +176,8 @@ public:
 
     ~SolverDFPN();
 
-    HexColor StartSearch(HexColor colorToMove, HexBoard& game);
+    /** Solves the given state using the given hashtable. */
+    HexColor StartSearch(HexBoard& brd, DfpnHashTable& hashtable);
     
     /** Dumps output about root state what gui can display. */
     bool UseGuiFx() const;
@@ -181,8 +186,6 @@ public:
     void SetUseGuiFx(bool enable);
 
 private:
-
-    typedef TransTable<DfpnData> DfpnHashTable;
 
     /** Handles guifx output. */
     class GuiFx
@@ -227,7 +230,7 @@ private:
 
     HexBoard* m_workBoard;
 
-    boost::scoped_ptr<DfpnHashTable> m_hashTable;
+    DfpnHashTable* m_hashTable;
 
     bool m_aborted;
 

@@ -218,7 +218,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
       m_se(m_board.width(), m_board.height()),
       m_solver(new Solver()),
       m_solverDfpn(new SolverDFPN()),
-      m_solver_tt(new SolverTT(20)), // TT with 10^6 entries
+      m_solver_tt(new SolverTT(20)), // TT with 2^20 entries
+      m_dfpn_tt(new DfpnHashTable(20)), // TT with 2^20 entries
       m_book(0),
       m_db(0),
       m_useParallelSolver(false)
@@ -265,7 +266,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("vc-union", &BenzeneHtpEngine::CmdVCUnion);
 
     RegisterCmd("vc-build", &BenzeneHtpEngine::CmdBuildStatic);
-    RegisterCmd("vc-build-incremental", &BenzeneHtpEngine::CmdBuildIncremental);
+    RegisterCmd("vc-build-incremental", 
+                &BenzeneHtpEngine::CmdBuildIncremental);
     RegisterCmd("vc-undo-incremental", &BenzeneHtpEngine::CmdUndoIncremental);
 
     RegisterCmd("eval-twod", &BenzeneHtpEngine::CmdEvalTwoDist);
@@ -276,7 +278,10 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("solve-state", &BenzeneHtpEngine::CmdSolveState);
     RegisterCmd("solve-state-dfpn", &BenzeneHtpEngine::CmdSolveStateDfpn);
     RegisterCmd("solver-clear-tt", &BenzeneHtpEngine::CmdSolverClearTT);
-    RegisterCmd("solver-find-winning", &BenzeneHtpEngine::CmdSolverFindWinning);
+    RegisterCmd("solver-clear-dfpn-tt", 
+                &BenzeneHtpEngine::CmdSolverClearDfpnTT);
+    RegisterCmd("solver-find-winning", 
+                &BenzeneHtpEngine::CmdSolverFindWinning);
 
     RegisterCmd("db-open", &BenzeneHtpEngine::CmdDBOpen);
     RegisterCmd("db-close", &BenzeneHtpEngine::CmdDBClose);
@@ -1335,10 +1340,9 @@ void BenzeneHtpEngine::CmdSolveState(HtpCommand& cmd)
 
 void BenzeneHtpEngine::CmdSolveStateDfpn(HtpCommand& cmd)
 {
-    cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    cmd.CheckNuArg(0);
     HexBoard& brd = m_se.SyncBoard(m_game->Board());
-    HexColor winner = m_solverDfpn->StartSearch(color, brd);
+    HexColor winner = m_solverDfpn->StartSearch(brd, *m_dfpn_tt);
     cmd << winner;
 }
 
@@ -1346,6 +1350,12 @@ void BenzeneHtpEngine::CmdSolverClearTT(HtpCommand& cmd)
 {
     UNUSED(cmd);
     m_solver_tt->Clear();
+}
+
+void BenzeneHtpEngine::CmdSolverClearDfpnTT(HtpCommand& cmd)
+{
+    UNUSED(cmd);
+    m_dfpn_tt->Clear();
 }
 
 void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)

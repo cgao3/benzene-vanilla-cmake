@@ -106,8 +106,7 @@ void SolverDFPN::GuiFx::DoWrite()
 SolverDFPN::SolverDFPN()
     : m_hashTable(0),
       m_guiFx(),
-      m_useGuiFx(false),
-      m_ttsize(20)
+      m_useGuiFx(false)
 {
 }
 
@@ -142,10 +141,10 @@ std::string SolverDFPN::PrintVariation(const std::vector<HexPoint>& pv) const
     return os.str();
 }
 
-HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
+HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
 {
     m_aborted = false;
-    m_hashTable.reset(new DfpnHashTable(m_ttsize));
+    m_hashTable = &hashtable;
     m_numTerminal = 0;
     m_numMIDcalls = 0;
     m_brd.reset(new StoneBoard(board));
@@ -168,8 +167,9 @@ HexColor SolverDFPN::StartSearch(HexColor colorToMove, HexBoard& board)
         m_hashTable->Get(m_brd->Hash(), data);
         CheckBounds(data.m_bounds);
 
-        HexColor winner 
-            = (0 == data.m_bounds.phi) ? colorToMove : !colorToMove;
+        HexColor colorToMove = m_brd->WhoseTurn();
+        HexColor winner = data.m_bounds.IsWinning() 
+            ? colorToMove : !colorToMove;
         LogInfo() << winner << " wins!\n";
 
         std::vector<HexPoint> pv;

@@ -111,6 +111,7 @@ public:
     virtual void CmdSolveState(HtpCommand& cmd);
     virtual void CmdSolveStateDfpn(HtpCommand& cmd);
     virtual void CmdSolverClearTT(HtpCommand& cmd);
+    virtual void CmdSolverClearDfpnTT(HtpCommand& cmd);
     virtual void CmdSolverFindWinning(HtpCommand& cmd);
 
     void CmdDBOpen(HtpCommand& cmd);
@@ -152,6 +153,8 @@ protected:
     boost::scoped_ptr<SolverDFPN> m_solverDfpn;
 
     boost::scoped_ptr<SolverTT> m_solver_tt;
+
+    boost::scoped_ptr<DfpnHashTable> m_dfpn_tt;
 
     boost::scoped_ptr<OpeningBook> m_book;
 
