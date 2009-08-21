@@ -274,6 +274,22 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         if (bounds.phi <= currentBounds.phi 
             || bounds.delta <= currentBounds.delta)
         {
+            // May need to fix the PV if we discover this state is
+            // solved via a transposition.
+            if (bestMove == INVALID_POINT && currentBounds.IsSolved())
+            {
+                if (currentBounds.IsLosing())
+                    bestMove = children[0];  // FIXME: find better child?
+                else
+                {
+                    for (std::size_t i = 0; i < children.size(); ++i)
+                        if (childrenBounds[i].IsLosing())
+                        {
+                            bestMove = children[i];
+                            break;
+                        }
+                }
+            }
             break;
         }
 
@@ -337,7 +353,7 @@ void SolverDFPN::SelectChild(int& bestIndex, std::size_t& delta2,
         }
 
         // Winning move found
-        if (0 == child.delta)
+        if (child.IsLosing())
             break;
     }
     HexAssert(delta1 < INFTY);
@@ -351,11 +367,10 @@ void SolverDFPN::UpdateBounds(DfpnBounds& bounds,
     for (std::size_t i = 0; i < childBounds.size(); ++i)
     {
         // Abort on losing child (a winning move)
-        if (0 == childBounds[i].delta)
+        if (childBounds[i].IsLosing())
         {
             HexAssert(INFTY == childBounds[i].phi);
-            bounds.phi = 0;
-            bounds.delta = INFTY;
+            DfpnBounds::SetToWinning(bounds);
             break;
         }
         bounds.phi = std::min(bounds.phi, childBounds[i].delta);

@@ -31,6 +31,15 @@ struct DfpnBounds
 
     DfpnBounds(std::size_t p, std::size_t d);
 
+    /** Returns true if bounds are winning, ie, phi is 0. */
+    bool IsWinning() const;
+
+    /** Returns true if bounds are losing, ie delta is 0. */
+    bool IsLosing() const;
+    
+    /** Returns true if IsWinning() or IsLosing() is true. */
+    bool IsSolved() const;
+
     /** Print bounds in human readable format. */
     std::string Print() const;
 
@@ -58,6 +67,21 @@ inline std::string DfpnBounds::Print() const
     std::ostringstream os;
     os << "[" << phi << ", " << delta << "]";
     return os.str();
+}
+
+inline bool DfpnBounds::IsWinning() const
+{
+    return phi == 0;
+}
+
+inline bool DfpnBounds::IsLosing() const
+{
+    return delta == 0;
+}
+
+inline bool DfpnBounds::IsSolved() const
+{
+    return IsWinning() || IsLosing();
 }
 
 inline void DfpnBounds::SetToWinning(DfpnBounds& bounds)
