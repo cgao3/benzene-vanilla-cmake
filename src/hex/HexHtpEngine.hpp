@@ -88,8 +88,6 @@ protected:
 
     HexPoint MoveArg(const HtpCommand& cmd, std::size_t number) const;
 
-    void PrintBitsetToHTP(HtpCommand& cmd, const bitset_t& bs) const;
-
     /** Plays a move. */
     virtual void Play(HexColor color, HexPoint move);
 

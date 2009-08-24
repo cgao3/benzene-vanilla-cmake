@@ -136,15 +136,6 @@ void HexHtpEngine::NewGame(int width, int height)
     m_game->NewGame();
 }
 
-void HexHtpEngine::PrintBitsetToHTP(HtpCommand& cmd, const bitset_t& bs) const
-{
-    int c=0;
-    for (BitsetIterator i(bs); i; ++i) {
-        cmd << " " << HexPointUtil::toString(*i);
-        if ((++c % 10) == 0) cmd << "\n";
-    }
-}
-
 void HexHtpEngine::BeforeHandleCommand()
 {
     SgSetUserAbort(false);

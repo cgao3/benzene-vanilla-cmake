@@ -882,7 +882,7 @@ void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
     cmd << '\n';
 }
 
-// tries to find a combinatorial decomposition of the board state
+/** Tries to find a combinatorial decomposition of the board state. */
 void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
@@ -892,9 +892,10 @@ void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
     brd.ComputeAll(BLACK);
 
     bitset_t capturedVC;
-    if (BoardUtils::FindCombinatorialDecomposition(brd, color, capturedVC)) {
+    if (BoardUtils::FindCombinatorialDecomposition(brd, color, capturedVC)) 
+    {
         LogInfo() << "Found decomposition!\n";
-        PrintBitsetToHTP(cmd, capturedVC);
+        cmd << HexPointUtil::ToPointListString(capturedVC);
     }
 }
 
@@ -907,20 +908,24 @@ void BenzeneHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
     brd.ComputeAll(BLACK);
     HexPoint group;
     bitset_t capturedVC;
-    if (BoardUtils::FindSplittingDecomposition(brd, color, group,
-					       capturedVC)) 
+    if (BoardUtils::FindSplittingDecomposition(brd, color, group, capturedVC))
     {
-        LogInfo() << "Found split decomp: "
-                  << HexPointUtil::toString(group) << "!\n";
-        PrintBitsetToHTP(cmd, capturedVC);
+        LogInfo() << "Found split decomp: " << group << "!\n";
+        cmd << HexPointUtil::ToPointListString(capturedVC);
     }
 }
 
+/** Outputs pattern in encoded form. 
+    Takes a list of cells, the first cell being the center of the
+    pattern (that is not actually in the pattern).
+
+    FIXME: clean this up!
+*/
 void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
 {
     HexAssert(cmd.NuArg() > 0);
 
-    //Build direction offset look-up matrix.
+    // Build direction offset look-up matrix.
     int xoffset[Pattern::NUM_SLICES][32];
     int yoffset[Pattern::NUM_SLICES][32];
     for (int s=0; s<Pattern::NUM_SLICES; s++)
@@ -950,8 +955,7 @@ void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
     memset(pattOut, 0, sizeof(pattOut));
     StoneBoard brd(m_game->Board());
     HexPoint center = MoveArg(cmd, 0);
-    LogInfo() << "Center of pattern: " << center
-             << '\n' << "Includes: ";
+    LogInfo() << "Center of pattern: " << center << '\n' << "Includes: ";
     int x1, y1, x2, y2;
     HexPointUtil::pointToCoords(center, x1, y1);
     std::size_t i = 1;
@@ -1022,7 +1026,6 @@ void BenzeneHtpEngine::CmdBuildStatic(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = ColorArg(cmd, 0);
-
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.ComputeAll(color);
     cmd << brd.getInferiorCells().GuiOutput();
@@ -1032,7 +1035,7 @@ void BenzeneHtpEngine::CmdBuildStatic(HtpCommand& cmd)
         cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd, consider,
                                               brd.getInferiorCells().All());
     }
-    cmd << "\n";
+    cmd << '\n';
 }
 
 void BenzeneHtpEngine::CmdBuildIncremental(HtpCommand& cmd)
@@ -1040,7 +1043,6 @@ void BenzeneHtpEngine::CmdBuildIncremental(HtpCommand& cmd)
     cmd.CheckNuArgLessEqual(2);
     HexColor color = ColorArg(cmd, 0);
     HexPoint point = MoveArg(cmd, 1);
-
     HexBoard& brd = *m_pe.brd; // <-- NOTE: no call to SyncBoard()!
     brd.PlayMove(color, point);
     cmd << brd.getInferiorCells().GuiOutput();
@@ -1050,8 +1052,7 @@ void BenzeneHtpEngine::CmdBuildIncremental(HtpCommand& cmd)
         cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd, consider,
                                            brd.getInferiorCells().All());
     }
-
-    cmd << "\n";
+    cmd << '\n';
 }
 
 void BenzeneHtpEngine::CmdUndoIncremental(HtpCommand& cmd)
@@ -1111,7 +1112,7 @@ void BenzeneHtpEngine::CmdGetCellsConnectedTo(HtpCommand& cmd)
     VC::Type ctype = VCTypeArg(cmd, 2);
     bitset_t pt = VCSetUtil::ConnectedTo(m_pe.brd->Cons(color), 
                                          m_pe.brd->GetGroups(), from, ctype);
-    PrintBitsetToHTP(cmd, pt);
+    cmd << HexPointUtil::ToPointListString(pt);
 }
 
 void BenzeneHtpEngine::CmdGetMustPlay(HtpCommand& cmd)
@@ -1138,14 +1139,12 @@ void BenzeneHtpEngine::CmdVCIntersection(HtpCommand& cmd)
     HexPoint to = MoveArg(cmd, 1);
     HexColor color = ColorArg(cmd, 2);
     VC::Type ctype = VCTypeArg(cmd, 3);
-
     HexBoard& brd = *m_pe.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
     bitset_t intersection = lst.hardIntersection();
-
-    PrintBitsetToHTP(cmd, intersection);
+    cmd << HexPointUtil::ToPointListString(intersection);
 }
 
 void BenzeneHtpEngine::CmdVCUnion(HtpCommand& cmd)
@@ -1155,14 +1154,12 @@ void BenzeneHtpEngine::CmdVCUnion(HtpCommand& cmd)
     HexPoint to = MoveArg(cmd, 1);
     HexColor color = ColorArg(cmd, 2);
     VC::Type ctype = VCTypeArg(cmd, 3);
-
     HexBoard& brd = *m_pe.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
     bitset_t un = lst.getGreedyUnion(); // FIXME: shouldn't be greedy!!
-
-    PrintBitsetToHTP(cmd, un);
+    cmd << HexPointUtil::ToPointListString(un);
 }
 
 //----------------------------------------------------------------------------
@@ -1501,8 +1498,8 @@ void BenzeneHtpEngine::CmdDBGet(HtpCommand& cmd)
 
     // dump winner and proof
     cmd << (state.win ? toplay : !toplay);
-    cmd << " " << state.nummoves;
-    PrintBitsetToHTP(cmd, state.proof);
+    cmd << ' ' << state.nummoves;
+    cmd << HexPointUtil::ToPointListString(state.proof);
 
     // find winning/losing moves
     std::vector<int> nummoves(BITSETSIZE);
