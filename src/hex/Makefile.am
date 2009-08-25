@@ -10,6 +10,7 @@ HandCodedPattern.cpp\
 HashedPatternSet.cpp\
 HexAbSearch.cpp \
 HexBoard.cpp \
+HexEnvironment.cpp \
 HexEval.cpp \
 HexHtpEngine.cpp \
 HexPoint.cpp \
@@ -51,6 +52,7 @@ HexAbSearch.hpp \
 HexAssert.hpp \
 HexBoard.hpp \
 HexColor.hpp \
+HexEnvironment.hpp \
 HexEval.hpp \
 HexHtpEngine.hpp \
 HexPlayer.hpp \

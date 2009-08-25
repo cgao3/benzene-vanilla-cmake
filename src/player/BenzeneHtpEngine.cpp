@@ -11,7 +11,6 @@
 #include "BoardUtils.hpp"
 #include "BookCheck.hpp"
 #include "BitsetIterator.hpp"
-#include "VCSet.hpp"
 #include "EndgameCheck.hpp"
 #include "GraphUtils.hpp"
 #include "HandBookCheck.hpp"
@@ -26,187 +25,11 @@
 #include "SolverDB.hpp"
 #include "SwapCheck.hpp"
 #include "TwoDistance.hpp"
+#include "VCSet.hpp"
 #include "VCUtils.hpp"
 #include "VulPreCheck.hpp"
 
 using namespace benzene;
-
-//----------------------------------------------------------------------------
-
-namespace {
-
-//----------------------------------------------------------------------------
-
-void ParamICE(ICEngine& ice, HtpCommand& cmd)
-{
-    if (cmd.NuArg() == 0)
-    {
-        cmd << '\n'
-            << "[bool] backup_opponent_dead "
-            << ice.BackupOpponentDead() << '\n'
-            << "[bool] find_all_pattern_dominators "
-            << ice.FindAllPatternDominators() << '\n'
-            << "[bool] find_all_pattern_killers "
-            << ice.FindAllPatternKillers() << '\n'
-            << "[bool] find_permanently_inferior "
-            << ice.FindPermanentlyInferior() << '\n'
-            << "[bool] find_presimplicial_pairs " 
-            << ice.FindPresimplicialPairs() << '\n'
-            << "[bool] find_three_sided_dead_regions "
-            << ice.FindThreeSidedDeadRegions() << '\n'
-            << "[bool] iterative_dead_regions "
-            << ice.IterativeDeadRegions() << '\n'
-            << "[bool] use_hand_coded_patterns "
-            << ice.UseHandCodedPatterns() << '\n';
-    }
-    else if (cmd.NuArg() == 2)
-    {
-        std::string name = cmd.Arg(0);
-        if (name == "backup_opponent_dead")
-            ice.SetBackupOpponentDead(cmd.BoolArg(1));
-        else if (name == "find_all_pattern_dominators")
-            ice.SetFindAllPatternDominators(cmd.BoolArg(1));
-        else if (name == "find_all_pattern_killers")
-            ice.SetFindAllPatternKillers(cmd.BoolArg(1));
-        else if (name == "find_permanently_inferior")
-            ice.SetFindPermanentlyInferior(cmd.BoolArg(1));
-        else if (name == "find_presimplicial_pairs")
-            ice.SetFindPresimplicialPairs(cmd.BoolArg(1));
-        else if (name == "find_three_sided_dead_regions")
-            ice.SetFindThreeSidedDeadRegions(cmd.BoolArg(1));
-        else if (name == "iterative_dead_regions")
-            ice.SetIterativeDeadRegions(cmd.BoolArg(1));
-        else if (name == "use_hand_coded_patterns")
-            ice.SetUseHandCodedPatterns(cmd.BoolArg(1));
-        else
-            throw HtpFailure() << "Unknown parameter: " << name;
-    }
-    else
-        throw HtpFailure() << "Expected 0 or 2 arguments";
-}
-
-void ParamVC(HexBoard& brd, HtpCommand& cmd)
-{
-    VCBuilderParam& param = brd.Builder().Parameters();
-    if (cmd.NuArg() == 0)
-    {
-        cmd << '\n'
-            << "[bool] abort_on_winning_connection "
-            << param.abort_on_winning_connection << '\n'
-            << "[bool] and_over_edge "
-            << param.and_over_edge << '\n'
-            << "[bool] use_greedy_union "
-            << param.use_greedy_union << '\n'
-            << "[bool] use_patterns "
-            << param.use_patterns << '\n'
-            << "[bool] use_crossing_rule "
-            << param.use_crossing_rule << '\n'
-            << "[string] max_ors "
-            << param.max_ors << '\n'
-            << "[string] softlimit_full "
-            << brd.Cons(BLACK).SoftLimit(VC::FULL) << '\n'
-            << "[string] softlimit_semi "
-            << brd.Cons(BLACK).SoftLimit(VC::SEMI) << '\n';
-    }
-    else if (cmd.NuArg() == 2)
-    {
-        std::string name = cmd.Arg(0);
-        if (name == "abort_on_winning_connection")
-            param.abort_on_winning_connection = cmd.BoolArg(1);
-        else if (name == "and_over_edge")
-            param.and_over_edge = cmd.BoolArg(1);
-        else if (name == "use_greedy_union")
-            param.use_greedy_union = cmd.BoolArg(1);
-        else if (name == "use_patterns")
-            param.use_patterns = cmd.BoolArg(1);
-        else if (name == "use_crossing_rule")
-            param.use_crossing_rule = cmd.BoolArg(1);
-        else if (name == "max_ors")
-            param.max_ors = cmd.IntArg(1);
-        else if (name == "softlimit_full")
-        {
-            int limit = cmd.IntArg(1, 0);
-            brd.Cons(BLACK).SetSoftLimit(VC::FULL, limit);
-            brd.Cons(WHITE).SetSoftLimit(VC::FULL, limit);
-        }
-        else if (name == "softlimit_semi")
-        {
-            int limit = cmd.IntArg(1, 0);
-            brd.Cons(BLACK).SetSoftLimit(VC::SEMI, limit);
-            brd.Cons(WHITE).SetSoftLimit(VC::SEMI, limit);
-        }
-        else
-            throw HtpFailure() << "Unknown parameter: " << name;
-    }
-    else
-        throw HtpFailure() << "Expected 0 or 2 arguments";
-}
-
-void ParamBoard(HexBoard& brd, HtpCommand& cmd)
-{
-    if (cmd.NuArg() == 0)
-    {
-        cmd << '\n'
-            << "[bool] backup_ice_info "
-            << brd.BackupIceInfo() << '\n'
-            << "[bool] use_decompositions "
-            << brd.UseDecompositions() << '\n'
-            << "[bool] use_ice "
-            << brd.UseICE() << '\n'
-            << "[bool] use_vcs "
-            << brd.UseVCs() << '\n';
-    }
-    else if (cmd.NuArg() == 2)
-    {
-        std::string name = cmd.Arg(0);
-        if (name == "backup_ice_info")
-            brd.SetBackupIceInfo(cmd.BoolArg(1));
-        else if (name == "use_decompositions")
-            brd.SetUseDecompositions(cmd.BoolArg(1));
-        else if (name == "use_ice")
-            brd.SetUseICE(cmd.BoolArg(1));
-        else if (name == "use_vcs")
-            brd.SetUseVCs(cmd.BoolArg(1));
-        else 
-            throw HtpFailure() << "Unknown parameter: " << name;
-    }
-    else
-        throw HtpFailure() << "Expected 0 or 2 arguments";
-}
-
-//----------------------------------------------------------------------------
-
-} // namespace
-
-//----------------------------------------------------------------------------
-
-void HexEnvironment::NewGame(int width, int height)
-{
-    if (brd->width() != width && brd->height() != height)
-    {
-        /** @todo Make board resizable? Until then, make sure all
-            HexBoard parameters are copied here! */
-        bool use_vcs = brd->UseVCs();
-        bool use_ice = brd->UseICE();
-        bool use_dec = brd->UseDecompositions();
-        bool backup  = brd->BackupIceInfo();
-        brd.reset(new HexBoard(width, height, ice, buildParam));
-        brd->SetUseVCs(use_vcs);
-        brd->SetUseICE(use_ice);
-        brd->SetUseDecompositions(use_dec);
-        brd->SetBackupIceInfo(backup);
-    }
-    brd->startNewGame();
-}
-
-HexBoard& HexEnvironment::SyncBoard(const StoneBoard& board)
-{
-    brd->startNewGame();
-    brd->setColor(BLACK, board.getBlack());
-    brd->setColor(WHITE, board.getWhite());
-    brd->setPlayed(board.getPlayed());
-    return *brd.get();
-}
 
 //----------------------------------------------------------------------------
 
@@ -216,6 +39,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
       m_player(player),
       m_pe(m_board.width(), m_board.height()),
       m_se(m_board.width(), m_board.height()),
+      m_playerEnvCommands(m_pe),
+      m_solverEnvCommands(m_se),
       m_solver(new Solver()),
       m_solverDfpn(new SolverDFPN()),
       m_solver_tt(new SolverTT(20)), // TT with 2^20 entries
@@ -249,13 +74,9 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("find-split-decomp", &BenzeneHtpEngine::CmdFindSplitDecomp);
     RegisterCmd("encode-pattern", &BenzeneHtpEngine::CmdEncodePattern);
 
-    RegisterCmd("param_player_ice", &BenzeneHtpEngine::CmdParamPlayerICE);
-    RegisterCmd("param_player_vc", &BenzeneHtpEngine::CmdParamPlayerVC);
-    RegisterCmd("param_player_board", &BenzeneHtpEngine::CmdParamPlayerBoard);
+    m_playerEnvCommands.Register(*this, "player");
+    m_solverEnvCommands.Register(*this, "solver");
     RegisterCmd("param_player", &BenzeneHtpEngine::CmdParamPlayer);
-    RegisterCmd("param_solver_ice", &BenzeneHtpEngine::CmdParamSolverICE);
-    RegisterCmd("param_solver_vc", &BenzeneHtpEngine::CmdParamSolverVC);
-    RegisterCmd("param_solver_board", &BenzeneHtpEngine::CmdParamSolverBoard);
     RegisterCmd("param_solver", &BenzeneHtpEngine::CmdParamSolver);
     RegisterCmd("param_solver_dfpn", &BenzeneHtpEngine::CmdParamSolverDfpn);
 
@@ -442,39 +263,9 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
         throw HtpFailure("Expected 0 ore 2 arguments");
 }
 
-void BenzeneHtpEngine::CmdParamPlayerICE(HtpCommand& cmd)
-{
-    ParamICE(m_pe.ice, cmd);
-}
-
-void BenzeneHtpEngine::CmdParamPlayerVC(HtpCommand& cmd)
-{
-    ParamVC(*m_pe.brd, cmd);
-}
-
-void BenzeneHtpEngine::CmdParamPlayerBoard(HtpCommand& cmd)
-{
-    ParamBoard(*m_pe.brd, cmd);
-}
-
 void BenzeneHtpEngine::CmdParamPlayer(HtpCommand& cmd)
 {
     ParamPlayer(&m_player, cmd);
-}
-
-void BenzeneHtpEngine::CmdParamSolverICE(HtpCommand& cmd)
-{
-    ParamICE(m_se.ice, cmd);    
-}
-
-void BenzeneHtpEngine::CmdParamSolverVC(HtpCommand& cmd)
-{
-    ParamVC(*m_se.brd, cmd);
-}
-
-void BenzeneHtpEngine::CmdParamSolverBoard(HtpCommand& cmd)
-{
-    ParamBoard(*m_se.brd, cmd);
 }
 
 void BenzeneHtpEngine::CmdParamSolver(HtpCommand& cmd)

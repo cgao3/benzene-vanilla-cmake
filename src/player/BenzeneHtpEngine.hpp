@@ -11,36 +11,13 @@
 #include <boost/thread/mutex.hpp>
 
 #include "BenzenePlayer.hpp"
+#include "HexEnvironment.hpp"
 #include "HexHtpEngine.hpp"
 #include "OpeningBook.hpp"
 #include "Solver.hpp"
 #include "SolverDFPN.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
-
-//----------------------------------------------------------------------------
-
-struct HexEnvironment
-{
-    HexEnvironment(int width, int height);
-
-    void NewGame(int width, int height);
-
-    HexBoard& SyncBoard(const StoneBoard& brd);
-
-    ICEngine ice;
-
-    VCBuilderParam buildParam;
-
-    boost::scoped_ptr<HexBoard> brd;
-    
-};
-
-inline HexEnvironment::HexEnvironment(int width, int height)
-    : brd(0)
-{
-    brd.reset(new HexBoard(width, height, ice, buildParam));
-}
 
 //----------------------------------------------------------------------------
 
@@ -83,13 +60,7 @@ public:
     virtual void CmdFindSplitDecomp(HtpCommand& cmd);
     virtual void CmdEncodePattern(HtpCommand& cmd);
 
-    virtual void CmdParamPlayerICE(HtpCommand& cmd);
-    virtual void CmdParamPlayerVC(HtpCommand& cmd);
-    virtual void CmdParamPlayerBoard(HtpCommand& cmd);
     virtual void CmdParamPlayer(HtpCommand& cmd);
-    virtual void CmdParamSolverICE(HtpCommand& cmd);
-    virtual void CmdParamSolverVC(HtpCommand& cmd);
-    virtual void CmdParamSolverBoard(HtpCommand& cmd);
     virtual void CmdParamSolver(HtpCommand& cmd);
     virtual void CmdParamSolverDfpn(HtpCommand& cmd);
 
@@ -148,6 +119,10 @@ protected:
     /** Solver's environment. */
     HexEnvironment m_se;
 
+    HexEnvironmentCommands m_playerEnvCommands;
+
+    HexEnvironmentCommands m_solverEnvCommands;
+
     boost::scoped_ptr<Solver> m_solver;
 
     boost::scoped_ptr<SolverDFPN> m_solverDfpn;
@@ -159,6 +134,7 @@ protected:
     boost::scoped_ptr<OpeningBook> m_book;
 
     boost::scoped_ptr<SolverDB> m_db;
+
 
 protected:
     bool StateMatchesBook(const StoneBoard& brd);
