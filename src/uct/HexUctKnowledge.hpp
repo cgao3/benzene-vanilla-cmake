@@ -3,60 +3,34 @@
  */
 //----------------------------------------------------------------------------
 
-#ifndef HEXUCTKNOWLEDGE_H
-#define HEXUCTKNOWLEDGE_H
+#ifndef HEXUCTKNOWLEDGE_HPP
+#define HEXUCTKNOWLEDGE_HPP
 
-#include "SgMove.h"
-#include "SgUctSearch.h"
-
-#include "HexUctState.hpp"
+//#include "SgSystem.h"
+//#include "SgUctSearch.h"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-class HexUctPriorKnowledge
+class HexUctState;
+
+/** Applies knowledge to set of moves. */
+class HexUctKnowledge
 {
 public:
-    // Constructor and Destructor.
-    HexUctPriorKnowledge(const HexUctState& state);
+    HexUctKnowledge(const HexUctState& m_state);
 
-    ~HexUctPriorKnowledge();
+    ~HexUctKnowledge();
+
+    void ProcessPosition(std::vector<SgMoveInfo>& moves);
     
-    // Loads patterns used for move analysis.
-    void LoadPatterns(const std::string& config_dir);
-    
-    // Methods to analyze position and produce initial values based on
-    // positive/negative attributes.
-    void ProcessPosition(bool& deepenTree);
-
-    void InitializeMove(SgMove move, float& value, float& count);
-
 private:
-    // Loads patterns used to determine if a response is good/bad.
-    void LoadGoodPatterns(const std::string& filename);
-    void LoadBadPatterns(const std::string& filename);
-    
-    // Access to UCT state.
     const HexUctState& m_state;
-    
-    // Pattern data to analyze move responses.
-    std::vector<Pattern> m_good_patterns[BLACK_AND_WHITE];
-    HashedPatternSet m_hash_good_patterns[BLACK_AND_WHITE];
-    std::vector<Pattern> m_bad_patterns[BLACK_AND_WHITE];
-    HashedPatternSet m_hash_bad_patterns[BLACK_AND_WHITE];
-    
-    // Indicates whether or not we use good/bad init patterns.
-    bool m_use_good;
-    bool m_use_bad;
-    
-    // Stores likely good/bad responses.
-    bitset_t m_goodResponses;
-    bitset_t m_badResponses;
 };
 
 //----------------------------------------------------------------------------
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HEXUCTKNOWLEDGE_H
+#endif // HEXUCTKNOWLEDGE_HPP

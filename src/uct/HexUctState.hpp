@@ -12,6 +12,7 @@
 
 #include "HashMap.hpp"
 #include "HexBoard.hpp"
+#include "HexUctKnowledge.hpp"
 #include "Move.hpp"
 #include "VC.hpp"
 
@@ -232,6 +233,8 @@ private:
 
     /** Data shared between threads. */
     HexUctSharedData* m_shared_data;
+
+    HexUctKnowledge m_knowledge;
 
     /** Parent search object. */
     HexUctSearch& m_search;

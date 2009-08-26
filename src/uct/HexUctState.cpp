@@ -84,6 +84,7 @@ HexUctState::HexUctState(std::size_t threadId,
       m_vc_brd(0),
       m_policy(0),
       m_shared_data(0),
+      m_knowledge(*this),
       m_search(sch),
        m_treeUpdateRadius(treeUpdateRadius),
       m_playoutUpdateRadius(playoutUpdateRadius),
@@ -182,39 +183,43 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
     m_new_game = false;
 }
 
-/** @todo Handle swap? */
 bool HexUctState::GenerateAllMoves(std::size_t count, 
                                    std::vector<SgMoveInfo>& moves)
 {
-    bitset_t moveset;
-    bool have_consider_set = false;
+    moves.clear();
+
+    // Handle root node as a special case
     if (m_new_game)
     {
-        moveset = m_shared_data->root_consider;
-        have_consider_set = true;
+        for (BitsetIterator it(m_shared_data->root_consider); it; ++it)
+            moves.push_back(SgMoveInfo(*it));
+        if (count == 0)
+            m_knowledge.ProcessPosition(moves);
+        return false;
     }
-    else 
-        moveset = m_bd->getEmpty();
 
     bool truncateChildTrees = false;
-    if (count && !have_consider_set)
+    if (count == 0)
     {
-        truncateChildTrees = true;
-
+        // First time at node: use empty cells and prior knowledge
+        for (BitsetIterator it(m_bd->getEmpty()); it; ++it)
+            moves.push_back(SgMoveInfo(*it));
+        m_knowledge.ProcessPosition(moves);
+    }
+    else
+    {
+        // Prune moves outside of mustplay and fillin
         if (TRACK_KNOWLEDGE)
         {
             hash_t hash = SequenceHash::Hash(m_game_sequence);
             LogInfo() << m_threadId << ": " 
                       << HashUtil::toString(hash) << '\n';
         }
-
-        moveset &= ComputeKnowledge();
+        truncateChildTrees = true;
+        bitset_t moveset = m_bd->getEmpty() & ComputeKnowledge();
+        for (BitsetIterator it(moveset); it; ++it)
+            moves.push_back(SgMoveInfo(*it));
     }
-
-    moves.clear();
-    for (BitsetIterator it(moveset); it; ++it)
-        moves.push_back(SgMoveInfo(*it));
-
     return truncateChildTrees;
 }
 
