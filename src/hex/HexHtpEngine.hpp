@@ -72,6 +72,9 @@ public:
     void Interrupt();
 #endif
 
+    /** Returns current game. */
+    const Game& GetGame() const;
+
 protected:
 
     StoneBoard m_board;
@@ -83,10 +86,6 @@ protected:
 
     /** Does nothing. */
     void BeforeWritingResponse();
-
-    HexColor ColorArg(const HtpCommand& cmd, std::size_t number) const;
-
-    HexPoint MoveArg(const HtpCommand& cmd, std::size_t number) const;
 
     /** Plays a move. */
     virtual void Play(HexColor color, HexPoint move);
@@ -108,6 +107,21 @@ private:
     void RegisterCmd(const std::string& name,
                      GtpCallback<HexHtpEngine>::Method method);
 };
+
+inline const Game& HexHtpEngine::GetGame() const
+{
+    return *m_game;
+}
+
+//----------------------------------------------------------------------------
+
+/** Misc HTP utilities. */
+namespace HtpUtil
+{
+    HexColor ColorArg(const HtpCommand& cmd, std::size_t number);
+
+    HexPoint MoveArg(const HtpCommand& cmd, std::size_t number);
+}
 
 //----------------------------------------------------------------------------
 

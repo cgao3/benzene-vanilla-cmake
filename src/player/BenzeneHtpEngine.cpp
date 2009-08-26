@@ -41,6 +41,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
       m_se(m_board.width(), m_board.height()),
       m_playerEnvCommands(m_pe),
       m_solverEnvCommands(m_se),
+      m_vcCommands(*this, m_pe),
       m_solver(new Solver()),
       m_solverDfpn(new SolverDFPN()),
       m_solver_tt(new SolverTT(20)), // TT with 2^20 entries
@@ -76,20 +77,11 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
 
     m_playerEnvCommands.Register(*this, "player");
     m_solverEnvCommands.Register(*this, "solver");
+    m_vcCommands.Register();
+
     RegisterCmd("param_player", &BenzeneHtpEngine::CmdParamPlayer);
     RegisterCmd("param_solver", &BenzeneHtpEngine::CmdParamSolver);
     RegisterCmd("param_solver_dfpn", &BenzeneHtpEngine::CmdParamSolverDfpn);
-
-    RegisterCmd("vc-between-cells", &BenzeneHtpEngine::CmdGetVCsBetween);
-    RegisterCmd("vc-connected-to", &BenzeneHtpEngine::CmdGetCellsConnectedTo);
-    RegisterCmd("vc-get-mustplay", &BenzeneHtpEngine::CmdGetMustPlay);
-    RegisterCmd("vc-intersection", &BenzeneHtpEngine::CmdVCIntersection);
-    RegisterCmd("vc-union", &BenzeneHtpEngine::CmdVCUnion);
-
-    RegisterCmd("vc-build", &BenzeneHtpEngine::CmdBuildStatic);
-    RegisterCmd("vc-build-incremental", 
-                &BenzeneHtpEngine::CmdBuildIncremental);
-    RegisterCmd("vc-undo-incremental", &BenzeneHtpEngine::CmdUndoIncremental);
 
     RegisterCmd("eval-twod", &BenzeneHtpEngine::CmdEvalTwoDist);
     RegisterCmd("eval-resist", &BenzeneHtpEngine::CmdEvalResist);
@@ -126,18 +118,6 @@ void BenzeneHtpEngine::RegisterCmd(const std::string& name,
                                GtpCallback<BenzeneHtpEngine>::Method method)
 {
     Register(name, new GtpCallback<BenzeneHtpEngine>(this, method));
-}
-
-VC::Type
-BenzeneHtpEngine::VCTypeArg(const HtpCommand& cmd, std::size_t number) const
-{
-    return VCTypeUtil::fromString(cmd.ArgToLower(number));
-}
-
-void BenzeneHtpEngine::PrintVC(HtpCommand& cmd, const VC& vc, 
-                            HexColor color) const
-{
-    cmd << color << " " << vc << '\n';
 }
 
 void BenzeneHtpEngine::NewGame(int width, int height)
@@ -178,7 +158,7 @@ void BenzeneHtpEngine::CmdRegGenMove(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     double score;
     HexPoint move = m_player.genmove(m_pe.SyncBoard(m_game->Board()),
-                                     *m_game, ColorArg(cmd, 0),
+                                     *m_game, HtpUtil::ColorArg(cmd, 0),
                                      -1, score);
     cmd << move;
 }
@@ -187,7 +167,7 @@ void BenzeneHtpEngine::CmdRegGenMove(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexPoint cell = MoveArg(cmd, 0);
+    HexPoint cell = HtpUtil::MoveArg(cmd, 0);
     if (m_game->Board().getColor(cell) == EMPTY)
         return;
 
@@ -530,7 +510,7 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
     cmd.CheckNuArg(4);
     std::string bookfilename = cmd.Arg(0);
     std::string sgffilename = cmd.Arg(1);
-    HexColor colorToSave = ColorArg(cmd, 2);
+    HexColor colorToSave = HtpUtil::ColorArg(cmd, 2);
     int maxMove = cmd.IntArg(3, 0);
     
     std::ifstream sgffile(sgffilename.c_str());
@@ -607,7 +587,7 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdComputeInferior(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.GetPatternState().Update();
@@ -625,7 +605,7 @@ void BenzeneHtpEngine::CmdComputeInferior(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdComputeFillin(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.GetPatternState().Update();
@@ -643,7 +623,7 @@ void BenzeneHtpEngine::CmdComputeFillin(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor col = ColorArg(cmd, 0);
+    HexColor col = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.GetPatternState().Update();
@@ -660,7 +640,7 @@ void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor col = ColorArg(cmd, 0);
+    HexColor col = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.GetPatternState().Update();
@@ -677,7 +657,7 @@ void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.ComputeAll(BLACK);
@@ -693,7 +673,7 @@ void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.ComputeAll(BLACK);
@@ -745,14 +725,14 @@ void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
     int pattOut[Pattern::NUM_SLICES * 5];
     memset(pattOut, 0, sizeof(pattOut));
     StoneBoard brd(m_game->Board());
-    HexPoint center = MoveArg(cmd, 0);
+    HexPoint center = HtpUtil::MoveArg(cmd, 0);
     LogInfo() << "Center of pattern: " << center << '\n' << "Includes: ";
     int x1, y1, x2, y2;
     HexPointUtil::pointToCoords(center, x1, y1);
     std::size_t i = 1;
     while (i < cmd.NuArg())
     {
-        HexPoint p = MoveArg(cmd, i++);
+        HexPoint p = HtpUtil::MoveArg(cmd, i++);
         HexPointUtil::pointToCoords(p, x2, y2);
         x2 = x2 - x1;
         y2 = y2 - y1;
@@ -810,157 +790,13 @@ void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
 }
 
 //----------------------------------------------------------------------------
-// VC commands
-//----------------------------------------------------------------------------
-
-void BenzeneHtpEngine::CmdBuildStatic(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
-    brd.ComputeAll(color);
-    cmd << brd.getInferiorCells().GuiOutput();
-    if (!PlayerUtils::IsDeterminedState(brd, color))
-    {
-        bitset_t consider = PlayerUtils::MovesToConsider(brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd, consider,
-                                              brd.getInferiorCells().All());
-    }
-    cmd << '\n';
-}
-
-void BenzeneHtpEngine::CmdBuildIncremental(HtpCommand& cmd)
-{
-    cmd.CheckNuArgLessEqual(2);
-    HexColor color = ColorArg(cmd, 0);
-    HexPoint point = MoveArg(cmd, 1);
-    HexBoard& brd = *m_pe.brd; // <-- NOTE: no call to SyncBoard()!
-    brd.PlayMove(color, point);
-    cmd << brd.getInferiorCells().GuiOutput();
-    if (!PlayerUtils::IsDeterminedState(brd, color))
-    {
-        bitset_t consider = PlayerUtils::MovesToConsider(brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd, consider,
-                                           brd.getInferiorCells().All());
-    }
-    cmd << '\n';
-}
-
-void BenzeneHtpEngine::CmdUndoIncremental(HtpCommand& cmd)
-{
-    UNUSED(cmd);
-    m_pe.brd->UndoMove();
-}
-
-/** Returns a list of VCs between the given two cells.
-    Format: "vc-between-cells x y c t", where x and y are the cells,
-    c is the color of the player, and t is the type of connection
-    (0-conn, 1-conn, etc). */
-void BenzeneHtpEngine::CmdGetVCsBetween(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(4);
-    HexPoint from = MoveArg(cmd, 0);
-    HexPoint to = MoveArg(cmd, 1);
-    HexColor color = ColorArg(cmd, 2);
-    VC::Type ctype = VCTypeArg(cmd, 3);
-
-    HexBoard& brd = *m_pe.brd;
-    HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
-    HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-
-    std::vector<VC> vc;
-    brd.Cons(color).VCs(fcaptain, tcaptain, ctype, vc);
-    const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
-
-    cmd << "\n";
-
-    unsigned i=0;
-    for (; i<(unsigned)lst.softlimit() && i<vc.size(); i++) 
-        PrintVC(cmd, vc.at(i), color);
-
-    if (i >= vc.size())
-        return;
-
-    cmd << color << " ";
-    cmd << HexPointUtil::toString(fcaptain) << " ";
-    cmd << HexPointUtil::toString(tcaptain) << " ";
-    cmd << "softlimit ----------------------";
-    cmd << "\n";
-
-    for (; i<vc.size(); i++)
-        PrintVC(cmd, vc.at(i), color);
-}
-
-
-/** Returns a list of cells the given cell shares a vc with.
-    Format: "vc-connected-to x c t", where x is the cell in question,
-    c is the color of the player, and t is the type of vc. */
-void BenzeneHtpEngine::CmdGetCellsConnectedTo(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(3);
-    HexPoint from = MoveArg(cmd, 0);
-    HexColor color = ColorArg(cmd, 1);
-    VC::Type ctype = VCTypeArg(cmd, 2);
-    bitset_t pt = VCSetUtil::ConnectedTo(m_pe.brd->Cons(color), 
-                                         m_pe.brd->GetGroups(), from, ctype);
-    cmd << HexPointUtil::ToPointListString(pt);
-}
-
-void BenzeneHtpEngine::CmdGetMustPlay(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
-    bitset_t mustplay = VCUtils::GetMustplay(*m_pe.brd, color);
-    InferiorCells inf(m_pe.brd->getInferiorCells());
-    inf.ClearVulnerable();
-    inf.ClearDominated();
-    cmd << inf.GuiOutput();
-    if (!PlayerUtils::IsDeterminedState(*m_pe.brd, color))
-    {
-        bitset_t consider = PlayerUtils::MovesToConsider(*m_pe.brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(*m_pe.brd, consider,
-                                                     inf.All());
-    }
-}
-
-void BenzeneHtpEngine::CmdVCIntersection(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(4);
-    HexPoint from = MoveArg(cmd, 0);
-    HexPoint to = MoveArg(cmd, 1);
-    HexColor color = ColorArg(cmd, 2);
-    VC::Type ctype = VCTypeArg(cmd, 3);
-    HexBoard& brd = *m_pe.brd;
-    HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
-    HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
-    bitset_t intersection = lst.hardIntersection();
-    cmd << HexPointUtil::ToPointListString(intersection);
-}
-
-void BenzeneHtpEngine::CmdVCUnion(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(4);
-    HexPoint from = MoveArg(cmd, 0);
-    HexPoint to = MoveArg(cmd, 1);
-    HexColor color = ColorArg(cmd, 2);
-    VC::Type ctype = VCTypeArg(cmd, 3);
-    HexBoard& brd = *m_pe.brd;
-    HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
-    HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
-    bitset_t un = lst.getGreedyUnion(); // FIXME: shouldn't be greedy!!
-    cmd << HexPointUtil::ToPointListString(un);
-}
-
-//----------------------------------------------------------------------------
 // Evaluation commands
 //----------------------------------------------------------------------------
 
 void BenzeneHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.ComputeAll(color);
@@ -981,7 +817,7 @@ void BenzeneHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.ComputeAll(color);
@@ -1006,7 +842,7 @@ void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.ComputeAll(color);
@@ -1031,7 +867,7 @@ void BenzeneHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     HexBoard& brd = m_pe.SyncBoard(m_game->Board());
     brd.ComputeAll(color);
@@ -1084,7 +920,7 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdSolveState(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(4);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     bool use_db = false;
     std::string filename = "dummy";
@@ -1149,7 +985,7 @@ void BenzeneHtpEngine::CmdSolverClearDfpnTT(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(4);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexColor other = !color;
 
     bool use_db = false;
@@ -1340,7 +1176,7 @@ void BenzeneHtpEngine::CmdDBGet(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdMiscDebug(HtpCommand& cmd)
 {
 //     cmd.CheckNuArg(1);
-//     HexPoint point = MoveArg(cmd, 0);
+//     HexPoint point = HtpUtil::MoveArg(cmd, 0);
     cmd << *m_pe.brd << '\n';
 }
 

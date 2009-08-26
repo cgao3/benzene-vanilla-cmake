@@ -68,24 +68,6 @@ void HexHtpEngine::RegisterCmd(const std::string& name,
     Register(name, new GtpCallback<HexHtpEngine>(this, method));
 }
 
-
-HexColor HexHtpEngine::ColorArg(const HtpCommand& cmd, std::size_t number) const
-{
-    std::string value = cmd.ArgToLower(number);
-    if (value == "e" || value == "empty")
-            return EMPTY;
-    if (value == "b" || value == "black")
-	    return BLACK;
-    if (value == "w" || value == "white")
-	    return WHITE;
-    throw HtpFailure() << "argument " << (number + 1) << " must be color";
-}
-
-HexPoint HexHtpEngine::MoveArg(const HtpCommand& cmd, std::size_t number) const
-{
-    return HexPointUtil::fromString(cmd.ArgToLower(number));
-}
-
 void HexHtpEngine::Play(HexColor color, HexPoint move)
 {
     bool illegal = false;
@@ -207,14 +189,14 @@ void HexHtpEngine::CmdClearBoard(HtpCommand& cmd)
 void HexHtpEngine::CmdPlay(HtpCommand& cmd)
 {
     cmd.CheckNuArg(2);
-    Play(ColorArg(cmd, 0), MoveArg(cmd, 1));
+    Play(HtpUtil::ColorArg(cmd, 0), HtpUtil::MoveArg(cmd, 1));
 }
 
 /** Generates a move and handles time remaining. */
 void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = ColorArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
 
     SgTime::SetDefaultMode(SG_TIME_REAL);
     SgTimer timer;
@@ -261,11 +243,11 @@ void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
             << "White: " << Time::Formatted(m_game->TimeRemaining(WHITE));
     }
     else if (cmd.NuArg() == 1) {
-        HexColor color = ColorArg(cmd, 0);
+        HexColor color = HtpUtil::ColorArg(cmd, 0);
         cmd << Time::Formatted(m_game->TimeRemaining(color));
     } 
     else {
-        HexColor color = ColorArg(cmd, 0);
+        HexColor color = HtpUtil::ColorArg(cmd, 0);
         m_game->SetTimeRemaining(color, cmd.IntArg(1));
     }
 }
@@ -416,5 +398,24 @@ void HexHtpEngine::Interrupt()
 }
 
 #endif // GTPENGINE_INTERRUPT
+
+//----------------------------------------------------------------------------
+
+HexColor HtpUtil::ColorArg(const HtpCommand& cmd, std::size_t number)
+{
+    std::string value = cmd.ArgToLower(number);
+    if (value == "e" || value == "empty")
+            return EMPTY;
+    if (value == "b" || value == "black")
+	    return BLACK;
+    if (value == "w" || value == "white")
+	    return WHITE;
+    throw HtpFailure() << "argument " << (number + 1) << " must be color";
+}
+
+HexPoint HtpUtil::MoveArg(const HtpCommand& cmd, std::size_t number)
+{
+    return HexPointUtil::fromString(cmd.ArgToLower(number));
+}
 
 //----------------------------------------------------------------------------

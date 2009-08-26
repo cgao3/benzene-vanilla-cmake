@@ -16,6 +16,7 @@
 #include "OpeningBook.hpp"
 #include "Solver.hpp"
 #include "SolverDFPN.hpp"
+#include "VCCommands.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -64,16 +65,6 @@ public:
     virtual void CmdParamSolver(HtpCommand& cmd);
     virtual void CmdParamSolverDfpn(HtpCommand& cmd);
 
-    virtual void CmdGetVCsBetween(HtpCommand& cmd);
-    virtual void CmdGetCellsConnectedTo(HtpCommand& cmd);
-    virtual void CmdGetMustPlay(HtpCommand& cmd);
-    virtual void CmdVCIntersection(HtpCommand& cmd);
-    virtual void CmdVCUnion(HtpCommand& cmd);
-
-    virtual void CmdBuildStatic(HtpCommand& cmd);
-    virtual void CmdBuildIncremental(HtpCommand& cmd);
-    virtual void CmdUndoIncremental(HtpCommand& cmd);
-
     virtual void CmdEvalTwoDist(HtpCommand& cmd);
     virtual void CmdEvalResist(HtpCommand& cmd);
     virtual void CmdEvalResistDelta(HtpCommand& cmd);
@@ -94,10 +85,6 @@ public:
     // @} // @name
 
 protected:
-
-    VC::Type VCTypeArg(const HtpCommand& cmd, std::size_t number) const;
-
-    void PrintVC(HtpCommand& cmd, const VC& vc, HexColor color) const;
 
     virtual void NewGame(int width, int height);
     
@@ -122,6 +109,8 @@ protected:
     HexEnvironmentCommands m_playerEnvCommands;
 
     HexEnvironmentCommands m_solverEnvCommands;
+
+    VCCommands m_vcCommands;
 
     boost::scoped_ptr<Solver> m_solver;
 
