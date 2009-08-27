@@ -36,10 +36,7 @@ void HexEnvironment::NewGame(int width, int height)
 
 HexBoard& HexEnvironment::SyncBoard(const StoneBoard& board)
 {
-    brd->startNewGame();
-    brd->setColor(BLACK, board.getBlack());
-    brd->setColor(WHITE, board.getWhite());
-    brd->setPlayed(board.getPlayed());
+    brd->SetState(board);
     return *brd.get();
 }
 
