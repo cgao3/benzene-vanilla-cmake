@@ -3,12 +3,17 @@ Benzene TODO file
 
 broderic [090821] (in rough order of importance)
 * Improve DFPN:
+  * add work counter
+  * add timelimit
+  * add ability to dump solved states over threshold to a log
   * avoid double counting in proof/disproof numbers
   * "Proof simulation"
   * db read/write
 * Handle terminal states properly in MoHex
   Ie, do not use fillin and deletion to do this
 * Create scripts to build book/solve deep states
+  * grab unsolved leaves over a certain depth
+  * actual multi-threaded 'solve positions' script
 * Add time control to mohex
 * Switch dead region/decomp detection to new Phil algo
 * Create HexPosition class; make StoneBoard use it.
