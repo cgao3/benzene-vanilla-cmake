@@ -6,6 +6,7 @@
 #ifndef VCCOMMANDS_HPP
 #define VCCOMMANDS_HPP
 
+#include "Game.hpp"
 #include "HexBoard.hpp"
 #include "HexHtpEngine.hpp"
 #include "HexEnvironment.hpp"
@@ -18,19 +19,19 @@ _BEGIN_BENZENE_NAMESPACE_
 class VCCommands
 {
 public:
-    VCCommands(HexHtpEngine& engine, HexEnvironment& env);
+    VCCommands(Game& game, HexEnvironment& env);
 
     ~VCCommands();
 
-    void Register();
+    void Register(GtpEngine& engine);
 
 private:
-    HexHtpEngine& m_engine;
+    Game& m_game;
 
     HexEnvironment& m_env;
         
     VC::Type VCTypeArg(const HtpCommand& cmd, std::size_t number) const;
-    void Register(const std::string& command,
+    void Register(GtpEngine& engine, const std::string& command,
                   GtpCallback<VCCommands>::Method method);
 
     void CmdGetVCsBetween(HtpCommand& cmd);

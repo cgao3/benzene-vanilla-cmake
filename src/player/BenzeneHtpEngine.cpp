@@ -41,7 +41,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
       m_se(m_board.width(), m_board.height()),
       m_playerEnvCommands(m_pe),
       m_solverEnvCommands(m_se),
-      m_vcCommands(*this, m_pe),
+      m_vcCommands(m_game, m_pe),
       m_solver(new Solver()),
       m_solverDfpn(new SolverDFPN()),
       m_solver_tt(new SolverTT(20)), // TT with 2^20 entries
@@ -77,7 +77,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
 
     m_playerEnvCommands.Register(*this, "player");
     m_solverEnvCommands.Register(*this, "solver");
-    m_vcCommands.Register();
+    m_vcCommands.Register(*this);
 
     RegisterCmd("param_player", &BenzeneHtpEngine::CmdParamPlayer);
     RegisterCmd("param_solver", &BenzeneHtpEngine::CmdParamSolver);
@@ -134,7 +134,7 @@ HexPoint BenzeneHtpEngine::GenMove(HexColor color, double max_time)
     if (m_useParallelSolver)
         return ParallelGenMove(color, max_time);
     double score;
-    return m_player.genmove(m_pe.SyncBoard(m_game->Board()), *m_game, 
+    return m_player.genmove(m_pe.SyncBoard(m_game.Board()), m_game, 
                             color, max_time, score);
 }
 
@@ -157,8 +157,8 @@ void BenzeneHtpEngine::CmdRegGenMove(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     double score;
-    HexPoint move = m_player.genmove(m_pe.SyncBoard(m_game->Board()),
-                                     *m_game, HtpUtil::ColorArg(cmd, 0),
+    HexPoint move = m_player.genmove(m_pe.SyncBoard(m_game.Board()),
+                                     m_game, HtpUtil::ColorArg(cmd, 0),
                                      -1, score);
     cmd << move;
 }
@@ -168,11 +168,11 @@ void BenzeneHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexPoint cell = HtpUtil::MoveArg(cmd, 0);
-    if (m_game->Board().getColor(cell) == EMPTY)
+    if (m_game.Board().getColor(cell) == EMPTY)
         return;
 
     Groups groups;
-    GroupBuilder::Build(m_game->Board(), groups);
+    GroupBuilder::Build(m_game.Board(), groups);
 
     const Group& group = groups.GetGroup(cell);
     cmd << group.Captain();
@@ -330,7 +330,7 @@ void BenzeneHtpEngine::CmdBookOpen(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(2);
     std::string fn = cmd.Arg(0);
-    const StoneBoard& brd = m_game->Board();
+    const StoneBoard& brd = m_game.Board();
     try {
         m_book.reset(new OpeningBook(brd.width(), brd.height(), fn));
     }
@@ -357,7 +357,7 @@ bool BenzeneHtpEngine::StateMatchesBook(const StoneBoard& board)
 
 void BenzeneHtpEngine::CmdBookMainLineDepth(HtpCommand& cmd)
 {
-    StoneBoard brd(m_game->Board());
+    StoneBoard brd(m_game.Board());
     if (!StateMatchesBook(brd))
         return;
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
@@ -370,7 +370,7 @@ void BenzeneHtpEngine::CmdBookMainLineDepth(HtpCommand& cmd)
 
 void BenzeneHtpEngine::CmdBookCounts(HtpCommand& cmd)
 {
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     HexColor color = brd.WhoseTurn();
 
     if (!StateMatchesBook(brd))
@@ -388,7 +388,7 @@ void BenzeneHtpEngine::CmdBookCounts(HtpCommand& cmd)
 
 void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
 {
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     HexColor color = brd.WhoseTurn();
 
     if (!StateMatchesBook(brd))
@@ -436,7 +436,7 @@ void BenzeneHtpEngine::CmdBookVisualize(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
-    StoneBoard brd(m_game->Board());
+    StoneBoard brd(m_game.Board());
     if (!StateMatchesBook(brd))
         return;
     std::ofstream f(filename.c_str());
@@ -456,11 +456,11 @@ void BenzeneHtpEngine::CmdBookDumpNonTerminal(HtpCommand& cmd)
     cmd.CheckNuArg(2);
     int numstones = cmd.IntArg(0, 0);
     std::string filename = cmd.Arg(1);
-    StoneBoard brd(m_game->Board());
+    StoneBoard brd(m_game.Board());
     if (!StateMatchesBook(brd))
         return;
     PointSequence pv;
-    GameUtil::HistoryToSequence(m_game->History(), pv);
+    GameUtil::HistoryToSequence(m_game.History(), pv);
     std::ofstream f(filename.c_str());
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
@@ -484,15 +484,15 @@ void BenzeneHtpEngine::CmdBookSetValue(HtpCommand& cmd)
         value = IMMEDIATE_LOSS;
     else
         value = cmd.FloatArg(0);
-    if (!StateMatchesBook(m_game->Board()))
+    if (!StateMatchesBook(m_game.Board()))
         return;
     OpeningBookNode node;
-    if (!m_book->GetNode(m_game->Board(), node))
-        m_book->WriteNode(m_game->Board(), OpeningBookNode(value));
+    if (!m_book->GetNode(m_game.Board(), node))
+        m_book->WriteNode(m_game.Board(), OpeningBookNode(value));
     else
     {
         node.m_value = value;
-        m_book->WriteNode(m_game->Board(), node);
+        m_book->WriteNode(m_game.Board(), node);
     }
     m_book->Flush();
 }
@@ -527,11 +527,11 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
         throw HtpFailure() << "Root has setup info!";
 
     int size = root->GetIntProp(SG_PROP_SIZE);
-    if (size != m_game->Board().width() || 
-        size != m_game->Board().height())
+    if (size != m_game.Board().width() || 
+        size != m_game.Board().height())
         throw HtpFailure() << "Sgf boardsize does not match board";
 
-    StoneBoard brd(m_game->Board());
+    StoneBoard brd(m_game.Board());
     HexColor color = FIRST_TO_PLAY;
     PointSequence responses;
     std::vector<hash_t> hashes;
@@ -589,7 +589,7 @@ void BenzeneHtpEngine::CmdComputeInferior(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd, brd.GetGroups());
 
@@ -607,7 +607,7 @@ void BenzeneHtpEngine::CmdComputeFillin(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd, brd.GetGroups());
 
@@ -625,7 +625,7 @@ void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd, brd.GetGroups());
 
@@ -642,7 +642,7 @@ void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd, brd.GetGroups());
 
@@ -659,7 +659,7 @@ void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.ComputeAll(BLACK);
 
     bitset_t capturedVC;
@@ -675,7 +675,7 @@ void BenzeneHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.ComputeAll(BLACK);
     HexPoint group;
     bitset_t capturedVC;
@@ -724,7 +724,7 @@ void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
 
     int pattOut[Pattern::NUM_SLICES * 5];
     memset(pattOut, 0, sizeof(pattOut));
-    StoneBoard brd(m_game->Board());
+    StoneBoard brd(m_game.Board());
     HexPoint center = HtpUtil::MoveArg(cmd, 0);
     LogInfo() << "Center of pattern: " << center << '\n' << "Includes: ";
     int x1, y1, x2, y2;
@@ -798,7 +798,7 @@ void BenzeneHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     TwoDistance twod(TwoDistance::ADJACENT);
     twod.Evaluate(brd);
@@ -819,7 +819,7 @@ void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     Resistance resist;
     resist.Evaluate(brd);
@@ -844,7 +844,7 @@ void BenzeneHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     Resistance resist;
     resist.Evaluate(brd);
@@ -869,7 +869,7 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
 
     // Pre-compute edge adjacencies
@@ -941,7 +941,7 @@ void BenzeneHtpEngine::CmdSolveState(HtpCommand& cmd)
     double timelimit = -1.0;  // FIXME: WHY ARE THESE HERE?!?!
     int depthlimit = -1;
 
-    HexBoard& brd = m_se.SyncBoard(m_game->Board());
+    HexBoard& brd = m_se.SyncBoard(m_game.Board());
 
     Solver::SolutionSet solution;
     Solver::Result result = (use_db) ?
@@ -965,7 +965,7 @@ void BenzeneHtpEngine::CmdSolveState(HtpCommand& cmd)
 void BenzeneHtpEngine::CmdSolveStateDfpn(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
-    HexBoard& brd = m_se.SyncBoard(m_game->Board());
+    HexBoard& brd = m_se.SyncBoard(m_game.Board());
     HexColor winner = m_solverDfpn->StartSearch(brd, *m_dfpn_tt);
     cmd << winner;
 }
@@ -1009,7 +1009,7 @@ void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)
         maxstones = cmd.IntArg(3, 1);
     }
 
-    HexBoard& brd = m_se.SyncBoard(m_game->Board());
+    HexBoard& brd = m_se.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     bitset_t consider = PlayerUtils::MovesToConsider(brd, color);
     bitset_t winning;
@@ -1018,7 +1018,7 @@ void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)
     {
 	if (!consider.test(*p)) continue;
 
-        StoneBoard board(m_game->Board());
+        StoneBoard board(m_game.Board());
         board.playMove(color, *p);
 
         HexBoard& brd = m_se.SyncBoard(board);
@@ -1061,7 +1061,7 @@ void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)
 
     LogInfo()
              << "****** Winning Moves ******" << '\n'
-             << m_game->Board().Write(winning) << '\n';
+             << m_game.Board().Write(winning) << '\n';
 
     cmd << HexPointUtil::ToPointListString(winning);
 }
@@ -1083,7 +1083,7 @@ void BenzeneHtpEngine::CmdDBOpen(HtpCommand& cmd)
         maxstones = cmd.IntArg(2, 1);
     }
 
-    const StoneBoard& brd = m_game->Board();
+    const StoneBoard& brd = m_game.Board();
 
     m_db.reset(new SolverDB());
     try {
@@ -1109,7 +1109,7 @@ void BenzeneHtpEngine::CmdDBGet(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
 
-    StoneBoard brd(m_game->Board());
+    StoneBoard brd(m_game.Board());
     HexColor toplay = brd.WhoseTurn();
     SolvedState state;
 
@@ -1186,8 +1186,8 @@ void BenzeneHtpEngine::PlayerThread::operator()()
 {
     LogInfo() << "*** PlayerThread ***" << '\n';
     double score;
-    HexBoard& brd = m_engine.m_pe.SyncBoard(m_engine.m_game->Board());
-    HexPoint move = m_engine.m_player.genmove(brd, *m_engine.m_game,
+    HexBoard& brd = m_engine.m_pe.SyncBoard(m_engine.m_game.Board());
+    HexPoint move = m_engine.m_player.genmove(brd, m_engine.m_game,
                                               m_color, m_max_time, 
                                               score);
     {
@@ -1206,7 +1206,7 @@ void BenzeneHtpEngine::SolverThread::operator()()
 {
     LogInfo() << "*** SolverThread ***" << '\n';
     Solver::SolutionSet solution;
-    HexBoard& brd = m_engine.m_se.SyncBoard(m_engine.m_game->Board());
+    HexBoard& brd = m_engine.m_se.SyncBoard(m_engine.m_game.Board());
     Solver::Result result = m_engine.m_solver->Solve(brd, m_color, solution, 
                                                      Solver::NO_DEPTH_LIMIT, 
                                                      Solver::NO_TIME_LIMIT);

@@ -12,8 +12,8 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-VCCommands::VCCommands(HexHtpEngine& engine, HexEnvironment& env)
-    : m_engine(engine), 
+VCCommands::VCCommands(Game& game, HexEnvironment& env)
+    : m_game(game), 
       m_env(env)
 {
 }
@@ -22,22 +22,22 @@ VCCommands::~VCCommands()
 {
 }
 
-void VCCommands::Register()
+void VCCommands::Register(GtpEngine& e)
 {
-    Register("vc-between-cells", &VCCommands::CmdGetVCsBetween);
-    Register("vc-connected-to", &VCCommands::CmdGetCellsConnectedTo);
-    Register("vc-get-mustplay", &VCCommands::CmdGetMustPlay);
-    Register("vc-intersection", &VCCommands::CmdVCIntersection);
-    Register("vc-union", &VCCommands::CmdVCUnion);
-    Register("vc-build", &VCCommands::CmdBuildStatic);
-    Register("vc-build-incremental", &VCCommands::CmdBuildIncremental);
-    Register("vc-undo-incremental", &VCCommands::CmdUndoIncremental);
+    Register(e, "vc-between-cells", &VCCommands::CmdGetVCsBetween);
+    Register(e, "vc-connected-to", &VCCommands::CmdGetCellsConnectedTo);
+    Register(e, "vc-get-mustplay", &VCCommands::CmdGetMustPlay);
+    Register(e, "vc-intersection", &VCCommands::CmdVCIntersection);
+    Register(e, "vc-union", &VCCommands::CmdVCUnion);
+    Register(e, "vc-build", &VCCommands::CmdBuildStatic);
+    Register(e, "vc-build-incremental", &VCCommands::CmdBuildIncremental);
+    Register(e, "vc-undo-incremental", &VCCommands::CmdUndoIncremental);
 }
 
-void VCCommands::Register(const std::string& command,
+void VCCommands::Register(GtpEngine& engine, const std::string& command,
                           GtpCallback<VCCommands>::Method method)
 {
-    m_engine.Register(command, new GtpCallback<VCCommands>(this, method));
+    engine.Register(command, new GtpCallback<VCCommands>(this, method));
 }
 
 VC::Type VCCommands::VCTypeArg(const HtpCommand& cmd, std::size_t number) const
@@ -55,7 +55,7 @@ void VCCommands::CmdBuildStatic(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-    HexBoard& brd = m_env.SyncBoard(m_engine.GetGame().Board());
+    HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     cmd << brd.getInferiorCells().GuiOutput();
     if (!PlayerUtils::IsDeterminedState(brd, color))

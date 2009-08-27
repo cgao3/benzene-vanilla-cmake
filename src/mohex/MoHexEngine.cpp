@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file MoHexEngine.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ double MoHexEngine::TimeForMove(HexColor color)
     if (!mohex)
         throw HtpFailure("No MoHex instance!");
 
-    return std::min(m_game->TimeRemaining(color), mohex->MaxTime());
+    return std::min(m_game.TimeRemaining(color), mohex->MaxTime());
 }
 
 //----------------------------------------------------------------------------
@@ -232,7 +232,7 @@ void MoHexEngine::CmdBookExpand(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     int iterations = cmd.IntArg(0, 1);
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     if (!StateMatchesBook(brd))
         return;
     m_bookBuilder.Expand(*m_book, brd, iterations);
@@ -242,7 +242,7 @@ void MoHexEngine::CmdBookExpand(HtpCommand& cmd)
 void MoHexEngine::CmdBookRefresh(HtpCommand& cmd)
 {
     UNUSED(cmd);
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     if (!StateMatchesBook(brd))
         return;
     m_bookBuilder.Refresh(*m_book, brd);
@@ -253,7 +253,7 @@ void MoHexEngine::CmdBookRefresh(HtpCommand& cmd)
 void MoHexEngine::CmdBookIncreaseWidth(HtpCommand& cmd)
 {
     UNUSED(cmd);
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     if (!StateMatchesBook(brd))
         return;
     m_bookBuilder.IncreaseWidth(*m_book, brd);
@@ -261,7 +261,7 @@ void MoHexEngine::CmdBookIncreaseWidth(HtpCommand& cmd)
 
 void MoHexEngine::CmdBookPriorities(HtpCommand& cmd)
 {
-    HexBoard& brd = m_pe.SyncBoard(m_game->Board());
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     HexColor color = brd.WhoseTurn();
 
     if (!StateMatchesBook(brd))
@@ -332,8 +332,8 @@ void MoHexEngine::Ponder()
 
     // Do a search for at most 10 minutes.
     HexEval score;
-    m_player.genmove(m_pe.SyncBoard(m_game->Board()), *m_game,
-                     m_game->Board().WhoseTurn(), 600, score);
+    m_player.genmove(m_pe.SyncBoard(m_game.Board()), m_game,
+                     m_game.Board().WhoseTurn(), 600, score);
 
 }
 

@@ -33,7 +33,7 @@ HexHtpEngine::HexHtpEngine(std::istream& in, std::ostream& out,
                            int boardsize)
     : GtpEngine(in, out),
       m_board(boardsize, boardsize),
-      m_game(new Game(m_board))
+      m_game(m_board)
 {
     RegisterCmd("name", &HexHtpEngine::CmdName);
     RegisterCmd("version", &HexHtpEngine::CmdVersion);
@@ -77,7 +77,7 @@ void HexHtpEngine::Play(HexColor color, HexPoint move)
     if (move == RESIGN)
         return;
 
-    Game::ReturnType result = m_game->PlayMove(color, move);
+    Game::ReturnType result = m_game.PlayMove(color, move);
     if (result == Game::INVALID_MOVE) {
         illegal = true;
         reason = " (invalid)";
@@ -97,25 +97,24 @@ HexPoint HexHtpEngine::GenMove(HexColor color, double max_time)
 {
     UNUSED(color);
     UNUSED(max_time);
-    return BoardUtils::RandomEmptyCell(m_game->Board());
+    return BoardUtils::RandomEmptyCell(m_game.Board());
 }
 
 /** Returns time remaining in the game. */
 double HexHtpEngine::TimeForMove(HexColor color)
 {
-    return m_game->TimeRemaining(color);
+    return m_game.TimeRemaining(color);
 }
  
 void HexHtpEngine::NewGame(int width, int height)
 {
-    if (width != m_game->Board().width() || 
-        height != m_game->Board().height()) 
+    if (width != m_game.Board().width() || 
+        height != m_game.Board().height()) 
     {
         m_board = StoneBoard(width, height);
-        m_game->SetBoard(m_board);
+        m_game.SetBoard(m_board);
     } 
-
-    m_game->NewGame();
+    m_game.NewGame();
 }
 
 void HexHtpEngine::BeforeHandleCommand()
@@ -201,13 +200,13 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
     SgTime::SetDefaultMode(SG_TIME_REAL);
     SgTimer timer;
     timer.Start();
-    double oldTimeRemaining = m_game->TimeRemaining(color);
+    double oldTimeRemaining = m_game.TimeRemaining(color);
     HexPoint move = GenMove(color, TimeForMove(color));
     timer.Stop();
 
-    m_game->SetTimeRemaining(color, oldTimeRemaining - timer.GetTime());
+    m_game.SetTimeRemaining(color, oldTimeRemaining - timer.GetTime());
 
-    if (m_game->TimeRemaining(color) < 0) {
+    if (m_game.TimeRemaining(color) < 0) {
         LogWarning() << "**** FLAG DROPPED ****" << '\n';
     }
 
@@ -219,36 +218,40 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
 void HexHtpEngine::CmdUndo(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
-    m_game->UndoMove();
+    m_game.UndoMove();
 }
 
 /** Displays the board. */
 void HexHtpEngine::CmdShowboard(HtpCommand& cmd)
 {
     cmd << "\n";
-    cmd << m_game->Board();
+    cmd << m_game.Board();
 }
 
 void HexHtpEngine::CmdBoardID(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
-    cmd << m_game->Board().GetBoardIDString();
+    cmd << m_game.Board().GetBoardIDString();
 }
 
 void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(2);
-    if (cmd.NuArg() == 0) {
-        cmd << "Black: " << Time::Formatted(m_game->TimeRemaining(BLACK)) << ", "
-            << "White: " << Time::Formatted(m_game->TimeRemaining(WHITE));
+    if (cmd.NuArg() == 0) 
+    {
+        cmd << "Black: " << Time::Formatted(m_game.TimeRemaining(BLACK)) 
+            << ", "
+            << "White: " << Time::Formatted(m_game.TimeRemaining(WHITE));
     }
-    else if (cmd.NuArg() == 1) {
+    else if (cmd.NuArg() == 1) 
+    {
         HexColor color = HtpUtil::ColorArg(cmd, 0);
-        cmd << Time::Formatted(m_game->TimeRemaining(color));
+        cmd << Time::Formatted(m_game.TimeRemaining(color));
     } 
-    else {
+    else 
+    {
         HexColor color = HtpUtil::ColorArg(cmd, 0);
-        m_game->SetTimeRemaining(color, cmd.IntArg(1));
+        m_game.SetTimeRemaining(color, cmd.IntArg(1));
     }
 }
 
@@ -259,7 +262,7 @@ void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
 void HexHtpEngine::CmdFinalScore(HtpCommand& cmd)
 {
     Groups groups;
-    GroupBuilder::Build(m_game->Board(), groups);
+    GroupBuilder::Build(m_game.Board(), groups);
     HexColor winner = groups.GetWinner();
     std::string ret = "cannot score";
     if (winner == BLACK)
@@ -273,8 +276,9 @@ void HexHtpEngine::CmdFinalScore(HtpCommand& cmd)
 void HexHtpEngine::CmdAllLegalMoves(HtpCommand& cmd)
 {
     int c = 0;
-    bitset_t legal = m_game->Board().getLegal();
-    for (BitsetIterator i(legal); i; ++i) {
+    bitset_t legal = m_game.Board().getLegal();
+    for (BitsetIterator i(legal); i; ++i) 
+    {
         cmd << " " << HexPointUtil::toString(*i);
         if ((++c % 10) == 0) cmd << "\n";
     }
@@ -284,9 +288,10 @@ void HexHtpEngine::CmdAllLegalMoves(HtpCommand& cmd)
 void HexHtpEngine::SetPosition(const SgNode* node)
 {
     std::vector<HexPoint> black, white, empty;
-    HexSgUtil::GetSetupPosition(node, m_game->Board().height(), 
+    HexSgUtil::GetSetupPosition(node, m_game.Board().height(), 
                                 black, white, empty);
-    for (unsigned i=0; ; ++i) {
+    for (unsigned i=0; ; ++i) 
+    {
         bool bdone = (i >= black.size());
         bool wdone = (i >= white.size());
         if (!bdone) Play(BLACK, black[i]);
@@ -321,7 +326,7 @@ void HexHtpEngine::CmdLoadSgf(HtpCommand& cmd)
 
     NewGame(size, size);
 
-    const StoneBoard& brd = m_game->Board();
+    const StoneBoard& brd = m_game.Board();
 
     if (HexSgUtil::NodeHasSetupInfo(root)) {
         LogWarning() << "Root has setup info!" << '\n';
@@ -355,17 +360,17 @@ void HexHtpEngine::CmdParamGame(HtpCommand& cmd)
     {
         cmd << "\n"
             << "[bool] allow_swap "
-            << m_game->AllowSwap() << '\n'
+            << m_game.AllowSwap() << '\n'
             << "[string] game_time "
-            << m_game->GameTime() << '\n';
+            << m_game.GameTime() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
         if (name == "allow_swap")
-            m_game->SetAllowSwap(cmd.BoolArg(1));
+            m_game.SetAllowSwap(cmd.BoolArg(1));
         else if (name == "game_time")
-            m_game->SetGameTime(cmd.FloatArg(1));
+            m_game.SetGameTime(cmd.FloatArg(1));
     }
     else
         throw HtpFailure("Expected 0 or 2 arguments");

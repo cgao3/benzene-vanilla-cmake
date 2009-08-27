@@ -72,14 +72,11 @@ public:
     void Interrupt();
 #endif
 
-    /** Returns current game. */
-    const Game& GetGame() const;
-
 protected:
 
     StoneBoard m_board;
 
-    boost::scoped_ptr<Game> m_game;
+    Game m_game;
 
     /** Clears SgAbortFlag() */
     void BeforeHandleCommand();
@@ -107,11 +104,6 @@ private:
     void RegisterCmd(const std::string& name,
                      GtpCallback<HexHtpEngine>::Method method);
 };
-
-inline const Game& HexHtpEngine::GetGame() const
-{
-    return *m_game;
-}
 
 //----------------------------------------------------------------------------
 
