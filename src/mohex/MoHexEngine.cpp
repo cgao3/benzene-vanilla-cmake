@@ -179,14 +179,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
     }
     else 
         throw HtpFailure("Expected 0 or 2 arguments");
-
-#if 0
-    if (hex::settings.get_bool("uct-enable-init")) {
-	search.SetPriorKnowledge(new HexUctPriorKnowledgeFactory(config_dir));
-	search.SetPriorInit(SG_UCTPRIORINIT_BOTH);
-    }
-#endif
-    
 }
 
 void MoHexEngine::CmdParamBook(HtpCommand& cmd)
