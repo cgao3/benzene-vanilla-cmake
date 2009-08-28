@@ -59,12 +59,9 @@ std::string BookNode::toString() const
 
 //----------------------------------------------------------------------------
 
-Book::Book(int width, int height, std::string filename)
+Book::Book(std::string filename)
     throw(HexException)
 {
-    m_settings.board_width = width;
-    m_settings.board_height = height;
-
     if (!m_db.Open(filename))
         throw HexException("Could not open database file!");
 

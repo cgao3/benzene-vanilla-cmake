@@ -124,10 +124,6 @@ protected:
 
     boost::scoped_ptr<SolverDB> m_db;
 
-
-protected:
-    bool StateMatchesBook(const StoneBoard& brd);
-
 private:
     void RegisterCmd(const std::string& name,
                      GtpCallback<BenzeneHtpEngine>::Method method);

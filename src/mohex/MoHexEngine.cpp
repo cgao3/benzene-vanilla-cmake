@@ -230,11 +230,11 @@ void MoHexEngine::CmdParamBook(HtpCommand& cmd)
 */
 void MoHexEngine::CmdBookExpand(HtpCommand& cmd)
 {
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
     int iterations = cmd.IntArg(0, 1);
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    if (!StateMatchesBook(brd))
-        return;
     m_bookBuilder.Expand(*m_book, brd, iterations);
 }
 
@@ -242,9 +242,9 @@ void MoHexEngine::CmdBookExpand(HtpCommand& cmd)
 void MoHexEngine::CmdBookRefresh(HtpCommand& cmd)
 {
     UNUSED(cmd);
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    if (!StateMatchesBook(brd))
-        return;
     m_bookBuilder.Refresh(*m_book, brd);
 }
 
@@ -253,24 +253,21 @@ void MoHexEngine::CmdBookRefresh(HtpCommand& cmd)
 void MoHexEngine::CmdBookIncreaseWidth(HtpCommand& cmd)
 {
     UNUSED(cmd);
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    if (!StateMatchesBook(brd))
-        return;
     m_bookBuilder.IncreaseWidth(*m_book, brd);
 }
 
 void MoHexEngine::CmdBookPriorities(HtpCommand& cmd)
 {
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     HexColor color = brd.WhoseTurn();
-
-    if (!StateMatchesBook(brd))
-        return;
-
     BookNode parent;
     if (!m_book->GetNode(brd, parent))
         return;
-
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);

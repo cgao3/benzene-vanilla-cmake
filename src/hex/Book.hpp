@@ -209,14 +209,14 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** Settings for this book. */
+    /** Settings for this book. 
+        @note Not currently used!
+    */
     struct Settings
     {
-        /** Board width for all states in this book. */
-        int board_width;
+        int reserved1;
 
-        /** Board height for all states in this book. */
-        int board_height;
+        int reserved2;
 
         bool operator==(const Settings& o) const;
         
@@ -227,9 +227,10 @@ public:
     
     //---------------------------------------------------------------------
 
-    /** Constructor. Creates an Book to be stored in filename.
-    */
-    Book(int width, int height, std::string filename)
+    /** Constructor. Opens the book with default settings. 
+        Throws error if settings do not match existing settings in
+        a pre-existing book. */
+    Book(std::string filename)
         throw(HexException);
 
     /** Destructor. */
@@ -271,8 +272,8 @@ private:
 
 inline bool Book::Settings::operator==(const Book::Settings& o) const 
 {
-    return (board_width == o.board_width && 
-            board_height == o.board_height);
+    SG_UNUSED(o);
+    return true;
 }
         
 inline bool Book::Settings::operator!=(const Book::Settings& o) const
@@ -284,8 +285,6 @@ inline std::string Book::Settings::toString() const
 {
     std::ostringstream os;
     os << "["
-       << "W=" << board_width << ", "
-       << "H=" << board_height 
        << "]";
     return os.str();
 }

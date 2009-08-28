@@ -329,36 +329,19 @@ void BenzeneHtpEngine::CmdBookOpen(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(2);
     std::string fn = cmd.Arg(0);
-    const StoneBoard& brd = m_game.Board();
     try {
-        m_book.reset(new Book(brd.width(), brd.height(), fn));
+        m_book.reset(new Book(fn));
     }
     catch (HexException& e) {
         cmd << "Error opening book: '" << e.what() << "'\n";
     }
 }
 
-bool BenzeneHtpEngine::StateMatchesBook(const StoneBoard& board)
-{
-    if (!m_book) {
-        throw HtpFailure() << "No open book.";
-        return false;
-    } else {
-        Book::Settings settings = m_book->GetSettings();
-        if (settings.board_width != board.width() ||
-            settings.board_height != board.height()) {
-            throw HtpFailure() << "Book is for different boardsize!";
-            return false;
-        }
-    }
-    return true;
-}
-
 void BenzeneHtpEngine::CmdBookMainLineDepth(HtpCommand& cmd)
 {
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     StoneBoard brd(m_game.Board());
-    if (!StateMatchesBook(brd))
-        return;
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
         brd.playMove(brd.WhoseTurn(), *p);
@@ -369,12 +352,10 @@ void BenzeneHtpEngine::CmdBookMainLineDepth(HtpCommand& cmd)
 
 void BenzeneHtpEngine::CmdBookCounts(HtpCommand& cmd)
 {
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     HexColor color = brd.WhoseTurn();
-
-    if (!StateMatchesBook(brd))
-        return;
-
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);
@@ -387,12 +368,10 @@ void BenzeneHtpEngine::CmdBookCounts(HtpCommand& cmd)
 
 void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
 {
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     HexColor color = brd.WhoseTurn();
-
-    if (!StateMatchesBook(brd))
-        return;
-
     BookCheck* book = GetInstanceOf<BookCheck>(&m_player);
     if (!book)
         throw HtpFailure() << "Player has no BookCheck!\n";
@@ -409,7 +388,8 @@ void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
         {
             counts[*p] = node.m_count;
             values[*p] = Book::InverseEval(node.Value(brd));
-            scores.push_back(std::make_pair(-node.Score(brd, countWeight), *p));
+            scores.push_back(std::make_pair
+                             (-node.Score(brd, countWeight), *p));
         }
         brd.undoMove(*p);
     }
@@ -433,11 +413,11 @@ void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
 
 void BenzeneHtpEngine::CmdBookVisualize(HtpCommand& cmd)
 {
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
     StoneBoard brd(m_game.Board());
-    if (!StateMatchesBook(brd))
-        return;
     std::ofstream f(filename.c_str());
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
@@ -452,12 +432,12 @@ void BenzeneHtpEngine::CmdBookVisualize(HtpCommand& cmd)
 */
 void BenzeneHtpEngine::CmdBookDumpNonTerminal(HtpCommand& cmd)
 {
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(2);
     int numstones = cmd.IntArg(0, 0);
     std::string filename = cmd.Arg(1);
     StoneBoard brd(m_game.Board());
-    if (!StateMatchesBook(brd))
-        return;
     PointSequence pv;
     GameUtil::HistoryToSequence(m_game.History(), pv);
     std::ofstream f(filename.c_str());
@@ -474,6 +454,8 @@ void BenzeneHtpEngine::CmdBookDumpNonTerminal(HtpCommand& cmd)
  */
 void BenzeneHtpEngine::CmdBookSetValue(HtpCommand& cmd)
 {
+    if (!m_book) 
+        throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
     float value = 0.5;
     std::string vstr = cmd.ArgToLower(0);
@@ -483,8 +465,6 @@ void BenzeneHtpEngine::CmdBookSetValue(HtpCommand& cmd)
         value = IMMEDIATE_LOSS;
     else
         value = cmd.FloatArg(0);
-    if (!StateMatchesBook(m_game.Board()))
-        return;
     BookNode node;
     if (!m_book->GetNode(m_game.Board(), node))
         m_book->WriteNode(m_game.Board(), BookNode(value));

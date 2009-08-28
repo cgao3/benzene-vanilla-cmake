@@ -62,7 +62,7 @@ private:
     /** See CountWeight() */
     float m_count_weight;
 
-    void LoadOpeningBook(const ConstBoard& brd);
+    void LoadOpeningBook();
 };
 
 inline bool BookCheck::Enabled() const

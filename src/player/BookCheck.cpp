@@ -35,7 +35,7 @@ HexPoint BookCheck::pre_search(HexBoard& brd, const Game& game_state,
     if (m_enabled) 
     {
         HexPoint response = INVALID_POINT;
-        LoadOpeningBook(brd.Const());
+        LoadOpeningBook();
         if (m_bookLoaded)
             response = BookUtil::BestMove(*m_book, brd, m_min_count,
                                           m_count_weight);
@@ -48,7 +48,7 @@ HexPoint BookCheck::pre_search(HexBoard& brd, const Game& game_state,
 
 //----------------------------------------------------------------------------
 
-void BookCheck::LoadOpeningBook(const ConstBoard& brd)
+void BookCheck::LoadOpeningBook()
 {
     if (m_bookLoaded)
         return;
@@ -58,7 +58,7 @@ void BookCheck::LoadOpeningBook(const ConstBoard& brd)
     books_list.normalize();
     std::string book_file = books_list.native_file_string();
     try {
-        m_book.reset(new Book(brd.width(), brd.height(), book_file));
+        m_book.reset(new Book(book_file));
         m_bookLoaded = true;
     }
     catch (HexException& e) {
