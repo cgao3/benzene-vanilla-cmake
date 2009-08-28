@@ -7,7 +7,7 @@
 #define BOOKCHECK_HPP
 
 #include "BenzenePlayer.hpp"
-#include "OpeningBook.hpp"
+#include "Book.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -50,7 +50,7 @@ public:
 
 private:
 
-    boost::scoped_ptr<OpeningBook> m_book;
+    boost::scoped_ptr<Book> m_book;
 
     bool m_bookLoaded;
 

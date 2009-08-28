@@ -2,6 +2,7 @@ noinst_LIBRARIES = libhex.a
 
 libhex_a_SOURCES = \
 BoardUtils.cpp \
+Book.cpp \
 ConstBoard.cpp \
 Game.cpp \
 GraphUtils.cpp \
@@ -20,7 +21,6 @@ HexSgUtil.cpp \
 ICEngine.cpp \
 IcePatternSet.cpp \
 InferiorCells.cpp \
-OpeningBook.cpp \
 Pattern.cpp\
 PatternState.cpp\
 PlayerUtils.cpp \
@@ -42,6 +42,7 @@ noinst_HEADERS = \
 BitsetIterator.hpp \
 BoardIterator.hpp \
 BoardUtils.hpp \
+Book.hpp \
 ConstBoard.hpp \
 Game.hpp \
 GraphUtils.hpp \
@@ -69,7 +70,6 @@ ICEngine.hpp \
 IcePatternSet.hpp \
 InferiorCells.hpp \
 Move.hpp \
-OpeningBook.hpp \
 PatternState.hpp \
 Pattern.hpp \
 PlayerUtils.hpp \

@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file OpeningBook.hpp
+/** @file Book.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ _BEGIN_BENZENE_NAMESPACE_
 /** State in the Opening Book. 
     @ingroup openingbook
  */
-class OpeningBookNode
+class BookNode
 {
 public:
 
@@ -83,9 +83,9 @@ public:
     /** Constructors. Note that we should only construct leaves. */
     // @{
 
-    OpeningBookNode();
+    BookNode();
 
-    OpeningBookNode(float heuristicValue);
+    BookNode(float heuristicValue);
 
     // @}
     
@@ -146,7 +146,7 @@ private:
 
 };
 
-inline OpeningBookNode::OpeningBookNode()
+inline BookNode::BookNode()
     : m_heurValue(DUMMY_VALUE),
       m_value(DUMMY_VALUE),
       m_priority(DUMMY_PRIORITY),
@@ -154,7 +154,7 @@ inline OpeningBookNode::OpeningBookNode()
 {
 }
 
-inline OpeningBookNode::OpeningBookNode(float heuristicValue)
+inline BookNode::BookNode(float heuristicValue)
     : m_heurValue(heuristicValue),
       m_value(heuristicValue),
       m_priority(LEAF_PRIORITY),
@@ -162,30 +162,30 @@ inline OpeningBookNode::OpeningBookNode(float heuristicValue)
 {
 }
 
-inline void OpeningBookNode::IncrementCount()
+inline void BookNode::IncrementCount()
 {
     m_count++;
 }
 
-inline int OpeningBookNode::PackedSize() const
+inline int BookNode::PackedSize() const
 {
-    return sizeof(OpeningBookNode);
+    return sizeof(BookNode);
 }
 
-inline byte* OpeningBookNode::Pack() const
+inline byte* BookNode::Pack() const
 {
     return (byte*)this;
 }
 
-inline void OpeningBookNode::Unpack(const byte* t)
+inline void BookNode::Unpack(const byte* t)
 {
-    *this = *(const OpeningBookNode*)t;
+    *this = *(const BookNode*)t;
 }
 
 //----------------------------------------------------------------------------
 
-/** Extends standard stream output operator for OpeningBookNodes. */
-inline std::ostream& operator<<(std::ostream& os, const OpeningBookNode& node)
+/** Extends standard stream output operator for BookNodes. */
+inline std::ostream& operator<<(std::ostream& os, const BookNode& node)
 {
     os << node.toString();
     return os;
@@ -193,14 +193,12 @@ inline std::ostream& operator<<(std::ostream& os, const OpeningBookNode& node)
 
 //----------------------------------------------------------------------------
 
-/** Opening Book. 
-
-    OpeningBook provides an interface for reading/writing states to
+/** Provides an interface for reading/writing states to
     a database of scored positions.
 
     @ingroup openingbook
 */
-class OpeningBook
+class Book
 {
 public:
 
@@ -229,24 +227,23 @@ public:
     
     //---------------------------------------------------------------------
 
-    /** Constructor. Creates an OpeningBook for boardsize (width,
-        height) to be stored in the file filename.
+    /** Constructor. Creates an Book to be stored in filename.
     */
-    OpeningBook(int width, int height, std::string filename)
+    Book(int width, int height, std::string filename)
         throw(HexException);
 
     /** Destructor. */
-    ~OpeningBook();
+    ~Book();
 
     /** Returns a copy of the settings for this book. */
     Settings GetSettings() const;
 
     /** Reads node from db. Returns true if node exists in book, false
         otherwise. Node is touched only if it exists in book. */
-    bool GetNode(const StoneBoard& brd, OpeningBookNode& node) const;
+    bool GetNode(const StoneBoard& brd, BookNode& node) const;
 
     /** Writes node to db. */
-    void WriteNode(const StoneBoard& brd, const OpeningBookNode& node);
+    void WriteNode(const StoneBoard& brd, const BookNode& node);
 
     /** Flushes the db to disk. */
     void Flush();
@@ -266,26 +263,24 @@ private:
     Settings m_settings;
 
     /** Database for this book. */
-    HashDB<OpeningBookNode> m_db;
+    HashDB<BookNode> m_db;
 
     std::size_t TreeSize(StoneBoard& brd, 
                          std::map<hash_t, std::size_t>& solved) const;
 };
 
-inline bool 
-OpeningBook::Settings::operator==(const OpeningBook::Settings& o) const 
+inline bool Book::Settings::operator==(const Book::Settings& o) const 
 {
     return (board_width == o.board_width && 
             board_height == o.board_height);
 }
         
-inline bool 
-OpeningBook::Settings::operator!=(const OpeningBook::Settings& o) const
+inline bool Book::Settings::operator!=(const Book::Settings& o) const
 {
     return !(*this == o);
 }
 
-inline std::string OpeningBook::Settings::toString() const
+inline std::string Book::Settings::toString() const
 {
     std::ostringstream os;
     os << "["
@@ -295,61 +290,58 @@ inline std::string OpeningBook::Settings::toString() const
     return os.str();
 }
 
-inline OpeningBook::Settings OpeningBook::GetSettings() const
+inline Book::Settings Book::GetSettings() const
 {
     return m_settings;
 }
 
-inline void OpeningBook::Flush()
+inline void Book::Flush()
 {
     m_db.Flush();
 }
 
 //----------------------------------------------------------------------------
 
-/** Utilities on OpeningBooks. 
+/** Utilities on Books. 
     @ingroup openingbook
 */
-namespace OpeningBookUtil
+namespace BookUtil
 {
     /** Returns the canonical hash for this boardstate. */
     hash_t GetHash(const StoneBoard& brd);
 
     /** Returns number of child states existing in this book. */
-    unsigned NumChildren(const OpeningBook& book, const StoneBoard& brd);
+    unsigned NumChildren(const Book& book, const StoneBoard& brd);
 
     /** Returns the priority of expanding the child node. */
-    float ComputePriority(const StoneBoard& brd, 
-                          const OpeningBookNode& parent,
-                          const OpeningBookNode& child,
-                          double alpha);
+    float ComputePriority(const StoneBoard& brd, const BookNode& parent,
+                          const BookNode& child, double alpha);
     
     /** Re-computes node's value by checking all children. Does
         nothing if node has no children. */
-    void UpdateValue(const OpeningBook& book, OpeningBookNode& node, 
-                     StoneBoard& brd);
+    void UpdateValue(const Book& book, BookNode& node, StoneBoard& brd);
 
     /** Re-computes node's priority and returns the best child to
         expand. Requires that UpdateValue() has been called on this
         node. Returns INVALID_POINT if node has no children. */
-    HexPoint UpdatePriority(const OpeningBook& book, OpeningBookNode& node, 
+    HexPoint UpdatePriority(const Book& book, BookNode& node, 
                             StoneBoard& brd, float alpha);
 
     /** Finds best response in book.
         Returns INVALID_POINT if not in book or if node's count is 
         less than minCount. */
-    HexPoint BestMove(const OpeningBook& book, const StoneBoard& pos,
+    HexPoint BestMove(const Book& book, const StoneBoard& pos,
                       unsigned minCount, float countWeight);
 
     /** Writes a (score, depth) pair to output stream for each leaf in
         the book. Can be visualized with GnuPlot. */
-    void DumpVisualizationData(const OpeningBook& book, StoneBoard& brd, 
+    void DumpVisualizationData(const Book& book, StoneBoard& brd, 
                                int depth, std::ostream& out);
 
     /** Writes variations leading to non-terminal states at given
         depth. Variation must be the variation leading to the current
         state of the board. */
-    void DumpNonTerminalStates(const OpeningBook& book, StoneBoard& brd,
+    void DumpNonTerminalStates(const Book& book, StoneBoard& brd,
                                int numstones, PointSequence& pv, 
                                std::ostream& out);
 }

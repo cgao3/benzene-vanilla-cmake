@@ -267,20 +267,20 @@ void MoHexEngine::CmdBookPriorities(HtpCommand& cmd)
     if (!StateMatchesBook(brd))
         return;
 
-    OpeningBookNode parent;
+    BookNode parent;
     if (!m_book->GetNode(brd, parent))
         return;
 
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);
-        OpeningBookNode succ;
+        BookNode succ;
         if (m_book->GetNode(brd, succ))
         {
             cmd << " " << *p;
-            float priority = OpeningBookUtil::ComputePriority(brd, parent, 
+            float priority = BookUtil::ComputePriority(brd, parent, 
                                                succ, m_bookBuilder.Alpha());
-            float value = OpeningBook::InverseEval(succ.m_value);
+            float value = Book::InverseEval(succ.m_value);
             if (HexEvalUtil::IsWin(value))
                 cmd << " W";
             else if (HexEvalUtil::IsLoss(value))

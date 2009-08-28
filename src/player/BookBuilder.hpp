@@ -11,7 +11,7 @@
 #include "BitsetIterator.hpp"
 #include "EndgameCheck.hpp"
 #include "HashDB.hpp"
-#include "OpeningBook.hpp"
+#include "Book.hpp"
 #include "PlayerUtils.hpp"
 #include "Resistance.hpp"
 #include "ThreadedWorker.hpp"
@@ -31,13 +31,13 @@ _BEGIN_BENZENE_NAMESPACE_
 
     BookBuilder::Refresh() computes the correct propagation value for
     all internal nodes given the current set of leaf nodes. A node in
-    which OpeningBookNode::IsLeaf() is true is treated as a leaf even
+    which BookNode::IsLeaf() is true is treated as a leaf even
     if it has children in the book (ie, children from transpositions)
 */
 
 //----------------------------------------------------------------------------
 
-/** Expands an OpeningBook using the given player to evaluate
+/** Expands a Book using the given player to evaluate
     game positions positions. 
 
     Supports multithreaded evaluation of states.
@@ -63,11 +63,11 @@ public:
     //---------------------------------------------------------------------
 
     /** Expands the book by expanding numExpansions leaves. */
-    void Expand(OpeningBook& book, const HexBoard& brd, int numExpansions);
+    void Expand(Book& book, const HexBoard& brd, int numExpansions);
 
     /** Propagates leaf values up through the entire tree.  
         @ref bookrefresh. */
-    void Refresh(OpeningBook& book, HexBoard& board);
+    void Refresh(Book& book, HexBoard& board);
 
     /** Performs widening on all internal nodes that require it. Use
         this after increasing ExpandWidth() or decreasing
@@ -77,7 +77,7 @@ public:
         
         Does not propagate values up tree, run Refresh() afterwards to
         do so. */
-    void IncreaseWidth(OpeningBook& book, HexBoard& board);
+    void IncreaseWidth(Book& book, HexBoard& board);
 
     //---------------------------------------------------------------------    
 
@@ -136,9 +136,9 @@ private:
         BenzenePlayer* m_player;
     };
 
-    bool GetNode(const StoneBoard& brd, OpeningBookNode& node) const;
+    bool GetNode(const StoneBoard& brd, BookNode& node) const;
 
-    void WriteNode(const StoneBoard& brd, const OpeningBookNode& node);
+    void WriteNode(const StoneBoard& brd, const BookNode& node);
 
     void EnsureRootExists(const StoneBoard& brd);
 
@@ -147,7 +147,7 @@ private:
 
     bool ExpandChildren(StoneBoard& brd, std::size_t count);
 
-    void UpdateValue(OpeningBookNode& node, StoneBoard& brd);
+    void UpdateValue(BookNode& node, StoneBoard& brd);
 
     void DoExpansion(StoneBoard& brd, PointSequence& pv);
 
@@ -162,7 +162,7 @@ private:
     //---------------------------------------------------------------------
 
     /** Book this builder is expanding, passed in by user in Expand(). */
-    OpeningBook* m_book;
+    Book* m_book;
 
     /** Player passed to constructor. */
     PLAYER& m_orig_player;
@@ -301,7 +301,7 @@ inline void BookBuilder<PLAYER>::SetNumThreads(std::size_t num)
 //----------------------------------------------------------------------------
 
 template<class PLAYER>
-void BookBuilder<PLAYER>::Expand(OpeningBook& book, const HexBoard& board, 
+void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board, 
                                  int numExpansions)
 {
     m_book = &book;
@@ -330,7 +330,7 @@ void BookBuilder<PLAYER>::Expand(OpeningBook& book, const HexBoard& board,
 	// If root position becomes a known win or loss, then there's
 	// no point in continuing to expand the opening book.
         {
-            OpeningBookNode root;
+            BookNode root;
             GetNode(brd, root);
             if (root.IsTerminal()) 
             {
@@ -362,7 +362,7 @@ void BookBuilder<PLAYER>::Expand(OpeningBook& book, const HexBoard& board,
 }
 
 template<class PLAYER>
-void BookBuilder<PLAYER>::Refresh(OpeningBook& book, HexBoard& board)
+void BookBuilder<PLAYER>::Refresh(Book& book, HexBoard& board)
 {
     m_book = &book;
     m_brd = const_cast<HexBoard*>(&board);
@@ -403,7 +403,7 @@ void BookBuilder<PLAYER>::Refresh(OpeningBook& book, HexBoard& board)
 }
 
 template<class PLAYER>
-void BookBuilder<PLAYER>::IncreaseWidth(OpeningBook& book, HexBoard& board)
+void BookBuilder<PLAYER>::IncreaseWidth(Book& book, HexBoard& board)
 {
     if (!m_use_widening)
     {
@@ -508,8 +508,7 @@ HexEval BookBuilder<PLAYER>::Worker::operator()(const StoneBoard& position)
 /** Reads node for given board state. Returns false if state does not
     exist in the book. */
 template<class PLAYER>
-bool BookBuilder<PLAYER>::GetNode(const StoneBoard& brd, 
-                                  OpeningBookNode& node) const
+bool BookBuilder<PLAYER>::GetNode(const StoneBoard& brd, BookNode& node) const
 {
     return m_book->GetNode(brd, node);
 }
@@ -517,7 +516,7 @@ bool BookBuilder<PLAYER>::GetNode(const StoneBoard& brd,
 /** Writes node to book's db. */
 template<class PLAYER>
 void BookBuilder<PLAYER>::WriteNode(const StoneBoard& brd, 
-                                    const OpeningBookNode& node)
+                                    const BookNode& node)
 {
     m_book->WriteNode(brd, node);
 }
@@ -526,12 +525,12 @@ void BookBuilder<PLAYER>::WriteNode(const StoneBoard& brd,
 template<class PLAYER>
 void BookBuilder<PLAYER>::EnsureRootExists(const StoneBoard& brd)
 {
-    OpeningBookNode root;
+    BookNode root;
     if (!GetNode(brd, root))
     {
         LogInfo() << "Creating root node. " << '\n';
         HexEval value = m_workers[0](brd);
-        WriteNode(brd, OpeningBookNode(value));
+        WriteNode(brd, BookNode(value));
     }
 }
 
@@ -587,7 +586,7 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
     if (GenerateMoves(brd, children, value))
     {
         LogInfo() << "ExpandChildren: State is determined!" << '\n';
-        WriteNode(brd, OpeningBookNode(value));
+        WriteNode(brd, BookNode(value));
         return false;
     }
 
@@ -597,7 +596,7 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
     for (std::size_t i = 0; i < limit; ++i)
     {
         brd.playMove(brd.WhoseTurn(), children[i]);
-        OpeningBookNode child;
+        BookNode child;
         if (!GetNode(brd, child))
         {
             workToDo.push_back(brd);
@@ -626,17 +625,17 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
     is added or no new children are added. The node is then set with
     the proper value. */
 template<class PLAYER>
-void BookBuilder<PLAYER>::UpdateValue(OpeningBookNode& node, StoneBoard& brd)
+void BookBuilder<PLAYER>::UpdateValue(BookNode& node, StoneBoard& brd)
 {
     while (true)
     {
-        OpeningBookUtil::UpdateValue(*m_book, node, brd);
+        BookUtil::UpdateValue(*m_book, node, brd);
         if (!HexEvalUtil::IsLoss(node.Value(brd)))
             break;
 
         // Round up to next nearest multiple of m_expand_width that is
         // larger than the current number of children.
-        unsigned numChildren = OpeningBookUtil::NumChildren(*m_book, brd);
+        unsigned numChildren = BookUtil::NumChildren(*m_book, brd);
         std::size_t width = (numChildren / m_expand_width + 1) 
             * m_expand_width;
 
@@ -652,7 +651,7 @@ void BookBuilder<PLAYER>::UpdateValue(OpeningBookNode& node, StoneBoard& brd)
 template<class PLAYER>
 void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
 {
-    OpeningBookNode node;
+    BookNode node;
     if (!GetNode(brd, node))
         HexAssert(false);
 
@@ -684,7 +683,7 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
         GetNode(brd, node);
         UpdateValue(node, brd);
         HexPoint mostUrgent 
-            = OpeningBookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
+            = BookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
         WriteNode(brd, node);
 
         // Recurse on most urgent child only if non-terminal.
@@ -700,7 +699,7 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
 
     GetNode(brd, node);
     UpdateValue(node, brd);
-    OpeningBookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
+    BookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
     node.IncrementCount();
     WriteNode(brd, node);
 }
@@ -716,9 +715,9 @@ template<class PLAYER>
 bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
                                   bool root)
 {
-    if (seen.count(OpeningBookUtil::GetHash(brd)))
+    if (seen.count(BookUtil::GetHash(brd)))
         return true;
-    OpeningBookNode node;
+    BookNode node;
     if (!GetNode(brd, node))
         return false;
     if (node.IsLeaf())
@@ -737,13 +736,13 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
         brd.undoMove(*it);
     }
     UpdateValue(node, brd);
-    OpeningBookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
+    BookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
     if (fabs(oldValue - node.Value(brd)) > 0.0001)
         m_value_updates++;
     if (fabs(oldPriority - node.m_priority) > 0.0001)
         m_priority_updates++;
     WriteNode(brd, node);
-    seen.insert(OpeningBookUtil::GetHash(brd));
+    seen.insert(BookUtil::GetHash(brd));
     if (node.IsTerminal())
         m_terminal_nodes++;
     else
@@ -758,9 +757,9 @@ void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd,
                                         std::set<hash_t>& seen,
                                         bool root)
 {
-    if (seen.count(OpeningBookUtil::GetHash(brd)))
+    if (seen.count(BookUtil::GetHash(brd)))
         return;
-    OpeningBookNode node;
+    BookNode node;
     if (!GetNode(brd, node))
         return;
     if (node.IsTerminal() || node.IsLeaf())
@@ -777,7 +776,7 @@ void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd,
         * m_expand_width;
     if (ExpandChildren(brd, width))
         ++m_num_widenings;
-    seen.insert(OpeningBookUtil::GetHash(brd));
+    seen.insert(BookUtil::GetHash(brd));
     if ((seen.size() % 500) == 0)
     {
         m_book->Flush();

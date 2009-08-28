@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file OpeningBook.cpp
+/** @file Book.cpp
 */
 //----------------------------------------------------------------------------
 
@@ -8,7 +8,7 @@
 
 #include "BitsetIterator.hpp"
 #include "HexException.hpp"
-#include "OpeningBook.hpp"
+#include "Book.hpp"
 #include "Time.hpp"
 
 using namespace benzene;
@@ -20,34 +20,34 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-float OpeningBookNode::Value(const StoneBoard& brd) const
+float BookNode::Value(const StoneBoard& brd) const
 {
     if (brd.isLegal(SWAP_PIECES))
-        return std::max(m_value, OpeningBook::InverseEval(m_value));
+        return std::max(m_value, Book::InverseEval(m_value));
     return m_value;
 }
 
-float OpeningBookNode::Score(const StoneBoard& brd, float countWeight) const
+float BookNode::Score(const StoneBoard& brd, float countWeight) const
 {
-    float score = OpeningBook::InverseEval(Value(brd));
+    float score = Book::InverseEval(Value(brd));
     if (!IsTerminal())
         score += log(m_count + 1) * countWeight;
     return score;	
 }
 
-bool OpeningBookNode::IsTerminal() const
+bool BookNode::IsTerminal() const
 {
     if (HexEvalUtil::IsWinOrLoss(m_value))
         return true;
     return false;
 }
 
-bool OpeningBookNode::IsLeaf() const
+bool BookNode::IsLeaf() const
 {
     return m_count == 0;
 }
 
-std::string OpeningBookNode::toString() const
+std::string BookNode::toString() const
 {
     std::ostringstream os;
     os << std::showpos << std::fixed << std::setprecision(3);
@@ -59,7 +59,7 @@ std::string OpeningBookNode::toString() const
 
 //----------------------------------------------------------------------------
 
-OpeningBook::OpeningBook(int width, int height, std::string filename)
+Book::Book(int width, int height, std::string filename)
     throw(HexException)
 {
     m_settings.board_width = width;
@@ -92,13 +92,13 @@ OpeningBook::OpeningBook(int width, int height, std::string filename)
     }
 }
 
-OpeningBook::~OpeningBook()
+Book::~Book()
 {
 }
 
 //----------------------------------------------------------------------------
 
-float OpeningBook::InverseEval(float eval)
+float Book::InverseEval(float eval)
 {
     if (HexEvalUtil::IsWinOrLoss(eval))
         return -eval;
@@ -110,25 +110,25 @@ float OpeningBook::InverseEval(float eval)
 
 //----------------------------------------------------------------------------
 
-bool OpeningBook::GetNode(const StoneBoard& brd, OpeningBookNode& node) const
+bool Book::GetNode(const StoneBoard& brd, BookNode& node) const
 {
-    if (m_db.Get(OpeningBookUtil::GetHash(brd), node))
+    if (m_db.Get(BookUtil::GetHash(brd), node))
         return true;
     return false;
 }
 
-void OpeningBook::WriteNode(const StoneBoard& brd, const OpeningBookNode& node)
+void Book::WriteNode(const StoneBoard& brd, const BookNode& node)
 {
-    m_db.Put(OpeningBookUtil::GetHash(brd), node);
+    m_db.Put(BookUtil::GetHash(brd), node);
 }
 
-int OpeningBook::GetMainLineDepth(const StoneBoard& pos) const
+int Book::GetMainLineDepth(const StoneBoard& pos) const
 {
     int depth = 0;
     StoneBoard brd(pos);
     for (;;) 
     {
-        OpeningBookNode node;
+        BookNode node;
         if (!GetNode(brd, node))
             break;
         HexPoint move = INVALID_POINT;
@@ -136,7 +136,7 @@ int OpeningBook::GetMainLineDepth(const StoneBoard& pos) const
         for (BitsetIterator p(brd.getEmpty()); p; ++p)
         {
             brd.playMove(brd.WhoseTurn(), *p);
-            OpeningBookNode child;
+            BookNode child;
             if (GetNode(brd, child))
             {
                 float curValue = InverseEval(child.Value(brd));
@@ -156,21 +156,21 @@ int OpeningBook::GetMainLineDepth(const StoneBoard& pos) const
     return depth;
 }
 
-std::size_t OpeningBook::GetTreeSize(const StoneBoard& board) const
+std::size_t Book::GetTreeSize(const StoneBoard& board) const
 {
     std::map<hash_t, std::size_t> solved;
     StoneBoard brd(board);
     return TreeSize(brd, solved);
 }
 
-std::size_t OpeningBook::TreeSize(StoneBoard& brd,
-                                  std::map<hash_t, std::size_t>& solved) const
+std::size_t Book::TreeSize(StoneBoard& brd, std::map<hash_t, 
+                           std::size_t>& solved) const
 {
-    hash_t hash = OpeningBookUtil::GetHash(brd);
+    hash_t hash = BookUtil::GetHash(brd);
     if (solved.find(hash) != solved.end())
         return solved[hash];
 
-    OpeningBookNode node;
+    BookNode node;
     if (!GetNode(brd, node))
         return 0;
    
@@ -187,7 +187,7 @@ std::size_t OpeningBook::TreeSize(StoneBoard& brd,
 
 //----------------------------------------------------------------------------
 
-hash_t OpeningBookUtil::GetHash(const StoneBoard& brd)
+hash_t BookUtil::GetHash(const StoneBoard& brd)
 {
     hash_t hash1 = brd.Hash();
     StoneBoard rotatedBrd(brd);
@@ -196,15 +196,14 @@ hash_t OpeningBookUtil::GetHash(const StoneBoard& brd)
     return std::min(hash1, hash2);
 }
 
-unsigned OpeningBookUtil::NumChildren(const OpeningBook& book, 
-                                      const StoneBoard& board)
+unsigned BookUtil::NumChildren(const Book& book, const StoneBoard& board)
 {
     unsigned num = 0;
     StoneBoard brd(board);
     for (BitsetIterator i(brd.getEmpty()); i; ++i) 
     {
 	brd.playMove(brd.WhoseTurn(), *i);
-	OpeningBookNode child;
+	BookNode child;
         if (book.GetNode(brd, child))
             ++num;
         brd.undoMove(*i);
@@ -212,19 +211,18 @@ unsigned OpeningBookUtil::NumChildren(const OpeningBook& book,
     return num;
 }
 
-void OpeningBookUtil::UpdateValue(const OpeningBook& book, 
-                                  OpeningBookNode& node, StoneBoard& brd)
+void BookUtil::UpdateValue(const Book& book, BookNode& node, StoneBoard& brd)
 {
     bool hasChild = false;
     float bestValue = boost::numeric::bounds<float>::lowest();
     for (BitsetIterator i(brd.getEmpty()); i; ++i) 
     {
 	brd.playMove(brd.WhoseTurn(), *i);
-	OpeningBookNode child;
+	BookNode child;
         if (book.GetNode(brd, child))
         {
             hasChild = true;
-            float value = OpeningBook::InverseEval(child.Value(brd));
+            float value = Book::InverseEval(child.Value(brd));
             if (value > bestValue)
 		bestValue = value;
 	    
@@ -238,25 +236,23 @@ void OpeningBookUtil::UpdateValue(const OpeningBook& book,
 /** @todo Maybe switch this to take a bestChildValue instead of of a
     parent node. This would require flipping the parent in the caller
     function and reverse the order of the subtraction. */
-float OpeningBookUtil::ComputePriority(const StoneBoard& brd, 
-                                       const OpeningBookNode& parent,
-                                       const OpeningBookNode& child,
-                                       double alpha)
+float BookUtil::ComputePriority(const StoneBoard& brd, 
+                                const BookNode& parent,
+                                const BookNode& child,
+                                double alpha)
 {
     // Must adjust child value for swap, but not the parent because we
     // are comparing with the best child's value, ie, the minmax
     // value.
-    float delta = parent.m_value - OpeningBook::InverseEval(child.Value(brd));
+    float delta = parent.m_value - Book::InverseEval(child.Value(brd));
     HexAssert(delta >= 0.0);
-    HexAssert(child.m_priority >= OpeningBookNode::LEAF_PRIORITY);
-    HexAssert(child.m_priority < OpeningBookNode::DUMMY_PRIORITY);
+    HexAssert(child.m_priority >= BookNode::LEAF_PRIORITY);
+    HexAssert(child.m_priority < BookNode::DUMMY_PRIORITY);
     return alpha * delta + child.m_priority + 1;
 }
 
-HexPoint OpeningBookUtil::UpdatePriority(const OpeningBook& book,
-                                         OpeningBookNode& node, 
-                                         StoneBoard& brd,
-                                         float alpha)
+HexPoint BookUtil::UpdatePriority(const Book& book, BookNode& node, 
+                                  StoneBoard& brd, float alpha)
 {
     bool hasChild = false;
     float bestPriority = boost::numeric::bounds<float>::highest();
@@ -264,12 +260,12 @@ HexPoint OpeningBookUtil::UpdatePriority(const OpeningBook& book,
     for (BitsetIterator i(brd.getEmpty()); i; ++i) 
     {
 	brd.playMove(brd.WhoseTurn(), *i);
-	OpeningBookNode child;
+	BookNode child;
         if (book.GetNode(brd, child))
         {
             hasChild = true;
             float priority 
-                = OpeningBookUtil::ComputePriority(brd, node, child, alpha);
+                = BookUtil::ComputePriority(brd, node, child, alpha);
             if (priority < bestPriority)
             {
                 bestPriority = priority;
@@ -285,11 +281,10 @@ HexPoint OpeningBookUtil::UpdatePriority(const OpeningBook& book,
 
 //----------------------------------------------------------------------------
 
-HexPoint OpeningBookUtil::BestMove(const OpeningBook& book, 
-                                   const StoneBoard& pos,
-                                   unsigned minCount, float countWeight)
+HexPoint BookUtil::BestMove(const Book& book, const StoneBoard& pos,
+                            unsigned minCount, float countWeight)
 {
-    OpeningBookNode node;
+    BookNode node;
     if (!book.GetNode(pos, node) || node.m_count < minCount)
         return INVALID_POINT;
 
@@ -299,7 +294,7 @@ HexPoint OpeningBookUtil::BestMove(const OpeningBook& book,
     for (BitsetIterator p(brd.getEmpty()); p; ++p)
     {
         brd.playMove(brd.WhoseTurn(), *p);
-        OpeningBookNode child;
+        BookNode child;
         if (book.GetNode(brd, child))
         {
             float score = child.Score(brd, countWeight);
@@ -317,12 +312,10 @@ HexPoint OpeningBookUtil::BestMove(const OpeningBook& book,
 
 //----------------------------------------------------------------------------
 
-void OpeningBookUtil::DumpVisualizationData(const OpeningBook& book, 
-                                            StoneBoard& brd, 
-                                            int depth,
-                                            std::ostream& out)
+void BookUtil::DumpVisualizationData(const Book& book, StoneBoard& brd, 
+                                     int depth, std::ostream& out)
 {
-    OpeningBookNode node;
+    BookNode node;
     if (!book.GetNode(brd, node))
         return;
     if (node.IsLeaf())
@@ -340,14 +333,14 @@ void OpeningBookUtil::DumpVisualizationData(const OpeningBook& book,
 
 namespace {
 
-void DumpNonTerminalStates(const OpeningBook& book, StoneBoard& brd,
+void DumpNonTerminalStates(const Book& book, StoneBoard& brd,
                            int numstones, std::set<hash_t>& seen,
                            PointSequence& pv, std::ostream& out)
 {
-    hash_t hash = OpeningBookUtil::GetHash(brd);
+    hash_t hash = BookUtil::GetHash(brd);
     if (seen.find(hash) != seen.end())
         return;
-    OpeningBookNode node;
+    BookNode node;
     if (!book.GetNode(brd, node))
         return;
     if (brd.numStones() > numstones)
@@ -375,11 +368,9 @@ void DumpNonTerminalStates(const OpeningBook& book, StoneBoard& brd,
 
 }
 
-void OpeningBookUtil::DumpNonTerminalStates(const OpeningBook& book, 
-                                            StoneBoard& brd,
-                                            int numstones,
-                                            PointSequence& pv, 
-                                            std::ostream& out)
+void BookUtil::DumpNonTerminalStates(const Book& book, StoneBoard& brd,
+                                     int numstones, PointSequence& pv, 
+                                     std::ostream& out)
 {
     std::set<hash_t> seen;
     ::DumpNonTerminalStates(book, brd, numstones, seen, pv, out);

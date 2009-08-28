@@ -13,7 +13,7 @@
 #include "BenzenePlayer.hpp"
 #include "HexEnvironment.hpp"
 #include "HexHtpEngine.hpp"
-#include "OpeningBook.hpp"
+#include "Book.hpp"
 #include "Solver.hpp"
 #include "SolverDFPN.hpp"
 #include "VCCommands.hpp"
@@ -120,7 +120,7 @@ protected:
 
     boost::scoped_ptr<DfpnHashTable> m_dfpn_tt;
 
-    boost::scoped_ptr<OpeningBook> m_book;
+    boost::scoped_ptr<Book> m_book;
 
     boost::scoped_ptr<SolverDB> m_db;
 

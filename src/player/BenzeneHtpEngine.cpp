@@ -18,7 +18,6 @@
 #include "HexSgUtil.hpp"
 #include "BenzeneHtpEngine.hpp"
 #include "LadderCheck.hpp"
-#include "OpeningBook.hpp"
 #include "PlayerUtils.hpp"
 #include "Resistance.hpp"
 #include "Solver.hpp"
@@ -332,7 +331,7 @@ void BenzeneHtpEngine::CmdBookOpen(HtpCommand& cmd)
     std::string fn = cmd.Arg(0);
     const StoneBoard& brd = m_game.Board();
     try {
-        m_book.reset(new OpeningBook(brd.width(), brd.height(), fn));
+        m_book.reset(new Book(brd.width(), brd.height(), fn));
     }
     catch (HexException& e) {
         cmd << "Error opening book: '" << e.what() << "'\n";
@@ -345,7 +344,7 @@ bool BenzeneHtpEngine::StateMatchesBook(const StoneBoard& board)
         throw HtpFailure() << "No open book.";
         return false;
     } else {
-        OpeningBook::Settings settings = m_book->GetSettings();
+        Book::Settings settings = m_book->GetSettings();
         if (settings.board_width != board.width() ||
             settings.board_height != board.height()) {
             throw HtpFailure() << "Book is for different boardsize!";
@@ -379,7 +378,7 @@ void BenzeneHtpEngine::CmdBookCounts(HtpCommand& cmd)
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);
-        OpeningBookNode node;
+        BookNode node;
         if (m_book->GetNode(brd, node))
             cmd << " " << *p << " " << node.m_count;
         brd.undoMove(*p);
@@ -405,11 +404,11 @@ void BenzeneHtpEngine::CmdBookScores(HtpCommand& cmd)
     for (BitsetIterator p(brd.getEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);
-        OpeningBookNode node;
+        BookNode node;
         if (m_book->GetNode(brd, node))
         {
             counts[*p] = node.m_count;
-            values[*p] = OpeningBook::InverseEval(node.Value(brd));
+            values[*p] = Book::InverseEval(node.Value(brd));
             scores.push_back(std::make_pair(-node.Score(brd, countWeight), *p));
         }
         brd.undoMove(*p);
@@ -442,7 +441,7 @@ void BenzeneHtpEngine::CmdBookVisualize(HtpCommand& cmd)
     std::ofstream f(filename.c_str());
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
-    OpeningBookUtil::DumpVisualizationData(*m_book, brd, 0, f);
+    BookUtil::DumpVisualizationData(*m_book, brd, 0, f);
     f.close();
 }
 
@@ -464,7 +463,7 @@ void BenzeneHtpEngine::CmdBookDumpNonTerminal(HtpCommand& cmd)
     std::ofstream f(filename.c_str());
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
-    OpeningBookUtil::DumpNonTerminalStates(*m_book, brd, numstones, pv, f);
+    BookUtil::DumpNonTerminalStates(*m_book, brd, numstones, pv, f);
     f.close();
 }
 
@@ -486,9 +485,9 @@ void BenzeneHtpEngine::CmdBookSetValue(HtpCommand& cmd)
         value = cmd.FloatArg(0);
     if (!StateMatchesBook(m_game.Board()))
         return;
-    OpeningBookNode node;
+    BookNode node;
     if (!m_book->GetNode(m_game.Board(), node))
-        m_book->WriteNode(m_game.Board(), OpeningBookNode(value));
+        m_book->WriteNode(m_game.Board(), BookNode(value));
     else
     {
         node.m_value = value;
