@@ -238,8 +238,6 @@ private:
 
     bool m_useGuiFx;
 
-    int m_ttsize;
-
     size_t m_numTerminal;
 
     size_t m_numMIDcalls;

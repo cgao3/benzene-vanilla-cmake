@@ -402,6 +402,7 @@ void SolverDFPN::TTStore(hash_t hash, const DfpnData& data)
     m_hashTable->Put(hash, data);
 }
 
+#ifndef NDEBUG
 void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const
 {
     HexAssert(bounds.phi <= INFTY);
@@ -411,5 +412,11 @@ void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const
     HexAssert(INFTY!= bounds.phi || 0 == bounds.delta ||INFTY == bounds.delta);
     HexAssert(INFTY!= bounds.delta || 0 == bounds.phi ||INFTY == bounds.phi);
 }
+#else
+void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const
+{
+    SG_UNUSED(bounds);
+}
+#endif
 
 //----------------------------------------------------------------------------
