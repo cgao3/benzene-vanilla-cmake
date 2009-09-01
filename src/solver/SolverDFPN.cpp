@@ -173,6 +173,7 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
         std::vector<HexPoint> pv;
         GetVariation(*m_brd, pv);
         LogInfo() << "PV: " << PrintVariation(pv) << '\n';
+        LogInfo() << "Work: " << data.m_work << '\n';
 
         return winner;
     }
@@ -218,14 +219,14 @@ bool SolverDFPN::CheckAbort()
     return m_aborted;
 }
 
-void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
+size_t SolverDFPN::MID(const DfpnBounds& bounds, int depth)
 {
     CheckBounds(bounds);
     HexAssert(bounds.phi > 1);
     HexAssert(bounds.delta > 1);
 
     if (CheckAbort())
-        return;
+        return 0;
 
     bitset_t childrenSet;
     HexColor colorToMove = m_brd->WhoseTurn();
@@ -256,13 +257,14 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
                 m_guiFx.Write();
             }
             TTStore(m_brd->Hash(), 
-                    DfpnData(terminal, EMPTY_BITSET, INVALID_POINT));
-            return;
+                    DfpnData(terminal, EMPTY_BITSET, INVALID_POINT, 1));
+            return 1;
         }
         childrenSet = PlayerUtils::MovesToConsider(*m_workBoard, colorToMove);
     }
 
     ++m_numMIDcalls;
+    size_t localWork = 1;
 
     HexAssert(childrenSet.any());
     std::vector<HexPoint> children;
@@ -270,8 +272,9 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
 
     // Not thread safe: perhaps move into while loop below later...
     std::vector<DfpnBounds> childrenBounds(children.size());
+    std::vector<size_t> childrenWork(children.size());
     for (size_t i = 0; i < children.size(); ++i)
-        LookupBounds(childrenBounds[i], colorToMove, children[i]);
+        LookupBounds(childrenBounds[i], childrenWork[i], colorToMove, children[i]);
     if (m_useGuiFx && depth == 0)
         m_guiFx.SetChildren(children, childrenBounds);
    
@@ -326,14 +329,15 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
 
         // Recurse on best child
         m_brd->playMove(colorToMove, bestMove);
-        MID(child, depth + 1);
+        localWork += MID(child, depth + 1);
         m_brd->undoMove(bestMove);
 
         if (m_useGuiFx && depth == 0)
             m_guiFx.UndoMove();
 
         // Update bounds for best child
-        LookupBounds(childrenBounds[bestIndex], colorToMove, bestMove);
+        LookupBounds(childrenBounds[bestIndex], childrenWork[bestIndex], 
+                     colorToMove, bestMove);
     }
 
     if (m_useGuiFx && depth == 0)
@@ -341,7 +345,9 @@ void SolverDFPN::MID(const DfpnBounds& bounds, int depth)
     
     // Store search results
     if (!m_aborted)
-        TTStore(m_brd->Hash(), DfpnData(currentBounds, childrenSet, bestMove));
+        TTStore(m_brd->Hash(), DfpnData(currentBounds, childrenSet, 
+                                        bestMove, localWork));
+    return localWork;
 }
 
 void SolverDFPN::SelectChild(int& bestIndex, std::size_t& delta2,
@@ -394,20 +400,24 @@ void SolverDFPN::UpdateBounds(DfpnBounds& bounds,
     }
 }
 
-void SolverDFPN::LookupBounds(DfpnBounds& bounds, HexColor colorToMove, 
-                              HexPoint cell)
+void SolverDFPN::LookupBounds(DfpnBounds& bounds, size_t& work, 
+                              HexColor colorToMove, HexPoint cell)
 {
     m_brd->playMove(colorToMove, cell);
     hash_t hash = m_brd->Hash();
     m_brd->undoMove(cell);
 
     DfpnData data;
-    if (m_hashTable->Get(hash, data)) 
+    if (m_hashTable->Get(hash, data))
+    {
         bounds = data.m_bounds;
+        work = data.m_work;
+    }
     else 
     {
         bounds.phi = 1;
         bounds.delta = 1;
+        work = 0;
     }
 }
 

@@ -1,10 +1,9 @@
 Benzene TODO file
 =================
 
-broderic [090821] (in rough order of importance)
+broderic [090901] (in rough order of importance)
 * Improve DFPN:
   * add work counter
-  * add timelimit
   * add ability to dump solved states over threshold to a log
   * avoid double counting in proof/disproof numbers
   * "Proof simulation"

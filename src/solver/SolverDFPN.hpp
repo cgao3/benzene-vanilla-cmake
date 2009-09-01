@@ -117,11 +117,13 @@ public:
     bitset_t m_children;
 
     HexPoint m_bestMove;
+    
+    size_t m_work;
 
     DfpnData();
 
     DfpnData( const DfpnBounds& bounds, const bitset_t& children, 
-             HexPoint bestMove);
+              HexPoint bestMove, size_t work);
 
     ~DfpnData();
     
@@ -140,11 +142,12 @@ inline DfpnData::DfpnData()
 { 
 }
 
-inline DfpnData::DfpnData(const DfpnBounds& bounds, 
-                          const bitset_t& children,  HexPoint bestMove)
+inline DfpnData::DfpnData(const DfpnBounds& bounds, const bitset_t& children, 
+                          HexPoint bestMove, size_t work)
     : m_bounds(bounds),
       m_children(children),
       m_bestMove(bestMove),
+      m_work(work),
       m_initialized(true)
 { 
 }
@@ -263,7 +266,7 @@ private:
 
     size_t m_numMIDcalls;
 
-    void MID(const DfpnBounds& n, int depth);
+    size_t MID(const DfpnBounds& n, int depth);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
                      const std::vector<DfpnBounds>& childrenDfpnBounds) const;
@@ -275,7 +278,8 @@ private:
 
     void CheckBounds(const DfpnBounds& bounds) const;
 
-    void LookupBounds(DfpnBounds& bound, HexColor colorToMove, HexPoint cell);
+    void LookupBounds(DfpnBounds& bound, size_t& work, HexColor colorToMove, 
+                      HexPoint cell);
 
     void TTStore(hash_t hash, const DfpnData& data);
 
