@@ -297,13 +297,17 @@ void BenzeneHtpEngine::CmdParamSolverDfpn(HtpCommand& cmd)
     {
         cmd << '\n'
             << "[bool] use_guifx "
-            << m_solverDfpn->UseGuiFx() << '\n';
+            << m_solverDfpn->UseGuiFx() << '\n'
+            << "[string] timelimit "
+            << m_solverDfpn->Timelimit() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
         if (name == "use_guifx")
             m_solverDfpn->SetUseGuiFx(cmd.BoolArg(1));
+        else if (name == "timelimit")
+            m_solverDfpn->SetTimelimit(cmd.FloatArg(1));
         else
             throw GtpFailure() << "Unknown parameter: " << name;
     }

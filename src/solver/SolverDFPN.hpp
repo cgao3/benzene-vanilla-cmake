@@ -6,6 +6,9 @@
 #ifndef SOLVERDFPN_HPP
 #define SOLVERDFPN_HPP
 
+#include "SgSystem.h"
+#include "SgTimer.h"
+
 #include "Hex.hpp"
 #include "HexBoard.hpp"
 #include "TransTable.hpp"
@@ -185,6 +188,13 @@ public:
     /** See UseGuiFx() */
     void SetUseGuiFx(bool enable);
 
+    /** Maximum time search is allowed to run before aborting. 
+        Set to 0 for no timelimit. */
+    double Timelimit() const;
+
+    /** See Timelimit() */
+    void SetTimelimit(double timelimit);
+
 private:
 
     /** Handles guifx output. */
@@ -232,11 +242,22 @@ private:
 
     DfpnHashTable* m_hashTable;
 
+    SgTimer m_timer;
+
+    /** See UseGuiFx() */
+    bool m_useGuiFx;
+
+    /** See TimeLimit() */
+    double m_timelimit;
+
+    /** Number of calls to CheckAbort() before we check the timer.
+        This is to avoid expensive calls to SgTime::Get(). Try to scale
+        this so that it is checked twice a second. */
+    size_t m_checkTimerAbortCalls;
+
     bool m_aborted;
 
     GuiFx m_guiFx;
-
-    bool m_useGuiFx;
 
     size_t m_numTerminal;
 
@@ -275,6 +296,16 @@ inline bool SolverDFPN::UseGuiFx() const
 inline void SolverDFPN::SetUseGuiFx(bool enable)
 {
     m_useGuiFx = enable;
+}
+
+inline double SolverDFPN::Timelimit() const
+{
+    return m_timelimit;
+}
+
+inline void SolverDFPN::SetTimelimit(double timelimit)
+{
+    m_timelimit = timelimit;
 }
 
 //----------------------------------------------------------------------------

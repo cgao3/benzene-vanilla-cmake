@@ -3,9 +3,6 @@
  */
 //----------------------------------------------------------------------------
 
-#include "SgSystem.h"
-#include "SgTimer.h"
-
 #include "SolverDFPN.hpp"
 #include "PlayerUtils.hpp"
 
@@ -105,8 +102,8 @@ void SolverDFPN::GuiFx::DoWrite()
 
 SolverDFPN::SolverDFPN()
     : m_hashTable(0),
-      m_guiFx(),
-      m_useGuiFx(false)
+      m_useGuiFx(false),
+      m_guiFx()
 {
 }
 
@@ -149,16 +146,17 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     m_numMIDcalls = 0;
     m_brd.reset(new StoneBoard(board));
     m_workBoard = &board;
+    m_checkTimerAbortCalls = 0;
 
     DfpnBounds root(INFTY, INFTY);
-    SgTimer timer;
+    m_timer.Start();
     MID(root, 0);
-    timer.Stop();
+    m_timer.Stop();
 
     LogInfo() << "     MID calls: " << m_numMIDcalls << "\n";
     LogInfo() << "Terminal nodes: " << m_numTerminal << "\n";
-    LogInfo() << "  Elapsed Time: " << timer.GetTime() << '\n';
-    LogInfo() << "      MIDs/sec: " << m_numMIDcalls/timer.GetTime() << '\n';
+    LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
+    LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime() << '\n';
     LogInfo() << m_hashTable->Stats() << '\n';
 
     if (!m_aborted)
@@ -191,14 +189,31 @@ bool SolverDFPN::CheckAbort()
             m_aborted = true;
             LogInfo() << "SolverDFPN::CheckAbort(): Abort flag!\n";
         }
-#if 0
-        else if ((m_settings.time_limit > 0) && 
-                 ((Time::Get() - m_start_time) > m_settings.time_limit))
+        else if (m_timelimit > 0)
         {
-            m_aborted = true;
-            LogInfo() << "SolverDFPN::CheckAbort(): Timelimit!" << '\n';
+            if (m_checkTimerAbortCalls == 0)
+            {
+                double elapsed = m_timer.GetTime();
+                if (elapsed > m_timelimit)
+                {
+                    m_aborted = true;
+                    LogInfo() << "SolverDFPN::CheckAbort(): Timelimit!" << '\n';
+                }
+                else
+                {
+                    if (m_numMIDcalls < 100)
+                        m_checkTimerAbortCalls = 10;
+                    else
+                    {
+                        size_t midsPerSec = static_cast<size_t>
+                            (m_numMIDcalls / elapsed);
+                        m_checkTimerAbortCalls = midsPerSec / 2;
+                    }
+                }
+            }
+            else
+                --m_checkTimerAbortCalls;
         }
-#endif
     }
     return m_aborted;
 }
