@@ -103,6 +103,7 @@ void SolverDFPN::GuiFx::DoWrite()
 SolverDFPN::SolverDFPN()
     : m_hashTable(0),
       m_useGuiFx(false),
+      m_timelimit(0.0),
       m_guiFx()
 {
 }
