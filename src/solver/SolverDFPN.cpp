@@ -293,22 +293,6 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, int depth)
         if (bounds.phi <= currentBounds.phi 
             || bounds.delta <= currentBounds.delta)
         {
-            // May need to fix the PV if we discover this state is
-            // solved via a transposition.
-            if (bestMove == INVALID_POINT && currentBounds.IsSolved())
-            {
-                if (currentBounds.IsLosing())
-                    bestMove = children[0];  // FIXME: find better child?
-                else
-                {
-                    for (std::size_t i = 0; i < children.size(); ++i)
-                        if (childrenBounds[i].IsLosing())
-                        {
-                            bestMove = children[i];
-                            break;
-                        }
-                }
-            }
             break;
         }
 
@@ -343,6 +327,42 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, int depth)
 
     if (m_useGuiFx && depth == 0)
         m_guiFx.WriteForced();
+
+
+    // Find the most delaying move for losing states, and the smallest
+    // winning move for winning states.
+    if (currentBounds.IsSolved())
+    {
+        if (currentBounds.IsLosing())
+        {
+            std::size_t maxWork = 0;
+            for (std::size_t i = 0; i < children.size(); ++i)
+            {
+                HexAssert(childrenBounds[i].IsWinning());
+                if (childrenWork[i] > maxWork)
+                {
+                    maxWork = childrenWork[i];
+                    bestMove = children[i];
+                    break;
+                }
+            }
+        }
+        else
+        {
+            std::size_t minWork = INFTY;
+            for (std::size_t i = 0; i < children.size(); ++i)
+            {
+                if (childrenBounds[i].IsLosing() 
+                    && childrenWork[i] < minWork)
+                {
+                    minWork = childrenWork[i];
+                    bestMove = children[i];
+                    break;
+                }
+            }
+            HexAssert(false);
+        }
+    }
     
     // Store search results
     if (!m_aborted)
