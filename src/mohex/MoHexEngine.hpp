@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file MoHexEngine.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -8,7 +8,7 @@
 
 #include "Hex.hpp"
 #include "BenzeneHtpEngine.hpp"
-#include "BookBuilder.hpp"
+#include "BookBuilderCommands.hpp"
 #include "MoHexPlayer.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -28,13 +28,6 @@ public:
     /** @name Command Callbacks */
     // @{
 
-    // The callback functions are documented in the cpp file
-    void CmdBookExpandParam(HtpCommand& cmd);
-    void CmdBookPriorities(HtpCommand& cmd);
-    void CmdBookExpand(HtpCommand& cmd);
-    void CmdBookRefresh(HtpCommand& cmd);
-    void CmdBookIncreaseWidth(HtpCommand& cmd);
-    void CmdParamBook(HtpCommand& cmd);
     void MoHexParam(HtpCommand& cmd);
     void MoHexPolicyParam(HtpCommand& cmd);
 
@@ -53,7 +46,7 @@ public:
 
 private:
 
-    BookBuilder<MoHexPlayer> m_bookBuilder;
+    BookBuilderCommands<MoHexPlayer> m_bookCommands;
 
     void RegisterCmd(const std::string& name,
                      GtpCallback<MoHexEngine>::Method method);

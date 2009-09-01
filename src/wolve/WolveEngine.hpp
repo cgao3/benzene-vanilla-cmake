@@ -7,6 +7,7 @@
 #define WOLVEENGINE_HPP
 
 #include "BenzeneHtpEngine.hpp"
+#include "BookCommands.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -37,6 +38,8 @@ public:
 #endif
 
 private:
+
+    BookCommands m_bookCommands;
 
     void RegisterCmd(const std::string& name,
                      GtpCallback<WolveEngine>::Method method);

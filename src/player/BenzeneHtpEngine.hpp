@@ -13,7 +13,6 @@
 #include "BenzenePlayer.hpp"
 #include "HexEnvironment.hpp"
 #include "HexHtpEngine.hpp"
-#include "Book.hpp"
 #include "Solver.hpp"
 #include "SolverDFPN.hpp"
 #include "VCCommands.hpp"
@@ -43,14 +42,6 @@ public:
 
     virtual void CmdGetAbsorbGroup(HtpCommand& cmd);
     
-    virtual void CmdBookOpen(HtpCommand& cmd);
-    virtual void CmdBookMainLineDepth(HtpCommand& cmd);
-    virtual void CmdBookCounts(HtpCommand& cmd);
-    virtual void CmdBookScores(HtpCommand& cmd);
-    virtual void CmdBookVisualize(HtpCommand& cmd);
-    virtual void CmdBookDumpNonTerminal(HtpCommand& cmd);
-    virtual void CmdBookSetValue(HtpCommand& cmd);
-
     void CmdHandbookAdd(HtpCommand& cmd);
 
     virtual void CmdComputeInferior(HtpCommand& cmd);
@@ -119,8 +110,6 @@ protected:
     boost::scoped_ptr<SolverTT> m_solver_tt;
 
     boost::scoped_ptr<DfpnHashTable> m_dfpn_tt;
-
-    boost::scoped_ptr<Book> m_book;
 
     boost::scoped_ptr<SolverDB> m_db;
 

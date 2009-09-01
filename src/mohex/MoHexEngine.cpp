@@ -16,15 +16,12 @@ using namespace benzene;
 MoHexEngine::MoHexEngine(std::istream& in, std::ostream& out,
                          int boardsize, BenzenePlayer& player)
     : BenzeneHtpEngine(in, out, boardsize, player),
-      m_bookBuilder(*GetInstanceOf<MoHexPlayer>(&player))
+      m_bookCommands(m_game, m_pe, GetInstanceOf<BookCheck>(&player),
+                     *GetInstanceOf<MoHexPlayer>(&player))
 {
-    RegisterCmd("book-expand", &MoHexEngine::CmdBookExpand);
-    RegisterCmd("book-priorities", &MoHexEngine::CmdBookPriorities);
-    RegisterCmd("book-refresh", &MoHexEngine::CmdBookRefresh);
-    RegisterCmd("book-increase-width", &MoHexEngine::CmdBookIncreaseWidth);
+    m_bookCommands.Register(*this);
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
     RegisterCmd("param_mohex_policy", &MoHexEngine::MoHexPolicyParam);
-    RegisterCmd("param_book", &MoHexEngine::CmdParamBook);
 }
 
 MoHexEngine::~MoHexEngine()
@@ -179,106 +176,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
     }
     else 
         throw HtpFailure("Expected 0 or 2 arguments");
-}
-
-void MoHexEngine::CmdParamBook(HtpCommand& cmd)
-{
-    if (cmd.NuArg() == 0)
-    {
-        cmd << '\n'
-            << "[bool] use_widening " 
-            << m_bookBuilder.UseWidening() << '\n'
-            << "[string] alpha "
-            << m_bookBuilder.Alpha() << '\n'
-            << "[string] expand_width "
-            << m_bookBuilder.ExpandWidth() << '\n'
-            << "[string] expand_threshold " 
-            << m_bookBuilder.ExpandThreshold() << '\n'
-            << "[string] num_threads " 
-            << m_bookBuilder.NumThreads() << '\n';
-    }
-    else if (cmd.NuArg() == 2)
-    {
-        std::string name = cmd.Arg(0);
-        if (name == "alpha")
-            m_bookBuilder.SetAlpha(cmd.FloatArg(1));
-        else if (name == "expand_width")
-            m_bookBuilder.SetExpandWidth(cmd.SizeTypeArg(1, 1));
-        else if (name == "expand_threshold")
-            m_bookBuilder.SetExpandThreshold(cmd.SizeTypeArg(1, 1));
-        else if (name == "num_threads")
-            m_bookBuilder.SetNumThreads(cmd.SizeTypeArg(1));
-        else if (name == "use_widening")
-            m_bookBuilder.SetUseWidening(cmd.BoolArg(1));
-        else
-            throw HtpFailure() << "unknown parameter: " << name;
-    }
-}
-
-//----------------------------------------------------------------------------
-
-/** Expands the current node in the current opening book.
-    "book-expand [iterations]"
-*/
-void MoHexEngine::CmdBookExpand(HtpCommand& cmd)
-{
-    if (!m_book) 
-        throw HtpFailure() << "No open book.";
-    cmd.CheckNuArg(1);
-    int iterations = cmd.IntArg(0, 1);
-    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    m_bookBuilder.Expand(*m_book, brd, iterations);
-}
-
-/** Refreshes the current book. See BookBuilder::Refresh(). */
-void MoHexEngine::CmdBookRefresh(HtpCommand& cmd)
-{
-    UNUSED(cmd);
-    if (!m_book) 
-        throw HtpFailure() << "No open book.";
-    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    m_bookBuilder.Refresh(*m_book, brd);
-}
-
-/** Increases the width of all internal nodes that need to be
-    increased. See BookBuilder::IncreaseWidth().  */
-void MoHexEngine::CmdBookIncreaseWidth(HtpCommand& cmd)
-{
-    UNUSED(cmd);
-    if (!m_book) 
-        throw HtpFailure() << "No open book.";
-    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    m_bookBuilder.IncreaseWidth(*m_book, brd);
-}
-
-void MoHexEngine::CmdBookPriorities(HtpCommand& cmd)
-{
-    if (!m_book) 
-        throw HtpFailure() << "No open book.";
-    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    HexColor color = brd.WhoseTurn();
-    BookNode parent;
-    if (!m_book->GetNode(brd, parent))
-        return;
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) 
-    {
-        brd.playMove(color, *p);
-        BookNode succ;
-        if (m_book->GetNode(brd, succ))
-        {
-            cmd << " " << *p;
-            float priority = BookUtil::ComputePriority(brd, parent, 
-                                               succ, m_bookBuilder.Alpha());
-            float value = Book::InverseEval(succ.m_value);
-            if (HexEvalUtil::IsWin(value))
-                cmd << " W";
-            else if (HexEvalUtil::IsLoss(value))
-                cmd << " L";
-            else
-                cmd << " " << std::fixed << std::setprecision(1) << priority;
-        }
-        brd.undoMove(*p);
-    }
 }
 
 //----------------------------------------------------------------------------

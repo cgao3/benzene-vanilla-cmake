@@ -44,8 +44,10 @@ void ParseDashSeparatedString(const std::string& str, std::vector<TYPE>& out)
 
 WolveEngine::WolveEngine(std::istream& in, std::ostream& out,
                          int boardsize, BenzenePlayer& player)
-    : BenzeneHtpEngine(in, out, boardsize, player)
+    : BenzeneHtpEngine(in, out, boardsize, player),
+      m_bookCommands(m_game, m_pe, GetInstanceOf<BookCheck>(&player))
 {
+    m_bookCommands.Register(*this);
     RegisterCmd("param_wolve", &WolveEngine::WolveParam);
 }
 

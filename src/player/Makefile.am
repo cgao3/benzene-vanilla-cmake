@@ -4,6 +4,7 @@ libplayer_a_SOURCES = \
 BenzeneHtpEngine.cpp \
 BenzenePlayer.cpp \
 BookCheck.cpp \
+BookCommands.cpp \
 EndgameCheck.cpp \
 HandBookCheck.cpp \
 HandicapPlayer.cpp \
@@ -18,6 +19,8 @@ BenzeneHtpEngine.hpp \
 BenzenePlayer.hpp \
 BookBuilder.hpp \
 BookCheck.hpp \
+BookBuilderCommands.hpp \
+BookCommands.hpp \
 EndgameCheck.hpp \
 HandBookCheck.hpp \
 HandicapPlayer.hpp \
