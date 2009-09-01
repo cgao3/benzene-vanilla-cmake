@@ -126,9 +126,11 @@ public:
               HexPoint bestMove, size_t work);
 
     ~DfpnData();
+
+    std::string Print() const; 
     
     bool Initialized() const;
-
+    
     bool ReplaceWith(const DfpnData& data) const;
 
 private:
@@ -156,6 +158,18 @@ inline DfpnData::~DfpnData()
 {
 }
 
+inline std::string DfpnData::Print() const
+{
+    std::ostringstream os;
+    os << '[' 
+       << "bounds=" << m_bounds << ' '
+       << "children=" << m_children.count() << ' '
+       << "bestmove=" << m_bestMove << ' '
+       << "work=" << m_work
+       << ']';
+    return os.str();
+}
+
 inline bool DfpnData::ReplaceWith(const DfpnData& data) const
 {
     SG_UNUSED(data);
@@ -165,6 +179,13 @@ inline bool DfpnData::ReplaceWith(const DfpnData& data) const
 inline bool DfpnData::Initialized() const
 {
     return m_initialized;
+}
+
+/** Extends global output operator for DfpnData. */
+inline std::ostream& operator<<(std::ostream& os, const DfpnData& data)
+{
+    os << data.Print();
+    return os;
 }
 
 //----------------------------------------------------------------------------

@@ -61,6 +61,8 @@ public:
     virtual void CmdEvalResistDelta(HtpCommand& cmd);
     virtual void CmdEvalInfluence(HtpCommand& cmd);
 
+    void CmdDfpnGetState(HtpCommand& cmd);
+
     virtual void CmdSolveState(HtpCommand& cmd);
     virtual void CmdSolveStateDfpn(HtpCommand& cmd);
     virtual void CmdSolverClearTT(HtpCommand& cmd);

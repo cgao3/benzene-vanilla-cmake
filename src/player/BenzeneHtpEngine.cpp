@@ -78,6 +78,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("eval-resist-delta", &BenzeneHtpEngine::CmdEvalResistDelta);
     RegisterCmd("eval-influence", &BenzeneHtpEngine::CmdEvalInfluence);
 
+    RegisterCmd("dfpn-get-state", &BenzeneHtpEngine::CmdDfpnGetState);
+
     RegisterCmd("solve-state", &BenzeneHtpEngine::CmdSolveState);
     RegisterCmd("solve-state-dfpn", &BenzeneHtpEngine::CmdSolveStateDfpn);
     RegisterCmd("solver-clear-tt", &BenzeneHtpEngine::CmdSolverClearTT);
@@ -882,6 +884,18 @@ void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)
              << m_game.Board().Write(winning) << '\n';
 
     cmd << HexPointUtil::ToPointListString(winning);
+}
+
+//----------------------------------------------------------------------------
+
+void BenzeneHtpEngine::CmdDfpnGetState(HtpCommand& cmd)
+{
+    cmd.CheckArgNone();
+    DfpnData data;
+    if (m_dfpn_tt->Get(m_game.Board().Hash(), data))
+    {
+        cmd << data << '\n';
+    }
 }
 
 //----------------------------------------------------------------------------
