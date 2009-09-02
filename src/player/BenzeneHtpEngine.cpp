@@ -177,6 +177,7 @@ void BenzeneHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
 
 void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
 {
+    using namespace benzene::BenzenePlayerUtil;
     BookCheck* book = GetInstanceOf<BookCheck>(player);
     EndgameCheck* endgame = GetInstanceOf<EndgameCheck>(player);
     HandBookCheck* handbook = GetInstanceOf<HandBookCheck>(player);

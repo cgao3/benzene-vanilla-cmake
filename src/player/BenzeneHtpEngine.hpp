@@ -36,60 +36,48 @@ public:
     // @{
     // The callback functions are documented in the cpp file
 
-    virtual void CmdLicense(HtpCommand& cmd);
+    void CmdLicense(HtpCommand& cmd);
 
-    virtual void CmdRegGenMove(HtpCommand& cmd);
+    void CmdRegGenMove(HtpCommand& cmd);
 
-    virtual void CmdGetAbsorbGroup(HtpCommand& cmd);
+    void CmdGetAbsorbGroup(HtpCommand& cmd);
     
     void CmdHandbookAdd(HtpCommand& cmd);
 
-    virtual void CmdComputeInferior(HtpCommand& cmd);
-    virtual void CmdComputeFillin(HtpCommand& cmd);
-    virtual void CmdComputeVulnerable(HtpCommand& cmd);
-    virtual void CmdComputeDominated(HtpCommand& cmd);
-    virtual void CmdFindCombDecomp(HtpCommand& cmd);
-    virtual void CmdFindSplitDecomp(HtpCommand& cmd);
-    virtual void CmdEncodePattern(HtpCommand& cmd);
-
-    virtual void CmdParamPlayer(HtpCommand& cmd);
-    virtual void CmdParamSolver(HtpCommand& cmd);
-    virtual void CmdParamSolverDfpn(HtpCommand& cmd);
-
-    virtual void CmdEvalTwoDist(HtpCommand& cmd);
-    virtual void CmdEvalResist(HtpCommand& cmd);
-    virtual void CmdEvalResistDelta(HtpCommand& cmd);
-    virtual void CmdEvalInfluence(HtpCommand& cmd);
+    void CmdComputeInferior(HtpCommand& cmd);
+    void CmdComputeFillin(HtpCommand& cmd);
+    void CmdComputeVulnerable(HtpCommand& cmd);
+    void CmdComputeDominated(HtpCommand& cmd);
+    void CmdFindCombDecomp(HtpCommand& cmd);
+    void CmdFindSplitDecomp(HtpCommand& cmd);
+    void CmdEncodePattern(HtpCommand& cmd);
+    
+    void CmdParamPlayer(HtpCommand& cmd);
+    void CmdParamSolver(HtpCommand& cmd);
+    void CmdParamSolverDfpn(HtpCommand& cmd);
+    
+    void CmdEvalTwoDist(HtpCommand& cmd);
+    void CmdEvalResist(HtpCommand& cmd);
+    void CmdEvalResistDelta(HtpCommand& cmd);
+    void CmdEvalInfluence(HtpCommand& cmd);
 
     void CmdDfpnGetState(HtpCommand& cmd);
-
-    virtual void CmdSolveState(HtpCommand& cmd);
-    virtual void CmdSolveStateDfpn(HtpCommand& cmd);
-    virtual void CmdSolverClearTT(HtpCommand& cmd);
-    virtual void CmdSolverClearDfpnTT(HtpCommand& cmd);
-    virtual void CmdSolverFindWinning(HtpCommand& cmd);
+    
+    void CmdSolveState(HtpCommand& cmd);
+    void CmdSolveStateDfpn(HtpCommand& cmd);
+    void CmdSolverClearTT(HtpCommand& cmd);
+    void CmdSolverClearDfpnTT(HtpCommand& cmd);
+    void CmdSolverFindWinning(HtpCommand& cmd);
 
     void CmdDBOpen(HtpCommand& cmd);
     void CmdDBClose(HtpCommand& cmd);
     void CmdDBGet(HtpCommand& cmd);
 
-    virtual void CmdMiscDebug(HtpCommand& cmd);
+    void CmdMiscDebug(HtpCommand& cmd);
 
     // @} // @name
 
 protected:
-
-    virtual void NewGame(int width, int height);
-    
-    virtual HexPoint GenMove(HexColor color, double max_time);
-
-    /** Searches through the player decorators to find an instance
-        of type T. Returns 0 on failure. */
-    template<typename T> T* GetInstanceOf(BenzenePlayer* player);
-
-    void ParamPlayer(BenzenePlayer* player, HtpCommand& cmd);
-
-    //-----------------------------------------------------------------------
 
     BenzenePlayer& m_player;
 
@@ -115,12 +103,13 @@ protected:
 
     boost::scoped_ptr<SolverDB> m_db;
 
+    virtual void NewGame(int width, int height);
+    
+    virtual HexPoint GenMove(HexColor color, double max_time);
+
+    void ParamPlayer(BenzenePlayer* player, HtpCommand& cmd);
+
 private:
-    void RegisterCmd(const std::string& name,
-                     GtpCallback<BenzeneHtpEngine>::Method method);
-
-    //-----------------------------------------------------------------------
-
     friend class PlayerThread;
 
     class PlayerThread
@@ -164,19 +153,11 @@ private:
     HexPoint m_parallelResult;
 
     HexPoint ParallelGenMove(HexColor color, double max_time);
-};
 
-template<typename T> T* BenzeneHtpEngine::GetInstanceOf(BenzenePlayer* player)
-{
-    T* obj = dynamic_cast<T*>(player);
-    if (obj)
-        return obj;
-    BenzenePlayerFunctionality* func 
-        = dynamic_cast<BenzenePlayerFunctionality*>(player);
-    if (func)
-        return GetInstanceOf<T>(func->PlayerExtending());
-    return 0;
-}
+    void RegisterCmd(const std::string& name,
+                     GtpCallback<BenzeneHtpEngine>::Method method);
+
+};
 
 //----------------------------------------------------------------------------
 

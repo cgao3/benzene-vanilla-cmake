@@ -16,8 +16,9 @@ using namespace benzene;
 MoHexEngine::MoHexEngine(std::istream& in, std::ostream& out,
                          int boardsize, BenzenePlayer& player)
     : BenzeneHtpEngine(in, out, boardsize, player),
-      m_bookCommands(m_game, m_pe, GetInstanceOf<BookCheck>(&player),
-                     *GetInstanceOf<MoHexPlayer>(&player))
+      m_bookCommands(m_game, m_pe, 
+                     BenzenePlayerUtil::GetInstanceOf<BookCheck>(&player),
+                     *BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&player))
 {
     m_bookCommands.Register(*this);
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
@@ -39,7 +40,8 @@ void MoHexEngine::RegisterCmd(const std::string& name,
 double MoHexEngine::TimeForMove(HexColor color)
 {
     /** @todo Use a proper time control mechanism! */
-    MoHexPlayer* mohex = GetInstanceOf<MoHexPlayer>(&m_player);
+    MoHexPlayer* mohex = 
+        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
     if (!mohex)
         throw HtpFailure("No MoHex instance!");
 
@@ -50,7 +52,8 @@ double MoHexEngine::TimeForMove(HexColor color)
 
 void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
 {
-   MoHexPlayer* mohex = GetInstanceOf<MoHexPlayer>(&m_player);
+    MoHexPlayer* mohex = 
+        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
     if (!mohex)
         throw HtpFailure("No MoHex instance!");
     HexUctPolicyConfig& config = mohex->SharedPolicy().Config();
@@ -86,7 +89,8 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
 
 void MoHexEngine::MoHexParam(HtpCommand& cmd)
 {
-    MoHexPlayer* mohex = GetInstanceOf<MoHexPlayer>(&m_player);
+    MoHexPlayer* mohex = 
+        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
     if (!mohex)
         throw HtpFailure("No MoHex instance!");
 
@@ -190,7 +194,8 @@ void MoHexEngine::InitPonder()
 
 void MoHexEngine::Ponder()
 {
-    MoHexPlayer* mohex = GetInstanceOf<MoHexPlayer>(&m_player);
+    MoHexPlayer* mohex = 
+        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
     HexAssert(mohex);
 
     if (!mohex->Ponder())

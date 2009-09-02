@@ -236,6 +236,32 @@ BenzenePlayerFunctionality::post_search(HexPoint move,
 
 //----------------------------------------------------------------------------
 
+/** Utilities on BenzenePlayers. */
+namespace BenzenePlayerUtil
+{
+
+    /** Searches through the player decorators to find an instance
+        of type T. Returns 0 on failure. */
+    template<typename T> T* GetInstanceOf(BenzenePlayer* player);
+
+}
+
+//----------------------------------------------------------------------------
+
+template<typename T> T* BenzenePlayerUtil::GetInstanceOf(BenzenePlayer* player)
+{
+    T* obj = dynamic_cast<T*>(player);
+    if (obj)
+        return obj;
+    BenzenePlayerFunctionality* func 
+        = dynamic_cast<BenzenePlayerFunctionality*>(player);
+    if (func)
+        return GetInstanceOf<T>(func->PlayerExtending());
+    return 0;
+}
+
+//----------------------------------------------------------------------------
+
 _END_BENZENE_NAMESPACE_
 
 #endif // BENZENEPLAYER_HPP
