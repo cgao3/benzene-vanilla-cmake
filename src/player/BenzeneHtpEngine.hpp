@@ -105,9 +105,9 @@ protected:
 
     VCCommands m_vcCommands;
 
-    boost::scoped_ptr<Solver> m_solver;
+    Solver m_solver;
 
-    boost::scoped_ptr<SolverDFPN> m_solverDfpn;
+    SolverDFPN m_solverDfpn;
 
     boost::scoped_ptr<SolverTT> m_solver_tt;
 

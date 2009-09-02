@@ -41,8 +41,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
       m_playerEnvCommands(m_pe),
       m_solverEnvCommands(m_se),
       m_vcCommands(m_game, m_pe),
-      m_solver(new Solver()),
-      m_solverDfpn(new SolverDFPN()),
+      m_solver(),
+      m_solverDfpn(),
       m_solver_tt(new SolverTT(20)), // TT with 2^20 entries
       m_dfpn_tt(new DfpnHashTable(20)), // TT with 2^20 entries
       m_db(0),
@@ -97,7 +97,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     // Set some defaults
     m_se.buildParam.max_ors = 3;
     m_se.buildParam.and_over_edge = false;
-    m_solver->SetTT(m_solver_tt.get());
+    m_solver.SetTT(m_solver_tt.get());
 }
 
 BenzeneHtpEngine::~BenzeneHtpEngine()
@@ -246,37 +246,37 @@ void BenzeneHtpEngine::CmdParamSolver(HtpCommand& cmd)
     {
         cmd << '\n'
             << "[bool] backup_ice_info "
-            << m_solver->BackupIceInfo() << '\n'
+            << m_solver.BackupIceInfo() << '\n'
             << "[bool] shrink_proofs "
-            << m_solver->ShrinkProofs() << '\n'
+            << m_solver.ShrinkProofs() << '\n'
             << "[bool] use_decompositions "
-            << m_solver->UseDecompositions() << '\n'
+            << m_solver.UseDecompositions() << '\n'
             << "[bool] use_guifx " 
-            << m_solver->UseGuiFx() << '\n'
+            << m_solver.UseGuiFx() << '\n'
             << "[string] move_ordering "
-            << m_solver->MoveOrdering() << '\n' // FIXME: PRINT NICELY!!
+            << m_solver.MoveOrdering() << '\n' // FIXME: PRINT NICELY!!
             << "[string] progress_depth "
-            << m_solver->ProgressDepth() << '\n'
+            << m_solver.ProgressDepth() << '\n'
             << "[string] tt_bits "  
             << m_solver_tt->Bits() << '\n'
             << "[string] update_depth "  
-            << m_solver->UpdateDepth() << '\n';
+            << m_solver.UpdateDepth() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
-            m_solver->SetBackupIceInfo(cmd.BoolArg(1));
+            m_solver.SetBackupIceInfo(cmd.BoolArg(1));
         else if (name == "shrink_proofs")
-            m_solver->SetShrinkProofs(cmd.BoolArg(1));
+            m_solver.SetShrinkProofs(cmd.BoolArg(1));
         else if (name == "use_decompositions")
-            m_solver->SetUseDecompositions(cmd.BoolArg(1));
+            m_solver.SetUseDecompositions(cmd.BoolArg(1));
         else if (name == "use_guifx")
-            m_solver->SetUseGuiFx(cmd.BoolArg(1));
+            m_solver.SetUseGuiFx(cmd.BoolArg(1));
         else if (name == "move_ordering")
-            m_solver->SetMoveOrdering(cmd.IntArg(1,0,7));
+            m_solver.SetMoveOrdering(cmd.IntArg(1,0,7));
         else if (name == "progress_depth")
-            m_solver->SetProgressDepth(cmd.IntArg(1, 0));
+            m_solver.SetProgressDepth(cmd.IntArg(1, 0));
 	else if (name == "tt_bits")
 	{
 	    int bits = cmd.IntArg(1, 0);
@@ -284,10 +284,10 @@ void BenzeneHtpEngine::CmdParamSolver(HtpCommand& cmd)
 		m_solver_tt.reset(0);
 	    else
 		m_solver_tt.reset(new SolverTT(bits));
-	    m_solver->SetTT(m_solver_tt.get());
+	    m_solver.SetTT(m_solver_tt.get());
 	}
         else if (name == "update_depth")
-            m_solver->SetUpdateDepth(cmd.IntArg(1, 0));
+            m_solver.SetUpdateDepth(cmd.IntArg(1, 0));
         else
             throw HtpFailure() << "unknown parameter: " << name;
     }
@@ -299,17 +299,17 @@ void BenzeneHtpEngine::CmdParamSolverDfpn(HtpCommand& cmd)
     {
         cmd << '\n'
             << "[bool] use_guifx "
-            << m_solverDfpn->UseGuiFx() << '\n'
+            << m_solverDfpn.UseGuiFx() << '\n'
             << "[string] timelimit "
-            << m_solverDfpn->Timelimit() << '\n';
+            << m_solverDfpn.Timelimit() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
         if (name == "use_guifx")
-            m_solverDfpn->SetUseGuiFx(cmd.BoolArg(1));
+            m_solverDfpn.SetUseGuiFx(cmd.BoolArg(1));
         else if (name == "timelimit")
-            m_solverDfpn->SetTimelimit(cmd.FloatArg(1));
+            m_solverDfpn.SetTimelimit(cmd.FloatArg(1));
         else
             throw GtpFailure() << "Unknown parameter: " << name;
     }
@@ -765,11 +765,11 @@ void BenzeneHtpEngine::CmdSolveState(HtpCommand& cmd)
 
     Solver::SolutionSet solution;
     Solver::Result result = (use_db) ?
-        m_solver->Solve(brd, color, filename, maxstones, transtones, solution,
+        m_solver.Solve(brd, color, filename, maxstones, transtones, solution,
                       depthlimit, timelimit) :
-        m_solver->Solve(brd, color, solution, depthlimit, timelimit);
+        m_solver.Solve(brd, color, solution, depthlimit, timelimit);
 
-    m_solver->DumpStats(solution);
+    m_solver.DumpStats(solution);
 
     HexColor winner = EMPTY;
     if (result != Solver::UNKNOWN) {
@@ -786,7 +786,7 @@ void BenzeneHtpEngine::CmdSolveStateDfpn(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
     HexBoard& brd = m_se.SyncBoard(m_game.Board());
-    HexColor winner = m_solverDfpn->StartSearch(brd, *m_dfpn_tt);
+    HexColor winner = m_solverDfpn.StartSearch(brd, *m_dfpn_tt);
     cmd << winner;
 }
 
@@ -854,10 +854,10 @@ void BenzeneHtpEngine::CmdSolverFindWinning(HtpCommand& cmd)
         HexColor winner = EMPTY;
         Solver::SolutionSet solution;
         Solver::Result result = (use_db) 
-            ? m_solver->Solve(brd, other, filename, 
+            ? m_solver.Solve(brd, other, filename, 
                               maxstones, transtones, solution)
-            : m_solver->Solve(brd, other, solution);
-        m_solver->DumpStats(solution);
+            : m_solver.Solve(brd, other, solution);
+        m_solver.DumpStats(solution);
         LogInfo()
                  << "Proof:" << brd.Write(solution.proof)
                  << '\n';
@@ -1039,9 +1039,9 @@ void BenzeneHtpEngine::SolverThread::operator()()
     LogInfo() << "*** SolverThread ***" << '\n';
     Solver::SolutionSet solution;
     HexBoard& brd = m_engine.m_se.SyncBoard(m_engine.m_game.Board());
-    Solver::Result result = m_engine.m_solver->Solve(brd, m_color, solution, 
-                                                     Solver::NO_DEPTH_LIMIT, 
-                                                     Solver::NO_TIME_LIMIT);
+    Solver::Result result = m_engine.m_solver.Solve(brd, m_color, solution, 
+                                                    Solver::NO_DEPTH_LIMIT, 
+                                                    Solver::NO_TIME_LIMIT);
     if (result != Solver::UNKNOWN)
     {
         if (!solution.pv.empty() && solution.pv[0] != INVALID_POINT)
