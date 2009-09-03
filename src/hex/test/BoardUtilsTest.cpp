@@ -1,11 +1,11 @@
 //---------------------------------------------------------------------------
-/** @file
+/** @file BoardUtilsTest.cpp
  */
 //---------------------------------------------------------------------------
 #include <boost/test/auto_unit_test.hpp>
 
 #include "BoardUtils.hpp"
-#include "StoneBoard.hpp"
+#include "HexBoard.hpp"
 
 using namespace benzene;
 
@@ -218,6 +218,79 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     BOOST_CHECK(!sb.isLegal(HEX_CELL_A1));
     p = BoardUtils::RandomEmptyCell(sb);
     BOOST_CHECK_EQUAL(p, HEX_CELL_A1);
+}
+
+BOOST_AUTO_TEST_CASE(BoardUtil_Decompositions)
+{
+    ICEngine ice;
+    VCBuilderParam param;
+    HexBoard brd(7, 7, ice, param);
+    
+//  0xfc84158765cbbe20
+//   a  b  c  d  e  f  g  
+//  1\.  .  .  .  W  B  .\1
+//   2\.  .  .  .  .  .  .\2
+//    3\.  B  B  B  W  .  .\3
+//     4\.  B  B  W  .  .  .\4
+//      5\.  .  W  .  .  .  .\5
+//       6\.  .  W  .  .  .  .\6
+//        7\.  .  .  .  .  .  .\7
+//           a  b  c  d  e  f  g'
+    brd.playMove(BLACK, HEX_CELL_D3);
+    brd.playMove(WHITE, HEX_CELL_E1);
+    brd.playMove(BLACK, HEX_CELL_C4);
+    brd.playMove(WHITE, HEX_CELL_D4);
+    brd.playMove(BLACK, HEX_CELL_B4);
+    brd.playMove(WHITE, HEX_CELL_C5);
+    brd.playMove(BLACK, HEX_CELL_C3);
+    brd.playMove(WHITE, HEX_CELL_C6);
+    brd.playMove(BLACK, HEX_CELL_B3);
+    brd.playMove(WHITE, HEX_CELL_E3);
+    brd.playMove(BLACK, HEX_CELL_F1);
+
+    // Find decomp between E1, B3, WEST, and NORTH. 
+    brd.SetUseDecompositions(false);
+    brd.ComputeAll(BLACK);
+    brd.SetUseDecompositions(true);
+    bitset_t capturedVC;
+    BOOST_CHECK(BoardUtils::FindCombinatorialDecomposition(brd, BLACK, 
+                                                           capturedVC));
+    BOOST_CHECK(capturedVC.any());
+}
+
+BOOST_AUTO_TEST_CASE(BoardUtil_SplitDecompositions)
+{
+    ICEngine ice;
+    VCBuilderParam param;
+    HexBoard brd(7, 7, ice, param);
+    
+//  0xfc84158765cbbe20
+//   a  b  c  d  e  f  g  
+//  1\.  .  .  .  W  B  .\1
+//   2\.  .  .  .  .  .  .\2
+//    3\.  B  B  B  W  .  .\3
+//     4\.  B  B  W  .  .  .\4
+//      5\.  .  W  .  .  .  .\5
+//       6\.  .  W  .  .  .  .\6
+//        7\.  .  .  .  .  .  .\7
+//           a  b  c  d  e  f  g'
+    brd.playMove(BLACK, HEX_CELL_D3);
+    brd.playMove(WHITE, HEX_CELL_E1);
+    brd.playMove(BLACK, HEX_CELL_C4);
+    brd.playMove(WHITE, HEX_CELL_D4);
+    brd.playMove(BLACK, HEX_CELL_B4);
+    brd.playMove(WHITE, HEX_CELL_C5);
+    brd.playMove(BLACK, HEX_CELL_C3);
+    brd.playMove(WHITE, HEX_CELL_C6);
+    brd.playMove(BLACK, HEX_CELL_B3);
+    brd.playMove(WHITE, HEX_CELL_E3);
+    brd.playMove(BLACK, HEX_CELL_F1);
+
+    // Find splitting decomp between NORTH, E3, SOUTH.
+    brd.ComputeAll(WHITE);
+    HexPoint group;
+    BOOST_CHECK(BoardUtils::FindSplittingDecomposition(brd, WHITE, group));
+    BOOST_CHECK_EQUAL(group, HEX_CELL_E3);
 }
 
 } // namespace

@@ -401,8 +401,8 @@ bool BoardUtils::FindSplittingDecomposition(const HexBoard& brd,
     // if there is a group adjacent to both opponent edges, return it.
     if (adjToBothEdges.any()) 
     {
-	group = static_cast<HexPoint>
-            (BitsetUtil::FirstSetBit(adjToBothEdges));
+        group = groups.CaptainOf(static_cast<HexPoint>
+                                 (BitsetUtil::FirstSetBit(adjToBothEdges)));
 	return true;
     }
     return false;
