@@ -54,7 +54,6 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
 
     RegisterCmd("get_absorb_group", &BenzeneHtpEngine::CmdGetAbsorbGroup);
 
-
     RegisterCmd("handbook-add", &BenzeneHtpEngine::CmdHandbookAdd);
 
     RegisterCmd("compute-inferior", &BenzeneHtpEngine::CmdComputeInferior);
@@ -403,17 +402,16 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
 
 //----------------------------------------------------------------------
 
-/** Does inferior cell analysis. First argument is the color of the
-    player. */
+/** Outputs inferior cell info for current state.
+    Usage: "compute-inferior [color]"
+ */
 void BenzeneHtpEngine::CmdComputeInferior(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd, brd.GetGroups());
-
     InferiorCells inf;
     m_pe.ice.ComputeInferiorCells(color, brd.GetGroups(), 
                                   brd.GetPatternState(), inf);
@@ -427,15 +425,12 @@ void BenzeneHtpEngine::CmdComputeFillin(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd, brd.GetGroups());
-
     InferiorCells inf;
     m_pe.ice.ComputeFillin(color, brd.GetGroups(), brd.GetPatternState(), inf);
     inf.ClearVulnerable();
-
     cmd << inf.GuiOutput();
     cmd << '\n';
 }
@@ -445,14 +440,11 @@ void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
-
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd, brd.GetGroups());
-
     InferiorCells inf;
     m_pe.ice.FindVulnerable(brd.GetPatternState(), col, brd.getEmpty(), inf);
-
     cmd << inf.GuiOutput();
     cmd << '\n';
 }
@@ -462,55 +454,56 @@ void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
-
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd, brd.GetGroups());
-
     InferiorCells inf;
     m_pe.ice.FindDominated(brd.GetPatternState(), col, brd.getEmpty(), inf);
-
     cmd << inf.GuiOutput();
     cmd << '\n';
 }
 
-/** Tries to find a combinatorial decomposition of the board state. */
+/** Tries to find a combinatorial decomposition of the board state.
+    Outputs cells in the vc if there is a decomposition.
+    Usage: 'find-comb-decomp [color]'
+*/
 void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
+    // Turn of decomps in the board, then call ComputeAll(). Otherwise
+    // decomps will be found and filled-in by ComputeAll().
+    bool useDecomps = brd.UseDecompositions();
+    brd.SetUseDecompositions(false);
     brd.ComputeAll(BLACK);
-
+    brd.SetUseDecompositions(useDecomps);
     bitset_t capturedVC;
     if (BoardUtils::FindCombinatorialDecomposition(brd, color, capturedVC)) 
-    {
-        LogInfo() << "Found decomposition!\n";
         cmd << HexPointUtil::ToPointListString(capturedVC);
-    }
 }
 
+/** Tries to find a group that crowds both opponent edges. Outputs
+    group that crowds both edges if one exists.  
+    Usage: 'find-split-decomp [color]'
+
+    FIXME: Dump inferior cell info as well? It's hard to see what's
+    actually going on if it is not displayed.
+*/
 void BenzeneHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.ComputeAll(BLACK);
     HexPoint group;
-    bitset_t capturedVC;
-    if (BoardUtils::FindSplittingDecomposition(brd, color, group, capturedVC))
-    {
-        LogInfo() << "Found split decomp: " << group << "!\n";
-        cmd << HexPointUtil::ToPointListString(capturedVC);
-    }
+    if (BoardUtils::FindSplittingDecomposition(brd, color, group))
+        cmd << group;
 }
 
 /** Outputs pattern in encoded form. 
     Takes a list of cells, the first cell being the center of the
     pattern (that is not actually in the pattern).
-
     FIXME: clean this up!
 */
 void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)

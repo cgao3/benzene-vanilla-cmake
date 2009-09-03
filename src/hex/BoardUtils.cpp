@@ -383,8 +383,7 @@ bool BoardUtils::FindCombinatorialDecomposition(const HexBoard& brd,
 
 bool BoardUtils::FindSplittingDecomposition(const HexBoard& brd,
 					    HexColor color,
-					    HexPoint& group,
-					    bitset_t& captured)
+					    HexPoint& group)
 {
     // compute nbrs of color edges
     PointToBitset adjByMiai;
@@ -402,12 +401,10 @@ bool BoardUtils::FindSplittingDecomposition(const HexBoard& brd,
     // if there is a group adjacent to both opponent edges, return it.
     if (adjToBothEdges.any()) 
     {
-	captured.reset();
 	group = static_cast<HexPoint>
             (BitsetUtil::FirstSetBit(adjToBothEdges));
 	return true;
     }
-
     return false;
 }
 

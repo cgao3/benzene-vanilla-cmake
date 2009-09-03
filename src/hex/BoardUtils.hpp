@@ -126,13 +126,10 @@ namespace BoardUtils
     /** Returns true if there is a combinatorial decomposition for
         color that splits the board (i.e. touches both edges of the
         opposite color).  Group that splits the board is stored in
-        group.  If there is a VC from that group to an edge, the
-        carrier will be stored in captured.
-        InitializeDecompositions() must be called once before this can
-        be used. */
+        group. InitializeDecompositions() must be called once before
+        this can be used. */
     bool FindSplittingDecomposition(const HexBoard& brd, HexColor color, 
-				    HexPoint& group, bitset_t& captured);
-
+				    HexPoint& group);
     // @}
 
     //----------------------------------------------------------------------

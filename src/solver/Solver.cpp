@@ -392,10 +392,8 @@ bool Solver::solve_state(HexBoard& brd, HexColor color,
     bool winning_state = false;
     {
         HexPoint group;
-        bitset_t captured;
         if (m_use_decompositions
-            && BoardUtils::FindSplittingDecomposition(brd, !color, group, 
-                                                      captured))
+            && BoardUtils::FindSplittingDecomposition(brd, !color, group))
         {
             winning_state = solve_decomposition(brd, color, variation, 
                                                 solution, group);
