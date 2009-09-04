@@ -14,6 +14,7 @@
 #include "HexEnvironment.hpp"
 #include "HexHtpEngine.hpp"
 #include "Solver.hpp"
+#include "SolverCommands.hpp"
 #include "SolverDFPN.hpp"
 #include "VCCommands.hpp"
 
@@ -53,7 +54,6 @@ public:
     void CmdEncodePattern(HtpCommand& cmd);
     
     void CmdParamPlayer(HtpCommand& cmd);
-    void CmdParamSolver(HtpCommand& cmd);
     void CmdParamSolverDfpn(HtpCommand& cmd);
     
     void CmdEvalTwoDist(HtpCommand& cmd);
@@ -87,12 +87,6 @@ protected:
     /** Solver's environment. */
     HexEnvironment m_se;
 
-    HexEnvironmentCommands m_playerEnvCommands;
-
-    HexEnvironmentCommands m_solverEnvCommands;
-
-    VCCommands m_vcCommands;
-
     Solver m_solver;
 
     SolverDFPN m_solverDfpn;
@@ -102,6 +96,14 @@ protected:
     boost::scoped_ptr<DfpnHashTable> m_dfpn_tt;
 
     boost::scoped_ptr<SolverDB> m_db;
+
+    HexEnvironmentCommands m_playerEnvCommands;
+
+    HexEnvironmentCommands m_solverEnvCommands;
+
+    VCCommands m_vcCommands;
+
+    SolverCommands m_solverCommands;
 
     virtual void NewGame(int width, int height);
     
