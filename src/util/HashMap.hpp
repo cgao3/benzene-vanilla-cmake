@@ -240,6 +240,7 @@ void HashMap<T>::put(hash_t key, const T& value)
 template<typename T>
 void HashMap<T>::clear()
 {
+    m_count = 0;
     for (unsigned i = 0; i < m_size; ++i)
         m_used[i] = EMPTY_SLOT;
 }
