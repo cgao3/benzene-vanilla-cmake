@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <cstring>
+#include <cstdio>
 #include "HexPoint.hpp"
 
 using namespace benzene;
