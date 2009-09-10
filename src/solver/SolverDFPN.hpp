@@ -120,10 +120,12 @@ public:
     
     size_t m_work;
 
+    hash_t m_parentHash;
+
     DfpnData();
 
     DfpnData( const DfpnBounds& bounds, const bitset_t& children, 
-              HexPoint bestMove, size_t work);
+              HexPoint bestMove, size_t work, hash_t parentHash);
 
     ~DfpnData();
 
@@ -145,11 +147,12 @@ inline DfpnData::DfpnData()
 }
 
 inline DfpnData::DfpnData(const DfpnBounds& bounds, const bitset_t& children, 
-                          HexPoint bestMove, size_t work)
+                          HexPoint bestMove, size_t work, hash_t parentHash)
     : m_bounds(bounds),
       m_children(children),
       m_bestMove(bestMove),
       m_work(work),
+      m_parentHash(parentHash),
       m_initialized(true)
 { 
 }
@@ -165,7 +168,8 @@ inline std::string DfpnData::Print() const
        << "bounds=" << m_bounds << ' '
        << "children=" << m_children.count() << ' '
        << "bestmove=" << m_bestMove << ' '
-       << "work=" << m_work
+       << "work=" << m_work << ' '
+       << "parent=" << HashUtil::toString(m_parentHash) 
        << ']';
     return os.str();
 }
@@ -229,7 +233,7 @@ private:
         GuiFx();
 
         void SetChildren(const std::vector<HexPoint>& children,
-                         const std::vector<DfpnBounds>& bounds);
+                         const std::vector<DfpnData>& bounds);
 
         void PlayMove(HexColor color, HexPoint move);
 
@@ -245,7 +249,7 @@ private:
         
         std::vector<HexPoint> m_children;
 
-        std::vector<DfpnBounds> m_bounds;
+        std::vector<DfpnData> m_data;
 
         HexColor m_color;
 
@@ -287,20 +291,19 @@ private:
 
     size_t m_numMIDcalls;
 
-    size_t MID(const DfpnBounds& n, int depth);
+    size_t MID(const DfpnBounds& n, int depth, hash_t parentHash);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
-                     const std::vector<DfpnBounds>& childrenDfpnBounds) const;
+                     const std::vector<DfpnData>& childrenDfpnBounds) const;
 
     void UpdateBounds(DfpnBounds& bounds, 
-                      const std::vector<DfpnBounds>& childBounds) const;
+                      const std::vector<DfpnData>& childBounds) const;
 
     bool CheckAbort();
 
     void CheckBounds(const DfpnBounds& bounds) const;
 
-    void LookupBounds(DfpnBounds& bound, size_t& work, HexColor colorToMove, 
-                      HexPoint cell);
+    void LookupData(DfpnData& data, HexColor colorToMove, HexPoint cell);
 
     void TTStore(hash_t hash, const DfpnData& data);
 
