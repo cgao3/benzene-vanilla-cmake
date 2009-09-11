@@ -16,6 +16,7 @@ using namespace benzene;
 
 BookCheck::BookCheck(BenzenePlayer* player)
     : BenzenePlayerFunctionality(player),
+      m_bookName("book.db"),
       m_book(0),
       m_bookLoaded(false),
       m_enabled(false),
@@ -35,7 +36,8 @@ HexPoint BookCheck::pre_search(HexBoard& brd, const Game& game_state,
     if (m_enabled) 
     {
         HexPoint response = INVALID_POINT;
-        LoadOpeningBook();
+        if (!m_bookLoaded)
+            LoadOpeningBook(m_bookName);
         if (m_bookLoaded)
             response = BookUtil::BestMove(*m_book, brd, m_min_count,
                                           m_count_weight);
@@ -48,16 +50,26 @@ HexPoint BookCheck::pre_search(HexBoard& brd, const Game& game_state,
 
 //----------------------------------------------------------------------------
 
-void BookCheck::LoadOpeningBook()
+void BookCheck::SetBookName(const std::string& name)
 {
+    m_bookName = name;
     if (m_bookLoaded)
-        return;
+    {
+        m_book.reset(0);
+        m_bookLoaded = false;
+        LoadOpeningBook(name);
+    }
+}
+
+void BookCheck::LoadOpeningBook(const std::string& name)
+{
     using namespace boost::filesystem;
     path book_path = path(ABS_TOP_SRCDIR) / "share";
-    path books_list = book_path / "book.db";
+    path books_list = book_path / name;
     books_list.normalize();
     std::string book_file = books_list.native_file_string();
     try {
+        LogInfo() << "Loading book: '" << book_file << "'...\n";
         m_book.reset(new Book(book_file));
         m_bookLoaded = true;
     }

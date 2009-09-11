@@ -36,6 +36,14 @@ public:
     
     void SetEnabled(bool enable);
 
+    /** Name of book to open. */
+    std::string BookName() const;
+
+    /** See BookName(). Will set name of book that will be opened if
+        no book is currently opened, or close and attempt to open a
+        new book if one is already open.  */
+    void SetBookName(const std::string& name);
+
     /** Ignore nodes with counts below this. */
     unsigned MinCount() const;
 
@@ -50,6 +58,8 @@ public:
 
 private:
 
+    std::string m_bookName;
+
     boost::scoped_ptr<Book> m_book;
 
     bool m_bookLoaded;
@@ -62,7 +72,7 @@ private:
     /** See CountWeight() */
     float m_count_weight;
 
-    void LoadOpeningBook();
+    void LoadOpeningBook(const std::string& name);
 };
 
 inline bool BookCheck::Enabled() const
@@ -73,6 +83,11 @@ inline bool BookCheck::Enabled() const
 inline void BookCheck::SetEnabled(bool enable)
 {
     m_enabled = enable;
+}
+
+inline std::string BookCheck::BookName() const
+{
+    return m_bookName;
 }
 
 inline unsigned BookCheck::MinCount() const

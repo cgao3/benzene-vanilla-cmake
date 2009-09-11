@@ -200,7 +200,9 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
             cmd << "[string] book_count_weight "
                 << book->CountWeight() << '\n'
                 << "[string] book_min_count "
-                << book->MinCount() << '\n';
+                << book->MinCount() << '\n'
+                << "[string] book_name "
+                << book->BookName() << '\n';
         }
     }
     else if (cmd.NuArg() == 2)
@@ -211,6 +213,8 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
             book->SetMinCount(cmd.SizeTypeArg(1, 0));
         else if (book && name == "book_count_weight")
             book->SetCountWeight(cmd.FloatArg(1));
+        else if (book && name == "book_name")
+            book->SetBookName(cmd.Arg(1));
 	else if (book && name == "use_book")
 	    book->SetEnabled(cmd.BoolArg(1));
         else if (endgame && name == "search_singleton")
