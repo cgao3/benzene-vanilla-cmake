@@ -4,6 +4,7 @@
 //----------------------------------------------------------------------------
 
 #include <sstream>
+#include <cstdio>
 #include "Bitset.hpp"
 
 using namespace benzene;
