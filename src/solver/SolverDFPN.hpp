@@ -296,7 +296,7 @@ private:
     void SelectChild(int& bestMove, std::size_t& delta2, 
                      const std::vector<DfpnData>& childrenDfpnBounds) const;
 
-    void UpdateBounds(DfpnBounds& bounds, 
+    void UpdateBounds(hash_t parentHash, DfpnBounds& bounds, 
                       const std::vector<DfpnData>& childBounds) const;
 
     bool CheckAbort();

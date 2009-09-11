@@ -278,12 +278,13 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, int depth, hash_t parentHash)
         LookupData(childrenData[i], colorToMove, children[i]);
     if (m_useGuiFx && depth == 0)
         m_guiFx.SetChildren(children, childrenData);
-   
+
+    hash_t currentHash = m_brd->Hash();   
     HexPoint bestMove = INVALID_POINT;
     DfpnBounds currentBounds;
     while (!m_aborted) 
     {
-        UpdateBounds(currentBounds, childrenData);
+        UpdateBounds(currentHash, currentBounds, childrenData);
         if (m_useGuiFx && depth == 1)
         {
             m_guiFx.UpdateCurrentBounds(currentBounds);
@@ -313,7 +314,6 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, int depth, hash_t parentHash)
             m_guiFx.PlayMove(colorToMove, bestMove);
 
         // Recurse on best child
-        hash_t currentHash = m_brd->Hash();
         m_brd->playMove(colorToMove, bestMove);
         localWork += MID(child, depth + 1, currentHash);
         m_brd->undoMove(bestMove);
@@ -401,11 +401,19 @@ void SolverDFPN::SelectChild(int& bestIndex, std::size_t& delta2,
     HexAssert(delta1 < INFTY);
 }
 
-void SolverDFPN::UpdateBounds(DfpnBounds& bounds, 
+void SolverDFPN::UpdateBounds(hash_t parentHash, DfpnBounds& bounds, 
                               const std::vector<DfpnData>& childData) const
 {
-    bounds.phi = INFTY;
-    bounds.delta = 0;
+    // Track two sets of bounds: all of our children and children that
+    // have parentHash as their parent. If some children have
+    // parentHash as a parent, then we use only the sum of their phis
+    // as our estimate for the parent's delta. This is to reduce
+    // artificially inflated delta estimates due to transpositions. To
+    // turn this off, uncomment the second last line and comment out
+    // the last line of this method.
+    DfpnBounds boundsAll(INFTY, 0);
+    DfpnBounds boundsParent(INFTY, 0);
+    bool useBoundsParent = false;
     for (std::size_t i = 0; i < childData.size(); ++i)
     {
         const DfpnBounds& childBounds = childData[i].m_bounds;
@@ -414,12 +422,20 @@ void SolverDFPN::UpdateBounds(DfpnBounds& bounds,
         {
             HexAssert(INFTY == childBounds.phi);
             DfpnBounds::SetToWinning(bounds);
-            break;
+            return;
         }
-        bounds.phi = std::min(bounds.phi, childBounds.delta);
+        boundsAll.phi = std::min(boundsAll.phi, childBounds.delta);
+        boundsParent.phi = std::min(boundsParent.phi, childBounds.delta);
         HexAssert(childBounds.phi != INFTY);
-        bounds.delta += childBounds.phi;
+        boundsAll.delta += childBounds.phi;
+        if (childData[i].m_parentHash == parentHash)
+        {
+            useBoundsParent = true;
+            boundsParent.delta += childBounds.phi;
+        }
     }
+    //bounds = boundsAll;
+    bounds = useBoundsParent ? boundsParent : boundsAll;
 }
 
 void SolverDFPN::LookupData(DfpnData& data, HexColor colorToMove, 
