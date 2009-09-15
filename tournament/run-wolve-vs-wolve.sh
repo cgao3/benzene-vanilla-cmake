@@ -1,4 +1,4 @@
-# Runs a tournament between mohex and wolve.
+# Runs a tournament between two instances of wolve.
 
 me=$0
 function usage()
@@ -20,15 +20,23 @@ if [ $# != 2 ]; then
 fi
 
 NAME1=mohex-$1
-NAME2=wolve-$2
+NAME2=mohex-$2
+
+# Distinguish bewteen the instances if doing self-play so that the 
+# logfiles are not clobbered.
+if [ $NAME1 == $NAME2 ]; then
+    NAME1=$NAME1"-a"
+    NAME2=$NAME2"-b"
+fi
 
 DIRECTORY="jobs/"$NAME1"-vs-"$NAME2
+
 mkdir -p $DIRECTORY
 
 ./twogtp.py \
---dir $DIRECTORY \
+--dir "$DIRECTORY" \
 --openings $OPENINGS \
 --size $SIZE --rounds $ROUNDS \
---p1cmd "../src/mohex/mohex --quiet --config $1.htp" --p1name $NAME1 \
+--p1cmd "../src/wolve/wolve --quiet --config $1.htp" --p1name $NAME1 \
 --p2cmd "../src/wolve/wolve --quiet --config $2.htp" --p2name $NAME2
 

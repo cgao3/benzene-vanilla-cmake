@@ -1,8 +1,24 @@
 # Runs a tournament between wolve and six.
-#
-# Usage:
-#     run-wolve-vs-six [six executable] [config1].htp
-#
+
+me=$0
+function usage()
+{
+    echo "Usage:"
+    echo "    $me [OPTIONS] [six executable] [wolve config].htp"
+    echo ""
+    echo "Where OPTIONS is any of:"
+    echo "-o | --openings=name     set of openings to use"
+    echo "-r | --rounds=#          number of rounds to play"
+    echo "-s | --size=#            boardsize to play on"
+    echo 
+}
+
+source common.sh
+if [ $# != 2 ]; then
+    usage;
+    exit 1;
+fi
+
 SIX=$1
 NAME1=wolve-$2
 
@@ -11,8 +27,8 @@ mkdir -p $DIRECTORY
 
 ./twogtp.py \
 --dir $DIRECTORY \
---openings openings/11x11-all-1ply \
---size 11 --rounds 10 \
+--openings $OPENINGS \
+--size $SIZE --rounds $ROUNDS \
 --p1cmd "../src/wolve/wolve --quiet --config $2.htp" --p1name $NAME1 \
 --p2cmd "$SIX --quiet" --p2name six
 
