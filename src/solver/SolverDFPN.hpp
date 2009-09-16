@@ -198,6 +198,63 @@ typedef TransTable<DfpnData> DfpnHashTable;
 
 //----------------------------------------------------------------------------
 
+/** History of moves played from root state to current state. */
+class DfpnHistory
+{
+public:
+    DfpnHistory();
+
+    /** Adds a new state to the history. */
+    void PushBack(HexPoint m_move, hash_t hash);
+
+    /** Removes last stated added from history. */
+    void Pop();
+
+    /** Returns number of moves played so far. */
+    int Depth() const;
+
+    /** Hash of last state. */
+    hash_t LastHash() const;
+
+private:
+
+    /** Move played from state. */
+    std::vector<HexPoint> m_move;
+
+    /** Hash of state. */
+    std::vector<hash_t> m_hash;
+};
+
+inline DfpnHistory::DfpnHistory()
+{
+    m_move.push_back(INVALID_POINT);
+    m_hash.push_back(0);
+}
+
+inline void DfpnHistory::PushBack(HexPoint move, hash_t hash)
+{
+    m_move.push_back(move);
+    m_hash.push_back(hash);
+}
+
+inline void DfpnHistory::Pop()
+{
+    m_move.pop_back();
+    m_hash.pop_back();
+}
+
+inline int DfpnHistory::Depth() const
+{
+    return m_move.size() - 1;
+}
+
+inline hash_t DfpnHistory::LastHash() const
+{
+    return m_hash.back();
+}
+
+//----------------------------------------------------------------------------
+
 /** Hex solver using DFPN search. */
 class SolverDFPN 
 {
@@ -291,7 +348,7 @@ private:
 
     size_t m_numMIDcalls;
 
-    size_t MID(const DfpnBounds& n, int depth, hash_t parentHash);
+    size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
                      const std::vector<DfpnData>& childrenDfpnBounds) const;

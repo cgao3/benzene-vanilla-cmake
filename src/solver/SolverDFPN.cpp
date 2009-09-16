@@ -151,7 +151,8 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
 
     DfpnBounds root(INFTY, INFTY);
     m_timer.Start();
-    MID(root, 0, 0);
+    DfpnHistory history;
+    MID(root, history);
     m_timer.Stop();
 
     LogInfo() << "     MID calls: " << m_numMIDcalls << "\n";
@@ -220,7 +221,8 @@ bool SolverDFPN::CheckAbort()
     return m_aborted;
 }
 
-size_t SolverDFPN::MID(const DfpnBounds& bounds, int depth, hash_t parentHash)
+
+size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
 {
     CheckBounds(bounds);
     HexAssert(bounds.phi > 1);
@@ -229,40 +231,45 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, int depth, hash_t parentHash)
     if (CheckAbort())
         return 0;
 
-    bitset_t childrenSet;
+    int depth = history.Depth();
+    hash_t parentHash = history.LastHash();
     HexColor colorToMove = m_brd->WhoseTurn();
 
-    DfpnData data;
-    if (m_hashTable->Get(m_brd->Hash(), data)) 
+    bitset_t childrenSet;
     {
-        childrenSet = data.m_children;
-        HexAssert(bounds.phi > data.m_bounds.phi);
-        HexAssert(bounds.delta > data.m_bounds.delta);
-    }
-    else
-    {
-        m_workBoard->SetState(*m_brd);
-        m_workBoard->ComputeAll(colorToMove);
-        if (PlayerUtils::IsDeterminedState(*m_workBoard, colorToMove))
+        DfpnData data;
+        if (m_hashTable->Get(m_brd->Hash(), data)) 
         {
-            ++m_numTerminal;
-            DfpnBounds terminal;
-            if (PlayerUtils::IsWonGame(*m_workBoard, colorToMove))
-                DfpnBounds::SetToWinning(terminal);
-            else 
-                DfpnBounds::SetToLosing(terminal);
-
-            if (m_useGuiFx && depth == 1)
-            {
-                m_guiFx.UpdateCurrentBounds(terminal);
-                m_guiFx.Write();
-            }
-            TTStore(m_brd->Hash(), 
-                    DfpnData(terminal, EMPTY_BITSET, INVALID_POINT, 1, 
-                             parentHash));
-            return 1;
+            childrenSet = data.m_children;
+            HexAssert(bounds.phi > data.m_bounds.phi);
+            HexAssert(bounds.delta > data.m_bounds.delta);
         }
-        childrenSet = PlayerUtils::MovesToConsider(*m_workBoard, colorToMove);
+        else
+        {
+            m_workBoard->SetState(*m_brd);
+            m_workBoard->ComputeAll(colorToMove);
+            if (PlayerUtils::IsDeterminedState(*m_workBoard, colorToMove))
+            {
+                ++m_numTerminal;
+                DfpnBounds terminal;
+                if (PlayerUtils::IsWonGame(*m_workBoard, colorToMove))
+                    DfpnBounds::SetToWinning(terminal);
+                else 
+                    DfpnBounds::SetToLosing(terminal);
+                
+                if (m_useGuiFx && depth == 1)
+                {
+                    m_guiFx.UpdateCurrentBounds(terminal);
+                    m_guiFx.Write();
+                }
+                TTStore(m_brd->Hash(), 
+                        DfpnData(terminal, EMPTY_BITSET, INVALID_POINT, 1, 
+                                 parentHash));
+                return 1;
+            }
+            childrenSet = PlayerUtils::MovesToConsider(*m_workBoard, 
+                                                       colorToMove);
+        }
     }
 
     ++m_numMIDcalls;
@@ -315,7 +322,9 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, int depth, hash_t parentHash)
 
         // Recurse on best child
         m_brd->playMove(colorToMove, bestMove);
-        localWork += MID(child, depth + 1, currentHash);
+        history.PushBack(bestMove, currentHash);
+        localWork += MID(child, history);
+        history.Pop();
         m_brd->undoMove(bestMove);
 
         if (m_useGuiFx && depth == 0)
@@ -327,7 +336,6 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, int depth, hash_t parentHash)
 
     if (m_useGuiFx && depth == 0)
         m_guiFx.WriteForced();
-
 
     // Find the most delaying move for losing states, and the smallest
     // winning move for winning states.
