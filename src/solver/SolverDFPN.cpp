@@ -436,7 +436,6 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
                 {
                     maxWork = childrenData[i].m_work;
                     bestMove = children[i];
-                    break;
                 }
             }
         }
@@ -450,7 +449,6 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
                 {
                     minWork = childrenData[i].m_work;
                     bestMove = children[i];
-                    break;
                 }
             }
             HexAssert(false);
