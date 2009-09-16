@@ -209,6 +209,33 @@ typedef TransTable<DfpnData> DfpnHashTable;
 
 //----------------------------------------------------------------------------
 
+struct DfpnTransposition
+{
+    static const size_t MAX_LENGTH = 8;
+
+    hash_t m_hash;
+    
+    std::vector<HexPoint> m_right;
+    
+    DfpnTransposition();
+
+    DfpnTransposition(hash_t hash);
+};
+
+struct DfpnTranspositions
+{
+    static const size_t NUM_SLOTS = 8;
+
+    std::vector<DfpnTransposition> m_slot;
+
+    void Add(hash_t hash, HexPoint* start, size_t length);
+
+    void ModifyBounds(DfpnBounds& bounds, DfpnHashTable& hashTable,
+                      DfpnStatistics& slotStats);
+};
+
+//----------------------------------------------------------------------------
+
 /** History of moves played from root state to current state. */
 class DfpnHistory
 {
@@ -216,7 +243,7 @@ public:
     DfpnHistory();
 
     /** Adds a new state to the history. */
-    void PushBack(HexPoint m_move, hash_t hash);
+    void Push(HexPoint m_move, hash_t hash);
 
     /** Removes last stated added from history. */
     void Pop();
@@ -230,8 +257,10 @@ public:
     /** Move played from parent state to bring us to this state. */
     HexPoint LastMove() const;
 
+    DfpnTranspositions& Transpositions();
+
     void NotifyCommonAncestor(DfpnHashTable& hashTable, DfpnData data,
-                              DfpnStatistics& stats);
+                              hash_t hash, DfpnStatistics& stats);
 
 private:
 
@@ -240,24 +269,30 @@ private:
 
     /** Hash of state. */
     std::vector<hash_t> m_hash;
+
+    /** Stores up to NUM_SLOTS tranposed decendents. */
+    std::vector<DfpnTranspositions> m_transposition;
 };
 
 inline DfpnHistory::DfpnHistory()
 {
     m_move.push_back(INVALID_POINT);
     m_hash.push_back(0);
+    m_transposition.push_back(DfpnTranspositions());
 }
 
-inline void DfpnHistory::PushBack(HexPoint move, hash_t hash)
+inline void DfpnHistory::Push(HexPoint move, hash_t hash)
 {
     m_move.push_back(move);
     m_hash.push_back(hash);
+    m_transposition.push_back(DfpnTranspositions());
 }
 
 inline void DfpnHistory::Pop()
 {
     m_move.pop_back();
     m_hash.pop_back();
+    m_transposition.pop_back();
 }
 
 inline int DfpnHistory::Depth() const
@@ -274,6 +309,12 @@ inline HexPoint DfpnHistory::LastMove() const
 {
     return m_move.back();
 }
+
+inline DfpnTranspositions& DfpnHistory::Transpositions()
+{
+    return m_transposition.back();
+}
+
 //----------------------------------------------------------------------------
 
 /** Hex solver using DFPN search. */
@@ -370,6 +411,8 @@ private:
     size_t m_numTranspositions;
     
     DfpnStatistics m_transStats;
+
+    DfpnStatistics m_slotStats;
 
     size_t m_numMIDcalls;
 

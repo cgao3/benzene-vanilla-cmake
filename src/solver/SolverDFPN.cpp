@@ -100,8 +100,42 @@ void SolverDFPN::GuiFx::DoWrite()
 
 //----------------------------------------------------------------------------
 
+DfpnTransposition::DfpnTransposition()
+    : m_hash(0)
+{
+}
+
+DfpnTransposition::DfpnTransposition(hash_t hash)
+    : m_hash(hash)
+{
+}
+
+void DfpnTranspositions::Add(hash_t hash, HexPoint* point, size_t length)
+{
+    if (m_slot.size() >= NUM_SLOTS)
+        return;
+    for (size_t i = 0; i < NUM_SLOTS; ++i)
+        if (m_slot[i].m_hash == hash)
+            return;
+    m_slot.push_back(DfpnTransposition(hash));
+    while (length--)
+        m_slot.back().m_right.push_back(*point++);
+}
+
+void DfpnTranspositions::ModifyBounds(DfpnBounds& bounds, 
+                                      DfpnHashTable& hashTable,
+                                      DfpnStatistics& slotStats)
+{
+    SG_UNUSED(bounds);
+    SG_UNUSED(hashTable);
+    if (m_slot.empty())
+        return;
+    slotStats.Add(m_slot.size());
+}
+
 void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable, 
-                                       DfpnData data, DfpnStatistics& stats)
+                                       DfpnData data, hash_t hash,
+                                       DfpnStatistics& stats)
 {
 //     for (std::size_t i = 0; i < m_hash.size(); ++i)
 //         LogInfo() << i << ": " << HashUtil::toString(m_hash[i]) 
@@ -109,6 +143,8 @@ void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable,
     std::size_t length = 1;
     for (std::size_t i = m_hash.size() - 1; i > 0; --i, ++length)
     {
+        if (length > DfpnTransposition::MAX_LENGTH)
+            break;
 //         LogInfo() << "cur: " << HashUtil::toString(data.m_parentHash) << ' '
 //                   << data.m_moveParentPlayed << '\n';
         if (std::find(m_hash.begin(), m_hash.end(), data.m_parentHash) 
@@ -117,7 +153,7 @@ void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable,
 //             LogInfo() << "Found it at i = " << i 
 //                       << " length = " << length << '\n';
             stats.Add(length);
-            // fill slot at ith entry
+            m_transposition.back().Add(hash, &m_move[i], length);
             break;
         }
         if (!hashTable.Get(data.m_parentHash, data))
@@ -173,6 +209,7 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     m_numTerminal = 0;
     m_numTranspositions = 0;
     m_transStats.Clear();
+    m_slotStats.Clear();
     m_numMIDcalls = 0;
     m_brd.reset(new StoneBoard(board));
     m_workBoard = &board;
@@ -188,8 +225,12 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     LogInfo() << "Terminal nodes: " << m_numTerminal << "\n";
     LogInfo() << "Transpositions: " << m_numTranspositions << '\n';
     std::ostringstream os;
-    os << " Trans. Length: ";
+    os << "     Length: ";
     m_transStats.Write(os);
+    LogInfo() << os.str() << '\n';
+    os.str("");
+    os << "      Slots: ";
+    m_slotStats.Write(os);
     LogInfo() << os.str() << '\n';
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime() << '\n';
@@ -209,7 +250,6 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
         std::vector<HexPoint> pv;
         GetVariation(*m_brd, pv);
         LogInfo() << "PV: " << PrintVariation(pv) << '\n';
-        LogInfo() << "Work: " << data.m_work << '\n';
 
         return winner;
     }
@@ -282,7 +322,8 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
             if (data.m_parentHash != parentHash)
             {
                 ++m_numTranspositions;
-                history.NotifyCommonAncestor(*m_hashTable, data, m_transStats);
+                history.NotifyCommonAncestor(*m_hashTable, data, m_brd->Hash(),
+                                             m_transStats);
             }
         }
         else
@@ -330,9 +371,11 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
     hash_t currentHash = m_brd->Hash();   
     HexPoint bestMove = INVALID_POINT;
     DfpnBounds currentBounds;
+    DfpnTranspositions transpositions;
     while (!m_aborted) 
     {
         UpdateBounds(currentHash, currentBounds, childrenData);
+        transpositions.ModifyBounds(currentBounds, *m_hashTable, m_slotStats);
         if (m_useGuiFx && depth == 1)
         {
             m_guiFx.UpdateCurrentBounds(currentBounds);
@@ -363,16 +406,17 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
 
         // Recurse on best child
         m_brd->playMove(colorToMove, bestMove);
-        history.PushBack(bestMove, currentHash);
+        history.Push(bestMove, currentHash);
         localWork += MID(child, history);
+        transpositions = history.Transpositions();
         history.Pop();
         m_brd->undoMove(bestMove);
 
-        if (m_useGuiFx && depth == 0)
-            m_guiFx.UndoMove();
-
         // Update bounds for best child
         LookupData(childrenData[bestIndex], colorToMove, bestMove);
+
+        if (m_useGuiFx && depth == 0)
+            m_guiFx.UndoMove();
     }
 
     if (m_useGuiFx && depth == 0)
