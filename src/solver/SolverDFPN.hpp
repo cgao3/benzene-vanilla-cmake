@@ -7,6 +7,7 @@
 #define SOLVERDFPN_HPP
 
 #include "SgSystem.h"
+#include "SgStatistics.h"
 #include "SgTimer.h"
 
 #include "Hex.hpp"
@@ -17,6 +18,10 @@
 #include <boost/scoped_ptr.hpp>
 
 _BEGIN_BENZENE_NAMESPACE_
+
+//----------------------------------------------------------------------------
+
+typedef SgStatisticsExt<float, std::size_t> DfpnStatistics;
 
 //----------------------------------------------------------------------------
 
@@ -122,10 +127,13 @@ public:
 
     hash_t m_parentHash;
 
+    HexPoint m_moveParentPlayed;
+
     DfpnData();
 
-    DfpnData( const DfpnBounds& bounds, const bitset_t& children, 
-              HexPoint bestMove, size_t work, hash_t parentHash);
+    DfpnData(const DfpnBounds& bounds, const bitset_t& children, 
+             HexPoint bestMove, size_t work, hash_t parentHash,
+             HexPoint moveParentPlayed);
 
     ~DfpnData();
 
@@ -147,12 +155,14 @@ inline DfpnData::DfpnData()
 }
 
 inline DfpnData::DfpnData(const DfpnBounds& bounds, const bitset_t& children, 
-                          HexPoint bestMove, size_t work, hash_t parentHash)
+                          HexPoint bestMove, size_t work, hash_t parentHash,
+                          HexPoint moveParentPlayed)
     : m_bounds(bounds),
       m_children(children),
       m_bestMove(bestMove),
       m_work(work),
       m_parentHash(parentHash),
+      m_moveParentPlayed(moveParentPlayed),
       m_initialized(true)
 { 
 }
@@ -169,7 +179,8 @@ inline std::string DfpnData::Print() const
        << "children=" << m_children.count() << ' '
        << "bestmove=" << m_bestMove << ' '
        << "work=" << m_work << ' '
-       << "parent=" << HashUtil::toString(m_parentHash) 
+       << "parent=" << HashUtil::toString(m_parentHash) << ' '
+       << "parentmove=" << m_moveParentPlayed
        << ']';
     return os.str();
 }
@@ -216,6 +227,12 @@ public:
     /** Hash of last state. */
     hash_t LastHash() const;
 
+    /** Move played from parent state to bring us to this state. */
+    HexPoint LastMove() const;
+
+    void NotifyCommonAncestor(DfpnHashTable& hashTable, DfpnData data,
+                              DfpnStatistics& stats);
+
 private:
 
     /** Move played from state. */
@@ -253,6 +270,10 @@ inline hash_t DfpnHistory::LastHash() const
     return m_hash.back();
 }
 
+inline HexPoint DfpnHistory::LastMove() const
+{
+    return m_move.back();
+}
 //----------------------------------------------------------------------------
 
 /** Hex solver using DFPN search. */
@@ -345,6 +366,10 @@ private:
     GuiFx m_guiFx;
 
     size_t m_numTerminal;
+
+    size_t m_numTranspositions;
+    
+    DfpnStatistics m_transStats;
 
     size_t m_numMIDcalls;
 

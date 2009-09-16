@@ -100,6 +100,33 @@ void SolverDFPN::GuiFx::DoWrite()
 
 //----------------------------------------------------------------------------
 
+void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable, 
+                                       DfpnData data, DfpnStatistics& stats)
+{
+//     for (std::size_t i = 0; i < m_hash.size(); ++i)
+//         LogInfo() << i << ": " << HashUtil::toString(m_hash[i]) 
+//                   << ' ' << m_move[i] << '\n';
+    std::size_t length = 1;
+    for (std::size_t i = m_hash.size() - 1; i > 0; --i, ++length)
+    {
+//         LogInfo() << "cur: " << HashUtil::toString(data.m_parentHash) << ' '
+//                   << data.m_moveParentPlayed << '\n';
+        if (std::find(m_hash.begin(), m_hash.end(), data.m_parentHash) 
+            != m_hash.end())
+        {
+//             LogInfo() << "Found it at i = " << i 
+//                       << " length = " << length << '\n';
+            stats.Add(length);
+            // fill slot at ith entry
+            break;
+        }
+        if (!hashTable.Get(data.m_parentHash, data))
+            break;
+    }
+}
+
+//----------------------------------------------------------------------------
+
 SolverDFPN::SolverDFPN()
     : m_hashTable(0),
       m_useGuiFx(false),
@@ -144,6 +171,8 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     m_aborted = false;
     m_hashTable = &hashtable;
     m_numTerminal = 0;
+    m_numTranspositions = 0;
+    m_transStats.Clear();
     m_numMIDcalls = 0;
     m_brd.reset(new StoneBoard(board));
     m_workBoard = &board;
@@ -157,6 +186,11 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
 
     LogInfo() << "     MID calls: " << m_numMIDcalls << "\n";
     LogInfo() << "Terminal nodes: " << m_numTerminal << "\n";
+    LogInfo() << "Transpositions: " << m_numTranspositions << '\n';
+    std::ostringstream os;
+    os << " Trans. Length: ";
+    m_transStats.Write(os);
+    LogInfo() << os.str() << '\n';
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime() << '\n';
     LogInfo() << m_hashTable->Stats() << '\n';
@@ -243,6 +277,13 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
             childrenSet = data.m_children;
             HexAssert(bounds.phi > data.m_bounds.phi);
             HexAssert(bounds.delta > data.m_bounds.delta);
+
+            // Check if our stored parent differs from our current parent
+            if (data.m_parentHash != parentHash)
+            {
+                ++m_numTranspositions;
+                history.NotifyCommonAncestor(*m_hashTable, data, m_transStats);
+            }
         }
         else
         {
@@ -264,7 +305,7 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
                 }
                 TTStore(m_brd->Hash(), 
                         DfpnData(terminal, EMPTY_BITSET, INVALID_POINT, 1, 
-                                 parentHash));
+                                 parentHash, history.LastMove()));
                 return 1;
             }
             childrenSet = PlayerUtils::MovesToConsider(*m_workBoard, 
@@ -375,7 +416,8 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
     // Store search results
     if (!m_aborted)
         TTStore(m_brd->Hash(), DfpnData(currentBounds, childrenSet, 
-                                        bestMove, localWork, parentHash));
+                                        bestMove, localWork, parentHash,
+                                        history.LastMove()));
     return localWork;
 }
 
@@ -442,8 +484,8 @@ void SolverDFPN::UpdateBounds(hash_t parentHash, DfpnBounds& bounds,
             boundsParent.delta += childBounds.phi;
         }
     }
-    //bounds = boundsAll;
-    bounds = useBoundsParent ? boundsParent : boundsAll;
+    bounds = boundsAll;
+    //bounds = useBoundsParent ? boundsParent : boundsAll;
 }
 
 void SolverDFPN::LookupData(DfpnData& data, HexColor colorToMove, 
