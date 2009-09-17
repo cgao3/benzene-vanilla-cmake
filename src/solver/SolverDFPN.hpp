@@ -358,6 +358,13 @@ public:
     /** See Timelimit() */
     void SetTimelimit(double timelimit);
 
+    /** Fix bounds due to transpositions double counting descendant
+        states. */
+    bool UseBoundsCorrection() const;
+    
+    /** See UseBoundsCorrection() */
+    void SetUseBoundsCorrection(bool flag);
+
 private:
 
     /** Handles guifx output. */
@@ -410,6 +417,9 @@ private:
     /** See UseGuiFx() */
     bool m_useGuiFx;
 
+    /** See BoundsCorrection() */
+    bool m_useBoundsCorrection;
+
     /** See TimeLimit() */
     double m_timelimit;
 
@@ -430,7 +440,7 @@ private:
 
     DfpnStatistics m_slotStats;
 
-    size_t m_boundsCorrections;
+    size_t m_numBoundsCorrections;
 
     size_t m_numMIDcalls;
 
@@ -477,6 +487,16 @@ inline double SolverDFPN::Timelimit() const
 inline void SolverDFPN::SetTimelimit(double timelimit)
 {
     m_timelimit = timelimit;
+}
+
+inline bool SolverDFPN::UseBoundsCorrection() const
+{
+    return m_useBoundsCorrection;
+}
+
+inline void SolverDFPN::SetUseBoundsCorrection(bool flag)
+{
+    m_useBoundsCorrection = flag;
 }
 
 //----------------------------------------------------------------------------

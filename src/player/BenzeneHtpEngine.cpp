@@ -242,6 +242,8 @@ void BenzeneHtpEngine::CmdParamSolverDfpn(HtpCommand& cmd)
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
+            << "[bool] use_bounds_correction "
+            << m_solverDfpn.UseBoundsCorrection() << '\n'
             << "[bool] use_guifx "
             << m_solverDfpn.UseGuiFx() << '\n'
             << "[string] timelimit "
@@ -252,6 +254,8 @@ void BenzeneHtpEngine::CmdParamSolverDfpn(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "use_guifx")
             m_solverDfpn.SetUseGuiFx(cmd.BoolArg(1));
+        else if (name == "use_bounds_correction")
+            m_solverDfpn.SetUseBoundsCorrection(cmd.BoolArg(1));
         else if (name == "timelimit")
             m_solverDfpn.SetTimelimit(cmd.FloatArg(1));
         else

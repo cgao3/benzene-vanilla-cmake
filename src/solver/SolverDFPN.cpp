@@ -270,6 +270,7 @@ void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable,
 SolverDFPN::SolverDFPN()
     : m_hashTable(0),
       m_useGuiFx(false),
+      m_useBoundsCorrection(true),
       m_timelimit(0.0),
       m_guiFx()
 {
@@ -312,6 +313,7 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     m_hashTable = &hashtable;
     m_numTerminal = 0;
     m_numTranspositions = 0;
+    m_numBoundsCorrections = 0;
     m_transStats.Clear();
     m_slotStats.Clear();
     m_numMIDcalls = 0;
@@ -336,7 +338,7 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     os << "      Slots: ";
     m_slotStats.Write(os);
     LogInfo() << os.str() << '\n';
-    LogInfo() << "Corrections: " << m_boundsCorrections << '\n';
+    LogInfo() << "Corrections: " << m_numBoundsCorrections << '\n';
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime() << '\n';
     LogInfo() << m_hashTable->Stats() << '\n';
@@ -427,8 +429,9 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
             if (data.m_parentHash != parentHash)
             {
                 ++m_numTranspositions;
-                history.NotifyCommonAncestor(*m_hashTable, data, m_brd->Hash(),
-                                             m_transStats);
+                if (m_useBoundsCorrection)
+                    history.NotifyCommonAncestor(*m_hashTable, data, 
+                                                 m_brd->Hash(), m_transStats);
             }
         }
         else
@@ -480,9 +483,11 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
     while (!m_aborted) 
     {
         UpdateBounds(currentHash, currentBounds, childrenData);
-        m_boundsCorrections 
-            += transpositions.ModifyBounds(currentHash, currentBounds, 
-                                           *m_hashTable, m_slotStats);
+        
+        if (m_useBoundsCorrection)
+            m_numBoundsCorrections 
+                += transpositions.ModifyBounds(currentHash, currentBounds, 
+                                               *m_hashTable, m_slotStats);
         if (m_useGuiFx && depth == 1)
         {
             m_guiFx.UpdateCurrentBounds(currentBounds);
