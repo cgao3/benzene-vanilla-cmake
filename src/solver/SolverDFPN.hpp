@@ -218,12 +218,20 @@ struct DfpnTransposition
     std::vector<HexPoint> m_rightMove;
 
     std::vector<hash_t> m_rightHash;
+
+    std::vector<HexPoint> m_leftMove;
+
+    std::vector<hash_t> m_leftHash;
     
     DfpnTransposition();
 
     DfpnTransposition(hash_t hash);
 
-    void ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
+    bool IsMinPath(DfpnHashTable& hashTable, 
+                   const std::vector<HexPoint>& move,
+                   const std::vector<hash_t>& hash) const;
+
+    bool ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
                       DfpnHashTable& hashTable) const;
 };
 
@@ -233,11 +241,13 @@ struct DfpnTranspositions
 
     std::vector<DfpnTransposition> m_slot;
 
-    void Add(hash_t hash, HexPoint* start, hash_t* hashes, size_t length);
+    void Add(hash_t hash, size_t length, 
+             HexPoint* rightMove, hash_t* rightHashes, 
+             HexPoint* leftMove, hash_t* leftHashes);
 
-    void ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
-                      DfpnHashTable& hashTable, 
-                      DfpnStatistics& slotStats) const;
+    size_t ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
+                        DfpnHashTable& hashTable, 
+                        DfpnStatistics& slotStats) const;
 };
 
 //----------------------------------------------------------------------------
@@ -419,6 +429,8 @@ private:
     DfpnStatistics m_transStats;
 
     DfpnStatistics m_slotStats;
+
+    size_t m_boundsCorrections;
 
     size_t m_numMIDcalls;
 

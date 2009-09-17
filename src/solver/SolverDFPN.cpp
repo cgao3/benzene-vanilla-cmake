@@ -8,6 +8,8 @@
 
 using namespace benzene;
 
+#define DEBUG_BOUNDS_CORRECTION 0
+
 //----------------------------------------------------------------------------
 
 SolverDFPN::GuiFx::GuiFx()
@@ -110,8 +112,9 @@ DfpnTransposition::DfpnTransposition(hash_t hash)
 {
 }
 
-void DfpnTranspositions::Add(hash_t hash, HexPoint* point, hash_t* hashes, 
-                             size_t length)
+void DfpnTranspositions::Add(hash_t hash, size_t length, 
+                             HexPoint* rightMove, hash_t* rightHashes, 
+                             HexPoint* leftMove, hash_t* leftHashes)
 {
     if (m_slot.size() >= NUM_SLOTS)
         return;
@@ -121,78 +124,144 @@ void DfpnTranspositions::Add(hash_t hash, HexPoint* point, hash_t* hashes,
     m_slot.push_back(DfpnTransposition(hash));
     while (length--)
     {
-        m_slot.back().m_rightMove.push_back(*point++);
-        m_slot.back().m_rightHash.push_back(*hashes++);
+        m_slot.back().m_rightMove.push_back(*rightMove++);
+        m_slot.back().m_rightHash.push_back(*rightHashes++);
+        m_slot.back().m_leftMove.push_back(*leftMove++);
+        m_slot.back().m_leftHash.push_back(*leftHashes++);
     }
 }
 
-void DfpnTranspositions::ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
-                                      DfpnHashTable& hashTable,
-                                      DfpnStatistics& slotStats) const
+size_t DfpnTranspositions::ModifyBounds(hash_t currentHash, 
+                                        DfpnBounds& bounds, 
+                                        DfpnHashTable& hashTable,
+                                        DfpnStatistics& slotStats) const
 {
     if (m_slot.empty())
-        return;
+        return 0;
     slotStats.Add(m_slot.size());
+    size_t ret = 0;
     for (std::size_t i = 0; i < m_slot.size(); ++i)
-        m_slot[i].ModifyBounds(currentHash, bounds, hashTable);
+        if (m_slot[i].ModifyBounds(currentHash, bounds, hashTable))
+            ++ret;
+    return ret;
 }
 
-void DfpnTransposition::ModifyBounds(hash_t currentHash, DfpnBounds& bounds,
-                                     DfpnHashTable& hashTable) const
+bool DfpnTransposition::IsMinPath(DfpnHashTable& hashTable, 
+                                  const std::vector<HexPoint>& move,
+                                  const std::vector<hash_t>& hash) const
 {
-    SG_UNUSED(bounds);
-    LogInfo() << "ModifyBounds():\n";
-    LogInfo() << "bounds: " << bounds << '\n';
-    LogInfo() << "m_hash: " << HashUtil::toString(m_hash) << '\n';
-    LogInfo() << "size: " << m_rightHash.size() << '\n';
-    HexAssert(currentHash == m_rightHash[0]);
-    DfpnData data;
+    HexAssert(m_hash.back() == currentHash);
     bool minMove = true;
-    for (std::size_t i = 1; i < m_rightHash.size(); ++i)
+    // Skip the check for position 0:
+    //  1) not a min check anyway
+    //  2) state may not be in table if first time state was visited
+    for (std::size_t i = 1; i < hash.size(); ++i)
     {
-        currentHash = m_rightHash[i];
-        LogInfo() << "currentHash: " << HashUtil::toString(currentHash)<< '\n';
-        if (!hashTable.Get(currentHash, data))
-            return;
-        if (minMove && data.m_bestMove != m_rightMove[i])
+#if DEBUG_BOUNDS_CORRECTION
+        LogInfo() << i << ": " << HashUtil::toString(hash[i]) 
+                  << ' ' << move[i] << '\n';
+#endif
+        DfpnData data;
+        if (!hashTable.Get(hash[i], data))
+            return false;
+        if (minMove && data.m_bestMove != move[i])
         {
-            LogInfo() << "Not min move!\n";
-            return;
+#if DEBUG_BOUNDS_CORRECTION
+            LogInfo() << "Not min path!\n";
+#endif
+            return false;
         }
         minMove = !minMove;
     }
-    HexAssert(m_hash == currentHash);
-    LogInfo() << "descendant bounds: " << data.m_bounds << '\n';
+    return true;
+}
 
-    // TODO: Check left path!
+bool DfpnTransposition::ModifyBounds(hash_t currentHash, DfpnBounds& bounds,
+                                     DfpnHashTable& hashTable) const
+{
+#ifdef NDEBUG
+    SG_UNUSED(currentHash);
+#else
+    HexAssert(currentHash == m_rightHash[0]);
+    HexAssert(currentHash == m_leftHash[0]);
+#endif
+#if DEBUG_BOUNDS_CORRECTION
+    LogInfo() << "ModifyBounds():\n";
+    LogInfo() << "bounds: " << bounds << '\n';
+    LogInfo() << "m_hash: " << HashUtil::toString(m_hash) << '\n';
+    LogInfo() << "length: " << m_rightHash.size() << '\n';
+#endif
+    DfpnData descendant;   
+    if (!hashTable.Get(m_hash, descendant))
+        return false;
+#if DEBUG_BOUNDS_CORRECTION
+    LogInfo() << "Descendant bounds: " << descendant.m_bounds << '\n';
+#endif
+    if (descendant.m_bounds.IsSolved())
+        return false;
+    if (!IsMinPath(hashTable, m_rightMove, m_rightHash))
+        return false;
+    if (!IsMinPath(hashTable, m_leftMove, m_leftHash))
+        return false;
+    if (m_rightHash.size() & 1)
+        bounds.delta -= descendant.m_bounds.phi;
+    else
+        bounds.delta -= descendant.m_bounds.delta;
+#if DEBUG_BOUNDS_CORRECTION
+    LogInfo() << "Corrected bounds: " << bounds << '\n';
+#endif
+    return true;
 }
 
 void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable, 
                                        DfpnData data, hash_t hash,
                                        DfpnStatistics& stats)
 {
-    for (std::size_t i = 0; i < m_hash.size(); ++i)
+    std::size_t depth = m_hash.size();
+
+#if DEBUG_BOUNDS_CORRECTION
+    LogInfo() << "History:\n";
+    for (std::size_t i = 0; i < depth; ++i)
         LogInfo() << i << ": " << HashUtil::toString(m_hash[i]) 
                   << ' ' << m_move[i] << '\n';
     LogInfo() << "x: " << HashUtil::toString(hash) << '\n';
+#endif
+
+    std::vector<hash_t> leftHash(depth, 0);
+    std::vector<HexPoint> leftMove(depth, INVALID_POINT);
+    for (std::size_t i = depth - 1; i > 0; --i)
+    {
+        leftHash[i] = data.m_parentHash;
+        leftMove[i] = data.m_moveParentPlayed;
+        if (!hashTable.Get(data.m_parentHash, data))
+            break;
+    }
+
+#if DEBUG_BOUNDS_CORRECTION
+    LogInfo() << "Table History:\n";
+    for (std::size_t i = 0; i < depth; ++i)
+        LogInfo() << i << ": " << HashUtil::toString(leftHash[i]) 
+                  << ' ' << leftMove[i] << '\n';
+    LogInfo() << "x: " << HashUtil::toString(hash) << '\n';
+#endif
+
     std::size_t length = 1;
     for (std::size_t i = m_hash.size() - 1; i > 0; --i, ++length)
     {
         if (length > DfpnTransposition::MAX_LENGTH)
             break;
-        LogInfo() << "cur: " << HashUtil::toString(data.m_parentHash) << ' '
-                  << data.m_moveParentPlayed << '\n';
-        if (std::find(m_hash.begin(), m_hash.end(), data.m_parentHash) 
+        if (std::find(m_hash.begin(), m_hash.end(), leftHash[i])
             != m_hash.end())
         {
-            LogInfo() << "Found it at i = " << i 
-                      << " length = " << length << '\n';
+#if DEBUG_BOUNDS_CORRECTION
+            LogInfo() << "Found command ancestor at i = " << i 
+                      << " (length " << length << ")\n";
+#endif
             stats.Add(length);
-            m_transposition[i].Add(hash, &m_move[i], &m_hash[i], length);
+            m_transposition[i].Add(hash, length, &m_move[i], &m_hash[i], 
+                                   &leftMove[i], &leftHash[i]);
             break;
         }
-        if (!hashTable.Get(data.m_parentHash, data))
-            break;
     }
 }
 
@@ -267,6 +336,7 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     os << "      Slots: ";
     m_slotStats.Write(os);
     LogInfo() << os.str() << '\n';
+    LogInfo() << "Corrections: " << m_boundsCorrections << '\n';
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime() << '\n';
     LogInfo() << m_hashTable->Stats() << '\n';
@@ -410,8 +480,9 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
     while (!m_aborted) 
     {
         UpdateBounds(currentHash, currentBounds, childrenData);
-        transpositions.ModifyBounds(currentHash, currentBounds, 
-                                    *m_hashTable, m_slotStats);
+        m_boundsCorrections 
+            += transpositions.ModifyBounds(currentHash, currentBounds, 
+                                           *m_hashTable, m_slotStats);
         if (m_useGuiFx && depth == 1)
         {
             m_guiFx.UpdateCurrentBounds(currentBounds);
