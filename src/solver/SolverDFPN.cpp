@@ -110,50 +110,85 @@ DfpnTransposition::DfpnTransposition(hash_t hash)
 {
 }
 
-void DfpnTranspositions::Add(hash_t hash, HexPoint* point, size_t length)
+void DfpnTranspositions::Add(hash_t hash, HexPoint* point, hash_t* hashes, 
+                             size_t length)
 {
     if (m_slot.size() >= NUM_SLOTS)
         return;
-    for (size_t i = 0; i < NUM_SLOTS; ++i)
+    for (size_t i = 0; i < m_slot.size(); ++i)
         if (m_slot[i].m_hash == hash)
             return;
     m_slot.push_back(DfpnTransposition(hash));
     while (length--)
-        m_slot.back().m_right.push_back(*point++);
+    {
+        m_slot.back().m_rightMove.push_back(*point++);
+        m_slot.back().m_rightHash.push_back(*hashes++);
+    }
 }
 
-void DfpnTranspositions::ModifyBounds(DfpnBounds& bounds, 
+void DfpnTranspositions::ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
                                       DfpnHashTable& hashTable,
-                                      DfpnStatistics& slotStats)
+                                      DfpnStatistics& slotStats) const
 {
-    SG_UNUSED(bounds);
-    SG_UNUSED(hashTable);
     if (m_slot.empty())
         return;
     slotStats.Add(m_slot.size());
+    for (std::size_t i = 0; i < m_slot.size(); ++i)
+        m_slot[i].ModifyBounds(currentHash, bounds, hashTable);
+}
+
+void DfpnTransposition::ModifyBounds(hash_t currentHash, DfpnBounds& bounds,
+                                     DfpnHashTable& hashTable) const
+{
+    SG_UNUSED(bounds);
+    LogInfo() << "ModifyBounds():\n";
+    LogInfo() << "bounds: " << bounds << '\n';
+    LogInfo() << "m_hash: " << HashUtil::toString(m_hash) << '\n';
+    LogInfo() << "size: " << m_rightHash.size() << '\n';
+    HexAssert(currentHash == m_rightHash[0]);
+    DfpnData data;
+    bool minMove = true;
+    for (std::size_t i = 1; i < m_rightHash.size(); ++i)
+    {
+        currentHash = m_rightHash[i];
+        LogInfo() << "currentHash: " << HashUtil::toString(currentHash)<< '\n';
+        if (!hashTable.Get(currentHash, data))
+            return;
+        if (minMove && data.m_bestMove != m_rightMove[i])
+        {
+            LogInfo() << "Not min move!\n";
+            return;
+        }
+        minMove = !minMove;
+    }
+    HexAssert(m_hash == currentHash);
+    LogInfo() << "descendant bounds: " << data.m_bounds << '\n';
+
+    // TODO: Check left path!
 }
 
 void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable, 
                                        DfpnData data, hash_t hash,
                                        DfpnStatistics& stats)
 {
-//     for (std::size_t i = 0; i < m_hash.size(); ++i)
-//         LogInfo() << i << ": " << HashUtil::toString(m_hash[i]) 
-//                   << ' ' << m_move[i] << '\n';
+    for (std::size_t i = 0; i < m_hash.size(); ++i)
+        LogInfo() << i << ": " << HashUtil::toString(m_hash[i]) 
+                  << ' ' << m_move[i] << '\n';
+    LogInfo() << "x: " << HashUtil::toString(hash) << '\n';
     std::size_t length = 1;
     for (std::size_t i = m_hash.size() - 1; i > 0; --i, ++length)
     {
         if (length > DfpnTransposition::MAX_LENGTH)
             break;
-//         LogInfo() << "cur: " << HashUtil::toString(data.m_parentHash) << ' '
-//                   << data.m_moveParentPlayed << '\n';
+        LogInfo() << "cur: " << HashUtil::toString(data.m_parentHash) << ' '
+                  << data.m_moveParentPlayed << '\n';
         if (std::find(m_hash.begin(), m_hash.end(), data.m_parentHash) 
             != m_hash.end())
         {
-//             LogInfo() << "Found it at i = " << i 
-//                       << " length = " << length << '\n';
+            LogInfo() << "Found it at i = " << i 
+                      << " length = " << length << '\n';
             stats.Add(length);
-            m_transposition.back().Add(hash, &m_move[i], length);
+            m_transposition[i].Add(hash, &m_move[i], &m_hash[i], length);
             break;
         }
         if (!hashTable.Get(data.m_parentHash, data))
@@ -375,7 +410,8 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
     while (!m_aborted) 
     {
         UpdateBounds(currentHash, currentBounds, childrenData);
-        transpositions.ModifyBounds(currentBounds, *m_hashTable, m_slotStats);
+        transpositions.ModifyBounds(currentHash, currentBounds, 
+                                    *m_hashTable, m_slotStats);
         if (m_useGuiFx && depth == 1)
         {
             m_guiFx.UpdateCurrentBounds(currentBounds);

@@ -215,11 +215,16 @@ struct DfpnTransposition
 
     hash_t m_hash;
     
-    std::vector<HexPoint> m_right;
+    std::vector<HexPoint> m_rightMove;
+
+    std::vector<hash_t> m_rightHash;
     
     DfpnTransposition();
 
     DfpnTransposition(hash_t hash);
+
+    void ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
+                      DfpnHashTable& hashTable) const;
 };
 
 struct DfpnTranspositions
@@ -228,10 +233,11 @@ struct DfpnTranspositions
 
     std::vector<DfpnTransposition> m_slot;
 
-    void Add(hash_t hash, HexPoint* start, size_t length);
+    void Add(hash_t hash, HexPoint* start, hash_t* hashes, size_t length);
 
-    void ModifyBounds(DfpnBounds& bounds, DfpnHashTable& hashTable,
-                      DfpnStatistics& slotStats);
+    void ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
+                      DfpnHashTable& hashTable, 
+                      DfpnStatistics& slotStats) const;
 };
 
 //----------------------------------------------------------------------------
