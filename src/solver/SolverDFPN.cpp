@@ -12,6 +12,17 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+/** @page dfpnguifx Dfpn Progress Indication
+    @ingroup dfpn
+
+    It is difficult to present the user with meaningful progress
+    indication in dfpn. The current method simply displays the current
+    (phi, delta) bounds of each child of the root. This is output
+    whenever a child's bound changes. This is reasonably useful,
+    except in the case where only a single child remains and the
+    search is stuck several ply deep.
+*/
+
 SolverDFPN::GuiFx::GuiFx()
     : m_move(INVALID_POINT),
       m_timeOfLastWrite(0.0),
@@ -102,6 +113,22 @@ void SolverDFPN::GuiFx::DoWrite()
 
 //----------------------------------------------------------------------------
 
+/** @page boundscorrection Dfpn Bounds Correction
+    @ingroup dfpn
+
+    Transpositions in the graph of visited states can cause the bounds
+    to be artificially inflated. We try to alleviate this by noting a
+    fixed number of transpositions per state and checking wether each
+    would actually affect the bound.
+
+    This is not that effective in Hex. Transpositions are rare (less
+    than 1% of states have one) and of those, only a small percentage
+    result in actual bounds inflation.
+
+    This technique may be useful in other domains where transpositions
+    are more common and more likely to inflate the bounds.
+*/
+
 DfpnTransposition::DfpnTransposition()
     : m_hash(0)
 {
@@ -131,6 +158,8 @@ void DfpnTranspositions::Add(hash_t hash, size_t length,
     }
 }
 
+/** Attempts to modify the bounds for the current state by removing
+    duplicate estimates created by each transposition. */
 size_t DfpnTranspositions::ModifyBounds(hash_t currentHash, 
                                         DfpnBounds& bounds, 
                                         DfpnHashTable& hashTable,
@@ -146,6 +175,11 @@ size_t DfpnTranspositions::ModifyBounds(hash_t currentHash,
     return ret;
 }
 
+/** Checks that the sequence of moves matches those in the hashtable
+    on every second level (the level where the bound is propagated via
+    a min operation). The 'bestmove' stored in DfpnData corresponds to
+    the child with min delta, and so much match the move at this
+    location in the transposition. */
 bool DfpnTransposition::IsMinPath(DfpnHashTable& hashTable, 
                                   const std::vector<HexPoint>& move,
                                   const std::vector<hash_t>& hash) const
@@ -176,6 +210,14 @@ bool DfpnTransposition::IsMinPath(DfpnHashTable& hashTable,
     return true;
 }
 
+/** If both paths from ancestor to descendant contribute to the
+    ancestor's delta, reduces delta by descendant's phi or delta
+    (which to use is dependant on length of path).
+    We can only modify delta because phi is computed as the min of
+    child deltas, hence the descendant's bound is counted at most
+    once. Delta, however, is the sum of child phis and so the
+    descendant's bound could be counted twice.
+*/
 bool DfpnTransposition::ModifyBounds(hash_t currentHash, DfpnBounds& bounds,
                                      DfpnHashTable& hashTable) const
 {
@@ -213,6 +255,9 @@ bool DfpnTransposition::ModifyBounds(hash_t currentHash, DfpnBounds& bounds,
     return true;
 }
 
+/** Traverses hashtable to find the common ancestor of the current
+    state's two parents. Adds a DfpnTransposition at the level of the
+    ancestor. */
 void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable, 
                                        DfpnData data, hash_t hash,
                                        DfpnStatistics& stats)

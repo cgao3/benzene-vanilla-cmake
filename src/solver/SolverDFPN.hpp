@@ -21,6 +21,23 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
+/** @defgroup dfpn Depth-First Proof Number Search
+    Hex Solver Using DFPN
+    
+    Based on [reference Martin & Kishi's paper]. 
+   
+    @todo
+    - Make game independent.
+    - Heuristic leaf scores.
+    - Add database read/write.
+    - Re-use move ordering between siblings (worked in go).
+*/
+
+//----------------------------------------------------------------------------
+
+/** Statistics tracker used in dfpn search.
+    @ingroup dfpn
+*/
 typedef SgStatisticsExt<float, std::size_t> DfpnStatistics;
 
 //----------------------------------------------------------------------------
@@ -28,7 +45,9 @@ typedef SgStatisticsExt<float, std::size_t> DfpnStatistics;
 /** Maximum bound. */
 static const std::size_t INFTY = 2000000000;
 
-/** Bounds used in Dfpn search. */
+/** Bounds used in Dfpn search. 
+    @ingroup dfpn
+*/
 struct DfpnBounds
 {
     std::size_t phi;
@@ -113,6 +132,9 @@ inline std::ostream& operator<<(std::ostream& os, const DfpnBounds& bounds)
 
 //----------------------------------------------------------------------------
 
+/** State in hashtable.
+    @ingroup dfpn
+ */
 class DfpnData
 {
 public:
@@ -204,15 +226,23 @@ inline std::ostream& operator<<(std::ostream& os, const DfpnData& data)
 }
 
 //----------------------------------------------------------------------------
-
+/** Hashtable used in dfpn search.  
+    @ingroup dfpn
+*/
 typedef TransTable<DfpnData> DfpnHashTable;
 
 //----------------------------------------------------------------------------
 
+/** Stores enough information on an encountered transposition that the
+    bounds can be fixed in the state it starts from. 
+    @ingroup dfpn
+*/
 struct DfpnTransposition
 {
     static const size_t MAX_LENGTH = 8;
 
+    /** Hash of dependant state; used as an id for this
+        transposition. */
     hash_t m_hash;
     
     std::vector<HexPoint> m_rightMove;
@@ -235,6 +265,7 @@ struct DfpnTransposition
                       DfpnHashTable& hashTable) const;
 };
 
+/** Stores a number of transpositions. */
 struct DfpnTranspositions
 {
     static const size_t NUM_SLOTS = 8;
@@ -252,7 +283,9 @@ struct DfpnTranspositions
 
 //----------------------------------------------------------------------------
 
-/** History of moves played from root state to current state. */
+/** History of moves played from root state to current state. 
+    @ingroup dfpn
+*/
 class DfpnHistory
 {
 public:
@@ -333,7 +366,9 @@ inline DfpnTranspositions& DfpnHistory::Transpositions()
 
 //----------------------------------------------------------------------------
 
-/** Hex solver using DFPN search. */
+/** Hex solver using DFPN search. 
+    @ingroup dfpn
+*/
 class SolverDFPN 
 {
 public:
