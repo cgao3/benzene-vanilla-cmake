@@ -737,8 +737,8 @@ public:
 
     /**
      *  @brief  Use a subset of a string.
-     *  @param  s  A string of '0' and '1' characters.
-     *  @param  position  Index of the first character in @a s to use;
+     *  @param  __s  A string of '0' and '1' characters.
+     *  @param  __position  Index of the first character in @a s to use;
      *                    defaults to zero.
      *  @throw  std::out_of_range  If @a pos is bigger the size of @a s.
      *  @throw  std::invalid_argument  If a character appears in the string
@@ -759,9 +759,9 @@ public:
 
     /**
      *  @brief  Use a subset of a string.
-     *  @param  s  A string of '0' and '1' characters.
-     *  @param  position  Index of the first character in @a s to use.
-     *  @param  n    The number of characters to copy.
+     *  @param  __s  A string of '0' and '1' characters.
+     *  @param  __position  Index of the first character in @a s to use.
+     *  @param  __n    The number of characters to copy.
      *  @throw  std::out_of_range  If @a pos is bigger the size of @a s.
      *  @throw  std::invalid_argument  If a character appears in the string
      *                                 which is neither '0' nor '1'.
@@ -781,7 +781,7 @@ public:
     //@{
     /**
      *  @brief  Operations on bitsets.
-     *  @param  rhs  A same-sized bitset.
+     *  @param  __rhs  A same-sized bitset.
      *
      *  These should be self-explanatory.
      */
@@ -825,7 +825,7 @@ public:
     //@{
     /**
      *  @brief  Operations on bitsets.
-     *  @param  position  The number of places to shift.
+     *  @param  __position  The number of places to shift.
      *
      *  These should be self-explanatory.
      */
@@ -913,8 +913,8 @@ public:
 
     /**
      *  @brief Sets a given bit to a particular value.
-     *  @param  position  The index of the bit.
-     *  @param  val  Either true or false, defaults to true.
+     *  @param  __position  The index of the bit.
+     *  @param  __val  Either true or false, defaults to true.
      *  @throw  std::out_of_range  If @a pos is bigger the size of the %set.
      */
     benzene_bitset<_Nb>&
@@ -937,7 +937,7 @@ public:
 
     /**
      *  @brief Sets a given bit to false.
-     *  @param  position  The index of the bit.
+     *  @param  __position  The index of the bit.
      *  @throw  std::out_of_range  If @a pos is bigger the size of the %set.
      *
      *  Same as writing @c set(pos,false).
@@ -963,7 +963,7 @@ public:
 
     /**
      *  @brief Toggles a given bit to its opposite value.
-     *  @param  position  The index of the bit.
+     *  @param  __position  The index of the bit.
      *  @throw  std::out_of_range  If @a pos is bigger the size of the %set.
      */
     benzene_bitset<_Nb>&
@@ -982,7 +982,7 @@ public:
     //@{
     /**
      *  @brief  Array-indexing support.
-     *  @param  position  Index into the %bitset.
+     *  @param  __position  Index into the %bitset.
      *  @return  A bool for a 'const %bitset'.  For non-const bitsets, an
      *           instance of the reference proxy class.
      *  @note  These operators do no range checking and throw no exceptions,
@@ -1077,7 +1077,7 @@ operator!=(const benzene_bitset<_Nb>& __rhs) const
       
 /**
  *  @brief Tests the value of a bit.
- *  @param  position  The index of a bit.
+ *  @param  __position  The index of a bit.
  *  @return  The value at @a pos.
  *  @throw  std::out_of_range  If @a pos is bigger the size of the %set.
  */
@@ -1139,7 +1139,7 @@ _Find_first() const
 /**
  *  @brief  Finds the index of the next "on" bit after prev.
  *  @return  The index of the next bit set, or size() if not found.
- *  @param  prev  Where to start searching.
+ *  @param  __prev  Where to start searching.
  *  @ingroup SGIextensions
  *  @sa  _Find_first
  */
@@ -1189,8 +1189,8 @@ _M_copy_to_string(std::basic_string<_CharT, _Traits, _Alloc>& __s) const
 //@{
 /**
  *  @brief  Global bitwise operations on bitsets.
- *  @param  x  A bitset.
- *  @param  y  A bitset of the same size as @a x.
+ *  @param  __x  A bitset.
+ *  @param  __y  A bitset of the same size as @a x.
  *  @return  A new bitset.
  *
  *  These should be self-explanatory.

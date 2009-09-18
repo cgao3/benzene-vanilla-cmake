@@ -97,7 +97,7 @@ void SolverCommands::CmdParamSolver(HtpCommand& cmd)
 }
 
 /** Solves the given state.
-    Usage: "solve-state [color] { [db-file] { #M | #T #M } }
+    Usage: "solve-state [color] { [db-file] { M | T M } }
     (Where M is maximum number of stones in db and T is the maximum
     number of stones for which transpositions are computed.)
 */
