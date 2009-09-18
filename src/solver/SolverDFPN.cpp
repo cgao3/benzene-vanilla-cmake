@@ -184,7 +184,6 @@ bool DfpnTransposition::IsMinPath(DfpnHashTable& hashTable,
                                   const std::vector<HexPoint>& move,
                                   const std::vector<hash_t>& hash) const
 {
-    HexAssert(m_hash.back() == currentHash);
     bool minMove = true;
     // Skip the check for position 0:
     //  1) not a min check anyway
