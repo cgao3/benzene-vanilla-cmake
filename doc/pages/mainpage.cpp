@@ -5,20 +5,29 @@
     Benzene provides general utility classes and code to play and solve
     the game of Hex. 
 
-    @section hexboards HexPoints and HexBoards
+    @section games Boards and Games
 
-    - @ref hexpoints
-    - @ref boardrepresentation
-    - @ref cellneighbours
+    - ConstBoard, StoneBoard, HexBoard
+    - Game
 
-    @section patterninfo Patterns
-    - @ref patternencoding
-
+    @section ica Inferior Cell Analysis
+    - Pattern, PatternState
+    - Group, Groups, and GroupBuilder
+    - ICEngine classifies cells
+ 
     @section vcs Virtual Connections
-    - @todo Add VC stuff here.
+    - VC
+    - VCSet
+    - VCBuilder
+    - VCPattern
 
-    @section Tools
+    @section players Players
+    - WolvePlayer uses HexAbSearch and EvalResist
+    - MoHexPlayer uses HexUctSearch
+
+    @section tools Tools
     - @ref openingbook 
-
+    - @ref dfpn
+    - Traditional DFS Solver
 */
 
