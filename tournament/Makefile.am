@@ -2,10 +2,16 @@ EXTRA_DIST = \
 HOWTO \
 asymmetric.py \
 checkSgfs.py \
+common.sh \
 difference.py \
 game.py \
 gameplayer.py \
 program.py \
+run-mohex-vs-mohex.sh \
+run-mohex-vs-six.sh \
+run-mohex-vs-wolve.sh \
+run-wolve-vs-six.sh \
+run-wolve-vs-wolve.sh \
 statistics.py \
 summary.py \
 tournyNotes \
