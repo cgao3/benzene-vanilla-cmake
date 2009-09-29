@@ -15,6 +15,28 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+/** @page mohexmainpage MoHex
+
+    @section overview Overview
+
+    MoHex is Hex player that uses monte-carlo tree search with
+    knowledge computation. It links with the UCT search classes from
+    the Fuego library.
+    
+    MoHex uses HexBoard to compute VCs/fillin for nodes in the search
+    tree that have been visited more than a certain threshold number
+    of times.
+
+    @section search Classes
+    - MoHexEngine
+    - MoHexPlayer
+    - HexUctSearch
+
+    @todo Add more documentation about MoHex!
+*/
+
+//----------------------------------------------------------------------------
+
 namespace {
 
 const char* build_date = __DATE__;

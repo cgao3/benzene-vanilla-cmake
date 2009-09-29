@@ -21,9 +21,9 @@
     - VCBuilder
     - VCPattern
 
-    @section players Players
-    - WolvePlayer uses HexAbSearch and EvalResist
-    - MoHexPlayer uses HexUctSearch
+    @section Programs
+    - @ref wolvemainpage
+    - @ref mohexmainpage
 
     @section tools Tools
     - @ref openingbook 
