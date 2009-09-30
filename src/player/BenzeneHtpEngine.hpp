@@ -15,7 +15,7 @@
 #include "HexHtpEngine.hpp"
 #include "Solver.hpp"
 #include "SolverCommands.hpp"
-#include "SolverDFPN.hpp"
+#include "DfpnSolver.hpp"
 #include "VCCommands.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -105,7 +105,7 @@ protected:
 
     Solver m_solver;
 
-    SolverDFPN m_solverDfpn;
+    DfpnSolver m_solverDfpn;
 
     boost::scoped_ptr<SolverTT> m_solver_tt;
 

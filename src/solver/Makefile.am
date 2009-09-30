@@ -1,17 +1,17 @@
 noinst_LIBRARIES = libsolver.a
 
 libsolver_a_SOURCES = \
+DfpnSolver.cpp \
 SolvedState.cpp \
 SolverCommands.cpp \
 SolverDB.cpp \
-SolverDFPN.cpp \
 Solver.cpp
 
 noinst_HEADERS = \
+DfpnSolver.hpp \
 SolvedState.hpp \
 SolverCommands.hpp \
 SolverDB.hpp \
-SolverDFPN.hpp \
 Solver.hpp
 
 libsolver_a_CPPFLAGS = \

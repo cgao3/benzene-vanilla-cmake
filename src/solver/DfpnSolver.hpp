@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file SolverDFPN.hpp
+/** @file DfpnSolver.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -369,13 +369,13 @@ inline DfpnTranspositions& DfpnHistory::Transpositions()
 /** Hex solver using DFPN search. 
     @ingroup dfpn
 */
-class SolverDFPN 
+class DfpnSolver 
 {
 public:
 
-    SolverDFPN();
+    DfpnSolver();
 
-    ~SolverDFPN();
+    ~DfpnSolver();
 
     /** Solves the given state using the given hashtable. */
     HexColor StartSearch(HexBoard& brd, DfpnHashTable& hashtable);
@@ -504,32 +504,32 @@ private:
                    const std::vector<DfpnBounds>& childBounds) const;
 };
 
-inline bool SolverDFPN::UseGuiFx() const
+inline bool DfpnSolver::UseGuiFx() const
 {
     return m_useGuiFx;
 }
 
-inline void SolverDFPN::SetUseGuiFx(bool enable)
+inline void DfpnSolver::SetUseGuiFx(bool enable)
 {
     m_useGuiFx = enable;
 }
 
-inline double SolverDFPN::Timelimit() const
+inline double DfpnSolver::Timelimit() const
 {
     return m_timelimit;
 }
 
-inline void SolverDFPN::SetTimelimit(double timelimit)
+inline void DfpnSolver::SetTimelimit(double timelimit)
 {
     m_timelimit = timelimit;
 }
 
-inline bool SolverDFPN::UseBoundsCorrection() const
+inline bool DfpnSolver::UseBoundsCorrection() const
 {
     return m_useBoundsCorrection;
 }
 
-inline void SolverDFPN::SetUseBoundsCorrection(bool flag)
+inline void DfpnSolver::SetUseBoundsCorrection(bool flag)
 {
     m_useBoundsCorrection = flag;
 }

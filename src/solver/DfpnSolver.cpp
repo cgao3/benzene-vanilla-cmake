@@ -1,9 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file SolverDFPN.cpp
+/** @file DfpnSolver.cpp
  */
 //----------------------------------------------------------------------------
 
-#include "SolverDFPN.hpp"
+#include "DfpnSolver.hpp"
 #include "PlayerUtils.hpp"
 
 using namespace benzene;
@@ -23,32 +23,32 @@ using namespace benzene;
     search is stuck several ply deep.
 */
 
-SolverDFPN::GuiFx::GuiFx()
+DfpnSolver::GuiFx::GuiFx()
     : m_move(INVALID_POINT),
       m_timeOfLastWrite(0.0),
       m_delay(1.0)
 {
 }
 
-void SolverDFPN::GuiFx::SetChildren(const std::vector<HexPoint>& children,
+void DfpnSolver::GuiFx::SetChildren(const std::vector<HexPoint>& children,
                                     const std::vector<DfpnData>& data)
 {
     m_children = children;
     m_data = data;
 }
 
-void SolverDFPN::GuiFx::PlayMove(HexColor color, HexPoint move) 
+void DfpnSolver::GuiFx::PlayMove(HexColor color, HexPoint move) 
 {
     m_color = color;
     m_move = move;
 }
 
-void SolverDFPN::GuiFx::UndoMove()
+void DfpnSolver::GuiFx::UndoMove()
 {
     m_move = INVALID_POINT;
 }
 
-void SolverDFPN::GuiFx::UpdateCurrentBounds(const DfpnBounds& bounds)
+void DfpnSolver::GuiFx::UpdateCurrentBounds(const DfpnBounds& bounds)
 {
     HexAssert(m_move != INVALID_POINT);
     for (std::size_t i = 0; i < m_children.size(); ++i)
@@ -57,14 +57,14 @@ void SolverDFPN::GuiFx::UpdateCurrentBounds(const DfpnBounds& bounds)
 }
 
 /** Always writes output. */
-void SolverDFPN::GuiFx::WriteForced()
+void DfpnSolver::GuiFx::WriteForced()
 {
     DoWrite();
 }
 
 /** Writes output only if last write was more than m_delay seconds
     ago or if the move is different. */
-void SolverDFPN::GuiFx::Write()
+void DfpnSolver::GuiFx::Write()
 {
     double currentTime = SgTime::Get();
     if (m_moveAtLastWrite == m_move)
@@ -78,7 +78,7 @@ void SolverDFPN::GuiFx::Write()
 }
 
 /** Writes progress indication. */
-void SolverDFPN::GuiFx::DoWrite()
+void DfpnSolver::GuiFx::DoWrite()
 {
     std::ostringstream os;
     os << "gogui-gfx:\n";
@@ -311,7 +311,7 @@ void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable,
 
 //----------------------------------------------------------------------------
 
-SolverDFPN::SolverDFPN()
+DfpnSolver::DfpnSolver()
     : m_hashTable(0),
       m_useGuiFx(false),
       m_useBoundsCorrection(true),
@@ -320,11 +320,11 @@ SolverDFPN::SolverDFPN()
 {
 }
 
-SolverDFPN::~SolverDFPN()
+DfpnSolver::~DfpnSolver()
 {
 }
 
-void SolverDFPN::GetVariation(const StoneBoard& state, 
+void DfpnSolver::GetVariation(const StoneBoard& state, 
                               std::vector<HexPoint>& pv) const
 {
     StoneBoard brd(state);
@@ -340,7 +340,7 @@ void SolverDFPN::GetVariation(const StoneBoard& state,
     }
 }
 
-std::string SolverDFPN::PrintVariation(const std::vector<HexPoint>& pv) const
+std::string DfpnSolver::PrintVariation(const std::vector<HexPoint>& pv) const
 {
     std::ostringstream os;
     for (std::size_t i = 0; i < pv.size(); ++i) 
@@ -351,7 +351,7 @@ std::string SolverDFPN::PrintVariation(const std::vector<HexPoint>& pv) const
     return os.str();
 }
 
-HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
+HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
 {
     m_aborted = false;
     m_hashTable = &hashtable;
@@ -408,14 +408,14 @@ HexColor SolverDFPN::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     return EMPTY;
 }
 
-bool SolverDFPN::CheckAbort()
+bool DfpnSolver::CheckAbort()
 {
     if (!m_aborted)
     {
         if (SgUserAbort()) 
         {
             m_aborted = true;
-            LogInfo() << "SolverDFPN::CheckAbort(): Abort flag!\n";
+            LogInfo() << "DfpnSolver::CheckAbort(): Abort flag!\n";
         }
         else if (m_timelimit > 0)
         {
@@ -425,7 +425,7 @@ bool SolverDFPN::CheckAbort()
                 if (elapsed > m_timelimit)
                 {
                     m_aborted = true;
-                    LogInfo() << "SolverDFPN::CheckAbort(): Timelimit!" << '\n';
+                    LogInfo() << "DfpnSolver::CheckAbort(): Timelimit!" << '\n';
                 }
                 else
                 {
@@ -447,7 +447,7 @@ bool SolverDFPN::CheckAbort()
 }
 
 
-size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
+size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
 {
     CheckBounds(bounds);
     HexAssert(bounds.phi > 1);
@@ -619,7 +619,7 @@ size_t SolverDFPN::MID(const DfpnBounds& bounds, DfpnHistory& history)
     return localWork;
 }
 
-void SolverDFPN::SelectChild(int& bestIndex, std::size_t& delta2,
+void DfpnSolver::SelectChild(int& bestIndex, std::size_t& delta2,
                       const std::vector<DfpnData>& childrenData) const
 {
     std::size_t delta1 = INFTY;
@@ -649,7 +649,7 @@ void SolverDFPN::SelectChild(int& bestIndex, std::size_t& delta2,
     HexAssert(delta1 < INFTY);
 }
 
-void SolverDFPN::UpdateBounds(hash_t parentHash, DfpnBounds& bounds, 
+void DfpnSolver::UpdateBounds(hash_t parentHash, DfpnBounds& bounds, 
                               const std::vector<DfpnData>& childData) const
 {
     // Track two sets of bounds: all of our children and children that
@@ -686,7 +686,7 @@ void SolverDFPN::UpdateBounds(hash_t parentHash, DfpnBounds& bounds,
     //bounds = useBoundsParent ? boundsParent : boundsAll;
 }
 
-void SolverDFPN::LookupData(DfpnData& data, HexColor colorToMove, 
+void DfpnSolver::LookupData(DfpnData& data, HexColor colorToMove, 
                             HexPoint cell)
 {
     m_brd->playMove(colorToMove, cell);
@@ -701,14 +701,14 @@ void SolverDFPN::LookupData(DfpnData& data, HexColor colorToMove,
     }
 }
 
-void SolverDFPN::TTStore(hash_t hash, const DfpnData& data)
+void DfpnSolver::TTStore(hash_t hash, const DfpnData& data)
 {
     CheckBounds(data.m_bounds);
     m_hashTable->Put(hash, data);
 }
 
 #ifndef NDEBUG
-void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const
+void DfpnSolver::CheckBounds(const DfpnBounds& bounds) const
 {
     HexAssert(bounds.phi <= INFTY);
     HexAssert(bounds.delta <= INFTY);
@@ -718,7 +718,7 @@ void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const
     HexAssert(INFTY!= bounds.delta || 0 == bounds.phi ||INFTY == bounds.phi);
 }
 #else
-void SolverDFPN::CheckBounds(const DfpnBounds& bounds) const
+void DfpnSolver::CheckBounds(const DfpnBounds& bounds) const
 {
     SG_UNUSED(bounds);
 }
