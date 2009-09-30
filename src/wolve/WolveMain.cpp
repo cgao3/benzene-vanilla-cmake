@@ -36,6 +36,9 @@ using namespace benzene;
     - HexAbSearch
     - Resistance
 
+    @section htpcommands HTP Commands
+    - @ref hexhtpenginecommands
+
     @todo Add more documentation about Wolve!
 */
 

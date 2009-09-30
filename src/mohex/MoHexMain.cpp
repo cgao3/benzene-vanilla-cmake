@@ -32,6 +32,9 @@ using namespace benzene;
     - MoHexPlayer
     - HexUctSearch
 
+    @section htpcommands HTP Commands
+    - @ref hexhtpenginecommands
+
     @todo Add more documentation about MoHex!
 */
 

@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HexHtpEngine.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -27,35 +27,51 @@ class HexHtpEngine: public GtpEngine
 {
 public:
 
-    HexHtpEngine(std::istream& in, std::ostream& out, 
-                 int boardsize);
+    HexHtpEngine(std::istream& in, std::ostream& out, int boardsize);
     
     ~HexHtpEngine();
+
+    /** @page hexhtpenginecommands HexHtpEngine Commands
+        - @link CmdAllLegalMoves() @c all_legal_moves @endlink
+        - @link CmdBoardID() @c board_id @endlink
+        - @link CmdClearBoard() @c clear_board @endlink
+        - @link CmdExec() @c exec @endlink
+        - @link CmdFinalScore() @c final_score @endlink
+        - @link CmdGenMove() @c genmove @endlink
+        - @link CmdInterrupt() @c gogui-interrupt @endlink
+        - @link CmdLoadSgf() @c loadsgf @endlink
+        - @link CmdName() @c name @endlink
+        - @link CmdNewGame() @c boardsize @endlink
+        - @link CmdParamGame() @c param_game @endlink
+        - @link CmdPlay() @c play @endlink
+        - @link CmdShowboard() @c showboard @endlink
+        - @link CmdTimeLeft() @c time_left @endlink
+        - @link CmdUndo() @c undo @endlink
+        - @link CmdVersion() @c version @endlink
+    */
 
     /** @name Command Callbacks */
     // @{
     // The callback functions are documented in the cpp file
 
-    virtual void CmdName(HtpCommand&);
-    virtual void CmdVersion(HtpCommand&);
-    virtual void CmdPlay(HtpCommand&);
-    virtual void CmdGenMove(HtpCommand& cmd);
-    virtual void CmdUndo(HtpCommand& cmd);
-    virtual void CmdNewGame(HtpCommand& cmd);
-    virtual void CmdClearBoard(HtpCommand& cmd);
-    virtual void CmdShowboard(HtpCommand&);
-    virtual void CmdBoardID(HtpCommand&);
-    virtual void CmdTimeLeft(HtpCommand&);
-    virtual void CmdFinalScore(HtpCommand& cmd);
     virtual void CmdAllLegalMoves(HtpCommand& cmd);
-    virtual void CmdLoadSgf(HtpCommand& cmd);
-    virtual void CmdParamGame(HtpCommand& cmd);
-
-    void CmdExec(HtpCommand& cmd);
-
+    virtual void CmdBoardID(HtpCommand&);
+    virtual void CmdClearBoard(HtpCommand& cmd);
+    virtual void CmdExec(HtpCommand& cmd);
+    virtual void CmdFinalScore(HtpCommand& cmd);
+    virtual void CmdGenMove(HtpCommand& cmd);
 #if GTPENGINE_INTERRUPT
     virtual void CmdInterrupt(HtpCommand& cmd);
 #endif
+    virtual void CmdLoadSgf(HtpCommand& cmd);
+    virtual void CmdName(HtpCommand&);
+    virtual void CmdNewGame(HtpCommand& cmd);
+    virtual void CmdParamGame(HtpCommand& cmd);
+    virtual void CmdPlay(HtpCommand&);
+    virtual void CmdShowboard(HtpCommand&);
+    virtual void CmdTimeLeft(HtpCommand&);
+    virtual void CmdUndo(HtpCommand& cmd);
+    virtual void CmdVersion(HtpCommand&);
 
     // @} // @name
 

@@ -35,23 +35,24 @@ HexHtpEngine::HexHtpEngine(std::istream& in, std::ostream& out,
       m_board(boardsize, boardsize),
       m_game(m_board)
 {
-    RegisterCmd("name", &HexHtpEngine::CmdName);
-    RegisterCmd("version", &HexHtpEngine::CmdVersion);
-    RegisterCmd("exec", &HexHtpEngine::CmdExec);
-    RegisterCmd("play", &HexHtpEngine::CmdPlay);
-    RegisterCmd("genmove", &HexHtpEngine::CmdGenMove);
-    RegisterCmd("undo", &HexHtpEngine::CmdUndo);
+    RegisterCmd("all_legal_moves", &HexHtpEngine::CmdAllLegalMoves);
+    RegisterCmd("board_id", &HexHtpEngine::CmdBoardID);
     RegisterCmd("boardsize", &HexHtpEngine::CmdNewGame);
     RegisterCmd("clear_board", &HexHtpEngine::CmdClearBoard);
-    RegisterCmd("showboard", &HexHtpEngine::CmdShowboard);
-    RegisterCmd("board_id", &HexHtpEngine::CmdBoardID);
-    RegisterCmd("time_left", &HexHtpEngine::CmdTimeLeft);
+    RegisterCmd("exec", &HexHtpEngine::CmdExec);
     RegisterCmd("final_score", &HexHtpEngine::CmdFinalScore);
-    RegisterCmd("loadsgf", &HexHtpEngine::CmdLoadSgf);
-    RegisterCmd("all_legal_moves", &HexHtpEngine::CmdAllLegalMoves);
-    RegisterCmd("param_game", &HexHtpEngine::CmdParamGame);
-
+    RegisterCmd("genmove", &HexHtpEngine::CmdGenMove);
+#if GTPENGINE_INTERRUPT
     RegisterCmd("gogui-interrupt", &HexHtpEngine::CmdInterrupt);
+#endif
+    RegisterCmd("loadsgf", &HexHtpEngine::CmdLoadSgf);
+    RegisterCmd("name", &HexHtpEngine::CmdName);
+    RegisterCmd("param_game", &HexHtpEngine::CmdParamGame);
+    RegisterCmd("play", &HexHtpEngine::CmdPlay);
+    RegisterCmd("showboard", &HexHtpEngine::CmdShowboard);
+    RegisterCmd("time_left", &HexHtpEngine::CmdTimeLeft);
+    RegisterCmd("undo", &HexHtpEngine::CmdUndo);
+    RegisterCmd("version", &HexHtpEngine::CmdVersion);
 
     NewGame(m_board.width(), m_board.height());
 }
@@ -126,20 +127,21 @@ void HexHtpEngine::BeforeWritingResponse()
 {
 }
 
-////////////////////////////////////////////////////////////////////////
-// Commands
-////////////////////////////////////////////////////////////////////////
+//----------------------------------------------------------------------------
 
+/** Returns program's name. */
 void HexHtpEngine::CmdName(HtpCommand& cmd)
 {
     cmd << HexProgram::Get().getName();
 }
 
+/** Returns program's version. */
 void HexHtpEngine::CmdVersion(HtpCommand& cmd)
 {
     cmd << HexProgram::Get().getVersion();
 }
 
+/** Executes HTP commands contained in given file. */
 void HexHtpEngine::CmdExec(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
@@ -228,12 +230,14 @@ void HexHtpEngine::CmdShowboard(HtpCommand& cmd)
     cmd << m_game.Board();
 }
 
+/** Outputs BoardID of current position. */
 void HexHtpEngine::CmdBoardID(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
     cmd << m_game.Board().GetBoardIDString();
 }
 
+/** Displays time left for both players or given player. */
 void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(2);
@@ -255,9 +259,8 @@ void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
     }
 }
 
-/** Return a string with what we think the outcome of the game is.
- *          Black win:  B+ 
- *         White  win:  W+ 
+/** Returns a string with what we think the outcome of the game is.
+    Value will be "B+" for a black win, and "W+" for a white win.
  */
 void HexHtpEngine::CmdFinalScore(HtpCommand& cmd)
 {
@@ -272,7 +275,7 @@ void HexHtpEngine::CmdFinalScore(HtpCommand& cmd)
     cmd << ret;
 }
 
-/** Returns a list of all legal moves. */
+/** Returns a list of all legal moves on current board position. */
 void HexHtpEngine::CmdAllLegalMoves(HtpCommand& cmd)
 {
     int c = 0;
@@ -300,6 +303,9 @@ void HexHtpEngine::SetPosition(const SgNode* node)
     }
 }
 
+/** Loads game or position from given sgf. Sets position to given move
+    number or the last move of the game if none is given.
+*/
 void HexHtpEngine::CmdLoadSgf(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(2);
@@ -354,6 +360,12 @@ void HexHtpEngine::CmdLoadSgf(HtpCommand& cmd)
     }
 }
 
+/** Displays/changes parameters relating to the current game. 
+
+    Parameters:
+    @arg @c allow_swap See Game::AllowSwap
+    @arg @c game_time See Game::GameTime
+*/
 void HexHtpEngine::CmdParamGame(HtpCommand& cmd)
 {
     if (cmd.NuArg() == 0)
