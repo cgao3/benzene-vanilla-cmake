@@ -34,6 +34,7 @@ using namespace benzene;
 
     @section htpcommands HTP Commands
     - @ref hexhtpenginecommands
+    - @ref benzenehtpenginecommands
 
     @todo Add more documentation about MoHex!
 */

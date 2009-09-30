@@ -71,7 +71,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     m_solverCommands.Register(*this);
 
     RegisterCmd("param_player", &BenzeneHtpEngine::CmdParamPlayer);
-    RegisterCmd("param_solver_dfpn", &BenzeneHtpEngine::CmdParamSolverDfpn);
+    RegisterCmd("param_dfpn", &BenzeneHtpEngine::CmdParamDfpn);
 
     RegisterCmd("eval-twod", &BenzeneHtpEngine::CmdEvalTwoDist);
     RegisterCmd("eval-resist", &BenzeneHtpEngine::CmdEvalResist);
@@ -79,10 +79,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     RegisterCmd("eval-influence", &BenzeneHtpEngine::CmdEvalInfluence);
 
     RegisterCmd("dfpn-get-state", &BenzeneHtpEngine::CmdDfpnGetState);
-
-    RegisterCmd("solve-state-dfpn", &BenzeneHtpEngine::CmdSolveStateDfpn);
-    RegisterCmd("solver-clear-dfpn-tt", 
-                &BenzeneHtpEngine::CmdSolverClearDfpnTT);
+    RegisterCmd("dfpn-solve-state", &BenzeneHtpEngine::CmdDfpnSolveState);
+    RegisterCmd("dfpn-clear-tt", &BenzeneHtpEngine::CmdDfpnClearTT);
 
     RegisterCmd("misc-debug", &BenzeneHtpEngine::CmdMiscDebug);
 
@@ -126,6 +124,7 @@ HexPoint BenzeneHtpEngine::GenMove(HexColor color, double max_time)
 // Commands
 ////////////////////////////////////////////////////////////////////////
 
+/** Displays usage license. */
 void BenzeneHtpEngine::CmdLicense(HtpCommand& cmd)
 {
     cmd << 
@@ -237,7 +236,7 @@ void BenzeneHtpEngine::CmdParamPlayer(HtpCommand& cmd)
     ParamPlayer(&m_player, cmd);
 }
 
-void BenzeneHtpEngine::CmdParamSolverDfpn(HtpCommand& cmd)
+void BenzeneHtpEngine::CmdParamDfpn(HtpCommand& cmd)
 {
     if (cmd.NuArg() == 0)
     {
@@ -676,10 +675,11 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
 }
 
 //----------------------------------------------------------------------------
-// Solver commands
+// Dfpn commands
 //----------------------------------------------------------------------------
 
-void BenzeneHtpEngine::CmdSolveStateDfpn(HtpCommand& cmd)
+/** Solves the current state with dfpn using the current hashtable. */
+void BenzeneHtpEngine::CmdDfpnSolveState(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
     HexBoard& brd = m_se.SyncBoard(m_game.Board());
@@ -687,12 +687,15 @@ void BenzeneHtpEngine::CmdSolveStateDfpn(HtpCommand& cmd)
     cmd << winner;
 }
 
-void BenzeneHtpEngine::CmdSolverClearDfpnTT(HtpCommand& cmd)
+/** Clears the current dfpn hashtable. */
+void BenzeneHtpEngine::CmdDfpnClearTT(HtpCommand& cmd)
 {
     UNUSED(cmd);
     m_dfpn_tt->Clear();
 }
 
+/** Displays information about the current state from the
+    hashtable. */
 void BenzeneHtpEngine::CmdDfpnGetState(HtpCommand& cmd)
 {
     cmd.CheckArgNone();

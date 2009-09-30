@@ -33,6 +33,30 @@ public:
     
     ~BenzeneHtpEngine();
 
+    /** @page benzenehtpenginecommands BenzeneHtpEngine Commands
+        - @link CmdLicense() @c benzene-license @endlink
+        - @link CmdRegGenMove() @c reg_genmove @endlink
+        - @link CmdGetAbsorbGroup() @c get_absorb_group @endlink
+        - @link CmdHandbookAdd() @c handbook-add @endlink
+        - @link CmdComputeInferior() @c compute-inferior @endlink
+        - @link CmdComputeFillin() @c compute-fillin @endlink
+        - @link CmdComputeVulnerable() @c compute-vulnerable @endlink
+        - @link CmdComputeDominated() @c compute-dominated @endlink
+        - @link CmdFindCombDecomp() @c find-comb-decomp @endlink
+        - @link CmdFindSplitDecomp() @c find-split-decomp @endlink
+        - @link CmdEncodePattern() @c encode-pattern @endlink
+        - @link CmdParamPlayer() @c param_player @endlink
+        - @link CmdParamDfpn() @c param_dfpn @endlink
+        - @link CmdEvalTwoDist() @c eval-twod @endlink
+        - @link CmdEvalResist() @c eval-resist @endlink
+        - @link CmdEvalResistDelta() @c eval-resist-delta @endlink
+        - @link CmdEvalInfluence() @c eval-influence @endlink
+        - @link CmdDfpnGetState() @c dfpn-get-state @endlink
+        - @link CmdDfpnSolveState() @c dfpn-solve-state @endlink
+        - @link CmdDfpnClearTT() @c dfpn-clear-tt @endlink
+        - @link CmdMiscDebug() @c misc_debug @endlink
+    */
+
     /** @name Command Callbacks */
     // @{
     // The callback functions are documented in the cpp file
@@ -54,7 +78,7 @@ public:
     void CmdEncodePattern(HtpCommand& cmd);
     
     void CmdParamPlayer(HtpCommand& cmd);
-    void CmdParamSolverDfpn(HtpCommand& cmd);
+    void CmdParamDfpn(HtpCommand& cmd);
     
     void CmdEvalTwoDist(HtpCommand& cmd);
     void CmdEvalResist(HtpCommand& cmd);
@@ -62,17 +86,9 @@ public:
     void CmdEvalInfluence(HtpCommand& cmd);
 
     void CmdDfpnGetState(HtpCommand& cmd);
+    void CmdDfpnSolveState(HtpCommand& cmd);
+    void CmdDfpnClearTT(HtpCommand& cmd);
     
-    void CmdSolveState(HtpCommand& cmd);
-    void CmdSolveStateDfpn(HtpCommand& cmd);
-    void CmdSolverClearTT(HtpCommand& cmd);
-    void CmdSolverClearDfpnTT(HtpCommand& cmd);
-    void CmdSolverFindWinning(HtpCommand& cmd);
-
-    void CmdDBOpen(HtpCommand& cmd);
-    void CmdDBClose(HtpCommand& cmd);
-    void CmdDBGet(HtpCommand& cmd);
-
     void CmdMiscDebug(HtpCommand& cmd);
 
     // @} // @name
