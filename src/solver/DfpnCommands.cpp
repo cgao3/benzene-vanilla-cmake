@@ -23,7 +23,7 @@ DfpnCommands::DfpnCommands(Game& game, HexEnvironment& env,
 
 void DfpnCommands::Register(GtpEngine& e)
 {
-    Register(e, "dfpn-param", &DfpnCommands::CmdParam);
+    Register(e, "param_dfpn", &DfpnCommands::CmdParam);
     Register(e, "dfpn-clear-tt", &DfpnCommands::CmdClearTT);
     Register(e, "dfpn-get-state", &DfpnCommands::CmdGetState);    
     Register(e, "dfpn-solve-state", &DfpnCommands::CmdSolveState);
