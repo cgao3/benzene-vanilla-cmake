@@ -3,8 +3,10 @@
  */
 //----------------------------------------------------------------------------
 
+#include "BitsetIterator.hpp"
 #include "DfpnSolver.hpp"
 #include "PlayerUtils.hpp"
+#include "Resistance.hpp"
 
 using namespace benzene;
 
@@ -460,12 +462,12 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     hash_t parentHash = history.LastHash();
     HexColor colorToMove = m_brd->WhoseTurn();
 
-    bitset_t childrenSet;
+    std::vector<HexPoint> children;
     {
         DfpnData data;
         if (m_hashTable->Get(m_brd->Hash(), data)) 
         {
-            childrenSet = data.m_children;
+            children = data.m_children;
             HexAssert(bounds.phi > data.m_bounds.phi);
             HexAssert(bounds.delta > data.m_bounds.delta);
 
@@ -497,21 +499,30 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                     m_guiFx.Write();
                 }
                 TTStore(m_brd->Hash(), 
-                        DfpnData(terminal, EMPTY_BITSET, INVALID_POINT, 1, 
-                                 parentHash, history.LastMove()));
+                        DfpnData(terminal, std::vector<HexPoint>(), 
+                                 INVALID_POINT, 1, parentHash, 
+                                 history.LastMove()));
                 return 1;
             }
-            childrenSet = PlayerUtils::MovesToConsider(*m_workBoard, 
-                                                       colorToMove);
+            bitset_t childrenBitset 
+                = PlayerUtils::MovesToConsider(*m_workBoard, colorToMove);
+          
+            Resistance resist;
+            resist.Evaluate(*m_workBoard);
+            std::vector<std::pair<HexEval, HexPoint> > mvsc;
+            for (BitsetIterator it(childrenBitset); it; ++it) 
+            {
+                HexEval score = resist.Score(*it);
+                mvsc.push_back(std::make_pair(-score, *it));
+            }
+            stable_sort(mvsc.begin(), mvsc.end());
+            for (size_t i = 0; i < mvsc.size(); ++i) 
+                children.push_back(mvsc[i].second);
         }
     }
 
     ++m_numMIDcalls;
     size_t localWork = 1;
-
-    HexAssert(childrenSet.any());
-    std::vector<HexPoint> children;
-    BitsetUtil::BitsetToVector(childrenSet, children);
 
     // Not thread safe: perhaps move into while loop below later...
     std::vector<DfpnData> childrenData(children.size());
@@ -613,7 +624,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     
     // Store search results
     if (!m_aborted)
-        TTStore(m_brd->Hash(), DfpnData(currentBounds, childrenSet, 
+        TTStore(m_brd->Hash(), DfpnData(currentBounds, children, 
                                         bestMove, localWork, parentHash,
                                         history.LastMove()));
     return localWork;

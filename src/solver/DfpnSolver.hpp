@@ -141,7 +141,7 @@ public:
 
     DfpnBounds m_bounds;
 
-    bitset_t m_children;
+    std::vector<HexPoint> m_children;
 
     HexPoint m_bestMove;
     
@@ -153,7 +153,7 @@ public:
 
     DfpnData();
 
-    DfpnData(const DfpnBounds& bounds, const bitset_t& children, 
+    DfpnData(const DfpnBounds& bounds, const std::vector<HexPoint>& children, 
              HexPoint bestMove, size_t work, hash_t parentHash,
              HexPoint moveParentPlayed);
 
@@ -176,7 +176,8 @@ inline DfpnData::DfpnData()
 { 
 }
 
-inline DfpnData::DfpnData(const DfpnBounds& bounds, const bitset_t& children, 
+inline DfpnData::DfpnData(const DfpnBounds& bounds, 
+                          const std::vector<HexPoint>& children, 
                           HexPoint bestMove, size_t work, hash_t parentHash,
                           HexPoint moveParentPlayed)
     : m_bounds(bounds),
@@ -198,7 +199,7 @@ inline std::string DfpnData::Print() const
     std::ostringstream os;
     os << '[' 
        << "bounds=" << m_bounds << ' '
-       << "children=" << m_children.count() << ' '
+       << "children=" << m_children.size() << ' '
        << "bestmove=" << m_bestMove << ' '
        << "work=" << m_work << ' '
        << "parent=" << HashUtil::toString(m_parentHash) << ' '
