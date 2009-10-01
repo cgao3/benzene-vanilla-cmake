@@ -1,6 +1,7 @@
 noinst_LIBRARIES = libsolver.a
 
 libsolver_a_SOURCES = \
+DfpnCommands.cpp \
 DfpnSolver.cpp \
 SolvedState.cpp \
 SolverCommands.cpp \
@@ -8,6 +9,7 @@ SolverDB.cpp \
 Solver.cpp
 
 noinst_HEADERS = \
+DfpnCommands.hpp \
 DfpnSolver.hpp \
 SolvedState.hpp \
 SolverCommands.hpp \

@@ -11,11 +11,11 @@
 #include <boost/thread/mutex.hpp>
 
 #include "BenzenePlayer.hpp"
+#include "DfpnCommands.hpp"
 #include "HexEnvironment.hpp"
 #include "HexHtpEngine.hpp"
 #include "Solver.hpp"
 #include "SolverCommands.hpp"
-#include "DfpnSolver.hpp"
 #include "VCCommands.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -51,9 +51,6 @@ public:
         - @link CmdEvalResist() @c eval-resist @endlink
         - @link CmdEvalResistDelta() @c eval-resist-delta @endlink
         - @link CmdEvalInfluence() @c eval-influence @endlink
-        - @link CmdDfpnGetState() @c dfpn-get-state @endlink
-        - @link CmdDfpnSolveState() @c dfpn-solve-state @endlink
-        - @link CmdDfpnClearTT() @c dfpn-clear-tt @endlink
         - @link CmdMiscDebug() @c misc_debug @endlink
     */
 
@@ -85,10 +82,6 @@ public:
     void CmdEvalResistDelta(HtpCommand& cmd);
     void CmdEvalInfluence(HtpCommand& cmd);
 
-    void CmdDfpnGetState(HtpCommand& cmd);
-    void CmdDfpnSolveState(HtpCommand& cmd);
-    void CmdDfpnClearTT(HtpCommand& cmd);
-    
     void CmdMiscDebug(HtpCommand& cmd);
 
     // @} // @name
@@ -120,6 +113,8 @@ protected:
     VCCommands m_vcCommands;
 
     SolverCommands m_solverCommands;
+
+    DfpnCommands m_dfpnCommands;
 
     virtual void NewGame(int width, int height);
     

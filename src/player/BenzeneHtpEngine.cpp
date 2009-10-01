@@ -47,6 +47,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
       m_solverEnvCommands(m_se),
       m_vcCommands(m_game, m_pe),
       m_solverCommands(m_game, m_se, m_solver, m_solver_tt, m_db),
+      m_dfpnCommands(m_game, m_se, m_solverDfpn, m_dfpn_tt),
       m_useParallelSolver(false)
 {
     RegisterCmd("benzene-license", &BenzeneHtpEngine::CmdLicense);
@@ -69,18 +70,14 @@ BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
     m_solverEnvCommands.Register(*this, "solver");
     m_vcCommands.Register(*this);
     m_solverCommands.Register(*this);
+    m_dfpnCommands.Register(*this);
 
     RegisterCmd("param_player", &BenzeneHtpEngine::CmdParamPlayer);
-    RegisterCmd("param_dfpn", &BenzeneHtpEngine::CmdParamDfpn);
 
     RegisterCmd("eval-twod", &BenzeneHtpEngine::CmdEvalTwoDist);
     RegisterCmd("eval-resist", &BenzeneHtpEngine::CmdEvalResist);
     RegisterCmd("eval-resist-delta", &BenzeneHtpEngine::CmdEvalResistDelta);
     RegisterCmd("eval-influence", &BenzeneHtpEngine::CmdEvalInfluence);
-
-    RegisterCmd("dfpn-get-state", &BenzeneHtpEngine::CmdDfpnGetState);
-    RegisterCmd("dfpn-solve-state", &BenzeneHtpEngine::CmdDfpnSolveState);
-    RegisterCmd("dfpn-clear-tt", &BenzeneHtpEngine::CmdDfpnClearTT);
 
     RegisterCmd("misc-debug", &BenzeneHtpEngine::CmdMiscDebug);
 
@@ -234,34 +231,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
 void BenzeneHtpEngine::CmdParamPlayer(HtpCommand& cmd)
 {
     ParamPlayer(&m_player, cmd);
-}
-
-void BenzeneHtpEngine::CmdParamDfpn(HtpCommand& cmd)
-{
-    if (cmd.NuArg() == 0)
-    {
-        cmd << '\n'
-            << "[bool] use_bounds_correction "
-            << m_solverDfpn.UseBoundsCorrection() << '\n'
-            << "[bool] use_guifx "
-            << m_solverDfpn.UseGuiFx() << '\n'
-            << "[string] timelimit "
-            << m_solverDfpn.Timelimit() << '\n';
-    }
-    else if (cmd.NuArg() == 2)
-    {
-        std::string name = cmd.Arg(0);
-        if (name == "use_guifx")
-            m_solverDfpn.SetUseGuiFx(cmd.BoolArg(1));
-        else if (name == "use_bounds_correction")
-            m_solverDfpn.SetUseBoundsCorrection(cmd.BoolArg(1));
-        else if (name == "timelimit")
-            m_solverDfpn.SetTimelimit(cmd.FloatArg(1));
-        else
-            throw GtpFailure() << "Unknown parameter: " << name;
-    }
-    else
-        throw GtpFailure() << "Expected 0 or 2 arguments";
 }
 
 //----------------------------------------------------------------------
@@ -671,38 +640,6 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
 
         cmd << " " << HexPointUtil::toString(*it) << " "
 	    << std::fixed << std::setprecision(2) << influence;
-    }
-}
-
-//----------------------------------------------------------------------------
-// Dfpn commands
-//----------------------------------------------------------------------------
-
-/** Solves the current state with dfpn using the current hashtable. */
-void BenzeneHtpEngine::CmdDfpnSolveState(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(0);
-    HexBoard& brd = m_se.SyncBoard(m_game.Board());
-    HexColor winner = m_solverDfpn.StartSearch(brd, *m_dfpn_tt);
-    cmd << winner;
-}
-
-/** Clears the current dfpn hashtable. */
-void BenzeneHtpEngine::CmdDfpnClearTT(HtpCommand& cmd)
-{
-    UNUSED(cmd);
-    m_dfpn_tt->Clear();
-}
-
-/** Displays information about the current state from the
-    hashtable. */
-void BenzeneHtpEngine::CmdDfpnGetState(HtpCommand& cmd)
-{
-    cmd.CheckArgNone();
-    DfpnData data;
-    if (m_dfpn_tt->Get(m_game.Board().Hash(), data))
-    {
-        cmd << data << '\n';
     }
 }
 
