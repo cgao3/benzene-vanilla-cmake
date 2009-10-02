@@ -35,7 +35,7 @@ namespace HexSgUtil
     HexColor SgColorToHexColor(SgBlackWhite player);
 
     /** Convert a bitset to an SgList of points. */
-    SgList<SgPoint> BitsetToSgList(const bitset_t& b, int height);
+    SgVector<SgPoint> BitsetToSgVector(const bitset_t& b, int height);
 
     //------------------------------------------------------------------------
 
