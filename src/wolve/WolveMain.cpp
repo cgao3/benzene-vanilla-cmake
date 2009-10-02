@@ -65,7 +65,9 @@ int main(int argc, char** argv)
 
     try
     {
-        WolveEngine gh(std::cin, std::cout, program.BoardSize(), *player);
+        GtpInputStream gin(std::cin);
+        GtpOutputStream gout(std::cout);
+        WolveEngine gh(gin, gout, program.BoardSize(), *player);
     
         std::string config = program.ConfigFileToExecute();
         if (config != "")

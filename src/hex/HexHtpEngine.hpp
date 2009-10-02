@@ -27,7 +27,7 @@ class HexHtpEngine: public GtpEngine
 {
 public:
 
-    HexHtpEngine(std::istream& in, std::ostream& out, int boardsize);
+    HexHtpEngine(GtpInputStream& in, GtpOutputStream& out, int boardsize);
     
     ~HexHtpEngine();
 

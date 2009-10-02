@@ -20,7 +20,7 @@ class MoHexEngine : public BenzeneHtpEngine
 {
 public:
 
-    MoHexEngine(std::istream& in, std::ostream& out, 
+    MoHexEngine(GtpInputStream& in, GtpOutputStream& out,
                 int boardsize, BenzenePlayer& player);
     
     ~MoHexEngine();

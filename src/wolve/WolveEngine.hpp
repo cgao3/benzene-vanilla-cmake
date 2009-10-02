@@ -18,7 +18,7 @@ class WolveEngine : public BenzeneHtpEngine
 {
 public:
 
-    WolveEngine(std::istream& in, std::ostream& out, 
+    WolveEngine(GtpInputStream& in, GtpOutputStream& out, 
                 int boardsize, BenzenePlayer& player);
     
     ~WolveEngine();
