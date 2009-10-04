@@ -313,6 +313,24 @@ void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable,
 
 //----------------------------------------------------------------------------
 
+namespace 
+{
+
+/** Returns the initial delta for a state that has not been visited
+    yet. A simple function of its index in the sorted list of children
+    and the size of the board. 
+
+    @todo: find a better function.
+*/
+size_t ComputeInitialDelta(size_t index, size_t numChildren, size_t boardSize)
+{
+    return (index < numChildren / 2) ? 1 : 2 * boardSize;
+}
+
+}
+
+//----------------------------------------------------------------------------
+
 DfpnSolver::DfpnSolver()
     : m_hashTable(0),
       m_useGuiFx(false),
@@ -527,7 +545,9 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     // Not thread safe: perhaps move into while loop below later...
     std::vector<DfpnData> childrenData(children.size());
     for (size_t i = 0; i < children.size(); ++i)
-        LookupData(childrenData[i], colorToMove, children[i]);
+        LookupData(childrenData[i], colorToMove, children[i],
+                   ComputeInitialDelta(i, children.size(), m_brd->width()));
+
     if (m_useGuiFx && depth == 0)
         m_guiFx.SetChildren(children, childrenData);
 
@@ -580,7 +600,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         m_brd->undoMove(bestMove);
 
         // Update bounds for best child
-        LookupData(childrenData[bestIndex], colorToMove, bestMove);
+        LookupData(childrenData[bestIndex], colorToMove, bestMove, 1);
 
         if (m_useGuiFx && depth == 0)
             m_guiFx.UndoMove();
@@ -698,7 +718,7 @@ void DfpnSolver::UpdateBounds(hash_t parentHash, DfpnBounds& bounds,
 }
 
 void DfpnSolver::LookupData(DfpnData& data, HexColor colorToMove, 
-                            HexPoint cell)
+                            HexPoint cell, size_t delta)
 {
     m_brd->playMove(colorToMove, cell);
     hash_t hash = m_brd->Hash();
@@ -707,7 +727,7 @@ void DfpnSolver::LookupData(DfpnData& data, HexColor colorToMove,
     if (!m_hashTable->Get(hash, data))
     {
         data.m_bounds.phi = 1;
-        data.m_bounds.delta = 1;
+        data.m_bounds.delta = delta;
         data.m_work = 0;
     }
 }

@@ -492,7 +492,8 @@ private:
 
     void CheckBounds(const DfpnBounds& bounds) const;
 
-    void LookupData(DfpnData& data, HexColor colorToMove, HexPoint cell);
+    void LookupData(DfpnData& data, HexColor colorToMove, HexPoint cell,
+                    size_t delta);
 
     void TTStore(hash_t hash, const DfpnData& data);
 
