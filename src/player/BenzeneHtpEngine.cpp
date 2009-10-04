@@ -32,7 +32,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-BenzeneHtpEngine::BenzeneHtpEngine(std::istream& in, std::ostream& out,
+BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
                                    int boardsize, BenzenePlayer& player)
     : HexHtpEngine(in, out, boardsize),
       m_player(player),

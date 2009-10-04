@@ -29,7 +29,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-HexHtpEngine::HexHtpEngine(std::istream& in, std::ostream& out,
+HexHtpEngine::HexHtpEngine(GtpInputStream& in, GtpOutputStream& out,
                            int boardsize)
     : GtpEngine(in, out),
       m_board(boardsize, boardsize),

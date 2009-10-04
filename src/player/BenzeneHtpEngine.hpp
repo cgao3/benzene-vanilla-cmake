@@ -28,8 +28,8 @@ class BenzeneHtpEngine: public HexHtpEngine
 {
 public:
 
-    BenzeneHtpEngine(std::istream& in, std::ostream& out, int boardsize, 
-                  BenzenePlayer& player);
+    BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out, int boardsize, 
+                     BenzenePlayer& player);
     
     ~BenzeneHtpEngine();
 

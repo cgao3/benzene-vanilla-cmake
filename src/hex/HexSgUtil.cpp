@@ -11,6 +11,7 @@
 #include "Hex.hpp"
 #include "HexProp.hpp"
 #include "HexSgUtil.hpp"
+#include "BitsetIterator.hpp"
 
 using namespace benzene;
 
@@ -47,14 +48,12 @@ HexColor HexSgUtil::SgColorToHexColor(SgBlackWhite player)
     return WHITE;
 }
 
-SgList<SgPoint> HexSgUtil::BitsetToSgList(const bitset_t& b, int height)
+SgVector<SgPoint> HexSgUtil::BitsetToSgVector(const bitset_t& b, int height)
 {
-    SgList<SgPoint> ret;
+    SgVector<SgPoint> ret;
     std::vector<HexPoint> hp;
-    BitsetUtil::BitsetToVector(b, hp);
-    for (unsigned i=0; i<hp.size(); ++i) {
-        ret.Append(HexSgUtil::HexPointToSgPoint(hp[i], height));
-    }
+    for (BitsetIterator i(b); i; ++i)
+        ret.Append(HexSgUtil::HexPointToSgPoint(*i, height));
     return ret;
 }
 
@@ -75,22 +74,21 @@ bool HexSgUtil::NodeHasSetupInfo(SgNode* node)
     return false;
 }
 
-void HexSgUtil::SetPositionInNode(SgNode* node, 
-                                  const StoneBoard& brd, 
+void HexSgUtil::SetPositionInNode(SgNode* node, const StoneBoard& brd, 
                                   HexColor color)
 {
     int height = brd.height();
-    SgList<SgPoint> blist = HexSgUtil::BitsetToSgList(brd.getBlack() 
+    SgVector<SgPoint> blist = HexSgUtil::BitsetToSgVector(brd.getBlack() 
                                        & brd.Const().getCells(), height);
-    SgList<SgPoint> wlist = HexSgUtil::BitsetToSgList(brd.getWhite()
+    SgVector<SgPoint> wlist = HexSgUtil::BitsetToSgVector(brd.getWhite()
                                        & brd.Const().getCells(), height);
-    SgList<SgPoint> elist = HexSgUtil::BitsetToSgList(brd.getEmpty()
+    SgVector<SgPoint> elist = HexSgUtil::BitsetToSgVector(brd.getEmpty()
                                        & brd.Const().getCells(), height);
 
-    SgPropPlayer *pprop = new SgPropPlayer(SG_PROP_PLAYER);
-    SgPropAddStone *bprop = new SgPropAddStone(SG_PROP_ADD_BLACK);
-    SgPropAddStone *wprop = new SgPropAddStone(SG_PROP_ADD_WHITE);
-    SgPropAddStone *eprop = new SgPropAddStone(SG_PROP_ADD_EMPTY);
+    SgPropPlayer* pprop = new SgPropPlayer(SG_PROP_PLAYER);
+    SgPropAddStone* bprop = new SgPropAddStone(SG_PROP_ADD_BLACK);
+    SgPropAddStone* wprop = new SgPropAddStone(SG_PROP_ADD_WHITE);
+    SgPropAddStone* eprop = new SgPropAddStone(SG_PROP_ADD_EMPTY);
 
     pprop->SetValue(HexSgUtil::HexColorToSgColor(color));    
     bprop->SetValue(blist);
@@ -103,8 +101,7 @@ void HexSgUtil::SetPositionInNode(SgNode* node,
     node->Add(eprop);
 }
 
-void HexSgUtil::GetSetupPosition(const SgNode* node, 
-                                 int height, 
+void HexSgUtil::GetSetupPosition(const SgNode* node, int height, 
                                  std::vector<HexPoint>& black,
                                  std::vector<HexPoint>& white,
                                  std::vector<HexPoint>& empty)
@@ -112,32 +109,26 @@ void HexSgUtil::GetSetupPosition(const SgNode* node,
     black.clear();
     white.clear();
     empty.clear();
-
-    if (node->HasProp(SG_PROP_ADD_BLACK)) {
+    if (node->HasProp(SG_PROP_ADD_BLACK)) 
+    {
         SgPropPointList* prop = (SgPropPointList*)node->Get(SG_PROP_ADD_BLACK);
-        SgList<SgPoint>& lst = prop->Value();
-        for (int i=1; i<=lst.Length(); ++i) {
-            HexPoint cell = HexSgUtil::SgPointToHexPoint(lst.At(i), height);
-            black.push_back(cell);
-        }
+        const SgVector<SgPoint>& vec = prop->Value();
+        for (int i = 0; i < vec.Length(); ++i)
+            black.push_back(HexSgUtil::SgPointToHexPoint(vec[i], height));
     }
-
-    if (node->HasProp(SG_PROP_ADD_WHITE)) {
+    if (node->HasProp(SG_PROP_ADD_WHITE)) 
+    {
         SgPropPointList* prop = (SgPropPointList*)node->Get(SG_PROP_ADD_WHITE);
-        SgList<SgPoint>& lst = prop->Value();
-        for (int i=1; i<=lst.Length(); ++i) {
-            HexPoint cell = HexSgUtil::SgPointToHexPoint(lst.At(i), height);
-            white.push_back(cell);
-        }
+        const SgVector<SgPoint>& vec = prop->Value();
+        for (int i = 0; i < vec.Length(); ++i)
+            white.push_back(HexSgUtil::SgPointToHexPoint(vec[i], height));
     }
-
-    if (node->HasProp(SG_PROP_ADD_EMPTY)) {
+    if (node->HasProp(SG_PROP_ADD_EMPTY)) 
+    {
         SgPropPointList* prop = (SgPropPointList*)node->Get(SG_PROP_ADD_EMPTY);
-        SgList<SgPoint>& lst = prop->Value();
-        for (int i=1; i<=lst.Length(); ++i) {
-            HexPoint cell = HexSgUtil::SgPointToHexPoint(lst.At(i), height);
-            empty.push_back(cell);
-        }
+        const SgVector<SgPoint>& vec = prop->Value();
+        for (int i = 0; i < vec.Length(); ++i)
+            empty.push_back(HexSgUtil::SgPointToHexPoint(vec[i], height));
     }
 }
 
@@ -145,36 +136,32 @@ void HexSgUtil::SetPositionInBoard(const SgNode* node, StoneBoard& brd)
 {
     std::vector<HexPoint> black, white, empty;
     GetSetupPosition(node, brd.height(), black, white, empty);
-
     brd.startNewGame();
-    for (unsigned i=0; i<black.size(); ++i) {
+    for (std::size_t i = 0; i < black.size(); ++i) 
         brd.playMove(BLACK, black[i]);
-    }
-
-    for (unsigned i=0; i<white.size(); ++i) {
+    for (std::size_t i = 0; i < white.size(); ++i)
         brd.playMove(WHITE, white[i]);
-    }
 }
 
 
-bool HexSgUtil::WriteSgf(SgNode* tree, 
-                         const std::string& application,
-                         const char* filename, 
-                         int boardsize)
+bool HexSgUtil::WriteSgf(SgNode* tree, const std::string& application,
+                         const char* filename, int boardsize)
 {
-
-    // set the boardsize property
+    // Set the boardsize property
     tree->Add(new SgPropInt(SG_PROP_SIZE, boardsize));
 
     // @note 11 is the sgf gamenumber for Hex
     std::ofstream f(filename);
-    if (f) {
+    if (f) 
+    {
         SgGameWriter sgwriter(f);
         sgwriter.WriteGame(*tree, true, 0, application, 11, boardsize);
         f.close();
-    } else {
+    } 
+    else 
+    {
         LogWarning() << "Could not open '" << filename << "' "
-                 << "for writing!" << '\n';
+                     << "for writing!\n";
         return false;
     }
     return true;

@@ -13,7 +13,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-MoHexEngine::MoHexEngine(std::istream& in, std::ostream& out,
+MoHexEngine::MoHexEngine(GtpInputStream& in, GtpOutputStream& out, 
                          int boardsize, BenzenePlayer& player)
     : BenzeneHtpEngine(in, out, boardsize, player),
       m_bookCommands(m_game, m_pe, 
