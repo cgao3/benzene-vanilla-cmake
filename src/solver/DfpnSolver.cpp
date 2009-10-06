@@ -707,7 +707,6 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
             std::size_t maxWork = 0;
             for (std::size_t i = 0; i < children.size(); ++i)
             {
-                HexAssert(childrenData[i].m_bounds.IsWinning());
                 if (childrenData[i].m_work > maxWork)
                 {
                     maxWork = childrenData[i].m_work;
@@ -727,7 +726,6 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                     bestMove = children[i];
                 }
             }
-            HexAssert(false);
         }
     }
     
