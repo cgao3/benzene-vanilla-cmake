@@ -9,6 +9,8 @@
 #include "PlayerUtils.hpp"
 #include "Resistance.hpp"
 
+#include <boost/filesystem/path.hpp>
+
 using namespace benzene;
 
 #define DEBUG_BOUNDS_CORRECTION 0
@@ -337,25 +339,22 @@ void InitializeUniqueProbes()
 {
     if (g_UniqueProbesInitialized) 
         return;
-
     LogFine() << "--InitializeUniqueProbes\n";
 
-//               W
-//            B ! *
-//               W                            [UP01/0]
-    std::string ps 
-        = "u:0,0,0,0,0;0,0,0,0,0;1,0,1,0,0;3,2,0,1,0;1,0,1,0,0;0,0,0,0,0;";
-
-    Pattern pattern;
-    if (!pattern.unserialize(ps)) 
-        throw HexException("Could not parse unique probe pattern!\n");
-
-    pattern.setName("uniqueProbe");
-
-    g_uniqueProbe[BLACK].push_back(pattern);
-    pattern.flipColors();
-    g_uniqueProbe[WHITE].push_back(pattern);
-        
+    using namespace boost::filesystem;
+    path filename = path(ABS_TOP_SRCDIR) / "share" / "unique-probe.txt";
+    filename.normalize();
+    
+    std::vector<Pattern> patterns;
+    Pattern::LoadPatternsFromFile(filename.native_file_string().c_str(), 
+                                  patterns);
+    LogFine() << "Read " << patterns.size() << " patterns.\n";
+    for (std::size_t i = 0; i < patterns.size(); ++i)
+    {
+        g_uniqueProbe[BLACK].push_back(patterns[i]);
+        patterns[i].flipColors();
+        g_uniqueProbe[WHITE].push_back(patterns[i]);
+    }
     for (BWIterator c; c; ++c) 
     {
         g_hash_uniqueProbe[*c] = new HashedPatternSet();
@@ -688,6 +687,8 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                 {
                     ++m_numUniqueProbes;
                     DfpnBounds::SetToLosing(currentBounds);
+                    //LogInfo() << *m_brd << losingMove << ' ' 
+                    //          << winningMove << '\n';
                     break;
                 }
             }   

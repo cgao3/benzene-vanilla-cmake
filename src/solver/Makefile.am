@@ -18,6 +18,7 @@ Solver.hpp
 
 libsolver_a_CPPFLAGS = \
 $(BOOST_CPPFLAGS) \
+-DABS_TOP_SRCDIR='"@abs_top_srcdir@"' \
 -I$(FUEGO_ROOT)/gtpengine \
 -I$(FUEGO_ROOT)/smartgame \
 -I@top_srcdir@/src/ \
