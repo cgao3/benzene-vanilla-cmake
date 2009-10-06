@@ -401,6 +401,13 @@ public:
     /** See UseBoundsCorrection() */
     void SetUseBoundsCorrection(bool flag);
 
+    /** Prune Unique Probes
+        @todo PHIL DOCUMENT THIS! */
+    bool UseUniqueProbes() const;
+
+    /** See UseUniqueProbes() */
+    void SetUseUniqueProbes(bool flag);
+
 private:
 
     /** Handles guifx output. */
@@ -456,6 +463,9 @@ private:
     /** See BoundsCorrection() */
     bool m_useBoundsCorrection;
 
+    /** See UniqueProbes() */
+    bool m_useUniqueProbes;
+
     /** See TimeLimit() */
     double m_timelimit;
 
@@ -479,6 +489,10 @@ private:
     size_t m_numBoundsCorrections;
 
     size_t m_numMIDcalls;
+
+    size_t m_numUniqueProbes;
+
+    size_t m_numProbeChecks;
 
     size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
@@ -534,6 +548,16 @@ inline bool DfpnSolver::UseBoundsCorrection() const
 inline void DfpnSolver::SetUseBoundsCorrection(bool flag)
 {
     m_useBoundsCorrection = flag;
+}
+
+inline bool DfpnSolver::UseUniqueProbes() const
+{
+    return m_useUniqueProbes;
+}
+
+inline void DfpnSolver::SetUseUniqueProbes(bool flag)
+{
+    m_useUniqueProbes = flag;
 }
 
 //----------------------------------------------------------------------------

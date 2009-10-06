@@ -5,6 +5,7 @@
 
 #include "BitsetIterator.hpp"
 #include "DfpnSolver.hpp"
+#include "PatternState.hpp"
 #include "PlayerUtils.hpp"
 #include "Resistance.hpp"
 
@@ -327,6 +328,61 @@ size_t ComputeInitialDelta(size_t index, size_t numChildren, size_t boardSize)
     return (index < numChildren / 2) ? 1 : 2 * boardSize;
 }
 
+bool g_UniqueProbesInitialized = false;
+std::vector<Pattern> g_uniqueProbe[BLACK_AND_WHITE];
+HashedPatternSet* g_hash_uniqueProbe[BLACK_AND_WHITE];
+
+/** Initialize the unique probe patterns.  */
+void InitializeUniqueProbes()
+{
+    if (g_UniqueProbesInitialized) 
+        return;
+
+    LogFine() << "--InitializeUniqueProbes\n";
+
+//               W
+//            B ! *
+//               W                            [UP01/0]
+    std::string ps 
+        = "u:0,0,0,0,0;0,0,0,0,0;1,0,1,0,0;3,2,0,1,0;1,0,1,0,0;0,0,0,0,0;";
+
+    Pattern pattern;
+    if (!pattern.unserialize(ps)) 
+        throw HexException("Could not parse unique probe pattern!\n");
+
+    pattern.setName("uniqueProbe");
+
+    g_uniqueProbe[BLACK].push_back(pattern);
+    pattern.flipColors();
+    g_uniqueProbe[WHITE].push_back(pattern);
+        
+    for (BWIterator c; c; ++c) 
+    {
+        g_hash_uniqueProbe[*c] = new HashedPatternSet();
+        g_hash_uniqueProbe[*c]->hash(g_uniqueProbe[*c]);
+    }
+    g_UniqueProbesInitialized = true;
+}
+
+bool UniqueProbe(StoneBoard& brd, HexPoint losingMove, 
+                 HexPoint winningMove)
+{
+    PatternState pstate(brd);
+    pstate.Update();
+    
+    PatternHits hits;
+    pstate.MatchOnCell(*g_hash_uniqueProbe[brd.WhoseTurn()],
+                       losingMove, PatternState::MATCH_ALL, hits);
+    for (std::size_t i = 0; i < hits.size(); ++i)
+    {
+        const std::vector<HexPoint>& moves = hits[i].moves1();
+        HexAssert(moves.size() == 1);
+        if (moves[0] == winningMove)
+            return true;
+    }
+    return false;
+}
+
 }
 
 //----------------------------------------------------------------------------
@@ -334,7 +390,8 @@ size_t ComputeInitialDelta(size_t index, size_t numChildren, size_t boardSize)
 DfpnSolver::DfpnSolver()
     : m_hashTable(0),
       m_useGuiFx(false),
-      m_useBoundsCorrection(true),
+      m_useBoundsCorrection(false),
+      m_useUniqueProbes(false),
       m_timelimit(0.0),
       m_guiFx()
 {
@@ -381,9 +438,13 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     m_transStats.Clear();
     m_slotStats.Clear();
     m_numMIDcalls = 0;
+    m_numUniqueProbes = 0;
+    m_numProbeChecks = 0;
     m_brd.reset(new StoneBoard(board));
     m_workBoard = &board;
     m_checkTimerAbortCalls = 0;
+
+    InitializeUniqueProbes();
 
     DfpnBounds root(INFTY, INFTY);
     m_timer.Start();
@@ -391,20 +452,30 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
     MID(root, history);
     m_timer.Stop();
 
-    LogInfo() << "     MID calls: " << m_numMIDcalls << "\n";
-    LogInfo() << "Terminal nodes: " << m_numTerminal << "\n";
-    LogInfo() << "Transpositions: " << m_numTranspositions << '\n';
-    std::ostringstream os;
-    os << "     Length: ";
-    m_transStats.Write(os);
-    LogInfo() << os.str() << '\n';
-    os.str("");
-    os << "      Slots: ";
-    m_slotStats.Write(os);
-    LogInfo() << os.str() << '\n';
-    LogInfo() << "Corrections: " << m_numBoundsCorrections << '\n';
+    LogInfo() << "     MID calls: " << m_numMIDcalls << '\n';
+    LogInfo() << "Terminal nodes: " << m_numTerminal << '\n';
+    if (m_useUniqueProbes)
+    {
+        LogInfo() << "  Probe Checks: " << m_numProbeChecks << '\n';
+        LogInfo() << " Unique Probes: " << m_numUniqueProbes 
+                  << " (" << (100 * m_numUniqueProbes 
+                              / m_numProbeChecks) << "%)\n";
+        LogInfo() << "Transpositions: " << m_numTranspositions << '\n';
+    }
+    if (m_useBoundsCorrection)
+    {
+        std::ostringstream os;
+        os << "     Length: ";
+        m_transStats.Write(os);
+        LogInfo() << os.str() << '\n';
+        os.str("");
+        os << "      Slots: ";
+        m_slotStats.Write(os);
+        LogInfo() << os.str() << '\n';
+        LogInfo() << "Corrections: " << m_numBoundsCorrections << '\n';
+    }
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
-    LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime() << '\n';
+    LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime() <<'\n';
     LogInfo() << m_hashTable->Stats() << '\n';
 
     if (!m_aborted)
@@ -599,11 +670,28 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         history.Pop();
         m_brd->undoMove(bestMove);
 
+        if (m_useGuiFx && depth == 0)
+            m_guiFx.UndoMove();
+
         // Update bounds for best child
         LookupData(childrenData[bestIndex], colorToMove, bestMove, 1);
 
-        if (m_useGuiFx && depth == 0)
-            m_guiFx.UndoMove();
+        // Check unique probe heuristic
+        if (childrenData[bestIndex].m_bounds.IsWinning())
+        {
+            HexPoint losingMove = bestMove;
+            HexPoint winningMove = childrenData[bestIndex].m_bestMove;
+            if (m_useUniqueProbes)
+            {
+                ++m_numProbeChecks;
+                if (UniqueProbe(*m_brd, losingMove, winningMove))
+                {
+                    ++m_numUniqueProbes;
+                    DfpnBounds::SetToLosing(currentBounds);
+                    break;
+                }
+            }   
+        }
     }
 
     if (m_useGuiFx && depth == 0)
