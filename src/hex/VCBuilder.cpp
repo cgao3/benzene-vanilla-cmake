@@ -373,26 +373,6 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
         }
     }
 
-    // Remove supersets of added vcs. do not invalidate list
-    // intersection since v is a superset of elements of semi_list.
-    // THIS IS PROBABLY IMPOSSIBLE!
-    // TODO: REMOVE THIS CHECK IF NO ABORTS OCCUR BY Mar 14, 2009.
-    for (cur = added.begin(); cur != added.end(); ++cur) 
-    {
-        if (semis.isSubsetOfAny(cur->carrier()))
-        {
-            LogInfo() << '\n' 
-                     << *m_brd << '\n'
-                     << semis.dump() << '\n'
-                     << "---------------" << '\n'
-                     << fulls.dump() << '\n'
-                     << "---------------" << '\n'
-                     << *cur << '\n';
-            abort();
-        }
-        //semis.removeSuperSetsOf(*cur, m_log, false);
-    }
-
     // If no full exists, create one by unioning the entire list
     if (fulls.empty()) 
     {
