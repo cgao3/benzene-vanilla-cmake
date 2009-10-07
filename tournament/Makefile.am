@@ -15,6 +15,7 @@ run-wolve-vs-wolve.sh \
 statistics.py \
 summary.py \
 tournyNotes \
+tournament.py \
 twogtp.py \
 openings/11x11-a2-2ply \
 openings/11x11-all-1ply \
