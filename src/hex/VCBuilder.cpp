@@ -531,13 +531,16 @@ void VCBuilder::andClosure(const VC& vc)
         if (z == endp[0] || z == endp[1]) continue;
         if (vc.carrier().test(z)) continue;
         bitset_t capturedSet = vcCapturedSet | m_capturedSet[z];
-        for (int i=0; i<2; i++) 
+        bitset_t uncapturedSet = capturedSet;
+        uncapturedSet.flip();
+        for (int i=0; i<2; i++)
         {
             int j = (i + 1) & 1;
             if (m_param.and_over_edge || !HexPointUtil::isEdge(endp[i])) 
             {
                 VCList* fulls = &m_con->GetList(VC::FULL, z, endp[i]);
-                if ((fulls->softIntersection() & vc.carrier()).any())
+                if ((fulls->softIntersection() & vc.carrier()
+                     & uncapturedSet).any())
                     continue;
                 
                 AndRule rule = (endc[i] == EMPTY) ? CREATE_SEMI : CREATE_FULL;
@@ -600,7 +603,8 @@ void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
             else if (rule == CREATE_SEMI)
             {
                 m_statistics.and_semi_attempts++;
-                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet,over)))
+                if (AddNewSemi(VC::AndVCs(from, to, *i, vc,
+                                          capturedSet, over)))
                     m_statistics.and_semi_successes++;
             }
         }
