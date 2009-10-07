@@ -1,16 +1,16 @@
 #----------------------------------------------------------------------------
-# Plays the the tournament.
+# Plays the tournament.
 #----------------------------------------------------------------------------
 
-import os, string, time
+import os, string, time, random
 
-from random import randrange
 from program import Program 
 from game import Game
 from gameplayer import GamePlayer
 
 #----------------------------------------------------------------------------
 
+# Stores summary information about each game played.
 class ResultsFile:
     def __init__(self, name, header):
         self._name = name
@@ -21,20 +21,12 @@ class ResultsFile:
         else:
             self._lastIndex = -1;
             self._printHeader(header)
-        
+
     def addResult(self, currentRound, opening, blackName, whiteName,
                   resultBlack, resultWhite, gameLen,
                   elapsedBlack, elapsedWhite,
                   error, errorMessage):
-
-        opening = opening.replace('swap-pieces', 'sp')
-        opening = opening.replace('swap-sides', 'ss')
-        
-#        if (len(opening) > 12):
-#            opening = opening[0:13] + "..."
-#        else:
-#            opening = opening + " "*(15-len(opening))
-        
+       
         self._lastIndex += 1
         f = open(self._name, "a")
         f.write("%04i\t%i\t%s\t%s\t%s\t%s\t%s\t%i\t%.1f\t%.1f\t%s\t%s\n" \
@@ -97,8 +89,8 @@ class ResultsFile:
 
 #----------------------------------------------------------------------------
 
-# Plays a standard iterative tournament:
-#   For each round, each program takes each opening as black.
+# Base tournament class.
+# Contains useful functions for all types of tournaments.
 class Tournament:
     def __init__(self,
                  p1name, p1cmd, p2name, p2cmd, size, rounds, outdir,
@@ -132,35 +124,11 @@ class Tournament:
         self.loadOpenings(openings);
 
     def loadOpenings(self, openings):
-        if (openings != ''):
-            self._openings = []
-            f = open(openings, 'r')
-            lines = f.readlines()
-            f.close()
-            for line in lines:
-                self._openings.append(string.strip(line))
+        assert(False)
 
     def playTournament(self):
-        gamesPerRound = 2*len(self._openings);
-        first = self._resultsFile.getLastIndex() + 1
-        for i in range(first, self._rounds*gamesPerRound):
-            currentRound = i / gamesPerRound;
-            gameInRound = i % gamesPerRound;
-            openingIndex = gameInRound / 2;
-            
-            opening = self._openings[openingIndex];
-            
-            if ((i % 2) == 0):
-                self.playGame(i, currentRound,
-                              self._p1name, self._p1cmd,
-                              self._p2name, self._p2cmd,
-                              opening, self._verbose)
-            else:
-                self.playGame(i, currentRound,
-                              self._p2name, self._p2cmd,
-                              self._p1name, self._p1cmd,
-                              opening, self._verbose)
-
+        assert(False)
+        
     def handleResult(self, swapped, result):
         ret = result
         if swapped:
@@ -243,5 +211,86 @@ class Tournament:
                 pass
             
         return game
+
+#----------------------------------------------------------------------------
+
+# Plays a standard iterative tournament:
+#   For each round, each program takes each opening as black.
+class IterativeTournament(Tournament):
+    def loadOpenings(self, openings):
+        if (openings != ''):
+            self._openings = []
+            f = open(openings, 'r')
+            lines = f.readlines()
+            f.close()
+            for line in lines:
+                self._openings.append(string.strip(line))
+
+    def playTournament(self):
+        gamesPerRound = 2*len(self._openings);
+        first = self._resultsFile.getLastIndex() + 1
+        for i in range(first, self._rounds*gamesPerRound):
+            currentRound = i / gamesPerRound;
+            gameInRound = i % gamesPerRound;
+            openingIndex = gameInRound / 2;
+            
+            opening = self._openings[openingIndex];
+            
+            if ((i % 2) == 0):
+                self.playGame(i, currentRound,
+                              self._p1name, self._p1cmd,
+                              self._p2name, self._p2cmd,
+                              opening, self._verbose)
+            else:
+                self.playGame(i, currentRound,
+                              self._p2name, self._p2cmd,
+                              self._p1name, self._p1cmd,
+                              opening, self._verbose)
+
+        
+#----------------------------------------------------------------------------
+
+# Plays a random tournament:
+#   For each round, pick a random opening (weighted), then:
+#     if round is even, program one takes black, otherwise
+#     program two takes black.
+class RandomTournament(Tournament):
+    def loadOpenings(self, openings):
+        if (openings != ''):
+            self._openings = []
+            f = open(openings, 'r')
+            lines = f.readlines()
+            f.close()
+            sum = 0
+            for line in lines:
+                stripped = line.strip();
+                array = stripped.split(' ')
+                sum = sum + float(array[0])
+                moves = stripped[len(array[0]):].strip()
+                self._openings.append([sum, moves])
+            self._maxWeight = sum;
+            print self._openings;
+            
+    def pickOpening(self):
+        randomWeight = random.random() * self._maxWeight;
+        for i in range(len(self._openings)):
+            if randomWeight < self._openings[i][0]:
+                return self._openings[i][1]
+        assert(False);
+        
+    def playTournament(self):
+        first = self._resultsFile.getLastIndex() + 1
+        for currentRound in range(first, self._rounds):
+            opening = self.pickOpening();
+            if ((currentRound % 2) == 0):
+                self.playGame(currentRound, currentRound,
+                              self._p1name, self._p1cmd,
+                              self._p2name, self._p2cmd,
+                              opening, self._verbose)
+            else:
+                self.playGame(currentRound, currentRound,
+                              self._p2name, self._p2cmd,
+                              self._p1name, self._p1cmd,
+                              opening, self._verbose)
 
 #----------------------------------------------------------------------------

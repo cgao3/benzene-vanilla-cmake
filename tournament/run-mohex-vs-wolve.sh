@@ -26,6 +26,7 @@ DIRECTORY="jobs/"$NAME1"-vs-"$NAME2
 mkdir -p $DIRECTORY
 
 ./twogtp.py \
+--type $TYPE \
 --dir $DIRECTORY \
 --openings $OPENINGS \
 --size $SIZE --rounds $ROUNDS \

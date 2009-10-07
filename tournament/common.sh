@@ -3,13 +3,14 @@
 # This file should not be run on its own. Calling script
 # must define a 'usage()' function.
 
-TEMP=`getopt -o ho:r:s:: --long help,openings:,rounds:,size: -- "$@"`
+TEMP=`getopt -o ho:r:s:t:: --long help,openings:,rounds:,size:,type: -- "$@"`
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
 SIZE=11
 ROUNDS=10
 OPENINGS=""
+TYPE="iterative"
 
 while true ; do
     case "$1" in
@@ -17,6 +18,7 @@ while true ; do
 	-o|--openings) OPENINGS=$2; shift 2;;
         -r|--rounds) ROUNDS=$2; shift 2;;
         -s|--size) SIZE=$2; shift 2;;
+        -t|--type) TYPE=$2; shift 2;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
     esac
