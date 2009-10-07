@@ -19,8 +19,8 @@ if [ $# != 2 ]; then
     exit 1;
 fi
 
-NAME1=mohex-$1
-NAME2=mohex-$2
+NAME1=wolve-$1
+NAME2=wolve-$2
 
 # Distinguish bewteen the instances if doing self-play so that the 
 # logfiles are not clobbered.
