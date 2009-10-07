@@ -13,6 +13,8 @@
 #include "VCPattern.hpp"
 #include "VCUtils.hpp"
 
+#include <boost/filesystem/path.hpp>
+
 using namespace benzene;
 
 //----------------------------------------------------------------------------
@@ -30,19 +32,49 @@ VCBuilderParam::VCBuilderParam()
 //----------------------------------------------------------------------------
 
 VCBuilder::VCBuilder(VCBuilderParam& param)
-    : m_param(param)
+    : m_orRule(*this), 
+      m_param(param)
 {
+    LoadCapturedSetPatterns();
 }
 
 VCBuilder::~VCBuilder()
 {
+    for (BWIterator c; c; ++c) 
+        delete m_hash_capturedSetPatterns[*c];
+}
+
+void VCBuilder::LoadCapturedSetPatterns()
+{
+    using namespace boost::filesystem;
+    path filename = path(ABS_TOP_SRCDIR) / "share" / "vc-captured-set.txt";
+    filename.normalize();
+
+    std::vector<Pattern> patterns;
+    Pattern::LoadPatternsFromFile(filename.native_file_string().c_str(), 
+                                  patterns);
+
+    LogFine() << "--LoadCapturedSetPatterns()\n";    
+    LogFine() << "Read " << patterns.size() << " patterns.\n";
+    for (std::size_t i = 0; i < patterns.size(); ++i)
+    {
+        m_capturedSetPatterns[WHITE].push_back(patterns[i]);
+        patterns[i].flipColors();
+        m_capturedSetPatterns[BLACK].push_back(patterns[i]);
+    }
+    for (BWIterator c; c; ++c) 
+    {
+        m_hash_capturedSetPatterns[*c] = new HashedPatternSet();
+        m_hash_capturedSetPatterns[*c]->hash(m_capturedSetPatterns[*c]);
+    }
 }
 
 //----------------------------------------------------------------------------
 
 // Static VC construction
 
-void VCBuilder::Build(VCSet& con, const Groups& groups)
+void VCBuilder::Build(VCSet& con, const Groups& groups, 
+                      const PatternState& patterns)
 {
     m_con = &con;
     m_color = con.Color();
@@ -55,6 +87,7 @@ void VCBuilder::Build(VCSet& con, const Groups& groups)
     m_statistics = VCBuilderStatistics();
     m_queue.clear();
 
+    ComputeCapturedSets(patterns);
     AddBaseVCs();
     if (m_param.use_patterns)
         AddPatternVCs();
@@ -108,12 +141,38 @@ void VCBuilder::AddPatternVCs()
     }
 }
 
+void VCBuilder::ComputeCapturedSets(const PatternState& patterns)
+{
+    SG_UNUSED(patterns);
+    for (BoardIterator p(m_brd->Const().EdgesAndInterior()); p; ++p)
+    {
+        if (m_brd->getColor(*p) == EMPTY)
+        {
+            m_capturedSet[*p] = EMPTY_BITSET;
+            PatternHits hits;
+            patterns.MatchOnCell(*m_hash_capturedSetPatterns[m_color],
+                                 *p, PatternState::STOP_AT_FIRST_HIT, hits);
+            for (std::size_t i = 0; i < hits.size(); ++i)
+            {
+                const std::vector<HexPoint>& moves = hits[0].moves2();
+                bitset_t carrier;
+                for (std::size_t j = 0; j < moves.size(); ++j)
+                    m_capturedSet[*p].set(moves[j]);
+                //LogInfo() << "Captured " << *p
+                //          << m_brd->Write(m_capturedSet[*p]) << '\n';
+            }
+        }
+        else
+            m_capturedSet[*p] = EMPTY_BITSET;
+    }
+}
+
 //----------------------------------------------------------------------------
 // Incremental VC construction
 
 void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
-                      const Groups& newGroups, bitset_t added[BLACK_AND_WHITE],
-                      ChangeLog<VC>* log)
+                      const Groups& newGroups, const PatternState& patterns,
+                      bitset_t added[BLACK_AND_WHITE], ChangeLog<VC>* log)
 {
     HexAssert((added[BLACK] & added[WHITE]).none());
 
@@ -127,6 +186,7 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
     m_statistics = Statistics();
     m_queue.clear();
 
+    ComputeCapturedSets(patterns);
     Merge(oldGroups, added);
     if (m_param.use_patterns)
         AddPatternVCs();
@@ -460,7 +520,9 @@ void VCBuilder::andClosure(const VC& vc)
         LogInfo() << *m_brd << '\n';
         LogInfo() << vc << '\n';
     }
-    
+
+    bitset_t vcCapturedSet = m_capturedSet[endp[0]] | m_capturedSet[endp[1]];
+   
     HexAssert(endc[0] != other);
     HexAssert(endc[1] != other);
     for (GroupIterator g(*m_groups, not_other); g; ++g) 
@@ -468,6 +530,7 @@ void VCBuilder::andClosure(const VC& vc)
         HexPoint z = g->Captain();
         if (z == endp[0] || z == endp[1]) continue;
         if (vc.carrier().test(z)) continue;
+        bitset_t capturedSet = vcCapturedSet | m_capturedSet[z];
         for (int i=0; i<2; i++) 
         {
             int j = (i + 1) & 1;
@@ -478,18 +541,21 @@ void VCBuilder::andClosure(const VC& vc)
                     continue;
                 
                 AndRule rule = (endc[i] == EMPTY) ? CREATE_SEMI : CREATE_FULL;
-                doAnd(z, endp[i], endp[j], rule, vc, 
+                doAnd(z, endp[i], endp[j], rule, vc, capturedSet, 
                       &m_con->GetList(VC::FULL, z, endp[i]));
             }
         }
     }
 }
 
-/** Performs pairwise comparisons of connections between a and b, adds
-    those with empty intersection into out.
+/** Compares vc to each connection in the softlimit of the given list.
+    Creates a new connection if intersection is empty, or if the
+    intersection is a subset of the captured set. Created connections
+    are added with AddNewFull() or AddNewSemi().
 */
 void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
-                      AndRule rule, const VC& vc, const VCList* old)
+                      AndRule rule, const VC& vc, const bitset_t& capturedSet, 
+                      const VCList* old)
 {
     if (old->empty())
         return;
@@ -506,19 +572,37 @@ void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
             continue;
         if (i->carrier().test(to))
             continue;
-        if ((i->carrier() & vc.carrier()).any())
-            continue;
-        if (rule == CREATE_FULL)
+        bitset_t intersection = i->carrier() & vc.carrier();
+        if (intersection.none())
         {
-            m_statistics.and_full_attempts++;
-            if (AddNewFull(VC::AndVCs(from, to, *i, vc, stones)))
-                m_statistics.and_full_successes++;
+            if (rule == CREATE_FULL)
+            {
+                m_statistics.and_full_attempts++;
+                if (AddNewFull(VC::AndVCs(from, to, *i, vc, stones)))
+                    m_statistics.and_full_successes++;
+            }
+            else if (rule == CREATE_SEMI)
+            {
+                m_statistics.and_semi_attempts++;
+                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, over)))
+                    m_statistics.and_semi_successes++;
+            }
         }
-        else if (rule == CREATE_SEMI)
+        else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
         {
-            m_statistics.and_semi_attempts++;
-            if (AddNewSemi(VC::AndVCs(from, to, *i, vc, over)))
-                m_statistics.and_semi_successes++;
+            if (rule == CREATE_FULL)
+            {
+                m_statistics.and_full_attempts++;
+                if (AddNewFull(VC::AndVCs(from, to, *i, vc, 
+                                          capturedSet, stones)))
+                    m_statistics.and_full_successes++;
+            }
+            else if (rule == CREATE_SEMI)
+            {
+                m_statistics.and_semi_attempts++;
+                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet,over)))
+                    m_statistics.and_semi_successes++;
+            }
         }
     }
 }
@@ -568,6 +652,10 @@ int VCBuilder::OrRule::operator()(const VC& vc,
 
     max_ors--;
     HexAssert(max_ors < 16);
+
+    // compute the captured-set union for the endpoints of this list
+    bitset_t capturedSet = m_builder.m_capturedSet[semi_list->getX()] 
+                         | m_builder.m_capturedSet[semi_list->getY()];
 
     std::size_t index[16];
     bitset_t ors[16];
@@ -622,6 +710,25 @@ int VCBuilder::OrRule::operator()(const VC& vc,
         
             ++index[d];
         } 
+        else if (BitsetUtil::IsSubsetOf(ands[d], capturedSet))
+        {
+            /** Create a new full.
+                This vc has the captured set in its carrier.
+            */
+            VC v(full_list->getX(), full_list->getY(), 
+                 ors[d] | capturedSet,
+                 EMPTY_BITSET, VC_RULE_OR);
+
+            stats.or_attempts++;
+            if (full_list->add(v, log) != VCList::ADD_FAILED) 
+            {
+                count++;
+                stats.or_successes++;
+                added.push_back(v);
+            }
+        
+            ++index[d];
+        }
         else if (ands[d] == ands[d-1]) 
         {
             // this connection does not shrink intersection so skip it

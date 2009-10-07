@@ -186,9 +186,15 @@ public:
     static VC AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
                      const bitset_t& stones);
 
+    static VC AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
+                     const bitset_t& capturedSet, const bitset_t& stones);
+
     /** Returns a new semi VC with key key by unioning v1 and v2. */
     static VC AndVCs(HexPoint x, HexPoint y, 
                      const VC& v1, const VC& v2, HexPoint key);
+
+    static VC AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2, 
+                     const bitset_t& capturedSet, HexPoint key);
 
     static VC UpgradeSemi(const VC& v1, const bitset_t& takeout,
                           HexPoint outx, HexPoint outy);

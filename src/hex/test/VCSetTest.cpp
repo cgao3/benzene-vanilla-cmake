@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-/** @file
+/** @file VCSetTest.cpp
  */
 //---------------------------------------------------------------------------
 
@@ -44,6 +44,8 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
     bd.playMove(WHITE, HEX_CELL_H6);
     Groups groups;
     GroupBuilder::Build(bd, groups);
+    PatternState patterns(bd);
+    patterns.Update();
 
     ChangeLog<VC> cl;
     VCSet con1(bd.Const(), BLACK);
@@ -55,10 +57,10 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
     param.max_ors = 4;
     param.and_over_edge = true;
     param.use_greedy_union = true;
-
+    
     VCBuilder builder(param);
-    builder.Build(con1, groups);
-    builder.Build(con2, groups);
+    builder.Build(con1, groups, patterns);
+    builder.Build(con2, groups, patterns);
     BOOST_CHECK(con1 == con2);
 
 #if 0

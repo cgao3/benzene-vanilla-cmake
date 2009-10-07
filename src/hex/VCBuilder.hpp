@@ -11,6 +11,7 @@
 #include "VCList.hpp"
 #include "VCSet.hpp"
 #include "Groups.hpp"
+#include "PatternState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -157,7 +158,8 @@ public:
 
     /** Computes connections from scratch. Old connections are removed
         prior to starting. */
-    void Build(VCSet& con, const Groups& groups);
+    void Build(VCSet& con, const Groups& groups, 
+               const PatternState& patterns);
    
     /** Updates connections from oldGroups to newGroups Assumes
         existing vc data is valid for oldGroups. Logging is used if
@@ -166,7 +168,8 @@ public:
         p is the key; these are upgraded to 0-connections for player
         p.  */
     void Build(VCSet& cons, const Groups& oldGroups,
-               const Groups& newGroups, bitset_t added[BLACK_AND_WHITE],
+               const Groups& newGroups, const PatternState& patterns,
+               bitset_t added[BLACK_AND_WHITE],
                ChangeLog<VC>* log);
 
 private:
@@ -200,12 +203,14 @@ private:
     typedef enum { CREATE_FULL, CREATE_SEMI } AndRule;
 
     void doAnd(HexPoint from, HexPoint over, HexPoint to,
-              AndRule rule, const VC& vc, const VCList* old);
+               AndRule rule, const VC& vc, const bitset_t& capturedSet,
+               const VCList* old);
 
     class OrRule 
     {
     public:
-        OrRule() : m_semi(64), m_tail(64) {};
+        OrRule(const VCBuilder& builder) 
+            : m_builder(builder), m_semi(64), m_tail(64) {};
 
         int operator()(const VC& vc, const VCList* semi_list, 
                        VCList* full_list, std::list<VC>& added, 
@@ -213,6 +218,7 @@ private:
                        VCBuilderStatistics& stats);
 
     private:
+        const VCBuilder& m_builder;
         /** Vectors used in or rule computation are reused between
             calls to avoid unnecessary dynamic memory allocation. */
         std::vector<VC> m_semi;
@@ -234,6 +240,10 @@ private:
     bool AddNewFull(const VC& vc);
     
     bool AddNewSemi(const VC& vc);
+
+    void LoadCapturedSetPatterns();
+
+    void ComputeCapturedSets(const PatternState& patterns);
 
     void AddBaseVCs();
 
@@ -270,6 +280,12 @@ private:
     HexColor m_color;
 
     ChangeLog<VC>* m_log;
+
+    bitset_t m_capturedSet[BITSETSIZE];
+
+    PatternSet m_capturedSetPatterns[BLACK_AND_WHITE];
+    
+    HashedPatternSet* m_hash_capturedSetPatterns[BLACK_AND_WHITE];
 };
 
 inline VCBuilderParam& VCBuilder::Parameters()

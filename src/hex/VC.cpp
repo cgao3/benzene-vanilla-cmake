@@ -112,11 +112,35 @@ VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
               VC_RULE_AND);
 }
 
+VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
+              const bitset_t& capturedSet, const bitset_t& stones)
+{
+    HexAssert(BitsetUtil::IsSubsetOf(v1.carrier() & v2.carrier(),
+                                     capturedSet));
+
+    return VC(x, y, 
+              v1.carrier() | v2.carrier() | capturedSet, 
+              v1.stones() | v2.stones() | stones,
+              VC_RULE_AND);
+}
+
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2, HexPoint key)
 {
     HexAssert((v1.carrier() & v2.carrier()).none());
     return VC(x, y, key, 
               (v1.carrier() | v2.carrier()).set(key), 
+              v1.stones() | v2.stones(), 
+              VC_RULE_AND);
+}
+
+VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2, 
+              const bitset_t& capturedSet, HexPoint key)
+{
+    HexAssert(BitsetUtil::IsSubsetOf(v1.carrier() & v2.carrier(),
+                                     capturedSet));
+
+    return VC(x, y, key, 
+              (v1.carrier() | v2.carrier() | capturedSet).set(key), 
               v1.stones() | v2.stones(), 
               VC_RULE_AND);
 }

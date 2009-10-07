@@ -90,7 +90,7 @@ void HexBoard::ComputeInferiorCells(HexColor color_to_move)
 void HexBoard::BuildVCs()
 {
     for (BWIterator c; c; ++c)
-        m_builder.Build(*m_cons[*c], m_groups);
+        m_builder.Build(*m_cons[*c], m_groups, m_patterns);
 }
 
 void HexBoard::BuildVCs(const Groups& oldGroups, 
@@ -100,7 +100,8 @@ void HexBoard::BuildVCs(const Groups& oldGroups,
     for (BWIterator c; c; ++c)
     {
         ChangeLog<VC>* log = (use_changelog) ? &m_log[*c] : 0;
-        m_builder.Build(*m_cons[*c], oldGroups, m_groups, added, log);
+        m_builder.Build(*m_cons[*c], oldGroups, m_groups, m_patterns, 
+                        added, log);
     }
 }
 
