@@ -14,7 +14,7 @@ OPENINGS=""
 while true ; do
     case "$1" in
         -h|--help) usage; exit 1 ;;
-	-o|--openings) ROUNDS=$2; shift 2;;
+	-o|--openings) OPENINGS=$2; shift 2;;
         -r|--rounds) ROUNDS=$2; shift 2;;
         -s|--size) SIZE=$2; shift 2;;
         --) shift ; break ;;
