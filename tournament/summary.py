@@ -1,13 +1,9 @@
 #!/usr/bin/python -u
 #----------------------------------------------------------------------------
-# $Id: summary.py 1875 2009-01-28 01:43:42Z broderic $
-#----------------------------------------------------------------------------
+# Summarizes a twogtp tournament.
 #
 # TODO: - Simplify stuff. The table idea seems bad, in retrospect.
-#       - Do we really need the random tourney crap?
 #       - Do we really care about which openings are won/lost?
-#         Isn't that a little results oriented? :)
-#         This script would be soo small if both were removed. 
 
 import os, sys, getopt, re, string
 from statistics import Statistics
@@ -33,7 +29,7 @@ p1Wins = Statistics()
 p1WinsBlack = Statistics()
 p1WinsWhite = Statistics()
 
-def analyzeTourney(fname, random, longOpening, maxvalid, showTable, timeLimit):
+def analyzeTourney(fname, longOpening, maxvalid, showTable, timeLimit):
     print "Analyzing: \'" + fname + "\'..."
     
     f = open(fname, "r")
@@ -62,7 +58,7 @@ def analyzeTourney(fname, random, longOpening, maxvalid, showTable, timeLimit):
             timeBlack = float(array[8])
             timeWhite = float(array[9])
 
-            if random or longOpening:
+            if longOpening:
                 opening = string.strip(fullopening)
             else:
                 moves = string.split(string.strip(fullopening), ' ')
@@ -138,87 +134,13 @@ def analyzeTourney(fname, random, longOpening, maxvalid, showTable, timeLimit):
     for p in progs:
         print "p" + str(progs.index(p)+1)+ " = " + p
 
-    if random:
-        showRandomResults(numvalid, table, opencount,
-                          openings, progs, showTable)
-    else:
-        showIterativeResults(numvalid, table, opencount,
-                             openings, progs, showTable,
-                             p1Timeouts, p2Timeouts)
+        
+    showIterativeResults(numvalid, table, opencount,
+                         openings, progs, showTable,
+                         p1Timeouts, p2Timeouts)
 
 #    for k in sorted(table.keys()):
 #       print k, table[k]
-
-def showRandomResults(numvalid, table, opencount, openings, progs):
-
-    split = 0
-    nonsplit = 0
-
-    p1nsw = 0
-    p1nsl = 0
-    p2nsw = 0
-    p2nsl = 0
-
-    p1w = 0
-    p2w = 0
-    
-    # count split/non-split openings
-    for o in openings:
-        if ((opencount[o] % 2) != 0):
-            print "Skipping corrupted/unfinished opening '" + o + "'"
-            continue
-
-        if (opencount[o] > 2):
-            print "'" + o + "' played more than once!" 
-
-        cb1w = get_value(table, (o, 'B', progs[0], 'win'))
-        cb1l = get_value(table, (o, 'B', progs[0], 'loss'))
-        cb2w = get_value(table, (o, 'B', progs[1], 'win'))        
-        cb2l = get_value(table, (o, 'B', progs[1], 'loss'))
-        cw1w = get_value(table, (o, 'W', progs[0], 'win'))
-        cw1l = get_value(table, (o, 'W', progs[0], 'loss'))
-        cw2w = get_value(table, (o, 'W', progs[1], 'win'))
-        cw2l = get_value(table, (o, 'W', progs[1], 'loss'))
-
-        p1w = p1w + cb1w + cw1w
-        p2w = p2w + cb2w + cw2w
-        
-        # non-split?
-        if (cb1w != cb2w):
-            print o
-            if (cb1w > cb2w):
-                p1nsw = p1nsw + cb1w
-                p2nsl = p2nsl + cb1w
-            else:
-                p1nsl = p1nsl + cb2w
-                p2nsw = p2nsw + cb2w
-            nonsplit = nonsplit+1
-        else:
-            split = split+1
-
-
-    print "+--------------+-------+-------+"
-    print "|   Non-split  |  p1   |  p2   |"
-    print "+--------------+-------+-------+"
-    print "|%4d\t\t%3i/%i\t%3i/%i  |" % (nonsplit, p1nsw, p1nsl, p2nsw, p2nsl)
-    print "+------------------------------+"
-
-    if (p1nsw+p1nsl != 0):
-        print "Winning PCT in Non-Split Openings:"
-        print "%s:\t%.1f%%" % (progs[0], (p1nsw*100.0/(p1nsw+p1nsl)))
-        print "%s:\t%.1f%%" % (progs[1], (p2nsw*100.0/(p2nsw+p2nsl)))
-    print ""
-
-    if (nonsplit + split > 0):
-        print "Non-Split/Total: %i/%i (%.1f%%)" % \
-              (nonsplit, nonsplit+split, (nonsplit*100.0/(nonsplit+split)))
-        print ""
-    
-    if (numvalid != 0):
-        print "Total Win PCT:"
-        print "%s:\t%.1f%%" % (progs[0], (p1w*100.0/(p1w+p2w)))
-        print "%s:\t%.1f%%" % (progs[1], (p2w*100.0/(p1w+p2w)))
-    print ""
 
 def showIterativeResults(numvalid, table, opencount, openings,
                          progs, showTable, p1Timeouts, p2Timeouts):
@@ -287,7 +209,7 @@ def showIterativeResults(numvalid, table, opencount, openings,
 #------------------------------------------------------------------------------
 
 def usage():
-        print "Usage: ./summary [--random] [--count c] --file [tournament.result]"
+        print "Usage: ./summary [--count c] [--showTable] [--time max time] --file [tournament.result]"
         sys.exit(-1)
     
 def main():
@@ -295,13 +217,12 @@ def main():
     count = 50000
     timeLimit = 123456.789
     longOpening = False
-    random = False
     showTable = False
     resfile = ""
     
     try:
         options = "clr:sf:"
-        longOptions = ["count=","long","random","showTable","file=","time="]
+        longOptions = ["count=","long","showTable","file=","time="]
         opts, args = getopt.getopt(sys.argv[1:], options, longOptions)
     except getopt.GetoptError:
         usage()
@@ -315,14 +236,12 @@ def main():
             timeLimit = float(v)
         elif o in ("--long"):
             longOpening = True
-        elif o in ("--random"):
-            random = True
         elif o in ("--showTable"):
             showTable = True
     
     if (resfile == ""):
         usage()
     
-    analyzeTourney(resfile, random, longOpening, count, showTable, timeLimit)
+    analyzeTourney(resfile, longOpening, count, showTable, timeLimit)
     
 main()
