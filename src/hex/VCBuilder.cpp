@@ -660,6 +660,8 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     // compute the captured-set union for the endpoints of this list
     bitset_t capturedSet = m_builder.m_capturedSet[semi_list->getX()] 
                          | m_builder.m_capturedSet[semi_list->getY()];
+    bitset_t uncapturedSet = capturedSet;
+    uncapturedSet.flip();
 
     std::size_t index[16];
     bitset_t ors[16];
@@ -676,8 +678,9 @@ int VCBuilder::OrRule::operator()(const VC& vc,
         std::size_t i = index[d];
 
         // the current intersection (some subset from [0, i-1]) is not
-        // disjoint with the intersection of [i, N), so stop.
-        if ((i < N) && (ands[d-1] & m_tail[i]).any()) 
+        // disjoint with the intersection of [i, N), so stop. Note that
+        // the captured set is not considered in the intersection.
+        if ((i < N) && (ands[d-1] & m_tail[i] & uncapturedSet).any())
             i = N;
 
         if (i == N) 
@@ -737,11 +740,12 @@ int VCBuilder::OrRule::operator()(const VC& vc,
         {
             // this connection does not shrink intersection so skip it
             ++index[d];
-        } 
+        }
         else 
         {
             // this connection reduces intersection, if not at max depth
-            // see if more semis can reduce it to the empty set. 
+            // see if more semis can reduce it to the empty set (or at least
+            // a subset of the captured set).
             if (d < max_ors) 
                 index[++d] = ++i;
             else
