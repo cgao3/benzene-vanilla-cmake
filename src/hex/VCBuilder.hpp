@@ -285,7 +285,7 @@ private:
 
     PatternSet m_capturedSetPatterns[BLACK_AND_WHITE];
     
-    HashedPatternSet* m_hash_capturedSetPatterns[BLACK_AND_WHITE];
+    HashedPatternSet m_hash_capturedSetPatterns[BLACK_AND_WHITE];
 };
 
 inline VCBuilderParam& VCBuilder::Parameters()

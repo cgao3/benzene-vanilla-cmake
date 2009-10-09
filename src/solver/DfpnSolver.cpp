@@ -332,7 +332,7 @@ size_t ComputeInitialDelta(size_t index, size_t numChildren, size_t boardSize)
 
 bool g_UniqueProbesInitialized = false;
 std::vector<Pattern> g_uniqueProbe[BLACK_AND_WHITE];
-HashedPatternSet* g_hash_uniqueProbe[BLACK_AND_WHITE];
+HashedPatternSet g_hash_uniqueProbe[BLACK_AND_WHITE];
 
 /** Initialize the unique probe patterns.  */
 void InitializeUniqueProbes()
@@ -356,10 +356,7 @@ void InitializeUniqueProbes()
         g_uniqueProbe[WHITE].push_back(patterns[i]);
     }
     for (BWIterator c; c; ++c) 
-    {
-        g_hash_uniqueProbe[*c] = new HashedPatternSet();
-        g_hash_uniqueProbe[*c]->hash(g_uniqueProbe[*c]);
-    }
+        g_hash_uniqueProbe[*c].hash(g_uniqueProbe[*c]);
     g_UniqueProbesInitialized = true;
 }
 
@@ -370,7 +367,7 @@ bool UniqueProbe(StoneBoard& brd, HexPoint losingMove,
     pstate.Update();
     
     PatternHits hits;
-    pstate.MatchOnCell(*g_hash_uniqueProbe[brd.WhoseTurn()],
+    pstate.MatchOnCell(g_hash_uniqueProbe[brd.WhoseTurn()],
                        losingMove, PatternState::MATCH_ALL, hits);
     for (std::size_t i = 0; i < hits.size(); ++i)
     {

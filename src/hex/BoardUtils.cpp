@@ -24,7 +24,7 @@ namespace {
 
 bool g_BoardUtilsDecompsInitialized = false;
 std::vector<Pattern> g_oppmiai[BLACK_AND_WHITE];
-HashedPatternSet* g_hash_oppmiai[BLACK_AND_WHITE];
+HashedPatternSet g_hash_oppmiai[BLACK_AND_WHITE];
 
 /** Initialize the miai pattern. */
 void InitializeOppMiai()
@@ -54,10 +54,8 @@ void InitializeOppMiai()
     pattern.flipColors();
     g_oppmiai[WHITE].push_back(pattern);
         
-    for (BWIterator c; c; ++c) {
-        g_hash_oppmiai[*c] = new HashedPatternSet();
-        g_hash_oppmiai[*c]->hash(g_oppmiai[*c]);
-    }
+    for (BWIterator c; c; ++c)
+        g_hash_oppmiai[*c].hash(g_oppmiai[*c]);
 }
 
 /** @todo Is it possible to speed this up? */
@@ -72,7 +70,7 @@ void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
              p; ++p) 
         {
             PatternHits hits;
-            brd.GetPatternState().MatchOnCell(*g_hash_oppmiai[*color], *p, 
+            brd.GetPatternState().MatchOnCell(g_hash_oppmiai[*color], *p, 
                                               PatternState::MATCH_ALL, hits);
             HexPoint cp = brd.GetGroups().CaptainOf(*p);
             for (unsigned j=0; j<hits.size(); ++j) 

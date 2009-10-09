@@ -40,8 +40,6 @@ VCBuilder::VCBuilder(VCBuilderParam& param)
 
 VCBuilder::~VCBuilder()
 {
-    for (BWIterator c; c; ++c) 
-        delete m_hash_capturedSetPatterns[*c];
 }
 
 void VCBuilder::LoadCapturedSetPatterns()
@@ -63,10 +61,7 @@ void VCBuilder::LoadCapturedSetPatterns()
         m_capturedSetPatterns[BLACK].push_back(patterns[i]);
     }
     for (BWIterator c; c; ++c) 
-    {
-        m_hash_capturedSetPatterns[*c] = new HashedPatternSet();
-        m_hash_capturedSetPatterns[*c]->hash(m_capturedSetPatterns[*c]);
-    }
+        m_hash_capturedSetPatterns[*c].hash(m_capturedSetPatterns[*c]);
 }
 
 //----------------------------------------------------------------------------
@@ -150,7 +145,7 @@ void VCBuilder::ComputeCapturedSets(const PatternState& patterns)
         {
             m_capturedSet[*p] = EMPTY_BITSET;
             PatternHits hits;
-            patterns.MatchOnCell(*m_hash_capturedSetPatterns[m_color],
+            patterns.MatchOnCell(m_hash_capturedSetPatterns[m_color],
                                  *p, PatternState::STOP_AT_FIRST_HIT, hits);
             for (std::size_t i = 0; i < hits.size(); ++i)
             {
