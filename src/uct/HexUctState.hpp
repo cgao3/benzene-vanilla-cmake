@@ -154,7 +154,8 @@ public:
 
     void ExecutePlayout(SgMove move);
    
-    bool GenerateAllMoves(std::size_t count, std::vector<SgMoveInfo>& moves);
+    bool GenerateAllMoves(std::size_t count, std::vector<SgMoveInfo>& moves,
+                          SgProvenNodeType& provenType);
 
     SgMove GeneratePlayoutMove(bool& skipRaveUpdate);
     
@@ -264,7 +265,7 @@ private:
 
     //----------------------------------------------------------------------
 
-    bitset_t ComputeKnowledge();
+    bitset_t ComputeKnowledge(SgProvenNodeType& provenType);
 
     void ExecuteTreeMove(HexPoint move);
 

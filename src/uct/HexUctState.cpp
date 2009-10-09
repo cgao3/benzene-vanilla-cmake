@@ -184,7 +184,8 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
 }
 
 bool HexUctState::GenerateAllMoves(std::size_t count, 
-                                   std::vector<SgMoveInfo>& moves)
+                                   std::vector<SgMoveInfo>& moves,
+                                   SgProvenNodeType& provenType)
 {
     moves.clear();
 
@@ -216,7 +217,7 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
                       << HashUtil::toString(hash) << '\n';
         }
         truncateChildTrees = true;
-        bitset_t moveset = m_bd->getEmpty() & ComputeKnowledge();
+        bitset_t moveset = m_bd->getEmpty() & ComputeKnowledge(provenType);
         for (BitsetIterator it(moveset); it; ++it)
             moves.push_back(SgMoveInfo(*it));
     }
@@ -312,11 +313,8 @@ void HexUctState::EndPlayout()
 {
 }
 
-/** Computes moves to consider and stores fillin into the shared data.
-    If state is determined, empty cells are filled with the winner's
-    color and an empty consider set is returned. This allows terminal
-    states to be handled during the uct search. */
-bitset_t HexUctState::ComputeKnowledge()
+/** Computes moves to consider and stores fillin in the shared data. */
+bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
 {
     /** @todo Use a more complicated scheme to update the connections?
         For example, if state is close to last one, use incremental
@@ -332,23 +330,22 @@ bitset_t HexUctState::ComputeKnowledge()
     if (PlayerUtils::IsDeterminedState(*m_vc_brd, m_toPlay))
     {
         HexColor winner = m_toPlay;
+        provenType = SG_PROVEN_WIN;
         if (PlayerUtils::IsLostGame(*m_vc_brd, m_toPlay))
+        {
             winner = !m_toPlay;
-
-        // Add fillin to m_bd because Evaluate() will be called
-        // immediately after SgUctSearch realizes this state has no
-        // children. This is necessary only for this tree phase,
-        // subsequent tree phases will load up the fillin during the
-        // ExecuteMove() needed to arrive at this state.
-        m_vc_brd->addColor(winner, m_vc_brd->getEmpty());
-        m_bd->addColor(winner, m_bd->getEmpty());
-        
+            provenType = SG_PROVEN_LOSS;
+        }
         if (DEBUG_KNOWLEDGE)
             LogInfo() << "Found win for " << winner << ": " << '\n' 
                       << *m_vc_brd << '\n';
+        return EMPTY_BITSET;
     }
     else
+    {
+        provenType = SG_NOT_PROVEN;
         consider = PlayerUtils::MovesToConsider(*m_vc_brd, m_toPlay);
+    }
 
     m_shared_data->stones.put(SequenceHash::Hash(m_game_sequence), 
                               HexUctStoneData(*m_vc_brd));
