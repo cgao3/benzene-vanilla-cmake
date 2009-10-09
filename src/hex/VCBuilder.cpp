@@ -141,9 +141,9 @@ void VCBuilder::ComputeCapturedSets(const PatternState& patterns)
     SG_UNUSED(patterns);
     for (BoardIterator p(m_brd->Const().EdgesAndInterior()); p; ++p)
     {
+        m_capturedSet[*p] = EMPTY_BITSET;
         if (m_brd->getColor(*p) == EMPTY)
         {
-            m_capturedSet[*p] = EMPTY_BITSET;
             PatternHits hits;
             patterns.MatchOnCell(m_hash_capturedSetPatterns[m_color],
                                  *p, PatternState::STOP_AT_FIRST_HIT, hits);
@@ -157,8 +157,6 @@ void VCBuilder::ComputeCapturedSets(const PatternState& patterns)
                 //          << m_brd->Write(m_capturedSet[*p]) << '\n';
             }
         }
-        else
-            m_capturedSet[*p] = EMPTY_BITSET;
     }
 }
 
@@ -398,8 +396,12 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     VCList& semis = m_con->GetList(VC::SEMI, xc, yc);
     VCList& fulls = m_con->GetList(VC::FULL, xc, yc);
 
+    bitset_t capturedSet = m_capturedSet[xc] | m_capturedSet[yc];
+    bitset_t uncapturedSet = capturedSet;
+    uncapturedSet.flip();
+
     // Nothing to do, so abort. 
-    if (semis.hardIntersection().any())
+    if ((semis.hardIntersection() & uncapturedSet).any())
         return;
 
     int soft = semis.softlimit();
@@ -435,7 +437,8 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
             ? semis.getGreedyUnion() 
             : semis.getUnion();
 
-        fulls.add(VC(xc, yc, carrier, EMPTY_BITSET, VC_RULE_ALL), m_log);
+        fulls.add(VC(xc, yc, carrier | capturedSet, EMPTY_BITSET, VC_RULE_ALL),
+                  m_log);
         // @note No need to remove supersets of v from the semi
         // list since there can be none!
     } 
@@ -715,10 +718,15 @@ int VCBuilder::OrRule::operator()(const VC& vc,
         else if (BitsetUtil::IsSubsetOf(ands[d], capturedSet))
         {
             /** Create a new full.
-                This vc has the captured set in its carrier.
+                This vc has one or both captured sets in its carrier.
             */
-            VC v(full_list->getX(), full_list->getY(), 
-                 ors[d] | capturedSet,
+            bitset_t carrier = ors[d];
+            if ((ands[d] & m_builder.m_capturedSet[semi_list->getX()]).any())
+                carrier |= m_builder.m_capturedSet[semi_list->getX()];
+            if ((ands[d] & m_builder.m_capturedSet[semi_list->getY()]).any())
+                carrier |= m_builder.m_capturedSet[semi_list->getY()];
+
+            VC v(full_list->getX(), full_list->getY(), carrier,
                  EMPTY_BITSET, VC_RULE_OR);
 
             stats.or_attempts++;
