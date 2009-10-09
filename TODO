@@ -6,8 +6,6 @@ broderic [090917] (in rough order of importance)
   * add ability to dump solved states over threshold to a log
   * "Proof simulation"
   * db read/write
-* Handle terminal states properly in MoHex
-  Ie, do not use fillin and deletion to do this
 * Create scripts to build book/solve deep states
   * grab unsolved leaves over a certain depth
   * actual multi-threaded 'solve positions' script

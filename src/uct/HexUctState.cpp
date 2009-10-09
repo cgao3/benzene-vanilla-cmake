@@ -313,7 +313,10 @@ void HexUctState::EndPlayout()
 {
 }
 
-/** Computes moves to consider and stores fillin in the shared data. */
+/** Computes moves to consider and stores fillin in the shared data. 
+
+    @todo Do not delete children of proven nodes -- not needed anymore.	
+*/
 bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
 {
     /** @todo Use a more complicated scheme to update the connections?
