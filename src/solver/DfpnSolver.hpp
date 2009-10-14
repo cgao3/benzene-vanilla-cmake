@@ -140,8 +140,6 @@ class DfpnChildren
 public:
     DfpnChildren();
 
-    DfpnChildren(const std::vector<HexPoint>& children);
-
     void SetChildren(const std::vector<HexPoint>& children);
     
     std::size_t Size() const;

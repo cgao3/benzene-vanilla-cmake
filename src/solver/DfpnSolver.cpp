@@ -21,11 +21,6 @@ DfpnChildren::DfpnChildren()
 {
 }
 
-DfpnChildren::DfpnChildren(const std::vector<HexPoint>& children)
-    : m_children(children)
-{
-}
-
 void DfpnChildren::PlayMove(int index, StoneBoard& brd) const
 {
     brd.playMove(brd.WhoseTurn(), m_children[index]);
@@ -604,7 +599,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                     m_guiFx.Write();
                 }
                 TTStore(m_brd->Hash(), 
-                        DfpnData(terminal, std::vector<HexPoint>(), 
+                        DfpnData(terminal, DfpnChildren(),
                                  INVALID_POINT, 1, parentHash, 
                                  history.LastMove()));
                 return 1;
