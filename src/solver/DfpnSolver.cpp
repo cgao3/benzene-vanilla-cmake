@@ -17,6 +17,73 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+namespace 
+{
+
+/** Returns the initial delta for a state that has not been visited
+    yet. A simple function of its index in the sorted list of children
+    and the size of the board. 
+
+    @todo: find a better function.
+*/
+size_t ComputeInitialDelta(size_t index, size_t numChildren, size_t boardSize)
+{
+    return (index < numChildren / 2) ? 1 : 2 * boardSize;
+}
+
+bool g_UniqueProbesInitialized = false;
+std::vector<Pattern> g_uniqueProbe[BLACK_AND_WHITE];
+HashedPatternSet g_hash_uniqueProbe[BLACK_AND_WHITE];
+
+/** Initialize the unique probe patterns.  */
+void InitializeUniqueProbes()
+{
+    if (g_UniqueProbesInitialized) 
+        return;
+    LogFine() << "--InitializeUniqueProbes\n";
+
+    using namespace boost::filesystem;
+    path filename = path(ABS_TOP_SRCDIR) / "share" / "unique-probe.txt";
+    filename.normalize();
+    
+    std::vector<Pattern> patterns;
+    Pattern::LoadPatternsFromFile(filename.native_file_string().c_str(), 
+                                  patterns);
+    LogFine() << "Read " << patterns.size() << " patterns.\n";
+    for (std::size_t i = 0; i < patterns.size(); ++i)
+    {
+        g_uniqueProbe[BLACK].push_back(patterns[i]);
+        patterns[i].flipColors();
+        g_uniqueProbe[WHITE].push_back(patterns[i]);
+    }
+    for (BWIterator c; c; ++c) 
+        g_hash_uniqueProbe[*c].hash(g_uniqueProbe[*c]);
+    g_UniqueProbesInitialized = true;
+}
+
+bool UniqueProbe(StoneBoard& brd, HexPoint losingMove, 
+                 HexPoint winningMove)
+{
+    PatternState pstate(brd);
+    pstate.Update();
+    
+    PatternHits hits;
+    pstate.MatchOnCell(g_hash_uniqueProbe[brd.WhoseTurn()],
+                       losingMove, PatternState::MATCH_ALL, hits);
+    for (std::size_t i = 0; i < hits.size(); ++i)
+    {
+        const std::vector<HexPoint>& moves = hits[i].moves1();
+        HexAssert(moves.size() == 1);
+        if (moves[0] == winningMove)
+            return true;
+    }
+    return false;
+}
+
+}
+
+//----------------------------------------------------------------------------
+
 DfpnChildren::DfpnChildren()
 {
 }
@@ -349,73 +416,6 @@ void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable,
 
 //----------------------------------------------------------------------------
 
-namespace 
-{
-
-/** Returns the initial delta for a state that has not been visited
-    yet. A simple function of its index in the sorted list of children
-    and the size of the board. 
-
-    @todo: find a better function.
-*/
-size_t ComputeInitialDelta(size_t index, size_t numChildren, size_t boardSize)
-{
-    return (index < numChildren / 2) ? 1 : 2 * boardSize;
-}
-
-bool g_UniqueProbesInitialized = false;
-std::vector<Pattern> g_uniqueProbe[BLACK_AND_WHITE];
-HashedPatternSet g_hash_uniqueProbe[BLACK_AND_WHITE];
-
-/** Initialize the unique probe patterns.  */
-void InitializeUniqueProbes()
-{
-    if (g_UniqueProbesInitialized) 
-        return;
-    LogFine() << "--InitializeUniqueProbes\n";
-
-    using namespace boost::filesystem;
-    path filename = path(ABS_TOP_SRCDIR) / "share" / "unique-probe.txt";
-    filename.normalize();
-    
-    std::vector<Pattern> patterns;
-    Pattern::LoadPatternsFromFile(filename.native_file_string().c_str(), 
-                                  patterns);
-    LogFine() << "Read " << patterns.size() << " patterns.\n";
-    for (std::size_t i = 0; i < patterns.size(); ++i)
-    {
-        g_uniqueProbe[BLACK].push_back(patterns[i]);
-        patterns[i].flipColors();
-        g_uniqueProbe[WHITE].push_back(patterns[i]);
-    }
-    for (BWIterator c; c; ++c) 
-        g_hash_uniqueProbe[*c].hash(g_uniqueProbe[*c]);
-    g_UniqueProbesInitialized = true;
-}
-
-bool UniqueProbe(StoneBoard& brd, HexPoint losingMove, 
-                 HexPoint winningMove)
-{
-    PatternState pstate(brd);
-    pstate.Update();
-    
-    PatternHits hits;
-    pstate.MatchOnCell(g_hash_uniqueProbe[brd.WhoseTurn()],
-                       losingMove, PatternState::MATCH_ALL, hits);
-    for (std::size_t i = 0; i < hits.size(); ++i)
-    {
-        const std::vector<HexPoint>& moves = hits[i].moves1();
-        HexAssert(moves.size() == 1);
-        if (moves[0] == winningMove)
-            return true;
-    }
-    return false;
-}
-
-}
-
-//----------------------------------------------------------------------------
-
 DfpnSolver::DfpnSolver()
     : m_hashTable(0),
       m_useGuiFx(false),
@@ -489,8 +489,8 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
         LogInfo() << " Unique Probes: " << m_numUniqueProbes 
                   << " (" << (100 * m_numUniqueProbes 
                               / m_numProbeChecks) << "%)\n";
-        LogInfo() << "Transpositions: " << m_numTranspositions << '\n';
     }
+    LogInfo() << "Transpositions: " << m_numTranspositions << '\n';
     if (m_useBoundsCorrection)
     {
         std::ostringstream os;
