@@ -146,19 +146,16 @@ public:
 
     HexPoint FirstMove(int index) const;
 
+    const std::vector<HexPoint>& Moves(int index) const;
+
     void PlayMove(int index, StoneBoard& brd) const;
 
     void UndoMove(int index, StoneBoard& brd) const;
 
 private:
-    std::vector<HexPoint> m_children;
+    std::vector<std::vector<HexPoint> > m_children;
 
 };
-
-inline void DfpnChildren::SetChildren(const std::vector<HexPoint>& children)
-{
-    m_children = children;
-}
 
 inline std::size_t DfpnChildren::Size() const
 {
@@ -166,6 +163,11 @@ inline std::size_t DfpnChildren::Size() const
 }
 
 inline HexPoint DfpnChildren::FirstMove(int index) const
+{
+    return m_children[index][0];
+}
+
+inline const std::vector<HexPoint>& DfpnChildren::Moves(int index) const
 {
     return m_children[index];
 }
