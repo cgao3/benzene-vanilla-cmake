@@ -340,14 +340,12 @@ void DumpNonTerminalStates(const Book& book, StoneBoard& brd,
     BookNode node;
     if (!book.GetNode(brd, node))
         return;
-    if (brd.numStones() > numstones)
-        return;
-    else if (brd.numStones() == numstones && !node.IsTerminal())
+    if (brd.numStones() >= numstones && node.IsLeaf() && !node.IsTerminal())
     {
         out << HexPointUtil::ToPointListString(pv) << '\n';
         seen.insert(hash);
     }
-    else if (brd.numStones() < numstones)
+    else
     {
         if (node.IsLeaf() || node.IsTerminal())
             return;
