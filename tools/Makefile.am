@@ -1,5 +1,7 @@
 EXTRA_DIST = \
 settings-optimal7x7Solve.htp \
+book/program.py \
+book/book-solve.py \
 cronjob/benzene-daily.sh \
 solver/solve.py \
 solver/6x6.openings \
