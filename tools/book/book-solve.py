@@ -1,12 +1,18 @@
 #!/usr/bin/python
 #----------------------------------------------------------------------------
 # Solves given set of positions using dfpn.
+# 
+# Such a set of positions can be generated using the HTP command
+#   'book-dump-non-terminal [min # of stones] [output file]'
+# to dump all leaf states with at least the given number of stones.
+# The output file can then be used as the input file for this script.
 #
 # Results are dumped to [thread-name].solved and [thread-name].unsolved
 # files for processing by other scripts. 
 #----------------------------------------------------------------------------
 
 import getopt, sys
+from threading import Thread, Lock
 from program import Program
 
 #----------------------------------------------------------------------------
@@ -16,21 +22,25 @@ class Positions:
         f = open(positionsFile, "r")
         self._lines = f.readlines()
         f.close()
+        self._lock = Lock()
 
     def getPosition(self):
+        self._lock.acquire();
+        ret = "";
         if len(self._lines) > 0:
             ret = self._lines[0].strip()
             self._lines.pop(0)
-            return ret
-        return ""
+        self._lock.release();
+        return ret;
 
 #----------------------------------------------------------------------------
 
-class DfpnSolver:
+class DfpnSolver(Thread):
     class Error:
         pass
 
     def __init__(self, name, command, positions, verbose):
+        Thread.__init__(self)
         self._name = name
         self._positions = positions
         self._verbose = verbose
@@ -60,9 +70,12 @@ class DfpnSolver:
                 color = "B";
             
     def solvePosition(self, variation):
-        print "#####################################"
-        print self._name + ": " + variation
-        print "#####################################"
+        if (self._verbose):
+            print "#####################################"
+            print self._name + ": " + variation
+            print "#####################################"
+        else:
+            print self._name + ": " + variation
         self.playVariation(variation);
         return self.sendCommand("dfpn-solve-state");
 
@@ -76,7 +89,7 @@ class DfpnSolver:
             print >> f, variation + " " + winner
             f.close();
 
-    def solve(self):
+    def run(self):
         while True:
             variation = self._positions.getPosition();
             if variation == "":
@@ -84,7 +97,7 @@ class DfpnSolver:
             else:
                 winner = self.solvePosition(variation).strip();
                 self.addResult(variation, winner);
-                print "Result = " + winner
+                print self._name + ": " + winner
                 
 #----------------------------------------------------------------------------
 
@@ -95,7 +108,7 @@ def printUsage():
         "  --help      |-h: print help\n"
         "  --positions |-p: openings to use (required)\n"
         "  --program   |-c: program to run (required)\n"
-        "  --threads   |-n: number of threads (not implemented)\n"
+        "  --threads   |-n: number of threads (default is 1)\n"
         "  --quiet     |-q: be quiet\n");
     
 #----------------------------------------------------------------------------
@@ -132,7 +145,14 @@ def main():
         sys.exit(1)
 
     positions = Positions(positionFile);
-    solver = DfpnSolver("thread0", program, positions, verbose);
-    solver.solve()
 
+    solverlist = []
+    for i in range(numThreads):
+        solver = DfpnSolver("thread" + str(i), program, positions, verbose);
+        solverlist.append(solver)
+        solver.start()
+    for solver in solverlist:
+        solver.join()
+    print "All threads finished."
+    
 main()
