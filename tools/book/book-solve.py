@@ -44,6 +44,7 @@ class DfpnSolver(Thread):
         self._name = name
         self._positions = positions
         self._verbose = verbose
+        command = command + " --logfile-name=" + name + ".log"
         self._program = Program(command, verbose)
 
     def sendCommand(self, command):
