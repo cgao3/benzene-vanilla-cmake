@@ -343,6 +343,11 @@ namespace BookUtil
     void DumpNonTerminalStates(const Book& book, StoneBoard& brd,
                                int numstones, PointSequence& pv, 
                                std::ostream& out);
+
+    /** Reads solved leaf positions from a file and adds them to the
+        given book. Overwrites value of any existing states. */
+    void ImportSolvedStates(Book& book, const ConstBoard& constBoard,
+                            std::istream& positions);
 }
 
 //----------------------------------------------------------------------------

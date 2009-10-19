@@ -371,4 +371,79 @@ void BookUtil::DumpNonTerminalStates(const Book& book, StoneBoard& brd,
     ::DumpNonTerminalStates(book, brd, numstones, seen, pv, out);
 }
 
+void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
+                                  std::istream& positions)
+{
+    StoneBoard brd(constBoard.width(), constBoard.height());
+    std::string text;
+    std::size_t lineNumber = 0;
+    std::size_t numParsed = 0;
+    std::size_t numReplaced = 0;
+    std::size_t numNew = 0;
+    while (std::getline(positions, text))
+    {
+        ++lineNumber;
+        std::istringstream is(text);
+        PointSequence points;
+        HexColor winner = EMPTY;
+        bool parsed = false;
+        while (true)
+        {
+            std::string token;
+            is >> token;
+            if (token == "black")
+            {
+                winner = BLACK;
+                parsed = true;
+                break;
+            } 
+            else if (token == "white")
+            {
+                winner = WHITE;
+                parsed = true;
+                break;
+            }
+            else
+            {
+                HexPoint p = HexPointUtil::fromString(token);
+                if (p == INVALID_POINT)
+                    break;
+                points.push_back(p);
+            }
+        }
+        if (!parsed)
+        {
+            LogInfo() << "Skipping badly formed line " << lineNumber << ".\n";
+            continue;
+        }
+        HexAssert(winner != EMPTY);
+        
+        ++numParsed;
+        brd.startNewGame();
+        for (std::size_t i = 0; i < points.size(); ++i)
+            brd.playMove(brd.WhoseTurn(), points[i]);
+        HexEval ourValue = (brd.WhoseTurn() == winner) 
+            ? IMMEDIATE_WIN : IMMEDIATE_LOSS;
+        BookNode node;
+        if (book.GetNode(brd, node))
+        {
+            HexAssert(node.IsLeaf());
+            HexAssert(!node.IsTerminal());
+            node.m_value = ourValue;
+            ++numReplaced;
+        }
+        else 
+        {
+            node = BookNode(ourValue);
+            ++numNew;
+        }
+        book.WriteNode(brd, node);
+    }
+    book.Flush();
+    LogInfo() << "   Lines: " << lineNumber << '\n';
+    LogInfo() << "  Parsed: " << numParsed << '\n';
+    LogInfo() << "Replaced: " << numReplaced << '\n';
+    LogInfo() << "     New: " << numNew << '\n';
+}
+
 //----------------------------------------------------------------------------

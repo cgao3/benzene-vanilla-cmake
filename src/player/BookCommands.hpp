@@ -46,6 +46,7 @@ private:
     void CmdBookScores(HtpCommand& cmd);
     void CmdBookVisualize(HtpCommand& cmd);
     void CmdBookDumpNonTerminal(HtpCommand& cmd);
+    void CmdBookImportSolvedStates(HtpCommand& cmd);
     void CmdBookSetValue(HtpCommand& cmd);
 };
 
