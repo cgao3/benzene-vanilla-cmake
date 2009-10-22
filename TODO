@@ -5,7 +5,6 @@ broderic [091022] (in rough order of importance)
 * DFPN:
   * db read/write
   * "Proof simulation"
-  Ie, do not use fillin and deletion to do this
 * Add time control to mohex
 * Switch dead region/decomp detection to new Phil algo
 * Create HexPosition class; make StoneBoard use it.
