@@ -27,6 +27,7 @@ void DfpnCommands::Register(GtpEngine& e)
     Register(e, "dfpn-clear-tt", &DfpnCommands::CmdClearTT);
     Register(e, "dfpn-get-state", &DfpnCommands::CmdGetState);    
     Register(e, "dfpn-solve-state", &DfpnCommands::CmdSolveState);
+    Register(e, "dfpn-solver-find-winning", &DfpnCommands::CmdFindWinning);
 }
 
 void DfpnCommands::Register(GtpEngine& engine, const std::string& command,
@@ -76,6 +77,30 @@ void DfpnCommands::CmdSolveState(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     HexColor winner = m_solver.StartSearch(brd, *m_tt);
     cmd << winner;
+}
+
+/** Finds all winning moves in the current state with dfpn,
+    using the current hashtable. */
+void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(0);
+    HexBoard& brd = m_env.SyncBoard(m_game.Board());
+    HexColor colorToMove = brd.WhoseTurn();
+    brd.ComputeAll(colorToMove);
+    bitset_t consider = PlayerUtils::MovesToConsider(brd, colorToMove);
+    bitset_t winning;
+
+    for (BitsetIterator p(consider); p; ++p)
+    {
+        StoneBoard board(m_game.Board());
+        board.playMove(colorToMove, *p);
+
+        HexBoard& brd = m_env.SyncBoard(board);
+        HexColor winner = m_solver.StartSearch(brd, *m_tt);
+        if (winner == colorToMove)
+            winning.set(*p);
+    }
+    cmd << HexPointUtil::ToPointListString(winning);
 }
 
 /** Clears the current dfpn hashtable. */

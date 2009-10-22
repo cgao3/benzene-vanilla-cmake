@@ -337,12 +337,17 @@ namespace BookUtil
     void DumpVisualizationData(const Book& book, StoneBoard& brd, 
                                int depth, std::ostream& out);
 
-    /** Writes variations leading to non-terminal states at given
-        depth. Variation must be the variation leading to the current
-        state of the board. */
+    /** Writes variations leading to non-terminal leafs at depth at
+        least the given depth. The given pv must be the variation
+        leading to the current state of the board. */
     void DumpNonTerminalStates(const Book& book, StoneBoard& brd,
                                int numstones, PointSequence& pv, 
                                std::ostream& out);
+
+    /** Reads solved leaf positions from a file and adds them to the
+        given book. Overwrites value of any existing states. */
+    void ImportSolvedStates(Book& book, const ConstBoard& constBoard,
+                            std::istream& positions);
 }
 
 //----------------------------------------------------------------------------

@@ -17,6 +17,98 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+namespace 
+{
+
+/** Returns the initial delta for a state that has not been visited
+    yet. A simple function of its index in the sorted list of children
+    and the size of the board. 
+
+    @todo: find a better function.
+*/
+size_t ComputeInitialDelta(size_t index, size_t numChildren, size_t boardSize)
+{
+    return (index < numChildren / 2) ? 1 : 2 * boardSize;
+}
+
+bool g_UniqueProbesInitialized = false;
+std::vector<Pattern> g_uniqueProbe[BLACK_AND_WHITE];
+HashedPatternSet g_hash_uniqueProbe[BLACK_AND_WHITE];
+
+/** Initialize the unique probe patterns.  */
+void InitializeUniqueProbes()
+{
+    if (g_UniqueProbesInitialized) 
+        return;
+    LogFine() << "--InitializeUniqueProbes\n";
+
+    using namespace boost::filesystem;
+    path filename = path(ABS_TOP_SRCDIR) / "share" / "unique-probe.txt";
+    filename.normalize();
+    
+    std::vector<Pattern> patterns;
+    Pattern::LoadPatternsFromFile(filename.native_file_string().c_str(), 
+                                  patterns);
+    LogFine() << "Read " << patterns.size() << " patterns.\n";
+    for (std::size_t i = 0; i < patterns.size(); ++i)
+    {
+        g_uniqueProbe[BLACK].push_back(patterns[i]);
+        patterns[i].flipColors();
+        g_uniqueProbe[WHITE].push_back(patterns[i]);
+    }
+    for (BWIterator c; c; ++c) 
+        g_hash_uniqueProbe[*c].hash(g_uniqueProbe[*c]);
+    g_UniqueProbesInitialized = true;
+}
+
+bool UniqueProbe(StoneBoard& brd, HexPoint losingMove, 
+                 HexPoint winningMove)
+{
+    PatternState pstate(brd);
+    pstate.Update();
+    
+    PatternHits hits;
+    pstate.MatchOnCell(g_hash_uniqueProbe[brd.WhoseTurn()],
+                       losingMove, PatternState::MATCH_ALL, hits);
+    for (std::size_t i = 0; i < hits.size(); ++i)
+    {
+        const std::vector<HexPoint>& moves = hits[i].moves1();
+        HexAssert(moves.size() == 1);
+        if (moves[0] == winningMove)
+            return true;
+    }
+    return false;
+}
+
+}
+
+//----------------------------------------------------------------------------
+
+DfpnChildren::DfpnChildren()
+{
+}
+
+void DfpnChildren::SetChildren(const std::vector<HexPoint>& children)
+{
+    m_children.clear();
+    for (std::size_t i = 0; i < children.size(); ++i)
+        m_children.push_back(std::vector<HexPoint>(1, children[i]));
+}
+
+void DfpnChildren::PlayMove(int index, StoneBoard& brd) const
+{
+    for (std::size_t i = 0; i < m_children[index].size(); ++i)
+        brd.playMove(brd.WhoseTurn(), m_children[index][i]);
+}
+
+void DfpnChildren::UndoMove(int index, StoneBoard& brd) const
+{
+    for (int i = m_children[index].size() - 1; i >= 0; --i)
+        brd.undoMove(m_children[index][i]);
+}
+
+//----------------------------------------------------------------------------
+
 /** @page dfpnguifx Dfpn Progress Indication
     @ingroup dfpn
 
@@ -29,36 +121,34 @@ using namespace benzene;
 */
 
 DfpnSolver::GuiFx::GuiFx()
-    : m_move(INVALID_POINT),
+    : m_index(-1),
       m_timeOfLastWrite(0.0),
       m_delay(1.0)
 {
 }
 
-void DfpnSolver::GuiFx::SetChildren(const std::vector<HexPoint>& children,
+void DfpnSolver::GuiFx::SetChildren(const DfpnChildren& children,
                                     const std::vector<DfpnData>& data)
 {
     m_children = children;
     m_data = data;
 }
 
-void DfpnSolver::GuiFx::PlayMove(HexColor color, HexPoint move) 
+void DfpnSolver::GuiFx::PlayMove(HexColor color, int index)
 {
     m_color = color;
-    m_move = move;
+    m_index = index;
 }
 
 void DfpnSolver::GuiFx::UndoMove()
 {
-    m_move = INVALID_POINT;
+    m_index = -1;
 }
 
 void DfpnSolver::GuiFx::UpdateCurrentBounds(const DfpnBounds& bounds)
 {
-    HexAssert(m_move != INVALID_POINT);
-    for (std::size_t i = 0; i < m_children.size(); ++i)
-        if (m_children[i] == m_move)
-            m_data[i].m_bounds = bounds;
+    HexAssert(m_index != -1);
+    m_data[m_index].m_bounds = bounds;
 }
 
 /** Always writes output. */
@@ -72,13 +162,13 @@ void DfpnSolver::GuiFx::WriteForced()
 void DfpnSolver::GuiFx::Write()
 {
     double currentTime = SgTime::Get();
-    if (m_moveAtLastWrite == m_move)
+    if (m_indexAtLastWrite == m_index)
     {
         if (currentTime < m_timeOfLastWrite + m_delay)
             return;
     }
     m_timeOfLastWrite = currentTime;
-    m_moveAtLastWrite = m_move;
+    m_indexAtLastWrite = m_index;
     DoWrite();
 }
 
@@ -89,14 +179,24 @@ void DfpnSolver::GuiFx::DoWrite()
     os << "gogui-gfx:\n";
     os << "dfpn\n";
     os << "VAR";
-    if (m_move != INVALID_POINT)
-        os << ' ' << (m_color == BLACK ? 'B' : 'W') << ' ' << m_move;
+    if (m_index != -1)
+    {
+        HexColor color = m_color;
+        for (std::size_t i = 0; i < m_children.Moves(i).size(); ++i)
+        {
+            os << ' ' << (color == BLACK ? 'B' : 'W') 
+               << ' ' << m_children.Moves(m_index)[i];
+            color = !color;
+        }
+    }
     os << '\n';
     os << "LABEL";
     int numLosses = 0;
-    for (std::size_t i = 0; i < m_children.size(); ++i)
+    for (std::size_t i = 0; i < m_children.Size(); ++i)
     {
-        os << ' ' << m_children[i];
+        os << ' ' << m_children.FirstMove(i);
+        if (m_children.Moves(i).size() > 1)
+            os << '*';
         if (0 == m_data[i].m_bounds.phi)
         {
             numLosses++;
@@ -110,7 +210,7 @@ void DfpnSolver::GuiFx::DoWrite()
     }
     os << '\n';
     os << "TEXT ";
-    os << numLosses << '/' << m_children.size() << " proven losses\n";
+    os << numLosses << '/' << m_children.Size() << " proven losses\n";
     os << '\n';
     std::cout << os.str();
     std::cout.flush();
@@ -316,73 +416,6 @@ void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable,
 
 //----------------------------------------------------------------------------
 
-namespace 
-{
-
-/** Returns the initial delta for a state that has not been visited
-    yet. A simple function of its index in the sorted list of children
-    and the size of the board. 
-
-    @todo: find a better function.
-*/
-size_t ComputeInitialDelta(size_t index, size_t numChildren, size_t boardSize)
-{
-    return (index < numChildren / 2) ? 1 : 2 * boardSize;
-}
-
-bool g_UniqueProbesInitialized = false;
-std::vector<Pattern> g_uniqueProbe[BLACK_AND_WHITE];
-HashedPatternSet g_hash_uniqueProbe[BLACK_AND_WHITE];
-
-/** Initialize the unique probe patterns.  */
-void InitializeUniqueProbes()
-{
-    if (g_UniqueProbesInitialized) 
-        return;
-    LogFine() << "--InitializeUniqueProbes\n";
-
-    using namespace boost::filesystem;
-    path filename = path(ABS_TOP_SRCDIR) / "share" / "unique-probe.txt";
-    filename.normalize();
-    
-    std::vector<Pattern> patterns;
-    Pattern::LoadPatternsFromFile(filename.native_file_string().c_str(), 
-                                  patterns);
-    LogFine() << "Read " << patterns.size() << " patterns.\n";
-    for (std::size_t i = 0; i < patterns.size(); ++i)
-    {
-        g_uniqueProbe[BLACK].push_back(patterns[i]);
-        patterns[i].flipColors();
-        g_uniqueProbe[WHITE].push_back(patterns[i]);
-    }
-    for (BWIterator c; c; ++c) 
-        g_hash_uniqueProbe[*c].hash(g_uniqueProbe[*c]);
-    g_UniqueProbesInitialized = true;
-}
-
-bool UniqueProbe(StoneBoard& brd, HexPoint losingMove, 
-                 HexPoint winningMove)
-{
-    PatternState pstate(brd);
-    pstate.Update();
-    
-    PatternHits hits;
-    pstate.MatchOnCell(g_hash_uniqueProbe[brd.WhoseTurn()],
-                       losingMove, PatternState::MATCH_ALL, hits);
-    for (std::size_t i = 0; i < hits.size(); ++i)
-    {
-        const std::vector<HexPoint>& moves = hits[i].moves1();
-        HexAssert(moves.size() == 1);
-        if (moves[0] == winningMove)
-            return true;
-    }
-    return false;
-}
-
-}
-
-//----------------------------------------------------------------------------
-
 DfpnSolver::DfpnSolver()
     : m_hashTable(0),
       m_useGuiFx(false),
@@ -456,8 +489,8 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
         LogInfo() << " Unique Probes: " << m_numUniqueProbes 
                   << " (" << (100 * m_numUniqueProbes 
                               / m_numProbeChecks) << "%)\n";
-        LogInfo() << "Transpositions: " << m_numTranspositions << '\n';
     }
+    LogInfo() << "Transpositions: " << m_numTranspositions << '\n';
     if (m_useBoundsCorrection)
     {
         std::ostringstream os;
@@ -547,7 +580,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     hash_t parentHash = history.LastHash();
     HexColor colorToMove = m_brd->WhoseTurn();
 
-    std::vector<HexPoint> children;
+    DfpnChildren children;
     {
         DfpnData data;
         if (m_hashTable->Get(m_brd->Hash(), data)) 
@@ -584,7 +617,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                     m_guiFx.Write();
                 }
                 TTStore(m_brd->Hash(), 
-                        DfpnData(terminal, std::vector<HexPoint>(), 
+                        DfpnData(terminal, DfpnChildren(),
                                  INVALID_POINT, 1, parentHash, 
                                  history.LastMove()));
                 return 1;
@@ -601,8 +634,10 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                 mvsc.push_back(std::make_pair(-score, *it));
             }
             stable_sort(mvsc.begin(), mvsc.end());
+            std::vector<HexPoint> sortedChildren;
             for (size_t i = 0; i < mvsc.size(); ++i) 
-                children.push_back(mvsc[i].second);
+                sortedChildren.push_back(mvsc[i].second);
+            children.SetChildren(sortedChildren);
         }
     }
 
@@ -610,10 +645,10 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     size_t localWork = 1;
 
     // Not thread safe: perhaps move into while loop below later...
-    std::vector<DfpnData> childrenData(children.size());
-    for (size_t i = 0; i < children.size(); ++i)
-        LookupData(childrenData[i], colorToMove, children[i],
-                   ComputeInitialDelta(i, children.size(), m_brd->width()));
+    std::vector<DfpnData> childrenData(children.Size());
+    for (size_t i = 0; i < children.Size(); ++i)
+        LookupData(childrenData[i], children, i,
+                   ComputeInitialDelta(i, children.Size(), m_brd->width()));
 
     if (m_useGuiFx && depth == 0)
         m_guiFx.SetChildren(children, childrenData);
@@ -647,7 +682,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         std::size_t delta2 = INFTY;
         SelectChild(bestIndex, delta2, childrenData);
         DfpnBounds child(childrenData[bestIndex].m_bounds);
-        bestMove = children[bestIndex];
+        bestMove = children.FirstMove(bestIndex);
 
         // Update thresholds
         child.phi = bounds.delta - (currentBounds.delta - child.phi);
@@ -656,21 +691,21 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         HexAssert(child.delta > childrenData[bestIndex].m_bounds.delta);
 
         if (m_useGuiFx && depth == 0)
-            m_guiFx.PlayMove(colorToMove, bestMove);
+            m_guiFx.PlayMove(colorToMove, bestIndex);
 
         // Recurse on best child
-        m_brd->playMove(colorToMove, bestMove);
-        history.Push(bestMove, currentHash);
+        children.PlayMove(bestIndex, *m_brd);
+        history.Push(bestMove, currentHash); // FIXME: handle sequences!
         localWork += MID(child, history);
         transpositions = history.Transpositions();
         history.Pop();
-        m_brd->undoMove(bestMove);
+        children.UndoMove(bestIndex, *m_brd);
 
         if (m_useGuiFx && depth == 0)
             m_guiFx.UndoMove();
 
         // Update bounds for best child
-        LookupData(childrenData[bestIndex], colorToMove, bestMove, 1);
+        LookupData(childrenData[bestIndex], children, bestIndex, 1);
 
         // Check unique probe heuristic
         if (childrenData[bestIndex].m_bounds.IsWinning())
@@ -702,25 +737,25 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         if (currentBounds.IsLosing())
         {
             std::size_t maxWork = 0;
-            for (std::size_t i = 0; i < children.size(); ++i)
+            for (std::size_t i = 0; i < children.Size(); ++i)
             {
                 if (childrenData[i].m_work > maxWork)
                 {
                     maxWork = childrenData[i].m_work;
-                    bestMove = children[i];
+                    bestMove = children.FirstMove(i);
                 }
             }
         }
         else
         {
             std::size_t minWork = INFTY;
-            for (std::size_t i = 0; i < children.size(); ++i)
+            for (std::size_t i = 0; i < children.Size(); ++i)
             {
                 if (childrenData[i].m_bounds.IsLosing() 
                     && childrenData[i].m_work < minWork)
                 {
                     minWork = childrenData[i].m_work;
-                    bestMove = children[i];
+                    bestMove = children.FirstMove(i);
                 }
             }
         }
@@ -801,12 +836,12 @@ void DfpnSolver::UpdateBounds(hash_t parentHash, DfpnBounds& bounds,
     //bounds = useBoundsParent ? boundsParent : boundsAll;
 }
 
-void DfpnSolver::LookupData(DfpnData& data, HexColor colorToMove, 
-                            HexPoint cell, size_t delta)
+void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children, 
+                            int childIndex, size_t delta)
 {
-    m_brd->playMove(colorToMove, cell);
+    children.PlayMove(childIndex, *m_brd);
     hash_t hash = m_brd->Hash();
-    m_brd->undoMove(cell);
+    children.UndoMove(childIndex, *m_brd);
 
     if (!m_hashTable->Get(hash, data))
     {

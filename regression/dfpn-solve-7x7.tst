@@ -5,126 +5,149 @@
 boardsize 7 7
 
 play b a1
-11 solve-state-dfpn w
+11 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b a2
-12 solve-state-dfpn w
+12 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b a3
-13 solve-state-dfpn w
+13 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b a4
-14 solve-state-dfpn w
+14 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b a5
-15 solve-state-dfpn w
+15 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b a6
-16 solve-state-dfpn w
+16 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b a7
-17 solve-state-dfpn w
+17 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b b1
-21 solve-state-dfpn w
+21 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b b2
-22 solve-state-dfpn w
+22 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b b3
-23 solve-state-dfpn w
+23 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b b4
-24 solve-state-dfpn w
+24 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b b5
-25 solve-state-dfpn w
+25 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b b6
-26 solve-state-dfpn w
+26 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b b7
-27 solve-state-dfpn w
+27 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b c1
-31 solve-state-dfpn w
+31 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b c2
-32 solve-state-dfpn w
+32 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b c3
-33 solve-state-dfpn w
+33 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b c4
-34 solve-state-dfpn w
+34 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b c5
-35 solve-state-dfpn w
+35 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b c6
-36 solve-state-dfpn w
+36 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b c7
-37 solve-state-dfpn w
+37 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b d1
-41 solve-state-dfpn w
+41 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b d2
-42 solve-state-dfpn w
+42 dfpn-solve-state
 #? [white]
 
 undo
+dfpn-clear-tt
 play b d3
-43 solve-state-dfpn w
+43 dfpn-solve-state
 #? [black]
 
 undo
+dfpn-clear-tt
 play b d4
-44 solve-state-dfpn w
+44 dfpn-solve-state
 #? [black]
-

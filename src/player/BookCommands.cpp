@@ -12,7 +12,8 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-BookCommands::BookCommands(Game& game, HexEnvironment& env, BookCheck* bookCheck)
+BookCommands::BookCommands(Game& game, HexEnvironment& env, 
+                           BookCheck* bookCheck)
     : m_game(game), 
       m_env(env),
       m_bookCheck(bookCheck),
@@ -33,6 +34,8 @@ void BookCommands::Register(GtpEngine& e)
     Register(e, "book-visualize", &BookCommands::CmdBookVisualize);
     Register(e, "book-dump-non-terminal", 
              &BookCommands::CmdBookDumpNonTerminal);
+    Register(e, "book-import-solved", 
+             &BookCommands::CmdBookImportSolvedStates);
     Register(e, "book-set-value", &BookCommands::CmdBookSetValue);
 }
 
@@ -165,6 +168,20 @@ void BookCommands::CmdBookDumpNonTerminal(HtpCommand& cmd)
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
     BookUtil::DumpNonTerminalStates(*m_book, brd, numstones, pv, f);
+    f.close();
+}
+
+/** Imports positions from file into book. */
+void BookCommands::CmdBookImportSolvedStates(HtpCommand& cmd)
+{
+    if (!m_book)
+        throw HtpFailure() << "No open book.";
+    cmd.CheckNuArg(1);
+    std::string filename = cmd.Arg(0);
+    std::ifstream f(filename.c_str());
+    if (!f)
+        throw HtpFailure() << "Could not open file for reading.";
+    BookUtil::ImportSolvedStates(*m_book, m_game.Board().Const(), f);
     f.close();
 }
 

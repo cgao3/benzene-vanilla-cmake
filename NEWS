@@ -2,7 +2,14 @@ Benzene 0.9 (current development version)
 -----------------------------------------
 * New DFPN solver
 * Six no longer packaged with Benzene
+* Book commands/scripts to:
+  * export leafs over a certain depth threshold
+  * solve leafs with multiple concurrent dfpn threads
+  * import solved leafs back into book
 * Code cleanup/bug fixes
+  * No more GroupBoard and PatternBoard that derive off of StoneBoard
+  * Different base hash for each boardsize
+  * More documentation
 
 Benzene 0.8 (released 09/05/04)
 -------------------------------

@@ -132,6 +132,48 @@ inline std::ostream& operator<<(std::ostream& os, const DfpnBounds& bounds)
 
 //----------------------------------------------------------------------------
 
+/** Children of a dfpn state. 
+    @ingroup dfpn
+*/
+class DfpnChildren
+{
+public:
+    DfpnChildren();
+
+    void SetChildren(const std::vector<HexPoint>& children);
+    
+    std::size_t Size() const;
+
+    HexPoint FirstMove(int index) const;
+
+    const std::vector<HexPoint>& Moves(int index) const;
+
+    void PlayMove(int index, StoneBoard& brd) const;
+
+    void UndoMove(int index, StoneBoard& brd) const;
+
+private:
+    std::vector<std::vector<HexPoint> > m_children;
+
+};
+
+inline std::size_t DfpnChildren::Size() const
+{
+    return m_children.size();
+}
+
+inline HexPoint DfpnChildren::FirstMove(int index) const
+{
+    return m_children[index][0];
+}
+
+inline const std::vector<HexPoint>& DfpnChildren::Moves(int index) const
+{
+    return m_children[index];
+}
+
+//----------------------------------------------------------------------------
+
 /** State in hashtable.
     @ingroup dfpn
  */
@@ -141,7 +183,7 @@ public:
 
     DfpnBounds m_bounds;
 
-    std::vector<HexPoint> m_children;
+    DfpnChildren m_children;
 
     HexPoint m_bestMove;
     
@@ -153,7 +195,7 @@ public:
 
     DfpnData();
 
-    DfpnData(const DfpnBounds& bounds, const std::vector<HexPoint>& children, 
+    DfpnData(const DfpnBounds& bounds, const DfpnChildren& children, 
              HexPoint bestMove, size_t work, hash_t parentHash,
              HexPoint moveParentPlayed);
 
@@ -177,7 +219,7 @@ inline DfpnData::DfpnData()
 }
 
 inline DfpnData::DfpnData(const DfpnBounds& bounds, 
-                          const std::vector<HexPoint>& children, 
+                          const DfpnChildren& children, 
                           HexPoint bestMove, size_t work, hash_t parentHash,
                           HexPoint moveParentPlayed)
     : m_bounds(bounds),
@@ -199,7 +241,7 @@ inline std::string DfpnData::Print() const
     std::ostringstream os;
     os << '[' 
        << "bounds=" << m_bounds << ' '
-       << "children=" << m_children.size() << ' '
+       << "children=" << m_children.Size() << ' '
        << "bestmove=" << m_bestMove << ' '
        << "work=" << m_work << ' '
        << "parent=" << HashUtil::toString(m_parentHash) << ' '
@@ -417,10 +459,10 @@ private:
 
         GuiFx();
 
-        void SetChildren(const std::vector<HexPoint>& children,
+        void SetChildren(const DfpnChildren& children,
                          const std::vector<DfpnData>& bounds);
 
-        void PlayMove(HexColor color, HexPoint move);
+        void PlayMove(HexColor color, int index);
 
         void UndoMove();
 
@@ -432,17 +474,17 @@ private:
 
     private:
         
-        std::vector<HexPoint> m_children;
+        DfpnChildren m_children;
 
         std::vector<DfpnData> m_data;
 
         HexColor m_color;
 
-        HexPoint m_move;
+        int m_index;
 
         double m_timeOfLastWrite;
 
-        HexPoint m_moveAtLastWrite;
+        int m_indexAtLastWrite;
 
         double m_delay;
 
@@ -506,8 +548,8 @@ private:
 
     void CheckBounds(const DfpnBounds& bounds) const;
 
-    void LookupData(DfpnData& data, HexColor colorToMove, HexPoint cell,
-                    size_t delta);
+    void LookupData(DfpnData& data, const DfpnChildren& children, 
+                    int childIndex, size_t delta);
 
     void TTStore(hash_t hash, const DfpnData& data);
 
