@@ -14,12 +14,12 @@ benzene directory:
 % autoreconf -i
 % ./configure --enable-assert --enable-optimize 
 
-(NOTE: This current build of Benzene is tested with revision 981
-(circa September 2009). It is possible that in the future the trunk
+(NOTE: This current build of Benzene is tested with revision 984
+(circa October 2009). It is possible that in the future the trunk
 version of fuego can differ drastically from this version. It may be
 necessary to checkout a branch in the fuego repository created near
-revision 981 to get the compile to work, or to checkout revision 981
-itself with the "-r 981" option to "svn co".)
+revision 984 to get the compile to work, or to checkout revision 984
+itself with the "-r 984" option to "svn co".)
 
 Include the "--enable-assert" if you will be doing development on
 Benzene. The compilation will fail if you want to use assertions in 
