@@ -20,10 +20,6 @@ loadsgf sgf/puzzles/5x5-berge-1.sgf
 10 solve-state white
 #? [white]
 
-loadsgf sgf/puzzles/5x5-berge-2.sgf
-11 solver-find-winning white
-#? [c2]
-
 
 # David Boll puzzles (kind of - based off positions on his site)
 
