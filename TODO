@@ -5,7 +5,6 @@ broderic [091022] (in rough order of importance)
 * DFPN:
   * db read/write
   * "Proof simulation"
-* Handle terminal states properly in MoHex
   Ie, do not use fillin and deletion to do this
 * Add time control to mohex
 * Switch dead region/decomp detection to new Phil algo
