@@ -87,7 +87,9 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     HexColor colorToMove = brd.WhoseTurn();
     brd.ComputeAll(colorToMove);
-    bitset_t consider = PlayerUtils::MovesToConsider(brd, colorToMove);
+    bitset_t consider = (PlayerUtils::IsDeterminedState(brd, colorToMove) ?
+                         brd.getEmpty() :
+                         PlayerUtils::MovesToConsider(brd, colorToMove));
     bitset_t winning;
 
     for (BitsetIterator p(consider); p; ++p)

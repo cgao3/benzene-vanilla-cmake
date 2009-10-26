@@ -186,7 +186,9 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
 
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
-    bitset_t consider = PlayerUtils::MovesToConsider(brd, color);
+    bitset_t consider = (PlayerUtils::IsDeterminedState(brd, color) ?
+                         brd.getEmpty() :
+                         PlayerUtils::MovesToConsider(brd, color));
     bitset_t winning;
 
     for (BitsetIterator p(consider); p; ++p)
