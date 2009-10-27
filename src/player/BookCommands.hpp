@@ -45,7 +45,7 @@ private:
     void CmdBookCounts(HtpCommand& cmd);
     void CmdBookScores(HtpCommand& cmd);
     void CmdBookVisualize(HtpCommand& cmd);
-    void CmdBookDumpNonTerminal(HtpCommand& cmd);
+    void CmdBookDumpPolarizedLeafs(HtpCommand& cmd);
     void CmdBookImportSolvedStates(HtpCommand& cmd);
     void CmdBookSetValue(HtpCommand& cmd);
 };

@@ -330,9 +330,9 @@ void BookUtil::DumpVisualizationData(const Book& book, StoneBoard& brd,
 
 namespace {
 
-void DumpNonTerminalStates(const Book& book, StoneBoard& brd,
-                           int numstones, std::set<hash_t>& seen,
-                           PointSequence& pv, std::ostream& out)
+void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
+                        float polarization, std::set<hash_t>& seen,
+                        PointSequence& pv, std::ostream& out)
 {
     hash_t hash = BookUtil::GetHash(brd);
     if (seen.find(hash) != seen.end())
@@ -340,7 +340,8 @@ void DumpNonTerminalStates(const Book& book, StoneBoard& brd,
     BookNode node;
     if (!book.GetNode(brd, node))
         return;
-    if (brd.numStones() >= numstones && node.IsLeaf() && !node.IsTerminal())
+    if (fabs(node.Value(brd) - 0.5) >= polarization 
+        && node.IsLeaf() && !node.IsTerminal())
     {
         out << HexPointUtil::ToPointListString(pv) << '\n';
         seen.insert(hash);
@@ -353,7 +354,7 @@ void DumpNonTerminalStates(const Book& book, StoneBoard& brd,
         {
             brd.playMove(brd.WhoseTurn(), *i);
             pv.push_back(*i);
-            DumpNonTerminalStates(book, brd, numstones, seen, pv, out);
+            DumpPolarizedLeafs(book, brd, polarization, seen, pv, out);
             pv.pop_back();
             brd.undoMove(*i);
         }
@@ -363,12 +364,12 @@ void DumpNonTerminalStates(const Book& book, StoneBoard& brd,
 
 }
 
-void BookUtil::DumpNonTerminalStates(const Book& book, StoneBoard& brd,
-                                     int numstones, PointSequence& pv, 
-                                     std::ostream& out)
+void BookUtil::DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
+                                  float polarization, PointSequence& pv, 
+                                  std::ostream& out)
 {
     std::set<hash_t> seen;
-    ::DumpNonTerminalStates(book, brd, numstones, seen, pv, out);
+    ::DumpPolarizedLeafs(book, brd, polarization, seen, pv, out);
 }
 
 void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,

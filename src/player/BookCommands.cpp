@@ -32,8 +32,8 @@ void BookCommands::Register(GtpEngine& e)
     Register(e, "book-counts", &BookCommands::CmdBookCounts);
     Register(e, "book-scores", &BookCommands::CmdBookScores);
     Register(e, "book-visualize", &BookCommands::CmdBookVisualize);
-    Register(e, "book-dump-non-terminal", 
-             &BookCommands::CmdBookDumpNonTerminal);
+    Register(e, "book-dump-polarized-leafs", 
+             &BookCommands::CmdBookDumpPolarizedLeafs);
     Register(e, "book-import-solved", 
              &BookCommands::CmdBookImportSolvedStates);
     Register(e, "book-set-value", &BookCommands::CmdBookSetValue);
@@ -149,17 +149,17 @@ void BookCommands::CmdBookVisualize(HtpCommand& cmd)
     f.close();
 }
 
-/** Dumps variations leading to non-terminal states with n stones in
-    the current book.
+/** Dumps variations leading to non-terminal leafs whose value is
+    polarized.
     Usage:
-      book-dump-non-terminal [num stones] [output file]
+      book-dump-polarized-leafs [polarization] [output file]
 */
-void BookCommands::CmdBookDumpNonTerminal(HtpCommand& cmd)
+void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
 {
     if (!m_book) 
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(2);
-    int numstones = cmd.IntArg(0, 0);
+    float polarization = cmd.FloatArg(0);
     std::string filename = cmd.Arg(1);
     StoneBoard brd(m_game.Board());
     PointSequence pv;
@@ -167,7 +167,7 @@ void BookCommands::CmdBookDumpNonTerminal(HtpCommand& cmd)
     std::ofstream f(filename.c_str());
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
-    BookUtil::DumpNonTerminalStates(*m_book, brd, numstones, pv, f);
+    BookUtil::DumpPolarizedLeafs(*m_book, brd, polarization, pv, f);
     f.close();
 }
 
