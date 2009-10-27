@@ -723,6 +723,8 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
     if (node.IsLeaf())
     {
         m_leaf_nodes++;
+        if (node.IsTerminal())
+            m_terminal_nodes++;
         return true;
     }
     double oldValue = node.Value(brd);
