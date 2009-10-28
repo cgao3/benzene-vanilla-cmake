@@ -1,0 +1,3 @@
+param_solver_ice find_permanently_inferior 1
+param_solver_vc use_patterns 1
+param_solver_vc max_ors 4
