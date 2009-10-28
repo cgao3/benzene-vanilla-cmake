@@ -82,8 +82,6 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("misc-debug", &BenzeneHtpEngine::CmdMiscDebug);
 
     // Set some defaults
-    m_se.buildParam.max_ors = 3;
-    m_se.buildParam.and_over_edge = false;
     m_solver.SetTT(m_solver_tt.get());
 }
 
