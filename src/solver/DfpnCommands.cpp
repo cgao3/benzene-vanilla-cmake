@@ -91,17 +91,21 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
                          brd.getEmpty() :
                          PlayerUtils::MovesToConsider(brd, colorToMove));
     bitset_t winning;
+    SgTimer timer;
 
     for (BitsetIterator p(consider); p; ++p)
     {
         StoneBoard board(m_game.Board());
         board.playMove(colorToMove, *p);
-
         HexBoard& brd = m_env.SyncBoard(board);
+        LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
+
         HexColor winner = m_solver.StartSearch(brd, *m_tt);
         if (winner == colorToMove)
             winning.set(*p);
+        LogInfo() << "****** " << winner << " wins ******\n";
     }
+    LogInfo() << "Total Elapsed Time: " << timer.GetTime() << '\n';
     cmd << HexPointUtil::ToPointListString(winning);
 }
 

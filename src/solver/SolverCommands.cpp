@@ -3,6 +3,8 @@
  */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
+#include "SgTimer.h"
 #include "BitsetIterator.hpp"
 #include "PlayerUtils.hpp"
 #include "SolverCommands.hpp"
@@ -190,6 +192,7 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
                          brd.getEmpty() :
                          PlayerUtils::MovesToConsider(brd, color));
     bitset_t winning;
+    SgTimer timer;
 
     for (BitsetIterator p(consider); p; ++p)
     {
@@ -203,10 +206,7 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
         bitset_t proof;
         std::vector<HexPoint> pv;
 
-        LogInfo()
-                 << "****** Trying " << HexPointUtil::toString(*p)
-                 << " ******" << '\n'
-                 << brd << '\n';
+        LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
 
         HexColor winner = EMPTY;
         Solver::SolutionSet solution;
@@ -215,19 +215,14 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
                               maxstones, transtones, solution)
             : m_solver.Solve(brd, other, solution);
         m_solver.DumpStats(solution);
-        LogInfo()
-                 << "Proof:" << brd.Write(solution.proof)
-                 << '\n';
+        LogInfo() << "Proof:" << brd.Write(solution.proof) << '\n';
 
         if (result != Solver::UNKNOWN) {
             winner = (result==Solver::WIN) ? !color : color;
-            LogInfo()
-                     << "****** " << winner << " wins ******"
-                     << '\n';
+            LogInfo() << "****** " << winner << " wins ******\n";
         } else {
-            LogInfo() << "****** unknown ******"  << '\n';
+            LogInfo() << "****** unknown ******\n";
         }
-
 
         if (winner == color) {
             winning.set(*p);
@@ -235,11 +230,9 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
 	    consider &= solution.proof;
 	}
     }
-
-    LogInfo()
-             << "****** Winning Moves ******" << '\n'
-             << m_game.Board().Write(winning) << '\n';
-
+    LogInfo() << "****** Winning Moves ******\n"
+              << m_game.Board().Write(winning) << '\n';
+    LogInfo() << "Total Elapsed Time: " << timer.GetTime() << '\n';
     cmd << HexPointUtil::ToPointListString(winning);
 }
 
