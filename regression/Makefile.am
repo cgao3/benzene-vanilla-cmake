@@ -1,5 +1,6 @@
 EXTRA_DIST = \
 basics.tst \
+dfpn-puzzle.tst \
 endgame.tst \
 gtpregress \
 gtpregress.jar \
@@ -11,6 +12,7 @@ opening.tst \
 play.tst \
 puzzle.tst \
 README \
+settings-dfpn.htp \
 settings-puzzle.htp \
 settings-vc.htp \
 solve-6x6.tst \
@@ -203,14 +205,18 @@ sgf/puzzles/11x11-boll-05.sgf \
 sgf/puzzles/11x11-browne-01.sgf \
 sgf/puzzles/11x11-browne-02.sgf \
 sgf/puzzles/11x11-browne-03.sgf \
+sgf/puzzles/11x11-browne-comp-02.sgf \
 sgf/puzzles/11x11-hein-01.sgf \
 sgf/puzzles/3x3-hein-02.sgf \
 sgf/puzzles/4x4-hein-04.sgf \
 sgf/puzzles/4x4-hein-05.sgf \
+sgf/puzzles/4x4-hein-comp-05.sgf \
 sgf/puzzles/5x5-berge-1.sgf \
-sgf/puzzles/5x5-berge-2.sgf \
+sgf/puzzles/5x5-berge-comp-1.sgf \
 sgf/puzzles/5x5-hein-06.sgf \
+sgf/puzzles/5x5-hein-comp-06.sgf \
 sgf/puzzles/6x6-hayward-01.sgf \
+sgf/puzzles/6x6-hayward-comp-01.sgf \
 sgf/puzzles/6x6-hein-03.sgf \
 sgf/puzzles/6x6-hein-07.sgf \
 sgf/puzzles/6x6-henderson-02.sgf \
