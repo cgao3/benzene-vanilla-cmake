@@ -212,7 +212,7 @@ VCPattern::GetPatterns(int width, int height, HexColor color)
 void VCPattern::CreatePatterns(int width, int height)
 {
     LogInfo() << "VCPattern::CreatePatterns(" 
-             << width << ", " << height << ")" << '\n';
+              << width << ", " << height << ")\n";
     
 #ifndef ABS_TOP_SRCDIR
     #error "ABS_TOP_SRCDIR not defined!"
@@ -222,19 +222,12 @@ void VCPattern::CreatePatterns(int width, int height)
         / "share" / "vc-patterns.txt";
     pp.normalize();
     std::string file = pp.native_file_string();
-    LogInfo() 
-             << "Loading pattern templates from: '" 
-             << file << "'" << '\n';
+    LogInfo() << "Loading pattern templates from: '" << file << "'\n";
     std::ifstream fin(file.c_str());
     if (!fin)
-    {
-        LogWarning() << "Could not open pattern file!" 
-                 << '\n';
-        HexAssert(false);
-    }
+        throw HexException("Could not open pattern file!\n");
 
     std::vector<VCPattern> out[BLACK_AND_WHITE];
-
     std::vector<BuilderPattern> start, end;
     std::vector<VCPattern> complete;
 
@@ -274,23 +267,28 @@ void VCPattern::CreatePatterns(int width, int height)
             carrier.push_back(line);
         }
         HexAssert(!carrier.empty());
-        HexAssert(carrier.size() <= 11);
         HexAssert(patternHeight == -1 || patternHeight <= (int)carrier.size());
 
         // abort if pattern too large for board
-        if ((int)carrier.size() > height) continue;
+        if ((int)carrier.size() > height) 
+            continue;
         
         int row = height-1;
         int numcol = -1;
         HexPoint endpoint = SOUTH;
         bitset_t black, empty, badprobes;
+        bool patternFits = true;
         for (int i=carrier.size()-1; i>=0; --i) {
-            int col = 0; 
             is.clear();
             is.str(carrier[i]);
 
             std::string sym;
+            int col = 0;
             while (is >> sym) {
+                if (col >= width) {
+                    patternFits = false;
+                    break;
+                }
                 HexPoint p = HexPointUtil::coordsToPoint(col, row);
                 switch(sym[0]) {
                 case '*': empty.set(p); break;
@@ -302,21 +300,17 @@ void VCPattern::CreatePatterns(int width, int height)
                 }
                 col++;
             }
-
-            if (numcol == -1) numcol = col;
-            else if (numcol != col) {
-                LogSevere() 
-                         << "Number of columns is not the same!"
-                         << numcol << " != " << col
-                         << '\n';
-                HexAssert(false);
-            }
-
+            if (!patternFits)
+                break;
+            if (numcol == -1) 
+                numcol = col;
+            HexAssert(numcol == col);
             row--;
         }
 
         // abort if pattern too large for board 
-        if (numcol > width) continue;
+        if (!patternFits)
+            continue;
 
         StoneBoard sb(width, height);
         sb.startNewGame();
