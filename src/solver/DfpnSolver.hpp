@@ -560,6 +560,8 @@ private:
 
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;
+
+    void PrintStatistics();
 };
 
 inline bool DfpnSolver::UseGuiFx() const

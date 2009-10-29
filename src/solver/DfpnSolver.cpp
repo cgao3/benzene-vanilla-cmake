@@ -457,30 +457,8 @@ std::string DfpnSolver::PrintVariation(const std::vector<HexPoint>& pv) const
     return os.str();
 }
 
-HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
+void DfpnSolver::PrintStatistics()
 {
-    m_aborted = false;
-    m_hashTable = &hashtable;
-    m_numTerminal = 0;
-    m_numTranspositions = 0;
-    m_numBoundsCorrections = 0;
-    m_transStats.Clear();
-    m_slotStats.Clear();
-    m_numMIDcalls = 0;
-    m_numUniqueProbes = 0;
-    m_numProbeChecks = 0;
-    m_brd.reset(new StoneBoard(board));
-    m_workBoard = &board;
-    m_checkTimerAbortCalls = 0;
-
-    InitializeUniqueProbes();
-
-    DfpnBounds root(INFTY, INFTY);
-    m_timer.Start();
-    DfpnHistory history;
-    MID(root, history);
-    m_timer.Stop();
-
     LogInfo() << "     MID calls: " << m_numMIDcalls << '\n';
     LogInfo() << "Terminal nodes: " << m_numTerminal << '\n';
     if (m_useUniqueProbes)
@@ -504,8 +482,46 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
         LogInfo() << "Corrections: " << m_numBoundsCorrections << '\n';
     }
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
-    LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime() <<'\n';
+    LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime()<<'\n';
     LogInfo() << m_hashTable->Stats() << '\n';
+}
+
+HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
+{
+    m_aborted = false;
+    m_hashTable = &hashtable;
+    m_numTerminal = 0;
+    m_numTranspositions = 0;
+    m_numBoundsCorrections = 0;
+    m_transStats.Clear();
+    m_slotStats.Clear();
+    m_numMIDcalls = 0;
+    m_numUniqueProbes = 0;
+    m_numProbeChecks = 0;
+    m_brd.reset(new StoneBoard(board));
+    m_workBoard = &board;
+    m_checkTimerAbortCalls = 0;
+
+    InitializeUniqueProbes();
+
+    bool performSearch = true;
+    {
+        // Skip search if already solved
+        DfpnData data;
+        if (m_hashTable->Get(m_brd->Hash(), data)
+            && data.m_bounds.IsSolved())
+            performSearch = false;
+    }
+
+    if (performSearch)
+    {
+        DfpnBounds root(INFTY, INFTY);
+        m_timer.Start();
+        DfpnHistory history;
+        MID(root, history);
+        m_timer.Stop();
+        PrintStatistics();
+    }
 
     if (!m_aborted)
     {
