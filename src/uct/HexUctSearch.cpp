@@ -220,7 +220,7 @@ float HexUctSearch::InverseEval(float eval) const
 
 std::string HexUctSearch::MoveString(SgMove move) const
 {
-    return HexPointUtil::toString(static_cast<HexPoint>(move));
+    return HexPointUtil::ToString(static_cast<HexPoint>(move));
 }
 
 //----------------------------------------------------------------------------

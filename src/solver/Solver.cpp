@@ -545,8 +545,8 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
     // Get the moves to consider
     bitset_t mustplay = SolverUtil::MovesToConsider(brd, color, solution.proof);
     LogFine() << "mustplay: [" 
-             << HexPointUtil::ToPointListString(mustplay) 
-             << " ]" << '\n';
+              << HexPointUtil::ToString(mustplay) 
+              << " ]" << '\n';
 
     if (depth == m_update_depth) {
         LogInfo() << "Solving position:" << '\n' << *m_stoneboard << '\n';
@@ -1242,7 +1242,7 @@ void Solver::DumpStats(const SolutionSet& solution) const
 	      << "Played/sec: " << (m_statistics.played/total_time) << '\n'
 	      << "Total Time: " << Time::Formatted(total_time) << '\n'
 	      << "VC in " << solution.moves_to_connection << " moves" << '\n'
-	      << "PV:" << HexPointUtil::ToPointListString(solution.pv) << '\n'
+	      << "PV:" << HexPointUtil::ToString(solution.pv) << '\n'
 	      << m_histogram.Dump() << '\n';
 }
 

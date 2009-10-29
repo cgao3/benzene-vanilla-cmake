@@ -215,7 +215,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
                           HexColor color_to_move)
 {
     LogFine() << "Playing (" << color << ","
-              << HexPointUtil::ToPointListString(played) << ")\n";
+              << HexPointUtil::ToString(played) << ")\n";
     HexAssert(BitsetUtil::IsSubsetOf(played, getEmpty()));
 
     double s = Time::Get();
@@ -255,7 +255,7 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
 {
     HexAssert(BitsetUtil::IsSubsetOf(played, getEmpty()));
     LogFine() << "Adding (" << color << ", "
-              << HexPointUtil::ToPointListString(played) << ")\n";
+              << HexPointUtil::ToString(played) << ")\n";
 
     double s = Time::Get();
     bitset_t old_black = getColor(BLACK);

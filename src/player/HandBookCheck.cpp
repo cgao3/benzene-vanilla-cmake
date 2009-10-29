@@ -74,7 +74,7 @@ void HandBookCheck::LoadHandBook()
 	    std::string response;
 	    iss >> response;
             
-	    HexPoint move = HexPointUtil::fromString(response);
+	    HexPoint move = HexPointUtil::FromString(response);
 	    HexAssert(move != INVALID_POINT);
 
             if (m_response.count(hash))

@@ -394,7 +394,7 @@ void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
     brd.SetUseDecompositions(useDecomps);
     bitset_t capturedVC;
     if (BoardUtils::FindCombinatorialDecomposition(brd, color, capturedVC)) 
-        cmd << HexPointUtil::ToPointListString(capturedVC);
+        cmd << HexPointUtil::ToString(capturedVC);
 }
 
 /** Tries to find a group that crowds both opponent edges. Outputs
@@ -531,14 +531,13 @@ void BenzeneHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
     TwoDistance twod(TwoDistance::ADJACENT);
     twod.Evaluate(brd);
 
-    for (BoardIterator it(brd.Const().Interior()); it; ++it) {
+    for (BoardIterator it(brd.Const().Interior()); it; ++it) 
+    {
         if (brd.isOccupied(*it)) continue;
         HexEval energy = twod.Score(*it, color);
         if (energy == EVAL_INFINITY)
             energy = -1;
-
-        cmd << " " << HexPointUtil::toString(*it)
-            << " " << energy;
+        cmd << " " << *it << " " << energy;
     }
 }
 
@@ -561,9 +560,8 @@ void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
         HexEval energy = resist.Score(*it, color);
         if (energy == EVAL_INFINITY)
             energy = -1;
-
-        cmd << " " << HexPointUtil::toString(*it)
-            << " " << std::fixed << std::setprecision(3) << energy;
+        cmd << " " << *it << " " 
+            << std::fixed << std::setprecision(3) << energy;
     }
 }
 
@@ -579,15 +577,13 @@ void BenzeneHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
     HexEval base = resist.Score();
 
     cmd << " res " << std::fixed << std::setprecision(3) << base;
-    for (BitsetIterator it(brd.getEmpty()); it; ++it) {
+    for (BitsetIterator it(brd.getEmpty()); it; ++it) 
+    {
         brd.PlayMove(color, *it);
-
         resist.Evaluate(brd);
         HexEval cur = resist.Score();
-
-        cmd << " " << HexPointUtil::toString(*it)
-            << " " << std::fixed << std::setprecision(3) << (cur - base);
-
+        cmd << " " << *it << " " 
+            << std::fixed << std::setprecision(3) << (cur - base);
         brd.UndoMove();
     }
 }
@@ -636,7 +632,7 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
 	else
 	    influence = v2 / (v1 + v2);
 
-        cmd << " " << HexPointUtil::toString(*it) << " "
+        cmd << " " << *it << " "
 	    << std::fixed << std::setprecision(2) << influence;
     }
 }
@@ -689,14 +685,12 @@ void BenzeneHtpEngine::SolverThread::operator()()
             if (result == Solver::WIN)
             {
                 LogInfo() << "*** FOUND WIN!!! ***" << '\n' << "PV: " 
-                          << HexPointUtil::ToPointListString(solution.pv)
-                          << '\n';
+                          << HexPointUtil::ToString(solution.pv) << '\n';
             }
             else if (result == Solver::LOSS) 
             {
                 LogInfo() << "*** FOUND LOSS!! ***" << '\n' << "PV: " 
-                          << HexPointUtil::ToPointListString(solution.pv)
-                          << '\n';
+                          << HexPointUtil::ToString(solution.pv) << '\n';
             }
             SgSetUserAbort(true);
         }

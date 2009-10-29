@@ -24,8 +24,8 @@ namespace {
 
 BOOST_AUTO_TEST_CASE(VCList_Basic)
 {
-    HexPoint x = HexPointUtil::fromString("a1");
-    HexPoint y = HexPointUtil::fromString("a2");
+    HexPoint x = HEX_CELL_A1;
+    HexPoint y = HEX_CELL_A2;
 
     VCList vl(x, y, 2);
 

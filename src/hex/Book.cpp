@@ -343,7 +343,7 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
     if (fabs(node.Value(brd) - 0.5) >= polarization 
         && node.IsLeaf() && !node.IsTerminal())
     {
-        out << HexPointUtil::ToPointListString(pv) << '\n';
+        out << HexPointUtil::ToString(pv) << '\n';
         seen.insert(hash);
     }
     else
@@ -406,7 +406,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
             }
             else
             {
-                HexPoint p = HexPointUtil::fromString(token);
+                HexPoint p = HexPointUtil::FromString(token);
                 if (p == INVALID_POINT)
                     break;
                 points.push_back(p);

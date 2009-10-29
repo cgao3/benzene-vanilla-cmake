@@ -330,10 +330,8 @@ HexEval HexAbSearch::SearchState(const std::vector<int>& plywidth,
             pv.push_back(bestmove);
             pv.insert(pv.end(), cv.begin(), cv.end());
 
-            LogFine() << space 
-                     << "--- New best: " << value 
-                     << " PV:" << HexPointUtil::ToPointListString(pv) << " ---"
-                     << '\n';
+            LogFine() << space << "--- New best: " << value 
+                      << " PV:" << HexPointUtil::ToString(pv) << " ---\n";
         }
 
         // store root move evaluations and output progress to gui

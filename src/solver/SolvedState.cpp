@@ -16,11 +16,11 @@ void SolvedState::CheckCollision(const SolvedState& other) const
     {
         LogSevere() << "HASH COLLISION!" << '\n'
 		    << "this:" << '\n'
-		    << HexPointUtil::ToPointListString(this->black) << '\n'
-		    << HexPointUtil::ToPointListString(this->white) << '\n'
+		    << HexPointUtil::ToString(this->black) << '\n'
+		    << HexPointUtil::ToString(this->white) << '\n'
 		    << "other:" << '\n'
-		    << HexPointUtil::ToPointListString(other.black) << '\n'
-		    << HexPointUtil::ToPointListString(other.white) << '\n';
+		    << HexPointUtil::ToString(other.black) << '\n'
+		    << HexPointUtil::ToString(other.white) << '\n';
 	abort();
     } 
 }

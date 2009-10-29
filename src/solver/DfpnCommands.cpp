@@ -106,7 +106,7 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
         LogInfo() << "****** " << winner << " wins ******\n";
     }
     LogInfo() << "Total Elapsed Time: " << timer.GetTime() << '\n';
-    cmd << HexPointUtil::ToPointListString(winning);
+    cmd << HexPointUtil::ToString(winning);
 }
 
 /** Clears the current dfpn hashtable. */

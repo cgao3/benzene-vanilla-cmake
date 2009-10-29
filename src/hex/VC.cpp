@@ -80,11 +80,11 @@ std::string VC::toString() const
     os << std::setw(7) << this->rule();
 
     os << " [";
-    os << HexPointUtil::ToPointListString(this->carrier());
+    os << HexPointUtil::ToString(this->carrier());
     os << " ]";
 
     os << " [";
-    os << HexPointUtil::ToPointListString(this->stones());
+    os << HexPointUtil::ToString(this->stones());
     os << " ]";
 
     if (this->type() == VC::SEMI)

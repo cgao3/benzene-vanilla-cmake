@@ -140,7 +140,7 @@ void VCCommands::CmdGetCellsConnectedTo(HtpCommand& cmd)
     VC::Type ctype = VCTypeArg(cmd, 2);
     bitset_t pt = VCSetUtil::ConnectedTo(m_env.brd->Cons(color), 
                                          m_env.brd->GetGroups(), from, ctype);
-    cmd << HexPointUtil::ToPointListString(pt);
+    cmd << HexPointUtil::ToString(pt);
 }
 
 /** Prints the cells in the current mustplay for the given player.
@@ -178,7 +178,7 @@ void VCCommands::CmdVCIntersection(HtpCommand& cmd)
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
     bitset_t intersection = lst.hardIntersection();
-    cmd << HexPointUtil::ToPointListString(intersection);
+    cmd << HexPointUtil::ToString(intersection);
 }
 
 /** Prints the cells in union of connections between given endpoints. 
@@ -196,7 +196,7 @@ void VCCommands::CmdVCUnion(HtpCommand& cmd)
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
     bitset_t un = lst.getGreedyUnion(); // FIXME: shouldn't be greedy!!
-    cmd << HexPointUtil::ToPointListString(un);
+    cmd << HexPointUtil::ToString(un);
 }
 
 //----------------------------------------------------------------------------

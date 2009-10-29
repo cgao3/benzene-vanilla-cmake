@@ -82,13 +82,13 @@ HexPoint MostOverlappingMove(const std::vector<VC>& VClist,
 	intersectSmallest &= carrier;
     }
     LogFine() << "Intersection of smallest set is:" << '\n'
-	      << HexPointUtil::ToPointListString(intersectSmallest) << '\n';
+	      << HexPointUtil::ToString(intersectSmallest) << '\n';
     
     // remove as many inferior moves as possible from this intersection
     TightenMoveBitset(intersectSmallest, inf);
     
     LogFine() << "After elimination of inferior cells:" << '\n'
-	      << HexPointUtil::ToPointListString(intersectSmallest) << '\n';
+	      << HexPointUtil::ToString(intersectSmallest) << '\n';
     
     // determine which of the remaining cells performs best with
     // regards to other connections

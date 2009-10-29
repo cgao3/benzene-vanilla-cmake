@@ -62,16 +62,16 @@ BOOST_AUTO_TEST_CASE(ConstBoard_CellsLocationsValid)
     BOOST_CHECK(cb->isLocation(SOUTH));
     BOOST_CHECK(cb->isValid(EAST));
     BOOST_CHECK(!cb->isCell(WEST));
-    BOOST_CHECK(cb->isValid(HexPointUtil::fromString("a1")));
-    BOOST_CHECK(cb->isCell(HexPointUtil::fromString("a3")));
-    BOOST_CHECK(cb->isLocation(HexPointUtil::fromString("e3")));
+    BOOST_CHECK(cb->isValid(HEX_CELL_A1));
+    BOOST_CHECK(cb->isCell(HEX_CELL_A3));
+    BOOST_CHECK(cb->isLocation(HEX_CELL_E3));
     BOOST_CHECK(!cb->isValid(INVALID_POINT));
     BOOST_CHECK(cb->isValid(RESIGN));
     BOOST_CHECK(!cb->isLocation(RESIGN));
     BOOST_CHECK(FIRST_INVALID==BITSETSIZE || !cb->isValid(FIRST_INVALID));
-    BOOST_CHECK(!cb->isValid(HexPointUtil::fromString("f1")));
-    BOOST_CHECK(!cb->isValid(HexPointUtil::fromString("a4")));
-    BOOST_CHECK(!cb->isValid(HexPointUtil::fromString("e4")));
+    BOOST_CHECK(!cb->isValid(HEX_CELL_F1));
+    BOOST_CHECK(!cb->isValid(HEX_CELL_A4));
+    BOOST_CHECK(!cb->isValid(HEX_CELL_E4));
     
     // checking validity of bitsets
     BOOST_CHECK(cb->isValid(b1));
@@ -182,8 +182,8 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allAdjacent = true;
     allUnique = true;
-    for (BoardIterator it(cb->Nbs(HexPointUtil::fromString("b6"))); it; ++it) {
-	allAdjacent = allAdjacent && cb->Adjacent(HexPointUtil::fromString("b6"), *it);
+    for (BoardIterator it(cb->Nbs(HEX_CELL_B6)); it; ++it) {
+	allAdjacent = allAdjacent && cb->Adjacent(HEX_CELL_B6, *it);
 	allUnique = allUnique && (!b.test(*it));
 	b.set(*it);
     }
@@ -199,8 +199,8 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->Nbs(HexPointUtil::fromString("f6"), radius)); it; ++it) {
-	int curDistance = cb->Distance(HexPointUtil::fromString("f6"), *it);
+    for (BoardIterator it(cb->Nbs(HEX_CELL_F6, radius)); it; ++it) {
+	int curDistance = cb->Distance(HEX_CELL_F6, *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
 	b.set(*it);
@@ -213,8 +213,8 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->Nbs(HexPointUtil::fromString("f6"), radius)); it; ++it) {
-	int curDistance = cb->Distance(HexPointUtil::fromString("f6"), *it);
+    for (BoardIterator it(cb->Nbs(HEX_CELL_F6, radius)); it; ++it) {
+	int curDistance = cb->Distance(HEX_CELL_F6, *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
 	b.set(*it);
@@ -226,8 +226,8 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     b.reset();
     allUnique = true;
     allWithinRadius = true;
-    for (BoardIterator it(cb->Nbs(HexPointUtil::fromString("d3"), radius)); it; ++it) {
-	int curDistance = cb->Distance(HexPointUtil::fromString("d3"), *it);
+    for (BoardIterator it(cb->Nbs(HEX_CELL_D3, radius)); it; ++it) {
+	int curDistance = cb->Distance(HEX_CELL_D3, *it);
 	allWithinRadius = allWithinRadius && (0 < curDistance) && (curDistance <= radius);
 	allUnique = allUnique && (!b.test(*it));
 	b.set(*it);

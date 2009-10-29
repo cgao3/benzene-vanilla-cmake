@@ -1,5 +1,7 @@
 //----------------------------------------------------------------------------
 /** @file SwapCheck.cpp
+ *
+ * @todo WHAT THE HELL IS THIS GARBAGE?!?!?! REMOVE THIS!!
  */
 //----------------------------------------------------------------------------
 
@@ -29,7 +31,7 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
         && (!FIRST_TO_PLAY == color))
     {
 	HexAssert(1 == brd.numStones());
-	LogInfo() << "Performing swap pre-check..." << '\n';
+	LogInfo() << "Performing swap pre-check...\n";
 	
 	/** If board has unequal dimensions, we want to traverse the
 	    shorter distance. */
@@ -39,8 +41,7 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 		(brd.width() < brd.height() && color == VERTICAL_COLOR))
             {
                 LogInfo() << "Non-square board: " 
-                         << "Swapping to obtain shorter side!"
-                         << '\n';
+                          << "Swapping to obtain shorter side!\n";
 		return SWAP_PIECES;
             }
 	}
@@ -56,128 +57,128 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 	    
 	    // We can make optimal decisions up to 8x8.
 	    if (1 == brd.width()) {
-		HexAssert(firstMove == HexPointUtil::fromString("a1"));
+		HexAssert(firstMove == HEX_CELL_A1);
 		return SWAP_PIECES;
 	    } else if (2 == brd.width()) {
-		if (firstMove == HexPointUtil::fromString("b1") ||
-		    firstMove == HexPointUtil::fromString("a2"))
+		if (firstMove == HEX_CELL_B1 ||
+		    firstMove == HEX_CELL_A2)
 		    return SWAP_PIECES;
 	    } else if (3 == brd.width()) {
-		if (firstMove == HexPointUtil::fromString("b1") ||
-		    firstMove == HexPointUtil::fromString("c1") ||
-		    firstMove == HexPointUtil::fromString("b2") ||
-		    firstMove == HexPointUtil::fromString("a3") ||
-		    firstMove == HexPointUtil::fromString("b3"))
+		if (firstMove == HEX_CELL_B1 ||
+		    firstMove == HEX_CELL_C1 ||
+		    firstMove == HEX_CELL_B2 ||
+		    firstMove == HEX_CELL_A3 ||
+		    firstMove == HEX_CELL_B3)
 		    return SWAP_PIECES;
 	    } else if (4 == brd.width()) {
-		if (firstMove == HexPointUtil::fromString("d1") ||
-		    firstMove == HexPointUtil::fromString("c2") ||
-		    firstMove == HexPointUtil::fromString("b3") ||
-		    firstMove == HexPointUtil::fromString("a4"))
+		if (firstMove == HEX_CELL_D1 ||
+		    firstMove == HEX_CELL_C2 ||
+		    firstMove == HEX_CELL_B3 ||
+		    firstMove == HEX_CELL_A4)
 		    return SWAP_PIECES;
 	    } else if (5 == brd.width()) {
-		if (firstMove == HexPointUtil::fromString("d1") ||
-		    firstMove == HexPointUtil::fromString("e1") ||
-		    firstMove == HexPointUtil::fromString("b2") ||
-		    firstMove == HexPointUtil::fromString("c2") ||
-		    firstMove == HexPointUtil::fromString("d2") ||
-		    firstMove == HexPointUtil::fromString("b3") ||
-		    firstMove == HexPointUtil::fromString("c3") ||
-		    firstMove == HexPointUtil::fromString("d3") ||
-		    firstMove == HexPointUtil::fromString("b4") ||
-		    firstMove == HexPointUtil::fromString("c4") ||
-		    firstMove == HexPointUtil::fromString("d4") ||
-		    firstMove == HexPointUtil::fromString("a5") ||
-		    firstMove == HexPointUtil::fromString("b5"))
+		if (firstMove == HEX_CELL_D1 ||
+		    firstMove == HEX_CELL_E1 ||
+		    firstMove == HEX_CELL_B2 ||
+		    firstMove == HEX_CELL_C2 ||
+		    firstMove == HEX_CELL_D2 ||
+		    firstMove == HEX_CELL_B3 ||
+		    firstMove == HEX_CELL_C3 ||
+		    firstMove == HEX_CELL_D3 ||
+		    firstMove == HEX_CELL_B4 ||
+		    firstMove == HEX_CELL_C4 ||
+		    firstMove == HEX_CELL_D4 ||
+		    firstMove == HEX_CELL_A5 ||
+		    firstMove == HEX_CELL_B5)
 		    return SWAP_PIECES;
 	    } else if (6 == brd.width()) {
-		if (firstMove == HexPointUtil::fromString("c1") ||
-		    firstMove == HexPointUtil::fromString("d1") ||
-		    firstMove == HexPointUtil::fromString("e1") ||
-		    firstMove == HexPointUtil::fromString("f1") ||
-		    firstMove == HexPointUtil::fromString("b2") ||
-		    firstMove == HexPointUtil::fromString("c2") ||
-		    firstMove == HexPointUtil::fromString("d2") ||
-		    firstMove == HexPointUtil::fromString("e2") ||
-		    firstMove == HexPointUtil::fromString("b3") ||
-		    firstMove == HexPointUtil::fromString("c3") ||
-		    firstMove == HexPointUtil::fromString("d3") ||
-		    firstMove == HexPointUtil::fromString("e3") ||
-		    firstMove == HexPointUtil::fromString("b4") ||
-		    firstMove == HexPointUtil::fromString("c4") ||
-		    firstMove == HexPointUtil::fromString("d4") ||
-		    firstMove == HexPointUtil::fromString("e4") ||
-		    firstMove == HexPointUtil::fromString("b5") ||
-		    firstMove == HexPointUtil::fromString("c5") ||
-		    firstMove == HexPointUtil::fromString("d5") ||
-		    firstMove == HexPointUtil::fromString("e5") ||
-		    firstMove == HexPointUtil::fromString("a6") ||
-		    firstMove == HexPointUtil::fromString("b6") ||
-		    firstMove == HexPointUtil::fromString("c6") ||
-		    firstMove == HexPointUtil::fromString("d6"))
+		if (firstMove == HEX_CELL_C1 ||
+		    firstMove == HEX_CELL_D1 ||
+		    firstMove == HEX_CELL_E1 ||
+		    firstMove == HEX_CELL_F1 ||
+		    firstMove == HEX_CELL_B2 ||
+		    firstMove == HEX_CELL_C2 ||
+		    firstMove == HEX_CELL_D2 ||
+		    firstMove == HEX_CELL_E2 ||
+		    firstMove == HEX_CELL_B3 ||
+		    firstMove == HEX_CELL_C3 ||
+		    firstMove == HEX_CELL_D3 ||
+		    firstMove == HEX_CELL_E3 ||
+		    firstMove == HEX_CELL_B4 ||
+		    firstMove == HEX_CELL_C4 ||
+		    firstMove == HEX_CELL_D4 ||
+		    firstMove == HEX_CELL_E4 ||
+		    firstMove == HEX_CELL_B5 ||
+		    firstMove == HEX_CELL_C5 ||
+		    firstMove == HEX_CELL_D5 ||
+		    firstMove == HEX_CELL_E5 ||
+		    firstMove == HEX_CELL_A6 ||
+		    firstMove == HEX_CELL_B6 ||
+		    firstMove == HEX_CELL_C6 ||
+		    firstMove == HEX_CELL_D6)
 		    return SWAP_PIECES;
 	    } else if (7 == brd.width()) {
-		if (firstMove == HexPointUtil::fromString("d1") ||
-		    firstMove == HexPointUtil::fromString("f1") ||
-		    firstMove == HexPointUtil::fromString("g1") ||
-		    firstMove == HexPointUtil::fromString("c2") ||
-		    firstMove == HexPointUtil::fromString("d2") ||
-		    firstMove == HexPointUtil::fromString("e2") ||
-		    firstMove == HexPointUtil::fromString("f2") ||
-		    firstMove == HexPointUtil::fromString("b3") ||
-		    firstMove == HexPointUtil::fromString("c3") ||
-		    firstMove == HexPointUtil::fromString("d3") ||
-		    firstMove == HexPointUtil::fromString("e3") ||
-		    firstMove == HexPointUtil::fromString("f3") ||
-		    firstMove == HexPointUtil::fromString("c4") ||
-		    firstMove == HexPointUtil::fromString("d4") ||
-		    firstMove == HexPointUtil::fromString("e4") ||
-		    firstMove == HexPointUtil::fromString("b5") ||
-		    firstMove == HexPointUtil::fromString("c5") ||
-		    firstMove == HexPointUtil::fromString("d5") ||
-		    firstMove == HexPointUtil::fromString("e5") ||
-		    firstMove == HexPointUtil::fromString("f5") ||
-		    firstMove == HexPointUtil::fromString("b6") ||
-		    firstMove == HexPointUtil::fromString("c6") ||
-		    firstMove == HexPointUtil::fromString("d6") ||
-		    firstMove == HexPointUtil::fromString("e6") ||
-		    firstMove == HexPointUtil::fromString("a7") ||
-		    firstMove == HexPointUtil::fromString("b7") ||
-		    firstMove == HexPointUtil::fromString("d7"))
+		if (firstMove == HEX_CELL_D1 ||
+		    firstMove == HEX_CELL_F1 ||
+		    firstMove == HEX_CELL_G1 ||
+		    firstMove == HEX_CELL_C2 ||
+		    firstMove == HEX_CELL_D2 ||
+		    firstMove == HEX_CELL_E2 ||
+		    firstMove == HEX_CELL_F2 ||
+		    firstMove == HEX_CELL_B3 ||
+		    firstMove == HEX_CELL_C3 ||
+		    firstMove == HEX_CELL_D3 ||
+		    firstMove == HEX_CELL_E3 ||
+		    firstMove == HEX_CELL_F3 ||
+		    firstMove == HEX_CELL_C4 ||
+		    firstMove == HEX_CELL_D4 ||
+		    firstMove == HEX_CELL_E4 ||
+		    firstMove == HEX_CELL_B5 ||
+		    firstMove == HEX_CELL_C5 ||
+		    firstMove == HEX_CELL_D5 ||
+		    firstMove == HEX_CELL_E5 ||
+		    firstMove == HEX_CELL_F5 ||
+		    firstMove == HEX_CELL_B6 ||
+		    firstMove == HEX_CELL_C6 ||
+		    firstMove == HEX_CELL_D6 ||
+		    firstMove == HEX_CELL_E6 ||
+		    firstMove == HEX_CELL_A7 ||
+		    firstMove == HEX_CELL_B7 ||
+		    firstMove == HEX_CELL_D7)
 		    return SWAP_PIECES;
 	    } else if (8 == brd.width()) {
-		if (firstMove == HexPointUtil::fromString("h1") ||
-		    firstMove == HexPointUtil::fromString("g2") ||
-		    firstMove == HexPointUtil::fromString("h2") ||
-		    firstMove == HexPointUtil::fromString("b3") ||
-		    firstMove == HexPointUtil::fromString("c3") ||
-		    firstMove == HexPointUtil::fromString("d3") ||
-		    firstMove == HexPointUtil::fromString("e3") ||
-		    firstMove == HexPointUtil::fromString("f3") ||
-		    firstMove == HexPointUtil::fromString("g3") ||
-		    firstMove == HexPointUtil::fromString("b4") ||
-		    firstMove == HexPointUtil::fromString("c4") ||
-		    firstMove == HexPointUtil::fromString("d4") ||
-		    firstMove == HexPointUtil::fromString("e4") ||
-		    firstMove == HexPointUtil::fromString("f4") ||
-		    firstMove == HexPointUtil::fromString("g4") ||
-		    firstMove == HexPointUtil::fromString("h4") ||
-		    firstMove == HexPointUtil::fromString("a5") ||
-		    firstMove == HexPointUtil::fromString("b5") ||
-		    firstMove == HexPointUtil::fromString("c5") ||
-		    firstMove == HexPointUtil::fromString("d5") ||
-		    firstMove == HexPointUtil::fromString("e5") ||
-		    firstMove == HexPointUtil::fromString("f5") ||
-		    firstMove == HexPointUtil::fromString("g5") ||
-		    firstMove == HexPointUtil::fromString("b6") ||
-		    firstMove == HexPointUtil::fromString("c6") ||
-		    firstMove == HexPointUtil::fromString("d6") ||
-		    firstMove == HexPointUtil::fromString("e6") ||
-		    firstMove == HexPointUtil::fromString("f6") ||
-		    firstMove == HexPointUtil::fromString("g6") ||
-		    firstMove == HexPointUtil::fromString("a7") ||
-		    firstMove == HexPointUtil::fromString("b7") ||
-		    firstMove == HexPointUtil::fromString("a8"))
+		if (firstMove == HEX_CELL_H1 ||
+		    firstMove == HEX_CELL_G2 ||
+		    firstMove == HEX_CELL_H2 ||
+		    firstMove == HEX_CELL_B3 ||
+		    firstMove == HEX_CELL_C3 ||
+		    firstMove == HEX_CELL_D3 ||
+		    firstMove == HEX_CELL_E3 ||
+		    firstMove == HEX_CELL_F3 ||
+		    firstMove == HEX_CELL_G3 ||
+		    firstMove == HEX_CELL_B4 ||
+		    firstMove == HEX_CELL_C4 ||
+		    firstMove == HEX_CELL_D4 ||
+		    firstMove == HEX_CELL_E4 ||
+		    firstMove == HEX_CELL_F4 ||
+		    firstMove == HEX_CELL_G4 ||
+		    firstMove == HEX_CELL_H4 ||
+		    firstMove == HEX_CELL_A5 ||
+		    firstMove == HEX_CELL_B5 ||
+		    firstMove == HEX_CELL_C5 ||
+		    firstMove == HEX_CELL_D5 ||
+		    firstMove == HEX_CELL_E5 ||
+		    firstMove == HEX_CELL_F5 ||
+		    firstMove == HEX_CELL_G5 ||
+		    firstMove == HEX_CELL_B6 ||
+		    firstMove == HEX_CELL_C6 ||
+		    firstMove == HEX_CELL_D6 ||
+		    firstMove == HEX_CELL_E6 ||
+		    firstMove == HEX_CELL_F6 ||
+		    firstMove == HEX_CELL_G6 ||
+		    firstMove == HEX_CELL_A7 ||
+		    firstMove == HEX_CELL_B7 ||
+		    firstMove == HEX_CELL_A8)
 		    return SWAP_PIECES;
 	    }
 	    /** On 9x9 and larger we can only make heuristic-based decisions.
@@ -190,119 +191,118 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 	    } else if (11 == brd.width()) {
 		if (m_player->name() == "wolve") {
 		    // Choices based on recent tournament performances
-		    if (firstMove != HexPointUtil::fromString("a1") &&
-			firstMove != HexPointUtil::fromString("b1") &&
-			firstMove != HexPointUtil::fromString("c1") &&
-			firstMove != HexPointUtil::fromString("d1") &&
-			firstMove != HexPointUtil::fromString("e1") &&
-			firstMove != HexPointUtil::fromString("f1") &&
-			firstMove != HexPointUtil::fromString("g1") &&
-			firstMove != HexPointUtil::fromString("h1") &&
-			firstMove != HexPointUtil::fromString("i1") &&
-			firstMove != HexPointUtil::fromString("j1") &&
-			firstMove != HexPointUtil::fromString("k1") &&
-			firstMove != HexPointUtil::fromString("a11") &&
-			firstMove != HexPointUtil::fromString("b11") &&
-			firstMove != HexPointUtil::fromString("c11") &&
-			firstMove != HexPointUtil::fromString("d11") &&
-			firstMove != HexPointUtil::fromString("e11") &&
-			firstMove != HexPointUtil::fromString("f11") &&
-			firstMove != HexPointUtil::fromString("g11") &&
-			firstMove != HexPointUtil::fromString("h11") &&
-			firstMove != HexPointUtil::fromString("i11") &&
-			firstMove != HexPointUtil::fromString("j11") &&
-			firstMove != HexPointUtil::fromString("k11") &&
-			firstMove != HexPointUtil::fromString("a2") &&
-			firstMove != HexPointUtil::fromString("b2") &&
-			firstMove != HexPointUtil::fromString("k10") &&
-			firstMove != HexPointUtil::fromString("j10")) {
+		    if (firstMove != HEX_CELL_A1 &&
+			firstMove != HEX_CELL_B1 &&
+			firstMove != HEX_CELL_C1 &&
+			firstMove != HEX_CELL_D1 &&
+			firstMove != HEX_CELL_E1 &&
+			firstMove != HEX_CELL_F1 &&
+			firstMove != HEX_CELL_G1 &&
+			firstMove != HEX_CELL_H1 &&
+			firstMove != HEX_CELL_I1 &&
+			firstMove != HEX_CELL_J1 &&
+			firstMove != HEX_CELL_K1 &&
+			firstMove != HEX_CELL_A11 &&
+			firstMove != HEX_CELL_B11 &&
+			firstMove != HEX_CELL_C11 &&
+			firstMove != HEX_CELL_D11 &&
+			firstMove != HEX_CELL_E11 &&
+			firstMove != HEX_CELL_F11 &&
+			firstMove != HEX_CELL_G11 &&
+			firstMove != HEX_CELL_H11 &&
+			firstMove != HEX_CELL_I11 &&
+			firstMove != HEX_CELL_J11 &&
+			firstMove != HEX_CELL_K11 &&
+			firstMove != HEX_CELL_A2 &&
+			firstMove != HEX_CELL_B2 &&
+			firstMove != HEX_CELL_K10 &&
+			firstMove != HEX_CELL_J10) {
 			return SWAP_PIECES;
 		    }
 		} else if (m_player->name() == "mohex") {
 		    // Choices based on mohex-built opening book
-		    if (firstMove != HexPointUtil::fromString("a1") &&
-			firstMove != HexPointUtil::fromString("b1") &&
-			firstMove != HexPointUtil::fromString("c1") &&
-			firstMove != HexPointUtil::fromString("d1") &&
-			firstMove != HexPointUtil::fromString("e1") &&
-			firstMove != HexPointUtil::fromString("f1") &&
-			firstMove != HexPointUtil::fromString("g1") &&
-			firstMove != HexPointUtil::fromString("h1") &&
-			firstMove != HexPointUtil::fromString("i1") &&
-			firstMove != HexPointUtil::fromString("j1") &&
-			firstMove != HexPointUtil::fromString("k1") &&
-			firstMove != HexPointUtil::fromString("a11") &&
-			firstMove != HexPointUtil::fromString("b11") &&
-			firstMove != HexPointUtil::fromString("c11") &&
-			firstMove != HexPointUtil::fromString("d11") &&
-			firstMove != HexPointUtil::fromString("e11") &&
-			firstMove != HexPointUtil::fromString("f11") &&
-			firstMove != HexPointUtil::fromString("g11") &&
-			firstMove != HexPointUtil::fromString("h11") &&
-			firstMove != HexPointUtil::fromString("i11") &&
-			firstMove != HexPointUtil::fromString("j11") &&
-			firstMove != HexPointUtil::fromString("k11") &&
-			firstMove != HexPointUtil::fromString("a2") &&
-			firstMove != HexPointUtil::fromString("b2") &&
-			firstMove != HexPointUtil::fromString("k10") &&
-			firstMove != HexPointUtil::fromString("j10") &&
-			firstMove != HexPointUtil::fromString("a3") &&
-			firstMove != HexPointUtil::fromString("k9") &&
-			firstMove != HexPointUtil::fromString("a4") &&
-			firstMove != HexPointUtil::fromString("k8") &&
-			firstMove != HexPointUtil::fromString("a5") &&
-			firstMove != HexPointUtil::fromString("k7") &&
-			firstMove != HexPointUtil::fromString("a6") &&
-			firstMove != HexPointUtil::fromString("k6") &&
-			firstMove != HexPointUtil::fromString("a7") &&
-			firstMove != HexPointUtil::fromString("k5") &&
-			firstMove != HexPointUtil::fromString("a8") &&
-			firstMove != HexPointUtil::fromString("k4") &&
-			firstMove != HexPointUtil::fromString("a9") &&
-			firstMove != HexPointUtil::fromString("k3")) {
+		    if (firstMove != HEX_CELL_A1 &&
+			firstMove != HEX_CELL_B1 &&
+			firstMove != HEX_CELL_C1 &&
+			firstMove != HEX_CELL_D1 &&
+			firstMove != HEX_CELL_E1 &&
+			firstMove != HEX_CELL_F1 &&
+			firstMove != HEX_CELL_G1 &&
+			firstMove != HEX_CELL_H1 &&
+			firstMove != HEX_CELL_I1 &&
+			firstMove != HEX_CELL_J1 &&
+			firstMove != HEX_CELL_K1 &&
+			firstMove != HEX_CELL_A11 &&
+			firstMove != HEX_CELL_B11 &&
+			firstMove != HEX_CELL_C11 &&
+			firstMove != HEX_CELL_D11 &&
+			firstMove != HEX_CELL_E11 &&
+			firstMove != HEX_CELL_F11 &&
+			firstMove != HEX_CELL_G11 &&
+			firstMove != HEX_CELL_H11 &&
+			firstMove != HEX_CELL_I11 &&
+			firstMove != HEX_CELL_J11 &&
+			firstMove != HEX_CELL_K11 &&
+			firstMove != HEX_CELL_A2 &&
+			firstMove != HEX_CELL_B2 &&
+			firstMove != HEX_CELL_K10 &&
+			firstMove != HEX_CELL_J10 &&
+			firstMove != HEX_CELL_A3 &&
+			firstMove != HEX_CELL_K9 &&
+			firstMove != HEX_CELL_A4 &&
+			firstMove != HEX_CELL_K8 &&
+			firstMove != HEX_CELL_A5 &&
+			firstMove != HEX_CELL_K7 &&
+			firstMove != HEX_CELL_A6 &&
+			firstMove != HEX_CELL_K6 &&
+			firstMove != HEX_CELL_A7 &&
+			firstMove != HEX_CELL_K5 &&
+			firstMove != HEX_CELL_A8 &&
+			firstMove != HEX_CELL_K4 &&
+			firstMove != HEX_CELL_A9 &&
+			firstMove != HEX_CELL_K3) {
 			return SWAP_PIECES;
 		    }
 		} else {
 		    // Philip's guess as to what are losing opening moves.
-		    if (firstMove != HexPointUtil::fromString("a1") &&
-			firstMove != HexPointUtil::fromString("a2") &&
-			firstMove != HexPointUtil::fromString("a3") &&
-			firstMove != HexPointUtil::fromString("b1") &&
-			firstMove != HexPointUtil::fromString("b2") &&
-			firstMove != HexPointUtil::fromString("b11") &&
-			firstMove != HexPointUtil::fromString("c1") &&
-			firstMove != HexPointUtil::fromString("c2") &&
-			firstMove != HexPointUtil::fromString("c11") &&
-			firstMove != HexPointUtil::fromString("d1") &&
-			firstMove != HexPointUtil::fromString("d2") &&
-			firstMove != HexPointUtil::fromString("d11") &&
-			firstMove != HexPointUtil::fromString("e1") &&
-			firstMove != HexPointUtil::fromString("e11") &&
-			firstMove != HexPointUtil::fromString("f1") &&
-			firstMove != HexPointUtil::fromString("f11") &&
-			firstMove != HexPointUtil::fromString("g1") &&
-			firstMove != HexPointUtil::fromString("g11") &&
-			firstMove != HexPointUtil::fromString("h1") &&
-			firstMove != HexPointUtil::fromString("h10") &&
-			firstMove != HexPointUtil::fromString("h11") &&
-			firstMove != HexPointUtil::fromString("i1") &&
-			firstMove != HexPointUtil::fromString("i10") &&
-			firstMove != HexPointUtil::fromString("i11") &&
-			firstMove != HexPointUtil::fromString("j1") &&
-			firstMove != HexPointUtil::fromString("j10") &&
-			firstMove != HexPointUtil::fromString("j11") &&
-			firstMove != HexPointUtil::fromString("k9") &&
-			firstMove != HexPointUtil::fromString("k10") &&
-			firstMove != HexPointUtil::fromString("k11")) {
+		    if (firstMove != HEX_CELL_A1 &&
+			firstMove != HEX_CELL_A2 &&
+			firstMove != HEX_CELL_A3 &&
+			firstMove != HEX_CELL_B1 &&
+			firstMove != HEX_CELL_B2 &&
+			firstMove != HEX_CELL_B11 &&
+			firstMove != HEX_CELL_C1 &&
+			firstMove != HEX_CELL_C2 &&
+			firstMove != HEX_CELL_C11 &&
+			firstMove != HEX_CELL_D1 &&
+			firstMove != HEX_CELL_D2 &&
+			firstMove != HEX_CELL_D11 &&
+			firstMove != HEX_CELL_E1 &&
+			firstMove != HEX_CELL_E11 &&
+			firstMove != HEX_CELL_F1 &&
+			firstMove != HEX_CELL_F11 &&
+			firstMove != HEX_CELL_G1 &&
+			firstMove != HEX_CELL_G11 &&
+			firstMove != HEX_CELL_H1 &&
+			firstMove != HEX_CELL_H10 &&
+			firstMove != HEX_CELL_H11 &&
+			firstMove != HEX_CELL_I1 &&
+			firstMove != HEX_CELL_I10 &&
+			firstMove != HEX_CELL_I11 &&
+			firstMove != HEX_CELL_J1 &&
+			firstMove != HEX_CELL_J10 &&
+			firstMove != HEX_CELL_J11 &&
+			firstMove != HEX_CELL_K9 &&
+			firstMove != HEX_CELL_K10 &&
+			firstMove != HEX_CELL_K11) 
+                    {
 			return SWAP_PIECES;
 		    }
 		}
 	    }
-	}
-	
-	LogWarning() << "Opted not to swap." << '\n';
+        }
+        LogWarning() << "Opted not to swap.\n";
     }
-    
     return m_player->pre_search(brd, game_state, color, consider,
 				max_time, score);
 }

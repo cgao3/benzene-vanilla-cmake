@@ -204,7 +204,7 @@ void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
     if (m_varTT.Get(SequenceHash::Hash(m_sequence), varInfo))
     {
         LogFine() << "Using consider set from TT." << '\n'
-		  << HexPointUtil::ToPointListString(m_sequence) << '\n'
+		  << HexPointUtil::ToString(m_sequence) << '\n'
 		  << m_brd << '\n';
         consider = varInfo.consider;
     } 

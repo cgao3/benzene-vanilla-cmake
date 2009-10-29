@@ -356,10 +356,10 @@ std::string StoneBoard::Write(const bitset_t& b) const
 
 bool StoneBoard::IsBlackWhiteDisjoint()
 {
-    if ((m_stones[BLACK] & m_stones[WHITE]).any()) {
+    if ((m_stones[BLACK] & m_stones[WHITE]).any()) 
+    {
         for (BWIterator it; it; ++it)
-            LogWarning() << HexPointUtil::ToPointListString(m_stones[*it])
-			 << '\n';
+            LogWarning() << HexPointUtil::ToString(m_stones[*it]) << '\n';
         return false;
     }
     return true;

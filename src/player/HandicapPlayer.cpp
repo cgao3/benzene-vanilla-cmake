@@ -56,8 +56,7 @@ HexPoint HandicapPlayer::search(HexBoard& brd,
     }
     
     lastMove = game_state.History().back().point();
-    LogInfo() << "Last move: " 
-             << HexPointUtil::toString(lastMove) << '\n';
+    LogInfo() << "Last move: " << lastMove << '\n';
     /** For future implementation: discard the naive responseMap and
 	just do it here. Only build the responseMap for the places on
 	the very edge of the board. Possibly edge and second row from

@@ -38,8 +38,10 @@ namespace
         name[SOUTH] = "south";
         name[WEST]  = "west";
         
-        for (int y=0; y < MAX_HEIGHT; y++) {
-            for (int x = 0; x < MAX_WIDTH; x++) {
+        for (int y=0; y < MAX_HEIGHT; y++) 
+        {
+            for (int x = 0; x < MAX_WIDTH; x++) 
+            {
                 char buff[32];
                 HexPoint p = HexPointUtil::coordsToPoint(x, y);
                 sprintf(buff, "%c%d", 'a' + x, y+1);
@@ -62,47 +64,53 @@ namespace
 
 //----------------------------------------------------------------------------
 
-std::string HexPointUtil::toString(HexPoint p)
+std::string HexPointUtil::ToString(HexPoint p)
 {
     HexAssert(0 <= p && p < FIRST_INVALID);
     return GetHexPointData().name[p];
 }
 
-HexPoint HexPointUtil::fromString(const std::string& name)
+HexPoint HexPointUtil::FromString(const std::string& name)
 {
     const char *str = name.c_str();
     for (int p=0; p<FIRST_INVALID; ++p) 
-    {
         if (!strcasecmp(GetHexPointData().name[p].c_str(), str)) 
             return static_cast<HexPoint>(p);
-    }
     return INVALID_POINT;
 }
 
-std::string HexPointUtil::toString(const HexPointPair& p)
+void HexPointUtil::FromString(const std::string& str, PointSequence& pts)
 {
-    std::ostringstream os;
-    os << "(" << toString(p.first) << ", " << toString(p.second) << ")";
-    return os.str();
-}
-
-std::string HexPointUtil::ToPointListString(const std::vector<HexPoint>& lst)
-{
-    std::ostringstream os;
-    for (std::size_t i=0; i<lst.size(); ++i) {
-        os << " " << toString(lst[i]);
-    }
-    return os.str();
-}
-
-std::string HexPointUtil::ToPointListString(const bitset_t& b)
-{
-    std::ostringstream os;
-    for (int i=0; i<FIRST_INVALID; i++) 
+    std::istringstream is(str);
+    std::string token;
+    while (is >> token)
     {
-        if (b.test(i)) 
-            os << " " << HexPointUtil::toString(static_cast<HexPoint>(i));
+        HexPoint p = HexPointUtil::FromString(token);
+        pts.push_back(p);
     }
+}
+
+std::string HexPointUtil::ToString(const HexPointPair& p)
+{
+    std::ostringstream os;
+    os << "(" << ToString(p.first) << ", " << ToString(p.second) << ")";
+    return os.str();
+}
+
+std::string HexPointUtil::ToString(const PointSequence& lst)
+{
+    std::ostringstream os;
+    for (std::size_t i = 0; i < lst.size(); ++i)
+        os << " " << ToString(lst[i]);
+    return os.str();
+}
+
+std::string HexPointUtil::ToString(const bitset_t& b)
+{
+    std::ostringstream os;
+    for (int i = 0; i < FIRST_INVALID; i++) 
+        if (b.test(i)) 
+            os << " " << HexPointUtil::ToString(static_cast<HexPoint>(i));
     return os.str();
 }
 

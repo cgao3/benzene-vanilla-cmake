@@ -89,8 +89,7 @@ void HexHtpEngine::Play(HexColor color, HexPoint move)
     
     if (illegal) {
         throw HtpFailure() << "illegal move: " << ' '
-                           << HexColorUtil::toString(color) << ' ' 
-                           << HexPointUtil::toString(move) << reason;
+                           << color << ' ' << move << reason;
     }
 }
 
@@ -213,7 +212,7 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
     }
 
     Play(color, move);
-    cmd << HexPointUtil::toString(move);
+    cmd << move;
 }
 
 /** Undo the last move. */
@@ -282,7 +281,7 @@ void HexHtpEngine::CmdAllLegalMoves(HtpCommand& cmd)
     bitset_t legal = m_game.Board().getLegal();
     for (BitsetIterator i(legal); i; ++i) 
     {
-        cmd << " " << HexPointUtil::toString(*i);
+        cmd << " " << *i;
         if ((++c % 10) == 0) cmd << "\n";
     }
 }
@@ -432,7 +431,7 @@ HexColor HtpUtil::ColorArg(const HtpCommand& cmd, std::size_t number)
 
 HexPoint HtpUtil::MoveArg(const HtpCommand& cmd, std::size_t number)
 {
-    return HexPointUtil::fromString(cmd.ArgToLower(number));
+    return HexPointUtil::FromString(cmd.ArgToLower(number));
 }
 
 //----------------------------------------------------------------------------

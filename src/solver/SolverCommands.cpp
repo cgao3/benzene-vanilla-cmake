@@ -233,7 +233,7 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
     LogInfo() << "****** Winning Moves ******\n"
               << m_game.Board().Write(winning) << '\n';
     LogInfo() << "Total Elapsed Time: " << timer.GetTime() << '\n';
-    cmd << HexPointUtil::ToPointListString(winning);
+    cmd << HexPointUtil::ToString(winning);
 }
 
 //----------------------------------------------------------------------------
@@ -299,7 +299,7 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     // dump winner and proof
     cmd << (state.win ? toplay : !toplay);
     cmd << ' ' << state.nummoves;
-    cmd << HexPointUtil::ToPointListString(state.proof);
+    cmd << HexPointUtil::ToString(state.proof);
 
     std::vector<int> nummoves(BITSETSIZE);
     std::vector<int> flags(BITSETSIZE);
@@ -323,7 +323,7 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     cmd << " Winning";
     for (unsigned i = 0; i < winning.size(); ++i) 
     {
-        cmd << " " << HexPointUtil::toString(winning[i]);
+        cmd << " " << winning[i];
         cmd << " " << nummoves[winning[i]];
         if (flags[winning[i]] & SolvedState::FLAG_MIRROR_TRANSPOSITION)
             cmd << "m";
@@ -334,7 +334,7 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     cmd << " Losing";
     for (unsigned i = 0; i < losing.size(); ++i)
     {
-        cmd << " " << HexPointUtil::toString(losing[i]);
+        cmd << " " << losing[i];
         cmd << " " << nummoves[losing[i]];
         if (flags[losing[i]] & SolvedState::FLAG_MIRROR_TRANSPOSITION)
             cmd << "m";

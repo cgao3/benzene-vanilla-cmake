@@ -188,19 +188,23 @@ enum HexDirection
 namespace HexPointUtil
 {
     /** Converts a HexPoint to a string. */
-    std::string toString(HexPoint p);
+    std::string ToString(HexPoint p);
 
     /** Converts a pair of HexPoints to a string. */
-    std::string toString(const HexPointPair& p);
+    std::string ToString(const HexPointPair& p);
 
     /** Returns a space separated output of points in lst. */
-    std::string ToPointListString(const std::vector<HexPoint>& lst);
+    std::string ToString(const PointSequence& lst);
 
     /** Returns a string representation of the bitset's set bits. */
-    std::string ToPointListString(const bitset_t& b);
+    std::string ToString(const bitset_t& b);
 
     /** Returns the HexPoint with the given name; INVALID_POINT otherwise. */
-    HexPoint fromString(const std::string& name);
+    HexPoint FromString(const std::string& name);
+
+    /** Reads a PointSequence from a string of space separated
+        points. */
+    void FromString(const std::string& str, PointSequence& pts);
 
     /** Returns true if this point is a swap move. */
     bool isSwap(HexPoint c);
@@ -357,7 +361,7 @@ inline int HexPointUtil::DeltaY(int dir)
 /** Extends standard output operator to handle HexPoints. */
 inline std::ostream& operator<<(std::ostream& os, HexPoint p)
 {
-    return os << HexPointUtil::toString(p);
+    return os << HexPointUtil::ToString(p);
 }
 
 //----------------------------------------------------------------------------

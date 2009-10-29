@@ -98,7 +98,7 @@ std::string HexUctUtil::MoveString(SgMove sgmove)
     
     // Simple process if just HexPoint
     HexAssert(0 <= move && move < FIRST_INVALID);
-    return HexPointUtil::toString(move);
+    return HexPointUtil::ToString(move);
 }
 
 SgBlackWhite HexUctUtil::ToSgBlackWhite(HexColor c)

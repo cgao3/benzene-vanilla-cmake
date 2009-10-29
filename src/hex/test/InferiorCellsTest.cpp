@@ -21,15 +21,15 @@ BOOST_AUTO_TEST_CASE(InferiorCells_Basic)
 
 BOOST_AUTO_TEST_CASE(InferiorCells_Dominated) 
 {
-    HexPoint a1 = HexPointUtil::fromString("a1");
-    HexPoint b1 = HexPointUtil::fromString("b1");
-    HexPoint c1 = HexPointUtil::fromString("c1");   
-    HexPoint a2 = HexPointUtil::fromString("a2");
-    HexPoint b2 = HexPointUtil::fromString("b2");
-    HexPoint c2 = HexPointUtil::fromString("c2");
-    HexPoint a3 = HexPointUtil::fromString("a3");
-    HexPoint b3 = HexPointUtil::fromString("b3");  
-    HexPoint c3 = HexPointUtil::fromString("c3");
+    HexPoint a1 = HEX_CELL_A1;
+    HexPoint b1 = HEX_CELL_B1;
+    HexPoint c1 = HEX_CELL_C1;   
+    HexPoint a2 = HEX_CELL_A2;
+    HexPoint b2 = HEX_CELL_B2;
+    HexPoint c2 = HEX_CELL_C2;
+    HexPoint a3 = HEX_CELL_A3;
+    HexPoint b3 = HEX_CELL_B3;
+    HexPoint c3 = HEX_CELL_C3;
     InferiorCells inf;
     bitset_t dom;
 
