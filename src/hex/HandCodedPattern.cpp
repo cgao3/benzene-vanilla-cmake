@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HandCodedPattern.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ void HandCodedPattern::CreatePatterns(std::vector<HandCodedPattern>& out)
 
     //
     //
-    // B3 dominates A3:
+    // b3 dominates a3:
     //
     //   A B C D
     //   ----------
@@ -83,85 +83,53 @@ void HandCodedPattern::CreatePatterns(std::vector<HandCodedPattern>& out)
     //  2 \ . . .
     //   3 \ * !
     //
-    HandCodedPattern pat1(HexPointUtil::fromString("a3"),
-                          HexPointUtil::fromString("b3"));
+    HandCodedPattern pat1(HEX_CELL_A3, HEX_CELL_B3);
     bs.reset();
-    bs.set(HexPointUtil::fromString("a1"));
-    bs.set(HexPointUtil::fromString("b1"));
-    bs.set(HexPointUtil::fromString("c1"));
-    bs.set(HexPointUtil::fromString("d1"));
-    bs.set(HexPointUtil::fromString("a2"));
-    bs.set(HexPointUtil::fromString("b2"));
-    bs.set(HexPointUtil::fromString("c2"));
-    bs.set(HexPointUtil::fromString("a3"));
-    bs.set(HexPointUtil::fromString("b3"));
+    bs.set(HEX_CELL_A1);
+    bs.set(HEX_CELL_B1);
+    bs.set(HEX_CELL_C1);
+    bs.set(HEX_CELL_D1);
+    bs.set(HEX_CELL_A2);
+    bs.set(HEX_CELL_B2);
+    bs.set(HEX_CELL_C2);
+    bs.set(HEX_CELL_A3);
+    bs.set(HEX_CELL_B3);
     pat1.setMask(bs);
     out.push_back(pat1);
 
     //
     //
-    // With white C1, b3 dominates b2 for black.
+    // With white c2, b3 dominates a3 and a4.
     //
-    //   A B C
-    //   ----------
-    // 1 \ . . W 
-    //  2 \ . * .
-    //   3 \ . !
-    //    4 \ .
-    //
-    HandCodedPattern pat2(HexPointUtil::fromString("b2"),
-                          HexPointUtil::fromString("b3"));
-    bs.reset();
-    bs.set(HexPointUtil::fromString("a1"));
-    bs.set(HexPointUtil::fromString("b1"));
-    bs.set(HexPointUtil::fromString("c1"));
-    bs.set(HexPointUtil::fromString("a2"));
-    bs.set(HexPointUtil::fromString("b2"));
-    bs.set(HexPointUtil::fromString("c2"));
-    bs.set(HexPointUtil::fromString("a3"));
-    bs.set(HexPointUtil::fromString("b3"));
-    bs.set(HexPointUtil::fromString("a4"));
-    pat2.setMask(bs);
-    bs.reset();
-    bs.set(HexPointUtil::fromString("c1"));
-    pat2.set(WHITE, bs);
-    out.push_back(pat2);
-
-    //
-    //
-    // With white C2, b3 dominates b2, a3, and a4.
+    // a3 and a4 are actually vulnerable to b3!!
     //
     //   A B C
     //   ----------
     // 1 \ . . . 
-    //  2 \ . * W
-    //   3 \ . !
-    //    4 \ .
+    //  2 \ . . W
+    //   3 \ * !
+    //    4 \ *
     //
-    HandCodedPattern pat3(HexPointUtil::fromString("b2"),
-                          HexPointUtil::fromString("b3"));
+    HandCodedPattern pat3(HEX_CELL_A3, HEX_CELL_B3);
     bs.reset();
-    bs.set(HexPointUtil::fromString("a1"));
-    bs.set(HexPointUtil::fromString("b1"));
-    bs.set(HexPointUtil::fromString("c1"));
-    bs.set(HexPointUtil::fromString("a2"));
-    bs.set(HexPointUtil::fromString("b2"));
-    bs.set(HexPointUtil::fromString("c2"));
-    bs.set(HexPointUtil::fromString("a3"));
-    bs.set(HexPointUtil::fromString("b3"));
-    bs.set(HexPointUtil::fromString("a4"));
+    bs.set(HEX_CELL_A1);
+    bs.set(HEX_CELL_B1);
+    bs.set(HEX_CELL_C1);
+    bs.set(HEX_CELL_A2);
+    bs.set(HEX_CELL_B2);
+    bs.set(HEX_CELL_C2);
+    bs.set(HEX_CELL_A3);
+    bs.set(HEX_CELL_B3);
+    bs.set(HEX_CELL_A4);
     pat3.setMask(bs);
     bs.reset();
-    bs.set(HexPointUtil::fromString("c2"));
+    bs.set(HEX_CELL_C2);
     pat3.set(WHITE, bs);
 
-    pat3.setDominatee(HexPointUtil::fromString("b2"));
+    pat3.setDominatee(HEX_CELL_A3);
     out.push_back(pat3);
 
-    pat3.setDominatee(HexPointUtil::fromString("a3"));
-    out.push_back(pat3);
-
-    pat3.setDominatee(HexPointUtil::fromString("a4"));
+    pat3.setDominatee(HEX_CELL_A4);
     out.push_back(pat3);
 }
 

@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HandCodedPattern.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -18,8 +18,7 @@ _BEGIN_BENZENE_NAMESPACE_
     down PatternBoard::update()).  These are static patterns -- so
     they are not translated.
 
-    @todo do something more clever for hand coded patterns we can
-    translate?
+    @todo Want hand-coded vulnerable patterns, not just dominated
 */
 class HandCodedPattern
 {        
