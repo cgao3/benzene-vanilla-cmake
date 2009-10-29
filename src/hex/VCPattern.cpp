@@ -211,7 +211,7 @@ VCPattern::GetPatterns(int width, int height, HexColor color)
 
 void VCPattern::CreatePatterns(int width, int height)
 {
-    LogInfo() << "VCPattern::CreatePatterns(" 
+    LogFine() << "VCPattern::CreatePatterns(" 
               << width << ", " << height << ")\n";
     
 #ifndef ABS_TOP_SRCDIR
@@ -222,7 +222,7 @@ void VCPattern::CreatePatterns(int width, int height)
         / "share" / "vc-patterns.txt";
     pp.normalize();
     std::string file = pp.native_file_string();
-    LogInfo() << "Loading pattern templates from: '" << file << "'\n";
+    LogFine() << "Loading pattern templates from: '" << file << "'\n";
     std::ifstream fin(file.c_str());
     if (!fin)
         throw HexException("Could not open pattern file!\n");
@@ -330,8 +330,8 @@ void VCPattern::CreatePatterns(int width, int height)
     fin.close();
 
     // build ladder patterns by combining start and end patterns
-    LogInfo() << "Combining start(" << start.size()
-             << ") and end(" << end.size() << ")..." << '\n';
+    LogFine() << "Combining start(" << start.size()
+              << ") and end(" << end.size() << ")...\n";
     StoneBoard sb(width, height);
     for (std::size_t s=0; s<start.size(); ++s) {
         const BuilderPattern& st = start[s];
@@ -377,21 +377,20 @@ void VCPattern::CreatePatterns(int width, int height)
         }
     }
 
-    LogInfo() << "Constructed " << numConstructed << "." 
-	      << '\n' << "Parsed " << numComplete << " complete." << '\n';
+    LogFine() << "Constructed " << numConstructed << ".\n" 
+	      << "Parsed " << numComplete << " complete.\n";
 
     // translate, rotate, and mirror all completed patterns
-    LogInfo() << "Translating, rotating, mirroring..." << '\n';
-    for (std::size_t i=0; i<complete.size(); ++i) {
+    LogFine() << "Translating, rotating, mirroring...\n";
+    for (std::size_t i=0; i<complete.size(); ++i)
         ProcessPattern(complete[i], sb, out);
-    }
 
-    LogInfo() << out[BLACK].size() << " total patterns" << '\n';
+    LogFine() << out[BLACK].size() << " total patterns\n";
 
     GetConstructed(BLACK)[std::make_pair(width, height)] = out[BLACK];
     GetConstructed(WHITE)[std::make_pair(width, height)] = out[WHITE];
 
-    LogInfo() << "Done." << '\n';
+    LogFine() << "Done.\n";
 }
 
 //----------------------------------------------------------------------------
