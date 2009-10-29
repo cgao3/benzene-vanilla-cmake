@@ -2,7 +2,8 @@
 # Tests dfs solver engine with various Hex puzzles.
 #
 #
-# Note 1: As of Oct 28, 2009 this test takes 14h48m to complete.
+# Note 1: This test takes 14h48m to complete (commit 97876949abf) on
+#         thorhild (Intel Core 2 Quad CPU Q9450 @ 2.66GHz).
 #
 # Note 2: Times listed are rounded to the nearest given unit, and are omitted
 #         if the test is trivial (takes less than 1 second).
