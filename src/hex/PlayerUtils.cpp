@@ -130,7 +130,7 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
                                    HexPointUtil::colorEdge2(color), 
                                    VC::SEMI, winningVC)) 
     {
-        LogInfo() << "Winning SC." << '\n';
+        LogInfo() << "Winning SC.\n";
         return winningVC.key();
     }
     
@@ -139,7 +139,7 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
                                HexPointUtil::colorEdge2(color),
                                VC::FULL))
     {
-        LogFine() << "Winning VC." << '\n';
+        LogFine() << "Winning VC.\n";
         std::vector<VC> vcs;
         brd.Cons(color).VCs(HexPointUtil::colorEdge1(color),
                             HexPointUtil::colorEdge2(color),
@@ -162,9 +162,7 @@ HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
     HexPoint otheredge1 = HexPointUtil::colorEdge1(other);
     HexPoint otheredge2 = HexPointUtil::colorEdge2(other);
     
-    LogInfo()
-             << "Opponent has won; playing most blocking move."
-             << '\n';
+    LogInfo() << "Opponent has won; playing most blocking move.\n";
     
     /** Uses semi-connections. 
         @see @ref playingdeterminedstates 
@@ -210,8 +208,10 @@ bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color)
     {
 	return true;
     }
-    return false;
-
+    bitset_t mustplay = VCUtils::GetMustplay(brd, color);
+    const InferiorCells& inf = brd.getInferiorCells();
+    bitset_t remaining = mustplay - inf.Vulnerable() - inf.Dominated();
+    return remaining.none();
 }
 
 bool PlayerUtils::IsDeterminedState(const HexBoard& brd, HexColor color, 
@@ -259,13 +259,15 @@ bitset_t PlayerUtils::MovesToConsider(const HexBoard& brd, HexColor color)
     bitset_t consider = VCUtils::GetMustplay(brd, color);
     HexAssert(consider.any());
     
-    // Prune out as many inferior moves as possible
-    TightenMoveBitset(consider, brd.getInferiorCells());
+    const InferiorCells& inf = brd.getInferiorCells();
+    consider = consider - inf.Vulnerable() - inf.Dominated();
+    HexAssert(consider.any());
+
     if (consider.count() == 1) 
         LogFine() << "Mustplay is singleton.\n";
 
     LogFine() << "Moves to consider for " << color << ":" 
-             << brd.Write(consider) << '\n';
+              << brd.Write(consider) << '\n';
     return consider;
 }
 
