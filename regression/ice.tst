@@ -139,7 +139,7 @@ loadsgf sgf/inferior/centre-dead-region3.sgf
 
 loadsgf sgf/inferior/edge-sealed-dead-region1.sgf
 85 compute-inferior white
-#? [.*b3 d.*a5 d.*]
+#? [.*b2 d.*a5 b.*]
 
 loadsgf sgf/inferior/edge-sealed-dead-region2.sgf
 86 compute-inferior white
@@ -184,9 +184,13 @@ loadsgf sgf/inferior/local-pattern-fillin1.sgf
 # Vulnerable patterns are troublesome, and cannot always be removed
 # from the mustplay. Here are some weird/painful situations:
 
+# Old results for the test below were more interesting:
+# #? [.*e5 #\[e6\].*c6 #\[c7\].*e6 \!\[d6\].*c7 \!\[d6\].*d7 #\[d6\].*]
 loadsgf sgf/inferior/vulnerable-dominated-cycle.sgf
-100 compute-inferior black
-#? [.*e5 #\[e6\].*c6 #\[c7\].*e6 \!\[d6\].*c7 \!\[d6\].*d7 #\[d6\].*]
+100 compute-dominated black
+#? [.*e5 \!\[d6\].*e6 \!\[d6\].*c7 \!\[d6\].*d7 \!\[e6\].*]
+
+
 
 
 # Combinatorial decomposition tests
@@ -194,7 +198,7 @@ loadsgf sgf/inferior/vulnerable-dominated-cycle.sgf
 
 loadsgf sgf/inferior/dead-via-isolated-VC1.sgf
 110 vc-build white
-#? [.*b2 d.*]
+#? [.*c2 d.*]
 
 loadsgf sgf/inferior/dead-via-isolated-VC2.sgf
 111 vc-build white
@@ -202,7 +206,7 @@ loadsgf sgf/inferior/dead-via-isolated-VC2.sgf
 
 loadsgf sgf/inferior/dead-via-isolated-VC3.sgf
 112 vc-build black
-#? [.*a1 d.*c2 b.*]
+#? [.*a1 b.*c2 b.*]
 
 loadsgf sgf/inferior/dead-via-isolated-VC4.sgf
 113 vc-build black

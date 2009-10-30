@@ -177,7 +177,6 @@ sgf/largeBoards/14x14-berge-3.sgf \
 sgf/largeBoards/14x14-berge-4.sgf \
 sgf/largeBoards/14x14-berge-5.sgf \
 sgf/largeBoards/14x14-row6Template.sgf \
-sgf/midgame/do-not-pursue-broken-ladder01.sgf \
 sgf/midgame/make-connection-with-max-influence01.sgf \
 sgf/midgame/make-connection-with-max-influence02.sgf \
 sgf/midgame/make-connection-with-max-influence03.sgf \
