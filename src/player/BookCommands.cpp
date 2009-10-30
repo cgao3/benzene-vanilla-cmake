@@ -150,24 +150,48 @@ void BookCommands::CmdBookVisualize(HtpCommand& cmd)
 }
 
 /** Dumps variations leading to non-terminal leafs whose value is
-    polarized.
+    polarized. The ignore file is an optional argument that lists
+    states that should not be ingored (not dumped again). 
     Usage:
-      book-dump-polarized-leafs [polarization] [output file]
+      book-dump-polarized-leafs [polarization] [output file] { [ignore file] }
 */
 void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
 {
     if (!m_book) 
         throw HtpFailure() << "No open book.";
-    cmd.CheckNuArg(2);
+    cmd.CheckNuArgLessEqual(3);
     float polarization = cmd.FloatArg(0);
     std::string filename = cmd.Arg(1);
+    std::set<hash_t> ignoreSet;
+    if (cmd.NuArg() == 3u)
+    {
+        std::string ignoreFile = cmd.Arg(2);
+        StoneBoard brd(m_game.Board());
+        std::ifstream ifs(ignoreFile.c_str()); 
+        if (!ifs)
+            throw HtpFailure() << "Could not open ignore file for reading.";
+        std::string line;
+        while (std::getline(ifs, line))
+        {
+            PointSequence seq;
+            HexPointUtil::FromString(line, seq);
+            if (!seq.empty())
+            {
+                brd.startNewGame();
+                for (std::size_t i = 0; i < seq.size(); ++i)
+                    brd.playMove(brd.WhoseTurn(), seq[i]);
+                ignoreSet.insert(BookUtil::GetHash(brd));
+            }
+        }
+        LogInfo() << "Read " << ignoreSet.size() << " positions to ignore.\n";
+    }
     StoneBoard brd(m_game.Board());
     PointSequence pv;
     GameUtil::HistoryToSequence(m_game.History(), pv);
     std::ofstream f(filename.c_str());
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
-    BookUtil::DumpPolarizedLeafs(*m_book, brd, polarization, pv, f);
+    BookUtil::DumpPolarizedLeafs(*m_book, brd, polarization, pv, f, ignoreSet);
     f.close();
 }
 

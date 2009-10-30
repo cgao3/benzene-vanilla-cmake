@@ -342,7 +342,7 @@ namespace BookUtil
         the variation leading to the current state of the board. */
     void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
                             float polarization, PointSequence& pv, 
-                            std::ostream& out);
+                            std::ostream& out, const std::set<hash_t>& ignoreSet);
 
     /** Reads solved leaf positions from a file and adds them to the
         given book. Overwrites value of any existing states. */

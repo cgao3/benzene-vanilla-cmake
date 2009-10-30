@@ -332,7 +332,8 @@ namespace {
 
 void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
                         float polarization, std::set<hash_t>& seen,
-                        PointSequence& pv, std::ostream& out)
+                        PointSequence& pv, std::ostream& out,
+                        const std::set<hash_t>& ignoreSet)
 {
     hash_t hash = BookUtil::GetHash(brd);
     if (seen.find(hash) != seen.end())
@@ -341,7 +342,8 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
     if (!book.GetNode(brd, node))
         return;
     if (fabs(node.Value(brd) - 0.5) >= polarization 
-        && node.IsLeaf() && !node.IsTerminal())
+        && node.IsLeaf() && !node.IsTerminal()
+        && !ignoreSet.count(hash))
     {
         out << HexPointUtil::ToString(pv) << '\n';
         seen.insert(hash);
@@ -354,7 +356,7 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
         {
             brd.playMove(brd.WhoseTurn(), *i);
             pv.push_back(*i);
-            DumpPolarizedLeafs(book, brd, polarization, seen, pv, out);
+            DumpPolarizedLeafs(book, brd, polarization, seen, pv, out, ignoreSet);
             pv.pop_back();
             brd.undoMove(*i);
         }
@@ -366,10 +368,11 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
 
 void BookUtil::DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
                                   float polarization, PointSequence& pv, 
-                                  std::ostream& out)
+                                  std::ostream& out, 
+                                  const std::set<hash_t>& ignoreSet)
 {
     std::set<hash_t> seen;
-    ::DumpPolarizedLeafs(book, brd, polarization, seen, pv, out);
+    ::DumpPolarizedLeafs(book, brd, polarization, seen, pv, out, ignoreSet);
 }
 
 void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
