@@ -151,7 +151,8 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
                                   SolutionSet& solution)
 {
     // Solver currently cannot handle permanently inferior cells.
-    HexAssert(!brd.ICE().FindPermanentlyInferior());
+    if (brd.ICE().FindPermanentlyInferior())
+        throw HexException("Permanently Inferior not supported in Solver!\n");
 
     // Check if move already exists in db/tt before doing anything
     {
