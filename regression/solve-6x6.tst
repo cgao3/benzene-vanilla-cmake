@@ -1,10 +1,11 @@
 #-----------------------------------------------------------------------------
 # Solves each 6x6 position and checks winner. 
-#
-# $Id: solve-6x6.tst 1722 2008-10-31 02:13:55Z broderic $
 #-----------------------------------------------------------------------------
 
 boardsize 6 6
+
+# Must turn of perm.inf. for solver!
+param_solver_ice find_permanently_inferior 0
 
 play b a1
 11 solve-state w

@@ -1,9 +1,11 @@
 #-----------------------------------------------------------------------------
 # Solves each 6x7 position and checks winner.
-#
 #-----------------------------------------------------------------------------
 
 boardsize 6 7
+
+# Must turn of perm.inf. for solver!
+param_solver_ice find_permanently_inferior 0
 
 play b a1
 11 solve-state w

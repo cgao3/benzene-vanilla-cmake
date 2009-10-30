@@ -1,10 +1,11 @@
 #-----------------------------------------------------------------------------
 # Solves each 7x7 position and checks winner.
-#
-# $Id: solve-7x7.tst 1722 2008-10-31 02:13:55Z broderic $
 #-----------------------------------------------------------------------------
 
 boardsize 7 7
+
+# Must turn of perm.inf. for solver!
+param_solver_ice find_permanently_inferior 0
 
 play b a1
 11 solve-state w
