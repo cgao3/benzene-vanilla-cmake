@@ -778,12 +778,24 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         }
     }
     
-    // Store search results
+    // Store search results and notify listeners
     if (!m_aborted)
-        TTStore(m_brd->Hash(), DfpnData(currentBounds, children, 
-                                        bestMove, localWork, parentHash,
-                                        history.LastMove()));
+    {
+        DfpnData data(currentBounds, children, bestMove, localWork, 
+                      parentHash, history.LastMove());
+        TTStore(m_brd->Hash(), data);
+        
+        if (data.m_bounds.IsSolved())
+            NotifyListeners(history, data);
+    }
     return localWork;
+}
+
+void DfpnSolver::NotifyListeners(const DfpnHistory& history,
+                                 const DfpnData& data)
+{
+    for (std::size_t i = 0; i < m_listener.size(); ++i)
+        m_listener[i]->StateSolved(history, data);
 }
 
 void DfpnSolver::SelectChild(int& bestIndex, std::size_t& delta2,

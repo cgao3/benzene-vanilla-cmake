@@ -409,6 +409,18 @@ inline DfpnTranspositions& DfpnHistory::Transpositions()
 
 //----------------------------------------------------------------------------
 
+/** Interface for listeners of DfpnSolver. */
+class DfpnListener
+{
+public:
+    virtual ~DfpnListener();
+
+    /** Called when a state is solved. */
+    virtual void StateSolved(const DfpnHistory& history, const DfpnData& data) = 0;
+};
+
+//----------------------------------------------------------------------------
+
 /** Hex solver using DFPN search. 
     @ingroup dfpn
 */
@@ -425,7 +437,14 @@ public:
         not determine a winner in time). */
     HexColor StartSearch(HexBoard& brd, DfpnHashTable& hashtable,
                          PointSequence& pv);
+
+    void AddListener(DfpnListener& listener);
     
+    //------------------------------------------------------------------------
+
+    /** @name Parameters */
+    // @{
+
     /** Dumps output about root state what gui can display. */
     bool UseGuiFx() const;
 
@@ -452,6 +471,8 @@ public:
 
     /** See UseUniqueProbes() */
     void SetUseUniqueProbes(bool flag);
+
+    // @}
 
 private:
 
@@ -499,6 +520,8 @@ private:
     HexBoard* m_workBoard;
 
     DfpnHashTable* m_hashTable;
+
+    std::vector<DfpnListener*> m_listener;
 
     SgTimer m_timer;
 
@@ -565,7 +588,16 @@ private:
                    const std::vector<DfpnBounds>& childBounds) const;
 
     void PrintStatistics();
+
+    void NotifyListeners(const DfpnHistory& history, const DfpnData& data);
 };
+
+inline void DfpnSolver::AddListener(DfpnListener& listener)
+{
+    if (std::find(m_listener.begin(), m_listener.end(), &listener)
+        != m_listener.end())
+        m_listener.push_back(&listener);
+}
 
 inline bool DfpnSolver::UseGuiFx() const
 {
