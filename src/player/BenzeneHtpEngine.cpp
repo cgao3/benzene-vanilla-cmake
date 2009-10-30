@@ -650,7 +650,7 @@ void BenzeneHtpEngine::CmdMiscDebug(HtpCommand& cmd)
 
 void BenzeneHtpEngine::PlayerThread::operator()()
 {
-    LogInfo() << "*** PlayerThread ***" << '\n';
+    LogInfo() << "*** PlayerThread ***\n";
     double score;
     HexBoard& brd = m_engine.m_pe.SyncBoard(m_engine.m_game.Board());
     HexPoint move = m_engine.m_player.genmove(brd, m_engine.m_game,
@@ -670,27 +670,28 @@ void BenzeneHtpEngine::PlayerThread::operator()()
 
 void BenzeneHtpEngine::SolverThread::operator()()
 {
-    LogInfo() << "*** SolverThread ***" << '\n';
-    Solver::SolutionSet solution;
+    LogInfo() << "*** SolverThread ***\n";
     HexBoard& brd = m_engine.m_se.SyncBoard(m_engine.m_game.Board());
-    Solver::Result result = m_engine.m_solver.Solve(brd, m_color, solution, 
-                                                    Solver::NO_DEPTH_LIMIT, 
-                                                    Solver::NO_TIME_LIMIT);
-    if (result != Solver::UNKNOWN)
+    DfpnHashTable& hashTable = *m_engine.m_dfpn_tt.get();
+    PointSequence pv;
+    HexColor winner = m_engine.m_solverDfpn.StartSearch(brd, hashTable, pv);
+    
+    if (winner != EMPTY)
     {
-        if (!solution.pv.empty() && solution.pv[0] != INVALID_POINT)
-        {
+        if (!pv.empty() && pv[0] != INVALID_POINT)
+        {  
+            /// FIXME: do we really need the above checks?
             boost::mutex::scoped_lock lock(m_mutex);
-            m_engine.m_parallelResult = solution.pv[0];
-            if (result == Solver::WIN)
+            m_engine.m_parallelResult = pv[0];
+            if (winner == brd.WhoseTurn())
             {
-                LogInfo() << "*** FOUND WIN!!! ***" << '\n' << "PV: " 
-                          << HexPointUtil::ToString(solution.pv) << '\n';
+                LogInfo() << "*** FOUND WIN!!! ***\n" 
+                          << "PV:" << HexPointUtil::ToString(pv) << '\n';
             }
-            else if (result == Solver::LOSS) 
+            else
             {
-                LogInfo() << "*** FOUND LOSS!! ***" << '\n' << "PV: " 
-                          << HexPointUtil::ToString(solution.pv) << '\n';
+                LogInfo() << "*** FOUND LOSS!! ***\n" 
+                          << "PV: " << HexPointUtil::ToString(pv) << '\n';
             }
             SgSetUserAbort(true);
         }
