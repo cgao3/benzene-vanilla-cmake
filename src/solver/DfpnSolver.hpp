@@ -420,8 +420,11 @@ public:
 
     ~DfpnSolver();
 
-    /** Solves the given state using the given hashtable. */
-    HexColor StartSearch(HexBoard& brd, DfpnHashTable& hashtable);
+    /** Solves the given state using the given hashtable. 
+        Returns the color of the winning player (EMPTY if it could
+        not determine a winner in time). */
+    HexColor StartSearch(HexBoard& brd, DfpnHashTable& hashtable,
+                         PointSequence& pv);
     
     /** Dumps output about root state what gui can display. */
     bool UseGuiFx() const;

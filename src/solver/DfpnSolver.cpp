@@ -486,7 +486,8 @@ void DfpnSolver::PrintStatistics()
     LogInfo() << m_hashTable->Stats() << '\n';
 }
 
-HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
+HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
+                                 PointSequence& pv)
 {
     m_aborted = false;
     m_hashTable = &hashtable;
@@ -534,7 +535,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable)
             ? colorToMove : !colorToMove;
         LogInfo() << winner << " wins!\n";
 
-        std::vector<HexPoint> pv;
+        pv.clear();
         GetVariation(*m_brd, pv);
         LogInfo() << "PV: " << PrintVariation(pv) << '\n';
 
