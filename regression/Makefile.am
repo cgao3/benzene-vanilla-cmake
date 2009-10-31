@@ -1,6 +1,8 @@
 EXTRA_DIST = \
 basics.tst \
 dfpn-puzzle.tst \
+dfpn-solve-6x6.tst \
+dfpn-solve-7x7.tst \
 endgame.tst \
 gtpregress \
 gtpregress.jar \

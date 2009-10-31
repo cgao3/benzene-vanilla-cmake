@@ -1,8 +1,6 @@
 #!/bin/sh
 #-----------------------------------------------------------------------------
-# Run regression tests (based off explorer run.sh)
-#
-# $Id: run.sh 1858 2009-01-21 07:09:16Z broderic $
+# Run regression tests.
 #-----------------------------------------------------------------------------
 
 PROGRAM="../src/mohex/mohex"
@@ -61,7 +59,10 @@ all)
   ice.tst \
   vc.tst \
   solve-6x6.tst \
-  solve-6x7.tst
+  solve-6x7.tst \
+  solve-7x7.tst \
+  solve-7x8.tst \
+  dfpn-solve-6x6.tst
   ";;
 basics)
   # Tests in basics should be fast, specific and produce no unexpected fails
@@ -72,7 +73,8 @@ basics)
   play.tst \
   ice.tst \
   solve-6x6.tst \
-  solve-6x7.tst
+  solve-6x7.tst \
+  dfpn-solve-6x6.tst
   ";;
 *.tst)
   TST=$NAME;;
