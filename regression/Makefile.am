@@ -208,6 +208,7 @@ sgf/puzzles/11x11-browne-02.sgf \
 sgf/puzzles/11x11-browne-03.sgf \
 sgf/puzzles/11x11-browne-comp-02.sgf \
 sgf/puzzles/11x11-hein-01.sgf \
+sgf/puzzles/11x11-henderson-03.sgf \
 sgf/puzzles/3x3-hein-02.sgf \
 sgf/puzzles/4x4-hein-04.sgf \
 sgf/puzzles/4x4-hein-05.sgf \

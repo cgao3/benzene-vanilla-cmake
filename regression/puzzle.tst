@@ -56,8 +56,8 @@ loadsgf sgf/puzzles/11x11-boll-05.sgf
 
 solver-clear-tt
 loadsgf sgf/puzzles/11x11-browne-01.sgf
-30 solve-state black
-#? [black]
+30 solver-find-winning black
+#? [c4 e4 f4 k5 f6 j7]
 
 solver-clear-tt
 loadsgf sgf/puzzles/11x11-browne-02.sgf
@@ -106,37 +106,37 @@ loadsgf sgf/puzzles/6x6-hayward-01.sgf
 
 solver-clear-tt
 loadsgf sgf/puzzles/11x11-hein-01.sgf
-70 solve-state white
+60 solve-state white
 #? [white]
 
 solver-clear-tt
 loadsgf sgf/puzzles/3x3-hein-02.sgf
-71 solve-state white
+61 solve-state white
 #? [white]
 
 solver-clear-tt
 loadsgf sgf/puzzles/6x6-hein-03.sgf
-72 solve-state white
+62 solve-state white
 #? [white]
 
 solver-clear-tt
 loadsgf sgf/puzzles/4x4-hein-04.sgf
-73 solve-state white
+63 solve-state white
 #? [white]
 
 solver-clear-tt
 loadsgf sgf/puzzles/4x4-hein-05.sgf
-74 solve-state white
+64 solve-state white
 #? [white]
 
 solver-clear-tt
 loadsgf sgf/puzzles/5x5-hein-06.sgf
-75 solver-find-winning white
+65 solver-find-winning white
 #? [c2]
 
 solver-clear-tt
 loadsgf sgf/puzzles/6x6-hein-07.sgf
-76 solve-state white
+66 solve-state white
 #? [white]
 
 
@@ -145,13 +145,19 @@ loadsgf sgf/puzzles/6x6-hein-07.sgf
 # Takes 5h26m to solve.
 solver-clear-tt
 loadsgf sgf/puzzles/9x9-henderson-01.sgf
-80 solver-find-winning black
+70 solver-find-winning black
 #? [c4 b5 g5]
 
 solver-clear-tt
 loadsgf sgf/puzzles/6x6-henderson-02.sgf
-81 solver-find-winning black
+71 solver-find-winning black
 #? [b4]
+
+# Takes 18 minutes to solve.
+solver-clear-tt
+loadsgf sgf/puzzles/11x11-henderson-03.sgf
+72 solve-state black
+#? [black]
 
 
 # Little Golem puzzles

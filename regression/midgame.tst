@@ -11,11 +11,11 @@
 
 # Testing how we make connections when we have a choice.
 
-# There may be other winning moves, but d7 is the one found by dfpn.
-# Furthermore, d7 dominates b10 (not simply/ice cannot figure this out).
+# d7 is the first winning move found by dfpn. h7 was also confirmed...
+# there may be others.
 loadsgf sgf/midgame/make-connection-with-max-influence01.sgf
 10 genmove black
-#? [d7]*
+#? [d7|h7]*
 
 # Solvers still cannot figure out this position. However, g5 is known
 # to be a losing move, and h3 is known to be winning.
@@ -24,7 +24,7 @@ loadsgf sgf/midgame/make-connection-with-max-influence02.sgf
 #? [h3]*
 
 # Not completely solved, but only the following moves are NOT proven losses,
-# nor inferior cells: i2, j6, h-j8, h-j9, c-i10, d-h11.
+# nor inferior cells: i2, j6, h-j8, h-j9, c-i10, e-h11.
 loadsgf sgf/midgame/make-connection-with-max-influence03.sgf
 12 genmove white
 #? [i2|j6|h8|h9]
