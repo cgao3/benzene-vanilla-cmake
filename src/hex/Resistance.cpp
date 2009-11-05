@@ -1,9 +1,28 @@
 //----------------------------------------------------------------------------
 /** @file Resistance.cpp
 
-    Resistance/energy calculatiosn based very closely on Six's circuit
+    Resistance/energy calculation based very closely on Six's circuit
     implementation.
- */
+
+    We use the same open source code to solve the linear system that
+    Six uses. We actually tried linking with two different external
+    linear algebra libraries (GNU Scientific library and
+    boost::numeric::ublas) but both fail in some instances that our
+    current code handles without complaint.
+
+    These instances seem to include a linear dependence among the rows
+    of our G matrix. In this simplest case, this can happen if one
+    group's set of connections is a superset of another group's. We
+    haven't been able to find a way around this, as any fix seems more
+    expensive than worthwhile.
+
+    We also hoped these external libraries would be faster; again,
+    this does not appear to be the case. 
+
+    It is possible that a more powerful library like LAPACK would
+    address both of these issues, but the hassle of adding this
+    external dependency to benzene probably outweighs the gain.    
+*/
 //----------------------------------------------------------------------------
 
 #include <cmath>
@@ -115,18 +134,10 @@ void Resistance::ComputeScores(HexColor color, const Groups& groups,
         }
     }
 
-    Mat<double> G(n, n);   // conductances
-    Vec<double> sinkG(n);  // conductances from sink to each group
-    Vec<double> I(n);      // initial currents
-
+    // Compute conductances between groups
+    Mat<double> G(n, n);
+    std::vector<double> sinkG(n, 0.0);
     G = 0.0;
-    sinkG = 0.0;
-    I = 0.0;
-    
-    // Put some current on the source
-    I[pointToIndex[source]] = 1.0;
-
-    // Compute conductance between groups
     for (int i = 0; i < n; ++i)
     {
         HexPoint ip = indexToPoint[i];
@@ -141,14 +152,19 @@ void Resistance::ComputeScores(HexColor color, const Groups& groups,
         }
         double c = Conductance(brd, color, ip, sink, graph[ip][sink], values);
         G(i, i) += c;
-        sinkG(i) += c;
+        sinkG[i] += c;
     }
 
-    // solve for voltages
-    const Vec<double>& V = lsSolve(G, I);
+    // Put some current on the source
+    Vec<double> I(n);
+    I = 0.0;
+    I[pointToIndex[source]] = 1.0;
 
+    // Solve for voltages
+    const Vec<double>& V = lsSolve(G, I);
     m_resistance[color] = fabs(V[pointToIndex[source]]);
 
+    // Compute energy
     for (int i = 0; i < n; ++i)
     {
         double sum = fabs(sinkG[i] * V[i]);
