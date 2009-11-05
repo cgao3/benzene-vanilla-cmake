@@ -95,11 +95,25 @@ void Resistance::ComputeScores(HexColor color, const Groups& groups,
     const StoneBoard& brd = groups.Board();
     SetAllToInfinity(brd, out);
 
-    int ic,jc;
-    HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(color);
-    HexPoint source = HexPointUtil::colorEdge1(color);
-    HexPoint sink = HexPointUtil::colorEdge2(color);
-    int n = groups.NumGroups(not_other);
+    const HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(color);
+    const HexPoint source = HexPointUtil::colorEdge1(color);
+    const HexPoint sink = HexPointUtil::colorEdge2(color);
+    const int n = groups.NumGroups(not_other) - 1;
+
+    // Compute index that does not contain the sink
+    int pointToIndex[BITSETSIZE];
+    HexPoint indexToPoint[BITSETSIZE];
+    {
+        int index = 0;
+        for (GroupIterator i(groups, not_other); i; ++i)
+        {
+            if (i->Captain() == sink)
+                continue;
+            pointToIndex[i->Captain()] = index;
+            indexToPoint[index] = i->Captain();
+            index++;
+        }
+    }
 
     Mat<double> G(n, n);   // conductances
     Vec<double> sinkG(n);  // conductances from sink to each group
@@ -109,53 +123,38 @@ void Resistance::ComputeScores(HexColor color, const Groups& groups,
     sinkG = 0.0;
     I = 0.0;
     
-    // put some current on the source
-    I[groups.GroupIndex(source, not_other)] = 1.0;
+    // Put some current on the source
+    I[pointToIndex[source]] = 1.0;
 
-    // compute conductance between groups
-    ic = 0;
-    for (GroupIterator i(groups, not_other); i; ++i, ++ic) 
+    // Compute conductance between groups
+    for (int i = 0; i < n; ++i)
     {
-        jc = 0;
-        HexPoint icap = i->Captain();
-        for (GroupIterator j(groups, not_other); &*j != &*i; ++j, ++jc) 
+        HexPoint ip = indexToPoint[i];
+        for (int j = 0; j < i; ++j)
         {
-            HexPoint jcap = j->Captain();
-            double conductance = Conductance(brd, color, icap, jcap, 
-                                             graph[icap][jcap], values);
-            
-            if (icap != sink) 
-                G(ic, ic) += conductance;
-            else 
-                sinkG(jc) += conductance;
-
-            if (jcap != sink)
-                G(jc, jc) += conductance;
-            else 
-                sinkG(ic) += conductance;
-
-            if (icap != sink && jcap != sink) 
-            {
-                G(ic, jc) -= conductance;
-                G(jc, ic) -= conductance;
-            }
+            HexPoint jp = indexToPoint[j];
+            double c = Conductance(brd, color, ip, jp, graph[ip][jp], values);
+            G(i, i) += c;
+            G(j, j) += c;
+            G(i, j) -= c;
+            G(j, i) -= c;                
         }
+        double c = Conductance(brd, color, ip, sink, graph[ip][sink], values);
+        G(i, i) += c;
+        sinkG(i) += c;
     }
 
     // solve for voltages
     const Vec<double>& V = lsSolve(G, I);
 
-    m_resistance[color] = fabs(V[groups.GroupIndex(source, not_other)]);
+    m_resistance[color] = fabs(V[pointToIndex[source]]);
 
-    // compute energy for each cell
-    ic = 0;
-    for (GroupIterator i(groups, not_other); i; ++i, ++ic) 
+    for (int i = 0; i < n; ++i)
     {
-        jc = 0;
-        double sum = fabs(sinkG[ic] * V[ic]);
-        for (GroupIterator j(groups, not_other); j; ++j, ++jc) 
-            sum += fabs(G(ic, jc) * (V[ic] - V[jc]));
-        out[i->Captain()] = sum;
+        double sum = fabs(sinkG[i] * V[i]);
+        for (int j = 0; j < n; ++j)
+            sum += fabs(G(i,j) * (V[i] - V[j]));
+        out[indexToPoint[i]] = sum;
     }
 }
 
