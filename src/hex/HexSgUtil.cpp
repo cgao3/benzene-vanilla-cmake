@@ -53,7 +53,7 @@ SgVector<SgPoint> HexSgUtil::BitsetToSgVector(const bitset_t& b, int height)
     SgVector<SgPoint> ret;
     std::vector<HexPoint> hp;
     for (BitsetIterator i(b); i; ++i)
-        ret.Append(HexSgUtil::HexPointToSgPoint(*i, height));
+        ret.PushBack(HexSgUtil::HexPointToSgPoint(*i, height));
     return ret;
 }
 
