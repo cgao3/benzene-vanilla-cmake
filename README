@@ -98,12 +98,12 @@ To build and run the unit tests, do:
 If you are only modifying existing source files, then a simple 'make'
 is enough to build the new code properly. If you wish to add or remove
 source files, then you will have to edit the proper 'Makefile.am'
-files.  If you modify any 'Makefile.am', you will need to run
-'autoreconf -i' and 'configure' again. That is:
+files.  If you modify any 'Makefile.am', you will need to recreate the
+makefiles with 'config.status': 
 
 [add some source files, make changes in all relevant Makefile.am]
 % autoreconf -i
-% ./configure --with-fuego-root=[abs path to fuego] --enable-assert=[yes/no]
+% ./config.status [this will use the settings from the last './configure']
 % make
 
 ------------
