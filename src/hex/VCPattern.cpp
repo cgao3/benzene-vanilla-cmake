@@ -320,6 +320,8 @@ void VCPattern::CreatePatterns(int width, int height)
             VCPattern pat(endpoint, SOUTH, black, empty, badprobes);
             complete.push_back(pat);
         } else if (type == "start") {
+            if (endpoint == SOUTH)
+                throw HexException("Start pattern with no endpoint!");
             start.push_back(BuilderPattern(black, empty, badprobes, 
                                            endpoint, patternHeight));
         } else if (type == "end") {
@@ -367,7 +369,7 @@ void VCPattern::CreatePatterns(int width, int height)
                     }
                 }
                 
-                VCPattern pat(st.endpoint, SOUTH, black, empty, badprobes);    
+                VCPattern pat(st.endpoint, bp.endpoint, black, empty, badprobes);
                 complete.push_back(pat);
                 numConstructed++;
 

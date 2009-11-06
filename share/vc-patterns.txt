@@ -54,6 +54,12 @@ height 2
 B
  *
 
+name row2end2b
+type end
+height 2
+E
+ *
+
 name row2end3
 type end
 height 2
