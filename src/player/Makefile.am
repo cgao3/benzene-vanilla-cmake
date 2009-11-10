@@ -18,8 +18,8 @@ noinst_HEADERS = \
 BenzeneHtpEngine.hpp \
 BenzenePlayer.hpp \
 BookBuilder.hpp \
-BookCheck.hpp \
 BookBuilderCommands.hpp \
+BookCheck.hpp \
 BookCommands.hpp \
 EndgameCheck.hpp \
 HandBookCheck.hpp \
