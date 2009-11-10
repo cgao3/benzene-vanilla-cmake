@@ -201,21 +201,6 @@ bitset_t VCSetUtil::ConnectedTo(const VCSet& con, const Groups& groups,
     return ret;
 }
 
-void VCSetUtil::NumActiveVCSet(const VCSet& con, const Groups& groups, 
-                               int& fulls, int& semis)
-{
-    fulls = semis = 0;
-    HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(con.Color());
-    for (GroupIterator x(groups, not_other); x; ++x) 
-    {
-        for (GroupIterator y(groups, not_other); &*y != &*x; ++y) 
-        {
-            fulls += con.GetList(VC::FULL, x->Captain(), y->Captain()).size();
-            semis += con.GetList(VC::SEMI, x->Captain(), y->Captain()).size();
-        }
-    }
-}
-
 bool VCSetUtil::EqualOnGroups(const VCSet& c1, const VCSet& c2,
                               const Groups& groups)
 {
@@ -253,3 +238,78 @@ bool VCSetUtil::EqualOnGroups(const VCSet& c1, const VCSet& c2,
 }
 
 //----------------------------------------------------------------------------
+
+VCSetStatistics::VCSetStatistics()
+    : m_fulls(0),
+      m_semis(0)
+{
+}
+
+std::string VCSetStatistics::Write() const
+{
+    std::ostringstream os;
+    os << "[\n";
+    os << "fulls=" << m_fulls << '\n';
+    os << "semis=" << m_semis << '\n';
+    os << "fullCounts="; m_fullCounts.Write(os); os << '\n';
+    os << "semiCounts="; m_semiCounts.Write(os); os << '\n';
+    os << "fullCountsCell="; m_fullCountsCell.Write(os); os << '\n';
+    os << "semiCountsCell="; m_semiCountsCell.Write(os); os << '\n';
+    os << "fullConnectedTo="; m_fullConnectedTo.Write(os); os << '\n';
+    os << "semiConnectedTo="; m_semiConnectedTo.Write(os); os << '\n';
+    os << "fullHisto=\n"; m_fullHisto.Write(os); os << '\n';
+    os << "semiHisto=\n"; m_semiHisto.Write(os); os << '\n';
+    os << "]\n";
+    os << '\n';
+    return os.str();
+}
+
+VCSetStatistics VCSetUtil::ComputeStatistics(const VCSet& con, 
+                                             const Groups& groups,
+                                             std::size_t maxConnections,
+                                             std::size_t numBins)
+
+{
+    VCSetStatistics stats;
+    stats.m_fullHisto.Init(0, maxConnections, numBins);
+    stats.m_semiHisto.Init(0, maxConnections, numBins);
+    std::vector<size_t> cellFullCounts(BITSETSIZE, 0);
+    std::vector<size_t> cellSemiCounts(BITSETSIZE, 0);
+    
+    HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(con.Color());
+    for (GroupIterator x(groups, not_other); x; ++x) 
+    {
+        for (GroupIterator y(groups, not_other); &*y != &*x; ++y) 
+        {
+            std::size_t full_size = con.GetList(VC::FULL, x->Captain(), 
+                                                y->Captain()).size();
+            std::size_t semi_size = con.GetList(VC::SEMI, x->Captain(), 
+                                                y->Captain()).size();
+            stats.m_fulls += full_size;
+            stats.m_semis += semi_size;
+            stats.m_fullCounts.Add(full_size);
+            stats.m_semiCounts.Add(semi_size);
+            stats.m_fullHisto.Add(full_size);
+            stats.m_semiHisto.Add(semi_size);
+            cellFullCounts[x->Captain()] += full_size;
+            cellSemiCounts[x->Captain()] += semi_size;
+            cellFullCounts[y->Captain()] += full_size;
+            cellSemiCounts[y->Captain()] += semi_size;
+        }
+        std::size_t full_connected 
+            = ConnectedTo(con, groups, x->Captain(), VC::FULL).count();
+        std::size_t semi_connected 
+            = ConnectedTo(con, groups, x->Captain(), VC::SEMI).count();
+        stats.m_fullConnectedTo.Add(full_connected);
+        stats.m_semiConnectedTo.Add(semi_connected);
+    }
+    for (GroupIterator x(groups, not_other); x; ++x)
+    {
+        stats.m_fullCountsCell.Add(cellFullCounts[x->Captain()]);
+        stats.m_semiCountsCell.Add(cellSemiCounts[x->Captain()]);
+    }
+    return stats;
+}
+
+//----------------------------------------------------------------------------
+

@@ -42,6 +42,7 @@ private:
     void CmdBuildStatic(HtpCommand& cmd);
     void CmdBuildIncremental(HtpCommand& cmd);
     void CmdUndoIncremental(HtpCommand& cmd);
+    void CmdSetInfo(HtpCommand& cmd);
 };
 
 //----------------------------------------------------------------------------

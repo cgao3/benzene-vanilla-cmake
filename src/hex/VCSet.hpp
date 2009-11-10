@@ -6,6 +6,9 @@
 #ifndef VCSET_HPP
 #define VCSET_HPP
 
+#include "SgSystem.h"
+#include "SgStatistics.h"
+
 #include "ChangeLog.hpp"
 #include "ConstBoard.hpp"
 #include "Groups.hpp"
@@ -165,6 +168,36 @@ inline int VCSet::SoftLimit(VC::Type type) const
 
 //----------------------------------------------------------------------------
 
+/** Info on the set of connections. */
+struct VCSetStatistics
+{
+    std::size_t m_fulls;
+
+    std::size_t m_semis;
+
+    SgStatisticsExt<float, std::size_t> m_fullCounts;
+    
+    SgStatisticsExt<float, std::size_t> m_semiCounts;
+    
+    SgStatisticsExt<float, std::size_t> m_fullCountsCell;
+    
+    SgStatisticsExt<float, std::size_t> m_semiCountsCell;
+    
+    SgStatisticsExt<float, std::size_t> m_fullConnectedTo;
+
+    SgStatisticsExt<float, std::size_t> m_semiConnectedTo;
+    
+    SgHistogram<std::size_t, std::size_t> m_fullHisto;
+    
+    SgHistogram<std::size_t, std::size_t> m_semiHisto;
+
+    VCSetStatistics();
+
+    std::string Write() const;
+};
+
+//----------------------------------------------------------------------------
+
 /** Utilities on VCSet. */
 namespace VCSetUtil 
 {
@@ -173,14 +206,15 @@ namespace VCSetUtil
     bitset_t ConnectedTo(const VCSet& con, const Groups& groups, 
                          HexPoint x, VC::Type type);
 
-    /** Number of connections defined on groupset. */
-    void NumActiveVCSet(const VCSet& con, const Groups& groups, 
-                              int& fulls, int& semis);
-
     /** Returns true if connection sets are equal on the given
         groups. */
     bool EqualOnGroups(const VCSet& c1, const VCSet& c2,
                        const Groups& groups);
+
+    /** Obtain info on connections. */
+    VCSetStatistics ComputeStatistics(const VCSet& con, const Groups& groups,
+                                      std::size_t maxConnections,
+                                      std::size_t numBins);
 }
 
 //----------------------------------------------------------------------------

@@ -32,6 +32,7 @@ void VCCommands::Register(GtpEngine& e)
     Register(e, "vc-build", &VCCommands::CmdBuildStatic);
     Register(e, "vc-build-incremental", &VCCommands::CmdBuildIncremental);
     Register(e, "vc-undo-incremental", &VCCommands::CmdUndoIncremental);
+    Register(e, "vc-set-info", &VCCommands::CmdSetInfo);
 }
 
 void VCCommands::Register(GtpEngine& engine, const std::string& command,
@@ -200,3 +201,27 @@ void VCCommands::CmdVCUnion(HtpCommand& cmd)
 }
 
 //----------------------------------------------------------------------------
+
+/** Obtains statistics on connection set. */
+void VCCommands::CmdSetInfo(HtpCommand& cmd)
+{
+    if (cmd.NuArg() == 0)
+        throw HtpFailure("Need at least the color!");
+    std::size_t maxConnections = 50;
+    std::size_t numBins = 10;
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    if (cmd.NuArg() == 3)
+    {
+        maxConnections = cmd.IntArg(1, 1);
+        numBins = cmd.IntArg(2, 1);
+    }
+    HexBoard& brd = *m_env.brd;
+    VCSetStatistics stats 
+        = VCSetUtil::ComputeStatistics(brd.Cons(color), brd.GetGroups(),
+                                       maxConnections, numBins);
+    cmd << stats.Write();
+}
+
+//----------------------------------------------------------------------------
+
+
