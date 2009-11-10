@@ -30,6 +30,11 @@ struct VCBuilderParam
     /** Whether to augment VC set with pre-computed VC patterns. */
     bool use_patterns;
 
+    /** Whether to use pre-computed patterns between two non-edge
+        cells. These can cause an explosion in the number of
+        connections. */
+    bool use_non_edge_patterns;
+
     /** Whether to use the crossing rule.
         Note that the crossing rule requires the use of stepping stones/
         mustuse to be useful, so this rule is near-useless unless the

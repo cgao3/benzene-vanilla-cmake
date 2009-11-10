@@ -23,6 +23,7 @@ VCBuilderParam::VCBuilderParam()
     : max_ors(4),
       and_over_edge(false),
       use_patterns(true),
+      use_non_edge_patterns(false),
       use_crossing_rule(false),
       use_greedy_union(true),
       abort_on_winning_connection(false)
@@ -119,6 +120,10 @@ void VCBuilder::AddPatternVCs()
     for (std::size_t i=0; i<patterns.size(); ++i) 
     {
         const VCPattern& pat = patterns[i];
+        if (!m_param.use_non_edge_patterns
+            && !HexPointUtil::isEdge(pat.Endpoint(0))
+            && !HexPointUtil::isEdge(pat.Endpoint(1)))
+            continue;
         if (pat.Matches(m_color, *m_brd)) 
         {
             bitset_t carrier = pat.NotOpponent() - m_brd->getColor(m_color);

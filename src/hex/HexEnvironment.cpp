@@ -130,6 +130,8 @@ void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
             << param.use_greedy_union << '\n'
             << "[bool] use_patterns "
             << param.use_patterns << '\n'
+            << "[bool] use_non_edge_patterns "
+            << param.use_non_edge_patterns << '\n'
             << "[bool] use_crossing_rule "
             << param.use_crossing_rule << '\n'
             << "[string] max_ors "
@@ -150,6 +152,8 @@ void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
             param.use_greedy_union = cmd.BoolArg(1);
         else if (name == "use_patterns")
             param.use_patterns = cmd.BoolArg(1);
+        else if (name == "use_non_edge_patterns")
+            param.use_non_edge_patterns = cmd.BoolArg(1);
         else if (name == "use_crossing_rule")
             param.use_crossing_rule = cmd.BoolArg(1);
         else if (name == "max_ors")
