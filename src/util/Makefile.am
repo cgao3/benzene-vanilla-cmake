@@ -8,8 +8,8 @@ Misc.cpp \
 Time.cpp
 
 noinst_HEADERS = \
-Benzene.hpp \
 BenzeneBitset.hpp \
+Benzene.hpp \
 Bitset.hpp \
 ChangeLog.hpp \
 Digraph.hpp \
@@ -24,8 +24,8 @@ mat.hpp \
 Misc.hpp \
 SafeBool.hpp \
 SortedSequence.hpp \
-Time.hpp \
 ThreadedWorker.hpp \
+Time.hpp \
 Types.hpp \
 UnionFind.hpp \
 vec.hpp
