@@ -90,6 +90,12 @@ loadsgf sgf/endgame/close-endgame12.sgf
 31 genmove black
 #? [d5|f5]
 
+# MoHex fails badly by playing the losing move c6, even though dfpn can
+# easily finds a winning move for White (easiest is g3).
+loadsgf sgf/endgame/close-endgame13.sgf
+32 genmove white
+#? [g3|c4|d4]*
+
 
 # Testing randomly-generated endgame positions where our evaluation functions
 # perform differently/are often incorrect.

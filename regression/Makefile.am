@@ -34,6 +34,7 @@ sgf/endgame/close-endgame09.sgf \
 sgf/endgame/close-endgame10.sgf \
 sgf/endgame/close-endgame11.sgf \
 sgf/endgame/close-endgame12.sgf \
+sgf/endgame/close-endgame13.sgf \
 sgf/endgame/easy-endgame01.sgf \
 sgf/endgame/easy-endgame02.sgf \
 sgf/endgame/easy-endgame03.sgf \
