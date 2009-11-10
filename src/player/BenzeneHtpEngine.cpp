@@ -546,8 +546,7 @@ void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    brd.ComputeAll(color);
+    HexBoard& brd = *m_pe.brd;
     Resistance resist;
     resist.Evaluate(brd);
 
