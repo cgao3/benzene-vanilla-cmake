@@ -111,3 +111,81 @@ SgBlackWhite HexUctUtil::ToSgBlackWhite(HexColor c)
 
 //----------------------------------------------------------------------------
 
+namespace 
+{
+
+void SaveNode(std::ostream& out, const SgUctTree& tree, const SgUctNode& node, 
+              HexColor toPlay, int maxDepth, int depth)
+{
+    out << "C[MoveCount " << node.MoveCount()
+        << "\nPosCount " << node.PosCount()
+        << "\nMean " << std::fixed << std::setprecision(2) << node.Mean();
+    if (!node.HasChildren())
+    {
+        out << "]\n";
+        return;
+    }
+    out << "\n\nRave:";
+    for (SgUctChildIterator it(tree, node); it; ++it)
+    {
+        const SgUctNode& child = *it;
+        HexPoint move = static_cast<HexPoint>(child.Move());
+        if (child.HasRaveValue())
+        {
+            out << '\n' << HexUctUtil::MoveString(move) << ' '
+                << std::fixed << std::setprecision(2) << child.RaveValue()
+                << " (" << child.RaveCount() << ')';
+        }
+    }
+    out << "]\nLB";
+    for (SgUctChildIterator it(tree, node); it; ++it)
+    {
+        const SgUctNode& child = *it;
+        if (! child.HasMean())
+            continue;
+        HexPoint move = static_cast<HexPoint>(child.Move());
+        out << "[" << HexUctUtil::MoveString(move) << ':' 
+            << child.MoveCount() << ']';
+    }
+    out << '\n';
+    if (maxDepth >= 0 && depth >= maxDepth)
+        return;
+    for (SgUctChildIterator it(tree, node); it; ++it)
+    {
+        const SgUctNode& child = *it;
+        if (! child.HasMean())
+            continue;
+        HexPoint move = static_cast<HexPoint>(child.Move());
+        out << "(;" << (toPlay == BLACK ? 'B' : 'W') 
+            << '[' << HexUctUtil::MoveString(move) << ']';
+        SaveNode(out, tree, child, !toPlay, maxDepth, depth + 1);
+        out << ")\n";
+    }
+}
+
+}
+
+void HexUctUtil::SaveTree(const SgUctTree& tree, const StoneBoard& brd, 
+                     HexColor toPlay, std::ostream& out, int maxDepth)
+{
+    out << "(;FF[4]GM[11]SZ[" << brd.width() << "]\n";
+    out << ";AB";
+    for (BoardIterator it(brd.Stones(BLACK)); it; ++it)
+        out << '[' << *it << ']';
+    out << '\n';
+    out << "AW";
+    for (BoardIterator it(brd.Stones(WHITE)); it; ++it)
+        out << '[' << *it << ']';
+    out << '\n';
+    out << "AE";
+    for (BoardIterator it(brd.Stones(EMPTY)); it; ++it)
+        out << '[' << *it << ']';
+    out << '\n';
+    out << "PL[" << (toPlay == SG_BLACK ? "B" : "W") << "]\n";
+    SaveNode(out, tree, tree.Root(), toPlay, maxDepth, 0);
+    out << ")\n";
+}
+
+//----------------------------------------------------------------------------
+
+

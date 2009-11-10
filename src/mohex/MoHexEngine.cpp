@@ -23,6 +23,7 @@ MoHexEngine::MoHexEngine(GtpInputStream& in, GtpOutputStream& out,
     m_bookCommands.Register(*this);
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
     RegisterCmd("param_mohex_policy", &MoHexEngine::MoHexPolicyParam);
+    RegisterCmd("mohex-save-tree", &MoHexEngine::SaveTree);
 }
 
 MoHexEngine::~MoHexEngine()
@@ -180,6 +181,29 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
     }
     else 
         throw HtpFailure("Expected 0 or 2 arguments");
+}
+
+/** Saves the search tree from the previous search to the specified
+    file.  The optional second parameter sets the max depth to
+    output. If not given, entire tree is saved.    
+*/
+void MoHexEngine::SaveTree(HtpCommand& cmd)
+{
+    MoHexPlayer* mohex = 
+        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
+    if (!mohex)
+        throw HtpFailure("No MoHex instance!");
+    HexUctSearch& search = mohex->Search();
+
+    cmd.CheckNuArg(1);
+    std::string filename = cmd.Arg(0);
+    int maxDepth = -1;
+    std::ofstream file(filename.c_str());
+    if (!file)
+        throw HtpFailure() << "Could not open '" << filename << "'";
+    if (cmd.NuArg() == 2)
+        maxDepth = cmd.IntArg(1, 0);
+    search.SaveTree(file, maxDepth);
 }
 
 //----------------------------------------------------------------------------

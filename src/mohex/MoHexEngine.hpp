@@ -30,6 +30,7 @@ public:
 
     void MoHexParam(HtpCommand& cmd);
     void MoHexPolicyParam(HtpCommand& cmd);
+    void SaveTree(HtpCommand& cmd);
 
     // @} // @name
 

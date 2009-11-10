@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
 /** @file HexUctUtil.hpp
-    
 */
 //----------------------------------------------------------------------------
 
@@ -10,6 +9,8 @@
 #include "SgBlackWhite.h"
 #include "SgPoint.h"
 #include "SgUctSearch.h"
+
+#include "StoneBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -54,11 +55,15 @@ namespace HexUctUtil
     
     /** Converts a HexColor to SgBlackWhite (Note: cannot be EMPTY). */
     SgBlackWhite ToSgBlackWhite(HexColor c);
+
+    /** Saves the uct tree to an sgf. */
+    void SaveTree(const SgUctTree& tree, const StoneBoard& brd, 
+                  HexColor toPlay, std::ostream& out, int maxDepth);
 }
 
 //----------------------------------------------------------------------------
 
 _END_BENZENE_NAMESPACE_
 
-#endif // GOUCTUTIL_H
+#endif // HEXUCTUTIL_H
 

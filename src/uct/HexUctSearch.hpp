@@ -100,7 +100,7 @@ public:
     void SaveGames(const std::string& fileName) const;
 
     /** @see HexUctUtil::SaveTree() */
-    void SaveTree(std::ostream& out) const;
+    void SaveTree(std::ostream& out, int maxDepth) const;
 
     /** Returns the position the previous search was run on. */
     const StoneBoard& LastPositionSearched() const;

@@ -167,16 +167,10 @@ void HexUctSearch::SaveGames(const std::string& filename) const
     HexSgUtil::WriteSgf(m_root, "MoHex", filename.c_str(), m_brd->height()); 
 }
 
-void HexUctSearch::SaveTree(std::ostream& out) const
+void HexUctSearch::SaveTree(std::ostream& out, int maxDepth) const
 {
-    UNUSED(out);
-
-    LogWarning() << "SaveTree() not implemented yet!" << '\n';
-
-#if 0
-    HexUctUtil::SaveTree(Tree(), m_brd->Size(), m_stones, m_initial_toPlay, 
-                         out, UseMoveCounts());
-#endif
+    HexUctUtil::SaveTree(Tree(), m_lastPositionSearched, 
+                         m_shared_data.root_to_play, out, maxDepth);
 }
 
 void HexUctSearch::OnSearchIteration(std::size_t gameNumber, int threadId,
