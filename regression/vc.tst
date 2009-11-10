@@ -2,16 +2,19 @@
 #
 # Tests VC computations.
 #
-# Run with "--config settings-vc.htp" for the settings needed to 
+# Run with "--config settings-vc.htp" for the settings needed to
 # obtain the expected results in this script. The settings are:
 #
-#   param_player_vc and_over_edge 1
-#   param_player_vc use_push_rule 1
+#   param_player_vc and_over_edge 0
+#   param_player_vc use_crossing_rule 0
 #   param_player_vc use_patterns 1
-#   param_player_vc softlimit_full 40
+#   param_player_vc use_non_edge_patterns 1
+#   param_player_vc max_ors 4
+#   param_player_vc softlimit_full 25
 #   param_player_vc softlimit_semi 50
 #
-# Results and expected results match as of 1817.
+# Results match as of commit bfe84104fa797d3842f3, for which this test takes
+# ~7.1s to complete on thorhild (Intel Core 2 Quad CPU Q9450 @ 2.66GHz).
 #
 #-----------------------------------------------------------------------------
 
@@ -66,7 +69,7 @@ vc-build white
 loadsgf sgf/vc/b10-is-key2.sgf
 vc-build black
 24 vc-connected-to f8 black 0
-#? [.*south.*]*
+#? [.*south.*]
 
 loadsgf sgf/vc/non-Anshelevich-edge-connection1.sgf
 vc-build black
@@ -126,7 +129,7 @@ vc-build black
 loadsgf sgf/vc/DK-88763.sgf
 vc-build black
 36 vc-connected-to f7 black 0
-#? [.*south.*]
+#? [.*south.*]*
 
 loadsgf sgf/vc/DK-65432.sgf
 vc-build black
@@ -186,7 +189,7 @@ vc-build black
 loadsgf sgf/vc/PH-6443.sgf
 vc-build black
 48 vc-connected-to south black 0
-#? [.*e9.*]*
+#? [.*e9.*]
 
 
 #
@@ -209,7 +212,7 @@ vc-build black
 loadsgf sgf/vc/black-has-winning-SC-with-f7-key.sgf
 vc-build black
 53 vc-connected-to south black 1
-#? [.*north.*]*
+#? [.*north.*]
 
 loadsgf sgf/vc/game-over-but-sees-4-mustplay.sgf
 vc-build white
@@ -223,7 +226,7 @@ vc-build white
 loadsgf sgf/vc/small-non-Ansh-SC.sgf
 vc-build black
 60 vc-connected-to south black 1
-#? [.*north.*]
+#? [.*north.*]*
 
 loadsgf sgf/vc/non-Anshelevich-edge-connection3.sgf
 vc-build black
