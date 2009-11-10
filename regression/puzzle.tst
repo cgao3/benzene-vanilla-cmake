@@ -159,6 +159,51 @@ loadsgf sgf/puzzles/11x11-henderson-03.sgf
 72 solve-state black
 #? [black]
 
+solver-clear-tt
+loadsgf sgf/puzzles/6x6-henderson-04.sgf
+73 solver-find-winning black
+#? [c4]
+
+solver-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-05.sgf
+74 solver-find-winning white
+#? [b6]
+
+solver-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-06.sgf
+75 solver-find-winning black
+#? [f4]
+
+solver-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-07.sgf
+76 solver-find-winning black
+#? [g2 c4]
+
+solver-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-08.sgf
+77 solver-find-winning white
+#? [e3]
+
+solver-clear-tt
+loadsgf sgf/puzzles/6x6-henderson-09.sgf
+78 solver-find-winning black
+#? [d4]
+
+solver-clear-tt
+loadsgf sgf/puzzles/6x6-henderson-10.sgf
+79 solver-find-winning black
+#? [c4]
+
+solver-clear-tt
+loadsgf sgf/puzzles/5x5-henderson-11.sgf
+80 solver-find-winning white
+#? [c4]
+
+solver-clear-tt
+loadsgf sgf/puzzles/5x5-henderson-12.sgf
+81 solver-find-winning black
+#? [b3]
+
 
 # Little Golem puzzles
 

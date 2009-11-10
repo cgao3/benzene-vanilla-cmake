@@ -163,6 +163,56 @@ loadsgf sgf/puzzles/11x11-henderson-03.sgf
 72 dfpn-solve-state
 #? [black]
 
+dfpn-clear-tt
+loadsgf sgf/puzzles/6x6-henderson-04.sgf
+73 dfpn-solver-find-winning
+#? [c4]
+
+# Takes 4 seconds to solve.
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-05.sgf
+74 dfpn-solver-find-winning
+#? [b6]
+
+# Takes 67 seconds to solve.
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-06.sgf
+75 dfpn-solver-find-winning
+#? [f4]
+
+# Takes 120 seconds to solve.
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-07.sgf
+76 dfpn-solver-find-winning
+#? [g2 c4]
+
+# Takes 68 seconds to solve.
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-08.sgf
+77 dfpn-solver-find-winning
+#? [e3]
+
+# Takes 1 second to solve.
+dfpn-clear-tt
+loadsgf sgf/puzzles/6x6-henderson-09.sgf
+78 dfpn-solver-find-winning
+#? [d4]
+
+dfpn-clear-tt
+loadsgf sgf/puzzles/6x6-henderson-10.sgf
+79 dfpn-solver-find-winning
+#? [c4]
+
+dfpn-clear-tt
+loadsgf sgf/puzzles/5x5-henderson-11.sgf
+80 dfpn-solver-find-winning
+#? [c4]
+
+dfpn-clear-tt
+loadsgf sgf/puzzles/5x5-henderson-12.sgf
+81 dfpn-solver-find-winning
+#? [b3]
+
 
 # Little Golem puzzles
 
