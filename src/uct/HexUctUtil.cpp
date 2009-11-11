@@ -145,7 +145,7 @@ void SaveNode(std::ostream& out, const SgUctTree& tree, const SgUctNode& node,
             continue;
         HexPoint move = static_cast<HexPoint>(child.Move());
         out << "[" << HexUctUtil::MoveString(move) << ':' 
-            << child.MoveCount() << ']';
+            << child.MoveCount() << '@' << child.Mean() << ']';
     }
     out << '\n';
     if (maxDepth >= 0 && depth >= maxDepth)
