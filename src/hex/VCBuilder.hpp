@@ -117,7 +117,7 @@ struct VCBuilderStatistics
     int killed1;
     
     /** Dumps statistics to a string. */
-    std::string toString() const;
+    std::string ToString() const;
 };
 
 //----------------------------------------------------------------------------
@@ -157,7 +157,7 @@ public:
     const VCBuilderParam& Parameters() const;
 
     /** Returns statistics for the last run. */
-    VCBuilderStatistics Statistics() const;
+    VCBuilderStatistics Statistics(HexColor color) const;
 
     //----------------------------------------------------------------------
 
@@ -274,7 +274,9 @@ private:
 
     WorkQueue m_queue;
 
-    VCBuilderStatistics m_statistics;
+    VCBuilderStatistics m_statsForColor[BLACK_AND_WHITE];
+
+    VCBuilderStatistics* m_statistics;
 
     const Groups* m_groups;
 
@@ -303,9 +305,9 @@ inline const VCBuilderParam& VCBuilder::Parameters() const
     return m_param;
 }
 
-inline VCBuilderStatistics VCBuilder::Statistics() const
+inline VCBuilderStatistics VCBuilder::Statistics(HexColor color) const
 {
-    return m_statistics;
+    return m_statsForColor[color];
 }
 
 //----------------------------------------------------------------------------

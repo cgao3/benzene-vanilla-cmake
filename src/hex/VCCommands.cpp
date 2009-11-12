@@ -32,7 +32,8 @@ void VCCommands::Register(GtpEngine& e)
     Register(e, "vc-build", &VCCommands::CmdBuildStatic);
     Register(e, "vc-build-incremental", &VCCommands::CmdBuildIncremental);
     Register(e, "vc-undo-incremental", &VCCommands::CmdUndoIncremental);
-    Register(e, "vc-set-info", &VCCommands::CmdSetInfo);
+    Register(e, "vc-set-stats", &VCCommands::CmdSetInfo);
+    Register(e, "vc-builder-stats", &VCCommands::CmdBuilderStats);
 }
 
 void VCCommands::Register(GtpEngine& engine, const std::string& command,
@@ -220,6 +221,16 @@ void VCCommands::CmdSetInfo(HtpCommand& cmd)
         = VCSetUtil::ComputeStatistics(brd.Cons(color), brd.GetGroups(),
                                        maxConnections, numBins);
     cmd << stats.Write();
+}
+
+/** Obtains statistics on connection set. */
+void VCCommands::CmdBuilderStats(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexBoard& brd = *m_env.brd;
+    VCBuilderStatistics stats = brd.Builder().Statistics(color);
+    cmd << stats.ToString();
 }
 
 //----------------------------------------------------------------------------

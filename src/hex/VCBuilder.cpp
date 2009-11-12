@@ -80,7 +80,8 @@ void VCBuilder::Build(VCSet& con, const Groups& groups,
 
     double s = Time::Get();
     m_con->Clear();
-    m_statistics = VCBuilderStatistics();
+    m_statsForColor[m_color] = VCBuilderStatistics();
+    m_statistics = &m_statsForColor[m_color];
     m_queue.clear();
 
     ComputeCapturedSets(patterns);
@@ -102,10 +103,10 @@ void VCBuilder::AddBaseVCs()
         for (BitsetIterator y(x->Nbs() & m_brd->getEmpty()); y; ++y) 
         {
             VC vc(x->Captain(), *y);
-            m_statistics.base_attempts++;
+            m_statistics->base_attempts++;
             if (m_con->Add(vc, m_log))
             {
-                m_statistics.base_successes++;
+                m_statistics->base_successes++;
                 m_queue.push(std::make_pair(vc.x(), vc.y()));
             }
         }
@@ -131,10 +132,10 @@ void VCBuilder::AddPatternVCs()
             carrier.reset(pat.Endpoint(1));
             VC vc(pat.Endpoint(0), pat.Endpoint(1), carrier, VC_RULE_BASE);
 
-            m_statistics.pattern_attempts++;
+            m_statistics->pattern_attempts++;
             if (m_con->Add(vc, m_log))
             {
-                m_statistics.pattern_successes++;
+                m_statistics->pattern_successes++;
                 m_queue.push(std::make_pair(vc.x(), vc.y()));
             }
         }
@@ -181,7 +182,8 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
     m_log = log;
 
     double s = Time::Get();
-    m_statistics = Statistics();
+    m_statsForColor[m_color] = VCBuilderStatistics();
+    m_statistics = &m_statsForColor[m_color];
     m_queue.clear();
 
     ComputeCapturedSets(patterns);
@@ -308,7 +310,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
         VC v = VC::ShrinkFull(*it, added, xout, yout);
         /** @bug There could be supersets of these fulls in semis_out! */
         if (fulls_out->add(v, m_log))
-            m_statistics.shrunk0++;
+            m_statistics->shrunk0++;
     }
 
     //
@@ -334,7 +336,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
             VC v = VC::ShrinkSemi(*it, added, xout, yout);
             /** @bug These could be supersets of fulls_out. */
             if (semis_out->add(v, m_log))
-                m_statistics.shrunk1++;
+                m_statistics->shrunk1++;
         }
     }
 
@@ -353,7 +355,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
                 // matter since the call to removeAllContaining()
                 // already clobbered the intersections.
                 semis_out->removeSuperSetsOf(v.carrier(), m_log, false);
-                m_statistics.upgraded++;
+                m_statistics->upgraded++;
             }
         }
     }
@@ -382,10 +384,10 @@ void VCBuilder::RemoveAllContaining(const Groups& oldGroups,
 	        continue;
             int cur0 = m_con->GetList(VC::FULL, xc, yc)
                 .removeAllContaining(bs, m_log);
-            m_statistics.killed0 += cur0; 
+            m_statistics->killed0 += cur0; 
             int cur1 = m_con->GetList(VC::SEMI, xc, yc)
                 .removeAllContaining(bs, m_log);
-            m_statistics.killed1 += cur1;
+            m_statistics->killed1 += cur1;
             if (cur0 || cur1)
                 m_queue.push(std::make_pair(xc, yc));
         }
@@ -421,11 +423,11 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
             if (m_param.use_crossing_rule)
                 doCrossingRule(*cur, &semis);
 
-            m_statistics.doOrs++;
+            m_statistics->doOrs++;
             if (m_orRule(*cur, &semis, &fulls, added, m_param.max_ors, 
-                         m_log, m_statistics))
+                         m_log, *m_statistics))
             {
-                m_statistics.goodOrs++;
+                m_statistics->goodOrs++;
             }
 
             cur->setProcessed(true);
@@ -583,32 +585,32 @@ void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
         {
             if (rule == CREATE_FULL)
             {
-                m_statistics.and_full_attempts++;
+                m_statistics->and_full_attempts++;
                 if (AddNewFull(VC::AndVCs(from, to, *i, vc, stones)))
-                    m_statistics.and_full_successes++;
+                    m_statistics->and_full_successes++;
             }
             else if (rule == CREATE_SEMI)
             {
-                m_statistics.and_semi_attempts++;
+                m_statistics->and_semi_attempts++;
                 if (AddNewSemi(VC::AndVCs(from, to, *i, vc, over)))
-                    m_statistics.and_semi_successes++;
+                    m_statistics->and_semi_successes++;
             }
         }
         else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
         {
             if (rule == CREATE_FULL)
             {
-                m_statistics.and_full_attempts++;
+                m_statistics->and_full_attempts++;
                 if (AddNewFull(VC::AndVCs(from, to, *i, vc, 
                                           capturedSet, stones)))
-                    m_statistics.and_full_successes++;
+                    m_statistics->and_full_successes++;
             }
             else if (rule == CREATE_SEMI)
             {
-                m_statistics.and_semi_attempts++;
+                m_statistics->and_semi_attempts++;
                 if (AddNewSemi(VC::AndVCs(from, to, *i, vc,
                                           capturedSet, over)))
-                    m_statistics.and_semi_successes++;
+                    m_statistics->and_semi_successes++;
             }
         }
     }
@@ -1012,10 +1014,10 @@ void VCBuilder::doCrossingRule(const VC& vc, const VCList* semi_list)
 		    // no mustuse when generated from crossing rule
                     VC new_semi(p1, p2, key, carrier, empty, VC_RULE_CROSSING);
 
-                    m_statistics.crossing_attempts++;
+                    m_statistics->crossing_attempts++;
                     if (AddNewSemi(new_semi))
                     {
-                        m_statistics.crossing_successes++;
+                        m_statistics->crossing_successes++;
 #if 0
                         LogInfo() << "Crossing Rule: "
                                  << new_semi << "\n"
@@ -1109,20 +1111,20 @@ bool VCBuilder::AddNewSemi(const VC& vc)
 
 //----------------------------------------------------------------------------
 
-std::string VCBuilderStatistics::toString() const
+std::string VCBuilderStatistics::ToString() const
 {
     std::ostringstream os;
     os << "["
-       << "base:" << base_successes << "/" << base_attempts << ", "
-       << "pat:" << pattern_successes << "/" << pattern_attempts << ", " 
-       << "and-f:" << and_full_successes << "/" << and_full_attempts << ", "
-       << "and-s:" << and_semi_successes << "/" << and_semi_attempts << ", "
-       << "crossing-s:" << crossing_successes << "/"
-                        << crossing_attempts << ", "
-       << "or:" << or_successes << "/" << or_attempts << ", "
-       << "doOr():" << goodOrs << "/" << doOrs << ", "
-       << "s0/s1/u1:" << shrunk0 << "/" << shrunk1 << "/"<< upgraded << ", "
-       << "killed0/1:" << killed0 << "/" << killed1 
+       << "base=" << base_successes << "/" << base_attempts << '\n'
+       << "pat=" << pattern_successes << "/" << pattern_attempts << '\n'
+       << "and-f=" << and_full_successes << "/" << and_full_attempts << '\n'
+       << "and-s=" << and_semi_successes << "/" << and_semi_attempts << '\n'
+       << "crossing-s=" << crossing_successes << "/"
+                        << crossing_attempts << '\n'
+       << "or=" << or_successes << "/" << or_attempts << '\n'
+       << "doOr()=" << goodOrs << "/" << doOrs << '\n'
+       << "s0/s1/u1=" << shrunk0 << "/" << shrunk1 << "/"<< upgraded << '\n'
+       << "killed0/1=" << killed0 << "/" << killed1 << '\n'
        << "]";
     return os.str();
 }
