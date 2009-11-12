@@ -173,6 +173,7 @@ void HexBoard::ComputeAll(HexColor color_to_move)
 
     if (m_use_vcs)
     {
+        m_builder.ClearStatistics();
         BuildVCs();
         HandleVCDecomposition(color_to_move, false);
     }
@@ -203,6 +204,7 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
 
     if (m_use_vcs)
     {
+        m_builder.ClearStatistics();
         MarkChangeLog();
         BuildVCs(oldGroups, added, true);
         HandleVCDecomposition(!color, true);
@@ -236,6 +238,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 
     if (m_use_vcs)
     {
+        m_builder.ClearStatistics();
         MarkChangeLog();
         BuildVCs(oldGroups, added, true);
         HandleVCDecomposition(color_to_move, true);

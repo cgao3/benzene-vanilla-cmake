@@ -159,6 +159,9 @@ public:
     /** Returns statistics for the last run. */
     VCBuilderStatistics Statistics(HexColor color) const;
 
+    /** Clears the statistics for both colors. */
+    void ClearStatistics();
+
     //----------------------------------------------------------------------
 
     /** Computes connections from scratch. Old connections are removed
@@ -308,6 +311,12 @@ inline const VCBuilderParam& VCBuilder::Parameters() const
 inline VCBuilderStatistics VCBuilder::Statistics(HexColor color) const
 {
     return m_statsForColor[color];
+}
+
+inline void VCBuilder::ClearStatistics()
+{
+    m_statsForColor[BLACK] = VCBuilderStatistics();
+    m_statsForColor[WHITE] = VCBuilderStatistics();
 }
 
 //----------------------------------------------------------------------------

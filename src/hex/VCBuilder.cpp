@@ -80,7 +80,6 @@ void VCBuilder::Build(VCSet& con, const Groups& groups,
 
     double s = Time::Get();
     m_con->Clear();
-    m_statsForColor[m_color] = VCBuilderStatistics();
     m_statistics = &m_statsForColor[m_color];
     m_queue.clear();
 
@@ -182,7 +181,6 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
     m_log = log;
 
     double s = Time::Get();
-    m_statsForColor[m_color] = VCBuilderStatistics();
     m_statistics = &m_statsForColor[m_color];
     m_queue.clear();
 
