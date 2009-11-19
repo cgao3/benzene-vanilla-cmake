@@ -16,36 +16,38 @@ broderic [091105] (in rough order of importance)
 * Remove lssolve from src/util/ and replace with external linear alg. library
 
 ph [090416]
-* Unique probe sequence for solver:
-  * If try losing move and PV winning reply matches pattern, then state loses
-* Induced path transpositions for solver:
-  * Apply files to get more DB transpositions by shifting played moves
-  * Compute closed set of all transposition types
-* Solver move ordering:
-  * Try moving split decomposition moves to the top of the list
-  * If that doesn't work, try making the mustplay count for split decomposition
-    moves equal to the max mustplay on either side of the decomp.
-* Reversible moves
-  * Pattern file exists, just need to add it to ICE :) Like vulnerable, but
-    no fill-in can be computed
+* Website stuff:
+  * Add handicap Java applet
 * Virtual-connection improvements:
-  * Add fill-in for keys (and maybe endpoints?)
-  * Common-substrategy
-  * Backing-up/recalling connections..?
-* MoHex improvements:
-  * Learned-reponse array through UCT tree sequences (use for rollouts)
+  * Captured keys/midpoints
+    * Verify no problems when captured set overlaps endpoints during H-search
+  * Common miai-substrategy
+    * Code up algorithm
+  * Develop ideas for backing-up/recalling `important' connections
+* Unique probes idea:
+  * Figure out why currently doesn't improve solver
+  * Find some way to make it help!
+* ICE improvements:
+  * Clean-up (dead and clique-type code, eliminate PI proof set code)
+  * Star decompositions
+    * Is there any way to detect these efficiently?
+  * Implement algorithm developed with Laurie to find more dead cell patterns
+    * Later develop similar algorithm for captured, create more vul/rev/dom/etc
+* DFPN improvements:
+  * Backing up ICE (reduce MTC w/ domination w/o introducing any new children)
+  * Shift to Kishi/explorer version if possible
+  * Add DB for shallow levels
+* Solver DB:
+  * Initialize with all `even' positions up to k stones (Black wins by SSA)
+  * Transposition engine to compute closed set of all transposition types
+    * Start with player exchange transpositions
+    * Add unique probe backup
+    * Add induced path (equiv/inf/dom) stone shifting
+* Tournament tool improvements:
+  * Script for automatic post-game sgf analysis with solver
+* Mustplay mask
+  * Figure out how on earth to make this work :)
 * Opening books guided adjustment:
   * Allow it to analyze/expand path of sgfs to where the book drops out
 * Evaluation function possibilities
   * Try weighted tuple of different virtual connection distances between edges
-* Tournament tool improvements:
-  * Script for automatic post-game sgf analysis with solver
-* Proof-set pruned states should perhaps be stored in DB/TT..?
-* Inferior cell improvements:
-  * Implement algorithm developed with Laurie to find more dead cell patterns
-  * Develop similar algorithm for captured
-  * Create larger list of vulnerable and dominated from above work
-* Mustplay mask
-* Website stuff:
-  * Create handicap Java applet
-
