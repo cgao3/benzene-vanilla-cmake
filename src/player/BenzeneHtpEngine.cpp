@@ -61,6 +61,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("compute-inferior", &BenzeneHtpEngine::CmdComputeInferior);
     RegisterCmd("compute-fillin", &BenzeneHtpEngine::CmdComputeFillin);
     RegisterCmd("compute-vulnerable", &BenzeneHtpEngine::CmdComputeVulnerable);
+    RegisterCmd("compute-reversible", &BenzeneHtpEngine::CmdComputeReversible);
     RegisterCmd("compute-dominated", &BenzeneHtpEngine::CmdComputeDominated);
     RegisterCmd("find-comb-decomp", &BenzeneHtpEngine::CmdFindCombDecomp);
     RegisterCmd("find-split-decomp", &BenzeneHtpEngine::CmdFindSplitDecomp);
@@ -359,6 +360,20 @@ void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
     GroupBuilder::Build(brd, brd.GetGroups());
     InferiorCells inf;
     m_pe.ice.FindVulnerable(brd.GetPatternState(), col, brd.getEmpty(), inf);
+    cmd << inf.GuiOutput();
+    cmd << '\n';
+}
+
+/** Computes reversible cells on the current board for the given color. */
+void BenzeneHtpEngine::CmdComputeReversible(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    HexColor col = HtpUtil::ColorArg(cmd, 0);
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
+    brd.GetPatternState().Update();
+    GroupBuilder::Build(brd, brd.GetGroups());
+    InferiorCells inf;
+    m_pe.ice.FindReversible(brd.GetPatternState(), col, brd.getEmpty(), inf);
     cmd << inf.GuiOutput();
     cmd << '\n';
 }

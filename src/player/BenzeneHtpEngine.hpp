@@ -41,6 +41,7 @@ public:
         - @link CmdComputeInferior() @c compute-inferior @endlink
         - @link CmdComputeFillin() @c compute-fillin @endlink
         - @link CmdComputeVulnerable() @c compute-vulnerable @endlink
+        - @link CmdComputeReversible() @c compute-reversible @endlink
         - @link CmdComputeDominated() @c compute-dominated @endlink
         - @link CmdFindCombDecomp() @c find-comb-decomp @endlink
         - @link CmdFindSplitDecomp() @c find-split-decomp @endlink
@@ -69,6 +70,7 @@ public:
     void CmdComputeInferior(HtpCommand& cmd);
     void CmdComputeFillin(HtpCommand& cmd);
     void CmdComputeVulnerable(HtpCommand& cmd);
+    void CmdComputeReversible(HtpCommand& cmd);
     void CmdComputeDominated(HtpCommand& cmd);
     void CmdFindCombDecomp(HtpCommand& cmd);
     void CmdFindSplitDecomp(HtpCommand& cmd);

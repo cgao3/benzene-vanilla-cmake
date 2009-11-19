@@ -59,6 +59,7 @@ void TightenMoveBitset(bitset_t& moveBitset, const InferiorCells& inf)
     BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Vulnerable());
     BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Captured(BLACK));
     BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Captured(WHITE));
+    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Reversible());
     BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Dominated());
     HexAssert(moveBitset.any());
 }
@@ -210,7 +211,9 @@ bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color)
     }
     bitset_t mustplay = VCUtils::GetMustplay(brd, color);
     const InferiorCells& inf = brd.getInferiorCells();
-    bitset_t remaining = mustplay - inf.Vulnerable() - inf.Dominated();
+    bitset_t remaining = mustplay - inf.Vulnerable()
+                                  - inf.Reversible()
+                                  - inf.Dominated();
     return remaining.none();
 }
 
@@ -260,7 +263,9 @@ bitset_t PlayerUtils::MovesToConsider(const HexBoard& brd, HexColor color)
     HexAssert(consider.any());
     
     const InferiorCells& inf = brd.getInferiorCells();
-    consider = consider - inf.Vulnerable() - inf.Dominated();
+    consider = consider - inf.Vulnerable()
+                        - inf.Reversible()
+                        - inf.Dominated();
     HexAssert(consider.any());
 
     if (consider.count() == 1) 

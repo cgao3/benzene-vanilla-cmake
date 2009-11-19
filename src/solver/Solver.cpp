@@ -1349,10 +1349,27 @@ bitset_t SolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
     
     const InferiorCells& inf = brd.getInferiorCells();
 
-    // take out the dead, dominated, and vulnerable
+    // take out the dead, dominated, reversible, and vulnerable
     ret = ret - inf.Dead();
     ret = ret - inf.Dominated();
+    ret = ret - inf.Reversible();
     ret = ret - inf.Vulnerable();
+
+    /** Must add reversable reversers to proof.
+
+        The carriers do NOT need to be included in the proof, since
+        they are captured by the (losing) player, not his opponent
+        (for whom we are building the proof set).
+        
+        @todo Currently, we just add the first reverser: we should see
+        if any reverser is already in the proof, since then we wouldn't
+        need to add one.
+    */
+    for (BitsetIterator p(inf.Reversible()); p; ++p) 
+    {
+        const std::set<HexPoint>& reversers = inf.Reversers(*p);
+        proof.set(*reversers.begin());
+    }
     
     /** Must add vulnerable killers (and their carriers) to proof.
         
