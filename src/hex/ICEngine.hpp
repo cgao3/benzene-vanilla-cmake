@@ -359,14 +359,7 @@ inline void ICEngine::SetIterativeDeadRegions(bool enable)
 namespace IceUtil 
 {
     /** Adds the inferior cell info from in to the inferior cell info
-        of out. 
-
-        @note Ensures no dead cells are added into perm.inf. carriers; they
-        are added as captured instead.  If this occurs, the board is
-        updated to reflect this change. 
-        
-        @note ^^^ IT DOESN'T ACTUALLY DO THIS! WE WERE THINKING ABOUT
-        DOING THAT BUT IT IS TURNED OFF BY DEFAULT.
+        of out.
     */
     void Update(InferiorCells& out, const InferiorCells& in);
 }

@@ -990,61 +990,8 @@ void IceUtil::Update(InferiorCells& out, const InferiorCells& in)
         out.AddPermInfFrom(*c, in);
     }
 
-    // Add the new dead cells. 
-
-    // @bug We currently just add the dead, but we need a proper
-    // method to dead with stuff going into perm.inf. carriers.
-
-#if 1
-
+    // Add the new dead cells.
     out.AddDead(in.Dead());
-
-#else 
-
-    // @note Any dead cell that is in a perm.inf. carrier needs to be
-    // switched to captured. If dead cell is in perm.inf. carriers for
-    // both colors, then we do not add it at all.
-
-    bool board_changed = false;
-    bitset_t pc[BLACK_AND_WHITE];
-    pc[BLACK] = out.PermInfCarrier(BLACK);
-    pc[WHITE] = out.PermInfCarrier(WHITE);
-    //LogInfo() << brd.Write(pc[BLACK]) << '\n'
-    //          << brd.Write(pc[WHITE]) << '\n';
-
-    for (BitsetIterator d(in.Dead()); d; ++d) {
-        //LogFine() << *d << '\n';
-
-        if (pc[BLACK].test(*d) && pc[WHITE].test(*d)) {
-            brd.setColor(EMPTY, *d);
-            board_changed = true;
-        } 
-        else if (pc[BLACK].test(*d)) {
-            out.AddCaptured(BLACK, *d);
-            if (brd.getColor(*d) != BLACK) {
-                brd.setColor(EMPTY, *d);
-                brd.setColor(BLACK, *d);
-                board_changed = true;
-            }
-        } 
-        else if (pc[WHITE].test(*d)) {
-            out.AddCaptured(WHITE, *d);
-            if (brd.getColor(*d) != WHITE) {
-                brd.setColor(EMPTY, *d);
-                brd.setColor(WHITE, *d);
-                board_changed = true;
-            }
-        } 
-        else {
-            out.AddDead(*d);
-        }
-    }
-
-    if (board_changed) {
-        brd.absorb();
-        brd.update();
-    }
-#endif
 }
 
 //----------------------------------------------------------------------------
