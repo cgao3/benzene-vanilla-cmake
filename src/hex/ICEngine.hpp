@@ -77,7 +77,12 @@ public:
     void FindVulnerable(const PatternState& board, HexColor color,
 			const bitset_t& consider,
 			InferiorCells& inf) const;
-    
+
+    /** Finds reversible cells for color among the consider set. */
+    void FindReversible(const PatternState& board, HexColor color,
+			const bitset_t& consider,
+			InferiorCells& inf) const;
+
     /** Finds dominated cells for color among the consider set using
         local patterns. Calls FindHandCodedDominated(). */
     void FindDominated(const PatternState& board, HexColor color, 
@@ -119,15 +124,19 @@ public:
     /** @see FindPermanentlyInferior() */
     void SetFindPermanentlyInferior(bool enable);
 
-    /** Find all killers for each cell if true, stop at first if
-        false. */
+    /** Find all killers for each cell if true, stop at first if false. */
     bool FindAllPatternKillers() const;
 
     /** @see FindAllPatternKillers() */
     void SetFindAllPatternKillers(bool enable);
 
-    /** Find all dominators for each cell if true, stop at first if
-        false. */
+    /** Find all reversers for each cell if true, stop at first if false. */
+    bool FindAllPatternReversers() const;
+
+    /** @see FindAllPatternReversers() */
+    void SetFindAllPatternReversers(bool enable);
+
+    /** Find all dominators for each cell if true, stop at first if false. */
     bool FindAllPatternDominators() const;
 
     /** @see FindAllPatternDominators() */
@@ -217,7 +226,7 @@ private:
                                  const HandCodedPattern& pattern, 
                                  const bitset_t& consider, 
                                  InferiorCells& inf) const;
-        
+
     //------------------------------------------------------------
 
     /** @see FindPresimplicialPairs() */
@@ -228,6 +237,9 @@ private:
 
     /** @see FindAllPatternKillers() */
     bool m_find_all_pattern_killers;
+
+    /** @see FindAllPatternReversers() */
+    bool m_find_all_pattern_reversers;
 
     /** @see FindAllPatternDominators() */
     bool m_find_all_pattern_dominators;
@@ -279,6 +291,16 @@ inline bool ICEngine::FindAllPatternKillers() const
 inline void ICEngine::SetFindAllPatternKillers(bool enable)
 {
     m_find_all_pattern_killers = enable;
+}
+
+inline bool ICEngine::FindAllPatternReversers() const
+{
+    return m_find_all_pattern_reversers;
+}
+
+inline void ICEngine::SetFindAllPatternReversers(bool enable)
+{
+    m_find_all_pattern_reversers = enable;
 }
 
 inline bool ICEngine::FindAllPatternDominators() const

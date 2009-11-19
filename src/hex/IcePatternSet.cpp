@@ -59,6 +59,12 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
             m_vulnerable[WHITE].push_back(p);
             break;
 
+        case Pattern::REVERSIBLE:
+            m_reversible[BLACK].push_back(p);
+            p.flipColors();
+            m_reversible[WHITE].push_back(p);
+            break;
+
         case Pattern::DOMINATED:
             m_dominated[BLACK].push_back(p);
             p.flipColors();
@@ -77,6 +83,7 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
         m_hashed_captured[*it].hash(m_captured[*it]);
         m_hashed_permanently_inferior[*it].hash(m_permanently_inferior[*it]);
         m_hashed_vulnerable[*it].hash(m_vulnerable[*it]);
+        m_hashed_reversible[*it].hash(m_reversible[*it]);
         m_hashed_dominated[*it].hash(m_dominated[*it]);
     }
 }

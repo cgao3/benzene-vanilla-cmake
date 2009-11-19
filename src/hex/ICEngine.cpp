@@ -491,6 +491,7 @@ ICEngine::ICEngine()
     : m_find_presimplicial_pairs(true),
       m_find_permanently_inferior(true),
       m_find_all_pattern_killers(true),
+      m_find_all_pattern_reversers(false),
       m_find_all_pattern_dominators(false),
       m_use_handcoded_patterns(true),
       m_backup_opponent_dead(false),
@@ -703,6 +704,13 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
 
     {
         bitset_t consider = groups.Board().getEmpty() - out.Vulnerable();
+        FindReversible(pastate, color, consider, out);
+    }
+
+    {
+        bitset_t consider = groups.Board().getEmpty()
+                            - out.Vulnerable()
+                            - out.Reversible();
         FindDominated(pastate, color, consider, out);
     }
 
@@ -733,6 +741,7 @@ int ICEngine::BackupOpponentDead(HexColor color, const StoneBoard& board,
     PatternState ps(brd);
     ps.CopyState(pastate);
 
+    bitset_t reversible = out.Reversible();
     bitset_t dominated = out.Dominated();
 
     int found = 0;
@@ -753,7 +762,9 @@ int ICEngine::BackupOpponentDead(HexColor color, const StoneBoard& board,
         for (BitsetIterator d(inf.Dead()); d; ++d) 
         {
             /** @todo Add if already vulnerable? */
-            if (!out.Vulnerable().test(*d) && !dominated.test(*d)) 
+            if (!out.Vulnerable().test(*d)
+                && !reversible.test(*d)
+                && !dominated.test(*d)) 
             {
                 bitset_t carrier = filled;
                 carrier.reset(*d);
@@ -860,6 +871,39 @@ void ICEngine::FindVulnerable(const PatternState& pastate, HexColor color,
     }
 }
 
+void ICEngine::FindReversible(const PatternState& pastate, HexColor color, 
+                              const bitset_t& consider,
+                              InferiorCells& inf) const
+{
+    PatternState::MatchMode matchmode = PatternState::STOP_AT_FIRST_HIT;
+    if (m_find_all_pattern_reversers)
+        matchmode = PatternState::MATCH_ALL;
+
+    // Find reversers using patterns
+    std::vector<PatternHits> hits(FIRST_INVALID);
+    bitset_t rev = pastate.MatchOnBoard(consider,
+                                        m_patterns.HashedReversible(color),
+                                        matchmode, hits);
+    // Add the new reversible cells with their reversers
+    for (BitsetIterator p(rev); p; ++p) 
+    {
+        for (unsigned j=0; j<hits[*p].size(); ++j) 
+        {
+            const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
+            HexAssert(moves1.size() == 1);
+            HexPoint reverser = moves1[0];
+            inf.AddReversible(*p, reverser);
+
+            // All cells in the carrier are also reversible (to same reverser)
+            const std::vector<HexPoint>& moves2 = hits[*p][j].moves2();
+            for (unsigned i=0; i<moves2.size(); ++i) {
+                if (consider.test(moves2[i]))
+                    inf.AddReversible(moves2[i], reverser);
+            }
+        }
+    }
+}
+
 void ICEngine::FindDominated(const PatternState& pastate, HexColor color, 
                              const bitset_t& consider,
                              InferiorCells& inf) const
@@ -876,7 +920,7 @@ void ICEngine::FindDominated(const PatternState& pastate, HexColor color,
     // Add the new dominated cells with their dominators
     for (BitsetIterator p(dom); p; ++p) 
     {
-        for (unsigned j = 0; j < hits[*p].size(); ++j) 
+        for (unsigned j=0; j<hits[*p].size(); ++j) 
         {
             const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
             HexAssert(moves1.size() == 1);
@@ -933,8 +977,10 @@ void IceUtil::Update(InferiorCells& out, const InferiorCells& in)
 {
     // Overwrite old vulnerable/dominated with new vulnerable/dominated 
     out.ClearVulnerable();
+    out.ClearReversible();
     out.ClearDominated();
     out.AddVulnerableFrom(in);
+    out.AddReversibleFrom(in);
     out.AddDominatedFrom(in);
 
     // Add the new fillin to the old fillin

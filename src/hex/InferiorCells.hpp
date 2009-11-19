@@ -98,6 +98,13 @@ public:
     /** Returns the set of vulnerable cells. */
     bitset_t Vulnerable() const;
 
+    /** Returns the set of reversible cells.
+
+        @note An empty cell can be both reversible and vulnerable. In
+        this case it will be vulnerable and not appear in the cells
+        returned by Reversible(). */
+    bitset_t Reversible() const;
+
     /** Returns the set of dominated cells.  This is not the same as
         the set of all cells dominated by some other cell. The
         returned is a maximal set of dominated cells that can be ignored
@@ -105,11 +112,9 @@ public:
 
         @note A cell can be both dominated (have an outgoing arc in
         the domination graph), and be vulnerable (have an outgoing arc
-        in the vulnerable graph).  In such a case, the cell will
-        always be vulnerable and never appear in the cells returned by
-        Dominated(). */
+        in the vulnerable graph) and/or reversible. In such a case, the
+        cell will never appear in the cells returned by Dominated(). */
 
-                
     bitset_t Dominated() const;
 
     bitset_t All() const;
@@ -117,6 +122,8 @@ public:
     bitset_t Fillin(HexColor color) const;
 
     const std::set<VulnerableKiller>& Killers(HexPoint p) const;
+
+    const std::set<HexPoint>& Reversers(HexPoint p) const;
     
     //------------------------------------------------------------------------
 
@@ -147,8 +154,12 @@ public:
     void AddVulnerable(HexPoint cell, const VulnerableKiller& killer);
     void AddVulnerable(HexPoint cell, const std::set<VulnerableKiller>& dom);
 
+    void AddReversible(HexPoint cell, HexPoint reverser);
+    void AddReversible(HexPoint cell, const std::set<HexPoint>& reversers);
+
     void AddDominatedFrom(const InferiorCells& other);
     void AddVulnerableFrom(const InferiorCells& other);
+    void AddReversibleFrom(const InferiorCells& other);
     void AddPermInfFrom(HexColor color, const InferiorCells& other);
 
     //------------------------------------------------------------------------
@@ -157,6 +168,7 @@ public:
 
     void ClearDead();
     void ClearVulnerable();
+    void ClearReversible();
     void ClearDominated();
     void ClearCaptured(HexColor color);
     void ClearPermInf(HexColor color);
@@ -165,6 +177,8 @@ public:
     void RemoveCaptured(HexColor color, const bitset_t& captured);
     void RemoveDominated(const bitset_t& dominated);
     void RemoveVulnerable(const bitset_t& vulnerable);
+    void RemoveReversible(const bitset_t& reversible);
+    void RemoveReversible(HexPoint reversible);
     void RemovePermInf(HexColor color, const bitset_t& perminf);
     
 private:
@@ -189,6 +203,12 @@ private:
     bitset_t m_vulnerable;
     std::set<VulnerableKiller> m_killers[BITSETSIZE];
     
+    //------------------------------------------------------------------------
+
+    /** Reversible cells and their reversers. */
+    bitset_t m_reversible;
+    std::set<HexPoint> m_reversers[BITSETSIZE];
+
     //------------------------------------------------------------------------
 
     /** Graph of domination; dominated cells point to their
@@ -216,6 +236,11 @@ inline bitset_t InferiorCells::Vulnerable() const
     return m_vulnerable;
 }
 
+inline bitset_t InferiorCells::Reversible() const
+{
+    return m_reversible;
+}
+
 inline bitset_t InferiorCells::Captured(HexColor color) const
 {
     return m_captured[color];
@@ -235,6 +260,12 @@ inline
 const std::set<VulnerableKiller>& InferiorCells::Killers(HexPoint p) const
 {
     return m_killers[p];
+}
+
+inline 
+const std::set<HexPoint>& InferiorCells::Reversers(HexPoint p) const
+{
+    return m_reversers[p];
 }
 
 //------------------------------------------------------------------------

@@ -35,6 +35,7 @@ public:
     const HashedPatternSet& HashedCaptured(HexColor color) const;
     const HashedPatternSet& HashedPermInf(HexColor color) const;
     const HashedPatternSet& HashedVulnerable(HexColor color) const;
+    const HashedPatternSet& HashedReversible(HexColor color) const;
     const HashedPatternSet& HashedDominated(HexColor color) const;
     // @}
 
@@ -47,6 +48,7 @@ private:
     std::vector<Pattern> m_captured[BLACK_AND_WHITE];
     std::vector<Pattern> m_permanently_inferior[BLACK_AND_WHITE];
     std::vector<Pattern> m_vulnerable[BLACK_AND_WHITE];
+    std::vector<Pattern> m_reversible[BLACK_AND_WHITE];
     std::vector<Pattern> m_dominated[BLACK_AND_WHITE];
     // @}
 
@@ -57,6 +59,7 @@ private:
     HashedPatternSet m_hashed_captured[BLACK_AND_WHITE];
     HashedPatternSet m_hashed_permanently_inferior[BLACK_AND_WHITE];
     HashedPatternSet m_hashed_vulnerable[BLACK_AND_WHITE];
+    HashedPatternSet m_hashed_reversible[BLACK_AND_WHITE];
     HashedPatternSet m_hashed_dominated[BLACK_AND_WHITE];
     // @}
 };
@@ -82,6 +85,12 @@ inline const HashedPatternSet&
 IcePatternSet::HashedVulnerable(HexColor color) const
 {
     return m_hashed_vulnerable[color];
+}
+
+inline const HashedPatternSet& 
+IcePatternSet::HashedReversible(HexColor color) const
+{
+    return m_hashed_reversible[color];
 }
 
 inline const HashedPatternSet& 

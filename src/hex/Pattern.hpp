@@ -123,20 +123,25 @@ public:
 
     /** Marks that the cell the pattern is centered on is
         captured. Captured patterns denote a strategy to make this
-        cell and any cells in MARKED1 as captured.
+        cell and any cells in MARKED2 as captured.
     */
     static const char CAPTURED = 'c';
 
-    /** Marks a permanently inferior cell. MARKED1 holds its
+    /** Marks a permanently inferior cell. MARKED2 holds its
         carrier. */
     static const char PERMANENTLY_INFERIOR = 'p';
-
-    /** Marks a dominated cell. MARKED1 holds its killer. */
-    static const char DOMINATED = '!';
 
     /** Marks a vulnerable cell. MARKED1 holds its killer, and MARKED2
         holds its carrier. */
     static const char VULNERABLE = 'v';
+
+    /** Marks a reversible cell. MARKED1 holds its reverser, and MARKED2
+        holds its carrier (all other cells in carrier are also reversible,
+        with the same reverser). */
+    static const char REVERSIBLE = 'r';
+
+    /** Marks a dominated cell. MARKED1 holds its killer. */
+    static const char DOMINATED = '!';
 
     /** A mohex pattern.  These patterns are used during the random
         playout phase of an UCT search. */

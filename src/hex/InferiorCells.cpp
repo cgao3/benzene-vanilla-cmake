@@ -6,8 +6,8 @@
     of the sink need be chosen (they are all losing).
 
     @note The set of dominated cells must be recomputed each time the
-    domination graph or the vulnerable info is changed. Dominated()
-    does this computation lazily when required.
+    domination graph or the vulnerable or reversible info is changed.
+    Dominated() does this computation lazily when required.
 */
 //----------------------------------------------------------------------------
 
@@ -29,9 +29,12 @@ bitset_t InferiorCells::Dominated() const
 {
     if (!m_dominated_computed) {
         
-        // remove vulnerable cells from graph
+        // remove vulnerable and reversible cells from graph
         Digraph<HexPoint> g(m_dom_graph);
         for (BitsetIterator p(Vulnerable()); p; ++p) {
+            g.RemoveVertex(*p);
+        }
+        for (BitsetIterator p(Reversible()); p; ++p) {
             g.RemoveVertex(*p);
         }
 
@@ -43,7 +46,7 @@ bitset_t InferiorCells::Dominated() const
         
         /// @todo ensure m_dominated is disjoint from all others.
         HexAssert((m_dominated & Vulnerable()).none());
-
+        HexAssert((m_dominated & Reversible()).none());
     }
     return m_dominated;
 }
@@ -52,7 +55,7 @@ bitset_t InferiorCells::Dominated() const
 bitset_t InferiorCells::All() const
 {
     return Dead()
-        | Vulnerable() | Dominated()
+        | Vulnerable() | Reversible() | Dominated()
         | Captured(BLACK) | Captured(WHITE) 
         | PermInf(BLACK) | PermInf(WHITE);
 }
@@ -78,6 +81,7 @@ void InferiorCells::AddDead(const bitset_t& dead)
     m_dead |= dead;
     
     RemoveVulnerable(dead);
+    RemoveReversible(dead);
     RemoveDominated(dead);
 
     AssertPairwiseDisjoint();
@@ -95,6 +99,7 @@ void InferiorCells::AddCaptured(HexColor color, const bitset_t& captured)
     m_captured[color] |= captured;
 
     RemoveVulnerable(captured);
+    RemoveReversible(captured);
     RemoveDominated(captured);
 
     AssertPairwiseDisjoint();
@@ -108,6 +113,7 @@ void InferiorCells::AddPermInf(HexColor color,
     m_perm_inf_carrier[color] |= carrier;
 
     RemoveVulnerable(cells);
+    RemoveReversible(cells);
     RemoveDominated(cells);
 
     AssertPairwiseDisjoint();
@@ -147,6 +153,9 @@ void InferiorCells::AddVulnerable(HexPoint cell,
     for (; it != killers.end(); ++it) {
         m_killers[cell].insert(VulnerableKiller(*it));
     }
+
+    // update reversible and dominated
+    RemoveReversible(cell);
     m_dominated_computed = false;
 
     AssertPairwiseDisjoint();
@@ -157,6 +166,7 @@ void InferiorCells::AddVulnerable(HexPoint cell,
 {
     m_vulnerable.set(cell);
     m_killers[cell].insert(killers.begin(), killers.end());
+    RemoveReversible(cell);
     m_dominated_computed = false;
 
     AssertPairwiseDisjoint();
@@ -166,6 +176,7 @@ void InferiorCells::AddVulnerable(HexPoint cell, HexPoint killer)
 {
     m_vulnerable.set(cell);
     m_killers[cell].insert(VulnerableKiller(killer));
+    RemoveReversible(cell);
     m_dominated_computed = false;
 
     AssertPairwiseDisjoint();
@@ -175,8 +186,26 @@ void InferiorCells::AddVulnerable(HexPoint cell, const VulnerableKiller& killer)
 {
     m_vulnerable.set(cell);
     m_killers[cell].insert(killer);
+    RemoveReversible(cell);
     m_dominated_computed = false;
 
+    AssertPairwiseDisjoint();
+}
+
+void InferiorCells::AddReversible(HexPoint cell, HexPoint reverser)
+{
+    m_reversible.set(cell);
+    m_reversers[cell].insert(reverser);
+    m_dominated_computed = false;
+    AssertPairwiseDisjoint();
+}
+
+void InferiorCells::AddReversible(HexPoint cell, 
+                                  const std::set<HexPoint>& reversers)
+{
+    m_reversible.set(cell);
+    m_reversers[cell].insert(reversers.begin(), reversers.end());
+    m_dominated_computed = false;
     AssertPairwiseDisjoint();
 }
 
@@ -199,6 +228,14 @@ void InferiorCells::AddVulnerableFrom(const InferiorCells& other)
     AssertPairwiseDisjoint();
 }
 
+void InferiorCells::AddReversibleFrom(const InferiorCells& other)
+{
+    for (BitsetIterator p(other.Reversible()); p; ++p) {
+        AddReversible(*p, other.m_reversers[*p]);
+    }
+    AssertPairwiseDisjoint();
+}
+
 void InferiorCells::AddPermInfFrom(HexColor color, const InferiorCells& other)
 {
     m_perm_inf[color] |= other.m_perm_inf[color];
@@ -214,6 +251,10 @@ void InferiorCells::Clear()
     m_vulnerable.reset();
     for (int i=0; i<BITSETSIZE; i++) {
         m_killers[i].clear();
+    }
+    m_reversible.reset();
+    for (int i=0; i<BITSETSIZE; i++) {
+        m_reversers[i].clear();
     }
     for (BWIterator c; c; ++c) {
         m_captured[*c].reset();
@@ -246,6 +287,12 @@ void InferiorCells::ClearVulnerable()
     m_dominated_computed = false;
 }
 
+void InferiorCells::ClearReversible()
+{
+    RemoveReversible(m_reversible);
+    m_dominated_computed = false;
+}
+
 void InferiorCells::ClearDominated()
 {
     m_dom_graph.Clear();
@@ -272,11 +319,31 @@ void InferiorCells::RemoveVulnerable(const bitset_t& vulnerable)
     m_dominated_computed = false;
 }
 
+void InferiorCells::RemoveReversible(const bitset_t& reversible)
+{
+    for (BitsetIterator p(reversible & m_reversible); p; ++p) {
+        m_reversers[*p].clear();
+    }
+    m_reversible = m_reversible - reversible;
+    m_dominated_computed = false;
+}
+
+void InferiorCells::RemoveReversible(HexPoint reversible)
+{
+    if (m_reversible.test(reversible)) {
+        m_reversers[reversible].clear();
+        m_reversible.reset(reversible);
+        m_dominated_computed = false;
+    }
+}
+
 //----------------------------------------------------------------------------
 
 void InferiorCells::AssertPairwiseDisjoint() const
 {
     HexAssert((m_dead & m_vulnerable).none());
+    HexAssert((m_reversible & m_vulnerable).none());
+    HexAssert((m_reversible & m_dominated).none());
     //    HexAssert((m_dead & m_dominated).none());
     //    HexAssert((m_vulnerable & m_dominated).none());
 
@@ -388,6 +455,19 @@ std::string InferiorCells::GuiOutput() const
             }
             os << "]";
         }
+        else if (Reversible().test(i)) 
+        {
+            os << "@[";
+            bool first=true;
+            std::set<HexPoint>::const_iterator i;
+            for (i = m_reversers[p].begin(); i != m_reversers[p].end(); ++i) 
+            {
+                if (!first) os << "-";
+                os << *i;
+                first = false;
+            }
+            os << "]";
+        }
         else if (Dominated().test(i)) 
         {
             os << "![";
@@ -417,7 +497,7 @@ std::string InferiorCells::GuiOutput() const
             c += t;
 
         out << str;
-    }    
+    }
     return out.str();
 }
 
@@ -448,7 +528,7 @@ InferiorCellsUtil::FindDominationCaptains(const Digraph<HexPoint>& graph)
         if (out.empty()) {
             captains.set(*comp[i].begin());
         }
-    }    
+    }
     
     return captains;
 }
