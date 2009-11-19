@@ -8,7 +8,6 @@ induced-inferior.txt \
 mohex-init-bad-patterns.txt \
 mohex-init-good-patterns.txt \
 mohex-patterns.txt \
-reversible-patterns.txt \
 unique-probe.txt \
 vc-captured-set.txt \
 vc-patterns.txt
