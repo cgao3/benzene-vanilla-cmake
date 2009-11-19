@@ -14,7 +14,6 @@ opening.tst \
 play.tst \
 puzzle.tst \
 README \
-settings-dfpn.htp \
 settings-puzzle.htp \
 settings-vc.htp \
 solve-6x6.tst \
