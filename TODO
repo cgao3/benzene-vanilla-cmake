@@ -1,7 +1,7 @@
 Benzene TODO file
 =================
 
-broderic [091105]
+broderic [091118]
 * Wolve
   * Use only a single board instead of two
   * Check dfpn tt for losing moves during move gen
@@ -22,7 +22,7 @@ broderic [091105]
     * Probably need to use only graph on empty cells, since most
       libraries suck and can't handle the graphs we currently use.
 
-ph [090416]
+ph [091118]
 * Website stuff:
   * Add handicap Java applet
 * Virtual-connection improvements:
