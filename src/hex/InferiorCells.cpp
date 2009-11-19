@@ -43,7 +43,6 @@ bitset_t InferiorCells::Dominated() const
         m_dominated = vertices - captains;
         m_dominated_computed = true;
 
-        
         /// @todo ensure m_dominated is disjoint from all others.
         HexAssert((m_dominated & Vulnerable()).none());
         HexAssert((m_dominated & Reversible()).none());
@@ -342,20 +341,25 @@ void InferiorCells::RemoveReversible(HexPoint reversible)
 void InferiorCells::AssertPairwiseDisjoint() const
 {
     HexAssert((m_dead & m_vulnerable).none());
+    HexAssert((m_dead & m_reversible).none());
     HexAssert((m_reversible & m_vulnerable).none());
-    HexAssert((m_reversible & m_dominated).none());
-    //    HexAssert((m_dead & m_dominated).none());
-    //    HexAssert((m_vulnerable & m_dominated).none());
+    HexAssert(!m_dominated_computed || (m_dead & m_dominated).none());
+    HexAssert(!m_dominated_computed || (m_vulnerable & m_dominated).none());
+    HexAssert(!m_dominated_computed || (m_reversible & m_dominated).none());
 
     for (BWIterator c; c; ++c) {
         HexAssert((m_captured[*c] & m_dead).none());
-        //        HexAssert((m_captured[*c] & m_dominated).none());
+        HexAssert(!m_dominated_computed
+                  || (m_captured[*c] & m_dominated).none());
         HexAssert((m_captured[*c] & m_vulnerable).none());
+        HexAssert((m_captured[*c] & m_reversible).none());
         HexAssert((m_captured[*c] & m_captured[!*c]).none());
         
         HexAssert((m_perm_inf[*c] & m_dead).none());
-        //        HexAssert((m_perm_inf[*c] & m_dominated).none());
+        HexAssert(!m_dominated_computed
+                  || (m_perm_inf[*c] & m_dominated).none());
         HexAssert((m_perm_inf[*c] & m_vulnerable).none());
+        HexAssert((m_perm_inf[*c] & m_reversible).none());
 
         HexAssert((m_captured[*c] & m_perm_inf[*c]).none());
         HexAssert((m_captured[*c] & m_perm_inf[!*c]).none());
