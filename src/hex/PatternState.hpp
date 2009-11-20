@@ -251,8 +251,6 @@ private:
 
     //-----------------------------------------------------------------------
 
-    friend class PatternMatcher;
-
     StoneBoard& m_brd;
 
     const PatternMatcherData* m_data;
