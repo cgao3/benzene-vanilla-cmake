@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-/** @file
+/** @file RingGodelTest.cpp
  */
 //---------------------------------------------------------------------------
 #include <boost/test/auto_unit_test.hpp>
@@ -52,7 +52,8 @@ BOOST_AUTO_TEST_CASE(RingGodel_All)
     
     brd.AddColorToSlice(0, BLACK);
     brd.AddColorToSlice(0, WHITE);
-    
+    brd.RemoveColorFromSlice(0, EMPTY);
+
     pat.SetSliceToColor(0, EMPTY);
     BOOST_CHECK(!pat.MatchesGodel(brd));
     pat.SetSliceToColor(0, BLACK);
@@ -70,7 +71,8 @@ BOOST_AUTO_TEST_CASE(RingGodel_All)
     
     pat.AddColorToSlice(0, BLACK);
     pat.AddColorToSlice(0, WHITE);
-    
+    pat.RemoveColorFromSlice(0, EMPTY);
+
     brd.SetSliceToColor(0, EMPTY);
     BOOST_CHECK(!pat.MatchesGodel(brd));
     brd.SetSliceToColor(0, BLACK);
@@ -80,7 +82,6 @@ BOOST_AUTO_TEST_CASE(RingGodel_All)
     brd.SetSliceToColor(0, WHITE);
     brd.AddColorToSlice(0, BLACK);
     BOOST_CHECK(pat.MatchesGodel(brd));
-
 }
 
 }

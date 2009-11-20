@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file RingGodel.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -29,11 +29,13 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** Adds BLACK or WHITE to slice in ring_godel. */
+    /** Adds BLACK, WHITE or EMPTY to slice in ring_godel. */
     void AddColorToSlice(int slice, HexColor color);
 
-    /** Sets the color of slice in ring_godel, color can be BLACK,
-        WHITE, EMPTY. */
+    /** Removes a color from a slice: color can be BLACK, WHITE, EMPTY. */
+    void RemoveColorFromSlice(int slice, HexColor color);
+
+    /** Sets the color of slice: color can be BLACK, WHITE, EMPTY. */
     void SetSliceToColor(int slice, HexColor color);
 
     /** Sets the godel to have all empty slices. */

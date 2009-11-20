@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file RingGodel.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -12,9 +12,7 @@ using namespace benzene;
 
 RingGodel::GlobalData::GlobalData()
 {
-    //std::cout << "RingGodel::Initialize" << std::endl;
-    
-    // compute scores adjusted by slice
+    // Compute scores adjusted by slice
     for (int s=0; s<Pattern::NUM_SLICES; ++s) 
     {
         for (ColorIterator color; color; ++color) 
@@ -25,7 +23,7 @@ RingGodel::GlobalData::GlobalData()
         mask_slice_score.push_back(AdjustScoreBySlice(SLICE_MASK, s));
     }
 
-    // compute the empty ring godel
+    // Compute the empty ring godel
     empty = 0;
     for (int s=0; s<Pattern::NUM_SLICES; ++s)
         empty |= color_slice_score[EMPTY][s];
@@ -55,13 +53,12 @@ RingGodel::GlobalData& RingGodel::GetGlobalData()
 
 void RingGodel::AddColorToSlice(int slice, HexColor color)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
-
-    // add the color to the slice
     m_value |= GetGlobalData().color_slice_score[color][slice];
+}
 
-    // remove empty from the slice
-    m_value &= ~GetGlobalData().color_slice_score[EMPTY][slice];
+void RingGodel::RemoveColorFromSlice(int slice, HexColor color)
+{
+    m_value &= ~GetGlobalData().color_slice_score[color][slice];
 }
 
 void RingGodel::SetSliceToColor(int slice, HexColor color)

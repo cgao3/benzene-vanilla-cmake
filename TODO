@@ -11,6 +11,10 @@ broderic [091118]
 * Dfpn
   * db read/write
   * "Proof simulation"
+* Patterns
+  * Make dead cells match all colors.
+    It would then be possible that empty cells can be dominated/killed by 
+    occupied cells. How to handle this?
 * Other
   * Parallel vcs
   * Switch dead region/decomp detection to new Phil algo

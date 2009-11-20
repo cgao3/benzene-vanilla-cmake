@@ -142,14 +142,16 @@ void PatternState::UpdateRingGodel(HexPoint cell)
     HexAssert(m_brd.Const().isCell(cell));
     HexColor color = m_brd.getColor(cell);
     HexAssert(HexColorUtil::isBlackWhite(color));
-
-    /** @note if Pattern::NUM_SLICES != 6, this won't work!! 
-        This also relies on the fact that slice 3 is opposite 0, 4 opposite 1,
+    
+    /** @note if Pattern::NUM_SLICES != 6, this won't work!! This also
+        relies on the fact that slice 3 is opposite 0, 4 opposite 1,
         etc. */
+    HexAssert(Pattern::NUM_SLICES == 6);
     for (int opp_slice = 3, slice = 0; slice < Pattern::NUM_SLICES; ++slice) 
     {
         HexPoint p = m_data->inverse_slice_godel[cell][slice][0];
         m_ring_godel[p].AddColorToSlice(opp_slice, color);
+        m_ring_godel[p].RemoveColorFromSlice(opp_slice, EMPTY);
         if (++opp_slice == Pattern::NUM_SLICES) opp_slice = 0;
     }
 }
@@ -174,9 +176,12 @@ void PatternState::Update(HexPoint cell)
         int godel = m_data->played_in_godel[*p][cell];
         m_slice_godel[*p][color][slice] |= godel;
 
-        // update *p's ring godel if we played next to it
+        // Update *p's ring godel if we played next to it
         if (godel == 1)
+        {
             m_ring_godel[*p].AddColorToSlice(slice, color);
+            m_ring_godel[*p].RemoveColorFromSlice(slice, EMPTY);
+        }
     }
     return;
 
@@ -190,9 +195,14 @@ void PatternState::Update(HexPoint cell)
             int godel = m_data->played_in_edge[*p][edge][slice];
             m_slice_godel[*p][color][slice] |= godel;
 
-            // update *p's ring godel if we played next to it
-            if ((godel & 1) == 1) 
+            // Update *p's ring godel if we played next to it.
+            // Must use AddColorToSlice instead of SetSliceToColor
+            // because the obtuse corner is both black and white.
+            if ((godel & 1) == 1)
+            {
                 m_ring_godel[*p].AddColorToSlice(slice, color);
+                m_ring_godel[*p].RemoveColorFromSlice(slice, EMPTY);
+            }
         }            
     }
 }
