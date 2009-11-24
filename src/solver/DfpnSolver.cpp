@@ -714,22 +714,19 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         LookupData(childrenData[bestIndex], children, bestIndex, 1);
 
         // Check unique probe heuristic
-        if (childrenData[bestIndex].m_bounds.IsWinning())
+        if (m_useUniqueProbes && childrenData[bestIndex].m_bounds.IsWinning())
         {
             HexPoint losingMove = bestMove;
             HexPoint winningMove = childrenData[bestIndex].m_bestMove;
-            if (m_useUniqueProbes)
+            ++m_numProbeChecks;
+            if (UniqueProbe(*m_brd, losingMove, winningMove))
             {
-                ++m_numProbeChecks;
-                if (UniqueProbe(*m_brd, losingMove, winningMove))
-                {
-                    ++m_numUniqueProbes;
-                    DfpnBounds::SetToLosing(currentBounds);
-                    //LogInfo() << *m_brd << losingMove << ' ' 
-                    //          << winningMove << '\n';
-                    break;
-                }
-            }   
+                ++m_numUniqueProbes;
+                DfpnBounds::SetToLosing(currentBounds);
+                //LogInfo() << *m_brd << losingMove << ' ' 
+                //          << winningMove << '\n';
+                break;
+            }
         }
     }
 
