@@ -90,21 +90,17 @@ DfpnChildren::DfpnChildren()
 
 void DfpnChildren::SetChildren(const std::vector<HexPoint>& children)
 {
-    m_children.clear();
-    for (std::size_t i = 0; i < children.size(); ++i)
-        m_children.push_back(std::vector<HexPoint>(1, children[i]));
+    m_children = children;
 }
 
 void DfpnChildren::PlayMove(int index, StoneBoard& brd) const
 {
-    for (std::size_t i = 0; i < m_children[index].size(); ++i)
-        brd.playMove(brd.WhoseTurn(), m_children[index][i]);
+    brd.playMove(brd.WhoseTurn(), m_children[index]);
 }
 
 void DfpnChildren::UndoMove(int index, StoneBoard& brd) const
 {
-    for (int i = m_children[index].size() - 1; i >= 0; --i)
-        brd.undoMove(m_children[index][i]);
+    brd.undoMove(m_children[index]);
 }
 
 //----------------------------------------------------------------------------
@@ -181,13 +177,8 @@ void DfpnSolver::GuiFx::DoWrite()
     os << "VAR";
     if (m_index != -1)
     {
-        HexColor color = m_color;
-        for (std::size_t i = 0; i < m_children.Moves(m_index).size(); ++i)
-        {
-            os << ' ' << (color == BLACK ? 'B' : 'W') 
-               << ' ' << m_children.Moves(m_index)[i];
-            color = !color;
-        }
+        os << ' ' << (m_color == BLACK ? 'B' : 'W')
+           << ' ' << m_children.FirstMove(m_index);
     }
     os << '\n';
     os << "LABEL";
@@ -195,8 +186,6 @@ void DfpnSolver::GuiFx::DoWrite()
     for (std::size_t i = 0; i < m_children.Size(); ++i)
     {
         os << ' ' << m_children.FirstMove(i);
-        if (m_children.Moves(i).size() > 1)
-            os << '*';
         if (0 == m_data[i].m_bounds.phi)
         {
             numLosses++;
