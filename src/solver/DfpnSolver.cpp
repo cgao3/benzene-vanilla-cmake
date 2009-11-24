@@ -182,7 +182,7 @@ void DfpnSolver::GuiFx::DoWrite()
     if (m_index != -1)
     {
         HexColor color = m_color;
-        for (std::size_t i = 0; i < m_children.Moves(i).size(); ++i)
+        for (std::size_t i = 0; i < m_children.Moves(m_index).size(); ++i)
         {
             os << ' ' << (color == BLACK ? 'B' : 'W') 
                << ' ' << m_children.Moves(m_index)[i];
