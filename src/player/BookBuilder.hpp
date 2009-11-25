@@ -117,6 +117,12 @@ public:
     /** See NumThreads() */
     void SetNumThreads(std::size_t num);
 
+    /** Whether to prune out inferior cells from the book or not. */
+    bool UseICE() const;
+
+    /** See UseICE() */
+    void SetUseICE(bool flag);
+
 private:
 
     /** Copyable worker. */
@@ -176,6 +182,9 @@ private:
     /** See UseWidening() */
     bool m_use_widening;
 
+    /** See UseICE() */
+    bool m_use_ice;
+
     /** See UseWidening() */
     std::size_t m_expand_width;
 
@@ -224,6 +233,7 @@ BookBuilder<PLAYER>::BookBuilder(PLAYER& player)
       m_brd(0),
       m_alpha(70),
       m_use_widening(true),
+      m_use_ice(false),
       m_expand_width(8),
       m_expand_threshold(100),
       m_flush_iterations(100),
@@ -248,6 +258,18 @@ template<class PLAYER>
 inline void BookBuilder<PLAYER>::SetAlpha(float alpha)
 {
     m_alpha = alpha;
+}
+
+template<class PLAYER>
+inline bool BookBuilder<PLAYER>::UseICE() const
+{
+    return m_use_ice;
+}
+
+template<class PLAYER>
+inline void BookBuilder<PLAYER>::SetUseICE(bool flag)
+{
+    m_use_ice = flag;
 }
 
 template<class PLAYER>
@@ -543,11 +565,12 @@ bool BookBuilder<PLAYER>::GenerateMoves(const StoneBoard& brd,
                                         std::vector<HexPoint>& moves,
                                         HexEval& value)
 {
-    // Compute the moves to consider without using any ice, so that
-    // we do not leave the book if opponent plays an inferior move.
+    // Turn off ICE (controlled by method UseICE()): compute the moves
+    // to consider without using any ice, so that we do not leave the
+    // book if opponent plays an inferior move.
     HexColor toMove = brd.WhoseTurn();
     bool useICE = m_brd->UseICE();
-    m_brd->SetUseICE(false);
+    m_brd->SetUseICE(m_use_ice);
     m_brd->SetState(brd);
     m_brd->ComputeAll(toMove);
     m_brd->SetUseICE(useICE);

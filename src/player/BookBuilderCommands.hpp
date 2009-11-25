@@ -90,6 +90,8 @@ void BookBuilderCommands<PLAYER>::CmdParamBook(HtpCommand& cmd)
         cmd << '\n'
             << "[bool] use_widening " 
             << m_bookBuilder.UseWidening() << '\n'
+            << "[bool] use_ice "
+            << m_bookBuilder.UseICE() << '\n'
             << "[string] alpha "
             << m_bookBuilder.Alpha() << '\n'
             << "[string] expand_width "
@@ -110,6 +112,8 @@ void BookBuilderCommands<PLAYER>::CmdParamBook(HtpCommand& cmd)
             m_bookBuilder.SetExpandThreshold(cmd.SizeTypeArg(1, 1));
         else if (name == "num_threads")
             m_bookBuilder.SetNumThreads(cmd.SizeTypeArg(1));
+        else if (name == "use_ice")
+            m_bookBuilder.SetUseICE(cmd.BoolArg(1));
         else if (name == "use_widening")
             m_bookBuilder.SetUseWidening(cmd.BoolArg(1));
         else
