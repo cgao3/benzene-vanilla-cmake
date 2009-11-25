@@ -231,11 +231,11 @@ BookBuilder<PLAYER>::BookBuilder(PLAYER& player)
     : m_book(0),
       m_orig_player(player),
       m_brd(0),
-      m_alpha(70),
+      m_alpha(50),
       m_use_widening(true),
       m_use_ice(false),
-      m_expand_width(8),
-      m_expand_threshold(100),
+      m_expand_width(16),
+      m_expand_threshold(1000),
       m_flush_iterations(100),
       m_num_threads(1)
 {
