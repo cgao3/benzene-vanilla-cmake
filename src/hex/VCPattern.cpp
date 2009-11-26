@@ -412,8 +412,8 @@ VCPattern::~VCPattern()
 
 bool VCPattern::Matches(HexColor color, const StoneBoard& brd) const
 {
-    bitset_t my_color = brd.getColor(color) & brd.Const().getCells();
-    bitset_t op_color = brd.getColor(!color) & brd.Const().getCells();
+    bitset_t my_color = brd.getColor(color) & brd.Const().GetCells();
+    bitset_t op_color = brd.getColor(!color) & brd.Const().GetCells();
 
     return ((m_not_oppt & op_color).none() 
             && BitsetUtil::IsSubsetOf(m_must_have, my_color));

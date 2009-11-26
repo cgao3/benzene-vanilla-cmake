@@ -32,7 +32,7 @@ bitset_t ComputeEdgeUnreachableRegions(const StoneBoard& brd, HexColor c,
 {
     bitset_t reachable1, reachable2;
     bitset_t flowSet = (brd.getEmpty() | brd.getColor(c)) 
-                     & brd.Const().getCells();
+                     & brd.Const().GetCells();
     if (flowFrom1) 
     {
         bitset_t flowSet1 = flowSet;

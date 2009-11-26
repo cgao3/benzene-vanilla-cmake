@@ -51,7 +51,7 @@ bitset_t StoneBoard::getLegal() const
     
     legal = getPlayed();
     legal.flip();
-    legal &= Const().getCells();
+    legal &= Const().GetCells();
     legal.set(RESIGN);
     
     // swap is available only when 4 edges and exactly
@@ -163,7 +163,7 @@ void StoneBoard::setPlayed(const bitset_t& played)
 void StoneBoard::ComputeHash()
 {
     // do not include swap in hash value
-    bitset_t mask = m_played & Const().getLocations();
+    bitset_t mask = m_played & Const().GetLocations();
     m_hash.Compute(m_stones[BLACK] & mask, m_stones[WHITE] & mask);
 }
 
@@ -186,7 +186,7 @@ void StoneBoard::playMove(HexColor color, HexPoint cell)
     HexAssert(Const().isValid(cell));
 
     m_played.set(cell);
-    if (Const().isLocation(cell))
+    if (Const().IsLocation(cell))
         m_hash.Update(color, cell);
     setColor(color, cell);
 
@@ -200,7 +200,7 @@ void StoneBoard::undoMove(HexPoint cell)
     HexAssert(color != EMPTY);
 
     m_played.reset(cell);
-    if (Const().isLocation(cell))
+    if (Const().IsLocation(cell))
         m_hash.Update(color, cell);
     setColor(EMPTY, cell);
 

@@ -292,12 +292,12 @@ inline const ConstBoard& StoneBoard::Const() const
 
 inline int StoneBoard::width() const
 {
-    return m_const->width();
+    return m_const->Width();
 }
 
 inline int StoneBoard::height() const
 {
-    return m_const->height();
+    return m_const->Height();
 }
 
 inline hash_t StoneBoard::Hash() const
@@ -307,29 +307,29 @@ inline hash_t StoneBoard::Hash() const
 
 inline bitset_t StoneBoard::getBlack() const
 {
-    return m_stones[BLACK] & Const().getLocations();
+    return m_stones[BLACK] & Const().GetLocations();
 }
 
 inline bitset_t StoneBoard::getWhite() const
 {
-    return m_stones[WHITE] & Const().getLocations();
+    return m_stones[WHITE] & Const().GetLocations();
 }
 
 inline bitset_t StoneBoard::getColor(HexColor color) const
 {
     HexAssert(HexColorUtil::isValidColor(color));
     if (color == EMPTY) return getEmpty();
-    return m_stones[color] & Const().getLocations();
+    return m_stones[color] & Const().GetLocations();
 }
 
 inline bitset_t StoneBoard::getEmpty() const
 {
-    return Const().getLocations() - getOccupied();
+    return Const().GetLocations() - getOccupied();
 }
 
 inline bitset_t StoneBoard::getOccupied() const
 {
-    return (getBlack() | getWhite()) & Const().getLocations();
+    return (getBlack() | getWhite()) & Const().GetLocations();
 }
 
 inline bool StoneBoard::isBlack(HexPoint cell) const    
@@ -376,7 +376,7 @@ inline bool StoneBoard::isPlayed(HexPoint cell) const
 
 inline int StoneBoard::numStones() const
 {
-    return (getOccupied() & getPlayed() & Const().getCells()).count();
+    return (getOccupied() & getPlayed() & Const().GetCells()).count();
 }
 
 inline bool StoneBoard::operator==(const StoneBoard& other) const
@@ -395,7 +395,7 @@ inline bool StoneBoard::operator!=(const StoneBoard& other) const
 
 inline HexColor StoneBoard::WhoseTurn() const
 {
-    bitset_t mask = getPlayed() & Const().getCells();
+    bitset_t mask = getPlayed() & Const().GetCells();
     int first = (getColor(FIRST_TO_PLAY) & mask).count();
     int second = (getColor(!FIRST_TO_PLAY) & mask).count();
     return (first > second) ? !FIRST_TO_PLAY : FIRST_TO_PLAY;

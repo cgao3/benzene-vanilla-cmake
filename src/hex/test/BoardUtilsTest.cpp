@@ -22,9 +22,9 @@ BOOST_AUTO_TEST_CASE(BoardUtils_BitsetPacking)
     BOOST_CHECK_EQUAL(BoardUtils::UnpackBitset(*cb, b2), b1);
     b1.flip();
     b2 = BoardUtils::PackBitset(*cb, b1);
-    BOOST_CHECK_EQUAL(BoardUtils::UnpackBitset(*cb, b2), b1 & cb->getCells());
+    BOOST_CHECK_EQUAL(BoardUtils::UnpackBitset(*cb, b2), b1 & cb->GetCells());
     BOOST_CHECK_EQUAL(b1.count(), (std::size_t)BITSETSIZE);
-    BOOST_CHECK_EQUAL(b2.count(), cb->getCells().count());
+    BOOST_CHECK_EQUAL(b2.count(), cb->GetCells().count());
     b1.reset();
     b1.set(SWAP_PIECES);
     b1.set(NORTH);
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(BoardUtils_BitsetPacking)
     b2 = BoardUtils::PackBitset(*cb, b1);
     BOOST_CHECK_EQUAL(b1.count(), (std::size_t)(4 - adjustment));
     BOOST_CHECK_EQUAL(b2.count(), 1u);
-    BOOST_CHECK_EQUAL(BoardUtils::UnpackBitset(*cb, b2), b1 & cb->getCells());
+    BOOST_CHECK_EQUAL(BoardUtils::UnpackBitset(*cb, b2), b1 & cb->GetCells());
 }
 
 BOOST_AUTO_TEST_CASE(BoardUtils_RotateAndMirror)
@@ -119,16 +119,16 @@ BOOST_AUTO_TEST_CASE(BoardUtils_CoordsToPoint)
     BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, -2, 0), INVALID_POINT);
     BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, 0, -2), INVALID_POINT);
     BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, -1, -1), INVALID_POINT);
-    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->width(), cb->height()), INVALID_POINT);
-    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, -1, cb->height()), INVALID_POINT);
-    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->width(), -1), INVALID_POINT);
+    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->Width(), cb->Height()), INVALID_POINT);
+    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, -1, cb->Height()), INVALID_POINT);
+    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->Width(), -1), INVALID_POINT);
     BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, 0, -1), NORTH);
     BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, -1, 0), WEST);
-    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, -1, cb->height()-1), WEST);
-    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->width()-1, cb->height()), SOUTH);
-    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->width(), cb->height()-1), EAST);
+    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, -1, cb->Height()-1), WEST);
+    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->Width()-1, cb->Height()), SOUTH);
+    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->Width(), cb->Height()-1), EAST);
     BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, 0, 0), FIRST_CELL);
-    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->width()-1, cb->height()-1),
+    BOOST_CHECK_EQUAL(BoardUtils::CoordsToPoint(*cb, cb->Width()-1, cb->Height()-1),
 		      HEX_CELL_H8);
 }
 
@@ -180,11 +180,11 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     StoneBoard sb = StoneBoard(2, 2);
     
     p = BoardUtils::RandomEmptyCell(sb);
-    BOOST_CHECK(sb.Const().isCell(p));
+    BOOST_CHECK(sb.Const().IsCell(p));
     sb.startNewGame();
     BOOST_CHECK(!sb.isLegal(SWAP_PIECES));
     p = BoardUtils::RandomEmptyCell(sb);
-    BOOST_CHECK(sb.Const().isCell(p));
+    BOOST_CHECK(sb.Const().IsCell(p));
     sb.playMove(BLACK, HEX_CELL_A1);
     BOOST_CHECK(sb.isLegal(SWAP_PIECES));
     sb.playMove(WHITE, HEX_CELL_A2);
@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     BOOST_CHECK(!sb.isEmpty(HEX_CELL_A2));
     
     p = BoardUtils::RandomEmptyCell(sb);
-    BOOST_CHECK(sb.Const().isCell(p));
+    BOOST_CHECK(sb.Const().IsCell(p));
     BOOST_CHECK(sb.isEmpty(p));
     BOOST_CHECK(p != HEX_CELL_A1);
     BOOST_CHECK(p != HEX_CELL_A2);

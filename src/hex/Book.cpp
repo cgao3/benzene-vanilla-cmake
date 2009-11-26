@@ -378,7 +378,7 @@ void BookUtil::DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
 void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
                                   std::istream& positions)
 {
-    StoneBoard brd(constBoard.width(), constBoard.height());
+    StoneBoard brd(constBoard.Width(), constBoard.Height());
     std::string text;
     std::size_t lineNumber = 0;
     std::size_t numParsed = 0;

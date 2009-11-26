@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file ConstBoard.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -23,18 +23,18 @@ int DistanceToEdge(const ConstBoard& brd, HexPoint from, HexPoint edge)
     {
 	if (from == edge)                             return 0;
 	if (HexPointUtil::oppositeEdge(from) != edge) return 1;
-	if (edge == NORTH || edge == SOUTH)           return brd.height();
-	return brd.width();
+	if (edge == NORTH || edge == SOUTH)           return brd.Height();
+	return brd.Width();
     }
     
     int r, c;
     HexPointUtil::pointToCoords(from, c, r);
     switch(edge) 
     {
-    case NORTH: return r+1;
-    case SOUTH: return brd.height()-r;
-    case EAST:  return brd.width()-c;
-    default:    return c+1;
+    case NORTH: return r + 1;
+    case SOUTH: return brd.Height() - r;
+    case EAST:  return brd.Width() - c;
+    default:    return c + 1;
     }
 }
 
@@ -56,7 +56,7 @@ ConstBoard& ConstBoard::Get(int width, int height)
     // FIXME: how to ensure memory is freed nicely?
     static std::vector<ConstBoard*> s_brds;
     for (std::size_t i=0; i<s_brds.size(); ++i) {
-        if (s_brds[i]->width() == width && s_brds[i]->height() == height)
+        if (s_brds[i]->Width() == width && s_brds[i]->Height() == height)
             return *s_brds[i];
     }
     s_brds.push_back(new ConstBoard(width, height));
@@ -123,9 +123,7 @@ int ConstBoard::Distance(HexPoint x, HexPoint y) const
 void ConstBoard::Init()
 {
     LogFine() << "--- ConstBoard"
-             << " (" << width() << " x " << height() << ")" << '\n'
-	     << "sizeof(ConstBoard) = " << sizeof(ConstBoard) << '\n';
-
+              << " (" << Width() << " x " << Height() << ")" << '\n';
     ComputePointList();
     CreateIterators();
     ComputeValid();
@@ -142,11 +140,9 @@ void ConstBoard::ComputePointList()
     for (int p = FIRST_SPECIAL; p < FIRST_CELL; ++p) 
         m_points.push_back(static_cast<HexPoint>(p));
 
-    for (int y=0; y<height(); y++) {
-        for (int x=0; x<width(); x++) {
+    for (int y = 0; y < Height(); y++)
+        for (int x = 0; x < Width(); x++)
             m_points.push_back(HexPointUtil::coordsToPoint(x, y));
-        }
-    }
 
     m_points.push_back(INVALID_POINT);
 }
@@ -167,48 +163,47 @@ void ConstBoard::CreateIterators()
 void ConstBoard::ComputeValid()
 {
     m_valid.reset();
-    for (BoardIterator i(AllValid()); i; ++i) {
+    for (BoardIterator i(AllValid()); i; ++i)
         m_valid.set(*i);
-    }
 
     m_locations.reset();
-    for (BoardIterator i(EdgesAndInterior()); i; ++i) {
+    for (BoardIterator i(EdgesAndInterior()); i; ++i)
         m_locations.set(*i);
-    }
 
     m_cells.reset();
-    for (BoardIterator i(Interior()); i; ++i) {
+    for (BoardIterator i(Interior()); i; ++i)
         m_cells.set(*i);
-    }
 }
 
 void ConstBoard::ComputeNeighbours()
 {
-    // try all directions for interior cells
-    for (BoardIterator i(Interior()); i; ++i) {
+    // Try all directions for interior cells
+    for (BoardIterator i(Interior()); i; ++i) 
+    {
         int x, y;
         HexPoint cur = *i;
         HexPointUtil::pointToCoords(cur, x, y);
-
-        for (int a=0; a<NUM_DIRECTIONS; a++) {
+        for (int a = 0; a < NUM_DIRECTIONS; a++) 
+        {
             int fwd = a;
             int lft = (a + 2) % NUM_DIRECTIONS;
-
             int x1 = x + HexPointUtil::DeltaX(fwd);
             int y1 = y + HexPointUtil::DeltaY(fwd);
-
-            for (int r=1; r<=Pattern::MAX_EXTENSION; r++) {
+            for (int r = 1; r <= Pattern::MAX_EXTENSION; r++) 
+            {
                 int x2 = x1;
                 int y2 = y1;
-                for (int t=0; t<r; t++) {
+                for (int t = 0; t < r; t++) 
+                {
                     HexPoint p = BoardUtils::CoordsToPoint(*this, x2, y2);
-		    
-                    if (p != INVALID_POINT) {
-                        // add p to cur's list and cur to p's list
+                    if (p != INVALID_POINT) 
+                    {
+                        // Add p to cur's list and cur to p's list
                         // for each radius in [r, MAX_EXTENSION]. 
-                        for (int v=r; v <= Pattern::MAX_EXTENSION; v++) {
+                        for (int v=r; v <= Pattern::MAX_EXTENSION; v++) 
+                        {
                             std::vector<HexPoint>::iterator result;
-                            
+                           
                             result = find(m_neighbours[cur][v].begin(), 
                                           m_neighbours[cur][v].end(), p);
                             if (result == m_neighbours[cur][v].end())
@@ -220,7 +215,6 @@ void ConstBoard::ComputeNeighbours()
                                 m_neighbours[p][v].push_back(cur);
                         }
                     }
-
                     x2 += HexPointUtil::DeltaX(lft);
                     y2 += HexPointUtil::DeltaY(lft);
                 }
@@ -230,27 +224,25 @@ void ConstBoard::ComputeNeighbours()
         }
     }
     
-    // add edges to neighbour lists of neighbouring edges
-
-    /** @bug NORTH is now distance 2 from SOUTH, but won't
-        appear in the neighbour lists for r >= 2; likewise for
-        EAST/WEST. */
-    for (BoardIterator i(EdgesAndInterior()); i; ++i) {
-	if (!HexPointUtil::isEdge(*i)) continue;
-        for (int r=1; r <= Pattern::MAX_EXTENSION; r++) {
-	    // edges sharing a corner are distance one apart
+    /** Add edges to neighbour lists of neighbouring edges.
+        @bug NORTH is now distance 2 from SOUTH, but won't appear in
+        the neighbour lists for r >= 2; likewise for EAST/WEST. 
+    */
+    for (BoardIterator i(EdgesAndInterior()); i; ++i) 
+    {
+	if (!HexPointUtil::isEdge(*i)) 
+            continue;
+        for (int r = 1; r <= Pattern::MAX_EXTENSION; r++) 
+        {
+	    // Edges sharing a corner are distance one apart
             m_neighbours[*i][r].push_back(HexPointUtil::leftEdge(*i));
             m_neighbours[*i][r].push_back(HexPointUtil::rightEdge(*i));
-	
         }
     }
-    
     // Null terminate the lists.
-    for (BoardIterator i(EdgesAndInterior()); i; ++i) {
-        for (int r=1; r <= Pattern::MAX_EXTENSION; r++) {
+    for (BoardIterator i(EdgesAndInterior()); i; ++i) 
+        for (int r = 1; r <= Pattern::MAX_EXTENSION; r++) 
             m_neighbours[*i][r].push_back(INVALID_POINT);
-        }
-    }
 }
 
 //----------------------------------------------------------------------------

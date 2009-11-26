@@ -36,7 +36,7 @@ PatternMatcherData::PatternMatcherData(const ConstBoard* brd)
 void PatternMatcherData::Initialize()
 {
     LogFine() << "PatternMatcherData::Initialize " 
-	      << "(" << brd->width() << " x " << brd->height() <<")" << '\n';
+	      << "(" << brd->Width() << " x " << brd->Height() <<")" << '\n';
 
     memset(played_in_slice, 0, sizeof(played_in_slice));
     memset(played_in_godel, 0, sizeof(played_in_godel));
@@ -64,7 +64,7 @@ void PatternMatcherData::Initialize()
                 for (int j=0; j<i; j++) 
                 {
                     // handle obtuse corner: both colors get it. 
-                    if (x2 == -1 && y2 == brd->height()) 
+                    if (x2 == -1 && y2 == brd->Height()) 
                     {
                         // southwest obtuse corner
                         played_in_edge[p1][SOUTH - FIRST_EDGE][s] 
@@ -73,7 +73,7 @@ void PatternMatcherData::Initialize()
                             |= (1 << g);
                     } 
                     // handle obtuse corner: both colors get it. 
-                    else if (x2 == brd->width() && y2 == -1) 
+                    else if (x2 == brd->Width() && y2 == -1) 
                     {
                         // northeast obtuse corner
                         played_in_edge[p1][NORTH - FIRST_EDGE][s] 
@@ -265,7 +265,7 @@ bitset_t PatternState::MatchOnBoard(const bitset_t& consider,
                                     std::vector<PatternHits>& hits) const
 {
     bitset_t ret;
-    bitset_t lookat = consider & Board().Const().getCells();
+    bitset_t lookat = consider & Board().Const().GetCells();
     for (BitsetIterator p(lookat); p; ++p)
     {
         MatchOnCell(patset, *p, mode, hits[*p]);
@@ -279,7 +279,7 @@ bitset_t PatternState::MatchOnBoard(const bitset_t& consider,
                                     const HashedPatternSet& patset) const
 {
     bitset_t ret;    
-    bitset_t lookat = consider & Board().Const().getCells();
+    bitset_t lookat = consider & Board().Const().GetCells();
     for (BitsetIterator p(lookat); p; ++p) 
     {
         PatternHits hits;

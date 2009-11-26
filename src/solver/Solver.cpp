@@ -451,7 +451,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
 		  << brd.Write(carrier[s]) << '\n';
 
         bool win = false;
-        brd.PlayStones(!color, carrier[s^1] & brd.Const().getCells(), color);
+        brd.PlayStones(!color, carrier[s^1] & brd.Const().GetCells(), color);
 
         // check if new stones caused terminal state; if not, solve it
         if (HandleTerminalNode(brd, color, state)) {
@@ -1266,7 +1266,7 @@ std::string SolverUtil::PrintVariation(const PointSequence& variation)
 int SolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
 {
     // Odd boards are easy
-    if ((brd.width() & 1) && (brd.height() & 1))
+    if ((brd.Width() & 1) && (brd.Height() & 1))
         return brd.Distance(BoardUtils::CenterPoint(brd), cell);
 
     // Make sure we spiral nicely on boards with even
@@ -1429,7 +1429,7 @@ void SolverUtil::ShrinkProof(bitset_t& proof,
     Groups groups;
 
     // Give loser all cells outside proof
-    bitset_t cells_outside_proof = (~proof & brd.Const().getCells());
+    bitset_t cells_outside_proof = (~proof & brd.Const().GetCells());
     brd.addColor(loser, cells_outside_proof);
 
     // Give winner only his stones inside proof; 

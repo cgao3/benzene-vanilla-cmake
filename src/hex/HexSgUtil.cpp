@@ -79,11 +79,11 @@ void HexSgUtil::SetPositionInNode(SgNode* node, const StoneBoard& brd,
 {
     int height = brd.height();
     SgVector<SgPoint> blist = HexSgUtil::BitsetToSgVector(brd.getBlack() 
-                                       & brd.Const().getCells(), height);
+                                       & brd.Const().GetCells(), height);
     SgVector<SgPoint> wlist = HexSgUtil::BitsetToSgVector(brd.getWhite()
-                                       & brd.Const().getCells(), height);
+                                       & brd.Const().GetCells(), height);
     SgVector<SgPoint> elist = HexSgUtil::BitsetToSgVector(brd.getEmpty()
-                                       & brd.Const().getCells(), height);
+                                       & brd.Const().GetCells(), height);
 
     SgPropPlayer* pprop = new SgPropPlayer(SG_PROP_PLAYER);
     SgPropAddStone* bprop = new SgPropAddStone(SG_PROP_ADD_BLACK);

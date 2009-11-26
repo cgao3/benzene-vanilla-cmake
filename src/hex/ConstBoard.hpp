@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file ConstBoard.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -70,39 +70,39 @@ public:
     //------------------------------------------------------------------------
 
     /** Returns the width of the board. */
-    int width() const;
+    int Width() const;
 
     /** Returns the height of the board. */
-    int height() const;
+    int Height() const;
 
     /** Returns a bitset with all valid board cells. */
-    bitset_t getCells() const;
+    bitset_t GetCells() const;
 
     /** Returns a bitset with all valid board locations
 	(cells and edges). */
-    bitset_t getLocations() const;
+    bitset_t GetLocations() const;
 
     /** Returns a bitset of cells comprising all valid moves
 	(this includes swap and resign). */
-    bitset_t getValid() const;
+    bitset_t GetValid() const;
     
     /** Returns true if cell is a valid cell on this board. */
-    bool isCell(HexPoint cell) const;
+    bool IsCell(HexPoint cell) const;
 
     /** Returns true if bs encodes a set of valid cells. */
-    bool isCell(const bitset_t& bs) const;
+    bool IsCell(const bitset_t& bs) const;
     
     /** Returns true if cell is a location on this board. */
-    bool isLocation(HexPoint cell) const;
+    bool IsLocation(HexPoint cell) const;
 
     /** Returns true if bs encodes a set of valid locations. */
-    bool isLocation(const bitset_t& bs) const;
+    bool IsLocation(const bitset_t& bs) const;
     
     /** Returns true if cell is a valid move on this board. */
-    bool isValid(HexPoint cell) const;
+    bool IsValid(HexPoint cell) const;
 
     /** Returns true if bs encodes a set of valid moves. */
-    bool isValid(const bitset_t& bs) const;
+    bool IsValid(const bitset_t& bs) const;
 
     /** Returns true if p1 is adjacent to p2. Iterates over neighbour
         list of p1, so not O(1). */
@@ -145,27 +145,6 @@ public:
 
 private:
 
-    /** Constructs a square board. */
-    ConstBoard(int size);
-
-    /** Constructs a rectangular board. */
-    ConstBoard(int width, int height);
-
-    /** Destructor. */
-    ~ConstBoard();
-
-    void Init();
-
-    void ComputeNeighbours();
-
-    void ComputePointList();
-
-    void CreateIterators();
-
-    void ComputeValid();
-
-    //------------------------------------------------------------------------
-
     int m_width;
     
     int m_height;
@@ -195,59 +174,80 @@ private:
 
     /** Neigbour lists for each location and radius. */
     std::vector<HexPoint> m_neighbours[BITSETSIZE][Pattern::MAX_EXTENSION+1];
+
+    //------------------------------------------------------------------------
+
+    /** Constructs a square board. */
+    ConstBoard(int size);
+
+    /** Constructs a rectangular board. */
+    ConstBoard(int width, int height);
+
+    /** Destructor. */
+    ~ConstBoard();
+
+    void Init();
+
+    void ComputeNeighbours();
+
+    void ComputePointList();
+
+    void CreateIterators();
+
+    void ComputeValid();
 };
 
-inline int ConstBoard::width() const
+inline int ConstBoard::Width() const
 { 
     return m_width; 
 }
 
-inline int ConstBoard::height() const
+inline int ConstBoard::Height() const
 { 
     return m_height;
 }
 
-inline bitset_t ConstBoard::getCells() const
+inline bitset_t ConstBoard::GetCells() const
 {
     return m_cells;
 }
 
-inline bitset_t ConstBoard::getLocations() const
+inline bitset_t ConstBoard::GetLocations() const
 {
     return m_locations;
 }
 
-inline bitset_t ConstBoard::getValid() const
+inline bitset_t ConstBoard::GetValid() const
 {
     return m_valid;
 }
 
-inline bool ConstBoard::isCell(HexPoint cell) const
+inline bool ConstBoard::IsCell(HexPoint cell) const
 {
     return m_cells.test(cell);
 }
 
-inline bool ConstBoard::isCell(const bitset_t& bs) const
+inline bool ConstBoard::IsCell(const bitset_t& bs) const
 {
     return BitsetUtil::IsSubsetOf(bs, m_cells);
 }
 
-inline bool ConstBoard::isLocation(HexPoint cell) const
+inline bool ConstBoard::IsLocation(HexPoint cell) const
 {
     return m_locations.test(cell);
 }
 
-inline bool ConstBoard::isLocation(const bitset_t& bs) const
+inline bool ConstBoard::IsLocation(const bitset_t& bs) const
 {
     return BitsetUtil::IsSubsetOf(bs, m_locations);
 }
 
-inline bool ConstBoard::isValid(HexPoint cell) const
+inline bool ConstBoard::IsValid(HexPoint cell) const
 {
     return m_valid.test(cell);
 }
 
-inline bool ConstBoard::isValid(const bitset_t& bs) const
+inline bool ConstBoard::IsValid(const bitset_t& bs) const
 {
     return BitsetUtil::IsSubsetOf(bs, m_valid);
 }
@@ -269,13 +269,13 @@ inline BoardIterator ConstBoard::AllValid() const
 
 inline BoardIterator ConstBoard::Nbs(HexPoint cell) const
 {
-    HexAssert(isLocation(cell));
+    HexAssert(IsLocation(cell));
     return BoardIterator(m_neighbours[cell][1]);
 }
 
 inline BoardIterator ConstBoard::Nbs(HexPoint cell, int radius) const
 {
-    HexAssert(isLocation(cell));
+    HexAssert(IsLocation(cell));
     HexAssert(0 <= radius && radius <= Pattern::MAX_EXTENSION);
     return BoardIterator(m_neighbours[cell][radius]);
 }

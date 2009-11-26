@@ -66,7 +66,7 @@ void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
     adjByMiai.clear();
     for (BWIterator color; color; ++color) 
     {
-        for (BitsetIterator p(brd.getColor(*color) & brd.Const().getCells()); 
+        for (BitsetIterator p(brd.getColor(*color) & brd.Const().GetCells()); 
              p; ++p) 
         {
             PatternHits hits;
@@ -89,15 +89,15 @@ void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
 
 HexPoint BoardUtils::CoordsToPoint(const ConstBoard& brd, int x, int y)
 {
-    if (x <= -2 || x > brd.width())      return INVALID_POINT;
-    if (y <= -2 || y > brd.height())     return INVALID_POINT;
-    if ((x == -1 || x == brd.width()) &&
-	(y == -1 || y == brd.height()))  return INVALID_POINT;
+    if (x <= -2 || x > brd.Width())      return INVALID_POINT;
+    if (y <= -2 || y > brd.Height())     return INVALID_POINT;
+    if ((x == -1 || x == brd.Width()) &&
+	(y == -1 || y == brd.Height()))  return INVALID_POINT;
 
     if (y == -1)       return NORTH;
-    if (y == brd.height()) return SOUTH;
+    if (y == brd.Height()) return SOUTH;
     if (x == -1)       return WEST;
-    if (x == brd.width())  return EAST;
+    if (x == brd.Width())  return EAST;
 
     return HexPointUtil::coordsToPoint(x, y);
 }
@@ -120,12 +120,12 @@ HexPoint BoardUtils::Rotate(const ConstBoard& brd, HexPoint p)
 {
     HexAssert(brd.isValid(p));
     
-    if (!brd.isLocation(p)) return p;
+    if (!brd.IsLocation(p)) return p;
     if (HexPointUtil::isEdge(p)) return HexPointUtil::oppositeEdge(p);
     
     int x, y;
     HexPointUtil::pointToCoords(p, x, y);
-    return HexPointUtil::coordsToPoint(brd.width()-1-x, brd.height()-1-y);
+    return HexPointUtil::coordsToPoint(brd.Width()-1-x, brd.Height()-1-y);
 }
 
 HexPoint BoardUtils::Mirror(const ConstBoard& brd, HexPoint p)
@@ -133,7 +133,7 @@ HexPoint BoardUtils::Mirror(const ConstBoard& brd, HexPoint p)
     HexAssert(brd.isValid(p));
     HexAssert(brd.width() == brd.height());
     
-    if (!brd.isLocation(p)) return p;
+    if (!brd.IsLocation(p)) return p;
     
     if (HexPointUtil::isEdge(p)) {
 	if (HexPointUtil::isColorEdge(p, VERTICAL_COLOR))
@@ -155,28 +155,28 @@ HexPoint BoardUtils::CenterPoint(const ConstBoard& brd)
 
 HexPoint BoardUtils::CenterPointRight(const ConstBoard& brd)
 {
-    int x = brd.width() / 2;
-    int y = brd.height() / 2;
+    int x = brd.Width() / 2;
+    int y = brd.Height() / 2;
 
-    if (!(brd.width() & 1) && !(brd.height() & 1)) y--;
+    if (!(brd.Width() & 1) && !(brd.Height() & 1)) y--;
 
     return HexPointUtil::coordsToPoint(x, y);
 }
 
 HexPoint BoardUtils::CenterPointLeft(const ConstBoard& brd)
 {
-    int x = brd.width() / 2;
-    int y = brd.height() / 2;
+    int x = brd.Width() / 2;
+    int y = brd.Height() / 2;
 
-    if (!(brd.width() & 1)) x--;
-    if ((brd.width() & 1) && !(brd.height() & 1)) y--;
+    if (!(brd.Width() & 1)) x--;
+    if ((brd.Width() & 1) && !(brd.Height() & 1)) y--;
 
     return HexPointUtil::coordsToPoint(x, y);
 }
 
 HexPoint BoardUtils::RandomEmptyCell(const StoneBoard& brd)
 {
-    bitset_t moves = brd.getEmpty() & brd.Const().getCells();
+    bitset_t moves = brd.getEmpty() & brd.Const().GetCells();
     int count = moves.count();
     if (count == 0) 
         return INVALID_POINT;
@@ -394,7 +394,7 @@ bool BoardUtils::FindSplittingDecomposition(const HexBoard& brd,
 
     // @note must & with getCells() because we want non-edge groups;
     // this assumes that edges are always captains. 
-    bitset_t adjToBothEdges = adjto1 & adjto2 & brd.Const().getCells();
+    bitset_t adjToBothEdges = adjto1 & adjto2 & brd.Const().GetCells();
 
     // if there is a group adjacent to both opponent edges, return it.
     if (adjToBothEdges.any()) 

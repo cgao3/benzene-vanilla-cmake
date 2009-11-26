@@ -18,24 +18,24 @@ BOOST_AUTO_TEST_CASE(ConstBoard_Dimensions)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 7);
     ConstBoard* cb = &ConstBoard::Get(1, 1);
-    BOOST_CHECK_EQUAL(cb->width(), 1);
-    BOOST_CHECK_EQUAL(cb->height(), 1);
+    BOOST_CHECK_EQUAL(cb->Width(), 1);
+    BOOST_CHECK_EQUAL(cb->Height(), 1);
     cb = &ConstBoard::Get(5);
-    BOOST_CHECK_EQUAL(cb->width(), 5);
-    BOOST_CHECK_EQUAL(cb->height(), 5);
+    BOOST_CHECK_EQUAL(cb->Width(), 5);
+    BOOST_CHECK_EQUAL(cb->Height(), 5);
     cb = &ConstBoard::Get(4, 7);
-    BOOST_CHECK_EQUAL(cb->width(), 4);
-    BOOST_CHECK_EQUAL(cb->height(), 7);
+    BOOST_CHECK_EQUAL(cb->Width(), 4);
+    BOOST_CHECK_EQUAL(cb->Height(), 7);
     cb = &ConstBoard::Get(MAX_WIDTH, MAX_HEIGHT);
-    BOOST_CHECK_EQUAL(cb->width(), MAX_WIDTH);
-    BOOST_CHECK_EQUAL(cb->height(), MAX_HEIGHT);
+    BOOST_CHECK_EQUAL(cb->Width(), MAX_WIDTH);
+    BOOST_CHECK_EQUAL(cb->Height(), MAX_HEIGHT);
 }
 
 BOOST_AUTO_TEST_CASE(ConstBoard_CellsLocationsValid)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 3);
     ConstBoard* cb = &ConstBoard::Get(5, 3);
-    bitset_t b1 = cb->getCells();
+    bitset_t b1 = cb->GetCells();
     BOOST_CHECK_EQUAL(b1.count(), 15u);
     BOOST_CHECK(b1.test(FIRST_CELL));
     BOOST_CHECK(!b1.test(FIRST_CELL-1));
@@ -43,57 +43,57 @@ BOOST_AUTO_TEST_CASE(ConstBoard_CellsLocationsValid)
     BOOST_CHECK(!b1.test(SOUTH));
     BOOST_CHECK(!b1.test(WEST));
     BOOST_CHECK(!b1.test(EAST));
-    bitset_t b2 = cb->getLocations(); // adds 4 edges
+    bitset_t b2 = cb->GetLocations(); // adds 4 edges
     BOOST_CHECK_EQUAL(b1.count() + 4, b2.count());
     BOOST_CHECK(BitsetUtil::IsSubsetOf(b1, b2));
     BOOST_CHECK(b2.test(FIRST_EDGE));
     BOOST_CHECK(!b2.test(FIRST_EDGE-1));
     BOOST_CHECK(!b2.test(SWAP_PIECES));
-    bitset_t b3 = cb->getValid(); // adds swap and resign
+    bitset_t b3 = cb->GetValid(); // adds swap and resign
     BOOST_CHECK_EQUAL(b2.count() + 2, b3.count());
     BOOST_CHECK(BitsetUtil::IsSubsetOf(b2, b3));
     BOOST_CHECK(b3.test(FIRST_SPECIAL));
     BOOST_CHECK(!b3.test(FIRST_SPECIAL-1));
     
     // checking individual HexPoints
-    BOOST_CHECK(cb->isValid(SWAP_PIECES));
-    BOOST_CHECK(!cb->isLocation(SWAP_PIECES));
-    BOOST_CHECK(cb->isLocation(NORTH));
-    BOOST_CHECK(cb->isLocation(SOUTH));
-    BOOST_CHECK(cb->isValid(EAST));
-    BOOST_CHECK(!cb->isCell(WEST));
-    BOOST_CHECK(cb->isValid(HEX_CELL_A1));
-    BOOST_CHECK(cb->isCell(HEX_CELL_A3));
-    BOOST_CHECK(cb->isLocation(HEX_CELL_E3));
-    BOOST_CHECK(!cb->isValid(INVALID_POINT));
-    BOOST_CHECK(cb->isValid(RESIGN));
-    BOOST_CHECK(!cb->isLocation(RESIGN));
-    BOOST_CHECK(FIRST_INVALID==BITSETSIZE || !cb->isValid(FIRST_INVALID));
-    BOOST_CHECK(!cb->isValid(HEX_CELL_F1));
-    BOOST_CHECK(!cb->isValid(HEX_CELL_A4));
-    BOOST_CHECK(!cb->isValid(HEX_CELL_E4));
+    BOOST_CHECK(cb->IsValid(SWAP_PIECES));
+    BOOST_CHECK(!cb->IsLocation(SWAP_PIECES));
+    BOOST_CHECK(cb->IsLocation(NORTH));
+    BOOST_CHECK(cb->IsLocation(SOUTH));
+    BOOST_CHECK(cb->IsValid(EAST));
+    BOOST_CHECK(!cb->IsCell(WEST));
+    BOOST_CHECK(cb->IsValid(HEX_CELL_A1));
+    BOOST_CHECK(cb->IsCell(HEX_CELL_A3));
+    BOOST_CHECK(cb->IsLocation(HEX_CELL_E3));
+    BOOST_CHECK(!cb->IsValid(INVALID_POINT));
+    BOOST_CHECK(cb->IsValid(RESIGN));
+    BOOST_CHECK(!cb->IsLocation(RESIGN));
+    BOOST_CHECK(FIRST_INVALID==BITSETSIZE || !cb->IsValid(FIRST_INVALID));
+    BOOST_CHECK(!cb->IsValid(HEX_CELL_F1));
+    BOOST_CHECK(!cb->IsValid(HEX_CELL_A4));
+    BOOST_CHECK(!cb->IsValid(HEX_CELL_E4));
     
     // checking validity of bitsets
-    BOOST_CHECK(cb->isValid(b1));
-    BOOST_CHECK(cb->isValid(b2));
-    BOOST_CHECK(cb->isValid(b3));
-    BOOST_CHECK(!cb->isValid(b3.flip()));
+    BOOST_CHECK(cb->IsValid(b1));
+    BOOST_CHECK(cb->IsValid(b2));
+    BOOST_CHECK(cb->IsValid(b3));
+    BOOST_CHECK(!cb->IsValid(b3.flip()));
     b3.flip(0);
-    BOOST_CHECK(!cb->isValid(b3.flip()));
+    BOOST_CHECK(!cb->IsValid(b3.flip()));
     b1.reset();
     b1.set(0);
-    BOOST_CHECK(!cb->isValid(b1));
+    BOOST_CHECK(!cb->IsValid(b1));
     b1.flip(0);
     b1.set(6);
     b1.set(7);
-    BOOST_CHECK(cb->isValid(b1));
+    BOOST_CHECK(cb->IsValid(b1));
     
     // testing that FIRST_INVALID is just beyond the last valid
     // HexPoint on the largest possible board
     cb = &ConstBoard::Get(MAX_WIDTH, MAX_HEIGHT);
     BOOST_CHECK(FIRST_INVALID==BITSETSIZE);
     BOOST_CHECK(FIRST_INVALID-1==HEX_CELL_K11);
-    BOOST_CHECK(cb->isValid(HEX_CELL_K11));
+    BOOST_CHECK(cb->IsValid(HEX_CELL_K11));
 }
 
 BOOST_AUTO_TEST_CASE(ConstBoard_CellLocationValidIterators)
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_CellLocationValidIterators)
     // testing cells iterator
     allInSet = true;
     noRepeats = true;
-    originalBitset = cb->getCells();
+    originalBitset = cb->GetCells();
     remainingBitset = originalBitset;
     for (BoardIterator it(cb->Interior()); it; ++it) {
 	allInSet = allInSet && originalBitset.test(*it);
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_CellLocationValidIterators)
     // testing locations iterator
     allInSet = true;
     noRepeats = true;
-    originalBitset = cb->getLocations();
+    originalBitset = cb->GetLocations();
     remainingBitset = originalBitset;
     for (BoardIterator it(cb->EdgesAndInterior()); it; ++it) {
 	allInSet = allInSet && originalBitset.test(*it);
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_CellLocationValidIterators)
     // testing all iterator
     allInSet = true;
     noRepeats = true;
-    originalBitset = cb->getValid();
+    originalBitset = cb->GetValid();
     remainingBitset = originalBitset;
     for (BoardIterator it(cb->AllValid()); it; ++it) {
 	allInSet = allInSet && originalBitset.test(*it);
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     BOOST_CHECK(allAdjacent);
     BOOST_CHECK(allUnique);
     // interior cells + nbr edges
-    BOOST_CHECK_EQUAL(b.count(), (std::size_t)(cb->height()+2));
+    BOOST_CHECK_EQUAL(b.count(), (std::size_t)(cb->Height()+2));
     
     b.reset();
     allAdjacent = true;
@@ -247,7 +247,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allUnique);
     BOOST_CHECK(allWithinRadius);
-    BOOST_CHECK_EQUAL(b.count(), (std::size_t)(radius*cb->width() + 2));
+    BOOST_CHECK_EQUAL(b.count(), (std::size_t)(radius*cb->Width() + 2));
     
     cb = &ConstBoard::Get(1, 1);
     b.reset();
@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allUnique);
     BOOST_CHECK(allWithinRadius);
-    BOOST_CHECK_EQUAL(b.count(), cb->getLocations().count() - 2);
+    BOOST_CHECK_EQUAL(b.count(), cb->GetLocations().count() - 2);
     
     radius = 2;
     b.reset();
@@ -290,7 +290,7 @@ BOOST_AUTO_TEST_CASE(ConstBoard_NeighbourIterators)
     }
     BOOST_CHECK(allUnique);
     BOOST_CHECK(allWithinRadius);
-    BOOST_CHECK_EQUAL((int)b.count(), radius*cb->height() + 2);
+    BOOST_CHECK_EQUAL((int)b.count(), radius*cb->Height() + 2);
 }
 
 BOOST_AUTO_TEST_CASE(ConstBoard_DistanceAndAdjacency)
