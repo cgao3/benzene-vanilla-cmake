@@ -72,24 +72,24 @@ public:
     //-----------------------------------------------------------------------
 
     /** Clears history.  Computes dead/vcs for current state. */
-    virtual void ComputeAll(HexColor color);
+    void ComputeAll(HexColor color);
 
     /** Stores old state on stack, plays move to board, updates
         ics/vcs.  Hash is modified by the move.  Allows ice info to
         be backed-up. */
-    virtual void PlayMove(HexColor color, HexPoint cell);
+    void PlayMove(HexColor color, HexPoint cell);
     
     /** Stores old state on stack, plays set of stones, updates
         ics/vcs. HASH IS NOT MODIFIED! No ice info will be backed up,
         but this set of moves can be reverted with a single call to
         UndoMove(). */
-    virtual void PlayStones(HexColor color, const bitset_t& played,
+    void PlayStones(HexColor color, const bitset_t& played,
                             HexColor color_to_move);
         
     /** Reverts to last state stored on the stack, restoring all state
         info. If the option is on, also backs up inferior cell
         info. */
-    virtual void UndoMove();
+    void UndoMove();
 
     //-----------------------------------------------------------------------
 
