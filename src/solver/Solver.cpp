@@ -197,7 +197,7 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
 bitset_t 
 Solver::DefaultProofForWinner(const HexBoard& brd, HexColor winner) const
 {
-    return (brd.GetColor(winner) | brd.GetEmpty()) - brd.getDead();
+    return (brd.GetColor(winner) | brd.GetEmpty()) - brd.GetDead();
 }
 
 bool Solver::CheckDB(const HexBoard& brd, HexColor toplay, 
@@ -504,7 +504,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
         (dsolution[0].proof & carrier[0]) | 
         (dsolution[1].proof & carrier[1]) |
         brd.GetColor(!color);
-    solution.proof = solution.proof - brd.getDead();
+    solution.proof = solution.proof - brd.GetDead();
 
     int s0 = (int)dsolution[0].stats.explored_states;
     int s1 = (int)dsolution[1].stats.explored_states;
@@ -568,7 +568,7 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
             }
             os << '\n';
             os << "LABEL ";
-            const InferiorCells& inf = brd.getInferiorCells();
+            const InferiorCells& inf = brd.GetInferiorCells();
             os << inf.GuiOutput();
             os << BoardUtils::GuiDumpOutsideConsiderSet(brd, mustplay, 
                                                         inf.All());
@@ -776,7 +776,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
     }
 
     // Verify dead cells do not intersect proof
-    if ((brd.getDead() & solution.proof).any()) {
+    if ((brd.GetDead() & solution.proof).any()) {
         LogWarning() << color << " to play." << '\n'
 		     << loser << " loses." << '\n'
 		     << "Dead cells hit proof:" << '\n'
@@ -1289,7 +1289,7 @@ bool SolverUtil::isWinningState(const HexBoard& brd, HexColor color,
             // move in the mustplay causing a sequence of presimplicial-pairs 
             // and captures that result in a win. 
             LogFine() << "#### Solid chain win ####" << '\n';
-            proof = brd.GetColor(color) - brd.getDead();
+            proof = brd.GetColor(color) - brd.GetDead();
             return true;
         }
     } 
@@ -1301,7 +1301,7 @@ bool SolverUtil::isWinningState(const HexBoard& brd, HexColor color,
                                        VC::SEMI, v)) 
         {
             LogFine() << "VC win." << '\n';
-            proof = (v.carrier() | brd.GetColor(color)) - brd.getDead();
+            proof = (v.carrier() | brd.GetColor(color)) - brd.GetDead();
             return true;
         } 
     }
@@ -1318,7 +1318,7 @@ bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color,
         {
             // This occurs very rarely, but definetly cannot be ruled out.
             LogFine() << "#### Solid chain loss ####" << '\n';
-            proof = brd.GetColor(other) - brd.getDead();
+            proof = brd.GetColor(other) - brd.GetDead();
             return true;
         } 
     } 
@@ -1330,7 +1330,7 @@ bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color,
         if (brd.Cons(other).SmallestVC(otheredge1, otheredge2, VC::FULL, vc)) 
         {
             LogFine() << "VC loss." << '\n';
-            proof = (vc.carrier() | brd.GetColor(other)) - brd.getDead();
+            proof = (vc.carrier() | brd.GetColor(other)) - brd.GetDead();
             return true;
         } 
     }
@@ -1347,7 +1347,7 @@ bitset_t SolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
         LogWarning() << "EMPTY MUSTPLAY!" << '\n' << brd << '\n';
     HexAssert(ret.any());
     
-    const InferiorCells& inf = brd.getInferiorCells();
+    const InferiorCells& inf = brd.GetInferiorCells();
 
     // take out the dead, dominated, reversible, and vulnerable
     ret = ret - inf.Dead();
@@ -1405,7 +1405,7 @@ bitset_t SolverUtil::InitialProof(const HexBoard& brd, HexColor color)
 	      << brd.Write(MustplayCarrier(brd, color)) << '\n';
 
     bitset_t proof = 
-        (MustplayCarrier(brd, color) | brd.GetColor(!color)) - brd.getDead();
+        (MustplayCarrier(brd, color) | brd.GetColor(!color)) - brd.GetDead();
 
     LogFine() << "Initial mustplay-carrier:" << '\n'
 	      << brd.Write(proof) << '\n';

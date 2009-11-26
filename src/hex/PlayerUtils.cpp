@@ -145,7 +145,7 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
         brd.Cons(color).VCs(HexPointUtil::colorEdge1(color),
                             HexPointUtil::colorEdge2(color),
                             VC::FULL, vcs);
-	return MostOverlappingMove(vcs, brd.getInferiorCells());
+	return MostOverlappingMove(vcs, brd.GetInferiorCells());
     }
     
     // should never get here!
@@ -173,7 +173,7 @@ HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
     brd.Cons(other).VCs(otheredge1, otheredge2, 
                         ((connected) ? VC::SEMI : VC::FULL), vcs);
 
-    return MostOverlappingMove(vcs, brd.getInferiorCells());
+    return MostOverlappingMove(vcs, brd.GetInferiorCells());
 }
 
 } // anonymous namespace
@@ -210,7 +210,7 @@ bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color)
 	return true;
     }
     bitset_t mustplay = VCUtils::GetMustplay(brd, color);
-    const InferiorCells& inf = brd.getInferiorCells();
+    const InferiorCells& inf = brd.GetInferiorCells();
     bitset_t remaining = mustplay - inf.Vulnerable()
                                   - inf.Reversible()
                                   - inf.Dominated();
@@ -262,7 +262,7 @@ bitset_t PlayerUtils::MovesToConsider(const HexBoard& brd, HexColor color)
     bitset_t consider = VCUtils::GetMustplay(brd, color);
     HexAssert(consider.any());
     
-    const InferiorCells& inf = brd.getInferiorCells();
+    const InferiorCells& inf = brd.GetInferiorCells();
     consider = consider - inf.Vulnerable()
                         - inf.Reversible()
                         - inf.Dominated();
@@ -285,7 +285,7 @@ bitset_t PlayerUtils::MovesToConsiderInLosingState(const HexBoard& brd,
     bitset_t consider = brd.GetEmpty();
     HexAssert(consider.any());
     
-    TightenMoveBitset(consider, brd.getInferiorCells());
+    TightenMoveBitset(consider, brd.GetInferiorCells());
 
     LogFine() << "Losing moves to consider for " << color << ":" 
               << brd.Write(consider) << '\n';

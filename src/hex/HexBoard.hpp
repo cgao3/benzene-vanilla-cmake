@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HexBoard.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -96,10 +96,10 @@ public:
     /** Returns the set of dead cells on the board. This is the union
         of all cells found dead previously during the history of moves
         since the last ComputeAll() call.  */
-    bitset_t getDead() const;
+    bitset_t GetDead() const;
     
     /** Returns the set of inferior cell. */
-    const InferiorCells& getInferiorCells() const;
+    const InferiorCells& GetInferiorCells() const;
 
     /** Returns the Inferior Cell Engine the board is using. */
     const ICEngine& ICE() const;
@@ -227,12 +227,12 @@ private:
     void PopHistory();
 };
 
-inline bitset_t HexBoard::getDead() const
+inline bitset_t HexBoard::GetDead() const
 {
     return m_inf.Dead();
 }
 
-inline const InferiorCells& HexBoard::getInferiorCells() const
+inline const InferiorCells& HexBoard::GetInferiorCells() const
 {
     return m_inf;
 }

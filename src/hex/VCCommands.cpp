@@ -59,12 +59,12 @@ void VCCommands::CmdBuildStatic(HtpCommand& cmd)
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
-    cmd << brd.getInferiorCells().GuiOutput();
+    cmd << brd.GetInferiorCells().GuiOutput();
     if (!PlayerUtils::IsDeterminedState(brd, color))
     {
         bitset_t consider = PlayerUtils::MovesToConsider(brd, color);
         cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd, consider,
-                                              brd.getInferiorCells().All());
+                                              brd.GetInferiorCells().All());
     }
     cmd << '\n';
 }
@@ -80,12 +80,12 @@ void VCCommands::CmdBuildIncremental(HtpCommand& cmd)
     HexPoint point = HtpUtil::MoveArg(cmd, 1);
     HexBoard& brd = *m_env.brd; // <-- NOTE: no call to SyncBoard()!
     brd.PlayMove(color, point);
-    cmd << brd.getInferiorCells().GuiOutput();
+    cmd << brd.GetInferiorCells().GuiOutput();
     if (!PlayerUtils::IsDeterminedState(brd, color))
     {
         bitset_t consider = PlayerUtils::MovesToConsider(brd, color);
         cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd, consider,
-                                           brd.getInferiorCells().All());
+                                           brd.GetInferiorCells().All());
     }
     cmd << '\n';
 }
@@ -153,7 +153,7 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     bitset_t mustplay = VCUtils::GetMustplay(*m_env.brd, color);
-    InferiorCells inf(m_env.brd->getInferiorCells());
+    InferiorCells inf(m_env.brd->GetInferiorCells());
     inf.ClearVulnerable();
     inf.ClearReversible();
     inf.ClearDominated();
