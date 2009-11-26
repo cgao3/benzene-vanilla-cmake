@@ -71,11 +71,6 @@ public:
 
     //-----------------------------------------------------------------------
 
-    /** Copies state of stoneboard into this board. */
-    void SetState(const StoneBoard& brd);
-
-    //-----------------------------------------------------------------------
-
     /** Clears history.  Computes dead/vcs for current state. */
     virtual void ComputeAll(HexColor color);
 

@@ -85,6 +85,9 @@ public:
     */
     void SetState(const BoardID& id);
 
+    /** Copies state of brd into this board. */
+    void SetState(const StoneBoard& brd);
+
     /** Number of played stones on the interior of the board. 
         Similar to:
         @code

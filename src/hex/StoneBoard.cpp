@@ -266,6 +266,14 @@ std::string StoneBoard::GetBoardIDString() const
     return idString;
 }
 
+void StoneBoard::SetState(const StoneBoard& brd)
+{
+    StartNewGame();
+    SetColor(BLACK, brd.GetBlack());
+    SetColor(WHITE, brd.GetWhite());
+    SetPlayed(brd.GetPlayed());
+}
+
 void StoneBoard::SetState(const BoardID& id)
 {
     std::size_t n = (Width() * Height() + 3) / 4 * 4;

@@ -67,16 +67,6 @@ HexBoard::~HexBoard()
 
 //----------------------------------------------------------------------------
 
-void HexBoard::SetState(const StoneBoard& brd)
-{
-    StartNewGame();
-    SetColor(BLACK, brd.GetBlack());
-    SetColor(WHITE, brd.GetWhite());
-    SetPlayed(brd.GetPlayed());
-}
-
-//----------------------------------------------------------------------------
-
 void HexBoard::ComputeInferiorCells(HexColor color_to_move)
 {
     if (m_use_ice) 
