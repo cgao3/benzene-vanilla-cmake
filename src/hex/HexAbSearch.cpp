@@ -241,7 +241,7 @@ HexEval HexAbSearch::SearchState(const std::vector<int>& plywidth,
     if (m_tt) 
     {
         SearchedState state;
-        if (m_tt->Get(m_brd->Hash(), state)) 
+        if (m_tt->Get(m_brd->GetState().Hash(), state)) 
         {
             m_tt_info_available = true;
             m_tt_bestmove = state.move;
@@ -365,8 +365,9 @@ HexEval HexAbSearch::SearchState(const std::vector<int>& plywidth,
         SearchedState::Bound bound = SearchedState::ACCURATE;
         if (bestvalue <= old_alpha) bound = SearchedState::UPPER_BOUND;
         if (bestvalue >= old_beta) bound = SearchedState::LOWER_BOUND;
-        SearchedState ss(m_brd->Hash(), depth, bound, bestvalue, bestmove);
-        m_tt->Put(m_brd->Hash(), ss);
+        SearchedState ss(m_brd->GetState().Hash(), depth, bound, 
+                         bestvalue, bestmove);
+        m_tt->Put(m_brd->GetState().Hash(), ss);
     }
 
     AfterStateSearched();

@@ -17,10 +17,10 @@ using namespace benzene;
 
 HexBoard::HexBoard(int width, int height, const ICEngine& ice,
                    VCBuilderParam& param)
-    : StoneBoard(width, height), 
+    : m_brd(width, height), 
       m_ice(&ice),
       m_groups(),
-      m_patterns(*this),
+      m_patterns(m_brd),
       m_builder(param),
       m_use_vcs(true),
       m_use_ice(true),
@@ -33,10 +33,10 @@ HexBoard::HexBoard(int width, int height, const ICEngine& ice,
 /** @warning This is not very maintainable! How to make this
     copy-constructable nicely, even though it has a scoped_ptr? */
 HexBoard::HexBoard(const HexBoard& other)
-    : StoneBoard(other),
+    : m_brd(other.m_brd),
       m_ice(other.m_ice),
       m_groups(other.m_groups),
-      m_patterns(*this),
+      m_patterns(m_brd),
       m_builder(other.m_builder),
       m_history(other.m_history),
       m_inf(other.m_inf),
@@ -55,7 +55,7 @@ HexBoard::HexBoard(const HexBoard& other)
 
 void HexBoard::Initialize()
 {
-    GroupBuilder::Build(*this, m_groups);
+    GroupBuilder::Build(m_brd, m_groups);
     for (BWIterator c; c; ++c) 
         m_cons[*c].reset(new VCSet(Const(), *c));
     ClearHistory();
@@ -132,13 +132,13 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move, bool use_changelog)
 							   captured))
             {
                 LogFine() << "Decomposition " << decompositions << ": for " 
-			  << *c << "." << '\n' << Write(captured) << '\n';
+			  << *c << ".\n" << m_brd.Write(captured) << '\n';
             
                 AddStones(*c, captured, color_to_move, use_changelog);
                 m_inf.AddCaptured(*c, captured);
             
                 LogFine() << "After decomposition " << decompositions 
-			  << ": " << *this << '\n';
+			  << ": " << m_brd << '\n';
                 
                 decompositions++;
                 found = true;
@@ -156,7 +156,7 @@ void HexBoard::ComputeAll(HexColor color_to_move)
     double s = Time::Get();
 
     m_patterns.Update();
-    GroupBuilder::Build(*this, m_groups);
+    GroupBuilder::Build(m_brd, m_groups);
     m_inf.Clear();
 
     ComputeInferiorCells(color_to_move);
@@ -178,19 +178,19 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
 
     double s = Time::Get();
     PushHistory(color, cell);
-    bitset_t old_black = GetColor(BLACK);
-    bitset_t old_white = GetColor(WHITE);
+    bitset_t old_black = m_brd.GetColor(BLACK);
+    bitset_t old_white = m_brd.GetColor(WHITE);
 
-    playMove(color, cell);
+    m_brd.playMove(color, cell);
     m_patterns.Update(cell);
     Groups oldGroups(m_groups);
-    GroupBuilder::Build(*this, m_groups);
+    GroupBuilder::Build(m_brd, m_groups);
 
     ComputeInferiorCells(!color);
 
     bitset_t added[BLACK_AND_WHITE];
-    added[BLACK] = GetColor(BLACK) - old_black;
-    added[WHITE] = GetColor(WHITE) - old_white;
+    added[BLACK] = m_brd.GetColor(BLACK) - old_black;
+    added[WHITE] = m_brd.GetColor(WHITE) - old_white;
 
     if (m_use_vcs)
     {
@@ -208,23 +208,23 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 {
     LogFine() << "Playing (" << color << ","
               << HexPointUtil::ToString(played) << ")\n";
-    HexAssert(BitsetUtil::IsSubsetOf(played, GetEmpty()));
+    HexAssert(BitsetUtil::IsSubsetOf(played, GetState().GetEmpty()));
 
     double s = Time::Get();
     PushHistory(color, INVALID_POINT);
-    bitset_t old_black = GetColor(BLACK);
-    bitset_t old_white = GetColor(WHITE);
+    bitset_t old_black = m_brd.GetColor(BLACK);
+    bitset_t old_white = m_brd.GetColor(WHITE);
 
-    AddColor(color, played);
+    m_brd.AddColor(color, played);
     m_patterns.Update(played);
     Groups oldGroups(m_groups);
-    GroupBuilder::Build(*this, m_groups);
+    GroupBuilder::Build(m_brd, m_groups);
 
     ComputeInferiorCells(color_to_move);
 
     bitset_t added[BLACK_AND_WHITE];
-    added[BLACK] = GetColor(BLACK) - old_black;
-    added[WHITE] = GetColor(WHITE) - old_white;
+    added[BLACK] = m_brd.GetColor(BLACK) - old_black;
+    added[WHITE] = m_brd.GetColor(WHITE) - old_white;
 
     if (m_use_vcs)
     {
@@ -246,24 +246,24 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 void HexBoard::AddStones(HexColor color, const bitset_t& played,
                          HexColor color_to_move, bool use_changelog)
 {
-    HexAssert(BitsetUtil::IsSubsetOf(played, GetEmpty()));
+    HexAssert(BitsetUtil::IsSubsetOf(played, GetState().GetEmpty()));
     LogFine() << "Adding (" << color << ", "
               << HexPointUtil::ToString(played) << ")\n";
 
     double s = Time::Get();
-    bitset_t old_black = GetColor(BLACK);
-    bitset_t old_white = GetColor(WHITE);
+    bitset_t old_black = m_brd.GetColor(BLACK);
+    bitset_t old_white = m_brd.GetColor(WHITE);
 
-    AddColor(color, played);
+    m_brd.AddColor(color, played);
     m_patterns.Update(played);
     Groups oldGroups(m_groups);
-    GroupBuilder::Build(*this, m_groups);
+    GroupBuilder::Build(m_brd, m_groups);
 
     ComputeInferiorCells(color_to_move);
 
     bitset_t added[BLACK_AND_WHITE];
-    added[BLACK] = GetColor(BLACK) - old_black;
-    added[WHITE] = GetColor(WHITE) - old_white;
+    added[BLACK] = m_brd.GetColor(BLACK) - old_black;
+    added[WHITE] = m_brd.GetColor(WHITE) - old_white;
 
     if (m_use_vcs)
         BuildVCs(oldGroups, added, use_changelog); 
@@ -292,7 +292,7 @@ void HexBoard::ClearHistory()
 
 void HexBoard::PushHistory(HexColor color, HexPoint cell)
 {
-    m_history.push_back(History(*this, m_groups, m_inf, color, cell));
+    m_history.push_back(History(m_brd, m_groups, m_inf, color, cell));
 }
 
 /** Restores the old board position, backs up ice info, and reverts
@@ -304,13 +304,13 @@ void HexBoard::PopHistory()
     History hist = m_history.back();
     m_history.pop_back();
 
-    SetState(hist.board);
+    m_brd.SetState(hist.board);
     if (m_backup_ice_info && hist.last_played != INVALID_POINT)
     {
         // Cells that were not marked as inferior in parent state
         // and are either dead or captured (for the color to play in the
         // parent state) are marked as dominated. 
-        bitset_t a = GetEmpty() - hist.inf.All();
+        bitset_t a = m_brd.GetEmpty() - hist.inf.All();
         a &= m_inf.Dead() | m_inf.Captured(hist.to_play);
 
         for (BitsetIterator p(a); p; ++p) 

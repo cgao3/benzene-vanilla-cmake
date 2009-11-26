@@ -79,7 +79,7 @@ void BookCommands::CmdBookCounts(HtpCommand& cmd)
 {
     if (!m_book) 
         throw HtpFailure() << "No open book.";
-    HexBoard& brd = m_env.SyncBoard(m_game.Board());
+    StoneBoard& brd(m_game.Board());
     HexColor color = brd.WhoseTurn();
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
@@ -98,7 +98,7 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
     if (!m_bookCheck)
         throw HtpFailure() << "Player has no BookCheck!\n";
     float countWeight = m_bookCheck->CountWeight();
-    HexBoard& brd = m_env.SyncBoard(m_game.Board());
+    StoneBoard brd(m_game.Board());
     HexColor color = brd.WhoseTurn();
 
     std::map<HexPoint, HexEval> values;

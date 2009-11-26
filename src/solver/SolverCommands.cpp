@@ -189,7 +189,7 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     bitset_t consider = (PlayerUtils::IsDeterminedState(brd, color) ?
-                         brd.GetEmpty() :
+                         brd.GetState().GetEmpty() :
                          PlayerUtils::MovesToConsider(brd, color));
     bitset_t winning;
     SgTimer timer;

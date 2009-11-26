@@ -282,7 +282,7 @@ bitset_t PlayerUtils::MovesToConsiderInLosingState(const HexBoard& brd,
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(!IsLostGame(brd, color));
     
-    bitset_t consider = brd.GetEmpty();
+    bitset_t consider = brd.GetState().GetEmpty();
     HexAssert(consider.any());
     
     TightenMoveBitset(consider, brd.GetInferiorCells());

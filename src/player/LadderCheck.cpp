@@ -37,12 +37,12 @@ HexPoint LadderCheck::pre_search(HexBoard& brd, const Game& game_state,
             const VCPattern& pat = pset[i];
 
             // Ladder matches if pattern hits and both endpoints are occupied.
-            if (pat.Matches(other, brd) 
-                && brd.GetColor(pat.Endpoint(0)) == other
-                && brd.GetColor(pat.Endpoint(1)) == other)
+            if (pat.Matches(other, brd.GetState()) 
+                && brd.GetState().GetColor(pat.Endpoint(0)) == other
+                && brd.GetState().GetColor(pat.Endpoint(1)) == other)
             {
                 // consider only the probes that are unoccupied
-                bitset_t bp = pat.BadProbes() & brd.GetEmpty();
+                bitset_t bp = pat.BadProbes() & brd.GetState().GetEmpty();
 
                 // take out the bad probes only if there are moves
                 // remaining in the consider set afterward.

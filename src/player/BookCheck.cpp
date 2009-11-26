@@ -39,7 +39,7 @@ HexPoint BookCheck::pre_search(HexBoard& brd, const Game& game_state,
         if (!m_bookLoaded)
             LoadOpeningBook(m_bookName);
         if (m_bookLoaded)
-            response = BookUtil::BestMove(*m_book, brd, m_min_count,
+            response = BookUtil::BestMove(*m_book, brd.GetState(), m_min_count,
                                           m_count_weight);
         if (response != INVALID_POINT)
             return response;

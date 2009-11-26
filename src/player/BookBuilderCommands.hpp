@@ -163,7 +163,7 @@ void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
 {
     if (!m_book) 
         throw HtpFailure() << "No open book.";
-    HexBoard& brd = m_env.SyncBoard(m_game.Board());
+    StoneBoard brd(m_game.Board());
     HexColor color = brd.WhoseTurn();
     BookNode parent;
     if (!m_book->GetNode(brd, parent))

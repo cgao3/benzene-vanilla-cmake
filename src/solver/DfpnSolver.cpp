@@ -488,7 +488,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     m_numMIDcalls = 0;
     m_numUniqueProbes = 0;
     m_numProbeChecks = 0;
-    m_brd.reset(new StoneBoard(board));
+    m_brd.reset(new StoneBoard(board.GetState()));
     m_workBoard = &board;
     m_checkTimerAbortCalls = 0;
 
@@ -606,7 +606,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         }
         else
         {
-            m_workBoard->SetState(*m_brd);
+            m_workBoard->GetState().SetState(*m_brd);
             m_workBoard->ComputeAll(colorToMove);
             if (PlayerUtils::IsDeterminedState(*m_workBoard, colorToMove))
             {

@@ -17,7 +17,7 @@ HexEnvironment::HexEnvironment(int width, int height)
 
 void HexEnvironment::NewGame(int width, int height)
 {
-    if (brd->Width() != width && brd->Height() != height)
+    if (brd->GetState().Width() != width && brd->GetState().Height() != height)
     {
         /** @todo Make board resizable? Until then, make sure all
             HexBoard parameters are copied here! */
@@ -31,12 +31,12 @@ void HexEnvironment::NewGame(int width, int height)
         brd->SetUseDecompositions(use_dec);
         brd->SetBackupIceInfo(backup);
     }
-    brd->StartNewGame();
+    brd->GetState().StartNewGame();
 }
 
 HexBoard& HexEnvironment::SyncBoard(const StoneBoard& board)
 {
-    brd->SetState(board);
+    brd->GetState().SetState(board);
     return *brd.get();
 }
 

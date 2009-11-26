@@ -196,9 +196,9 @@ void AddAdjacent(HexColor color, const HexBoard& brd,
                  AdjacencyGraph& graph)
 {
     HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(color);
-    for (BoardIterator x(brd.Stones(not_other)); x; ++x) 
+    for (BoardIterator x(brd.GetState().Stones(not_other)); x; ++x) 
     {
-        for (BoardIterator y(brd.Stones(not_other)); *y != *x; ++y) 
+        for (BoardIterator y(brd.GetState().Stones(not_other)); *y != *x; ++y) 
         {
             HexPoint cx = brd.GetGroups().CaptainOf(*x);
             HexPoint cy = brd.GetGroups().CaptainOf(*y);
@@ -261,7 +261,7 @@ void SimulateAndOverEdge1(const HexBoard& brd, HexColor color,
     HexAssert(g_ResistanceUtilInitialized);
 
     bitset_t adjToEdge;
-    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
+    for (BitsetIterator p(brd.GetState().GetEmpty()); p; ++p) 
     {
         PatternHits hits;
         brd.GetPatternState().MatchOnCell(*s_hash_capmiai[color], *p, 

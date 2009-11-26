@@ -24,7 +24,7 @@ _BEGIN_BENZENE_NAMESPACE_
   
     @todo Document me!
 */
-class HexBoard : public StoneBoard
+class HexBoard
 {
 public:
     
@@ -93,6 +93,12 @@ public:
 
     //-----------------------------------------------------------------------
 
+    StoneBoard& GetState();
+
+    const StoneBoard& GetState() const;
+
+    const ConstBoard& Const() const;
+
     /** Returns the set of dead cells on the board. This is the union
         of all cells found dead previously during the history of moves
         since the last ComputeAll() call.  */
@@ -123,6 +129,16 @@ public:
 
     /** Returns the connection builder for this board. */
     const VCBuilder& Builder() const;
+
+    //-----------------------------------------------------------------------
+    
+    int Width() const;
+
+    int Height() const;
+
+    std::string Write() const;
+
+    std::string Write(const bitset_t& bs) const;
 
 private:
     
@@ -158,6 +174,8 @@ private:
     */
 
     // @{
+
+    StoneBoard m_brd;
 
     /** ICEngine used to compute inferior cells. */
     const ICEngine* m_ice;
@@ -226,6 +244,21 @@ private:
 
     void PopHistory();
 };
+
+inline StoneBoard& HexBoard::GetState()
+{
+    return m_brd;
+}
+
+inline const StoneBoard& HexBoard::GetState() const
+{
+    return m_brd;
+}
+
+inline const ConstBoard& HexBoard::Const() const
+{
+    return m_brd.Const();
+}
 
 inline bitset_t HexBoard::GetDead() const
 {
@@ -320,6 +353,34 @@ inline bool HexBoard::BackupIceInfo() const
 inline void HexBoard::SetBackupIceInfo(bool enable)
 {
     m_backup_ice_info = enable;
+}
+
+inline int HexBoard::Width() const
+{
+    return m_brd.Width();
+}
+
+inline int HexBoard::Height() const
+{
+    return m_brd.Height();
+}
+
+inline std::string HexBoard::Write() const
+{
+    return m_brd.Write();
+}
+
+inline std::string HexBoard::Write(const bitset_t& bs) const
+{
+    return m_brd.Write(bs);
+}
+
+//----------------------------------------------------------------------------
+
+inline std::ostream& operator<<(std::ostream &os, const HexBoard& b)
+{
+    os << b.Write();
+    return os;
 }
 
 //----------------------------------------------------------------------------

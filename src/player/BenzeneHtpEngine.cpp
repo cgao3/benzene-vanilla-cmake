@@ -326,7 +326,7 @@ void BenzeneHtpEngine::CmdComputeInferior(HtpCommand& cmd)
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
-    GroupBuilder::Build(brd, brd.GetGroups());
+    GroupBuilder::Build(brd.GetState(), brd.GetGroups());
     InferiorCells inf;
     m_pe.ice.ComputeInferiorCells(color, brd.GetGroups(), 
                                   brd.GetPatternState(), inf);
@@ -342,7 +342,7 @@ void BenzeneHtpEngine::CmdComputeFillin(HtpCommand& cmd)
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
-    GroupBuilder::Build(brd, brd.GetGroups());
+    GroupBuilder::Build(brd.GetState(), brd.GetGroups());
     InferiorCells inf;
     m_pe.ice.ComputeFillin(color, brd.GetGroups(), brd.GetPatternState(), inf);
     inf.ClearVulnerable();
@@ -357,9 +357,10 @@ void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
     HexColor col = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
-    GroupBuilder::Build(brd, brd.GetGroups());
+    GroupBuilder::Build(brd.GetState(), brd.GetGroups());
     InferiorCells inf;
-    m_pe.ice.FindVulnerable(brd.GetPatternState(), col, brd.GetEmpty(), inf);
+    m_pe.ice.FindVulnerable(brd.GetPatternState(), col, 
+                            brd.GetState().GetEmpty(), inf);
     cmd << inf.GuiOutput();
     cmd << '\n';
 }
@@ -371,9 +372,10 @@ void BenzeneHtpEngine::CmdComputeReversible(HtpCommand& cmd)
     HexColor col = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
-    GroupBuilder::Build(brd, brd.GetGroups());
+    GroupBuilder::Build(brd.GetState(), brd.GetGroups());
     InferiorCells inf;
-    m_pe.ice.FindReversible(brd.GetPatternState(), col, brd.GetEmpty(), inf);
+    m_pe.ice.FindReversible(brd.GetPatternState(), col, 
+                            brd.GetState().GetEmpty(), inf);
     cmd << inf.GuiOutput();
     cmd << '\n';
 }
@@ -385,9 +387,10 @@ void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
     HexColor col = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.GetPatternState().Update();
-    GroupBuilder::Build(brd, brd.GetGroups());
+    GroupBuilder::Build(brd.GetState(), brd.GetGroups());
     InferiorCells inf;
-    m_pe.ice.FindDominated(brd.GetPatternState(), col, brd.GetEmpty(), inf);
+    m_pe.ice.FindDominated(brd.GetPatternState(), col, 
+                           brd.GetState().GetEmpty(), inf);
     cmd << inf.GuiOutput();
     cmd << '\n';
 }
@@ -548,7 +551,7 @@ void BenzeneHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
 
     for (BoardIterator it(brd.Const().Interior()); it; ++it) 
     {
-        if (brd.IsOccupied(*it)) continue;
+        if (brd.GetState().IsOccupied(*it)) continue;
         HexEval energy = twod.Score(*it, color);
         if (energy == EVAL_INFINITY)
             energy = -1;
@@ -570,7 +573,7 @@ void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
         << " reb " << std::fixed << std::setprecision(3) << resist.Resist(BLACK);
 
     for (BoardIterator it(brd.Const().Interior()); it; ++it) {
-        if (brd.IsOccupied(*it)) continue;
+        if (brd.GetState().IsOccupied(*it)) continue;
         HexEval energy = resist.Score(*it, color);
         if (energy == EVAL_INFINITY)
             energy = -1;
@@ -591,7 +594,7 @@ void BenzeneHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
     HexEval base = resist.Score();
 
     cmd << " res " << std::fixed << std::setprecision(3) << base;
-    for (BitsetIterator it(brd.GetEmpty()); it; ++it) 
+    for (BitsetIterator it(brd.GetState().GetEmpty()); it; ++it) 
     {
         brd.PlayMove(color, *it);
         resist.Evaluate(brd);
@@ -622,19 +625,19 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
         = VCSetUtil::ConnectedTo(brd.Cons(WHITE), groups, WEST, VC::FULL);
 
     for (BoardIterator it(brd.Const().Interior()); it; ++it) {
-        if (brd.IsOccupied(*it)) continue;
+        if (brd.GetState().IsOccupied(*it)) continue;
 
 	// Compute neighbours, giving over-estimation to edges
 	bitset_t b1 = VCSetUtil::ConnectedTo(brd.Cons(BLACK), brd.GetGroups(),
                                              *it, VC::FULL);
 	if (b1.test(NORTH)) b1 |= northNbs;
 	if (b1.test(SOUTH)) b1 |= southNbs;
-	b1 &= brd.GetEmpty();
+	b1 &= brd.GetState().GetEmpty();
 	bitset_t b2 = VCSetUtil::ConnectedTo(brd.Cons(WHITE), brd.GetGroups(),
                                              *it, VC::FULL);
 	if (b2.test(EAST)) b2 |= eastNbs;
 	if (b2.test(WEST)) b2 |= westNbs;
-	b2 &= brd.GetEmpty();
+	b2 &= brd.GetState().GetEmpty();
 
 	// Compute ratio of VCs at this cell, and use as measure of influence
 	double v1 = (double) b1.count();
@@ -697,7 +700,7 @@ void BenzeneHtpEngine::SolverThread::operator()()
             /// FIXME: do we really need the above checks?
             boost::mutex::scoped_lock lock(m_mutex);
             m_engine.m_parallelResult = pv[0];
-            if (winner == brd.WhoseTurn())
+            if (winner == brd.GetState().WhoseTurn())
             {
                 LogInfo() << "*** FOUND WIN!!! ***\n" 
                           << "PV:" << HexPointUtil::ToString(pv) << '\n';

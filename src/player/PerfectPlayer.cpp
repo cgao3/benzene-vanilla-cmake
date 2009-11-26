@@ -43,7 +43,7 @@ HexPoint PerfectPlayer::search(HexBoard& brd,
     HexPoint move_to_play = INVALID_POINT;
 
     // check db 
-    if (find_db_move(brd, color, move_to_play, proof, score)) 
+    if (find_db_move(brd.GetState(), color, move_to_play, proof, score)) 
         need_to_run_solver = false;
 
     // state not currently in db; solve it. 

@@ -157,7 +157,7 @@ void HexUctSearch::OnStartSearch()
     int maxGameLength = size+10;
     SetMaxGameLength(maxGameLength);
 
-    m_lastPositionSearched = *m_brd;
+    m_lastPositionSearched = m_brd->GetState();
 }
 
 void HexUctSearch::SaveGames(const std::string& filename) const

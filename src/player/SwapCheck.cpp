@@ -30,7 +30,7 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
         && (1 == game_state.History().size())
         && (!FIRST_TO_PLAY == color))
     {
-	HexAssert(1 == brd.NumStones());
+	HexAssert(1 == brd.GetState().NumStones());
 	LogInfo() << "Performing swap pre-check...\n";
 	
 	/** If board has unequal dimensions, we want to traverse the

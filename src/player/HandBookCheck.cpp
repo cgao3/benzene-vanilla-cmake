@@ -29,7 +29,7 @@ HexPoint HandBookCheck::pre_search(HexBoard& brd, const Game& game_state,
 {
     if (m_enabled) 
     {
-	HexPoint response = HandBookResponse(brd, color);
+	HexPoint response = HandBookResponse(brd.GetState(), color);
         if (response != INVALID_POINT)
             return response;
     }

@@ -74,7 +74,7 @@ void Solver::Initialize(const HexBoard& brd)
 
     m_histogram = Histogram();
     m_statistics = GlobalStatistics();
-    m_stoneboard.reset(new StoneBoard(brd));
+    m_stoneboard.reset(new StoneBoard(brd.GetState()));
 }
 
 void Solver::Cleanup()
@@ -181,7 +181,7 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
 
     // AND the proof with empty cells on board since our working proof
     // contains played stones.
-    solution.proof &= brd.GetEmpty();
+    solution.proof &= brd.GetState().GetEmpty();
 
     m_end_time = Time::Get();
 
@@ -197,7 +197,8 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
 bitset_t 
 Solver::DefaultProofForWinner(const HexBoard& brd, HexColor winner) const
 {
-    return (brd.GetColor(winner) | brd.GetEmpty()) - brd.GetDead();
+    return (brd.GetState().GetColor(winner) | brd.GetState().GetEmpty()) 
+        - brd.GetDead();
 }
 
 bool Solver::CheckDB(const HexBoard& brd, HexColor toplay, 
@@ -224,7 +225,7 @@ bool Solver::CheckDB(const HexBoard& brd, HexColor toplay,
 bool Solver::CheckTT(const HexBoard& brd, HexColor toplay, 
                      SolvedState& state) const
 {
-    if (m_tt && m_tt->Get(brd.Hash(), state)) 
+    if (m_tt && m_tt->Get(brd.GetState().Hash(), state)) 
     {
     
 #if OUTPUT_TT_HITS
@@ -503,7 +504,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
     solution.proof = 
         (dsolution[0].proof & carrier[0]) | 
         (dsolution[1].proof & carrier[1]) |
-        brd.GetColor(!color);
+        brd.GetState().GetColor(!color);
     solution.proof = solution.proof - brd.GetDead();
 
     int s0 = (int)dsolution[0].stats.explored_states;
@@ -570,8 +571,8 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
             os << "LABEL ";
             const InferiorCells& inf = brd.GetInferiorCells();
             os << inf.GuiOutput();
-            os << BoardUtils::GuiDumpOutsideConsiderSet(brd, mustplay, 
-                                                        inf.All());
+            os << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), 
+                                                        mustplay, inf.All());
             os << '\n';
             os << "TEXT";
             for (int i=0; i<depth; ++i) 
@@ -765,7 +766,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
     HexColor loser = !winner;
 
     // Verify loser's stones do not intersect proof
-    if ((brd.GetColor(loser) & solution.proof).any()) {
+    if ((brd.GetState().GetColor(loser) & solution.proof).any()) {
         LogWarning() << color << " to play." << '\n'
 		     << loser << " loses." << '\n'
 		     << "Losing stones hit proof:" << '\n'
@@ -837,7 +838,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
     if (solution.pv.empty())
         solution.pv.push_back(INVALID_POINT);
 
-    StoreState(brd.Hash(), 
+    StoreState(brd.GetState().Hash(), 
                SolvedState(m_stoneboard->NumStones(),
                            winning_state, solution.stats.total_states, 
                            solution.moves_to_connection, 
@@ -885,7 +886,7 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
     LogFine() << "STARTING!" << '\n';
     for (BitsetIterator it(mustplay); !found_win && it; ++it)
     {
-	brd.playMove(color, *it);
+	brd.GetState().playMove(color, *it);
 	m_stoneboard->playMove(color, *it);
 
 	SolvedState state;
@@ -924,7 +925,7 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		proof_union |= state.proof;
 	    }
 	}
-	brd.undoMove(*it);
+	brd.GetState().undoMove(*it);
 	m_stoneboard->undoMove(*it);
     }
     
@@ -1289,7 +1290,7 @@ bool SolverUtil::isWinningState(const HexBoard& brd, HexColor color,
             // move in the mustplay causing a sequence of presimplicial-pairs 
             // and captures that result in a win. 
             LogFine() << "#### Solid chain win ####" << '\n';
-            proof = brd.GetColor(color) - brd.GetDead();
+            proof = brd.GetState().GetColor(color) - brd.GetDead();
             return true;
         }
     } 
@@ -1301,7 +1302,8 @@ bool SolverUtil::isWinningState(const HexBoard& brd, HexColor color,
                                        VC::SEMI, v)) 
         {
             LogFine() << "VC win." << '\n';
-            proof = (v.carrier() | brd.GetColor(color)) - brd.GetDead();
+            proof = (v.carrier() | brd.GetState().GetColor(color)) 
+                - brd.GetDead();
             return true;
         } 
     }
@@ -1318,7 +1320,7 @@ bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color,
         {
             // This occurs very rarely, but definetly cannot be ruled out.
             LogFine() << "#### Solid chain loss ####" << '\n';
-            proof = brd.GetColor(other) - brd.GetDead();
+            proof = brd.GetState().GetColor(other) - brd.GetDead();
             return true;
         } 
     } 
@@ -1330,7 +1332,8 @@ bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color,
         if (brd.Cons(other).SmallestVC(otheredge1, otheredge2, VC::FULL, vc)) 
         {
             LogFine() << "VC loss." << '\n';
-            proof = (vc.carrier() | brd.GetColor(other)) - brd.GetDead();
+            proof = (vc.carrier() | brd.GetState().GetColor(other)) 
+                - brd.GetDead();
             return true;
         } 
     }
@@ -1405,12 +1408,13 @@ bitset_t SolverUtil::InitialProof(const HexBoard& brd, HexColor color)
 	      << brd.Write(MustplayCarrier(brd, color)) << '\n';
 
     bitset_t proof = 
-        (MustplayCarrier(brd, color) | brd.GetColor(!color)) - brd.GetDead();
+        (MustplayCarrier(brd, color) | brd.GetState().GetColor(!color)) 
+        - brd.GetDead();
 
     LogFine() << "Initial mustplay-carrier:" << '\n'
 	      << brd.Write(proof) << '\n';
 
-    if ((proof & brd.GetColor(color)).any()) 
+    if ((proof & brd.GetState().GetColor(color)).any()) 
     {
         LogSevere() << "Initial mustplay hits toPlay's stones!" << '\n' 
 		    << brd << '\n' << brd.Write(proof) << '\n';

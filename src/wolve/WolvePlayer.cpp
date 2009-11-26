@@ -188,8 +188,8 @@ HexEval WolveSearch::Evaluate()
 
 void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
 {
-    HexAssert(BitsetUtil::IsSubsetOf(m_brd->GetEmpty(), 
-                                     m_no_fillin_board->GetEmpty()));
+    HexAssert(BitsetUtil::IsSubsetOf(m_brd->GetState().GetEmpty(), 
+                                  m_no_fillin_board->GetState().GetEmpty()));
 
     Resistance resist;
     ComputeResistance(resist);
@@ -301,7 +301,7 @@ void WolveSearch::OnSearchComplete()
 
 void WolveSearch::SetupNonFillinBoard()
 {
-    m_no_fillin_board->SetState(*m_brd);
+    m_no_fillin_board->GetState().SetState(m_brd->GetState());
     // do not use ICE or decomps on our board
     m_no_fillin_board->SetUseICE(false);
     m_no_fillin_board->SetUseDecompositions(false);

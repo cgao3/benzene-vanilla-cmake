@@ -66,7 +66,8 @@ void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
     adjByMiai.clear();
     for (BWIterator color; color; ++color) 
     {
-        for (BitsetIterator p(brd.GetColor(*color) & brd.Const().GetCells()); 
+        for (BitsetIterator p(brd.GetState().GetColor(*color) 
+                              & brd.GetState().Const().GetCells()); 
              p; ++p) 
         {
             PatternHits hits;
@@ -320,7 +321,7 @@ bool BoardUtils::FindCombinatorialDecomposition(const HexBoard& brd,
     for (GroupIterator g(brd.GetGroups(), color); g; ++g) 
     {
 	bitset_t opptNbs = adjByMiai[g->Captain()] 
-            | (g->Nbs() & brd.GetColor(!color));
+            | (g->Nbs() & brd.GetState().GetColor(!color));
 	if (opptNbs.count() >= 2)
 	    adjTo[g->Captain()] = opptNbs;
     }
@@ -360,7 +361,7 @@ bool BoardUtils::FindCombinatorialDecomposition(const HexBoard& brd,
 	    if (edge2Free)
 		decompArea |= GraphUtils::BFS(edge2, graphNbs, stopSet);
 	    decompArea.flip();
-	    decompArea &= brd.GetEmpty();
+	    decompArea &= brd.GetState().GetEmpty();
 	    
 	    // If the pair has a VC confined to these cells, then we have
 	    // a decomposition - return it.
