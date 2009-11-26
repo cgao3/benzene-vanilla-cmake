@@ -181,7 +181,7 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
     bitset_t old_black = m_brd.GetColor(BLACK);
     bitset_t old_white = m_brd.GetColor(WHITE);
 
-    m_brd.playMove(color, cell);
+    m_brd.PlayMove(color, cell);
     m_patterns.Update(cell);
     Groups oldGroups(m_groups);
     GroupBuilder::Build(m_brd, m_groups);

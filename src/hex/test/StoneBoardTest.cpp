@@ -20,10 +20,10 @@ BOOST_AUTO_TEST_CASE(StoneBoard_numStones)
     StoneBoard b(5, 5);
     BOOST_CHECK_EQUAL(b.NumStones(), 0);
 
-    b.playMove(BLACK, FIRST_CELL);
+    b.PlayMove(BLACK, FIRST_CELL);
     BOOST_CHECK_EQUAL(b.NumStones(), 1);
 
-    b.playMove(WHITE, HEX_CELL_A2);
+    b.PlayMove(WHITE, HEX_CELL_A2);
     BOOST_CHECK_EQUAL(b.NumStones(), 2);
 
     b.SetColor(BLACK, HEX_CELL_A3);
@@ -111,34 +111,34 @@ BOOST_AUTO_TEST_CASE(StoneBoard_PlayAndUndoMoves)
     BOOST_CHECK(sb.IsPlayed(NORTH));
     BOOST_CHECK(sb.IsPlayed(EAST));
     
-    // test playMove
-    sb.playMove(BLACK, FIRST_CELL);
+    // test PlayMove
+    sb.PlayMove(BLACK, FIRST_CELL);
     BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
     BOOST_CHECK_EQUAL(sb.GetWhite().count(), 2u);
     BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 5u);
     BOOST_CHECK(sb.IsBlack(FIRST_CELL));
     BOOST_CHECK(sb.IsPlayed(FIRST_CELL));
-    sb.playMove(WHITE, HEX_CELL_A9);
+    sb.PlayMove(WHITE, HEX_CELL_A9);
     BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
     BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
     BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 6u);
     BOOST_CHECK(sb.IsWhite(HEX_CELL_A9));
     BOOST_CHECK(sb.IsPlayed(HEX_CELL_A9));
     
-    // test undoMove
-    sb.undoMove(FIRST_CELL);
+    // test UndoMove
+    sb.UndoMove(FIRST_CELL);
     BOOST_CHECK_EQUAL(sb.GetBlack().count(), 2u);
     BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
     BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 5u);
     BOOST_CHECK(!sb.IsBlack(FIRST_CELL));
     BOOST_CHECK(!sb.IsPlayed(FIRST_CELL));
-    sb.playMove(WHITE, HEX_CELL_A5);
+    sb.PlayMove(WHITE, HEX_CELL_A5);
     BOOST_CHECK_EQUAL(sb.GetBlack().count(), 2u);
     BOOST_CHECK_EQUAL(sb.GetWhite().count(), 4u);
     BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 6u);
     BOOST_CHECK(sb.IsWhite(HEX_CELL_A5));
     BOOST_CHECK(sb.IsPlayed(HEX_CELL_A5));
-    sb.undoMove(HEX_CELL_A9);
+    sb.UndoMove(HEX_CELL_A9);
     BOOST_CHECK_EQUAL(sb.GetBlack().count(), 2u);
     BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
     BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 5u);
@@ -150,17 +150,17 @@ BOOST_AUTO_TEST_CASE(StoneBoard_PlayAndUndoMoves)
     // can affect which moves are legal
     sb.StartNewGame();
     BOOST_CHECK(!sb.IsLegal(SWAP_PIECES));
-    sb.playMove(BLACK, HEX_CELL_A5);
+    sb.PlayMove(BLACK, HEX_CELL_A5);
     BOOST_CHECK(sb.IsLegal(SWAP_PIECES));
-    sb.playMove(WHITE, SWAP_PIECES);
+    sb.PlayMove(WHITE, SWAP_PIECES);
     BOOST_CHECK(!sb.IsLegal(SWAP_PIECES));
     BOOST_CHECK(sb.IsBlack(HEX_CELL_A5));
     BOOST_CHECK(sb.IsLegal(RESIGN));
     BOOST_CHECK(sb.IsLegal(HEX_CELL_F6));
-    sb.playMove(BLACK, RESIGN);
+    sb.PlayMove(BLACK, RESIGN);
     BOOST_CHECK(!sb.IsLegal(RESIGN));
     BOOST_CHECK(!sb.IsLegal(HEX_CELL_F6));
-    sb.playMove(WHITE, HEX_CELL_F6);
+    sb.PlayMove(WHITE, HEX_CELL_F6);
     BOOST_CHECK(sb.IsBlack(HEX_CELL_A5));
     BOOST_CHECK(sb.IsWhite(HEX_CELL_F6));
 }
@@ -171,8 +171,8 @@ BOOST_AUTO_TEST_CASE(StoneBoard_RotateAndMirrorBoard)
     StoneBoard sb = StoneBoard(5, 6);
     
     // test rotateBoard on non-square board
-    sb.playMove(BLACK, HEX_CELL_A5);
-    sb.playMove(WHITE, HEX_CELL_B3);
+    sb.PlayMove(BLACK, HEX_CELL_A5);
+    sb.PlayMove(WHITE, HEX_CELL_B3);
     BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
     BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
     BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 6u);
@@ -195,9 +195,9 @@ BOOST_AUTO_TEST_CASE(StoneBoard_RotateAndMirrorBoard)
     
     // test rotateBoard on square board
     sb = StoneBoard(8, 8);
-    sb.playMove(BLACK, HEX_CELL_B2);
-    sb.playMove(WHITE, HEX_CELL_D4);
-    sb.playMove(BLACK, HEX_CELL_D5);
+    sb.PlayMove(BLACK, HEX_CELL_B2);
+    sb.PlayMove(WHITE, HEX_CELL_D4);
+    sb.PlayMove(BLACK, HEX_CELL_D5);
     BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
     BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
     BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 7u);
@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE(StoneBoard_RotateAndMirrorBoard)
     BOOST_CHECK(sb.IsPlayed(EAST));
     BOOST_CHECK(sb.IsPlayed(WEST));
     BOOST_CHECK(!sb.IsPlayed(RESIGN));
-    sb.playMove(WHITE, RESIGN);
+    sb.PlayMove(WHITE, RESIGN);
     sb.RotateBoard();
     BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
     BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE(StoneBoard_RotateAndMirrorBoard)
     BOOST_CHECK(sb.IsPlayed(SOUTH));
     BOOST_CHECK(sb.IsPlayed(EAST));
     BOOST_CHECK(sb.IsPlayed(WEST));
-    sb.playMove(WHITE, HEX_CELL_F2);
+    sb.PlayMove(WHITE, HEX_CELL_F2);
     sb.MirrorBoard();
     BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
     BOOST_CHECK_EQUAL(sb.GetWhite().count(), 4u);
@@ -296,10 +296,10 @@ BOOST_AUTO_TEST_CASE(StoneBoard_Hash)
     h1 = sb.Hash();
 
     // check that playmove modifies the hash
-    sb.playMove(BLACK, HEX_CELL_A1);
-    sb.playMove(WHITE, HEX_CELL_A2);
-    sb.playMove(BLACK, HEX_CELL_A3);
-    sb.playMove(WHITE, HEX_CELL_A4);
+    sb.PlayMove(BLACK, HEX_CELL_A1);
+    sb.PlayMove(WHITE, HEX_CELL_A2);
+    sb.PlayMove(BLACK, HEX_CELL_A3);
+    sb.PlayMove(WHITE, HEX_CELL_A4);
     h2 = sb.Hash();
     BOOST_CHECK(h1 != h2);
     
@@ -330,35 +330,35 @@ BOOST_AUTO_TEST_CASE(StoneBoard_WhoseTurn)
 
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), FIRST_TO_PLAY);
 
-    sb.playMove(FIRST_TO_PLAY, FIRST_CELL);
+    sb.PlayMove(FIRST_TO_PLAY, FIRST_CELL);
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), !FIRST_TO_PLAY);
     
-    sb.playMove(sb.WhoseTurn(), HEX_CELL_A2);
+    sb.PlayMove(sb.WhoseTurn(), HEX_CELL_A2);
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), FIRST_TO_PLAY);
 
-    sb.playMove(sb.WhoseTurn(), HEX_CELL_A3);
+    sb.PlayMove(sb.WhoseTurn(), HEX_CELL_A3);
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), !FIRST_TO_PLAY);
 
-    sb.playMove(sb.WhoseTurn(), HEX_CELL_A4);
+    sb.PlayMove(sb.WhoseTurn(), HEX_CELL_A4);
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), FIRST_TO_PLAY);
 
     // check that swap is handled properly
     sb.StartNewGame();
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), FIRST_TO_PLAY);
 
-    sb.playMove(FIRST_TO_PLAY, FIRST_CELL);
+    sb.PlayMove(FIRST_TO_PLAY, FIRST_CELL);
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), !FIRST_TO_PLAY);
 
-    sb.playMove(!FIRST_TO_PLAY, SWAP_PIECES);
+    sb.PlayMove(!FIRST_TO_PLAY, SWAP_PIECES);
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), !FIRST_TO_PLAY);
     
-    sb.playMove(sb.WhoseTurn(), HEX_CELL_A2);
+    sb.PlayMove(sb.WhoseTurn(), HEX_CELL_A2);
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), FIRST_TO_PLAY);
     
-    sb.playMove(sb.WhoseTurn(), HEX_CELL_A3);
+    sb.PlayMove(sb.WhoseTurn(), HEX_CELL_A3);
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), !FIRST_TO_PLAY);
 
-    sb.playMove(sb.WhoseTurn(), HEX_CELL_A4);
+    sb.PlayMove(sb.WhoseTurn(), HEX_CELL_A4);
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), FIRST_TO_PLAY);
 }
 
@@ -376,7 +376,7 @@ BOOST_AUTO_TEST_CASE(StoneBoard_BoardID)
         StoneBoard b2(1, 1);
 
         if (*color != EMPTY)
-            b1.playMove(*color, HEX_CELL_A1);
+            b1.PlayMove(*color, HEX_CELL_A1);
 
         BoardID id = b1.GetBoardID();
         BOOST_CHECK_EQUAL(id.size(), 1u);
@@ -395,13 +395,13 @@ BOOST_AUTO_TEST_CASE(StoneBoard_BoardID)
         //     .WB..
         //      BW..W
         //
-        b1.playMove(BLACK, HEX_CELL_A1);
-        b1.playMove(WHITE, HEX_CELL_D1);
-        b1.playMove(WHITE, HEX_CELL_B2);
-        b1.playMove(BLACK, HEX_CELL_C2);
-        b1.playMove(BLACK, HEX_CELL_A3);
-        b1.playMove(WHITE, HEX_CELL_B3);
-        b1.playMove(WHITE, HEX_CELL_E3);
+        b1.PlayMove(BLACK, HEX_CELL_A1);
+        b1.PlayMove(WHITE, HEX_CELL_D1);
+        b1.PlayMove(WHITE, HEX_CELL_B2);
+        b1.PlayMove(BLACK, HEX_CELL_C2);
+        b1.PlayMove(BLACK, HEX_CELL_A3);
+        b1.PlayMove(WHITE, HEX_CELL_B3);
+        b1.PlayMove(WHITE, HEX_CELL_E3);
 
         BoardID id = b1.GetBoardID();
         BOOST_CHECK_EQUAL(id.size(), 4u);

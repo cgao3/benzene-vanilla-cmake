@@ -95,12 +95,12 @@ void DfpnChildren::SetChildren(const std::vector<HexPoint>& children)
 
 void DfpnChildren::PlayMove(int index, StoneBoard& brd) const
 {
-    brd.playMove(brd.WhoseTurn(), m_children[index]);
+    brd.PlayMove(brd.WhoseTurn(), m_children[index]);
 }
 
 void DfpnChildren::UndoMove(int index, StoneBoard& brd) const
 {
-    brd.undoMove(m_children[index]);
+    brd.UndoMove(m_children[index]);
 }
 
 //----------------------------------------------------------------------------
@@ -431,7 +431,7 @@ void DfpnSolver::GetVariation(const StoneBoard& state,
         if (data.m_bestMove == INVALID_POINT)
             break;
         pv.push_back(data.m_bestMove);
-        brd.playMove(brd.WhoseTurn(), data.m_bestMove);
+        brd.PlayMove(brd.WhoseTurn(), data.m_bestMove);
     }
 }
 

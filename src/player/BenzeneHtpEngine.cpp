@@ -303,7 +303,7 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
             hashes.push_back(brd.Hash());
             responses.push_back(sgfPoint);
         }
-        brd.playMove(color, sgfPoint);
+        brd.PlayMove(color, sgfPoint);
         color = !color;
         ++moveNum;
     }

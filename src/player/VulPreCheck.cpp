@@ -42,7 +42,7 @@ HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
 		HexAssert(c == !color);
 		c = !c;
 	    }
-	    b.playMove(c, p);
+	    b.PlayMove(c, p);
 	}
 	pastate.Update();
 	LogWarning() << "Board before last move:" << b << '\n';

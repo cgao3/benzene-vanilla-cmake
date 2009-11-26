@@ -138,9 +138,9 @@ void HexSgUtil::SetPositionInBoard(const SgNode* node, StoneBoard& brd)
     GetSetupPosition(node, brd.Height(), black, white, empty);
     brd.StartNewGame();
     for (std::size_t i = 0; i < black.size(); ++i) 
-        brd.playMove(BLACK, black[i]);
+        brd.PlayMove(BLACK, black[i]);
     for (std::size_t i = 0; i < white.size(); ++i)
-        brd.playMove(WHITE, white[i]);
+        brd.PlayMove(WHITE, white[i]);
 }
 
 

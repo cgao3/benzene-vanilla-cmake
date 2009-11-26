@@ -40,7 +40,7 @@ Game::ReturnType Game::PlayMove(HexColor color, HexPoint cell)
     if (m_board->IsPlayed(cell))
         return OCCUPIED_CELL;
 
-    m_board->playMove(color, cell);
+    m_board->PlayMove(color, cell);
     m_history.push_back(Move(color, cell));
 
     return VALID_MOVE;
@@ -50,7 +50,7 @@ void Game::UndoMove()
 {
     if (m_history.empty())
         return;
-    m_board->undoMove(m_history.back().point());
+    m_board->UndoMove(m_history.back().point());
     m_history.pop_back();
 }
 
@@ -73,7 +73,7 @@ bool GameUtil::SequenceFromPosition(const Game& game, const StoneBoard& pos,
          it != history.end(); ++it)
     {    
         const Move& move = *it;
-        cur.playMove(move.color(), move.point());
+        cur.PlayMove(move.color(), move.point());
         if (cur == pos)
         {
             LogInfo() << "Position matched!" << '\n';

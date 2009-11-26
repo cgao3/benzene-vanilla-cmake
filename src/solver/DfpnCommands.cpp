@@ -97,7 +97,7 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
     for (BitsetIterator p(consider); p; ++p)
     {
         StoneBoard board(m_game.Board());
-        board.playMove(colorToMove, *p);
+        board.PlayMove(colorToMove, *p);
         HexBoard& brd = m_env.SyncBoard(board);
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
         PointSequence pv;

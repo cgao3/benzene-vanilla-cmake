@@ -619,14 +619,14 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
     bitset_t childrenToDo;
     for (std::size_t i = 0; i < limit; ++i)
     {
-        brd.playMove(brd.WhoseTurn(), children[i]);
+        brd.PlayMove(brd.WhoseTurn(), children[i]);
         BookNode child;
         if (!GetNode(brd, child))
         {
             workToDo.push_back(brd);
             childrenToDo.set(children[i]);
         }
-        brd.undoMove(children[i]);
+        brd.UndoMove(children[i]);
     }
     if (!workToDo.empty())
     {
@@ -712,11 +712,11 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
         // Recurse on most urgent child only if non-terminal.
         if (!node.IsTerminal())
         {
-            brd.playMove(brd.WhoseTurn(), mostUrgent);
+            brd.PlayMove(brd.WhoseTurn(), mostUrgent);
             pv.push_back(mostUrgent);
             DoExpansion(brd, pv);
             pv.pop_back();
-            brd.undoMove(mostUrgent);
+            brd.UndoMove(mostUrgent);
         }
     }
 
@@ -754,11 +754,11 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
     double oldPriority = node.m_priority;
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
     {
-        brd.playMove(brd.WhoseTurn(), *it);
+        brd.PlayMove(brd.WhoseTurn(), *it);
         Refresh(brd, seen, false);
         if (root)
             LogInfo() << "Finished " << *it << '\n';
-        brd.undoMove(*it);
+        brd.UndoMove(*it);
     }
     UpdateValue(node, brd);
     BookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
@@ -791,11 +791,11 @@ void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd,
         return;
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
     {
-        brd.playMove(brd.WhoseTurn(), *it);
+        brd.PlayMove(brd.WhoseTurn(), *it);
         IncreaseWidth(brd, seen, false);
         if (root)
             LogInfo() << "Finished " << *it << '\n';
-        brd.undoMove(*it);
+        brd.UndoMove(*it);
     }
     std::size_t width = (node.m_count / m_expand_threshold + 1)
         * m_expand_width;

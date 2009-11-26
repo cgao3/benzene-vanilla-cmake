@@ -168,14 +168,14 @@ void StoneBoard::StartNewGame()
     for (BWIterator it; it; ++it) 
     {
         m_stones[*it].reset();
-        playMove(*it, HexPointUtil::colorEdge1(*it));
-        playMove(*it, HexPointUtil::colorEdge2(*it));
+        PlayMove(*it, HexPointUtil::colorEdge1(*it));
+        PlayMove(*it, HexPointUtil::colorEdge2(*it));
     }
     ComputeHash();
     MarkAsDirty();
 }
 
-void StoneBoard::playMove(HexColor color, HexPoint cell)
+void StoneBoard::PlayMove(HexColor color, HexPoint cell)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(Const().IsValid(cell));
@@ -188,7 +188,7 @@ void StoneBoard::playMove(HexColor color, HexPoint cell)
     MarkAsDirty();
 }
 
-void StoneBoard::undoMove(HexPoint cell)
+void StoneBoard::UndoMove(HexPoint cell)
 {
     HexAssert(Const().IsValid(cell));
     HexColor color = GetColor(cell);
@@ -297,7 +297,7 @@ void StoneBoard::SetState(const BoardID& id)
     {
         HexColor color = static_cast<HexColor>(val[i]);
         if (color == BLACK || color == WHITE)
-            playMove(color, *p);
+            PlayMove(color, *p);
     }
 
     ComputeHash();

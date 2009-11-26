@@ -62,17 +62,17 @@ BOOST_AUTO_TEST_CASE(PatternState_Tests)
     //          10\.  .  .  .  .  .  .  .  .  .  .\10
     //           11\.  .  .  .  .  .  .  .  .  .  .\11
     //               a  b  c  d  e  f  g  h  i  j  k  
-    brd.playMove(WHITE, HEX_CELL_G4);
-    brd.playMove(WHITE, HEX_CELL_H3);
-    brd.playMove(WHITE, HEX_CELL_I4);
+    brd.PlayMove(WHITE, HEX_CELL_G4);
+    brd.PlayMove(WHITE, HEX_CELL_H3);
+    brd.PlayMove(WHITE, HEX_CELL_I4);
 
-    brd.playMove(WHITE, HEX_CELL_G8);
-    brd.playMove(WHITE, HEX_CELL_G9);
-    brd.playMove(WHITE, HEX_CELL_I8);
+    brd.PlayMove(WHITE, HEX_CELL_G8);
+    brd.PlayMove(WHITE, HEX_CELL_G9);
+    brd.PlayMove(WHITE, HEX_CELL_I8);
 
-    brd.playMove(WHITE, HEX_CELL_B4);
+    brd.PlayMove(WHITE, HEX_CELL_B4);
 
-    brd.playMove(WHITE, HEX_CELL_J9);
+    brd.PlayMove(WHITE, HEX_CELL_J9);
     pastate.Update();
 
     std::vector<PatternHits> hits(FIRST_INVALID);

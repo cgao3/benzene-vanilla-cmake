@@ -114,7 +114,7 @@ public:
     /** @name Methods defined on cells and edges. 
     
         All methods accept and return edge and interior cells only.
-        Note that playMove() (which is not in this section) can play a
+        Note that PlayMove() (which is not in this section) can play a
         move like (BLACK, RESIGN), but getBlack() (which is in this
         section) will not return a bitset with the RESIGN move set.
 
@@ -215,11 +215,11 @@ public:
         @param color must BLACK or WHITE 
         @param cell Any valid move, include RESIGN and SWAP_PIECES.
     */
-    void playMove(HexColor color, HexPoint cell);
+    void PlayMove(HexColor color, HexPoint cell);
 
     /** Removes the move from the board, setting cell to EMPTY. Hash
         is updated. */
-    void undoMove(HexPoint cell);
+    void UndoMove(HexPoint cell);
 
     /** Rotates the board by 180' about the center. Hash is
         updated. */

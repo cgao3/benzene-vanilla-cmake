@@ -132,7 +132,7 @@ int Book::GetMainLineDepth(const StoneBoard& pos) const
         float value = -1e9;
         for (BitsetIterator p(brd.GetEmpty()); p; ++p)
         {
-            brd.playMove(brd.WhoseTurn(), *p);
+            brd.PlayMove(brd.WhoseTurn(), *p);
             BookNode child;
             if (GetNode(brd, child))
             {
@@ -143,11 +143,11 @@ int Book::GetMainLineDepth(const StoneBoard& pos) const
                     move = *p;
                 }
             }
-            brd.undoMove(*p);
+            brd.UndoMove(*p);
         }
         if (move == INVALID_POINT)
             break;
-        brd.playMove(brd.WhoseTurn(), move);
+        brd.PlayMove(brd.WhoseTurn(), move);
         depth++;
     }
     return depth;
@@ -174,9 +174,9 @@ std::size_t Book::TreeSize(StoneBoard& brd, std::map<hash_t,
     std::size_t ret = 1;
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
-        brd.playMove(brd.WhoseTurn(), *p);
+        brd.PlayMove(brd.WhoseTurn(), *p);
         ret += TreeSize(brd, solved);
-        brd.undoMove(*p);
+        brd.UndoMove(*p);
     }
     solved[hash] = ret;
     return ret;
@@ -199,11 +199,11 @@ unsigned BookUtil::NumChildren(const Book& book, const StoneBoard& board)
     StoneBoard brd(board);
     for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
     {
-	brd.playMove(brd.WhoseTurn(), *i);
+	brd.PlayMove(brd.WhoseTurn(), *i);
 	BookNode child;
         if (book.GetNode(brd, child))
             ++num;
-        brd.undoMove(*i);
+        brd.UndoMove(*i);
     }
     return num;
 }
@@ -214,7 +214,7 @@ void BookUtil::UpdateValue(const Book& book, BookNode& node, StoneBoard& brd)
     float bestValue = boost::numeric::bounds<float>::lowest();
     for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
     {
-	brd.playMove(brd.WhoseTurn(), *i);
+	brd.PlayMove(brd.WhoseTurn(), *i);
 	BookNode child;
         if (book.GetNode(brd, child))
         {
@@ -224,7 +224,7 @@ void BookUtil::UpdateValue(const Book& book, BookNode& node, StoneBoard& brd)
 		bestValue = value;
 	    
         }
-        brd.undoMove(*i);
+        brd.UndoMove(*i);
     }
     if (hasChild)
         node.m_value = bestValue;
@@ -256,7 +256,7 @@ HexPoint BookUtil::UpdatePriority(const Book& book, BookNode& node,
     HexPoint bestChild = INVALID_POINT;
     for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
     {
-	brd.playMove(brd.WhoseTurn(), *i);
+	brd.PlayMove(brd.WhoseTurn(), *i);
 	BookNode child;
         if (book.GetNode(brd, child))
         {
@@ -269,7 +269,7 @@ HexPoint BookUtil::UpdatePriority(const Book& book, BookNode& node,
                 bestChild = *i;
             }
         }
-        brd.undoMove(*i);
+        brd.UndoMove(*i);
     }
     if (hasChild)
         node.m_priority = bestPriority;
@@ -290,7 +290,7 @@ HexPoint BookUtil::BestMove(const Book& book, const StoneBoard& pos,
     StoneBoard brd(pos);
     for (BitsetIterator p(brd.GetEmpty()); p; ++p)
     {
-        brd.playMove(brd.WhoseTurn(), *p);
+        brd.PlayMove(brd.WhoseTurn(), *p);
         BookNode child;
         if (book.GetNode(brd, child))
         {
@@ -301,7 +301,7 @@ HexPoint BookUtil::BestMove(const Book& book, const StoneBoard& pos,
                 bestChild = *p;
             }
         }
-        brd.undoMove(*p);
+        brd.UndoMove(*p);
     }
     HexAssert(bestChild != INVALID_POINT);
     return bestChild;
@@ -322,9 +322,9 @@ void BookUtil::DumpVisualizationData(const Book& book, StoneBoard& brd,
     }
     for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
     {
-	brd.playMove(brd.WhoseTurn(), *i);
+	brd.PlayMove(brd.WhoseTurn(), *i);
         DumpVisualizationData(book, brd, depth + 1, out);
-        brd.undoMove(*i);
+        brd.UndoMove(*i);
     }
 }
 
@@ -354,11 +354,11 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
             return;
         for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
         {
-            brd.playMove(brd.WhoseTurn(), *i);
+            brd.PlayMove(brd.WhoseTurn(), *i);
             pv.push_back(*i);
             DumpPolarizedLeafs(book, brd, polarization, seen, pv, out, ignoreSet);
             pv.pop_back();
-            brd.undoMove(*i);
+            brd.UndoMove(*i);
         }
         seen.insert(hash);
     } 
@@ -425,7 +425,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
         ++numParsed;
         brd.StartNewGame();
         for (std::size_t i = 0; i < points.size(); ++i)
-            brd.playMove(brd.WhoseTurn(), points[i]);
+            brd.PlayMove(brd.WhoseTurn(), points[i]);
         HexEval ourValue = (brd.WhoseTurn() == winner) 
             ? IMMEDIATE_WIN : IMMEDIATE_LOSS;
         BookNode node;

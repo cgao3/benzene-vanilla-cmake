@@ -38,10 +38,10 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckCopy)
 BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
 {
     StoneBoard bd(11, 11);
-    bd.playMove(BLACK, HEX_CELL_A9);
-    bd.playMove(WHITE, HEX_CELL_F5);
-    bd.playMove(BLACK, HEX_CELL_I4);
-    bd.playMove(WHITE, HEX_CELL_H6);
+    bd.PlayMove(BLACK, HEX_CELL_A9);
+    bd.PlayMove(WHITE, HEX_CELL_F5);
+    bd.PlayMove(BLACK, HEX_CELL_I4);
+    bd.PlayMove(WHITE, HEX_CELL_H6);
     Groups groups;
     GroupBuilder::Build(bd, groups);
     PatternState patterns(bd);
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
         bitset_t added[BLACK_AND_WHITE];
         added[BLACK].set(*p);
         bd.absorb();
-        bd.playMove(BLACK, *p);
+        bd.PlayMove(BLACK, *p);
         bd.absorb(*p);
 
         builder.Build(con2, bd, added, &cl);

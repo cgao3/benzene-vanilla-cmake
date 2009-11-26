@@ -185,9 +185,9 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     BOOST_CHECK(!sb.IsLegal(SWAP_PIECES));
     p = BoardUtils::RandomEmptyCell(sb);
     BOOST_CHECK(sb.Const().IsCell(p));
-    sb.playMove(BLACK, HEX_CELL_A1);
+    sb.PlayMove(BLACK, HEX_CELL_A1);
     BOOST_CHECK(sb.IsLegal(SWAP_PIECES));
-    sb.playMove(WHITE, HEX_CELL_A2);
+    sb.PlayMove(WHITE, HEX_CELL_A2);
     BOOST_CHECK(!sb.IsLegal(SWAP_PIECES));
     BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 6u);
     BOOST_CHECK(!sb.IsEmpty(HEX_CELL_A1));
@@ -207,14 +207,14 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     
     // test when no cells left
     sb = StoneBoard(1, 1);
-    sb.playMove(BLACK, HEX_CELL_A1);
+    sb.PlayMove(BLACK, HEX_CELL_A1);
     p = BoardUtils::RandomEmptyCell(sb);
     BOOST_CHECK_EQUAL(p, INVALID_POINT);
     
     // test when game has been resigned
     sb = StoneBoard(1, 1);
     sb.StartNewGame();
-    sb.playMove(WHITE, RESIGN);
+    sb.PlayMove(WHITE, RESIGN);
     BOOST_CHECK(!sb.IsLegal(HEX_CELL_A1));
     p = BoardUtils::RandomEmptyCell(sb);
     BOOST_CHECK_EQUAL(p, HEX_CELL_A1);
@@ -236,17 +236,17 @@ BOOST_AUTO_TEST_CASE(BoardUtil_Decompositions)
 //       6\.  .  W  .  .  .  .\6
 //        7\.  .  .  .  .  .  .\7
 //           a  b  c  d  e  f  g'
-    brd.GetState().playMove(BLACK, HEX_CELL_D3);
-    brd.GetState().playMove(WHITE, HEX_CELL_E1);
-    brd.GetState().playMove(BLACK, HEX_CELL_C4);
-    brd.GetState().playMove(WHITE, HEX_CELL_D4);
-    brd.GetState().playMove(BLACK, HEX_CELL_B4);
-    brd.GetState().playMove(WHITE, HEX_CELL_C5);
-    brd.GetState().playMove(BLACK, HEX_CELL_C3);
-    brd.GetState().playMove(WHITE, HEX_CELL_C6);
-    brd.GetState().playMove(BLACK, HEX_CELL_B3);
-    brd.GetState().playMove(WHITE, HEX_CELL_E3);
-    brd.GetState().playMove(BLACK, HEX_CELL_F1);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_D3);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_E1);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_C4);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_D4);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_B4);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_C5);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_C3);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_C6);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_B3);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_E3);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_F1);
 
     // Find decomp between E1, B3, WEST, and NORTH. 
     brd.SetUseDecompositions(false);
@@ -274,17 +274,17 @@ BOOST_AUTO_TEST_CASE(BoardUtil_SplitDecompositions)
 //       6\.  .  W  .  .  .  .\6
 //        7\.  .  .  .  .  .  .\7
 //           a  b  c  d  e  f  g'
-    brd.GetState().playMove(BLACK, HEX_CELL_D3);
-    brd.GetState().playMove(WHITE, HEX_CELL_E1);
-    brd.GetState().playMove(BLACK, HEX_CELL_C4);
-    brd.GetState().playMove(WHITE, HEX_CELL_D4);
-    brd.GetState().playMove(BLACK, HEX_CELL_B4);
-    brd.GetState().playMove(WHITE, HEX_CELL_C5);
-    brd.GetState().playMove(BLACK, HEX_CELL_C3);
-    brd.GetState().playMove(WHITE, HEX_CELL_C6);
-    brd.GetState().playMove(BLACK, HEX_CELL_B3);
-    brd.GetState().playMove(WHITE, HEX_CELL_E3);
-    brd.GetState().playMove(BLACK, HEX_CELL_F1);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_D3);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_E1);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_C4);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_D4);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_B4);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_C5);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_C3);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_C6);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_B3);
+    brd.GetState().PlayMove(WHITE, HEX_CELL_E3);
+    brd.GetState().PlayMove(BLACK, HEX_CELL_F1);
 
     // Find splitting decomp between NORTH, E3, SOUTH.
     brd.ComputeAll(WHITE);

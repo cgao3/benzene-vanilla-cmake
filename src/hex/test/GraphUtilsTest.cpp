@@ -40,9 +40,9 @@ BOOST_AUTO_TEST_CASE(GraphUtils_ComputeDigraph)
     HexPoint a5 = HEX_CELL_A5;    
 
     bitset_t nbs;    
-    gb.playMove(BLACK, b2);
-    gb.playMove(WHITE, a2);
-    gb.playMove(BLACK, b3);
+    gb.PlayMove(BLACK, b2);
+    gb.PlayMove(WHITE, a2);
+    gb.PlayMove(BLACK, b3);
     Groups groups;
     GroupBuilder::Build(gb, groups);
 

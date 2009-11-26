@@ -750,7 +750,7 @@ int ICEngine::BackupOpponentDead(HexColor color, const StoneBoard& board,
         brd.StartNewGame();
         brd.SetColor(BLACK, board.GetBlack());
         brd.SetColor(WHITE, board.GetWhite());
-        brd.playMove(!color, *p);
+        brd.PlayMove(!color, *p);
         ps.Update();
         Groups groups;
         GroupBuilder::Build(brd, groups);

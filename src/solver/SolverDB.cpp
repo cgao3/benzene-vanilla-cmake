@@ -262,10 +262,10 @@ int SolverDBUtil::StoreTranspositions(SolverDB& db,
             // convert the indices into cells
             board.StartNewGame();
             for (int i=0; i<numblack; ++i) {
-                board.playMove(BLACK, black[bseq[i]]);
+                board.PlayMove(BLACK, black[bseq[i]]);
             }
             for (int i=0; i<numwhite; ++i) {
-                board.playMove(WHITE, white[wseq[i]]);
+                board.PlayMove(WHITE, white[wseq[i]]);
             }
 
             // mark state as transposition if the current one is not
@@ -367,7 +367,7 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
 	LogInfo() << "Add-Black Flips:" << '\n';
 #endif
 	for (BitsetIterator i(flippedBlackToAdd); i; ++i) {
-	    flippedBrd.playMove(BLACK, *i);
+	    flippedBrd.PlayMove(BLACK, *i);
 	    HexAssert(!toPlay == flippedBrd.WhoseTurn());
 	    HexAssert(!ss.winners_stones.test(*i));
 	    if (flippedWinner == BLACK) {
@@ -380,7 +380,7 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
 	    count += db.write(flippedBrd, ss);
 	    ss.proof = flippedProof;
 	    ss.winners_stones.reset(*i);
-	    flippedBrd.undoMove(*i);
+	    flippedBrd.UndoMove(*i);
 	}
     }
     if (canRemoveFlippedWhite) {
@@ -388,13 +388,13 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
 	LogInfo() << "Remove-White Flips:" << '\n';
 #endif
 	for (BitsetIterator i(flippedWhiteToRemove); i; ++i) {
-	    flippedBrd.undoMove(*i);
+	    flippedBrd.UndoMove(*i);
 	    HexAssert(!toPlay == flippedBrd.WhoseTurn());
 #if PRINT_OUTPUT
 	    LogInfo() << flippedBrd << '\n';
 #endif
 	    count += db.write(flippedBrd, ss);
-	    flippedBrd.playMove(WHITE, *i);
+	    flippedBrd.PlayMove(WHITE, *i);
 	}
     }
     return count;

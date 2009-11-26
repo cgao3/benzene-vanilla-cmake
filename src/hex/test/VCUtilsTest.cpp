@@ -50,12 +50,12 @@ BOOST_AUTO_TEST_CASE(VCUtils_ValidEdgeBridge)
     carrier.set(b3);
     BOOST_CHECK(!VCUtils::ValidEdgeBridge(brd, carrier, p, e));
 
-    brd.playMove(BLACK, a2);
+    brd.PlayMove(BLACK, a2);
     carrier.reset();
     carrier.set(a2);
     carrier.set(a3);
     BOOST_CHECK(!VCUtils::ValidEdgeBridge(brd, carrier, p, e));
-    brd.undoMove(a2);
+    brd.UndoMove(a2);
 }
 
 }

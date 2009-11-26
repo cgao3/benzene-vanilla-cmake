@@ -170,7 +170,7 @@ void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
         return;
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
-        brd.playMove(color, *p);
+        brd.PlayMove(color, *p);
         BookNode succ;
         if (m_book->GetNode(brd, succ))
         {
@@ -185,7 +185,7 @@ void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
             else
                 cmd << " " << std::fixed << std::setprecision(1) << priority;
         }
-        brd.undoMove(*p);
+        brd.UndoMove(*p);
     }
 }
 

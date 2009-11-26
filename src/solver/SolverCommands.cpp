@@ -199,7 +199,7 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
 	if (!consider.test(*p)) continue;
 
         StoneBoard board(m_game.Board());
-        board.playMove(color, *p);
+        board.PlayMove(color, *p);
 
         HexBoard& brd = m_env.SyncBoard(board);
 
@@ -306,7 +306,7 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     std::vector<HexPoint> winning, losing;
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
-        brd.playMove(toplay, *p);
+        brd.PlayMove(toplay, *p);
 
         if (m_db->get(brd, state)) 
         {
@@ -317,7 +317,7 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
             nummoves[*p] = state.nummoves;
             flags[*p] = state.flags;
         }
-        brd.undoMove(*p);
+        brd.UndoMove(*p);
     }
 
     cmd << " Winning";

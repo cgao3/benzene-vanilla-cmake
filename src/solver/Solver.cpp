@@ -853,13 +853,13 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
 void Solver::PlayMove(HexBoard& brd, HexPoint cell, HexColor color) 
 {
     m_statistics.played++;
-    m_stoneboard->playMove(color, cell);
+    m_stoneboard->PlayMove(color, cell);
     brd.PlayMove(color, cell);
 }
 
 void Solver::UndoMove(HexBoard& brd, HexPoint cell)
 {
-    m_stoneboard->undoMove(cell);
+    m_stoneboard->UndoMove(cell);
     brd.UndoMove();
 }
 
@@ -886,8 +886,8 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
     LogFine() << "STARTING!" << '\n';
     for (BitsetIterator it(mustplay); !found_win && it; ++it)
     {
-	brd.GetState().playMove(color, *it);
-	m_stoneboard->playMove(color, *it);
+	brd.GetState().PlayMove(color, *it);
+	m_stoneboard->PlayMove(color, *it);
 
 	SolvedState state;
 	if (CheckTransposition(brd, other, state))
@@ -925,8 +925,8 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		proof_union |= state.proof;
 	    }
 	}
-	brd.GetState().undoMove(*it);
-	m_stoneboard->undoMove(*it);
+	brd.GetState().UndoMove(*it);
+	m_stoneboard->UndoMove(*it);
     }
     
     if (found_win)

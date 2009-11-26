@@ -69,9 +69,9 @@ void BookCommands::CmdBookMainLineDepth(HtpCommand& cmd)
     StoneBoard brd(m_game.Board());
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
-        brd.playMove(brd.WhoseTurn(), *p);
+        brd.PlayMove(brd.WhoseTurn(), *p);
         cmd << " " << *p << " " << m_book->GetMainLineDepth(brd);
-        brd.undoMove(*p);
+        brd.UndoMove(*p);
     }
 }
 
@@ -83,11 +83,11 @@ void BookCommands::CmdBookCounts(HtpCommand& cmd)
     HexColor color = brd.WhoseTurn();
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
-        brd.playMove(color, *p);
+        brd.PlayMove(color, *p);
         BookNode node;
         if (m_book->GetNode(brd, node))
             cmd << " " << *p << " " << node.m_count;
-        brd.undoMove(*p);
+        brd.UndoMove(*p);
     }
 }
 
@@ -106,7 +106,7 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
     std::vector<std::pair<float, HexPoint> > scores;
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
-        brd.playMove(color, *p);
+        brd.PlayMove(color, *p);
         BookNode node;
         if (m_book->GetNode(brd, node))
         {
@@ -115,7 +115,7 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
             scores.push_back(std::make_pair
                              (-node.Score(brd, countWeight), *p));
         }
-        brd.undoMove(*p);
+        brd.UndoMove(*p);
     }
     std::stable_sort(scores.begin(), scores.end());
     std::vector<std::pair<float, HexPoint> >::const_iterator it 
@@ -179,7 +179,7 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
             {
                 brd.StartNewGame();
                 for (std::size_t i = 0; i < seq.size(); ++i)
-                    brd.playMove(brd.WhoseTurn(), seq[i]);
+                    brd.PlayMove(brd.WhoseTurn(), seq[i]);
                 ignoreSet.insert(BookUtil::GetHash(brd));
             }
         }

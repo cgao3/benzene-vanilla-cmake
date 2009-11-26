@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(Groups_Captains)
 
     // Check that FIRST_CELL is absorbed into the north group;
     // and that NORTH is always the captain of its group. 
-    brd.playMove(BLACK, FIRST_CELL);
+    brd.PlayMove(BLACK, FIRST_CELL);
     GroupBuilder::Build(brd, groups);
     BOOST_CHECK(groups.GetGroup(NORTH).Captain() == NORTH);
     BOOST_CHECK(groups.GetGroup(FIRST_CELL).Captain() == NORTH);
@@ -51,9 +51,9 @@ BOOST_AUTO_TEST_CASE(Groups_Nbs)
     //    4\.  .  .  .  .\4
     //     5\.  .  .  .  .\5
     //        a  b  c  d  e  
-    brd.playMove(BLACK, HEX_CELL_B2);
-    brd.playMove(WHITE, HEX_CELL_A2);
-    brd.playMove(BLACK, HEX_CELL_B3);
+    brd.PlayMove(BLACK, HEX_CELL_B2);
+    brd.PlayMove(WHITE, HEX_CELL_A2);
+    brd.PlayMove(BLACK, HEX_CELL_B3);
     GroupBuilder::Build(brd, groups);
 
     nbs = groups.GetGroup(HEX_CELL_B2).Nbs();
@@ -102,18 +102,18 @@ BOOST_AUTO_TEST_CASE(Groups_Members)
     //    4\.  B  B  .  W\4
     //     5\.  .  .  .  .\5
     //        a  b  c  d  e 
-    brd.playMove(WHITE, HEX_CELL_C1);
-    brd.playMove(WHITE, HEX_CELL_E1);
-    brd.playMove(WHITE, HEX_CELL_A2);
-    brd.playMove(BLACK, HEX_CELL_C2);
-    brd.playMove(BLACK, HEX_CELL_D2);
-    brd.playMove(BLACK, HEX_CELL_A3);
-    brd.playMove(BLACK, HEX_CELL_B3);
-    brd.playMove(WHITE, HEX_CELL_C3);
-    brd.playMove(BLACK, HEX_CELL_D3);
-    brd.playMove(BLACK, HEX_CELL_B4);
-    brd.playMove(BLACK, HEX_CELL_C4);
-    brd.playMove(WHITE, HEX_CELL_E4);
+    brd.PlayMove(WHITE, HEX_CELL_C1);
+    brd.PlayMove(WHITE, HEX_CELL_E1);
+    brd.PlayMove(WHITE, HEX_CELL_A2);
+    brd.PlayMove(BLACK, HEX_CELL_C2);
+    brd.PlayMove(BLACK, HEX_CELL_D2);
+    brd.PlayMove(BLACK, HEX_CELL_A3);
+    brd.PlayMove(BLACK, HEX_CELL_B3);
+    brd.PlayMove(WHITE, HEX_CELL_C3);
+    brd.PlayMove(BLACK, HEX_CELL_D3);
+    brd.PlayMove(BLACK, HEX_CELL_B4);
+    brd.PlayMove(BLACK, HEX_CELL_C4);
+    brd.PlayMove(WHITE, HEX_CELL_E4);
     GroupBuilder::Build(brd, groups);
     BOOST_CHECK_EQUAL(groups.NumGroups(), 20u);
 
@@ -179,12 +179,12 @@ BOOST_AUTO_TEST_CASE(Groups_Iterator)
     //  2\W  W  B\2
     //   3\B  .  W\3
     //      a  b  c 
-    brd.playMove(WHITE, HEX_CELL_C1);
-    brd.playMove(WHITE, HEX_CELL_A2);
-    brd.playMove(WHITE, HEX_CELL_B2);
-    brd.playMove(BLACK, HEX_CELL_C2);
-    brd.playMove(BLACK, HEX_CELL_A3);
-    brd.playMove(WHITE, HEX_CELL_C3);
+    brd.PlayMove(WHITE, HEX_CELL_C1);
+    brd.PlayMove(WHITE, HEX_CELL_A2);
+    brd.PlayMove(WHITE, HEX_CELL_B2);
+    brd.PlayMove(BLACK, HEX_CELL_C2);
+    brd.PlayMove(BLACK, HEX_CELL_A3);
+    brd.PlayMove(WHITE, HEX_CELL_C3);
     GroupBuilder::Build(brd, groups);
 
     GroupIterator g(groups);

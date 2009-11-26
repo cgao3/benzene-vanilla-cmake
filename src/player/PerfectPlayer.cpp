@@ -89,7 +89,7 @@ bool PerfectPlayer::find_db_move(StoneBoard& brd, HexColor color,
 
     bool found_child = false;
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) {
-        brd.playMove(color, *p);
+        brd.PlayMove(color, *p);
         
         SolvedState state;
         if (m_db->get(brd, state)) {
@@ -107,7 +107,7 @@ bool PerfectPlayer::find_db_move(StoneBoard& brd, HexColor color,
             }
         }
         
-        brd.undoMove(*p);
+        brd.UndoMove(*p);
     }
     
     // if no child (ie, a db leaf state), we have to solve it by hand

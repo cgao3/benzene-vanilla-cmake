@@ -173,7 +173,7 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
     SG_ASSERT(m_bd->IsEmpty(cell));
     SG_ASSERT(m_pastate->UpdateRadius() == updateRadius);
     
-    m_bd->playMove(m_toPlay, cell);
+    m_bd->PlayMove(m_toPlay, cell);
     if (updateRadius == 1)
 	m_pastate->UpdateRingGodel(cell);
     else
