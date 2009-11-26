@@ -168,7 +168,7 @@ void SaveNode(std::ostream& out, const SgUctTree& tree, const SgUctNode& node,
 void HexUctUtil::SaveTree(const SgUctTree& tree, const StoneBoard& brd, 
                      HexColor toPlay, std::ostream& out, int maxDepth)
 {
-    out << "(;FF[4]GM[11]SZ[" << brd.width() << "]\n";
+    out << "(;FF[4]GM[11]SZ[" << brd.Width() << "]\n";
     out << ";AB";
     for (BoardIterator it(brd.Stones(BLACK)); it; ++it)
         out << '[' << *it << ']';

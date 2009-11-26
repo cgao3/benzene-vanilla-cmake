@@ -751,7 +751,7 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
     }
     double oldValue = node.Value(brd);
     double oldPriority = node.m_priority;
-    for (BitsetIterator it(brd.getEmpty()); it; ++it)
+    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
     {
         brd.playMove(brd.WhoseTurn(), *it);
         Refresh(brd, seen, false);
@@ -788,7 +788,7 @@ void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd,
         return;
     if (node.IsTerminal() || node.IsLeaf())
         return;
-    for (BitsetIterator it(brd.getEmpty()); it; ++it)
+    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
     {
         brd.playMove(brd.WhoseTurn(), *it);
         IncreaseWidth(brd, seen, false);

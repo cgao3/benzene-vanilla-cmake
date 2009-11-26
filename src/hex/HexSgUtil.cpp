@@ -77,12 +77,12 @@ bool HexSgUtil::NodeHasSetupInfo(SgNode* node)
 void HexSgUtil::SetPositionInNode(SgNode* node, const StoneBoard& brd, 
                                   HexColor color)
 {
-    int height = brd.height();
-    SgVector<SgPoint> blist = HexSgUtil::BitsetToSgVector(brd.getBlack() 
+    int height = brd.Height();
+    SgVector<SgPoint> blist = HexSgUtil::BitsetToSgVector(brd.GetBlack() 
                                        & brd.Const().GetCells(), height);
-    SgVector<SgPoint> wlist = HexSgUtil::BitsetToSgVector(brd.getWhite()
+    SgVector<SgPoint> wlist = HexSgUtil::BitsetToSgVector(brd.GetWhite()
                                        & brd.Const().GetCells(), height);
-    SgVector<SgPoint> elist = HexSgUtil::BitsetToSgVector(brd.getEmpty()
+    SgVector<SgPoint> elist = HexSgUtil::BitsetToSgVector(brd.GetEmpty()
                                        & brd.Const().GetCells(), height);
 
     SgPropPlayer* pprop = new SgPropPlayer(SG_PROP_PLAYER);
@@ -135,8 +135,8 @@ void HexSgUtil::GetSetupPosition(const SgNode* node, int height,
 void HexSgUtil::SetPositionInBoard(const SgNode* node, StoneBoard& brd)
 {
     std::vector<HexPoint> black, white, empty;
-    GetSetupPosition(node, brd.height(), black, white, empty);
-    brd.startNewGame();
+    GetSetupPosition(node, brd.Height(), black, white, empty);
+    brd.StartNewGame();
     for (std::size_t i = 0; i < black.size(); ++i) 
         brd.playMove(BLACK, black[i]);
     for (std::size_t i = 0; i < white.size(); ++i)

@@ -153,7 +153,7 @@ void HexUctSearch::OnStartSearch()
     }
 
     // Limit to avoid very long games (no need in Hex)
-    int size = m_brd->width() * m_brd->height();
+    int size = m_brd->Width() * m_brd->Height();
     int maxGameLength = size+10;
     SetMaxGameLength(maxGameLength);
 
@@ -164,7 +164,7 @@ void HexUctSearch::SaveGames(const std::string& filename) const
 {
     if (m_root == 0)
         throw SgException("No games to save");
-    HexSgUtil::WriteSgf(m_root, "MoHex", filename.c_str(), m_brd->height()); 
+    HexSgUtil::WriteSgf(m_root, "MoHex", filename.c_str(), m_brd->Height()); 
 }
 
 void HexUctSearch::SaveTree(std::ostream& out, int maxDepth) const

@@ -106,7 +106,7 @@ HexPoint HandBookCheck::HandBookResponse(const StoneBoard& brd, HexColor color)
         HexPoint response = m_response[key];
         LogInfo() << "HandBookCheck: response = " << response << '\n';
         HexAssert(response != INVALID_POINT);
-        HexAssert(brd.isEmpty(response));
+        HexAssert(brd.IsEmpty(response));
         return response;
     }
     

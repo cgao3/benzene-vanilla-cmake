@@ -39,13 +39,13 @@ void TwoDistance::ComputeScores(HexColor color, HexEval* out)
     ComputeDistanceToEdge(color, HexPointUtil::colorEdge1(color), dist[0]);
     ComputeDistanceToEdge(color, HexPointUtil::colorEdge2(color), dist[1]);
 
-    for (BoardIterator it(m_brd->Const().Interior()); it; ++it) {
-        if (m_brd->isOccupied(*it)) {
+    for (BoardIterator it(m_brd->Const().Interior()); it; ++it) 
+    {
+        if (m_brd->IsOccupied(*it))
             out[*it] = 0;
-        } else {
+        else 
             out[*it] = TwoDistUtil::AddDistance(dist[0][*it], dist[1][*it]);
             //out[*it] = dist[0][*it];
-        }
     }
 }
 
@@ -55,14 +55,16 @@ void TwoDistance::FindBest(HexEval* po, HexPoint& who, int& count)
     who = INVALID_POINT;
     count = 1;
 
-    for (BitsetIterator it(m_brd->getEmpty()); it; ++it) {
-        if (po[*it] < best) {
+    for (BitsetIterator it(m_brd->GetEmpty()); it; ++it) 
+    {
+        if (po[*it] < best) 
+        {
             best = po[*it];
             who = *it;
             count=1;
-        } else if (po[*it] == best) {
-            count++;
         }
+        else if (po[*it] == best) 
+            count++;
     }
 
     HexAssert(who != INVALID_POINT);
@@ -115,8 +117,10 @@ void TwoDistance::ComputeDistanceToEdge(HexColor color,
     std::set<HexPoint> once;
 
     // add immediate neighbours of edge
-    for (BitsetIterator it(m_brd->getEmpty()); it; ++it) {
-        if (IsAdjacent(color, *it, edge)) {
+    for (BitsetIterator it(m_brd->GetEmpty()); it; ++it) 
+    {
+        if (IsAdjacent(color, *it, edge)) 
+        {
             out[*it] = 1;
             q.push(std::make_pair(-1, *it));
             done.insert(*it);
@@ -130,26 +134,24 @@ void TwoDistance::ComputeDistanceToEdge(HexColor color,
         int dist = -pp.first;        
         HexPoint p = pp.second;
                   
-        for (BitsetIterator it(m_brd->getEmpty()); it; ++it) {
-            if (IsAdjacent(color, *it, p)) {
-
+        for (BitsetIterator it(m_brd->GetEmpty()); it; ++it) 
+        {
+            if (IsAdjacent(color, *it, p)) 
+            {
                 // it has been seen at least twice before, ignore it.
-                if (done.count(*it)) {
+                if (done.count(*it))
                     continue;
-                } 
                 // it has been seen once before, add it to queue
                 // and add to 'done'.
-                else if (once.count(*it)) {
-                    
+                else if (once.count(*it)) 
+                {
                     out[*it] = dist+1;
                     q.push(std::make_pair(-(dist+1), *it));
                     done.insert(*it);
-                    
                 } 
                 // it hasn't been seen before: add it to 'once'.
-                else {
+                else
                     once.insert(*it);
-                }
             }
         }
     }

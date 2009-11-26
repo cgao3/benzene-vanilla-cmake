@@ -54,7 +54,7 @@ HexHtpEngine::HexHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("undo", &HexHtpEngine::CmdUndo);
     RegisterCmd("version", &HexHtpEngine::CmdVersion);
 
-    NewGame(m_board.width(), m_board.height());
+    NewGame(m_board.Width(), m_board.Height());
 }
 
 HexHtpEngine::~HexHtpEngine()
@@ -108,8 +108,8 @@ double HexHtpEngine::TimeForMove(HexColor color)
  
 void HexHtpEngine::NewGame(int width, int height)
 {
-    if (width != m_game.Board().width() || 
-        height != m_game.Board().height()) 
+    if (width != m_game.Board().Width() || 
+        height != m_game.Board().Height()) 
     {
         m_board = StoneBoard(width, height);
         m_game.SetBoard(m_board);
@@ -182,7 +182,7 @@ void HexHtpEngine::CmdNewGame(HtpCommand& cmd)
 void HexHtpEngine::CmdClearBoard(HtpCommand& cmd)
 {
     cmd.CheckArgNone();
-    NewGame(m_board.width(), m_board.height());
+    NewGame(m_board.Width(), m_board.Height());
 }
 
 /** Plays a move. */
@@ -278,7 +278,7 @@ void HexHtpEngine::CmdFinalScore(HtpCommand& cmd)
 void HexHtpEngine::CmdAllLegalMoves(HtpCommand& cmd)
 {
     int c = 0;
-    bitset_t legal = m_game.Board().getLegal();
+    bitset_t legal = m_game.Board().GetLegal();
     for (BitsetIterator i(legal); i; ++i) 
     {
         cmd << " " << *i;
@@ -290,7 +290,7 @@ void HexHtpEngine::CmdAllLegalMoves(HtpCommand& cmd)
 void HexHtpEngine::SetPosition(const SgNode* node)
 {
     std::vector<HexPoint> black, white, empty;
-    HexSgUtil::GetSetupPosition(node, m_game.Board().height(), 
+    HexSgUtil::GetSetupPosition(node, m_game.Board().Height(), 
                                 black, white, empty);
     for (unsigned i=0; ; ++i) 
     {
@@ -353,7 +353,7 @@ void HexHtpEngine::CmdLoadSgf(HtpCommand& cmd)
 
         HexColor color = HexSgUtil::SgColorToHexColor(cur->NodePlayer());
         HexPoint point = HexSgUtil::SgPointToHexPoint(cur->NodeMove(), 
-                                                      brd.height());
+                                                      brd.Height());
         Play(color, point);
         mn++;
     }

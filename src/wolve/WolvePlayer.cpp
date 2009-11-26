@@ -148,12 +148,12 @@ void WolveSearch::OnStartSearch()
     m_consider.clear();
 
     if (!m_no_fillin_board.get() ||
-        m_no_fillin_board->width() != m_brd->width() || 
-        m_no_fillin_board->height() != m_brd->height())
+        m_no_fillin_board->Width() != m_brd->Width() || 
+        m_no_fillin_board->Height() != m_brd->Height())
     {
         LogInfo() << "Wolve: Creating new board..." << '\n';
         m_no_fillin_board.reset
-            (new HexBoard(m_brd->width(), m_brd->height(), 
+            (new HexBoard(m_brd->Width(), m_brd->Height(), 
                           m_brd->ICE(), m_brd->Builder().Parameters()));
         int sf = m_brd->Cons(BLACK).SoftLimit(VC::FULL);
         int ss = m_brd->Cons(BLACK).SoftLimit(VC::SEMI);
@@ -188,8 +188,8 @@ HexEval WolveSearch::Evaluate()
 
 void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
 {
-    HexAssert(BitsetUtil::IsSubsetOf(m_brd->getEmpty(), 
-                                     m_no_fillin_board->getEmpty()));
+    HexAssert(BitsetUtil::IsSubsetOf(m_brd->GetEmpty(), 
+                                     m_no_fillin_board->GetEmpty()));
 
     Resistance resist;
     ComputeResistance(resist);

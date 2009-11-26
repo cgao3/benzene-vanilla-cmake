@@ -15,7 +15,7 @@ namespace {
 BOOST_AUTO_TEST_CASE(VCUtils_ValidEdgeBridge)
 {
     StoneBoard brd(4, 4);
-    brd.startNewGame();
+    brd.StartNewGame();
 
     HexPoint a1 = HEX_CELL_A1;
     HexPoint a2 = HEX_CELL_A2;

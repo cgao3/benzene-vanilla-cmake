@@ -48,9 +48,9 @@ inline HexUctStoneData::HexUctStoneData()
 }
 
 inline HexUctStoneData::HexUctStoneData(const StoneBoard& brd)
-    : black(brd.getBlack()),
-      white(brd.getWhite()),
-      played(brd.getPlayed())
+    : black(brd.GetBlack()),
+      white(brd.GetWhite()),
+      played(brd.GetPlayed())
 {
 }
 

@@ -20,7 +20,7 @@ Game::Game(StoneBoard& board)
 void Game::NewGame()
 {
     LogFine() << "Game::NewGame()" << '\n';
-    m_board->startNewGame();
+    m_board->StartNewGame();
     m_time_remaining[BLACK] = m_game_time;
     m_time_remaining[WHITE] = m_game_time;
     m_history.clear();
@@ -37,7 +37,7 @@ Game::ReturnType Game::PlayMove(HexColor color, HexPoint cell)
         if (!m_allow_swap || m_history.size() != 1)
             return INVALID_MOVE;
     }
-    if (m_board->isPlayed(cell))
+    if (m_board->IsPlayed(cell))
         return OCCUPIED_CELL;
 
     m_board->playMove(color, cell);
@@ -62,7 +62,7 @@ bool GameUtil::SequenceFromPosition(const Game& game, const StoneBoard& pos,
     if (game.Board().Const() != pos.Const())
         return false;
     StoneBoard cur(pos);
-    cur.startNewGame();
+    cur.StartNewGame();
     if (cur == pos)
     {
         seq = game.History();

@@ -30,15 +30,15 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
         && (1 == game_state.History().size())
         && (!FIRST_TO_PLAY == color))
     {
-	HexAssert(1 == brd.numStones());
+	HexAssert(1 == brd.NumStones());
 	LogInfo() << "Performing swap pre-check...\n";
 	
 	/** If board has unequal dimensions, we want to traverse the
 	    shorter distance. */
-	if (brd.width() != brd.height()) 
+	if (brd.Width() != brd.Height()) 
         {
-	    if ((brd.width() > brd.height() && color == !VERTICAL_COLOR) ||
-		(brd.width() < brd.height() && color == VERTICAL_COLOR))
+	    if ((brd.Width() > brd.Height() && color == !VERTICAL_COLOR) ||
+		(brd.Width() < brd.Height() && color == VERTICAL_COLOR))
             {
                 LogInfo() << "Non-square board: " 
                           << "Swapping to obtain shorter side!\n";
@@ -56,27 +56,27 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 		firstMove = BoardUtils::Mirror(brd.Const(), firstMove);
 	    
 	    // We can make optimal decisions up to 8x8.
-	    if (1 == brd.width()) {
+	    if (1 == brd.Width()) {
 		HexAssert(firstMove == HEX_CELL_A1);
 		return SWAP_PIECES;
-	    } else if (2 == brd.width()) {
+	    } else if (2 == brd.Width()) {
 		if (firstMove == HEX_CELL_B1 ||
 		    firstMove == HEX_CELL_A2)
 		    return SWAP_PIECES;
-	    } else if (3 == brd.width()) {
+	    } else if (3 == brd.Width()) {
 		if (firstMove == HEX_CELL_B1 ||
 		    firstMove == HEX_CELL_C1 ||
 		    firstMove == HEX_CELL_B2 ||
 		    firstMove == HEX_CELL_A3 ||
 		    firstMove == HEX_CELL_B3)
 		    return SWAP_PIECES;
-	    } else if (4 == brd.width()) {
+	    } else if (4 == brd.Width()) {
 		if (firstMove == HEX_CELL_D1 ||
 		    firstMove == HEX_CELL_C2 ||
 		    firstMove == HEX_CELL_B3 ||
 		    firstMove == HEX_CELL_A4)
 		    return SWAP_PIECES;
-	    } else if (5 == brd.width()) {
+	    } else if (5 == brd.Width()) {
 		if (firstMove == HEX_CELL_D1 ||
 		    firstMove == HEX_CELL_E1 ||
 		    firstMove == HEX_CELL_B2 ||
@@ -91,7 +91,7 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 		    firstMove == HEX_CELL_A5 ||
 		    firstMove == HEX_CELL_B5)
 		    return SWAP_PIECES;
-	    } else if (6 == brd.width()) {
+	    } else if (6 == brd.Width()) {
 		if (firstMove == HEX_CELL_C1 ||
 		    firstMove == HEX_CELL_D1 ||
 		    firstMove == HEX_CELL_E1 ||
@@ -117,7 +117,7 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 		    firstMove == HEX_CELL_C6 ||
 		    firstMove == HEX_CELL_D6)
 		    return SWAP_PIECES;
-	    } else if (7 == brd.width()) {
+	    } else if (7 == brd.Width()) {
 		if (firstMove == HEX_CELL_D1 ||
 		    firstMove == HEX_CELL_F1 ||
 		    firstMove == HEX_CELL_G1 ||
@@ -146,7 +146,7 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 		    firstMove == HEX_CELL_B7 ||
 		    firstMove == HEX_CELL_D7)
 		    return SWAP_PIECES;
-	    } else if (8 == brd.width()) {
+	    } else if (8 == brd.Width()) {
 		if (firstMove == HEX_CELL_H1 ||
 		    firstMove == HEX_CELL_G2 ||
 		    firstMove == HEX_CELL_H2 ||
@@ -184,11 +184,11 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
 	    /** On 9x9 and larger we can only make heuristic-based decisions.
                 @note: we specify non-swapped from now on for shorter lists.
             */
-	    else if (9 == brd.width()) {
+	    else if (9 == brd.Width()) {
 		/** @todo: choose openings to swap on 9x9. */
-	    } else if (10 == brd.width()) {
+	    } else if (10 == brd.Width()) {
 		/** @todo: choose openings to swap on 10x10. */
-	    } else if (11 == brd.width()) {
+	    } else if (11 == brd.Width()) {
 		if (m_player->name() == "wolve") {
 		    // Choices based on recent tournament performances
 		    if (firstMove != HEX_CELL_A1 &&

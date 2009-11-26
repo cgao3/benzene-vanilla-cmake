@@ -44,8 +44,8 @@ HexPoint HandicapPlayer::search(HexBoard& brd,
     HexPoint lastMove, response;
     HexAssert(color == !VERTICAL_COLOR);
     
-    m_width = (m_assume_added_stones) ? brd.width()-1 : brd.width();
-    if (m_width == brd.height())
+    m_width = (m_assume_added_stones) ? brd.Width()-1 : brd.Width();
+    if (m_width == brd.Height())
         return RESIGN;
     
     /** Handicap player wins playing second, so in this case any random
@@ -65,7 +65,7 @@ HexPoint HandicapPlayer::search(HexBoard& brd,
     */
     buildResponseMap(brd);
     response = m_responseMap[lastMove];
-    if (!brd.isPlayed(response) && response != INVALID_POINT)
+    if (!brd.IsPlayed(response) && response != INVALID_POINT)
         return response;
 
     LogInfo() << "Playing random move" << '\n';
@@ -76,7 +76,7 @@ void HandicapPlayer::buildResponseMap(const StoneBoard& brd)
 {
     int x, y, offset;
     m_responseMap.clear();
-    offset = (m_width > brd.height()) ? 1 : -1;
+    offset = (m_width > brd.Height()) ? 1 : -1;
     //Naive mirroring. Ignores handicap stones
     for (BoardIterator it = brd.Const().Interior(); it; ++it)
     {
@@ -85,7 +85,7 @@ void HandicapPlayer::buildResponseMap(const StoneBoard& brd)
             y = y + offset;
         else
             x = x - offset;
-        if (y >= m_width || x >= brd.height())
+        if (y >= m_width || x >= brd.Height())
             m_responseMap[*it] = INVALID_POINT;
         else
             m_responseMap[*it] = HexPointUtil::coordsToPoint(y, x);
@@ -93,11 +93,11 @@ void HandicapPlayer::buildResponseMap(const StoneBoard& brd)
     //Handicap Stones mirroring
     if (m_assume_added_stones)
     {
-        x = brd.width() - 1;
+        x = brd.Width() - 1;
         y = 0;
         makeMiai(HexPointUtil::coordsToPoint(x, y),
                  HexPointUtil::coordsToPoint(x, y+1));
-        for (y = 6; y < brd.height() - 1; y = y + 6)
+        for (y = 6; y < brd.Height() - 1; y = y + 6)
         {
             makeMiai(HexPointUtil::coordsToPoint(x, y),
                      HexPointUtil::coordsToPoint(x, y+1));
@@ -113,13 +113,13 @@ void HandicapPlayer::buildResponseMap(const StoneBoard& brd)
                        HexPointUtil::coordsToPoint(x, y-2));
         }
         y = y - 6;
-        if (y == brd.height() - 6 || y == brd.height() - 7)
+        if (y == brd.Height() - 6 || y == brd.Height() - 7)
         {
             y = y + 2;
             makeMiai(HexPointUtil::coordsToPoint(x, y),
                      HexPointUtil::coordsToPoint(x, y+1));
         }
-        if (y + 3 < brd.height())
+        if (y + 3 < brd.Height())
         {
             threeToOne(brd,
                        HexPointUtil::coordsToPoint(x-1, y+3),
@@ -127,9 +127,9 @@ void HandicapPlayer::buildResponseMap(const StoneBoard& brd)
                        HexPointUtil::coordsToPoint(x, y+2),
                        HexPointUtil::coordsToPoint(x, y+3));
         }
-        if (y + 4 < brd.height())
+        if (y + 4 < brd.Height())
         {
-            if (brd.isPlayed(HexPointUtil::coordsToPoint(x-1, y+3)))
+            if (brd.IsPlayed(HexPointUtil::coordsToPoint(x-1, y+3)))
             {
                 m_responseMap[HexPointUtil::coordsToPoint(x, y+4)] =
                     HexPointUtil::coordsToPoint(x, y+3);
@@ -153,27 +153,27 @@ void HandicapPlayer::threeToOne(const StoneBoard& brd,
                                 HexPoint dest, HexPoint p1, HexPoint p2,
                                 HexPoint p3)
 {
-    if (brd.isPlayed(dest) && brd.isBlack(dest))
+    if (brd.IsPlayed(dest) && brd.IsBlack(dest))
     {
         m_responseMap[p3] = (p3 > p2) 
             ? static_cast<HexPoint>(p3 + MAX_WIDTH) 
             : static_cast<HexPoint>(p3 - MAX_WIDTH);
     }
-    else if (brd.isPlayed(dest))
+    else if (brd.IsPlayed(dest))
     {
-        if (brd.isPlayed(p2) && brd.isPlayed(p3))
+        if (brd.IsPlayed(p2) && brd.IsPlayed(p3))
         {
             m_responseMap[p2] = p1;
             m_responseMap[p3] = p1;
             return;
         }
-        else if (brd.isPlayed(p1) && brd.isPlayed(p3))
+        else if (brd.IsPlayed(p1) && brd.IsPlayed(p3))
         {
             m_responseMap[p1] = p2;
             m_responseMap[p3] = p2;
             return;
         }
-        else if (brd.isPlayed(p1) && brd.isPlayed(p2))
+        else if (brd.IsPlayed(p1) && brd.IsPlayed(p2))
         {
             m_responseMap[p1] = p3;
             m_responseMap[p2] = p3;
@@ -187,7 +187,7 @@ void HandicapPlayer::threeToOne(const StoneBoard& brd,
                 : static_cast<HexPoint>(p3 - MAX_WIDTH);
         }
     }
-    else if (brd.isWhite(p1) || brd.isWhite(p2) || brd.isWhite(p3))
+    else if (brd.IsWhite(p1) || brd.IsWhite(p2) || brd.IsWhite(p3))
     {
         m_responseMap[p3] = (p3 > p2) 
             ? static_cast<HexPoint>(p3 + MAX_WIDTH) 

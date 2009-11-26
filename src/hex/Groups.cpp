@@ -18,13 +18,13 @@ void Flow(const StoneBoard& brd, HexPoint start, HexColor color,
           bitset_t& members, bitset_t& nbs)
 {
     HexAssert(!members.test(start));
-    HexAssert(brd.getColor(start) == color);
+    HexAssert(brd.GetColor(start) == color);
     members.set(start);
     for (BoardIterator p(brd.Const().Nbs(start)); p; ++p)
     {
         if (members.test(*p))
             continue;
-        if (color != EMPTY && brd.getColor(*p) == color)
+        if (color != EMPTY && brd.GetColor(*p) == color)
             Flow(brd, *p, color, members, nbs);
         else
             nbs.set(*p);
@@ -49,7 +49,7 @@ void GroupBuilder::Build(const StoneBoard& brd, Groups& groups)
         if (visited.test(*p))
             continue;
         bitset_t nbs, members;
-        HexColor color = brd.getColor(*p);
+        HexColor color = brd.GetColor(*p);
         Flow(brd, *p, color, members, nbs);
         HexAssert((visited & members).none());
         visited |= members;
@@ -104,7 +104,7 @@ HexColor Groups::GetWinner() const
 
 bitset_t Groups::CaptainizeBitset(bitset_t locations) const
 {
-    HexAssert(m_brd->Const().isLocation(locations));
+    HexAssert(m_brd->Const().IsLocation(locations));
     bitset_t captains;
     for (BitsetIterator i(locations); i; ++i)
         captains.set(CaptainOf(*i));

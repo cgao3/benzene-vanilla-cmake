@@ -59,10 +59,9 @@ void HandCodedPattern::flipColors()
 
 bool HandCodedPattern::check(const StoneBoard& brd)
 {
-    for (BWIterator it; it; ++it) {
-        if (m_color[*it] != (brd.getColor(*it) & m_mask))
+    for (BWIterator it; it; ++it)
+        if (m_color[*it] != (brd.GetColor(*it) & m_mask))
             return false;
-   }
     return true;
 }    
 

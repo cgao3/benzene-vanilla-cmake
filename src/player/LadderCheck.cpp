@@ -31,18 +31,18 @@ HexPoint LadderCheck::pre_search(HexBoard& brd, const Game& game_state,
         bitset_t badProbes;
         HexColor other = !color;
         const VCPatternSet& pset 
-            = VCPattern::GetPatterns(brd.width(), brd.height(), other);
+            = VCPattern::GetPatterns(brd.Width(), brd.Height(), other);
 
         for (std::size_t i=0; i<pset.size(); ++i) {
             const VCPattern& pat = pset[i];
 
             // Ladder matches if pattern hits and both endpoints are occupied.
             if (pat.Matches(other, brd) 
-                && brd.getColor(pat.Endpoint(0)) == other
-                && brd.getColor(pat.Endpoint(1)) == other)
+                && brd.GetColor(pat.Endpoint(0)) == other
+                && brd.GetColor(pat.Endpoint(1)) == other)
             {
                 // consider only the probes that are unoccupied
-                bitset_t bp = pat.BadProbes() & brd.getEmpty();
+                bitset_t bp = pat.BadProbes() & brd.GetEmpty();
 
                 // take out the bad probes only if there are moves
                 // remaining in the consider set afterward.

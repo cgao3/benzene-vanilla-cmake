@@ -67,7 +67,7 @@ void BookCommands::CmdBookMainLineDepth(HtpCommand& cmd)
     if (!m_book) 
         throw HtpFailure() << "No open book.";
     StoneBoard brd(m_game.Board());
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) 
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.playMove(brd.WhoseTurn(), *p);
         cmd << " " << *p << " " << m_book->GetMainLineDepth(brd);
@@ -81,7 +81,7 @@ void BookCommands::CmdBookCounts(HtpCommand& cmd)
         throw HtpFailure() << "No open book.";
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     HexColor color = brd.WhoseTurn();
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) 
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);
         BookNode node;
@@ -104,7 +104,7 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
     std::map<HexPoint, HexEval> values;
     std::map<HexPoint, unsigned> counts;
     std::vector<std::pair<float, HexPoint> > scores;
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) 
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);
         BookNode node;
@@ -177,7 +177,7 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
             HexPointUtil::FromString(line, seq);
             if (!seq.empty())
             {
-                brd.startNewGame();
+                brd.StartNewGame();
                 for (std::size_t i = 0; i < seq.size(); ++i)
                     brd.playMove(brd.WhoseTurn(), seq[i]);
                 ignoreSet.insert(BookUtil::GetHash(brd));

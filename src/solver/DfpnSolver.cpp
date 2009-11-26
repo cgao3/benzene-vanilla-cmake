@@ -654,7 +654,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     std::vector<DfpnData> childrenData(children.Size());
     for (size_t i = 0; i < children.Size(); ++i)
         LookupData(childrenData[i], children, i,
-                   ComputeInitialDelta(i, children.Size(), m_brd->width()));
+                   ComputeInitialDelta(i, children.Size(), m_brd->Width()));
 
     if (m_useGuiFx && depth == 0)
         m_guiFx.SetChildren(children, childrenData);

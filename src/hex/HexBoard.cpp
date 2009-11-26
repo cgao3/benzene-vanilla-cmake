@@ -69,10 +69,10 @@ HexBoard::~HexBoard()
 
 void HexBoard::SetState(const StoneBoard& brd)
 {
-    startNewGame();
-    setColor(BLACK, brd.getBlack());
-    setColor(WHITE, brd.getWhite());
-    setPlayed(brd.getPlayed());
+    StartNewGame();
+    SetColor(BLACK, brd.GetBlack());
+    SetColor(WHITE, brd.GetWhite());
+    SetPlayed(brd.GetPlayed());
 }
 
 //----------------------------------------------------------------------------
@@ -188,8 +188,8 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
 
     double s = Time::Get();
     PushHistory(color, cell);
-    bitset_t old_black = getColor(BLACK);
-    bitset_t old_white = getColor(WHITE);
+    bitset_t old_black = GetColor(BLACK);
+    bitset_t old_white = GetColor(WHITE);
 
     playMove(color, cell);
     m_patterns.Update(cell);
@@ -199,8 +199,8 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
     ComputeInferiorCells(!color);
 
     bitset_t added[BLACK_AND_WHITE];
-    added[BLACK] = getColor(BLACK) - old_black;
-    added[WHITE] = getColor(WHITE) - old_white;
+    added[BLACK] = GetColor(BLACK) - old_black;
+    added[WHITE] = GetColor(WHITE) - old_white;
 
     if (m_use_vcs)
     {
@@ -218,14 +218,14 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 {
     LogFine() << "Playing (" << color << ","
               << HexPointUtil::ToString(played) << ")\n";
-    HexAssert(BitsetUtil::IsSubsetOf(played, getEmpty()));
+    HexAssert(BitsetUtil::IsSubsetOf(played, GetEmpty()));
 
     double s = Time::Get();
     PushHistory(color, INVALID_POINT);
-    bitset_t old_black = getColor(BLACK);
-    bitset_t old_white = getColor(WHITE);
+    bitset_t old_black = GetColor(BLACK);
+    bitset_t old_white = GetColor(WHITE);
 
-    addColor(color, played);
+    AddColor(color, played);
     m_patterns.Update(played);
     Groups oldGroups(m_groups);
     GroupBuilder::Build(*this, m_groups);
@@ -233,8 +233,8 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
     ComputeInferiorCells(color_to_move);
 
     bitset_t added[BLACK_AND_WHITE];
-    added[BLACK] = getColor(BLACK) - old_black;
-    added[WHITE] = getColor(WHITE) - old_white;
+    added[BLACK] = GetColor(BLACK) - old_black;
+    added[WHITE] = GetColor(WHITE) - old_white;
 
     if (m_use_vcs)
     {
@@ -256,15 +256,15 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 void HexBoard::AddStones(HexColor color, const bitset_t& played,
                          HexColor color_to_move, bool use_changelog)
 {
-    HexAssert(BitsetUtil::IsSubsetOf(played, getEmpty()));
+    HexAssert(BitsetUtil::IsSubsetOf(played, GetEmpty()));
     LogFine() << "Adding (" << color << ", "
               << HexPointUtil::ToString(played) << ")\n";
 
     double s = Time::Get();
-    bitset_t old_black = getColor(BLACK);
-    bitset_t old_white = getColor(WHITE);
+    bitset_t old_black = GetColor(BLACK);
+    bitset_t old_white = GetColor(WHITE);
 
-    addColor(color, played);
+    AddColor(color, played);
     m_patterns.Update(played);
     Groups oldGroups(m_groups);
     GroupBuilder::Build(*this, m_groups);
@@ -272,8 +272,8 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     ComputeInferiorCells(color_to_move);
 
     bitset_t added[BLACK_AND_WHITE];
-    added[BLACK] = getColor(BLACK) - old_black;
-    added[WHITE] = getColor(WHITE) - old_white;
+    added[BLACK] = GetColor(BLACK) - old_black;
+    added[WHITE] = GetColor(WHITE) - old_white;
 
     if (m_use_vcs)
         BuildVCs(oldGroups, added, use_changelog); 
@@ -320,7 +320,7 @@ void HexBoard::PopHistory()
         // Cells that were not marked as inferior in parent state
         // and are either dead or captured (for the color to play in the
         // parent state) are marked as dominated. 
-        bitset_t a = getEmpty() - hist.inf.All();
+        bitset_t a = GetEmpty() - hist.inf.All();
         a &= m_inf.Dead() | m_inf.Captured(hist.to_play);
 
         for (BitsetIterator p(a); p; ++p) 

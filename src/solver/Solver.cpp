@@ -132,7 +132,7 @@ Solver::Result Solver::Solve(HexBoard& brd, HexColor tomove,
 
     m_db = new SolverDB();
     try {
-        m_db->open(brd.width(), brd.height(), numstones, 
+        m_db->open(brd.Width(), brd.Height(), numstones, 
                    transtones, filename);
     }
     catch (HexException& e) {
@@ -181,7 +181,7 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
 
     // AND the proof with empty cells on board since our working proof
     // contains played stones.
-    solution.proof &= brd.getEmpty();
+    solution.proof &= brd.GetEmpty();
 
     m_end_time = Time::Get();
 
@@ -197,14 +197,14 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
 bitset_t 
 Solver::DefaultProofForWinner(const HexBoard& brd, HexColor winner) const
 {
-    return (brd.getColor(winner) | brd.getEmpty()) - brd.getDead();
+    return (brd.GetColor(winner) | brd.GetEmpty()) - brd.getDead();
 }
 
 bool Solver::CheckDB(const HexBoard& brd, HexColor toplay, 
                      SolvedState& state) const
 {
     if (m_settings.use_db && m_db->get(*m_stoneboard, state)) {
-        LogFine() << "DB[" << m_stoneboard->numStones()
+        LogFine() << "DB[" << m_stoneboard->NumStones()
                  << "] hit: "<< ((state.win)?"Win":"Loss") << ", "
                  << state.numstates << " states."
                  << '\n';
@@ -215,7 +215,7 @@ bool Solver::CheckDB(const HexBoard& brd, HexColor toplay,
         HexColor winner = (state.win) ? toplay : !toplay;
         state.proof = DefaultProofForWinner(brd, winner);
 
-        m_histogram.tthits[m_stoneboard->numStones()]++;
+        m_histogram.tthits[m_stoneboard->NumStones()]++;
         return true;
     }
     return false;
@@ -243,7 +243,7 @@ bool Solver::CheckTT(const HexBoard& brd, HexColor toplay,
         HexColor winner = (state.win) ? toplay : !toplay;
         state.proof = DefaultProofForWinner(brd, winner);
   
-        m_histogram.tthits[m_stoneboard->numStones()]++;
+        m_histogram.tthits[m_stoneboard->NumStones()]++;
         return true;
     }
     return false;
@@ -252,7 +252,7 @@ bool Solver::CheckTT(const HexBoard& brd, HexColor toplay,
 bool Solver::CheckTransposition(const HexBoard& brd, HexColor toplay, 
                                 SolvedState& state) const
 {
-    if (m_settings.use_db && m_stoneboard->numStones() <= m_db->maxstones())
+    if (m_settings.use_db && m_stoneboard->NumStones() <= m_db->maxstones())
         return CheckDB(brd, toplay, state);
 
     return CheckTT(brd, toplay, state);    
@@ -263,12 +263,12 @@ void Solver::StoreInDB(const SolvedState& state)
     if (!m_settings.use_db)
         return;
 
-    int numstones = m_stoneboard->numStones();
+    int numstones = m_stoneboard->NumStones();
     int numwritten = m_db->put(*m_stoneboard, state);
     if (numwritten && numstones == m_db->maxstones()) {
         LogInfo() << "Stored DB[" << numstones << "] result: "
 		  << m_stoneboard->Write(state.proof & 
-                                         m_stoneboard->getEmpty())
+                                         m_stoneboard->GetEmpty())
 		  << '\n'
 		  << ((state.win)?"Win":"Loss") << ", " 
 		  << state.numstates << " states."
@@ -293,7 +293,7 @@ void Solver::StoreInTT(hash_t hash, const SolvedState& state)
 
 void Solver::StoreState(hash_t hash, const SolvedState& state) 
 {
-    if (m_settings.use_db && m_stoneboard->numStones() <= m_db->maxstones()) {
+    if (m_settings.use_db && m_stoneboard->NumStones() <= m_db->maxstones()) {
         StoreInDB(state);
     } else {
         StoreInTT(hash, state);
@@ -325,7 +325,7 @@ bool Solver::HandleTerminalNode(const HexBoard& brd, HexColor color,
                                 SolvedState& state) const
 {
     bitset_t proof;
-    int numstones = m_stoneboard->numStones();
+    int numstones = m_stoneboard->NumStones();
 
     if (SolverUtil::isWinningState(brd, color, proof)) 
     {
@@ -503,7 +503,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
     solution.proof = 
         (dsolution[0].proof & carrier[0]) | 
         (dsolution[1].proof & carrier[1]) |
-        brd.getColor(!color);
+        brd.GetColor(!color);
     solution.proof = solution.proof - brd.getDead();
 
     int s0 = (int)dsolution[0].stats.explored_states;
@@ -526,7 +526,7 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
 {
     int depth = variation.size();
     std::string space(2*depth, ' ');
-    int numstones = m_stoneboard->numStones();
+    int numstones = m_stoneboard->NumStones();
 
     // Print some output for debugging/tracing purposes
     LogFine() << SolverUtil::PrintVariation(variation) << '\n' << brd << '\n';
@@ -765,7 +765,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
     HexColor loser = !winner;
 
     // Verify loser's stones do not intersect proof
-    if ((brd.getColor(loser) & solution.proof).any()) {
+    if ((brd.GetColor(loser) & solution.proof).any()) {
         LogWarning() << color << " to play." << '\n'
 		     << loser << " loses." << '\n'
 		     << "Losing stones hit proof:" << '\n'
@@ -827,7 +827,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
 
     // Store move in DB/TT
     bitset_t winners_stones = 
-        m_stoneboard->getColor(winner) & solution.proof;
+        m_stoneboard->GetColor(winner) & solution.proof;
 
     /** @todo HANDLE BEST MOVES PROPERLY! 
         This can only happen if the mustplay goes empty in an internal
@@ -838,13 +838,13 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
         solution.pv.push_back(INVALID_POINT);
 
     StoreState(brd.Hash(), 
-               SolvedState(m_stoneboard->numStones(),
+               SolvedState(m_stoneboard->NumStones(),
                            winning_state, solution.stats.total_states, 
                            solution.moves_to_connection, 
                            solution.pv[0], 
                            solution.proof, winners_stones, 
-                           m_stoneboard->getBlack(), 
-                           m_stoneboard->getWhite()));
+                           m_stoneboard->GetBlack(), 
+                           m_stoneboard->GetWhite()));
 }
 
 //----------------------------------------------------------------------------
@@ -1289,7 +1289,7 @@ bool SolverUtil::isWinningState(const HexBoard& brd, HexColor color,
             // move in the mustplay causing a sequence of presimplicial-pairs 
             // and captures that result in a win. 
             LogFine() << "#### Solid chain win ####" << '\n';
-            proof = brd.getColor(color) - brd.getDead();
+            proof = brd.GetColor(color) - brd.getDead();
             return true;
         }
     } 
@@ -1301,7 +1301,7 @@ bool SolverUtil::isWinningState(const HexBoard& brd, HexColor color,
                                        VC::SEMI, v)) 
         {
             LogFine() << "VC win." << '\n';
-            proof = (v.carrier() | brd.getColor(color)) - brd.getDead();
+            proof = (v.carrier() | brd.GetColor(color)) - brd.getDead();
             return true;
         } 
     }
@@ -1318,7 +1318,7 @@ bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color,
         {
             // This occurs very rarely, but definetly cannot be ruled out.
             LogFine() << "#### Solid chain loss ####" << '\n';
-            proof = brd.getColor(other) - brd.getDead();
+            proof = brd.GetColor(other) - brd.getDead();
             return true;
         } 
     } 
@@ -1330,7 +1330,7 @@ bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color,
         if (brd.Cons(other).SmallestVC(otheredge1, otheredge2, VC::FULL, vc)) 
         {
             LogFine() << "VC loss." << '\n';
-            proof = (vc.carrier() | brd.getColor(other)) - brd.getDead();
+            proof = (vc.carrier() | brd.GetColor(other)) - brd.getDead();
             return true;
         } 
     }
@@ -1405,12 +1405,12 @@ bitset_t SolverUtil::InitialProof(const HexBoard& brd, HexColor color)
 	      << brd.Write(MustplayCarrier(brd, color)) << '\n';
 
     bitset_t proof = 
-        (MustplayCarrier(brd, color) | brd.getColor(!color)) - brd.getDead();
+        (MustplayCarrier(brd, color) | brd.GetColor(!color)) - brd.getDead();
 
     LogFine() << "Initial mustplay-carrier:" << '\n'
 	      << brd.Write(proof) << '\n';
 
-    if ((proof & brd.getColor(color)).any()) 
+    if ((proof & brd.GetColor(color)).any()) 
     {
         LogSevere() << "Initial mustplay hits toPlay's stones!" << '\n' 
 		    << brd << '\n' << brd.Write(proof) << '\n';
@@ -1424,17 +1424,17 @@ void SolverUtil::ShrinkProof(bitset_t& proof,
                              const StoneBoard& board, HexColor loser, 
                              const ICEngine& ice)
 {
-    StoneBoard brd(board.width(), board.height());
+    StoneBoard brd(board.Width(), board.Height());
     PatternState pastate(brd);
     Groups groups;
 
     // Give loser all cells outside proof
     bitset_t cells_outside_proof = (~proof & brd.Const().GetCells());
-    brd.addColor(loser, cells_outside_proof);
+    brd.AddColor(loser, cells_outside_proof);
 
     // Give winner only his stones inside proof; 
     HexColor winner = !loser;
-    brd.addColor(winner, board.getColor(winner) & board.getPlayed() & proof);
+    brd.AddColor(winner, board.GetColor(winner) & board.GetPlayed() & proof);
     pastate.Update();
     GroupBuilder::Build(brd, groups);
 

@@ -87,7 +87,7 @@ HexPoint BenzenePlayer::init_search(HexBoard& brd, HexColor color,
         HexAssert(!brd.GetGroups().IsGameOver());
     } 
 
-    consider = brd.getEmpty();
+    consider = brd.GetEmpty();
     score = 0;
 
     return INVALID_POINT;

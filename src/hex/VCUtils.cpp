@@ -23,7 +23,7 @@ bitset_t VCUtils::GetMustplay(const HexBoard& brd, HexColor color)
 
     const VCList& semi = brd.Cons(other).GetList(VC::SEMI, edge1, edge2);
     bitset_t intersection = semi.hardIntersection();
-    intersection &= brd.getEmpty(); // FIXME: need this line?
+    intersection &= brd.GetEmpty(); // FIXME: need this line?
 
     return intersection;
 }
@@ -45,7 +45,7 @@ bool VCUtils::ValidEdgeBridge(const StoneBoard& brd,
     if (carrier.count() != MIAI_SIZE) return false;
 
     // the carrier must be of empty cells
-    if ((brd.getOccupied() & carrier).any()) return false;
+    if ((brd.GetOccupied() & carrier).any()) return false;
     
     // find the two cells in the VC's carrier...
     std::vector<HexPoint> miai;

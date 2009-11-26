@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(GraphUtils_ComputeDigraph)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
     StoneBoard gb(5, 5);
-    gb.startNewGame();
+    gb.StartNewGame();
 
     //  a  b  c  d  e  
     // 1\.  .  .  .  .\1

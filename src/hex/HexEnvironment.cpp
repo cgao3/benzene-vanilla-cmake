@@ -17,7 +17,7 @@ HexEnvironment::HexEnvironment(int width, int height)
 
 void HexEnvironment::NewGame(int width, int height)
 {
-    if (brd->width() != width && brd->height() != height)
+    if (brd->Width() != width && brd->Height() != height)
     {
         /** @todo Make board resizable? Until then, make sure all
             HexBoard parameters are copied here! */
@@ -31,7 +31,7 @@ void HexEnvironment::NewGame(int width, int height)
         brd->SetUseDecompositions(use_dec);
         brd->SetBackupIceInfo(backup);
     }
-    brd->startNewGame();
+    brd->StartNewGame();
 }
 
 HexBoard& HexEnvironment::SyncBoard(const StoneBoard& board)

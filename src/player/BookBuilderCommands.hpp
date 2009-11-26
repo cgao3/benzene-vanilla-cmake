@@ -168,7 +168,7 @@ void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
     BookNode parent;
     if (!m_book->GetNode(brd, parent))
         return;
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) 
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.playMove(color, *p);
         BookNode succ;

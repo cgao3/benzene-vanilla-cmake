@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(PatternState_Tests)
     pastate.Update();
 
     std::vector<PatternHits> hits(FIRST_INVALID);
-    bitset_t found = pastate.MatchOnBoard(brd.getEmpty(), hashpat, 
+    bitset_t found = pastate.MatchOnBoard(brd.GetEmpty(), hashpat, 
                                           PatternState::MATCH_ALL, hits);
 
     // Ensure a, d, e, g were found

@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(Groups_Members)
 
     // Check all empties are singletons
     for (BoardIterator p(brd.Const().Interior()); p; ++p)
-        if (brd.getColor(*p) == EMPTY)
+        if (brd.GetColor(*p) == EMPTY)
         {
             BOOST_CHECK_EQUAL(groups.GetGroup(*p).Size(), 1u);
             BOOST_CHECK(groups.GetGroup(*p).Members().test(*p));

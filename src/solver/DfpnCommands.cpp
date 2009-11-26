@@ -89,7 +89,7 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
     HexColor colorToMove = brd.WhoseTurn();
     brd.ComputeAll(colorToMove);
     bitset_t consider = (PlayerUtils::IsDeterminedState(brd, colorToMove) ?
-                         brd.getEmpty() :
+                         brd.GetEmpty() :
                          PlayerUtils::MovesToConsider(brd, colorToMove));
     bitset_t winning;
     SgTimer timer;

@@ -139,8 +139,8 @@ PatternState::~PatternState()
 
 void PatternState::UpdateRingGodel(HexPoint cell)
 {
-    HexAssert(m_brd.Const().isCell(cell));
-    HexColor color = m_brd.getColor(cell);
+    HexAssert(m_brd.Const().IsCell(cell));
+    HexColor color = m_brd.GetColor(cell);
     HexAssert(HexColorUtil::isBlackWhite(color));
     
     /** @note if Pattern::NUM_SLICES != 6, this won't work!! This also
@@ -161,10 +161,10 @@ void PatternState::Update(HexPoint cell)
     if (HexPointUtil::isSwap(cell)) 
         return;
 
-    HexAssert(m_brd.Const().isLocation(cell));
+    HexAssert(m_brd.Const().IsLocation(cell));
 
     int r = m_update_radius;
-    HexColor color = m_brd.getColor(cell);
+    HexColor color = m_brd.GetColor(cell);
     HexAssert(HexColorUtil::isBlackWhite(color));
 
     if (HexPointUtil::isEdge(cell)) 
@@ -211,7 +211,7 @@ void PatternState::Update(const bitset_t& changed)
 {
     for (BitsetIterator p(changed); p; ++p) 
     {
-        HexAssert(m_brd.isOccupied(*p));
+        HexAssert(m_brd.IsOccupied(*p));
         Update(*p);
     }
 }
@@ -219,7 +219,7 @@ void PatternState::Update(const bitset_t& changed)
 void PatternState::Update()
 {
     ClearGodels();
-    for (BitsetIterator p(m_brd.getBlack() | m_brd.getWhite()); p; ++p) 
+    for (BitsetIterator p(m_brd.GetBlack() | m_brd.GetWhite()); p; ++p) 
         Update(*p);
 }
 
@@ -299,7 +299,7 @@ bool PatternState::CheckRotatedPattern(HexPoint cell,
                                        std::vector<HexPoint>& moves1,
                                        std::vector<HexPoint>& moves2) const
 {
-    HexAssert(m_brd.Const().isCell(cell));
+    HexAssert(m_brd.Const().IsCell(cell));
 
     m_statistics.pattern_checks++;
 

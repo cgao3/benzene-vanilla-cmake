@@ -181,27 +181,27 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     
     p = BoardUtils::RandomEmptyCell(sb);
     BOOST_CHECK(sb.Const().IsCell(p));
-    sb.startNewGame();
-    BOOST_CHECK(!sb.isLegal(SWAP_PIECES));
+    sb.StartNewGame();
+    BOOST_CHECK(!sb.IsLegal(SWAP_PIECES));
     p = BoardUtils::RandomEmptyCell(sb);
     BOOST_CHECK(sb.Const().IsCell(p));
     sb.playMove(BLACK, HEX_CELL_A1);
-    BOOST_CHECK(sb.isLegal(SWAP_PIECES));
+    BOOST_CHECK(sb.IsLegal(SWAP_PIECES));
     sb.playMove(WHITE, HEX_CELL_A2);
-    BOOST_CHECK(!sb.isLegal(SWAP_PIECES));
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 6u);
-    BOOST_CHECK(!sb.isEmpty(HEX_CELL_A1));
-    BOOST_CHECK(!sb.isEmpty(HEX_CELL_A2));
+    BOOST_CHECK(!sb.IsLegal(SWAP_PIECES));
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 6u);
+    BOOST_CHECK(!sb.IsEmpty(HEX_CELL_A1));
+    BOOST_CHECK(!sb.IsEmpty(HEX_CELL_A2));
     
     p = BoardUtils::RandomEmptyCell(sb);
     BOOST_CHECK(sb.Const().IsCell(p));
-    BOOST_CHECK(sb.isEmpty(p));
+    BOOST_CHECK(sb.IsEmpty(p));
     BOOST_CHECK(p != HEX_CELL_A1);
     BOOST_CHECK(p != HEX_CELL_A2);
     
     // test when one cell left
     sb = StoneBoard(1, 1);
-    sb.startNewGame();
+    sb.StartNewGame();
     p = BoardUtils::RandomEmptyCell(sb);
     BOOST_CHECK_EQUAL(p, HEX_CELL_A1);
     
@@ -213,9 +213,9 @@ BOOST_AUTO_TEST_CASE(BoardUtil_RandomEmptyCell)
     
     // test when game has been resigned
     sb = StoneBoard(1, 1);
-    sb.startNewGame();
+    sb.StartNewGame();
     sb.playMove(WHITE, RESIGN);
-    BOOST_CHECK(!sb.isLegal(HEX_CELL_A1));
+    BOOST_CHECK(!sb.IsLegal(HEX_CELL_A1));
     p = BoardUtils::RandomEmptyCell(sb);
     BOOST_CHECK_EQUAL(p, HEX_CELL_A1);
 }

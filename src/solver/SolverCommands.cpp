@@ -189,7 +189,7 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     bitset_t consider = (PlayerUtils::IsDeterminedState(brd, color) ?
-                         brd.getEmpty() :
+                         brd.GetEmpty() :
                          PlayerUtils::MovesToConsider(brd, color));
     bitset_t winning;
     SgTimer timer;
@@ -261,9 +261,9 @@ void SolverCommands::CmdDBOpen(HtpCommand& cmd)
     m_db.reset(new SolverDB());
     try {
         if (maxstones == -1)
-            m_db->open(brd.width(), brd.height(), filename);
+            m_db->open(brd.Width(), brd.Height(), filename);
         else
-            m_db->open(brd.width(), brd.height(),  maxstones,
+            m_db->open(brd.Width(), brd.Height(),  maxstones,
                        transtones, filename);
     }
     catch (HexException& e) {
@@ -304,7 +304,7 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     std::vector<int> nummoves(BITSETSIZE);
     std::vector<int> flags(BITSETSIZE);
     std::vector<HexPoint> winning, losing;
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) 
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.playMove(toplay, *p);
 

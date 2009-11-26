@@ -99,8 +99,8 @@ bool ConstBoard::Adjacent(HexPoint p1, HexPoint p2) const
 
 int ConstBoard::Distance(HexPoint x, HexPoint y) const
 {
-    HexAssert(isValid(x));
-    HexAssert(isValid(y));
+    HexAssert(IsValid(x));
+    HexAssert(IsValid(y));
     
     if (HexPointUtil::isEdge(y)) 
         return DistanceToEdge(*this, x, y);

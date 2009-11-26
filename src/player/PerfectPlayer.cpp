@@ -88,7 +88,7 @@ bool PerfectPlayer::find_db_move(StoneBoard& brd, HexColor color,
     int loss_length =-999999;
 
     bool found_child = false;
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) {
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p) {
         brd.playMove(color, *p);
         
         SolvedState state;

@@ -31,8 +31,8 @@ bitset_t ComputeEdgeUnreachableRegions(const StoneBoard& brd, HexColor c,
                                        bool flowFrom2=true)
 {
     bitset_t reachable1, reachable2;
-    bitset_t flowSet = (brd.getEmpty() | brd.getColor(c)) 
-                     & brd.Const().GetCells();
+    bitset_t flowSet = (brd.GetEmpty() | brd.GetColor(c)) 
+        & brd.Const().GetCells();
     if (flowFrom1) 
     {
         bitset_t flowSet1 = flowSet;
@@ -49,7 +49,7 @@ bitset_t ComputeEdgeUnreachableRegions(const StoneBoard& brd, HexColor c,
             = BoardUtils::ReachableOnBitset(brd.Const(), flowSet2, stopSet,
                                             HexPointUtil::colorEdge2(c));
     }
-    return brd.getEmpty() - (reachable1 | reachable2);
+    return brd.GetEmpty() - (reachable1 | reachable2);
 }
 
 /** Computes dead regions on the board created by a single group's
@@ -60,7 +60,7 @@ bitset_t ComputeDeadRegions(const Groups& groups)
 {
     const StoneBoard& brd = groups.Board();
     if (groups.IsGameOver())
-	return brd.getEmpty();
+	return brd.GetEmpty();
     
     bitset_t dead;
     for (GroupIterator i(groups, NOT_EMPTY); i; ++i) 
@@ -78,14 +78,14 @@ bitset_t ComputeDeadRegions(const Groups& groups)
 	    cannot go through this group's empty neighbours (which form a
 	    clique). If the clique covers one edge, we only compute
 	    reachability from the opposite edge. */
-	bitset_t cliqueCutset = i->Nbs() & brd.getEmpty();
+	bitset_t cliqueCutset = i->Nbs() & brd.GetEmpty();
 	dead |= ComputeEdgeUnreachableRegions(brd, c, cliqueCutset,
                                  i->Captain() != HexPointUtil::colorEdge1(c),
                                  i->Captain() != HexPointUtil::colorEdge2(c));
     }
     
     // Areas not reachable due to one or more clique cutsets are dead.
-    HexAssert(BitsetUtil::IsSubsetOf(dead, brd.getEmpty()));
+    HexAssert(BitsetUtil::IsSubsetOf(dead, brd.GetEmpty()));
     return dead;
 }
 
@@ -96,7 +96,7 @@ bitset_t FindType1Cliques(const Groups& groups)
 {
     bitset_t dead;
     const StoneBoard& brd = groups.Board();
-    bitset_t empty = brd.getEmpty();
+    bitset_t empty = brd.GetEmpty();
     
     // Find two cells that are adjacent through some group, but not directly.
     for (BitsetIterator x(empty); x; ++x) {
@@ -124,11 +124,11 @@ bitset_t FindType1Cliques(const Groups& groups)
 		
 		// The specific group(s) common to x and y do not affect the
 		// stop set, so we check reachability at most once per color.
-		if ((xyExclusiveNbs & brd.getBlack()).any()) {
+		if ((xyExclusiveNbs & brd.GetBlack()).any()) {
 		    dead |= ComputeEdgeUnreachableRegions(brd, BLACK, clique);
 		    HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
 		}
-		if ((xyExclusiveNbs & brd.getWhite()).any()) {
+		if ((xyExclusiveNbs & brd.GetWhite()).any()) {
 		    dead |= ComputeEdgeUnreachableRegions(brd, WHITE, clique);
 		    HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
 		}
@@ -147,7 +147,7 @@ bitset_t FindType2Cliques(const Groups& groups)
 {
     const StoneBoard& brd = groups.Board();
     bitset_t dead;
-    bitset_t empty = brd.getEmpty();
+    bitset_t empty = brd.GetEmpty();
     
     // Find two non-edge groups of the same color with both common
     // empty neighbours in common and also exclusive empty neighbours.
@@ -195,7 +195,7 @@ bitset_t FindType3Cliques(const Groups& groups)
 {
     const StoneBoard& brd = groups.Board();
     bitset_t dead;
-    bitset_t empty = brd.getEmpty();
+    bitset_t empty = brd.GetEmpty();
     
     // Find 3 non-edge groups of the same color such that each pair has
     // a non-empty intersection of their empty neighbours.
@@ -241,7 +241,7 @@ bitset_t FindType3Cliques(const Groups& groups)
 bitset_t FindThreeSetCliques(const Groups& groups)
 {
     if (groups.IsGameOver())
-	return groups.Board().getEmpty();
+	return groups.Board().GetEmpty();
 
     bitset_t dead1 = FindType1Cliques(groups);
     bitset_t dead2 = FindType2Cliques(groups);
@@ -282,7 +282,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
     bitset_t adj_to_both_edges = 
         groups.Nbs(HexPointUtil::colorEdge1(color), EMPTY) &
         groups.Nbs(HexPointUtil::colorEdge2(color), EMPTY);
-    bitset_t consider = brd.getEmpty();
+    bitset_t consider = brd.GetEmpty();
     consider = consider - adj_to_both_edges;
     
     // find presimplicial cells and their dominators
@@ -296,7 +296,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
         // Categorize neighbours as either 'empty' or 'color'. 
         for (BoardIterator nb(brd.Const().Nbs(*p)); nb; ++nb) 
         {
-            HexColor ncolor = brd.getColor(*nb);
+            HexColor ncolor = brd.GetColor(*nb);
             if (ncolor == EMPTY) 
             {
                 enbs.insert(*nb);
@@ -475,7 +475,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
     if (simplicial.any())
     {
         inf.AddDead(simplicial);
-        brd.addColor(DEAD_COLOR, simplicial);
+        brd.AddColor(DEAD_COLOR, simplicial);
         pastate.Update(simplicial);
         GroupBuilder::Build(brd, groups);
     }
@@ -541,12 +541,12 @@ int ICEngine::ComputeDeadCaptured(Groups& groups, PatternState& pastate,
         while (true) 
         {
             /** @todo This can be optimized quite a bit. */
-            bitset_t dead = FindDead(pastate, brd.getEmpty());
+            bitset_t dead = FindDead(pastate, brd.GetEmpty());
             if (dead.none()) 
                 break;
             count += dead.count();
             inf.AddDead(dead);
-            brd.addColor(DEAD_COLOR, dead);
+            brd.AddColor(DEAD_COLOR, dead);
             pastate.Update(dead);
         }
 
@@ -555,12 +555,12 @@ int ICEngine::ComputeDeadCaptured(Groups& groups, PatternState& pastate,
         {
             bitset_t black;
             if (HexColorSetUtil::InSet(BLACK, colors_to_capture))
-                black = FindCaptured(pastate, BLACK, brd.getEmpty());
+                black = FindCaptured(pastate, BLACK, brd.GetEmpty());
             if (black.any()) 
             {
                 count += black.count();
                 inf.AddCaptured(BLACK, black);
-                brd.addColor(BLACK, black);
+                brd.AddColor(BLACK, black);
                 pastate.Update(black);
                 continue;
             }
@@ -571,12 +571,12 @@ int ICEngine::ComputeDeadCaptured(Groups& groups, PatternState& pastate,
         {
             bitset_t white;
             if (HexColorSetUtil::InSet(WHITE, colors_to_capture))
-                white = FindCaptured(pastate, WHITE, brd.getEmpty());
+                white = FindCaptured(pastate, WHITE, brd.GetEmpty());
             if (white.any()) 
             {
                 count += white.count();
                 inf.AddCaptured(WHITE, white);
-                brd.addColor(WHITE, white);
+                brd.AddColor(WHITE, white);
                 pastate.Update(white);
                 continue;
             }
@@ -600,12 +600,12 @@ int ICEngine::FillinPermanentlyInferior(Groups& groups, PatternState& pastate,
 
     StoneBoard& brd = groups.Board();
     bitset_t carrier;
-    bitset_t perm = FindPermanentlyInferior(pastate, color, brd.getEmpty(), 
+    bitset_t perm = FindPermanentlyInferior(pastate, color, brd.GetEmpty(), 
                                             carrier);
     if (perm.any())
     {
         out.AddPermInf(color, perm, carrier);
-        brd.addColor(color, perm);
+        brd.AddColor(color, perm);
         pastate.Update(perm);
         GroupBuilder::Build(brd, groups);
     }
@@ -624,7 +624,7 @@ int ICEngine::FillInVulnerable(HexColor color, Groups& groups,
     // Find vulnerable cells with local patterns--do not ignore the
     // presimplicial cells previously found because a pattern
     // may encode another dominator.
-    bitset_t consider = groups.Board().getEmpty() - inf.Dead();
+    bitset_t consider = groups.Board().GetEmpty() - inf.Dead();
     FindVulnerable(pastate, color, consider, inf);
     
     // Fill in presimplicial pairs only if we are doing fillin for the
@@ -635,7 +635,7 @@ int ICEngine::FillInVulnerable(HexColor color, Groups& groups,
         if (captured.any()) 
         {
             inf.AddCaptured(!color, captured);
-            groups.Board().addColor(!color, captured);
+            groups.Board().AddColor(!color, captured);
             pastate.Update(captured);
             GroupBuilder::Build(groups.Board(), groups);
         }
@@ -655,7 +655,7 @@ int ICEngine::FillInUnreachable(Groups& groups, PatternState& pastate,
     if (notReachable.any()) 
     {
         out.AddDead(notReachable);
-        groups.Board().addColor(DEAD_COLOR, notReachable);
+        groups.Board().AddColor(DEAD_COLOR, notReachable);
         pastate.Update(notReachable);
         GroupBuilder::Build(groups.Board(), groups);
     }
@@ -703,12 +703,12 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
     ComputeFillin(color, groups, pastate, out);
 
     {
-        bitset_t consider = groups.Board().getEmpty() - out.Vulnerable();
+        bitset_t consider = groups.Board().GetEmpty() - out.Vulnerable();
         FindReversible(pastate, color, consider, out);
     }
 
     {
-        bitset_t consider = groups.Board().getEmpty()
+        bitset_t consider = groups.Board().GetEmpty()
                             - out.Vulnerable()
                             - out.Reversible();
         FindDominated(pastate, color, consider, out);
@@ -745,11 +745,11 @@ int ICEngine::BackupOpponentDead(HexColor color, const StoneBoard& board,
     bitset_t dominated = out.Dominated();
 
     int found = 0;
-    for (BitsetIterator p(board.getEmpty()); p; ++p) 
+    for (BitsetIterator p(board.GetEmpty()); p; ++p) 
     {
-        brd.startNewGame();
-        brd.setColor(BLACK, board.getBlack());
-        brd.setColor(WHITE, board.getWhite());
+        brd.StartNewGame();
+        brd.SetColor(BLACK, board.GetBlack());
+        brd.SetColor(WHITE, board.GetWhite());
         brd.playMove(!color, *p);
         ps.Update();
         Groups groups;
@@ -940,7 +940,7 @@ void ICEngine::FindHandCodedDominated(const StoneBoard& board,
     // If board is rectangular, these hand-coded patterns should not
     // be used because they need to be mirrored (which is not a valid
     // operation on non-square boards).
-    if (board.width() != board.height()) 
+    if (board.Width() != board.Height()) 
         return;
     for (unsigned i=0; i<m_hand_coded.size(); ++i)
         CheckHandCodedDominates(board, color, m_hand_coded[i], 
@@ -953,7 +953,7 @@ void ICEngine::CheckHandCodedDominates(const StoneBoard& brd,
                                        const bitset_t& consider, 
                                        InferiorCells& inf) const
 {
-    if (brd.width() < 4 || brd.height() < 3)
+    if (brd.Width() < 4 || brd.Height() < 3)
         return;
     HandCodedPattern pat(pattern);
     // Mirror and flip colors if checking for white

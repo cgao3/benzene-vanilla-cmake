@@ -18,16 +18,16 @@ BOOST_AUTO_TEST_CASE(StoneBoard_numStones)
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
 
     StoneBoard b(5, 5);
-    BOOST_CHECK_EQUAL(b.numStones(), 0);
+    BOOST_CHECK_EQUAL(b.NumStones(), 0);
 
     b.playMove(BLACK, FIRST_CELL);
-    BOOST_CHECK_EQUAL(b.numStones(), 1);
+    BOOST_CHECK_EQUAL(b.NumStones(), 1);
 
     b.playMove(WHITE, HEX_CELL_A2);
-    BOOST_CHECK_EQUAL(b.numStones(), 2);
+    BOOST_CHECK_EQUAL(b.NumStones(), 2);
 
-    b.setColor(BLACK, HEX_CELL_A3);
-    BOOST_CHECK_EQUAL(b.numStones(), 2);
+    b.SetColor(BLACK, HEX_CELL_A3);
+    BOOST_CHECK_EQUAL(b.NumStones(), 2);
 }
 
 BOOST_AUTO_TEST_CASE(StoneBoard_AddRemoveSetColor)
@@ -37,66 +37,66 @@ BOOST_AUTO_TEST_CASE(StoneBoard_AddRemoveSetColor)
     bitset_t b;
     
     // test addColor
-    sb.addColor(BLACK, b);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 2u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 2u);
-    BOOST_CHECK(sb.getWhite().test(WEST));
-    BOOST_CHECK(sb.getWhite().test(EAST));
+    sb.AddColor(BLACK, b);
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 2u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 2u);
+    BOOST_CHECK(sb.GetWhite().test(WEST));
+    BOOST_CHECK(sb.GetWhite().test(EAST));
     b.set(FIRST_CELL);
     b.set(HEX_CELL_A3);
-    sb.addColor(BLACK, b);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 4u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 2u);
+    sb.AddColor(BLACK, b);
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 2u);
     b.reset();
     b.set(HEX_CELL_A2);
-    sb.addColor(WHITE, b);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 4u);
-    BOOST_CHECK(sb.getBlack().test(FIRST_CELL));
-    BOOST_CHECK(sb.getBlack().test(HEX_CELL_A3));
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK(sb.getWhite().test(HEX_CELL_A2));
+    sb.AddColor(WHITE, b);
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
+    BOOST_CHECK(sb.GetBlack().test(FIRST_CELL));
+    BOOST_CHECK(sb.GetBlack().test(HEX_CELL_A3));
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK(sb.GetWhite().test(HEX_CELL_A2));
     
     // test removeColor when nothing removed
     b.flip();
     b &= sb.Const().GetCells();
-    sb.removeColor(WHITE, b);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 4u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
+    sb.RemoveColor(WHITE, b);
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
     
     // test setColor with EMPTY
-    sb.setColor(EMPTY, FIRST_CELL);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 3u);
-    BOOST_CHECK(sb.getBlack().test(HEX_CELL_A3));
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    sb.setColor(EMPTY, HEX_CELL_A2);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 2u);
+    sb.SetColor(EMPTY, FIRST_CELL);
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
+    BOOST_CHECK(sb.GetBlack().test(HEX_CELL_A3));
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    sb.SetColor(EMPTY, HEX_CELL_A2);
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 2u);
     
     // test setColor with BLACK/WHITE
     b.reset();
     b.set(FIRST_CELL);
     b.set(HEX_CELL_A4);
-    sb.setColor(WHITE, b);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 3u);
-    BOOST_CHECK(sb.getBlack().test(HEX_CELL_A3));
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 2u);
-    BOOST_CHECK(sb.getWhite().test(FIRST_CELL));
-    BOOST_CHECK(sb.getWhite().test(HEX_CELL_A4));
+    sb.SetColor(WHITE, b);
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
+    BOOST_CHECK(sb.GetBlack().test(HEX_CELL_A3));
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 2u);
+    BOOST_CHECK(sb.GetWhite().test(FIRST_CELL));
+    BOOST_CHECK(sb.GetWhite().test(HEX_CELL_A4));
     
     // test removeColor under normal conditions
     b.reset();
     b.set(FIRST_CELL);
-    sb.removeColor(WHITE, b);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 3u);
-    BOOST_CHECK(sb.getBlack().test(HEX_CELL_A3));
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 1u);
-    BOOST_CHECK(sb.getWhite().test(HEX_CELL_A4));
+    sb.RemoveColor(WHITE, b);
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
+    BOOST_CHECK(sb.GetBlack().test(HEX_CELL_A3));
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 1u);
+    BOOST_CHECK(sb.GetWhite().test(HEX_CELL_A4));
     b.set(HEX_CELL_A3);
     b.set(HEX_CELL_A4);
-    sb.removeColor(BLACK, b);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 2u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 1u);
-    BOOST_CHECK(sb.getWhite().test(HEX_CELL_A4));
+    sb.RemoveColor(BLACK, b);
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 2u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 1u);
+    BOOST_CHECK(sb.GetWhite().test(HEX_CELL_A4));
 }
 
 BOOST_AUTO_TEST_CASE(StoneBoard_PlayAndUndoMoves)
@@ -104,65 +104,65 @@ BOOST_AUTO_TEST_CASE(StoneBoard_PlayAndUndoMoves)
     BOOST_REQUIRE(MAX_WIDTH >= 9 && MAX_HEIGHT >= 9);
     
     StoneBoard sb = StoneBoard(9, 9);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 2u);
-    BOOST_CHECK(sb.isWhite(EAST));
-    BOOST_CHECK(sb.isWhite(WEST));
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 4u);
-    BOOST_CHECK(sb.isPlayed(NORTH));
-    BOOST_CHECK(sb.isPlayed(EAST));
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 2u);
+    BOOST_CHECK(sb.IsWhite(EAST));
+    BOOST_CHECK(sb.IsWhite(WEST));
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 4u);
+    BOOST_CHECK(sb.IsPlayed(NORTH));
+    BOOST_CHECK(sb.IsPlayed(EAST));
     
     // test playMove
     sb.playMove(BLACK, FIRST_CELL);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 2u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 5u);
-    BOOST_CHECK(sb.isBlack(FIRST_CELL));
-    BOOST_CHECK(sb.isPlayed(FIRST_CELL));
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 2u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 5u);
+    BOOST_CHECK(sb.IsBlack(FIRST_CELL));
+    BOOST_CHECK(sb.IsPlayed(FIRST_CELL));
     sb.playMove(WHITE, HEX_CELL_A9);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 6u);
-    BOOST_CHECK(sb.isWhite(HEX_CELL_A9));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_A9));
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 6u);
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_A9));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_A9));
     
     // test undoMove
     sb.undoMove(FIRST_CELL);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 2u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 5u);
-    BOOST_CHECK(!sb.isBlack(FIRST_CELL));
-    BOOST_CHECK(!sb.isPlayed(FIRST_CELL));
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 2u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 5u);
+    BOOST_CHECK(!sb.IsBlack(FIRST_CELL));
+    BOOST_CHECK(!sb.IsPlayed(FIRST_CELL));
     sb.playMove(WHITE, HEX_CELL_A5);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 2u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 4u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 6u);
-    BOOST_CHECK(sb.isWhite(HEX_CELL_A5));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_A5));
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 2u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 4u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 6u);
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_A5));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_A5));
     sb.undoMove(HEX_CELL_A9);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 2u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 5u);
-    BOOST_CHECK(!sb.isWhite(HEX_CELL_A9));
-    BOOST_CHECK(!sb.isPlayed(HEX_CELL_A9));
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 2u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 5u);
+    BOOST_CHECK(!sb.IsWhite(HEX_CELL_A9));
+    BOOST_CHECK(!sb.IsPlayed(HEX_CELL_A9));
     
     // check that RESIGN and SWAP_PIECES have no effect on board
     // status, or ability to keep playing moves, although they
     // can affect which moves are legal
-    sb.startNewGame();
-    BOOST_CHECK(!sb.isLegal(SWAP_PIECES));
+    sb.StartNewGame();
+    BOOST_CHECK(!sb.IsLegal(SWAP_PIECES));
     sb.playMove(BLACK, HEX_CELL_A5);
-    BOOST_CHECK(sb.isLegal(SWAP_PIECES));
+    BOOST_CHECK(sb.IsLegal(SWAP_PIECES));
     sb.playMove(WHITE, SWAP_PIECES);
-    BOOST_CHECK(!sb.isLegal(SWAP_PIECES));
-    BOOST_CHECK(sb.isBlack(HEX_CELL_A5));
-    BOOST_CHECK(sb.isLegal(RESIGN));
-    BOOST_CHECK(sb.isLegal(HEX_CELL_F6));
+    BOOST_CHECK(!sb.IsLegal(SWAP_PIECES));
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_A5));
+    BOOST_CHECK(sb.IsLegal(RESIGN));
+    BOOST_CHECK(sb.IsLegal(HEX_CELL_F6));
     sb.playMove(BLACK, RESIGN);
-    BOOST_CHECK(!sb.isLegal(RESIGN));
-    BOOST_CHECK(!sb.isLegal(HEX_CELL_F6));
+    BOOST_CHECK(!sb.IsLegal(RESIGN));
+    BOOST_CHECK(!sb.IsLegal(HEX_CELL_F6));
     sb.playMove(WHITE, HEX_CELL_F6);
-    BOOST_CHECK(sb.isBlack(HEX_CELL_A5));
-    BOOST_CHECK(sb.isWhite(HEX_CELL_F6));
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_A5));
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_F6));
 }
 
 BOOST_AUTO_TEST_CASE(StoneBoard_RotateAndMirrorBoard)
@@ -173,118 +173,118 @@ BOOST_AUTO_TEST_CASE(StoneBoard_RotateAndMirrorBoard)
     // test rotateBoard on non-square board
     sb.playMove(BLACK, HEX_CELL_A5);
     sb.playMove(WHITE, HEX_CELL_B3);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 6u);
-    BOOST_CHECK(sb.isBlack(HEX_CELL_A5));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_A5));
-    BOOST_CHECK(sb.isWhite(HEX_CELL_B3));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_B3));
-    sb.rotateBoard();
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 6u);
-    BOOST_CHECK(sb.isBlack(HEX_CELL_E2));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_E2));
-    BOOST_CHECK(sb.isWhite(HEX_CELL_D4));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_D4));
-    BOOST_CHECK(sb.isBlack(NORTH));
-    BOOST_CHECK(sb.isWhite(WEST));
-    BOOST_CHECK(sb.isWhite(EAST));
-    BOOST_CHECK(sb.isPlayed(SOUTH));
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 6u);
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_A5));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_A5));
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_B3));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_B3));
+    sb.RotateBoard();
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 6u);
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_E2));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_E2));
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_D4));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_D4));
+    BOOST_CHECK(sb.IsBlack(NORTH));
+    BOOST_CHECK(sb.IsWhite(WEST));
+    BOOST_CHECK(sb.IsWhite(EAST));
+    BOOST_CHECK(sb.IsPlayed(SOUTH));
     
     // test rotateBoard on square board
     sb = StoneBoard(8, 8);
     sb.playMove(BLACK, HEX_CELL_B2);
     sb.playMove(WHITE, HEX_CELL_D4);
     sb.playMove(BLACK, HEX_CELL_D5);
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 4u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 7u);
-    BOOST_CHECK(sb.isBlack(HEX_CELL_D5));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_D4));
-    sb.rotateBoard();
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 4u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 7u);
-    BOOST_CHECK(sb.isBlack(HEX_CELL_E4));
-    BOOST_CHECK(sb.isBlack(HEX_CELL_G7));
-    BOOST_CHECK(sb.isWhite(HEX_CELL_E5));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_E4));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_G7));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_E5));
-    BOOST_CHECK(sb.isBlack(NORTH));
-    BOOST_CHECK(sb.isBlack(SOUTH));
-    BOOST_CHECK(sb.isWhite(EAST));
-    BOOST_CHECK(sb.isWhite(EAST));
-    BOOST_CHECK(sb.isPlayed(NORTH));
-    BOOST_CHECK(sb.isPlayed(SOUTH));
-    BOOST_CHECK(sb.isPlayed(EAST));
-    BOOST_CHECK(sb.isPlayed(WEST));
-    BOOST_CHECK(!sb.isPlayed(RESIGN));
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 7u);
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_D5));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_D4));
+    sb.RotateBoard();
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 7u);
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_E4));
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_G7));
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_E5));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_E4));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_G7));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_E5));
+    BOOST_CHECK(sb.IsBlack(NORTH));
+    BOOST_CHECK(sb.IsBlack(SOUTH));
+    BOOST_CHECK(sb.IsWhite(EAST));
+    BOOST_CHECK(sb.IsWhite(EAST));
+    BOOST_CHECK(sb.IsPlayed(NORTH));
+    BOOST_CHECK(sb.IsPlayed(SOUTH));
+    BOOST_CHECK(sb.IsPlayed(EAST));
+    BOOST_CHECK(sb.IsPlayed(WEST));
+    BOOST_CHECK(!sb.IsPlayed(RESIGN));
     sb.playMove(WHITE, RESIGN);
-    sb.rotateBoard();
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 4u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 8u);
-    BOOST_CHECK(sb.isBlack(HEX_CELL_D5));
-    BOOST_CHECK(sb.isBlack(HEX_CELL_B2));
-    BOOST_CHECK(sb.isWhite(HEX_CELL_D4));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_D5));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_B2));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_D4));
-    BOOST_CHECK(sb.isPlayed(RESIGN));
-    BOOST_CHECK(sb.isBlack(NORTH));
-    BOOST_CHECK(sb.isBlack(SOUTH));
-    BOOST_CHECK(sb.isWhite(EAST));
-    BOOST_CHECK(sb.isWhite(WEST));
-    BOOST_CHECK(sb.isPlayed(NORTH));
-    BOOST_CHECK(sb.isPlayed(SOUTH));
-    BOOST_CHECK(sb.isPlayed(EAST));
-    BOOST_CHECK(sb.isPlayed(WEST));
+    sb.RotateBoard();
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 8u);
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_D5));
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_B2));
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_D4));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_D5));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_B2));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_D4));
+    BOOST_CHECK(sb.IsPlayed(RESIGN));
+    BOOST_CHECK(sb.IsBlack(NORTH));
+    BOOST_CHECK(sb.IsBlack(SOUTH));
+    BOOST_CHECK(sb.IsWhite(EAST));
+    BOOST_CHECK(sb.IsWhite(WEST));
+    BOOST_CHECK(sb.IsPlayed(NORTH));
+    BOOST_CHECK(sb.IsPlayed(SOUTH));
+    BOOST_CHECK(sb.IsPlayed(EAST));
+    BOOST_CHECK(sb.IsPlayed(WEST));
     
     // test mirror on square board
-    sb.mirrorBoard();
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 4u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 3u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 8u);
-    BOOST_CHECK(sb.isBlack(HEX_CELL_E4));
-    BOOST_CHECK(sb.isBlack(HEX_CELL_B2));
-    BOOST_CHECK(sb.isWhite(HEX_CELL_D4));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_E4));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_B2));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_D4));
-    BOOST_CHECK(sb.isPlayed(RESIGN));
-    BOOST_CHECK(sb.isWhite(NORTH));
-    BOOST_CHECK(sb.isWhite(SOUTH));
-    BOOST_CHECK(sb.isBlack(EAST));
-    BOOST_CHECK(sb.isBlack(WEST));
-    BOOST_CHECK(sb.isPlayed(NORTH));
-    BOOST_CHECK(sb.isPlayed(SOUTH));
-    BOOST_CHECK(sb.isPlayed(EAST));
-    BOOST_CHECK(sb.isPlayed(WEST));
+    sb.MirrorBoard();
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 3u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 8u);
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_E4));
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_B2));
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_D4));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_E4));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_B2));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_D4));
+    BOOST_CHECK(sb.IsPlayed(RESIGN));
+    BOOST_CHECK(sb.IsWhite(NORTH));
+    BOOST_CHECK(sb.IsWhite(SOUTH));
+    BOOST_CHECK(sb.IsBlack(EAST));
+    BOOST_CHECK(sb.IsBlack(WEST));
+    BOOST_CHECK(sb.IsPlayed(NORTH));
+    BOOST_CHECK(sb.IsPlayed(SOUTH));
+    BOOST_CHECK(sb.IsPlayed(EAST));
+    BOOST_CHECK(sb.IsPlayed(WEST));
     sb.playMove(WHITE, HEX_CELL_F2);
-    sb.mirrorBoard();
-    BOOST_CHECK_EQUAL(sb.getBlack().count(), 4u);
-    BOOST_CHECK_EQUAL(sb.getWhite().count(), 4u);
-    BOOST_CHECK_EQUAL(sb.getPlayed().count(), 9u);
-    BOOST_CHECK(sb.isBlack(HEX_CELL_D5));
-    BOOST_CHECK(sb.isBlack(HEX_CELL_B2));
-    BOOST_CHECK(sb.isWhite(HEX_CELL_D4));
-    BOOST_CHECK(sb.isWhite(HEX_CELL_B6));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_D5));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_B2));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_D4));
-    BOOST_CHECK(sb.isPlayed(HEX_CELL_B6));
-    BOOST_CHECK(sb.isPlayed(RESIGN));
-    BOOST_CHECK(sb.isBlack(NORTH));
-    BOOST_CHECK(sb.isBlack(SOUTH));
-    BOOST_CHECK(sb.isWhite(EAST));
-    BOOST_CHECK(sb.isWhite(WEST));
-    BOOST_CHECK(sb.isPlayed(NORTH));
-    BOOST_CHECK(sb.isPlayed(SOUTH));
-    BOOST_CHECK(sb.isPlayed(EAST));
-    BOOST_CHECK(sb.isPlayed(WEST));
+    sb.MirrorBoard();
+    BOOST_CHECK_EQUAL(sb.GetBlack().count(), 4u);
+    BOOST_CHECK_EQUAL(sb.GetWhite().count(), 4u);
+    BOOST_CHECK_EQUAL(sb.GetPlayed().count(), 9u);
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_D5));
+    BOOST_CHECK(sb.IsBlack(HEX_CELL_B2));
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_D4));
+    BOOST_CHECK(sb.IsWhite(HEX_CELL_B6));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_D5));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_B2));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_D4));
+    BOOST_CHECK(sb.IsPlayed(HEX_CELL_B6));
+    BOOST_CHECK(sb.IsPlayed(RESIGN));
+    BOOST_CHECK(sb.IsBlack(NORTH));
+    BOOST_CHECK(sb.IsBlack(SOUTH));
+    BOOST_CHECK(sb.IsWhite(EAST));
+    BOOST_CHECK(sb.IsWhite(WEST));
+    BOOST_CHECK(sb.IsPlayed(NORTH));
+    BOOST_CHECK(sb.IsPlayed(SOUTH));
+    BOOST_CHECK(sb.IsPlayed(EAST));
+    BOOST_CHECK(sb.IsPlayed(WEST));
 }
 
 BOOST_AUTO_TEST_CASE(StoneBoard_Hash)
@@ -306,20 +306,20 @@ BOOST_AUTO_TEST_CASE(StoneBoard_Hash)
     // addColor does not modify hash
     bitset_t bs;
     bs.set(HEX_CELL_A5);
-    sb.addColor(BLACK, bs);
+    sb.AddColor(BLACK, bs);
     BOOST_CHECK(h2 == sb.Hash());
 
     // removeColor (even of a played move)
     // does not modify hash. 
     bs.reset();
     bs.set(HEX_CELL_A4);
-    sb.removeColor(WHITE, bs);
+    sb.RemoveColor(WHITE, bs);
     BOOST_CHECK(h2 == sb.Hash());
 
     // set color does not modify hash.
     bs.reset();
     bs.set(HEX_CELL_A3);
-    sb.setColor(BLACK, bs);
+    sb.SetColor(BLACK, bs);
     BOOST_CHECK(h2 == sb.Hash());
 }
 
@@ -343,7 +343,7 @@ BOOST_AUTO_TEST_CASE(StoneBoard_WhoseTurn)
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), FIRST_TO_PLAY);
 
     // check that swap is handled properly
-    sb.startNewGame();
+    sb.StartNewGame();
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), FIRST_TO_PLAY);
 
     sb.playMove(FIRST_TO_PLAY, FIRST_CELL);

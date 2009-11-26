@@ -66,7 +66,7 @@ void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
     adjByMiai.clear();
     for (BWIterator color; color; ++color) 
     {
-        for (BitsetIterator p(brd.getColor(*color) & brd.Const().GetCells()); 
+        for (BitsetIterator p(brd.GetColor(*color) & brd.Const().GetCells()); 
              p; ++p) 
         {
             PatternHits hits;
@@ -118,7 +118,7 @@ HexPoint BoardUtils::PointInDir(const ConstBoard& brd,
 
 HexPoint BoardUtils::Rotate(const ConstBoard& brd, HexPoint p)
 {
-    HexAssert(brd.isValid(p));
+    HexAssert(brd.IsValid(p));
     
     if (!brd.IsLocation(p)) return p;
     if (HexPointUtil::isEdge(p)) return HexPointUtil::oppositeEdge(p);
@@ -130,8 +130,8 @@ HexPoint BoardUtils::Rotate(const ConstBoard& brd, HexPoint p)
 
 HexPoint BoardUtils::Mirror(const ConstBoard& brd, HexPoint p)
 {
-    HexAssert(brd.isValid(p));
-    HexAssert(brd.width() == brd.height());
+    HexAssert(brd.IsValid(p));
+    HexAssert(brd.Width() == brd.Height());
     
     if (!brd.IsLocation(p)) return p;
     
@@ -149,7 +149,7 @@ HexPoint BoardUtils::Mirror(const ConstBoard& brd, HexPoint p)
 
 HexPoint BoardUtils::CenterPoint(const ConstBoard& brd)
 {
-    HexAssert((brd.width() & 1) && (brd.height() & 1));
+    HexAssert((brd.Width() & 1) && (brd.Height() & 1));
     return CenterPointRight(brd);
 }
 
@@ -176,7 +176,7 @@ HexPoint BoardUtils::CenterPointLeft(const ConstBoard& brd)
 
 HexPoint BoardUtils::RandomEmptyCell(const StoneBoard& brd)
 {
-    bitset_t moves = brd.getEmpty() & brd.Const().GetCells();
+    bitset_t moves = brd.GetEmpty() & brd.Const().GetCells();
     int count = moves.count();
     if (count == 0) 
         return INVALID_POINT;
@@ -320,7 +320,7 @@ bool BoardUtils::FindCombinatorialDecomposition(const HexBoard& brd,
     for (GroupIterator g(brd.GetGroups(), color); g; ++g) 
     {
 	bitset_t opptNbs = adjByMiai[g->Captain()] 
-            | (g->Nbs() & brd.getColor(!color));
+            | (g->Nbs() & brd.GetColor(!color));
 	if (opptNbs.count() >= 2)
 	    adjTo[g->Captain()] = opptNbs;
     }
@@ -360,7 +360,7 @@ bool BoardUtils::FindCombinatorialDecomposition(const HexBoard& brd,
 	    if (edge2Free)
 		decompArea |= GraphUtils::BFS(edge2, graphNbs, stopSet);
 	    decompArea.flip();
-	    decompArea &= brd.getEmpty();
+	    decompArea &= brd.GetEmpty();
 	    
 	    // If the pair has a VC confined to these cells, then we have
 	    // a decomposition - return it.
@@ -413,7 +413,7 @@ std::string BoardUtils::GuiDumpOutsideConsiderSet(const StoneBoard& brd,
                                                   const bitset_t& remove)
 {
     std::ostringstream os;
-    bitset_t outside = brd.getEmpty() - (remove | consider);
+    bitset_t outside = brd.GetEmpty() - (remove | consider);
     for (BitsetIterator p(outside); p; ++p) 
         os << " " << *p << " x";
     return os.str();

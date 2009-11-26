@@ -28,7 +28,7 @@ HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
     {
 	// Setup the board as it was prior to the opponent's last move.
 	MoveSequence gh = game_state.History();
-        StoneBoard b(brd.width(), brd.height());
+        StoneBoard b(brd.Width(), brd.Height());
 	PatternState pastate(b);
 	for (std::size_t i = 0; i + 1 < gh.size(); ++i) 
         {

@@ -14,7 +14,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //---------------------------------------------------------------------------
 
-/** Packed representation of a board-stat. Useful for storing
+/** Packed representation of a board-state. Useful for storing
     board positions in databases, opening books, etc. */
 typedef std::vector<byte> BoardID;
 
@@ -55,10 +55,10 @@ public:
     const ConstBoard& Const() const;
 
     /** Same as Const().width() */
-    int width() const;
+    int Width() const;
 
     /** Same as Const().height() */
-    int height() const;
+    int Height() const;
 
     /** Returns zobrist hash for the current board state, which
         depends only on played cells; unplayed cells do not contribute
@@ -88,10 +88,10 @@ public:
     /** Number of played stones on the interior of the board. 
         Similar to:
         @code
-            num bits = (getOccupied() & getPlayed() & getCells()).count();
+            num bits = (GetOccupied() & GetPlayed() & GetCells()).count();
         @endcode
     */
-    int numStones() const;
+    int NumStones() const;
 
     /** Computes whose turn it is on the given board, assuming FIRST_TO_PLAY
         moves first and alternating play. */
@@ -120,28 +120,28 @@ public:
     // @{
    
     /** Returns the set of BLACK stones. */
-    bitset_t getBlack() const;
+    bitset_t GetBlack() const;
     
     /** Returns the set of WHITE stones. */
-    bitset_t getWhite() const;
+    bitset_t GetWhite() const;
 
     /** Returns color's stones. */
-    bitset_t getColor(HexColor color) const;
+    bitset_t GetColor(HexColor color) const;
 
     /** Returns all empty cells. */
-    bitset_t getEmpty() const;
+    bitset_t GetEmpty() const;
 
     /** Returns all occupied (not empty) cells. */
-    bitset_t getOccupied() const;
+    bitset_t GetOccupied() const;
 
     /** Returns true if cell is of color. */
-    bool isColor(HexPoint cell, HexColor color) const;
+    bool IsColor(HexPoint cell, HexColor color) const;
 
     /** Returns true if cell is empty. */
-    bool isEmpty(HexPoint cell) const;
+    bool IsEmpty(HexPoint cell) const;
 
     /** Returns true if cell is occupied (not empty). */
-    bool isOccupied(HexPoint cell) const;
+    bool IsOccupied(HexPoint cell) const;
 
     // @}
 
@@ -151,26 +151,26 @@ public:
     // @{ 
 
     /** Returns true if cell is BLACK. */
-    bool isBlack(HexPoint cell) const;
+    bool IsBlack(HexPoint cell) const;
 
     /** Returns true if cell is WHITE. */
-    bool isWhite(HexPoint cell) const;
+    bool IsWhite(HexPoint cell) const;
 
     /** Retruns color of cell. */
-    HexColor getColor(HexPoint cell) const;
+    HexColor GetColor(HexPoint cell) const;
 
     /** Returns the set of played cells. */
-    bitset_t getPlayed() const;
+    bitset_t GetPlayed() const;
 
     /** Returns the set of all legal moves; ie, moves that can be
         played from this state. */
-    bitset_t getLegal() const;
+    bitset_t GetLegal() const;
 
     /** Returns true if cell has been played. */
-    bool isPlayed(HexPoint cell) const;
+    bool IsPlayed(HexPoint cell) const;
 
     /** Returns true if cell is a legal move. */
-    bool isLegal(HexPoint cell) const;
+    bool IsLegal(HexPoint cell) const;
 
     // @}
     
@@ -181,16 +181,16 @@ public:
 
     /** Adds the cells in b as stones of color. Does not modify
         hash. */
-    void addColor(HexColor color, const bitset_t& b);
+    void AddColor(HexColor color, const bitset_t& b);
 
     /** Sets cells in b to EMPTY. Does not modify hash.  */
-    void removeColor(HexColor color, const bitset_t& b);
+    void RemoveColor(HexColor color, const bitset_t& b);
 
     /** Sets color of cell. Does not modify hash. */
-    void setColor(HexColor color, HexPoint cell);
+    void SetColor(HexColor color, HexPoint cell);
 
     /** Sets color of cells in bitset. Does not modify hash. */
-    void setColor(HexColor color, const bitset_t& bs);
+    void SetColor(HexColor color, const bitset_t& bs);
     
     // @}
 
@@ -200,12 +200,12 @@ public:
     // @{
 
     /** Clears the board and plays the edge stones. */
-    void startNewGame();
+    void StartNewGame();
 
     /** Sets the played stones. These stones, and only these stones,
         will contribute to the board hash and board id. Hash is
         recomputed.  @see Hash(). */
-    void setPlayed(const bitset_t& p);
+    void SetPlayed(const bitset_t& p);
 
     /** Plays a move of the given color to the board. Adds cell to the
         set of played stones. Updates the board hash. 
@@ -220,12 +220,12 @@ public:
 
     /** Rotates the board by 180' about the center. Hash is
         updated. */
-    void rotateBoard();
+    void RotateBoard();
 
     /** Mirrors the board in the diagonal joining acute corners. Note
 	that this method requires the board to be square. Hash is
 	updated. */
-    void mirrorBoard();
+    void MirrorBoard();
 
     // @}
 
@@ -276,8 +276,6 @@ private:
     /** @see Hash() */
     ZobristHash m_hash;
 
-    //----------------------------------------------------------------------
-
     void ComputeHash();
 
     void MarkAsDirty();
@@ -290,12 +288,12 @@ inline const ConstBoard& StoneBoard::Const() const
     return *m_const;
 }
 
-inline int StoneBoard::width() const
+inline int StoneBoard::Width() const
 {
     return m_const->Width();
 }
 
-inline int StoneBoard::height() const
+inline int StoneBoard::Height() const
 {
     return m_const->Height();
 }
@@ -305,87 +303,86 @@ inline hash_t StoneBoard::Hash() const
     return m_hash.Hash();
 }
 
-inline bitset_t StoneBoard::getBlack() const
+inline bitset_t StoneBoard::GetBlack() const
 {
     return m_stones[BLACK] & Const().GetLocations();
 }
 
-inline bitset_t StoneBoard::getWhite() const
+inline bitset_t StoneBoard::GetWhite() const
 {
     return m_stones[WHITE] & Const().GetLocations();
 }
 
-inline bitset_t StoneBoard::getColor(HexColor color) const
+inline bitset_t StoneBoard::GetColor(HexColor color) const
 {
     HexAssert(HexColorUtil::isValidColor(color));
-    if (color == EMPTY) return getEmpty();
+    if (color == EMPTY) return GetEmpty();
     return m_stones[color] & Const().GetLocations();
 }
 
-inline bitset_t StoneBoard::getEmpty() const
+inline bitset_t StoneBoard::GetEmpty() const
 {
-    return Const().GetLocations() - getOccupied();
+    return Const().GetLocations() - GetOccupied();
 }
 
-inline bitset_t StoneBoard::getOccupied() const
+inline bitset_t StoneBoard::GetOccupied() const
 {
-    return (getBlack() | getWhite()) & Const().GetLocations();
+    return (GetBlack() | GetWhite()) & Const().GetLocations();
 }
 
-inline bool StoneBoard::isBlack(HexPoint cell) const    
+inline bool StoneBoard::IsBlack(HexPoint cell) const    
 {
-    HexAssert(Const().isValid(cell));
+    HexAssert(Const().IsValid(cell));
     return m_stones[BLACK].test(cell);
 }
 
-inline bool StoneBoard::isWhite(HexPoint cell) const    
+inline bool StoneBoard::IsWhite(HexPoint cell) const    
 {
-    HexAssert(Const().isValid(cell));
+    HexAssert(Const().IsValid(cell));
     return m_stones[WHITE].test(cell);
 }
 
-inline bool StoneBoard::isColor(HexPoint cell, HexColor color) const
+inline bool StoneBoard::IsColor(HexPoint cell, HexColor color) const
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(Const().isLocation(cell));
+    HexAssert(Const().IsLocation(cell));
     return m_stones[color].test(cell);
 }
 
-inline bool StoneBoard::isEmpty(HexPoint cell) const
+inline bool StoneBoard::IsEmpty(HexPoint cell) const
 {
-    HexAssert(Const().isLocation(cell));
-    return !isOccupied(cell);
+    HexAssert(Const().IsLocation(cell));
+    return !IsOccupied(cell);
 }
 
-inline bool StoneBoard::isOccupied(HexPoint cell) const
+inline bool StoneBoard::IsOccupied(HexPoint cell) const
 {
-    HexAssert(Const().isLocation(cell));
-    return (isBlack(cell) || isWhite(cell));
+    HexAssert(Const().IsLocation(cell));
+    return (IsBlack(cell) || IsWhite(cell));
 }
 
-inline bitset_t StoneBoard::getPlayed() const 
+inline bitset_t StoneBoard::GetPlayed() const 
 {
     return m_played;
 }
 
-inline bool StoneBoard::isPlayed(HexPoint cell) const
+inline bool StoneBoard::IsPlayed(HexPoint cell) const
 {
-    HexAssert(Const().isValid(cell));
+    HexAssert(Const().IsValid(cell));
     return m_played.test(cell);
 }
 
-inline int StoneBoard::numStones() const
+inline int StoneBoard::NumStones() const
 {
-    return (getOccupied() & getPlayed() & Const().GetCells()).count();
+    return (GetOccupied() & GetPlayed() & Const().GetCells()).count();
 }
 
 inline bool StoneBoard::operator==(const StoneBoard& other) const
 {
-    return (width() == other.width() && 
-            height() == other.height() && 
-            m_stones[BLACK] == other.m_stones[BLACK] && 
-            m_stones[WHITE] == other.m_stones[WHITE] && 
-            m_played == other.m_played);
+    return (m_const == other.m_const
+            && m_stones[BLACK] == other.m_stones[BLACK]
+            && m_stones[WHITE] == other.m_stones[WHITE]
+            && m_played == other.m_played);
 }
 
 inline bool StoneBoard::operator!=(const StoneBoard& other) const
@@ -395,9 +392,9 @@ inline bool StoneBoard::operator!=(const StoneBoard& other) const
 
 inline HexColor StoneBoard::WhoseTurn() const
 {
-    bitset_t mask = getPlayed() & Const().GetCells();
-    int first = (getColor(FIRST_TO_PLAY) & mask).count();
-    int second = (getColor(!FIRST_TO_PLAY) & mask).count();
+    bitset_t mask = GetPlayed() & Const().GetCells();
+    int first = (GetColor(FIRST_TO_PLAY) & mask).count();
+    int second = (GetColor(!FIRST_TO_PLAY) & mask).count();
     return (first > second) ? !FIRST_TO_PLAY : FIRST_TO_PLAY;
 }
 

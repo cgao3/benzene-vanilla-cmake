@@ -84,8 +84,8 @@ HexPoint ReversePoint(HexPoint point, const StoneBoard& brd)
 
     int x, y;
     HexPointUtil::pointToCoords(point, x, y);
-    x = (brd.width() - 1 - x) + (brd.height() - 1 - y);
-    if (x >= brd.width()) 
+    x = (brd.Width() - 1 - x) + (brd.Height() - 1 - y);
+    if (x >= brd.Width()) 
         return INVALID_POINT;
 
     return HexPointUtil::coordsToPoint(x, y);
@@ -313,7 +313,7 @@ void VCPattern::CreatePatterns(int width, int height)
             continue;
 
         StoneBoard sb(width, height);
-        sb.startNewGame();
+        sb.StartNewGame();
 
         if (type == "complete") {
             numComplete++;
@@ -343,7 +343,7 @@ void VCPattern::CreatePatterns(int width, int height)
             if (en.height < st.height) continue;
 
             // shift end pattern until it does not hit start pattern
-            sb.startNewGame();
+            sb.StartNewGame();
             BuilderPattern bp(en);
             int col=0;
             bool onBoard = true;
@@ -412,8 +412,8 @@ VCPattern::~VCPattern()
 
 bool VCPattern::Matches(HexColor color, const StoneBoard& brd) const
 {
-    bitset_t my_color = brd.getColor(color) & brd.Const().GetCells();
-    bitset_t op_color = brd.getColor(!color) & brd.Const().GetCells();
+    bitset_t my_color = brd.GetColor(color) & brd.Const().GetCells();
+    bitset_t op_color = brd.GetColor(!color) & brd.Const().GetCells();
 
     return ((m_not_oppt & op_color).none() 
             && BitsetUtil::IsSubsetOf(m_must_have, my_color));

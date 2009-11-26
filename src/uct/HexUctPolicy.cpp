@@ -132,7 +132,7 @@ void HexUctPolicy::InitializeForSearch()
 
 void HexUctPolicy::InitializeForRollout(const StoneBoard& brd)
 {
-    BitsetUtil::BitsetToVector(brd.getEmpty(), m_moves);
+    BitsetUtil::BitsetToVector(brd.GetEmpty(), m_moves);
     ShuffleVector(m_moves, m_random);
 }
 
@@ -176,7 +176,7 @@ HexPoint HexUctPolicy::GenerateMove(PatternState& pastate,
 #endif
     }
     
-    HexAssert(pastate.Board().isEmpty(move));
+    HexAssert(pastate.Board().IsEmpty(move));
 #if COLLECT_PATTERN_STATISTICS
     stats.total_moves++;
 #endif
@@ -245,7 +245,7 @@ HexPoint HexUctPolicy::GenerateResponseMove(HexColor toPlay, HexPoint lastMove,
     if (num > m_shared->Config().response_threshold)
     {
         HexPoint move = m_response[toPlay][lastMove][m_random.Int(num)];
-        if (brd.isEmpty(move))
+        if (brd.IsEmpty(move))
             return move;
     }
     return INVALID_POINT;
@@ -260,7 +260,7 @@ HexPoint HexUctPolicy::GenerateRandomMove(const StoneBoard& brd)
 	HexAssert(!m_moves.empty());
         ret = m_moves.back();
         m_moves.pop_back();
-        if (brd.isEmpty(ret))
+        if (brd.IsEmpty(ret))
             break;
     }
     return ret;

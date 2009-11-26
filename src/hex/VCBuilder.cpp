@@ -99,7 +99,7 @@ void VCBuilder::AddBaseVCs()
     HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(m_color);
     for (GroupIterator x(*m_groups, not_other); x; ++x) 
     {
-        for (BitsetIterator y(x->Nbs() & m_brd->getEmpty()); y; ++y) 
+        for (BitsetIterator y(x->Nbs() & m_brd->GetEmpty()); y; ++y) 
         {
             VC vc(x->Captain(), *y);
             m_statistics->base_attempts++;
@@ -116,7 +116,7 @@ void VCBuilder::AddBaseVCs()
 void VCBuilder::AddPatternVCs()
 {
     const VCPatternSet& patterns 
-        = VCPattern::GetPatterns(m_brd->width(), m_brd->height(), m_color);
+        = VCPattern::GetPatterns(m_brd->Width(), m_brd->Height(), m_color);
     for (std::size_t i=0; i<patterns.size(); ++i) 
     {
         const VCPattern& pat = patterns[i];
@@ -126,7 +126,7 @@ void VCBuilder::AddPatternVCs()
             continue;
         if (pat.Matches(m_color, *m_brd)) 
         {
-            bitset_t carrier = pat.NotOpponent() - m_brd->getColor(m_color);
+            bitset_t carrier = pat.NotOpponent() - m_brd->GetColor(m_color);
             carrier.reset(pat.Endpoint(0));
             carrier.reset(pat.Endpoint(1));
             VC vc(pat.Endpoint(0), pat.Endpoint(1), carrier, VC_RULE_BASE);
@@ -147,7 +147,7 @@ void VCBuilder::ComputeCapturedSets(const PatternState& patterns)
     for (BoardIterator p(m_brd->Const().EdgesAndInterior()); p; ++p)
     {
         m_capturedSet[*p] = EMPTY_BITSET;
-        if (m_brd->getColor(*p) == EMPTY)
+        if (m_brd->GetColor(*p) == EMPTY)
         {
             PatternHits hits;
             patterns.MatchOnCell(m_hash_capturedSetPatterns[m_color],
@@ -516,8 +516,8 @@ void VCBuilder::andClosure(const VC& vc)
     endp[0] = m_groups->CaptainOf(vc.x());
     endp[1] = m_groups->CaptainOf(vc.y());
     HexColor endc[2];
-    endc[0] = m_brd->getColor(endp[0]);
-    endc[1] = m_brd->getColor(endp[1]);
+    endc[0] = m_brd->GetColor(endp[0]);
+    endc[1] = m_brd->GetColor(endp[1]);
 
     if (endc[0] == other || endc[1] == other) {
         LogInfo() << *m_brd << '\n';
@@ -804,7 +804,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
 */
 void VCBuilder::doCrossingRule(const VC& vc, const VCList* semi_list)
 {
-    if (m_brd->getColor(vc.x()) != EMPTY || m_brd->getColor(vc.y()) != EMPTY)
+    if (m_brd->GetColor(vc.x()) != EMPTY || m_brd->GetColor(vc.y()) != EMPTY)
         return;
     
     // copy processed semis

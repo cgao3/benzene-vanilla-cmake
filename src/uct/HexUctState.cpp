@@ -44,14 +44,14 @@ namespace
 /** Returns true if board is entirely filled. */
 bool GameOver(const StoneBoard& brd)
 {
-    return brd.getEmpty().none();
+    return brd.GetEmpty().none();
 }
 
 /** Determines the winner of a filled-in board. */
 HexColor GetWinner(const StoneBoard& brd)
 {
     SG_ASSERT(GameOver(brd));
-    if (BoardUtils::ConnectedOnBitset(brd.Const(), brd.getColor(BLACK), 
+    if (BoardUtils::ConnectedOnBitset(brd.Const(), brd.GetColor(BLACK), 
                                       NORTH, SOUTH))
         return BLACK;
     return WHITE;
@@ -144,10 +144,10 @@ void HexUctState::ExecuteTreeMove(HexPoint move)
     HexUctStoneData stones;
     if (m_shared_data->stones.get(SequenceHash::Hash(m_game_sequence), stones))
     {
-        m_bd->startNewGame();
-        m_bd->setColor(BLACK, stones.black);
-        m_bd->setColor(WHITE, stones.white);
-        m_bd->setPlayed(stones.played);
+        m_bd->StartNewGame();
+        m_bd->SetColor(BLACK, stones.black);
+        m_bd->SetColor(WHITE, stones.white);
+        m_bd->SetPlayed(stones.played);
         m_pastate->Update();
     }
 }
@@ -170,7 +170,7 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
     //   If assertions are on, this will cause the search to abort
     // needlessly.
     // @todo Handle case when assertions are on.
-    SG_ASSERT(m_bd->isEmpty(cell));
+    SG_ASSERT(m_bd->IsEmpty(cell));
     SG_ASSERT(m_pastate->UpdateRadius() == updateRadius);
     
     m_bd->playMove(m_toPlay, cell);
@@ -203,7 +203,7 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
     if (count == 0)
     {
         // First time at node: use empty cells and prior knowledge
-        for (BitsetIterator it(m_bd->getEmpty()); it; ++it)
+        for (BitsetIterator it(m_bd->GetEmpty()); it; ++it)
             moves.push_back(SgMoveInfo(*it));
         m_knowledge.ProcessPosition(moves);
     }
@@ -217,7 +217,7 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
                       << HashUtil::toString(hash) << '\n';
         }
         truncateChildTrees = true;
-        bitset_t moveset = m_bd->getEmpty() & ComputeKnowledge(provenType);
+        bitset_t moveset = m_bd->GetEmpty() & ComputeKnowledge(provenType);
         for (BitsetIterator it(moveset); it; ++it)
             moves.push_back(SgMoveInfo(*it));
     }
@@ -248,12 +248,12 @@ void HexUctState::StartSearch()
     HexBoard& brd = const_cast<HexBoard&>(m_search.Board());
     
     if (!m_bd.get() 
-        || m_bd->width() != brd.width() 
-        || m_bd->height() != brd.height())
+        || m_bd->Width() != brd.Width() 
+        || m_bd->Height() != brd.Height())
     {
-        m_bd.reset(new StoneBoard(brd.width(), brd.height()));
+        m_bd.reset(new StoneBoard(brd.Width(), brd.Height()));
         m_pastate.reset(new PatternState(*m_bd));
-        m_vc_brd.reset(new HexBoard(brd.width(), brd.height(), 
+        m_vc_brd.reset(new HexBoard(brd.Width(), brd.Height(), 
                                     brd.ICE(), brd.Builder().Parameters()));
     }
 
@@ -284,10 +284,10 @@ void HexUctState::GameStart()
     m_lastMovePlayed = m_shared_data->root_last_move_played;
     m_pastate->SetUpdateRadius(m_treeUpdateRadius);
 
-    m_bd->startNewGame();
-    m_bd->setColor(BLACK, m_shared_data->root_stones.black);
-    m_bd->setColor(WHITE, m_shared_data->root_stones.white);
-    m_bd->setPlayed(m_shared_data->root_stones.played);
+    m_bd->StartNewGame();
+    m_bd->SetColor(BLACK, m_shared_data->root_stones.black);
+    m_bd->SetColor(WHITE, m_shared_data->root_stones.white);
+    m_bd->SetPlayed(m_shared_data->root_stones.played);
     m_pastate->Update();
 }
 
@@ -322,10 +322,10 @@ bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
     /** @todo Use a more complicated scheme to update the connections?
         For example, if state is close to last one, use incremental
         builds to transition from old to current. */
-    m_vc_brd->startNewGame();
-    m_vc_brd->setColor(BLACK, m_bd->getBlack() & m_bd->getPlayed());
-    m_vc_brd->setColor(WHITE, m_bd->getWhite() & m_bd->getPlayed());
-    m_vc_brd->setPlayed(m_bd->getPlayed());
+    m_vc_brd->StartNewGame();
+    m_vc_brd->SetColor(BLACK, m_bd->GetBlack() & m_bd->GetPlayed());
+    m_vc_brd->SetColor(WHITE, m_bd->GetWhite() & m_bd->GetPlayed());
+    m_vc_brd->SetPlayed(m_bd->GetPlayed());
     m_vc_brd->ComputeAll(m_toPlay);
 
     // Consider set will be non-empty only if a non-determined state.

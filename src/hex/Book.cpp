@@ -22,7 +22,7 @@ using namespace benzene;
 
 float BookNode::Value(const StoneBoard& brd) const
 {
-    if (brd.isLegal(SWAP_PIECES))
+    if (brd.IsLegal(SWAP_PIECES))
         return std::max(m_value, Book::InverseEval(m_value));
     return m_value;
 }
@@ -130,7 +130,7 @@ int Book::GetMainLineDepth(const StoneBoard& pos) const
             break;
         HexPoint move = INVALID_POINT;
         float value = -1e9;
-        for (BitsetIterator p(brd.getEmpty()); p; ++p)
+        for (BitsetIterator p(brd.GetEmpty()); p; ++p)
         {
             brd.playMove(brd.WhoseTurn(), *p);
             BookNode child;
@@ -172,7 +172,7 @@ std::size_t Book::TreeSize(StoneBoard& brd, std::map<hash_t,
         return 0;
    
     std::size_t ret = 1;
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) 
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.playMove(brd.WhoseTurn(), *p);
         ret += TreeSize(brd, solved);
@@ -188,7 +188,7 @@ hash_t BookUtil::GetHash(const StoneBoard& brd)
 {
     hash_t hash1 = brd.Hash();
     StoneBoard rotatedBrd(brd);
-    rotatedBrd.rotateBoard();
+    rotatedBrd.RotateBoard();
     hash_t hash2 = rotatedBrd.Hash();
     return std::min(hash1, hash2);
 }
@@ -197,7 +197,7 @@ unsigned BookUtil::NumChildren(const Book& book, const StoneBoard& board)
 {
     unsigned num = 0;
     StoneBoard brd(board);
-    for (BitsetIterator i(brd.getEmpty()); i; ++i) 
+    for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
     {
 	brd.playMove(brd.WhoseTurn(), *i);
 	BookNode child;
@@ -212,7 +212,7 @@ void BookUtil::UpdateValue(const Book& book, BookNode& node, StoneBoard& brd)
 {
     bool hasChild = false;
     float bestValue = boost::numeric::bounds<float>::lowest();
-    for (BitsetIterator i(brd.getEmpty()); i; ++i) 
+    for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
     {
 	brd.playMove(brd.WhoseTurn(), *i);
 	BookNode child;
@@ -254,7 +254,7 @@ HexPoint BookUtil::UpdatePriority(const Book& book, BookNode& node,
     bool hasChild = false;
     float bestPriority = boost::numeric::bounds<float>::highest();
     HexPoint bestChild = INVALID_POINT;
-    for (BitsetIterator i(brd.getEmpty()); i; ++i) 
+    for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
     {
 	brd.playMove(brd.WhoseTurn(), *i);
 	BookNode child;
@@ -288,7 +288,7 @@ HexPoint BookUtil::BestMove(const Book& book, const StoneBoard& pos,
     float bestScore = -1e9;
     HexPoint bestChild = INVALID_POINT;
     StoneBoard brd(pos);
-    for (BitsetIterator p(brd.getEmpty()); p; ++p)
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p)
     {
         brd.playMove(brd.WhoseTurn(), *p);
         BookNode child;
@@ -320,7 +320,7 @@ void BookUtil::DumpVisualizationData(const Book& book, StoneBoard& brd,
         out << node.Value(brd) << " " << depth << '\n';
         return;
     }
-    for (BitsetIterator i(brd.getEmpty()); i; ++i) 
+    for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
     {
 	brd.playMove(brd.WhoseTurn(), *i);
         DumpVisualizationData(book, brd, depth + 1, out);
@@ -352,7 +352,7 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
     {
         if (node.IsLeaf() || node.IsTerminal())
             return;
-        for (BitsetIterator i(brd.getEmpty()); i; ++i) 
+        for (BitsetIterator i(brd.GetEmpty()); i; ++i) 
         {
             brd.playMove(brd.WhoseTurn(), *i);
             pv.push_back(*i);
@@ -423,7 +423,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
         HexAssert(winner != EMPTY);
         
         ++numParsed;
-        brd.startNewGame();
+        brd.StartNewGame();
         for (std::size_t i = 0; i < points.size(); ++i)
             brd.playMove(brd.WhoseTurn(), points[i]);
         HexEval ourValue = (brd.WhoseTurn() == winner) 

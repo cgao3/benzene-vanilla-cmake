@@ -20,14 +20,14 @@ StoneBoard::StoneBoard(unsigned size)
     : m_const(&ConstBoard::Get(size)),
       m_hash(size, size)
 {
-    startNewGame();
+    StartNewGame();
 }
 
 StoneBoard::StoneBoard(unsigned width, unsigned height)
     : m_const(&ConstBoard::Get(width, height)),
       m_hash(width, height)
 {
-    startNewGame();
+    StartNewGame();
 }
 
 StoneBoard::~StoneBoard()
@@ -36,67 +36,62 @@ StoneBoard::~StoneBoard()
 
 //----------------------------------------------------------------------------
 
-HexColor StoneBoard::getColor(HexPoint cell) const
+HexColor StoneBoard::GetColor(HexPoint cell) const
 {
-    HexAssert(Const().isValid(cell));
-    if (isBlack(cell)) return BLACK;
-    if (isWhite(cell)) return WHITE;
+    HexAssert(Const().IsValid(cell));
+    if (IsBlack(cell)) return BLACK;
+    if (IsWhite(cell)) return WHITE;
     return EMPTY;
 }
 
-bitset_t StoneBoard::getLegal() const
+bitset_t StoneBoard::GetLegal() const
 {
     bitset_t legal;
-    if (isPlayed(RESIGN)) return legal;
+    if (IsPlayed(RESIGN)) 
+        return legal;
     
-    legal = getPlayed();
-    legal.flip();
-    legal &= Const().GetCells();
+    legal = ~GetPlayed() & Const().GetCells();
     legal.set(RESIGN);
     
-    // swap is available only when 4 edges and exactly
+    // Swap is available only when 4 edges and exactly
     // one cell have been played
-    if (getPlayed().count() == 5) {
-	HexAssert(!isPlayed(SWAP_PIECES));
-	HexAssert(getColor(FIRST_TO_PLAY).count() >= 3);
-	HexAssert((getPlayed() & getColor(FIRST_TO_PLAY)).count() == 3);
-	HexAssert(getColor(!FIRST_TO_PLAY).count() == 2);
+    if (GetPlayed().count() == 5) 
+    {
+	HexAssert(!IsPlayed(SWAP_PIECES));
+	HexAssert(GetColor(FIRST_TO_PLAY).count() >= 3);
+	HexAssert((GetPlayed() & GetColor(FIRST_TO_PLAY)).count() == 3);
+	HexAssert(GetColor(!FIRST_TO_PLAY).count() == 2);
 	legal.set(SWAP_PIECES);
     }
-    
-    HexAssert(Const().isValid(legal));
+    HexAssert(Const().IsValid(legal));
     return legal;
 }
 
-bool StoneBoard::isLegal(HexPoint cell) const
+bool StoneBoard::IsLegal(HexPoint cell) const
 {
-    HexAssert(Const().isValid(cell));
-    return getLegal().test(cell);
+    HexAssert(Const().IsValid(cell));
+    return GetLegal().test(cell);
 }
 
 const BoardIterator& StoneBoard::Stones(HexColorSet colorset) const
 {
-    if (!m_stones_calculated) {
-
-        for (int i=0; i<NUM_COLOR_SETS; ++i) {
+    if (!m_stones_calculated) 
+    {
+        for (int i = 0; i < NUM_COLOR_SETS; ++i)
             m_stones_list[i].clear();
-        }
 
-        for (BoardIterator p(Const().EdgesAndInterior()); p; ++p) {
-            for (int i=0; i<NUM_COLOR_SETS; ++i) {
-                if (HexColorSetUtil::InSet(getColor(*p), (HexColorSet)i))
+        for (BoardIterator p(Const().EdgesAndInterior()); p; ++p) 
+            for (int i = 0; i < NUM_COLOR_SETS; ++i) 
+                if (HexColorSetUtil::InSet(GetColor(*p), (HexColorSet)i))
                     m_stones_list[i].push_back(*p);
-            }
-        }        
 
-        for (int i=0; i<NUM_COLOR_SETS; ++i) {
+        for (int i = 0; i < NUM_COLOR_SETS; ++i) 
+        {
             m_stones_list[i].push_back(INVALID_POINT);
             m_stones_iter[i] = BoardIterator(m_stones_list[i]);
         }
-
         m_stones_calculated = true;
     }
-
     return m_stones_iter[colorset];
 }
 
@@ -107,7 +102,7 @@ void StoneBoard::MarkAsDirty()
     m_stones_calculated = false;
 }
 
-void StoneBoard::addColor(HexColor color, const bitset_t& b)
+void StoneBoard::AddColor(HexColor color, const bitset_t& b)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] |= b;
@@ -115,7 +110,7 @@ void StoneBoard::addColor(HexColor color, const bitset_t& b)
     if (b.any()) MarkAsDirty();
 }
 
-void StoneBoard::removeColor(HexColor color, const bitset_t& b)
+void StoneBoard::RemoveColor(HexColor color, const bitset_t& b)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] = m_stones[color] - b;
@@ -123,10 +118,10 @@ void StoneBoard::removeColor(HexColor color, const bitset_t& b)
     if (b.any()) MarkAsDirty();
 }
 
-void StoneBoard::setColor(HexColor color, HexPoint cell)
+void StoneBoard::SetColor(HexColor color, HexPoint cell)
 {
     HexAssert(HexColorUtil::isValidColor(color));
-    HexAssert(Const().isValid(cell));
+    HexAssert(Const().IsValid(cell));
 
     if (color == EMPTY) {
 	for (BWIterator it; it; ++it)
@@ -139,11 +134,11 @@ void StoneBoard::setColor(HexColor color, HexPoint cell)
     MarkAsDirty();
 }
 
-void StoneBoard::setColor(HexColor color, const bitset_t& bs)
+void StoneBoard::SetColor(HexColor color, const bitset_t& bs)
 {
     /** @todo Should we make this support EMPTY color too? */
     HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(Const().isValid(bs));
+    HexAssert(Const().IsValid(bs));
 
     m_stones[color] = bs;
     HexAssert(IsBlackWhiteDisjoint());
@@ -151,7 +146,7 @@ void StoneBoard::setColor(HexColor color, const bitset_t& bs)
     MarkAsDirty();
 }
 
-void StoneBoard::setPlayed(const bitset_t& played)
+void StoneBoard::SetPlayed(const bitset_t& played)
 {
     m_played = played;
     ComputeHash();
@@ -167,7 +162,7 @@ void StoneBoard::ComputeHash()
     m_hash.Compute(m_stones[BLACK] & mask, m_stones[WHITE] & mask);
 }
 
-void StoneBoard::startNewGame()
+void StoneBoard::StartNewGame()
 {
     m_played.reset();
     for (BWIterator it; it; ++it) 
@@ -183,33 +178,33 @@ void StoneBoard::startNewGame()
 void StoneBoard::playMove(HexColor color, HexPoint cell)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(Const().isValid(cell));
+    HexAssert(Const().IsValid(cell));
 
     m_played.set(cell);
     if (Const().IsLocation(cell))
         m_hash.Update(color, cell);
-    setColor(color, cell);
+    SetColor(color, cell);
 
     MarkAsDirty();
 }
 
 void StoneBoard::undoMove(HexPoint cell)
 {
-    HexAssert(Const().isValid(cell));
-    HexColor color = getColor(cell);
+    HexAssert(Const().IsValid(cell));
+    HexColor color = GetColor(cell);
     HexAssert(color != EMPTY);
 
     m_played.reset(cell);
     if (Const().IsLocation(cell))
         m_hash.Update(color, cell);
-    setColor(EMPTY, cell);
+    SetColor(EMPTY, cell);
 
     MarkAsDirty();
 }
 
 //----------------------------------------------------------------------------
 
-void StoneBoard::rotateBoard()
+void StoneBoard::RotateBoard()
 {
     m_played = BoardUtils::Rotate(Const(), m_played);
     for (BWIterator it; it; ++it)
@@ -218,7 +213,7 @@ void StoneBoard::rotateBoard()
     MarkAsDirty();
 }
 
-void StoneBoard::mirrorBoard()
+void StoneBoard::MirrorBoard()
 {
     m_played = BoardUtils::Mirror(Const(), m_played);
     for (BWIterator it; it; ++it)
@@ -233,7 +228,7 @@ BoardID StoneBoard::GetBoardID() const
 {
     /** Packs each interior cell into 2 bits.
         @note Assumes all valid HexColors lie between [0,2]. */
-    std::size_t n = (width()*height()+3)/4*4;
+    std::size_t n = (Width() * Height() + 3) / 4 * 4;
 
     /** @note When this code was written, the cells were iterated over
         in the order (a1, b1, c1, ..., a2, b2, c2, ... , etc). Any
@@ -242,20 +237,18 @@ BoardID StoneBoard::GetBoardID() const
         updated to always compute in the above order. */
     std::size_t i = 0;
     std::vector<byte> val(n, 0);
-    bitset_t played = getPlayed();
-    for (BoardIterator p(Const().Interior()); p; ++p, ++i) {
+    bitset_t played = GetPlayed();
+    for (BoardIterator p(Const().Interior()); p; ++p, ++i) 
         val[i] = (played.test(*p)) 
-            ? static_cast<byte>(getColor(*p))
+            ? static_cast<byte>(GetColor(*p))
             : static_cast<byte>(EMPTY);
-    }
 
     BoardID id;
-    for (i=0; i<n; i+=4) {
+    for (i = 0; i < n; i += 4)
         id.push_back(val[i] 
                      + (val[i+1] << 2)
                      + (val[i+2] << 4)
                      + (val[i+3] << 6));
-    }
     return id;
 }
 
@@ -275,11 +268,12 @@ std::string StoneBoard::GetBoardIDString() const
 
 void StoneBoard::SetState(const BoardID& id)
 {
-    std::size_t n = (width()*height()+3)/4*4;
-    HexAssert(id.size() == n/4);
+    std::size_t n = (Width() * Height() + 3) / 4 * 4;
+    HexAssert(id.size() == n / 4);
 
     std::vector<byte> val(n, 0);
-    for (std::size_t i=0; i<n; i+=4) {
+    for (std::size_t i = 0; i < n; i += 4) 
+    {
         byte packed = id[i/4];
         val[i] = packed & 0x3;
         val[i+1] = (packed >> 2) & 0x3;
@@ -289,9 +283,10 @@ void StoneBoard::SetState(const BoardID& id)
 
     /** @note This depends on the order defined by Interior().
         See note in implementation of GetBoardID(). */
-    startNewGame();
+    StartNewGame();
     std::size_t i = 0;
-    for (BoardIterator p(Const().Interior()); p; ++p, ++i) {
+    for (BoardIterator p(Const().Interior()); p; ++p, ++i) 
+    {
         HexColor color = static_cast<HexColor>(val[i]);
         if (color == BLACK || color == WHITE)
             playMove(color, *p);
@@ -314,30 +309,30 @@ std::string StoneBoard::Write(const bitset_t& b) const
     out << '\n';
     out << "  " << HashUtil::toString(Hash()) << '\n';
     out << "  ";
-    for (int i = 0; i < width(); i++) 
+    for (int i = 0; i < Width(); i++) 
         out << (char)('a' + i) << "  ";
     out << '\n';
-    for (int i = 0; i < height(); i++) 
+    for (int i = 0; i < Height(); i++) 
     {
         for (int j = 0; j < i; j++) 
             out << " ";
         if (i + 1 < 10) 
             out << " ";
         out << (i + 1) << "\\";
-        for (int j = 0; j < width(); j++) 
+        for (int j = 0; j < Width(); j++) 
         {
             HexPoint p = HexPointUtil::coordsToPoint(j, i);
             if (j) 
                 out << "  ";
             if (b.test(p))
                 out << "*";
-            else if (isBlack(p) && isPlayed(p))
+            else if (IsBlack(p) && IsPlayed(p))
                 out << "B";
-            else if (isBlack(p))
+            else if (IsBlack(p))
                 out << "b";
-            else if (isWhite(p) && isPlayed(p))
+            else if (IsWhite(p) && IsPlayed(p))
                 out << "W";
-            else if (isWhite(p))
+            else if (IsWhite(p))
                 out << "w";
             else
                 out << ".";
@@ -346,10 +341,10 @@ std::string StoneBoard::Write(const bitset_t& b) const
         out << (i + 1); 
         out << '\n';
     }
-    for (int j = 0; j < height(); j++) 
+    for (int j = 0; j < Height(); j++) 
         out << " ";
     out << "   ";
-    for (int i = 0; i < width(); i++)
+    for (int i = 0; i < Width(); i++)
         out << (char)('a' + i) << "  ";
     return out.str();
 }

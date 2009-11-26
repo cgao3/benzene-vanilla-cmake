@@ -113,8 +113,8 @@ HexPoint MoHexPlayer::search(HexBoard& brd,
 
     // Create the initial state data
     HexUctSharedData data;
-    data.board_width = brd.width();
-    data.board_height = brd.height();
+    data.board_width = brd.Width();
+    data.board_height = brd.Height();
     data.root_to_play = color;
     data.game_sequence = game_state.History();
     data.root_last_move_played = LastMoveFromHistory(game_state.History());
@@ -365,15 +365,15 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         if (!(oldStateData == newData.root_stones))
         {
             StoneBoard brd(11);
-            brd.setColor(BLACK, oldStateData.black);
-            brd.setColor(WHITE, oldStateData.white);
-            brd.setPlayed(oldStateData.played);
+            brd.SetColor(BLACK, oldStateData.black);
+            brd.SetColor(WHITE, oldStateData.white);
+            brd.SetPlayed(oldStateData.played);
             LogWarning() << "FILLIN DOES NOT MATCH" << '\n';
             LogWarning() << brd << '\n';
-            brd.startNewGame();
-            brd.setColor(BLACK, newData.root_stones.black);
-            brd.setColor(WHITE, newData.root_stones.white);
-            brd.setPlayed(newData.root_stones.played);
+            brd.StartNewGame();
+            brd.SetColor(BLACK, newData.root_stones.black);
+            brd.SetColor(WHITE, newData.root_stones.white);
+            brd.SetPlayed(newData.root_stones.played);
             LogWarning() << brd << '\n';
         }
         HexAssert(oldStateData == newData.root_stones);

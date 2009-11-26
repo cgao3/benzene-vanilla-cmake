@@ -93,8 +93,8 @@ namespace
         if (!connected)
             return values.no_connection;
     
-        HexColor ac = brd.getColor(a);
-        HexColor bc = brd.getColor(b);
+        HexColor ac = brd.GetColor(a);
+        HexColor bc = brd.GetColor(b);
 
         if (ac == EMPTY && bc == EMPTY)
             return values.empty_to_empty;
@@ -261,7 +261,7 @@ void SimulateAndOverEdge1(const HexBoard& brd, HexColor color,
     HexAssert(g_ResistanceUtilInitialized);
 
     bitset_t adjToEdge;
-    for (BitsetIterator p(brd.getEmpty()); p; ++p) 
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         PatternHits hits;
         brd.GetPatternState().MatchOnCell(*s_hash_capmiai[color], *p, 
