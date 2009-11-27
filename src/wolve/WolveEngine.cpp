@@ -83,8 +83,6 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
             << search.BackupIceInfo() << '\n'
             << "[bool] use_guifx "
             << search.GuiFx() << '\n'
-            << "[bool] use_threads "
-            << search.UseThreads() << '\n'
 	    << "[string] panic_time "
 	    << wolve->PanicTime() << '\n'
             << "[string] ply_width " 
@@ -113,8 +111,6 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
         }
         else if (name == "use_guifx")
             search.SetGuiFx(cmd.BoolArg(1));
-        else if (name == "use_threads")
-            search.SetUseThreads(cmd.BoolArg(1));
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

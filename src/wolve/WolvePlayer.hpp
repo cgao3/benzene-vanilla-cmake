@@ -21,41 +21,6 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-typedef enum 
-{
-    /** Tells thread to quit. */
-    WOLVE_THREAD_QUIT=0,
-
-    /** Tells thread to play a move. */
-    WOLVE_THREAD_PLAY,
-
-    /** Tells thread to undo last move played. */
-    WOLVE_THREAD_UNDO
-
-} WolveThreadAction;
-
-/** Plays/Takesback moves. */
-struct WolveWorkThread
-{
-    WolveWorkThread(HexBoard& brd, 
-                    boost::barrier& start,
-                    boost::barrier& completed,
-                    const WolveThreadAction& action,
-                    const HexPoint& move,
-                    const HexColor& color);
-
-    void operator()();
-
-    HexBoard& m_brd;
-    boost::barrier& m_start;
-    boost::barrier& m_completed;
-    const WolveThreadAction& m_action;
-    const HexPoint& m_move;
-    const HexColor& m_color;
-};
-
-//----------------------------------------------------------------------------
-
 /** Varaition TT entry. */
 struct VariationInfo
 {
@@ -108,25 +73,15 @@ inline bool VariationInfo::ReplaceWith(const VariationInfo& other) const
 
 //-------------------------------------------------------------------------- 
 
-/** Performs an AlphaBeta search with two boards in parallel. 
-    
-    The first board has all vc/ice options turned on and is used for
-    its vc set and strong win/loss detection. The second board does
-    not do any ice, and is used solely for the evaluation. The second
-    board's vc set is augmented with the vc set of the first board.
+/** Performs an AlphaBeta search using Resistance for evaluations. 
 
-    The reason this is necessary is that ice fill-in degrades the
-    playing strength of Wolve, probably because the Resistance
-    evaluation behaves strangely with fillin.
+    @todo Switch to SgSearch instead of HexAbSearch?
 */
 class WolveSearch : public HexAbSearch
 {
 public:
-
-    /** Constructor */
     WolveSearch();
 
-    /** Destructor */
     virtual ~WolveSearch();
 
     //-----------------------------------------------------------------------
@@ -167,12 +122,6 @@ public:
     /** @name Parameters */
     // @{
 
-    /** Whether Wolve should use a thread for each of its boards. */
-    bool UseThreads() const;
-
-    /** See UseThreads() */
-    void SetUseThreads(bool enable);
-
     /** Whether the backed-up ice info is used to reduce the moves to
         consider after a state has been searched. This is useful if
         using iterative deepening, since the next time the state is
@@ -185,17 +134,9 @@ public:
     // @}
 
 private:
-
-    /** Copy the board to the fill-in board. */
-    void SetupNonFillinBoard();
-
     /** Computes the evaluation on the no_fillin_board (if it exists)
         using the ConductanceGraph from m_brd. */
     void ComputeResistance(Resistance& resist);
-
-    /** Board with no fill-in. Used for circuit evaluation since 
-        fill-in reduces the amount of flow. */
-    boost::scoped_ptr<HexBoard> m_no_fillin_board;
 
     /** Consider sets for each depth. */
     std::vector<bitset_t> m_consider;
@@ -206,31 +147,8 @@ private:
     /** Variation TT. */
     TransTable<VariationInfo> m_varTT;
 
-    /** See UseThreads() */
-    bool m_use_threads;
-
     /** See BackupIceInfo() */
     bool m_backup_ice_info;
-
-    //---------------------------------------------------------------------- 
-
-    /** Allocate and starts threads. */
-    void StartThreads();
-
-    /** Stops and free threads. */
-    void StopThreads();
-
-    boost::barrier m_start_threads;
-
-    boost::barrier m_threads_completed;
-
-    boost::scoped_ptr<boost::thread> m_thread[2];
-
-    WolveThreadAction m_threadAction;
-
-    HexPoint m_threadMove;
-
-    HexColor m_threadColor;
 };
 
 inline bitset_t WolveSearch::RootMovesToConsider() const
@@ -241,16 +159,6 @@ inline bitset_t WolveSearch::RootMovesToConsider() const
 inline void WolveSearch::SetRootMovesToConsider(const bitset_t& consider)
 {
     m_rootMTC = consider;
-}
-
-inline bool WolveSearch::UseThreads() const
-{
-    return m_use_threads;
-}
-
-inline void WolveSearch::SetUseThreads(bool enable)
-{
-    m_use_threads = enable;
 }
 
 inline bool WolveSearch::BackupIceInfo() const
@@ -269,11 +177,8 @@ inline void WolveSearch::SetBackupIceInfo(bool enable)
 class WolvePlayer : public BenzenePlayer
 {
 public:
-    
-    /** Creates a player. */
     explicit WolvePlayer();
-    
-    /** Destructor. */
+
     virtual ~WolvePlayer();
   
     /** Returns "wolve". */
@@ -311,13 +216,6 @@ public:
     // @}
 
 private: 
-
-    /** Generates a move in the given gamestate using alphabeta. */
-    virtual HexPoint search(HexBoard& brd, const Game& game_state,
-			    HexColor color, const bitset_t& consider, 
-                            double max_time, double& score);
-
-    
     WolveSearch m_search;
 
     /** TT for search. */
@@ -331,6 +229,11 @@ private:
 
     /** See PanicTime() */
     double m_panic_time;
+
+    /** Generates a move in the given gamestate using alphabeta. */
+    virtual HexPoint search(HexBoard& brd, const Game& game_state,
+			    HexColor color, const bitset_t& consider, 
+                            double max_time, double& score);
 };
 
 inline std::string WolvePlayer::name() const

@@ -112,6 +112,11 @@ public:
     void Evaluate(const HexBoard& brd, 
                   AdjacencyGraph graph[BLACK_AND_WHITE]);
 
+
+    /** Evaluate on the given groups with the given adjacency
+        graph. */
+    void Evaluate(const Groups& groups, AdjacencyGraph graph[BLACK_AND_WHITE]);
+
     //---------------------------------------------------------------------- 
 
     /** Returns the log(resistance) for the given color. */

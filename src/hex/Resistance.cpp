@@ -73,6 +73,15 @@ void Resistance::Evaluate(const HexBoard& brd,
     ComputeScore();
 }
 
+void Resistance::Evaluate(const Groups& groups, 
+                          AdjacencyGraph graph[BLACK_AND_WHITE])
+{
+    ConductanceValues values;
+    for (BWIterator c; c; ++c) 
+        ComputeScores(*c, groups, graph[*c], values, m_scores[*c]);
+    ComputeScore();
+}
+
 //----------------------------------------------------------------------------
 
 namespace
