@@ -122,6 +122,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.LiveGfxInterval() << '\n'
             << "[string] max_games "
             << mohex->MaxGames() << '\n'
+            << "[string] max_memory "
+            << search.MaxNodes() * 2 * sizeof(SgUctNode) << '\n'
             << "[string] max_nodes "
             << search.MaxNodes() << '\n'
             << "[string] max_time "
@@ -162,10 +164,12 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetLiveGfxInterval(cmd.IntArg(1, 0));
         else if (name == "max_games")
             mohex->SetMaxGames(cmd.IntArg(1, 0));
+        else if (name == "max_memory")
+            search.SetMaxNodes(cmd.SizeTypeArg(1, 1) / sizeof(SgUctNode) / 2);
         else if (name == "max_time")
             mohex->SetMaxTime(cmd.FloatArg(1));
         else if (name == "max_nodes")
-            search.SetMaxNodes(cmd.IntArg(1, 0));
+            search.SetMaxNodes(cmd.SizeTypeArg(1, 1));
         else if (name == "num_threads")
             search.SetNumberThreads(cmd.IntArg(1, 0));
         else if (name == "playout_update_radius")
