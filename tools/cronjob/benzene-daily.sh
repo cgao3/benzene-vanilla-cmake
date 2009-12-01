@@ -12,6 +12,7 @@
 # Documentation will be copied to WEBPAGE.
 
 TEST_DIR=/local/scratch/broderic/benzene-daily
+GIT_BACKUP_DIR=~broderic/hex/benzene.git.sf.backup/
 #REPORT_EMAIL="hexml@lists.cs.ualberta.ca"
 REPORT_EMAIL="broderic@cs.ualberta.ca"
 
@@ -53,7 +54,7 @@ run-checked() {
   OUTPUT=$($CMD 2>&1) || mail-error "$TITLE ($CMD)" "$OUTPUT"
 }
 
-# Fuego-0.3
+# Fuego trunk
 
 cd $TEST_DIR || exit 1
 rm -rf fuego
@@ -63,7 +64,10 @@ autoreconf -i
 ./configure --enable-assert
 run-checked "make" "FUEGO COMPILATION"
 
-# Benzene
+# Backup the benzene repository
+rsync -av benzene.git.sourceforge.net::gitroot/benzene/* $GIT_BACKUP_DIR
+
+# Clone and build benzene
 
 cd $TEST_DIR || exit 1
 rm -rf benzene
@@ -73,6 +77,8 @@ autoreconf -i
 ./configure --enable-assert --with-fuego-root=$TEST_DIR/fuego
 run-checked "make" "BENZENE COMPILATION"
 run-checked "make check" "BENZENE MAKE CHECK"
+
+# Run unit and regresion tests
 run-checked "src/test/benzene_unittest" "BENZENE UNIT TESTS"
 
 cd $TEST_DIR/benzene/regression
@@ -81,6 +87,7 @@ run-checked "./run.sh" "BENZENE BASIC REGRESSION TESTS"
 cd $TEST_DIR/benzene/doc
 make -s
 
+# Build documentation and upload to server
 tar czf benzene-doc.tar.gz benzene-doc/
 scp benzene-doc.tar.gz $WEBPAGE
 cd $WEBPAGE && rm -rf benzene-doc && tar xzf benzene-doc.tar.gz && chmod a+rX -R benzene-doc
