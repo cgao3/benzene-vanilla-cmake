@@ -67,9 +67,8 @@ run-checked "make" "FUEGO COMPILATION"
 
 cd $TEST_DIR || exit 1
 rm -rf benzene
-git clone /usr/tees1/cshome/broderic/git/benzene.git/ benzene || exit 1
+git clone git://benzene.git.sourceforge.net/gitroot/benzene/benzene benzene || exit 1
 cd benzene || exit 1
-git pull
 autoreconf -i
 ./configure --enable-assert --with-fuego-root=$TEST_DIR/fuego
 run-checked "make" "BENZENE COMPILATION"
