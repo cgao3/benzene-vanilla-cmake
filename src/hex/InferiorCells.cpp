@@ -429,26 +429,20 @@ std::string InferiorCells::GuiOutput() const
         os << " " << p << " ";
         if (Dead().test(i)) 
         {
-            os << "db";
-            //os << ((brd.getColor(p) == BLACK) ? "b" : "w");
+            os << "fd";
+            os << ((DEAD_COLOR == BLACK) ? "b" : "w");
         }
-        else if (Captured(BLACK).test(i)) 
-            os << "b";
+        else if (Captured(BLACK).test(i))
+            os << "fcb";
         else if (Captured(WHITE).test(i))
-            os << "w";
-        else if (PermInf(BLACK).test(i)) 
-        {
-            os << "pb[";
-            os << "]";
-        }
-        else if (PermInf(WHITE).test(i)) 
-        {
-            os << "pw[";
-            os << "]";
-        }
+            os << "fcw";
+        else if (PermInf(BLACK).test(i))
+            os << "fpb";
+        else if (PermInf(WHITE).test(i))
+            os << "fpw";
         else if (Vulnerable().test(i)) 
         {
-            os << "#[";
+            os << "iv[";
             bool first=true;
             std::set<VulnerableKiller>::const_iterator i;
             for (i = m_killers[p].begin(); i != m_killers[p].end(); ++i) 
@@ -461,7 +455,7 @@ std::string InferiorCells::GuiOutput() const
         }
         else if (Reversible().test(i)) 
         {
-            os << "@[";
+            os << "ir[";
             bool first=true;
             std::set<HexPoint>::const_iterator i;
             for (i = m_reversers[p].begin(); i != m_reversers[p].end(); ++i) 
@@ -474,11 +468,12 @@ std::string InferiorCells::GuiOutput() const
         }
         else if (Dominated().test(i)) 
         {
-            os << "![";
+            os << "id[";
             bool first=true;
             std::set<HexPoint>::iterator i;
             for (i=m_dom_graph.out_begin(p); i!=m_dom_graph.out_end(p); ++i) 
             {
+                // PHIL IS CONFUSED: CAN THIS HAPPEN??
                 if (Vulnerable().test(*i))
                     continue;
                 if (!first) os << "-";
