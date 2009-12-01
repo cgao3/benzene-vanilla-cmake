@@ -195,8 +195,8 @@ private:
     /** Calls ComputeDeadRegions() and FindThreeSetCliques() and adds
         fill-in to board and set of inferior cells.
     */
-    int FillInUnreachable(Groups& groups, PatternState& pastate, 
-                          InferiorCells& out) const;
+    int CliqueCutsetDead(Groups& groups, PatternState& pastate, 
+                         InferiorCells& out) const;
 
     /** For each empty cell on the board, the move is played with the
         opponent's stone (ie, !color) and the fill-in is computed.  Any

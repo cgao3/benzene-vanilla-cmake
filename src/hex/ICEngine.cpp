@@ -250,6 +250,50 @@ bitset_t FindThreeSetCliques(const Groups& groups)
     return dead1 | dead2 | dead3;
 }
 
+/** Another attempt at finding dead regions on the board separated by
+    clique cutsets. Captures Type1 and Type2 cliques from above.
+ */
+/*
+bitset_t FindType1And2Cliques(const Groups& groups)
+{
+    if (groups.IsGameOver())
+	return groups.Board().getEmpty();
+
+    bitset_t dead;
+    const StoneBoard& brd = groups.Board();
+    bitset_t empty = brd.getEmpty();
+
+    for (BWIterator c; c; ++c) {
+        for (BitsetIterator x(empty); x; ++x) {
+            bitset_t xNbs;
+            // direct neighbours and neighbours through non-edge *c groups
+
+            for (BoardIterator y(brd.Const().Nbs(*x)); y; ++y) {
+                if (*y >= *x) continue;
+                if (!empty.test(*y)) continue;
+                bitset_t yNbs;
+                // same as xNbs...
+
+                bitset_t commonDirectNbs = groups.Nbs(*x, EMPTY)
+                                           & groups.Nbs(*y, EMPTY);
+                bitset_t z = xNbs & yNbs - commonDirectNbs;
+                HexAssert(!z.test(*x));
+                HexAssert(!z.test(*y));
+                if (z.none()) continue;
+
+                bitset_t clique = z;
+                clique.set(*x);
+                clique.set(*y);
+                dead |= ComputeEdgeUnreachableRegions(brd, *c, clique);
+                HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
+            }
+        }
+    }
+
+    return dead;
+}
+*/
+
 //----------------------------------------------------------------------------
 
 /** Returns true if the vector of points forms a clique on brd, while
@@ -644,8 +688,8 @@ int ICEngine::FillInVulnerable(HexColor color, Groups& groups,
     return count;
 }
 
-int ICEngine::FillInUnreachable(Groups& groups, PatternState& pastate,
-                                InferiorCells& out) const
+int ICEngine::CliqueCutsetDead(Groups& groups, PatternState& pastate,
+                               InferiorCells& out) const
 {
     bitset_t notReachable = ComputeDeadRegions(groups);
 
@@ -667,27 +711,36 @@ void ICEngine::ComputeFillin(HexColor color, Groups& groups,
                              HexColorSet colors_to_capture) const
 {
     out.Clear();
-    for (int iteration=0; ; ++iteration) 
+    bool considerCliqueCutset = true;
+    while(true)
     {
-        int count=0;
-        count += ComputeDeadCaptured(groups, pastate, out, colors_to_capture);
-        count += FillinPermanentlyInferior(groups, pastate, color, out, 
-                                           colors_to_capture);
-        count += FillinPermanentlyInferior(groups, pastate, !color, out, 
-                                           colors_to_capture);
-        count += FillInVulnerable(!color, groups, pastate, out, 
-                                  colors_to_capture);
-        count += FillInVulnerable(color, groups, pastate, out, 
-                                  colors_to_capture);
-        if (m_iterative_dead_regions)
-            count += FillInUnreachable(groups, pastate, out);
-
-        if (count == 0)
+        int count;
+        int iterations = 0;
+        for (;; ++iterations)
+        {
+            count = 0;
+            count += ComputeDeadCaptured(groups, pastate, out,
+                                         colors_to_capture);
+            count += FillinPermanentlyInferior(groups, pastate, color, out, 
+                                               colors_to_capture);
+            count += FillinPermanentlyInferior(groups, pastate, !color, out, 
+                                               colors_to_capture);
+            count += FillInVulnerable(!color, groups, pastate, out, 
+                                      colors_to_capture);
+            count += FillInVulnerable(color, groups, pastate, out, 
+                                      colors_to_capture);
+            if (0 == count)
+                break;
+            considerCliqueCutset = true;
+        }
+        if (m_iterative_dead_regions && considerCliqueCutset)
+            count = CliqueCutsetDead(groups, pastate, out);
+        if (0 == count)
             break;
+        considerCliqueCutset = false;
     }
-    
     if (!m_iterative_dead_regions)
-        FillInUnreachable(groups, pastate, out);
+        CliqueCutsetDead(groups, pastate, out);
 }
 
 void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
@@ -832,10 +885,6 @@ bitset_t ICEngine::FindPermanentlyInferior(const PatternState& pastate,
         for (unsigned i=0; i<moves.size(); ++i)
             carrier.set(moves[i]);
     }
-    // @todo Ensure that no dead cells intersect perm.inf. carrier.
-    // If cell a is dead and belongs to black's perm.inf. carrier,
-    // then make a black captured instead. 
-    // ^^^ DO WE STILL WANT THIS? WHAT IS THIS? --broderic
     return ret;
 }
 
