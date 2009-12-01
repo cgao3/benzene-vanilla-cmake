@@ -2,11 +2,16 @@ Benzene 0.9 (current development version)
 -----------------------------------------
 * New DFPN solver
 * Six no longer packaged with Benzene
+* Wolve uses only a single board
+* Non-edge vc templates
 * Book commands/scripts to:
   * export leafs over a certain depth threshold
   * solve leafs with multiple concurrent dfpn threads
   * import solved leafs back into book
+* Reversible moves
+* Now hosted on sourceforge
 * Code cleanup/bug fixes
+  * HexBoard no longer derives from StoneBoard
   * No more GroupBoard and PatternBoard that derive off of StoneBoard
   * Different base hash for each boardsize
   * More documentation
