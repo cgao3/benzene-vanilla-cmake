@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HexProgram.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -20,9 +20,6 @@ _BEGIN_BENZENE_NAMESPACE_
 
 /** Program for playing Hex. 
     Parses command-line arguments and initializes the Hex system.
-
-    @todo Add cmd-line option to set log file level.
-
 */
 class HexProgram : private boost::noncopyable
 {
