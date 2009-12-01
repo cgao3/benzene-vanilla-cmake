@@ -127,7 +127,14 @@ public:
     
     //------------------------------------------------------------------------
 
-    /** Returns a string representation of its internal state. */
+    /** Returns a string representation of its internal state.
+        The format is as follows:
+        1)  First character is either f (for fill-in) or i (for ignorable)
+        2a) If fill-in, 2nd character is c/d/p (captured/dead/perm inf)
+            and 3rd character is b/w (black/white fill-in colour)
+        2b) If ignorable, 2nd character is v/r/d (vulnerable/reversible/domin)
+            and 3rd entry is list of killers/reversers/dominators
+     */
     std::string GuiOutput() const;
 
     /** Examines the vulnerable cells; returns the set of
