@@ -3,7 +3,6 @@ Benzene TODO file
 
 broderic [091118]
 * Wolve
-  * Use only a single board instead of two
   * Check dfpn tt for losing moves during move gen
 * MoHex
   * Add time control to mohex
