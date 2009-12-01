@@ -1,5 +1,13 @@
 Project Benzene README
 
+----------------------
+ Obtaining the source
+----------------------
+
+Checkout the source from sourceforge using git:
+
+git clone git://benzene.git.sourceforge.net/gitroot/benzene/benzene benzene
+
 ----------
  Building
 ----------
