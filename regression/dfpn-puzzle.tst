@@ -2,11 +2,11 @@
 # Tests dfpn solver with various Hex puzzles.
 #
 #
-# Note 1: This test takes 14h28m to complete (commit 7bdf42667840c6f) on
+# Note 1: This test takes 12h4m to complete (commit 9b9d9f45cd9711) on
 #         thorhild (Intel Core 2 Quad CPU Q9450 @ 2.66GHz).
 #
-# Note 2: Times listed are rounded to the nearest given unit, and are omitted
-#         if the test is trivial (takes less than 1 second).
+# Note 2: Times listed are rounded to the nearest second, and are omitted
+#         if the test is trivial (takes less than 0.5 seconds).
 #
 #-----------------------------------------------------------------------------
 
@@ -20,32 +20,32 @@ loadsgf sgf/puzzles/5x5-berge-comp-1.sgf
 
 # David Boll puzzles (kind of - based off positions on his site)
 
-# Takes 15 minutes to solve.
+# Takes 921 seconds to solve.
 # The losing moves in the mustplay are: i4, c7, h7
 dfpn-clear-tt
 loadsgf sgf/puzzles/9x9-boll-01.sgf
 20 dfpn-solver-find-winning
 #? [h5 i5 i6 e7 g7 c8]
 
-# Takes 2 seconds to solve.
+# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/9x9-boll-02.sgf
 21 dfpn-solve-state
 #? [white]
 
-# Takes 2h28m to solve.
+# Takes 8844 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/11x11-boll-03.sgf
 22 dfpn-solver-find-winning
 #? [d5 d8 c9 b10]
 
-# Takes 2h54m to solve.
+# Takes 9444 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/11x11-boll-04.sgf
 23 dfpn-solver-find-winning
 #? [f7 c8]
 
-# Takes 3h59m to solve.
+# Takes 12566 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/11x11-boll-05.sgf
 24 dfpn-solver-find-winning
@@ -54,7 +54,7 @@ loadsgf sgf/puzzles/11x11-boll-05.sgf
 
 # Cameron Browne puzzles
 
-# Takes 100 seconds to solve.
+# Takes 67 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/11x11-browne-01.sgf
 30 dfpn-solver-find-winning
@@ -78,7 +78,6 @@ loadsgf sgf/puzzles/7x7-enderton-01.sgf
 40 dfpn-solver-find-winning
 #? [d5]
 
-# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-enderton-02.sgf
 41 dfpn-solver-find-winning
@@ -89,7 +88,7 @@ loadsgf sgf/puzzles/7x7-enderton-03.sgf
 42 dfpn-solver-find-winning
 #? [e3 e6]
 
-# Takes 3m9s to solve.
+# Takes 75 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-enderton-04.sgf
 43 dfpn-solver-find-winning
@@ -98,7 +97,6 @@ loadsgf sgf/puzzles/7x7-enderton-04.sgf
 
 # Ryan Hayward puzzles
 
-# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/6x6-hayward-comp-01.sgf
 50 dfpn-solver-find-winning
@@ -145,19 +143,18 @@ loadsgf sgf/puzzles/6x6-hein-07.sgf
 
 # Philip Henderson puzzles
 
-# Takes 2h28m to solve.
+# Takes 6764 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/9x9-henderson-01.sgf
 70 dfpn-solver-find-winning
 #? [c4 b5 g5]
 
-# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/6x6-henderson-02.sgf
 71 dfpn-solver-find-winning
 #? [b4]
 
-# Takes 7m47s to solve.
+# Takes 305 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/11x11-henderson-03.sgf
 72 dfpn-solve-state
@@ -168,25 +165,25 @@ loadsgf sgf/puzzles/6x6-henderson-04.sgf
 73 dfpn-solver-find-winning
 #? [c4]
 
-# Takes 13 seconds to solve.
+# Takes 5 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-05.sgf
 74 dfpn-solver-find-winning
 #? [b6]
 
-# Takes 5m41s to solve.
+# Takes 76 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-06.sgf
 75 dfpn-solver-find-winning
 #? [f4]
 
-# Takes 2m59s to solve.
+# Takes 143 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-07.sgf
 76 dfpn-solver-find-winning
 #? [g2 c4]
 
-# Takes 2 seconds to solve.
+# Takes 71 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-08.sgf
 77 dfpn-solver-find-winning
@@ -213,7 +210,7 @@ loadsgf sgf/puzzles/5x5-henderson-12.sgf
 81 dfpn-solver-find-winning
 #? [b3]
 
-# Takes 2 seconds to solve.
+# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/6x6-henderson-13.sgf
 82 dfpn-solver-find-winning
@@ -224,7 +221,6 @@ loadsgf sgf/puzzles/6x6-henderson-14.sgf
 83 dfpn-solver-find-winning
 #? [e2]
 
-# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/6x6-henderson-15.sgf
 84 dfpn-solver-find-winning
@@ -235,7 +231,6 @@ loadsgf sgf/puzzles/6x6-henderson-16.sgf
 85 dfpn-solver-find-winning
 #? [e1 b5]
 
-# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/6x6-henderson-17.sgf
 86 dfpn-solver-find-winning
@@ -246,7 +241,6 @@ loadsgf sgf/puzzles/6x6-henderson-18.sgf
 87 dfpn-solver-find-winning
 #? [f4]
 
-# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/6x6-henderson-19.sgf
 88 dfpn-solver-find-winning
@@ -268,7 +262,7 @@ loadsgf sgf/puzzles/6x6-henderson-22.sgf
 91 dfpn-solver-find-winning
 #? [c4]
 
-# Takes 3 seconds to solve.
+# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-23.sgf
 92 dfpn-solver-find-winning
@@ -280,151 +274,149 @@ loadsgf sgf/puzzles/7x7-henderson-24.sgf
 93 dfpn-solver-find-winning
 #? [d5]
 
-# Takes 11 seconds to solve.
+# Takes 4 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-25.sgf
 94 dfpn-solver-find-winning
 #? [f2 f5]
 
-# Takes 34 seconds to solve.
+# Takes 12 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-26.sgf
 95 dfpn-solver-find-winning
 #? [d5]
 
-# Takes 8 seconds to solve.
+# Takes 3 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-27.sgf
 96 dfpn-solver-find-winning
 #? []
 
-# Takes 13 seconds to solve.
+# Takes 5 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-28.sgf
 97 dfpn-solver-find-winning
 #? [d5]
 
-# Takes 5 seconds to solve.
+# Takes 2 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-29.sgf
 98 dfpn-solver-find-winning
 #? [c5]
 
-# Takes 121 seconds to solve.
+# Takes 46 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-30.sgf
 99 dfpn-solver-find-winning
 #? [d3]
 
-# Takes 28 seconds to solve.
+# Takes 11 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-31.sgf
 100 dfpn-solver-find-winning
 #? [d3]
 
-# Takes 26 seconds to solve.
+# Takes 10 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-32.sgf
 101 dfpn-solver-find-winning
 #? [c5]
 
-# Takes 218 seconds to solve.
+# Takes 89 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-33.sgf
 102 dfpn-solver-find-winning
 #? [e4]
 
-# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-34.sgf
 103 dfpn-solver-find-winning
 #? [f2 f5]
 
-# Takes 427 seconds to solve.
+# Takes 161 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-35.sgf
 104 dfpn-solver-find-winning
 #? [b2 b4]
 
-# Takes 7 seconds to solve.
+# Takes 3 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-36.sgf
 105 dfpn-solver-find-winning
 #? [b5]
 
-# Takes 8 seconds to solve.
+# Takes 3 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-37.sgf
 106 dfpn-solver-find-winning
 #? [b4]
 
-# Takes 36 seconds to solve.
+# Takes 15 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-38.sgf
 107 dfpn-solver-find-winning
 #? [b3 b6]
 
-# Takes 40 seconds to solve.
+# Takes 17 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-39.sgf
 108 dfpn-solver-find-winning
 #? [d4]
 
-# Takes 3 seconds to solve.
+# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-40.sgf
 109 dfpn-solver-find-winning
 #? [e3]
 
-# Takes 35 seconds to solve.
+# Takes 15 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-41.sgf
 110 dfpn-solver-find-winning
 #? [d5]
 
-# Takes 80 seconds to solve.
+# Takes 33 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-42.sgf
 111 dfpn-solver-find-winning
 #? [d4]
 
-# Takes 117 seconds to solve.
+# Takes 45 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-43.sgf
 112 dfpn-solver-find-winning
 #? [c6]
 
-# Takes 4 seconds to solve.
+# Takes 2 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-44.sgf
 113 dfpn-solver-find-winning
 #? [b7]
 
-# Takes 2 seconds to solve.
+# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-45.sgf
 114 dfpn-solver-find-winning
 #? [c2 f2]
 
-# Takes 14 seconds to solve.
+# Takes 5 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-46.sgf
 115 dfpn-solver-find-winning
 #? [d4]
 
-# Takes 43 seconds to solve.
+# Takes 16 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-47.sgf
 116 dfpn-solver-find-winning
 #? [f3 b4]
 
-# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-48.sgf
 117 dfpn-solver-find-winning
 #? [f2 c5]
 
-# Takes 3 seconds to solve.
+# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-49.sgf
 118 dfpn-solver-find-winning
@@ -435,37 +427,37 @@ loadsgf sgf/puzzles/7x7-henderson-50.sgf
 119 dfpn-solver-find-winning
 #? [d5]
 
-# Takes 71 seconds to solve.
+# Takes 28 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-51.sgf
 120 dfpn-solver-find-winning
 #? [c5]
 
-# Takes 8 seconds to solve.
+# Takes 3 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-52.sgf
 121 dfpn-solver-find-winning
 #? [e4]
 
-# Takes 2 seconds to solve.
+# Takes 1 second to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-53.sgf
 122 dfpn-solver-find-winning
 #? [c5]
 
-# Takes 26 seconds to solve.
+# Takes 11 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-54.sgf
 123 dfpn-solver-find-winning
 #? [c5]
 
-# Takes 11 seconds to solve.
+# Takes 5 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-55.sgf
 124 dfpn-solver-find-winning
 #? [e4]
 
-# Takes 1888 seconds to solve.
+# Takes 890 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/8x8-henderson-56.sgf
 125 dfpn-solver-find-winning
@@ -474,13 +466,13 @@ loadsgf sgf/puzzles/8x8-henderson-56.sgf
 
 # Little Golem puzzles
 
-# Takes 7 seconds to solve.
+# Takes 3 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-LG-01.sgf
 150 dfpn-solver-find-winning
 #? [b6]
 
-# Takes 37 minutes to solve.
+# Takes 1579 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/10x10-LG-01.sgf
 151 dfpn-solve-state
@@ -490,7 +482,7 @@ loadsgf sgf/puzzles/10x10-LG-01.sgf
 # 151 dfpn-solver-find-winning
 # #? [c4 c7]
 
-# Takes 26 minutes to solve.
+# Takes 1141 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/10x10-LG-01sol.sgf
 152 dfpn-solve-state
