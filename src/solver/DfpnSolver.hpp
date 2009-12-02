@@ -550,6 +550,8 @@ private:
 
     size_t m_numMIDcalls;
 
+    size_t m_numVCbuilds;
+
     size_t m_numUniqueProbes;
 
     size_t m_numProbeChecks;

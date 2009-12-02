@@ -449,6 +449,7 @@ std::string DfpnSolver::PrintVariation(const std::vector<HexPoint>& pv) const
 void DfpnSolver::PrintStatistics()
 {
     LogInfo() << "     MID calls: " << m_numMIDcalls << '\n';
+    LogInfo() << "     VC builds: " << m_numVCbuilds << '\n';
     LogInfo() << "Terminal nodes: " << m_numTerminal << '\n';
     if (m_useUniqueProbes)
     {
@@ -472,6 +473,7 @@ void DfpnSolver::PrintStatistics()
     }
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime()<<'\n';
+    LogInfo() << "       VCs/sec: " << m_numVCbuilds / m_timer.GetTime()<<'\n';
     LogInfo() << m_hashTable->Stats() << '\n';
 }
 
@@ -486,6 +488,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     m_transStats.Clear();
     m_slotStats.Clear();
     m_numMIDcalls = 0;
+    m_numVCbuilds = 0;
     m_numUniqueProbes = 0;
     m_numProbeChecks = 0;
     m_brd.reset(new StoneBoard(board.GetState()));
@@ -608,6 +611,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         {
             m_workBoard->GetState().SetState(*m_brd);
             m_workBoard->ComputeAll(colorToMove);
+            ++m_numVCbuilds;
             if (PlayerUtils::IsDeterminedState(*m_workBoard, colorToMove))
             {
                 ++m_numTerminal;
