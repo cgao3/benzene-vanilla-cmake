@@ -81,7 +81,7 @@ HexUctSearch::~HexUctSearch()
 void HexUctSearch::AppendGame(const std::vector<SgMove>& sequence)
 {
     HexAssert(m_root != 0);
-    SgNode* node = m_root;
+    SgNode* node = m_root->RightMostSon();
     HexColor color = m_shared_data.root_to_play;
     std::vector<SgPoint>::const_iterator it = sequence.begin();
     // Find first move that starts a new variation
@@ -129,7 +129,8 @@ void HexUctSearch::OnStartSearch()
     if (m_keepGames) 
     {
         m_root = new SgNode();
-        HexSgUtil::SetPositionInNode(m_root, m_brd->GetState(), 
+        SgNode* position = m_root->NewRightMostSon();
+        HexSgUtil::SetPositionInNode(position, m_brd->GetState(),
                                      m_shared_data.root_to_play);
     }
     // Limit to avoid very long games (no need in Hex)
