@@ -463,6 +463,35 @@ loadsgf sgf/puzzles/8x8-henderson-56.sgf
 125 dfpn-solver-find-winning
 #? [e6]
 
+# Takes 44 seconds to solve.
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-57.sgf
+126 dfpn-solver-find-winning
+#? [c4]
+
+# Takes 13 seconds to solve.
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-58.sgf
+127 dfpn-solver-find-winning
+#? [c2]
+
+# Takes 5 seconds to solve.
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-59.sgf
+128 dfpn-solver-find-winning
+#? [b4]
+
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-60.sgf
+129 dfpn-solver-find-winning
+#? [c7]
+
+# Takes 2 seconds to solve.
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-61.sgf
+130 dfpn-solver-find-winning
+#? [e4]
+
 
 # Little Golem puzzles
 
