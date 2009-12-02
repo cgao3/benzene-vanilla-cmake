@@ -250,50 +250,6 @@ bitset_t FindThreeSetCliques(const Groups& groups)
     return dead1 | dead2 | dead3;
 }
 
-/** Another attempt at finding dead regions on the board separated by
-    clique cutsets. Captures Type1 and Type2 cliques from above.
- */
-/*
-bitset_t FindType1And2Cliques(const Groups& groups)
-{
-    if (groups.IsGameOver())
-	return groups.Board().getEmpty();
-
-    bitset_t dead;
-    const StoneBoard& brd = groups.Board();
-    bitset_t empty = brd.getEmpty();
-
-    for (BWIterator c; c; ++c) {
-        for (BitsetIterator x(empty); x; ++x) {
-            bitset_t xNbs;
-            // direct neighbours and neighbours through non-edge *c groups
-
-            for (BoardIterator y(brd.Const().Nbs(*x)); y; ++y) {
-                if (*y >= *x) continue;
-                if (!empty.test(*y)) continue;
-                bitset_t yNbs;
-                // same as xNbs...
-
-                bitset_t commonDirectNbs = groups.Nbs(*x, EMPTY)
-                                           & groups.Nbs(*y, EMPTY);
-                bitset_t z = xNbs & yNbs - commonDirectNbs;
-                HexAssert(!z.test(*x));
-                HexAssert(!z.test(*y));
-                if (z.none()) continue;
-
-                bitset_t clique = z;
-                clique.set(*x);
-                clique.set(*y);
-                dead |= ComputeEdgeUnreachableRegions(brd, *c, clique);
-                HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
-            }
-        }
-    }
-
-    return dead;
-}
-*/
-
 //----------------------------------------------------------------------------
 
 /** Returns true if the vector of points forms a clique on brd, while
