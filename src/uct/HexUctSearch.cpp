@@ -35,32 +35,25 @@ HexThreadStateFactory::~HexThreadStateFactory()
 SgUctThreadState* 
 HexThreadStateFactory::Create(std::size_t threadId, const SgUctSearch& search)
 {
-    // Need to do this since Fuego expects it be constant
     SgUctSearch& srch = const_cast<SgUctSearch&>(search);
-    HexUctSearch& hexSearch 
-        = dynamic_cast<HexUctSearch&>(srch);
-
+    HexUctSearch& hexSearch = dynamic_cast<HexUctSearch&>(srch);
     LogInfo() << "Creating thread " << threadId << '\n';
-
     HexUctState* state = new HexUctState(threadId, hexSearch,
                                          hexSearch.TreeUpdateRadius(),
                                          hexSearch.PlayoutUpdateRadius());
-
     state->SetPolicy(new HexUctPolicy(m_shared_policy));
     return state;
 }
 
 //----------------------------------------------------------------------------
 
-HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory,
-			   int maxMoves)
+HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
     : SgUctSearch(factory, maxMoves),
       m_keepGames(false),
       m_liveGfx(false),
       m_liveGfxInterval(20000),
       m_treeUpdateRadius(2),
       m_playoutUpdateRadius(1),
-
       m_brd(0),
       m_shared_data(),
       m_root(0)
@@ -84,79 +77,65 @@ HexUctSearch::~HexUctSearch()
     m_root = 0;
 }
 
-#if 0
+/** Merges last game into the tree of games. */
 void HexUctSearch::AppendGame(const std::vector<SgMove>& sequence)
 {
     HexAssert(m_root != 0);
     SgNode* node = m_root;
-    HexColor color = m_initial_toPlay;
-
+    HexColor color = m_shared_data.root_to_play;
     std::vector<SgPoint>::const_iterator it = sequence.begin();
-
-    // merge this game into the tree of games;
-    // so find first move that starts a new variation.
-    if (true) {
-        for (; it != sequence.end(); ++it) {
-            
-            if (!node->HasSon())
-                break;
-
-            bool found = false;
-            for (SgNode* child = node->LeftMostSon(); ;
-                 child = child->RightBrother()) 
+    // Find first move that starts a new variation
+    for (; it != sequence.end(); ++it) 
+    {
+        if (!node->HasSon())
+            break;
+        bool found = false;
+        for (SgNode* child = node->LeftMostSon(); ; 
+             child = child->RightBrother()) 
+        {
+            HexPoint move = HexSgUtil::SgPointToHexPoint(child->NodeMove(),
+                                                         m_brd->Height());
+            // Found it! Recurse down this branch
+            if (move == *it) 
             {
-                HexPoint move = HexSgUtil::SgPointToHexPoint(child->NodeMove(),
-                                                             m_brd->height());
-
-                // found it! recurse down this branch.
-                if (move == *it) {
-                    node = child;
-                    found = true;
-                    break;
-                }
-
-                if (!child->HasRightBrother()) 
-                    break;
-            }            
-
-            // abort if we need to start a new variation
-            if (!found) break;
-
-            color = !color;
-        }
+                node = child;
+                found = true;
+                break;
+            }
+            if (!child->HasRightBrother()) 
+                break;
+        }            
+        // Abort if we need to start a new variation
+        if (!found) 
+            break;
+        color = !color;
     }
-
-    // add the remainder of the sequence to this node
-    for (; it != sequence.end(); ++it) {
+    // Add the remainder of the sequence to this node
+    for (; it != sequence.end(); ++it) 
+    {
         SgNode* child = node->NewRightMostSon();
-        HexSgUtil::AddMoveToNode(child, color, *it, m_brd->height());
+        HexSgUtil::AddMoveToNode(child, color, static_cast<HexPoint>(*it), 
+                                 m_brd->Height());
         color = !color;
         node = child;
     }
 }
-#endif 
 
 void HexUctSearch::OnStartSearch()
 {
     HexAssert(m_brd);
-
     if (m_root != 0)
         m_root->DeleteTree();
-
-    if (m_keepGames) {
-        LogSevere() << "uct-save-games disabled!" << '\n';
-        HexAssert(false);
-#if 0        
+    if (m_keepGames) 
+    {
         m_root = new SgNode();
-        HexSgUtil::SetPositionInNode(m_root, *m_brd, m_initial_toPlay);
-#endif
+        HexSgUtil::SetPositionInNode(m_root, m_brd->GetState(), 
+                                     m_shared_data.root_to_play);
     }
-
     // Limit to avoid very long games (no need in Hex)
     int size = m_brd->Width() * m_brd->Height();
     int maxGameLength = size+10;
     SetMaxGameLength(maxGameLength);
-
     m_lastPositionSearched = m_brd->GetState();
 }
 
@@ -178,7 +157,6 @@ void HexUctSearch::OnSearchIteration(std::size_t gameNumber, int threadId,
 {
     UNUSED(threadId);
     UNUSED(info);
-
     if (m_liveGfx && gameNumber % m_liveGfxInterval == 0)
     {
         std::ostringstream os;
@@ -193,11 +171,11 @@ void HexUctSearch::OnSearchIteration(std::size_t gameNumber, int threadId,
         std::cout.flush();
         LogFine() << os.str() << '\n';
     }
-    
-#if 0
     if (m_root != 0)
-        AppendGame(LastGameInfo().m_sequence);
-#endif
+    {
+        for (std::size_t i = 0; i < LastGameInfo().m_sequence.size(); ++i)
+            AppendGame(LastGameInfo().m_sequence[i]);
+    }
 }
 
 float HexUctSearch::UnknownEval() const

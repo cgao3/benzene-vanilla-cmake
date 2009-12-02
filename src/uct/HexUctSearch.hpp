@@ -40,7 +40,6 @@ private:
 class HexUctSearch : public SgUctSearch
 {
 public:
-
     /** Constructor.
         @param factory Creates HexUctState instances for each thread.
         @param maxMoves Maximum move number.
@@ -48,7 +47,6 @@ public:
     HexUctSearch(SgUctThreadStateFactory* factory,
                  int maxMoves = 0);
     
-    /** Destructor. */
     ~HexUctSearch();    
 
     //-----------------------------------------------------------------------
@@ -113,16 +111,15 @@ public:
     // @{
 
     /** Keep a SGF tree of all games.
-        This is reset in OnStartSearch() and can be saved with SaveGames().
+        Games are cleared in each OnStartSearch(). Games can be saved
+        with SaveGames().
     */
     void SetKeepGames(bool enable);
 
     /** @see SetKeepGames() */
     bool KeepGames() const;
 
-    /** Enable outputting of live graphics commands for GoGui.
-        Outputs LiveGfx commands for GoGui to the debug stream every
-        n games.
+    /** Enable output of live graphics commands for HexGui.
         @see GoGuiGfx(), SetLiveGfxInterval()
     */
     void SetLiveGfx(bool enable);
@@ -130,8 +127,7 @@ public:
     /** @see SetLiveGfx() */
     bool LiveGfx() const;
 
-    /** Set interval for outputtingof live graphics commands for GoGui.
-        Default is every 5000 games.
+    /** Set interval for outputting of live graphics commands for HexGui.
         @see SetLiveGfx()
     */
     void SetLiveGfxInterval(int interval);
@@ -148,6 +144,7 @@ public:
     /** Pattern-check radius to use during playout phase. */
     int PlayoutUpdateRadius() const;
     
+    /** See PlayoutUpdateRadius() */
     void SetPlayoutUpdateRadius(int radius);
 
     // @} 
@@ -176,14 +173,16 @@ protected:
         search. */
     HexBoard* m_brd;
    
-    /** Data for first few ply of the game. Shared amoung threads. */
+    /** Data among threads. */
     HexUctSharedData m_shared_data;
 
     StoneBoard m_lastPositionSearched;
 
     //----------------------------------------------------------------------
 
-    /** @see SetKeepGames() */
+    /** @see SetKeepGames().
+        Should be non-null only if KeepGames() is true.
+    */
     SgNode* m_root;
     
     /** Not implemented */
@@ -192,7 +191,7 @@ protected:
     /** Not implemented */
     HexUctSearch& operator=(const HexUctSearch& search);
 
-    //void AppendGame(const std::vector<SgMove>& sequence);
+    void AppendGame(const std::vector<SgMove>& sequence);
 };
 
 inline void HexUctSearch::SetBoard(HexBoard& board)

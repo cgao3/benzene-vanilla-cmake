@@ -24,6 +24,7 @@ MoHexEngine::MoHexEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
     RegisterCmd("param_mohex_policy", &MoHexEngine::MoHexPolicyParam);
     RegisterCmd("mohex-save-tree", &MoHexEngine::SaveTree);
+    RegisterCmd("mohex-save-games", &MoHexEngine::SaveGames);
 }
 
 MoHexEngine::~MoHexEngine()
@@ -104,6 +105,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << mohex->BackupIceInfo() << '\n'
             << "[bool] lock_free " 
             << search.LockFree() << '\n'
+            << "[bool] keep_games "
+            << search.KeepGames() << '\n'
             << "[bool] ponder "
             << mohex->Ponder() << '\n'
             << "[bool] reuse_subtree " 
@@ -146,6 +149,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             mohex->SetBackupIceInfo(cmd.BoolArg(1));
         else if (name == "lock_free")
             search.SetLockFree(cmd.BoolArg(1));
+        else if (name == "keep_games")
+            search.SetKeepGames(cmd.BoolArg(1));
         else if (name == "ponder")
             mohex->SetPonder(cmd.BoolArg(1));
         else if (name == "use_livegfx")
@@ -208,6 +213,19 @@ void MoHexEngine::SaveTree(HtpCommand& cmd)
     if (cmd.NuArg() == 2)
         maxDepth = cmd.IntArg(1, 0);
     search.SaveTree(file, maxDepth);
+}
+
+/** Saves games from last search to a SGF. */
+void MoHexEngine::SaveGames(HtpCommand& cmd)
+{
+    MoHexPlayer* mohex = 
+        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
+    if (!mohex)
+        throw HtpFailure("No MoHex instance!");
+    HexUctSearch& search = mohex->Search();
+    cmd.CheckNuArg(1);
+    std::string filename = cmd.Arg(0);
+    search.SaveGames(filename);
 }
 
 //----------------------------------------------------------------------------
