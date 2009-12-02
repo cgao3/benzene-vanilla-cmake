@@ -3,6 +3,7 @@ basics.tst \
 dfpn-puzzle.tst \
 dfpn-solve-6x6.tst \
 dfpn-solve-7x7.tst \
+dfpn-solve-8x8.tst \
 endgame.tst \
 gtpregress \
 gtpregress.jar \
