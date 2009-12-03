@@ -73,26 +73,21 @@ bool StoneBoard::IsLegal(HexPoint cell) const
     return GetLegal().test(cell);
 }
 
-const BoardIterator& StoneBoard::Stones(HexColorSet colorset) const
+BoardIterator StoneBoard::Stones(HexColorSet colorset) const
 {
     if (!m_stones_calculated) 
     {
         for (int i = 0; i < NUM_COLOR_SETS; ++i)
+        {
             m_stones_list[i].clear();
-
-        for (BoardIterator p(Const().EdgesAndInterior()); p; ++p) 
-            for (int i = 0; i < NUM_COLOR_SETS; ++i) 
+            for (BoardIterator p(Const().EdgesAndInterior()); p; ++p) 
                 if (HexColorSetUtil::InSet(GetColor(*p), (HexColorSet)i))
                     m_stones_list[i].push_back(*p);
-
-        for (int i = 0; i < NUM_COLOR_SETS; ++i) 
-        {
             m_stones_list[i].push_back(INVALID_POINT);
-            m_stones_iter[i] = BoardIterator(m_stones_list[i]);
         }
         m_stones_calculated = true;
     }
-    return m_stones_iter[colorset];
+    return BoardIterator(m_stones_list[colorset]);
 }
 
 //----------------------------------------------------------------------------

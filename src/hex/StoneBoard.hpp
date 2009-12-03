@@ -252,32 +252,28 @@ public:
     // @{
 
     /** Returns iterator over all stones in colorset. */
-    const BoardIterator& Stones(HexColorSet colorset) const;
+    BoardIterator Stones(HexColorSet colorset) const;
 
     /** Returns iterator over all stones of color. */
-
-    const BoardIterator& Stones(HexColor color) const;
+    BoardIterator Stones(HexColor color) const;
 
     // @}
 
     //-----------------------------------------------------------------------
 
 private:
-
     ConstBoard* m_const;
 
     bitset_t m_played;
 
     bitset_t m_stones[BLACK_AND_WHITE];
 
+    /** @see Hash() */
+    ZobristHash m_hash;
+
     mutable bool m_stones_calculated;
 
     mutable std::vector<HexPoint> m_stones_list[NUM_COLOR_SETS];
-
-    mutable BoardIterator m_stones_iter[NUM_COLOR_SETS];
-
-    /** @see Hash() */
-    ZobristHash m_hash;
 
     void ComputeHash();
 
@@ -401,7 +397,7 @@ inline HexColor StoneBoard::WhoseTurn() const
     return (first > second) ? !FIRST_TO_PLAY : FIRST_TO_PLAY;
 }
 
-inline const BoardIterator& StoneBoard::Stones(HexColor color) const
+inline BoardIterator StoneBoard::Stones(HexColor color) const
 {
     return Stones(HexColorSetUtil::Only(color));
 }
