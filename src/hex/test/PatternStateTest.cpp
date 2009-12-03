@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file PatternStateTest.cpp
 
     @todo Test a black pattern.
 

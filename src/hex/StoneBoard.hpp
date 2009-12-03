@@ -46,8 +46,11 @@ public:
     /** Constructs a rectangular board. */
     StoneBoard(unsigned width, unsigned height);
 
-    /** Destructor. */
-    virtual ~StoneBoard();
+    /** Contructs a rectangular board with given state.
+        See SetState(std::string) */
+    StoneBoard(unsigned width, unsigned height, const std::string& str);
+
+    ~StoneBoard();
 
     //-----------------------------------------------------------------------
 
@@ -76,18 +79,6 @@ public:
         @todo Moves this out of here? */
     std::string GetBoardIDString() const;
 
-    /** Sets the board to the state encoded by id. 
-        Note this state will have no unplayed stones, so the code:
-        @code
-            brd.SetState(brd.GetBoardID());
-        @endcode
-        will remove all unplayed stones.
-    */
-    void SetState(const BoardID& id);
-
-    /** Copies state of brd into this board. */
-    void SetState(const StoneBoard& brd);
-
     /** Number of played stones on the interior of the board. 
         Similar to:
         @code
@@ -108,6 +99,28 @@ public:
     /** Returns a string representation of the board with the cells
         marked in the given bitset denoted by a '*'. */
     std::string Write(const bitset_t& b) const;
+
+    //-----------------------------------------------------------------------
+
+    /** Sets the board to the state encoded by id. 
+        Note this state will have no unplayed stones, so the code:
+        @code
+            brd.SetState(brd.GetBoardID());
+        @endcode
+        will remove all unplayed stones.
+    */
+    void SetState(const BoardID& id);
+
+    /** Copies state of brd into this board. */
+    void SetState(const StoneBoard& brd);
+
+    /** Sets state from string.
+        String must contain wxh non space characters. Any spacing is
+        allowed betwen such characters. A '.' is an empty cell, 'B'
+        and 'W' are played black and white stones, 'b' and 'w' are
+        filled-in black and white stones. 
+    */
+    void SetState(const std::string& str);
 
     //-----------------------------------------------------------------------
 

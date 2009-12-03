@@ -364,6 +364,30 @@ BOOST_AUTO_TEST_CASE(StoneBoard_WhoseTurn)
 
 //---------------------------------------------------------------------------
 
+BOOST_AUTO_TEST_CASE(StoneBoard_SetStateString)
+{
+    std::string str(". . w"
+                     " B b\n ."
+                      ". W\tB   ");
+    StoneBoard brd(3, 3, str);
+    BOOST_CHECK(brd.IsEmpty(HEX_CELL_A1));
+    BOOST_CHECK(brd.IsEmpty(HEX_CELL_B1));
+    BOOST_CHECK(brd.IsWhite(HEX_CELL_C1));
+    BOOST_CHECK(!brd.IsPlayed(HEX_CELL_C1));
+    BOOST_CHECK(brd.IsBlack(HEX_CELL_A2));
+    BOOST_CHECK(brd.IsPlayed(HEX_CELL_A2));
+    BOOST_CHECK(brd.IsBlack(HEX_CELL_B2));
+    BOOST_CHECK(!brd.IsPlayed(HEX_CELL_B2));
+    BOOST_CHECK(brd.IsEmpty(HEX_CELL_C2));
+    BOOST_CHECK(brd.IsEmpty(HEX_CELL_A3));
+    BOOST_CHECK(brd.IsWhite(HEX_CELL_B3));
+    BOOST_CHECK(brd.IsPlayed(HEX_CELL_B3));
+    BOOST_CHECK(brd.IsBlack(HEX_CELL_C3));
+    BOOST_CHECK(brd.IsPlayed(HEX_CELL_C3));
+}
+
+//---------------------------------------------------------------------------
+
 BOOST_AUTO_TEST_CASE(StoneBoard_BoardID)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 2 && MAX_HEIGHT >= 2);
@@ -387,25 +411,13 @@ BOOST_AUTO_TEST_CASE(StoneBoard_BoardID)
 
     // check a 5x3 state
     {
-        StoneBoard b1(5, 3);
+        std::string str("B..W."
+                         ".WB.."
+                          "BW..W");
+        StoneBoard b1(5, 3, str);
         StoneBoard b2(5, 3);
-
-        //
-        //    B..W.
-        //     .WB..
-        //      BW..W
-        //
-        b1.PlayMove(BLACK, HEX_CELL_A1);
-        b1.PlayMove(WHITE, HEX_CELL_D1);
-        b1.PlayMove(WHITE, HEX_CELL_B2);
-        b1.PlayMove(BLACK, HEX_CELL_C2);
-        b1.PlayMove(BLACK, HEX_CELL_A3);
-        b1.PlayMove(WHITE, HEX_CELL_B3);
-        b1.PlayMove(WHITE, HEX_CELL_E3);
-
         BoardID id = b1.GetBoardID();
         BOOST_CHECK_EQUAL(id.size(), 4u);
-    
         b2.SetState(id);
         BOOST_CHECK(b1 == b2);
     }

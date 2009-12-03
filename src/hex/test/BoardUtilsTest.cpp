@@ -225,28 +225,15 @@ BOOST_AUTO_TEST_CASE(BoardUtil_Decompositions)
     ICEngine ice;
     VCBuilderParam param;
     HexBoard brd(7, 7, ice, param);
-    
-//  0xfc84158765cbbe20
-//   a  b  c  d  e  f  g  
-//  1\.  .  .  .  W  B  .\1
-//   2\.  .  .  .  .  .  .\2
-//    3\.  B  B  B  W  .  .\3
-//     4\.  B  B  W  .  .  .\4
-//      5\.  .  W  .  .  .  .\5
-//       6\.  .  W  .  .  .  .\6
-//        7\.  .  .  .  .  .  .\7
-//           a  b  c  d  e  f  g'
-    brd.GetState().PlayMove(BLACK, HEX_CELL_D3);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_E1);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_C4);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_D4);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_B4);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_C5);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_C3);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_C6);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_B3);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_E3);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_F1);
+
+    std::string str(". . . . W B ."
+                     ". . . . . . ."
+                      ". B B B W . ."
+                       ". B B W . . ."
+                        ". . W . . . ."
+                         ". . W . . . ."
+                          ". . . . . . .");
+    brd.GetState().SetState(str);
 
     // Find decomp between E1, B3, WEST, and NORTH. 
     brd.SetUseDecompositions(false);
@@ -264,27 +251,14 @@ BOOST_AUTO_TEST_CASE(BoardUtil_SplitDecompositions)
     VCBuilderParam param;
     HexBoard brd(7, 7, ice, param);
     
-//  0xfc84158765cbbe20
-//   a  b  c  d  e  f  g  
-//  1\.  .  .  .  W  B  .\1
-//   2\.  .  .  .  .  .  .\2
-//    3\.  B  B  B  W  .  .\3
-//     4\.  B  B  W  .  .  .\4
-//      5\.  .  W  .  .  .  .\5
-//       6\.  .  W  .  .  .  .\6
-//        7\.  .  .  .  .  .  .\7
-//           a  b  c  d  e  f  g'
-    brd.GetState().PlayMove(BLACK, HEX_CELL_D3);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_E1);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_C4);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_D4);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_B4);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_C5);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_C3);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_C6);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_B3);
-    brd.GetState().PlayMove(WHITE, HEX_CELL_E3);
-    brd.GetState().PlayMove(BLACK, HEX_CELL_F1);
+    std::string s(". . . . W B ."
+                   ". . . . . . ."
+                    ". B B B W . ."
+                     ". B B W . . ."
+                      ". . W . . . ."
+                       ". . W . . . ."
+                        ". . . . . . .");
+    brd.GetState().SetState(s);
 
     // Find splitting decomp between NORTH, E3, SOUTH.
     brd.ComputeAll(WHITE);

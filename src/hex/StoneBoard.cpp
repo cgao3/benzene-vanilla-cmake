@@ -30,6 +30,13 @@ StoneBoard::StoneBoard(unsigned width, unsigned height)
     StartNewGame();
 }
 
+StoneBoard::StoneBoard(unsigned width, unsigned height, const std::string& str)
+    : m_const(&ConstBoard::Get(width, height)),
+      m_hash(width, height)
+{
+    SetState(str);
+}
+
 StoneBoard::~StoneBoard()
 {
 }
@@ -295,6 +302,44 @@ void StoneBoard::SetState(const BoardID& id)
             PlayMove(color, *p);
     }
 
+    ComputeHash();
+    MarkAsDirty();
+}
+
+void StoneBoard::SetState(const std::string& str)
+{
+    /** @note This depends on the order defined by Interior(). */
+    StartNewGame();
+    for (std::size_t i = 0, cell = 0; 
+         i < str.size() && (int)cell < Width()*Height();
+         ++i)
+    {
+        int x = cell % Width();
+        int y = cell / Width();
+        HexPoint p = HexPointUtil::coordsToPoint(x, y);
+        if (str[i] == '.')
+            cell++;
+        else if (str[i] == 'B')
+        {
+            PlayMove(BLACK, p);
+            cell++;
+        }
+        else if (str[i] == 'W')
+        {
+            PlayMove(WHITE, p);
+            cell++;
+        }
+        else if (str[i] == 'b')
+        {
+            SetColor(BLACK, p);
+            cell++;
+        }
+        else if (str[i] == 'w')
+        {
+            SetColor(WHITE, p);
+            cell++;
+        }
+    }
     ComputeHash();
     MarkAsDirty();
 }

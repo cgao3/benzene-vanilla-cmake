@@ -19,7 +19,6 @@ BOOST_AUTO_TEST_CASE(Groups_Captains)
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
     StoneBoard brd(5, 5);
     Groups groups;
-
     // On empty board all edges and cells are captains of themselves.
     GroupBuilder::Build(brd, groups);
     BOOST_CHECK(groups.GetGroup(NORTH).Captain() == NORTH);
@@ -28,7 +27,6 @@ BOOST_AUTO_TEST_CASE(Groups_Captains)
     BOOST_CHECK(groups.GetGroup(WEST).Captain() == WEST);
     for (BoardIterator p(brd.Const().Interior()); p; ++p)
         BOOST_CHECK(groups.GetGroup(*p).Captain() == *p);
-
     // Check that FIRST_CELL is absorbed into the north group;
     // and that NORTH is always the captain of its group. 
     brd.PlayMove(BLACK, FIRST_CELL);
@@ -40,23 +38,16 @@ BOOST_AUTO_TEST_CASE(Groups_Captains)
 BOOST_AUTO_TEST_CASE(Groups_Nbs)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
-    StoneBoard brd(5, 5);
+    std::string s(". . . . ."
+                   "W B . . ."
+                    ". B . . ."
+                     ". . . . ."
+                      ". . . . .");
+    StoneBoard brd(5, 5, s);
     Groups groups;
-    bitset_t nbs;
-
-    //  a  b  c  d  e  
-    // 1\.  .  .  .  .\1
-    //  2\W  B  .  .  .\2
-    //   3\.  B  .  .  .\3
-    //    4\.  .  .  .  .\4
-    //     5\.  .  .  .  .\5
-    //        a  b  c  d  e  
-    brd.PlayMove(BLACK, HEX_CELL_B2);
-    brd.PlayMove(WHITE, HEX_CELL_A2);
-    brd.PlayMove(BLACK, HEX_CELL_B3);
     GroupBuilder::Build(brd, groups);
 
-    nbs = groups.GetGroup(HEX_CELL_B2).Nbs();
+    bitset_t nbs = groups.GetGroup(HEX_CELL_B2).Nbs();
     BOOST_CHECK_EQUAL(nbs.count(), 8u);
     BOOST_CHECK(nbs.test(HEX_CELL_B1));
     BOOST_CHECK(nbs.test(HEX_CELL_C1));
@@ -91,31 +82,16 @@ BOOST_AUTO_TEST_CASE(Groups_Nbs)
 
 BOOST_AUTO_TEST_CASE(Groups_Members)
 {
-    StoneBoard brd(5, 5);
+    std::string s(". . W . W"
+                   "W . B B ."
+                    "B B W B ."
+                     ". B B . W"
+                      ". . . . .");
+    StoneBoard brd(5, 5, s);
     Groups groups;
-    Group grp;
-
-    //  a  b  c  d  e  
-    // 1\.  .  W  .  W\1
-    //  2\W  .  B  B  .\2
-    //   3\B  B  W  B  .\3
-    //    4\.  B  B  .  W\4
-    //     5\.  .  .  .  .\5
-    //        a  b  c  d  e 
-    brd.PlayMove(WHITE, HEX_CELL_C1);
-    brd.PlayMove(WHITE, HEX_CELL_E1);
-    brd.PlayMove(WHITE, HEX_CELL_A2);
-    brd.PlayMove(BLACK, HEX_CELL_C2);
-    brd.PlayMove(BLACK, HEX_CELL_D2);
-    brd.PlayMove(BLACK, HEX_CELL_A3);
-    brd.PlayMove(BLACK, HEX_CELL_B3);
-    brd.PlayMove(WHITE, HEX_CELL_C3);
-    brd.PlayMove(BLACK, HEX_CELL_D3);
-    brd.PlayMove(BLACK, HEX_CELL_B4);
-    brd.PlayMove(BLACK, HEX_CELL_C4);
-    brd.PlayMove(WHITE, HEX_CELL_E4);
     GroupBuilder::Build(brd, groups);
     BOOST_CHECK_EQUAL(groups.NumGroups(), 20u);
+    Group grp;
 
     // Check all empties are singletons
     for (BoardIterator p(brd.Const().Interior()); p; ++p)
@@ -172,19 +148,11 @@ BOOST_AUTO_TEST_CASE(Groups_Members)
 
 BOOST_AUTO_TEST_CASE(Groups_Iterator)
 {
-    StoneBoard brd(3, 3);
     Groups groups;
-    //  a  b  c   
-    // 1\.  .  W\1
-    //  2\W  W  B\2
-    //   3\B  .  W\3
-    //      a  b  c 
-    brd.PlayMove(WHITE, HEX_CELL_C1);
-    brd.PlayMove(WHITE, HEX_CELL_A2);
-    brd.PlayMove(WHITE, HEX_CELL_B2);
-    brd.PlayMove(BLACK, HEX_CELL_C2);
-    brd.PlayMove(BLACK, HEX_CELL_A3);
-    brd.PlayMove(WHITE, HEX_CELL_C3);
+    std::string s(". . W"
+                   "W W B"
+                    "B . W");
+    StoneBoard brd(3, 3, s);
     GroupBuilder::Build(brd, groups);
 
     GroupIterator g(groups);
