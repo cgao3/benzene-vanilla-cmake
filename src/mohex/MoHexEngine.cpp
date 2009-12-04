@@ -138,6 +138,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.NumberThreads() << '\n'
             << "[string] playout_update_radius "
             << search.PlayoutUpdateRadius() << '\n'
+            << "[string] randomize_rave_frequency "
+            << search.RandomizeRaveFrequency() << '\n'
             << "[string] rave_weight_final "
             << search.RaveWeightFinal() << '\n'
             << "[string] rave_weight_initial "
@@ -160,6 +162,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetLiveGfx(cmd.BoolArg(1));
         else if (name == "use_rave")
             search.SetRave(cmd.BoolArg(1));
+        else if (name == "randomize_rave_frequency")
+            search.SetRandomizeRaveFrequency(cmd.IntArg(1, 0));
         else if (name == "reuse_subtree")
            mohex->SetReuseSubtree(cmd.BoolArg(1));
         else if (name == "bias_term")
