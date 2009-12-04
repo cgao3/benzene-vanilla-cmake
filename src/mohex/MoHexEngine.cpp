@@ -25,6 +25,7 @@ MoHexEngine::MoHexEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("param_mohex_policy", &MoHexEngine::MoHexPolicyParam);
     RegisterCmd("mohex-save-tree", &MoHexEngine::SaveTree);
     RegisterCmd("mohex-save-games", &MoHexEngine::SaveGames);
+    RegisterCmd("mohex-values", &MoHexEngine::Values);
     RegisterCmd("mohex-rave-values", &MoHexEngine::RaveValues);
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
 }
@@ -228,6 +229,28 @@ void MoHexEngine::SaveGames(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
     search.SaveGames(filename);
+}
+
+void MoHexEngine::Values(HtpCommand& cmd)
+{
+    MoHexPlayer* mohex = 
+        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
+    if (!mohex)
+        throw HtpFailure("No MoHex instance!");
+    HexUctSearch& search = mohex->Search();
+    const SgUctTree& tree = search.Tree();
+    for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
+    {
+        const SgUctNode& child = *it;
+        SgPoint p = child.Move();
+        std::size_t count = child.MoveCount();
+        float mean = 0.0;
+        if (count > 0)
+            mean = child.Mean();
+        cmd << ' ' << static_cast<HexPoint>(p)
+            << ' ' << std::fixed << std::setprecision(3) << mean
+            << '@' << count;
+    }
 }
 
 void MoHexEngine::RaveValues(HtpCommand& cmd)

@@ -32,6 +32,7 @@ public:
     void MoHexPolicyParam(HtpCommand& cmd);
     void SaveTree(HtpCommand& cmd);
     void SaveGames(HtpCommand& cmd);
+    void Values(HtpCommand& cmd);
     void RaveValues(HtpCommand& cmd);
     void Bounds(HtpCommand& cmd);
 
