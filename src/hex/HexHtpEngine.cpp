@@ -381,7 +381,11 @@ void HexHtpEngine::CmdParamGame(HtpCommand& cmd)
         if (name == "allow_swap")
             m_game.SetAllowSwap(cmd.BoolArg(1));
         else if (name == "game_time")
+        {
+            if (!m_game.History().empty())
+                throw HtpFailure("Cannot set game time if game started!");
             m_game.SetGameTime(cmd.FloatArg(1));
+        }
     }
     else
         throw HtpFailure("Expected 0 or 2 arguments");

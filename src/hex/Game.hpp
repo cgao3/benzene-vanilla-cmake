@@ -78,7 +78,9 @@ public:
     /** Amount of time given to each player at start of game. */
     double GameTime() const;
 
-    /** See GameTime() */
+    /** See GameTime() 
+        Can only be called if no moves have been played yet.
+    */
     void SetGameTime(double time);
 
     //----------------------------------------------------------------------
@@ -141,11 +143,6 @@ inline void Game::SetAllowSwap(bool enable)
 inline double Game::GameTime() const
 {
     return m_game_time;
-}
-
-inline void Game::SetGameTime(double time)
-{
-    m_game_time = time;
 }
 
 //----------------------------------------------------------------------------

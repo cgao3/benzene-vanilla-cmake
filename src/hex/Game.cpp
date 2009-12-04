@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file Game.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -24,6 +24,13 @@ void Game::NewGame()
     m_time_remaining[BLACK] = m_game_time;
     m_time_remaining[WHITE] = m_game_time;
     m_history.clear();
+}
+
+void Game::SetGameTime(double time)
+{
+    m_game_time = time;
+    m_time_remaining[BLACK] = m_game_time;
+    m_time_remaining[WHITE] = m_game_time;
 }
 
 Game::ReturnType Game::PlayMove(HexColor color, HexPoint cell)
