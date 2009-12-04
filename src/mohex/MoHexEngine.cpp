@@ -25,6 +25,8 @@ MoHexEngine::MoHexEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("param_mohex_policy", &MoHexEngine::MoHexPolicyParam);
     RegisterCmd("mohex-save-tree", &MoHexEngine::SaveTree);
     RegisterCmd("mohex-save-games", &MoHexEngine::SaveGames);
+    RegisterCmd("mohex-rave-values", &MoHexEngine::RaveValues);
+    RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
 }
 
 MoHexEngine::~MoHexEngine()
@@ -226,6 +228,45 @@ void MoHexEngine::SaveGames(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
     search.SaveGames(filename);
+}
+
+void MoHexEngine::RaveValues(HtpCommand& cmd)
+{
+    MoHexPlayer* mohex = 
+        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
+    if (!mohex)
+        throw HtpFailure("No MoHex instance!");
+    HexUctSearch& search = mohex->Search();
+    const SgUctTree& tree = search.Tree();
+    for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
+    {
+        const SgUctNode& child = *it;
+        SgPoint p = child.Move();
+        if (p == SG_PASS || ! child.HasRaveValue())
+            continue;
+        cmd << ' ' << static_cast<HexPoint>(p)
+            << ' ' << std::fixed << std::setprecision(3) << child.RaveValue();
+    }
+}
+
+void MoHexEngine::Bounds(HtpCommand& cmd)
+{
+    MoHexPlayer* mohex = 
+        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
+    if (!mohex)
+        throw HtpFailure("No MoHex instance!");
+    HexUctSearch& search = mohex->Search();
+    const SgUctTree& tree = search.Tree();
+    for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
+    {
+        const SgUctNode& child = *it;
+        SgPoint p = child.Move();
+        if (p == SG_PASS || ! child.HasRaveValue())
+            continue;
+        float bound = search.GetBound(search.Rave(), tree.Root(), child);
+        cmd << ' ' << static_cast<HexPoint>(p) 
+            << ' ' << std::fixed << std::setprecision(3) << bound;
+    }
 }
 
 //----------------------------------------------------------------------------
