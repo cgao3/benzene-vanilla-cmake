@@ -327,6 +327,7 @@ namespace BookUtil
                             StoneBoard& brd, float alpha);
 
     /** Finds best response in book.
+        @todo Does not consider SWAP_PIECES if it is available.
         Returns INVALID_POINT if not in book or if node's count is 
         less than minCount. */
     HexPoint BestMove(const Book& book, const StoneBoard& pos,
