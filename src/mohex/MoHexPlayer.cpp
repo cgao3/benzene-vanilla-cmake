@@ -78,6 +78,7 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
         (other.Search().RandomizeRaveFrequency());
     Search().SetRaveWeightFinal(other.Search().RaveWeightFinal());
     Search().SetRaveWeightInitial(other.Search().RaveWeightInitial());
+    Search().SetWeightRaveUpdates(other.Search().WeightRaveUpdates());
     Search().SetTreeUpdateRadius(other.Search().TreeUpdateRadius());
     Search().SetKnowledgeThreshold(other.Search().KnowledgeThreshold());
 }

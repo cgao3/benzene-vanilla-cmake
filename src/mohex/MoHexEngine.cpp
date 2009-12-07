@@ -118,6 +118,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.LiveGfx() << '\n'
             << "[bool] use_rave "
             << search.Rave() << '\n'
+            << "[bool] weight_rave_updates "
+            << search.WeightRaveUpdates() << '\n'
             << "[string] bias_term "
             << search.BiasTermConstant() << '\n'
             << "[string] expand_threshold "
@@ -190,6 +192,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetRaveWeightFinal(cmd.IntArg(1, 0));
         else if (name == "rave_weight_initial")
             search.SetRaveWeightInitial(cmd.IntArg(1, 0));
+        else if (name == "weight_rave_updates")
+            search.SetWeightRaveUpdates(cmd.BoolArg(1));
         else if (name == "tree_update_radius")
             search.SetTreeUpdateRadius(cmd.IntArg(1, 0));
         else
