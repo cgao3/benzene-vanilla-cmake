@@ -33,7 +33,16 @@ public:
                                 double max_time, double& score);
 
 private:
+    bool m_swapLoaded;
+    
+    /** Contains moves to swap for each boardsize.  
+        Use strings of the form "nxn" to index the map for an (n, n)
+        board. */
+    std::map<std::string, std::set<HexPoint> > m_swapMoves;
+
     BenzenePlayer* m_player;
+
+    void LoadSwapMoves(const std::string& name);
 };
 
 //----------------------------------------------------------------------------
