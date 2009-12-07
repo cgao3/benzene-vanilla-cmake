@@ -28,3 +28,40 @@ done
 if [$OPENINGS == ""]; then
     OPENINGS="openings/"$SIZE"x"$SIZE"-all-1ply"
 fi
+
+# Runs the tournament. 
+run_tournament() 
+{
+    if [ $# != 4 ]; then
+        usage;
+        exit 1;
+    fi
+
+    PROGRAM1=$1
+    CONFIG1=$2
+    PROGNAME1=`basename $PROGRAM1`
+    NAME1=$PROGNAME1-$CONFIG1
+    PROGRAM2=$3
+    CONFIG2=$4
+    PROGNAME2=`basename $PROGRAM2`
+    NAME2=$PROGNAME2-$CONFIG2
+
+    # Distinguish between the instances if doing self-play so that the 
+    # logfiles are not clobbered.
+    if [ $NAME1 == $NAME2 ]; then
+        NAME1=$NAME1"-a"
+        NAME2=$NAME2"-b"
+    fi
+
+    DIRECTORY="jobs/"$NAME1"-vs-"$NAME2
+
+    mkdir -p $DIRECTORY
+
+    ./twogtp.py \
+        --type $TYPE \
+        --dir "$DIRECTORY" \
+        --openings $OPENINGS \
+        --size $SIZE --rounds $ROUNDS \
+        --p1cmd "$PROGRAM1 --quiet --config $CONFIG1.htp" --p1name $NAME1 \
+        --p2cmd "$PROGRAM2 --quiet --config $CONFIG2.htp" --p2name $NAME2
+}

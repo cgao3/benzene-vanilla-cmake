@@ -1,5 +1,7 @@
 # Runs a tournament between two instances of wolve.
 
+source common.sh
+
 me=$0
 function usage()
 {
@@ -12,32 +14,10 @@ function usage()
     echo "-s | --size=#            boardsize to play on"
     echo 
 }
-
-source common.sh
 if [ $# != 2 ]; then
     usage;
     exit 1;
 fi
 
-NAME1=wolve-$1
-NAME2=wolve-$2
-
-# Distinguish bewteen the instances if doing self-play so that the 
-# logfiles are not clobbered.
-if [ $NAME1 == $NAME2 ]; then
-    NAME1=$NAME1"-a"
-    NAME2=$NAME2"-b"
-fi
-
-DIRECTORY="jobs/"$NAME1"-vs-"$NAME2
-
-mkdir -p $DIRECTORY
-
-./twogtp.py \
---type $TYPE \
---dir "$DIRECTORY" \
---openings $OPENINGS \
---size $SIZE --rounds $ROUNDS \
---p1cmd "../src/wolve/wolve --quiet --config $1.htp" --p1name $NAME1 \
---p2cmd "../src/wolve/wolve --quiet --config $2.htp" --p2name $NAME2
+run_tournament ../src/wolve/wolve $1 ../src/wolve/wolve $2
 
