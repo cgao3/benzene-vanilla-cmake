@@ -42,12 +42,7 @@ HexPoint BenzenePlayer::genmove(HexBoard& brd, const Game& game_state,
     //----------------------------------------------------------------------
 
     LogInfo() << "Best move cannot be determined, must search state.\n";
-    move = search(brd, game_state, color, consider, max_time, score);
-
-    //----------------------------------------------------------------------
-
-    LogInfo() << "Applying post search heuristics...\n";
-    return post_search(move, brd, color, max_time, score);
+    return search(brd, game_state, color, consider, max_time, score);
 }
 
 /** Finds inferior cells, builds vcs. Sets moves to consider to all
@@ -120,16 +115,5 @@ HexPoint BenzenePlayer::search(HexBoard& brd, const Game& game_state,
     return BoardUtils::RandomEmptyCell(brd.GetState());
 }
     
-HexPoint BenzenePlayer::post_search(HexPoint move, HexBoard& brd, 
-                                    HexColor color, double max_time,
-                                    double& score)
-{
-    UNUSED(brd);
-    UNUSED(color);
-    UNUSED(max_time);
-    UNUSED(score);
-    return move;
-}
-
 //----------------------------------------------------------------------------
 

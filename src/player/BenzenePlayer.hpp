@@ -34,7 +34,7 @@ public:
         method search() below.
 
         Classes deriving from UofAFunctinality should extend the 
-        pre_search() and post_search() methods only.  
+        pre_search() method only.  
         @see BenzenePlayerFunctionality.
 
         This method does the following:
@@ -45,10 +45,7 @@ public:
         2 - Calls pre_search().
             If pre_search() returns INVALID_POINT, continues to 
             step 3. Otherwise, returns point returned by pre_search().
-        3 - calls search() 
-        4 - calls post_search() with move returned by search(). 
-        5 - returns move returned by post_search(). 
-       
+        3 - returns move returned by search() 
 
         @param brd HexBoard to do work on. Board position is set to
                the board position as that of the game board. 
@@ -100,22 +97,6 @@ public:
 			    HexColor color, const bitset_t& consider,
                             double max_time, double& score);
     
-    /** This method performs post processing on the move returned by
-        search().  An example usage might be to check that the move
-        returned is not dominated, and if it is, return the killer
-        instead.  Default implementation does nothing.
-
-        @param brd
-        @param color
-        @param move The move returned by search(). 
-        @param max_time
-        @param score
-        @return The modified move that will be played instead.  
-    */
-    virtual HexPoint post_search(HexPoint move, HexBoard& brd, 
-                                 HexColor color, double max_time, 
-                                 double& score);
-
 private:
 
     HexPoint init_search(HexBoard& brd, HexColor color, 
@@ -154,15 +135,7 @@ public:
 				HexColor color, bitset_t& consider,
                                 double max_time, double& score);
     
-    /** Extends BenzenePlayer::post_search(). If this implementation
-        fails, postsearch() should call post_search() of player it is
-        extending.  In this way, multiple functionalities can be
-        chained together.
-    */
-    virtual HexPoint post_search(HexPoint move, HexBoard& brd, 
-                                 HexColor color, double max_time, 
-                                 double& score);
-    
+   
 protected:
 
     /** Calls search() method of player it is extending. */
@@ -218,20 +191,6 @@ BenzenePlayerFunctionality::search(HexBoard& brd, const Game& game_state,
 {
     return m_player->search(brd, game_state, color, consider,
 			    max_time, score);
-}
-
-inline HexPoint 
-BenzenePlayerFunctionality::post_search(HexPoint move, 
-                                        HexBoard& brd,
-                                        HexColor color,
-                                        double max_time,
-                                        double& score)
-{
-    UNUSED(brd); 
-    UNUSED(color);
-    UNUSED(max_time);
-    UNUSED(score);
-    return move;
 }
 
 //----------------------------------------------------------------------------
