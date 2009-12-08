@@ -68,6 +68,7 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
     SetNumberThreads(1);    
     SetRandomizeRaveFrequency(0);
     SetRave(true);
+    SetWeightRaveUpdates(false);
     SetRaveWeightInitial(1.0);
     SetRaveWeightFinal(20000.0);
 }
