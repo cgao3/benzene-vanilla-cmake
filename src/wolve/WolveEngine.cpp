@@ -66,6 +66,11 @@ void WolveEngine::RegisterCmd(const std::string& name,
 
 //----------------------------------------------------------------------------
 
+double WolveEngine::TimeForMove(HexColor color)
+{
+    return m_game.TimeRemaining(color);
+}
+
 void WolveEngine::WolveParam(HtpCommand& cmd)
 {
     

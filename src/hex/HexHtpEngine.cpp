@@ -93,19 +93,6 @@ void HexHtpEngine::Play(HexColor color, HexPoint move)
     }
 }
 
-HexPoint HexHtpEngine::GenMove(HexColor color, double max_time)
-{
-    UNUSED(color);
-    UNUSED(max_time);
-    return BoardUtils::RandomEmptyCell(m_game.Board());
-}
-
-/** Returns time remaining in the game. */
-double HexHtpEngine::TimeForMove(HexColor color)
-{
-    return m_game.TimeRemaining(color);
-}
- 
 void HexHtpEngine::NewGame(int width, int height)
 {
     if (width != m_game.Board().Width() || 
@@ -207,9 +194,8 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
 
     m_game.SetTimeRemaining(color, oldTimeRemaining - timer.GetTime());
 
-    if (m_game.TimeRemaining(color) < 0) {
-        LogWarning() << "**** FLAG DROPPED ****" << '\n';
-    }
+    if (m_game.TimeRemaining(color) < 0
+        LogWarning() << "**** FLAG DROPPED ****\n";
 
     Play(color, move);
     cmd << move;

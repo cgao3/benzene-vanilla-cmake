@@ -41,6 +41,8 @@ private:
 
     BookCommands m_bookCommands;
 
+    double TimeForMove(HexColor color);
+
     void RegisterCmd(const std::string& name,
                      GtpCallback<WolveEngine>::Method method);
 

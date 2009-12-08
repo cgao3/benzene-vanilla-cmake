@@ -107,12 +107,12 @@ protected:
     virtual void NewGame(int width, int height);
 
     /** Generates a move. */
-    virtual HexPoint GenMove(HexColor color, double max_time);
+    virtual HexPoint GenMove(HexColor color, double max_time) = 0;
 
     /** Returns time available for the player to make their move. 
         Default implementation returns time remaining in the game.
      */
-    virtual double TimeForMove(HexColor color);
+    virtual double TimeForMove(HexColor color) = 0;
 
     void SetPosition(const SgNode* node);
 
