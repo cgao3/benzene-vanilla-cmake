@@ -76,7 +76,7 @@ void PlayAndSolve::SolverThread::operator()()
             /// FIXME: do we really need the above checks?
             boost::mutex::scoped_lock lock(m_mutex);
             m_ps.m_parallelResult = pv[0];
-            if (winner == brd.GetState().WhoseTurn())
+            if (winner == m_ps.m_game.Board().WhoseTurn())
             {
                 LogInfo() << "*** FOUND WIN!!! ***\n" 
                           << "PV:" << HexPointUtil::ToString(pv) << '\n';
