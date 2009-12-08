@@ -66,6 +66,7 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     Search().SetLockFree(other.Search().LockFree());
     Search().SetLiveGfx(other.Search().LiveGfx());
     Search().SetRave(other.Search().Rave());
+    Search().SetNoBiasTerm(other.Search().NoBiasTerm());
     Search().SetBiasTermConstant(other.Search().BiasTermConstant());
     Search().SetExpandThreshold(other.Search().ExpandThreshold());
     Search().SetLiveGfxInterval(other.Search().LiveGfxInterval());

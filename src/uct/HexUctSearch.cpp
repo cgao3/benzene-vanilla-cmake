@@ -58,6 +58,7 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
       m_shared_data(),
       m_root(0)
 {
+    SetNoBiasTerm(true);
     SetBiasTermConstant(0.0);
     SetExpandThreshold(1);
     SetKnowledgeThreshold(400);
