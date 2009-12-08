@@ -15,15 +15,12 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Base class for all UofA players. */
+/** Abstract base class for all UofA players. */
 class BenzenePlayer: public HexPlayer
 {
 public:
-
-    /** Constructs a player. */
     explicit BenzenePlayer();
 
-    /** Destructor. */
     virtual ~BenzenePlayer();
 
     /** Generates a move from this board position. If the game is
@@ -54,8 +51,7 @@ public:
         @param max_time Time in minutes remaining in game.
         @param score Return score of move here. 
     */
-    HexPoint genmove(HexBoard& brd, 
-                     const Game& game_state, HexColor color,
+    HexPoint genmove(HexBoard& brd, const Game& game_state, HexColor color,
                      double max_time, double& score);
 
     //----------------------------------------------------------------------
@@ -82,9 +78,8 @@ public:
 				HexColor color, bitset_t& consider,
                                 double max_time, double& score);
 
-    /** Generates a move in the given gamestate.  Derived classes
-        should extend this method. Score can be stored in score.
-
+    /** Generates a move in the given gamestate. Derived players
+        must implement this method. Score can be stored in score.
         @param brd
         @param game_state
         @param color
@@ -95,10 +90,9 @@ public:
     */
     virtual HexPoint search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider,
-                            double max_time, double& score);
+                            double max_time, double& score) = 0;
     
 private:
-
     HexPoint init_search(HexBoard& brd, HexColor color, 
                          bitset_t& consider, double& score);
 };
@@ -110,7 +104,6 @@ private:
 class BenzenePlayerFunctionality : public BenzenePlayer
 {
 public:
-
     /** Constructor.
         @param player The player to extend. 
     */
@@ -133,11 +126,9 @@ public:
     */
     virtual HexPoint pre_search(HexBoard& brd, const Game& game_state,
 				HexColor color, bitset_t& consider,
-                                double max_time, double& score);
-    
-   
-protected:
+                                double max_time, double& score) = 0;
 
+protected:
     /** Calls search() method of player it is extending. */
     HexPoint search(HexBoard& brd, const Game& game_state,
 		    HexColor color, const bitset_t& consider,
@@ -168,23 +159,6 @@ inline std::string BenzenePlayerFunctionality::name() const
 }
 
 inline HexPoint 
-BenzenePlayerFunctionality::pre_search(HexBoard& brd,
-                                       const Game& game_state,
-                                       HexColor color,
-                                       bitset_t& consider,
-                                       double max_time,
-                                       double& score)
-{
-    UNUSED(brd); 
-    UNUSED(game_state);
-    UNUSED(color);
-    UNUSED(consider);
-    UNUSED(max_time);
-    UNUSED(score);
-    return INVALID_POINT;
-}
-
-inline HexPoint 
 BenzenePlayerFunctionality::search(HexBoard& brd, const Game& game_state,
                                    HexColor color, const bitset_t& consider,
                                    double max_time, double& score)
@@ -198,11 +172,9 @@ BenzenePlayerFunctionality::search(HexBoard& brd, const Game& game_state,
 /** Utilities on BenzenePlayers. */
 namespace BenzenePlayerUtil
 {
-
     /** Searches through the player decorators to find an instance
         of type T. Returns 0 on failure. */
     template<typename T> T* GetInstanceOf(BenzenePlayer* player);
-
 }
 
 //----------------------------------------------------------------------------

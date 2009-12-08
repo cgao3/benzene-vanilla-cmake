@@ -100,20 +100,6 @@ HexPoint BenzenePlayer::pre_search(HexBoard& brd, const Game& game_state,
     UNUSED(score);
     return INVALID_POINT;
 }
-
-HexPoint BenzenePlayer::search(HexBoard& brd, const Game& game_state,
-                               HexColor color, const bitset_t& consider,
-                               double max_time, double& score)
-{
-    HexAssert(false); // Defense against Phil's stupidity
-
-    UNUSED(game_state);
-    UNUSED(color);
-    UNUSED(consider);
-    UNUSED(max_time);
-    UNUSED(score);
-    return BoardUtils::RandomEmptyCell(brd.GetState());
-}
     
 //----------------------------------------------------------------------------
 
