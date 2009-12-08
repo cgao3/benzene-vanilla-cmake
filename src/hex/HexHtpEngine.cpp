@@ -194,7 +194,7 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
 
     m_game.SetTimeRemaining(color, oldTimeRemaining - timer.GetTime());
 
-    if (m_game.TimeRemaining(color) < 0
+    if (m_game.TimeRemaining(color) < 0)
         LogWarning() << "**** FLAG DROPPED ****\n";
 
     Play(color, move);
