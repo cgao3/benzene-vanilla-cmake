@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file VCPattern.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -21,13 +21,12 @@ namespace
 /** The start/end of a ladder pattern. */
 struct BuilderPattern
 {
-    bitset_t black, empty, badprobes;
+    bitset_t black, empty;
     HexPoint endpoint;
     int height;
     
-    BuilderPattern(const bitset_t& b, const bitset_t& em,
-                   const bitset_t& p, HexPoint e, int h)
-        : black(b), empty(em), badprobes(p), endpoint(e), height(h)
+    BuilderPattern(const bitset_t& b, const bitset_t& em, HexPoint e, int h)
+        : black(b), empty(em), endpoint(e), height(h)
     { };
 };
 
@@ -43,10 +42,7 @@ bool ShiftBuilderPattern(BuilderPattern& pat, HexDirection dir,
         return false;
     if (!BoardUtils::ShiftBitset(brd.Const(), pat.empty, dir, empty)) 
         return false;
-    if (!BoardUtils::ShiftBitset(brd.Const(), pat.badprobes, dir, bad)) 
-        return false;
-    
-    pat = BuilderPattern(black, empty, bad, endpoint, pat.height);
+    pat = BuilderPattern(black, empty, endpoint, pat.height);
     return true;
 }
 
@@ -59,8 +55,7 @@ VCPattern RotatePattern(const VCPattern& pat, const StoneBoard& brd)
     HexPoint endpoint2 = BoardUtils::Rotate(brd.Const(), pat.Endpoint(1));
     bitset_t must = BoardUtils::Rotate(brd.Const(), pat.MustHave());
     bitset_t oppt = BoardUtils::Rotate(brd.Const(), pat.NotOpponent());
-    bitset_t badp = BoardUtils::Rotate(brd.Const(), pat.BadProbes());
-    return VCPattern(endpoint1, endpoint2, must, oppt, badp);
+    return VCPattern(endpoint1, endpoint2, must, oppt);
 }
 
 /** Mirrors pattern on given board. */
@@ -70,8 +65,7 @@ VCPattern MirrorPattern(const VCPattern& pat, const StoneBoard& brd)
     HexPoint endpoint2 = BoardUtils::Mirror(brd.Const(), pat.Endpoint(1));
     bitset_t must = BoardUtils::Mirror(brd.Const(), pat.MustHave());
     bitset_t oppt = BoardUtils::Mirror(brd.Const(), pat.NotOpponent());
-    bitset_t badp = BoardUtils::Mirror(brd.Const(), pat.BadProbes());
-    return VCPattern(endpoint1, endpoint2, must, oppt, badp);
+    return VCPattern(endpoint1, endpoint2, must, oppt);
 }
 
 /** Applies the reverse-mapping; used to reverse the direction of
@@ -110,12 +104,11 @@ bool ReversePattern(VCPattern& pat, const StoneBoard& brd)
     do {
         bitset_t must, oppt, badp;
         if (ReverseBitset(pat.MustHave(), brd, must) 
-            && ReverseBitset(pat.NotOpponent(), brd, oppt)
-            && ReverseBitset(pat.BadProbes(), brd, badp))
+            && ReverseBitset(pat.NotOpponent(), brd, oppt))
         {
             HexPoint endpoint1 = ReversePoint(pat.Endpoint(0), brd);
             HexPoint endpoint2 = ReversePoint(pat.Endpoint(1), brd);
-            pat = VCPattern(endpoint1, endpoint2, must, oppt, badp);
+            pat = VCPattern(endpoint1, endpoint2, must, oppt);
             return true;
         }
     } while (pat.ShiftPattern(DIR_EAST, brd));
@@ -276,7 +269,7 @@ void VCPattern::CreatePatterns(int width, int height)
         int row = height-1;
         int numcol = -1;
         HexPoint endpoint = SOUTH;
-        bitset_t black, empty, badprobes;
+        bitset_t black, empty;
         bool patternFits = true;
         for (int i=carrier.size()-1; i>=0; --i) {
             is.clear();
@@ -292,7 +285,6 @@ void VCPattern::CreatePatterns(int width, int height)
                 HexPoint p = HexPointUtil::coordsToPoint(col, row);
                 switch(sym[0]) {
                 case '*': empty.set(p); break;
-                case 'X': badprobes.set(p); empty.set(p); break;
                 case 'E': endpoint = p; empty.set(p); break;
                 case 'B': black.set(p); break;
                 case '.': break;
@@ -317,16 +309,16 @@ void VCPattern::CreatePatterns(int width, int height)
 
         if (type == "complete") {
             numComplete++;
-            VCPattern pat(endpoint, SOUTH, black, empty, badprobes);
+            VCPattern pat(endpoint, SOUTH, black, empty);
             complete.push_back(pat);
         } else if (type == "start") {
             if (endpoint == SOUTH)
                 throw HexException("Start pattern with no endpoint!");
-            start.push_back(BuilderPattern(black, empty, badprobes, 
-                                           endpoint, patternHeight));
+            start.push_back(BuilderPattern(black, empty, endpoint, 
+                                           patternHeight));
         } else if (type == "end") {
-            end.push_back(BuilderPattern(black, empty, badprobes, 
-                                           endpoint, patternHeight));
+            end.push_back(BuilderPattern(black, empty, endpoint, 
+                                         patternHeight));
         }
     }
     fin.close();
@@ -360,16 +352,16 @@ void VCPattern::CreatePatterns(int width, int height)
             while (onBoard) {
                 bitset_t empty = st.empty | bp.empty;
                 bitset_t black = st.black | bp.black;
-                bitset_t badprobes = st.badprobes | bp.badprobes;
                 
                 for (int i=startCol; i<col; ++i) {
                     for (int j=0; j<st.height; ++j) {
-                        HexPoint p = HexPointUtil::coordsToPoint(i, height-1-j);
+                        HexPoint p 
+                            = HexPointUtil::coordsToPoint(i, height-1-j);
                         empty.set(p);
                     }
                 }
                 
-                VCPattern pat(st.endpoint, bp.endpoint, black, empty, badprobes);
+                VCPattern pat(st.endpoint, bp.endpoint, black, empty);
                 complete.push_back(pat);
                 numConstructed++;
 
@@ -398,9 +390,11 @@ void VCPattern::CreatePatterns(int width, int height)
 //----------------------------------------------------------------------------
 
 VCPattern::VCPattern(HexPoint end1, HexPoint end2, const bitset_t& must_have, 
-                     const bitset_t& not_oppt, const bitset_t& bad_probes)
-    : m_must_have(must_have), m_not_oppt(not_oppt), m_bad_probes(bad_probes),
-      m_end1(end1), m_end2(end2)
+                     const bitset_t& not_oppt)
+    : m_must_have(must_have), 
+      m_not_oppt(not_oppt), 
+      m_end1(end1), 
+      m_end2(end2)
 {
 }
 
@@ -428,8 +422,6 @@ bool VCPattern::ShiftPattern(HexDirection dir, const StoneBoard& brd)
         return false;
     if (!BoardUtils::ShiftBitset(brd.Const(), NotOpponent(), dir, oppt)) 
         return false;
-    if (!BoardUtils::ShiftBitset(brd.Const(), BadProbes(), dir, bad)) 
-        return false;
     HexPoint endpoint1 = BoardUtils::PointInDir(brd.Const(), Endpoint(0), dir);
     HexPoint endpoint2 = BoardUtils::PointInDir(brd.Const(), Endpoint(1), dir);
 
@@ -437,7 +429,6 @@ bool VCPattern::ShiftPattern(HexDirection dir, const StoneBoard& brd)
     m_end2 = endpoint2;
     m_must_have = must;
     m_not_oppt = oppt;
-    m_bad_probes = bad;
     return true;
 }
 

@@ -10,7 +10,6 @@
 #include "WolveEngine.hpp"
 #include "WolvePlayer.hpp"
 #include "SwapCheck.hpp"
-#include "LadderCheck.hpp"
 #include "EndgameCheck.hpp"
 #include "HandBookCheck.hpp"
 
@@ -66,8 +65,7 @@ int main(int argc, char** argv)
                                             (new EndgameCheck
                                              (new HandBookCheck
                                               (new BookCheck
-                                               (new LadderCheck
-                                                (new WolvePlayer()))))));
+                                               (new WolvePlayer())))));
     try
     {
         GtpInputStream gin(std::cin);
@@ -86,7 +84,6 @@ int main(int argc, char** argv)
         std::cerr << f.Response() << std::endl;
         return 1;
     }
-
     return 0;
 }
 

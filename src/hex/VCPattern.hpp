@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file VCPattern.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ class VCPattern
 public: 
 
     VCPattern(HexPoint end1, HexPoint end2, const bitset_t& must_have, 
-              const bitset_t& not_oppt, const bitset_t& bad_probes);
+              const bitset_t& not_oppt);
 
     ~VCPattern();
 
@@ -46,9 +46,6 @@ public:
     /** Returns the endpoints, i must be in [0, 1]. */
     HexPoint Endpoint(int i) const;
 
-    /** Returns the bad probes for this ladder. */
-    bitset_t BadProbes() const;
-
     /** Returns true if this pattern matches the given board. */
     bool Matches(HexColor color, const StoneBoard& brd) const;
 
@@ -65,9 +62,6 @@ private:
 
     /** Cells that cannot be opponent stones. */
     bitset_t m_not_oppt;
-
-    /** Moves that should not be played to probe this ladder. */
-    bitset_t m_bad_probes;
 
     /** Endpoints connected by this VC. */
     HexPoint m_end1, m_end2;
@@ -95,11 +89,6 @@ inline bitset_t VCPattern::MustHave() const
 inline bitset_t VCPattern::NotOpponent() const
 {
     return m_not_oppt;
-}
-
-inline bitset_t VCPattern::BadProbes() const
-{
-    return m_bad_probes;
 }
 
 inline HexPoint VCPattern::Endpoint(int i) const

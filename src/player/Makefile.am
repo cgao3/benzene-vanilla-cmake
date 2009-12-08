@@ -8,7 +8,6 @@ BookCommands.cpp \
 EndgameCheck.cpp \
 HandBookCheck.cpp \
 HandicapPlayer.cpp \
-LadderCheck.cpp \
 PerfectPlayer.cpp \
 SwapCheck.cpp \
 VulPreCheck.cpp 
@@ -23,7 +22,6 @@ BookCommands.hpp \
 EndgameCheck.hpp \
 HandBookCheck.hpp \
 HandicapPlayer.hpp \
-LadderCheck.hpp \
 PerfectPlayer.hpp \
 SwapCheck.hpp \
 VulPreCheck.hpp 

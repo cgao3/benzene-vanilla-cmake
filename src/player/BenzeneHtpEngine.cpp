@@ -17,7 +17,6 @@
 #include "HexProgram.hpp"
 #include "HexSgUtil.hpp"
 #include "BenzeneHtpEngine.hpp"
-#include "LadderCheck.hpp"
 #include "PlayerUtils.hpp"
 #include "Resistance.hpp"
 #include "Solver.hpp"
@@ -168,7 +167,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
     BookCheck* book = GetInstanceOf<BookCheck>(player);
     EndgameCheck* endgame = GetInstanceOf<EndgameCheck>(player);
     HandBookCheck* handbook = GetInstanceOf<HandBookCheck>(player);
-    LadderCheck* ladder = GetInstanceOf<LadderCheck>(player);
     
     if (cmd.NuArg() == 0)
     {
@@ -185,9 +183,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
         if (handbook)
             cmd << "[bool] use_handbook "
                 << handbook->Enabled() << '\n';
-        if (ladder)
-            cmd << "[bool] use_ladder_check "
-                << ladder->Enabled() << '\n';
         cmd << "[bool] use_parallel_solver "
             << m_useParallelSolver << '\n';
         if (book) 
@@ -218,8 +213,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
             endgame->SetEnabled(cmd.BoolArg(1));
         else if (handbook && name == "use_handbook")
             handbook->SetEnabled(cmd.BoolArg(1));
-        else if (ladder && name == "use_ladder_check") 
-            ladder->SetEnabled(cmd.BoolArg(1));
         else if (name == "use_parallel_solver")
             m_useParallelSolver = cmd.BoolArg(1);
     }

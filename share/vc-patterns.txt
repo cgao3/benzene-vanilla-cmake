@@ -2,19 +2,19 @@ name row2start1
 type start
 height 2
 E
- X
+ *
 
 name row2start2
 type start
 height 2
 . E
- X .
+ * .
 
 name row2start3
 type start
 height 2
 . . E
- . X X
+ . * *
   * * *
 
 name row2start4
@@ -169,7 +169,7 @@ name row3start1
 type start
 height 3
 . E
- . X
+ . *
   * *
 
 name row3start2
