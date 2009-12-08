@@ -6,10 +6,6 @@
 #ifndef BENZENEHTPENGINE_H
 #define BENZENEHTPENGINE_H
 
-#include <boost/thread.hpp>
-#include <boost/thread/barrier.hpp>
-#include <boost/thread/mutex.hpp>
-
 #include "BenzenePlayer.hpp"
 #include "DfpnCommands.hpp"
 #include "HexEnvironment.hpp"
@@ -125,53 +121,10 @@ protected:
     void ParamPlayer(BenzenePlayer* player, HtpCommand& cmd);
 
 private:
-    friend class PlayerThread;
-
-    class PlayerThread
-    {
-    public:
-        PlayerThread(BenzeneHtpEngine& engine, boost::mutex& mutex,
-                     boost::barrier& barrier, HexColor color, 
-                     double max_time)
-            : m_engine(engine), m_mutex(mutex), m_barrier(barrier),
-              m_color(color), m_max_time(max_time) {};
-
-        void operator()();
-    private:
-        BenzeneHtpEngine& m_engine;
-        boost::mutex& m_mutex;
-        boost::barrier& m_barrier;
-        HexColor m_color;
-        double m_max_time;
-    };
-
-    friend class SolverThread;
-
-    class SolverThread
-    {
-    public:
-        SolverThread(BenzeneHtpEngine& engine, boost::mutex& mutex,
-                     boost::barrier& barrier, HexColor color)
-            : m_engine(engine), m_mutex(mutex), m_barrier(barrier),
-              m_color(color) {};
-
-        void operator()();
-    private:
-        BenzeneHtpEngine& m_engine;
-        boost::mutex& m_mutex;
-        boost::barrier& m_barrier;
-        HexColor m_color;
-    };
-
     bool m_useParallelSolver;
-
-    HexPoint m_parallelResult;
-
-    HexPoint ParallelGenMove(HexColor color, double max_time);
 
     void RegisterCmd(const std::string& name,
                      GtpCallback<BenzeneHtpEngine>::Method method);
-
 };
 
 //----------------------------------------------------------------------------

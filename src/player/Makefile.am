@@ -9,6 +9,7 @@ EndgameCheck.cpp \
 HandBookCheck.cpp \
 HandicapPlayer.cpp \
 PerfectPlayer.cpp \
+PlayAndSolve.cpp \
 SwapCheck.cpp \
 VulPreCheck.cpp 
 
@@ -23,6 +24,7 @@ EndgameCheck.hpp \
 HandBookCheck.hpp \
 HandicapPlayer.hpp \
 PerfectPlayer.hpp \
+PlayAndSolve.hpp \
 SwapCheck.hpp \
 VulPreCheck.hpp 
 

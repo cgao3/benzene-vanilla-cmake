@@ -26,6 +26,7 @@
 #include "VCSet.hpp"
 #include "VCUtils.hpp"
 #include "VulPreCheck.hpp"
+#include "PlayAndSolve.hpp"
 
 using namespace benzene;
 
@@ -106,13 +107,17 @@ void BenzeneHtpEngine::NewGame(int width, int height)
 }
 
 /** Generates a move. */
-HexPoint BenzeneHtpEngine::GenMove(HexColor color, double max_time)
+HexPoint BenzeneHtpEngine::GenMove(HexColor color, double maxTime)
 {
     if (m_useParallelSolver)
-        return ParallelGenMove(color, max_time);
+    {
+        PlayAndSolve ps(*m_pe.brd, *m_se.brd, m_player, m_solverDfpn, 
+                        *m_dfpn_tt, m_game);
+        return ps.GenMove(color, maxTime);
+    }
     double score;
     return m_player.genmove(m_pe.SyncBoard(m_game.Board()), m_game, 
-                            color, max_time, score);
+                            color, maxTime, score);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -654,73 +659,6 @@ void BenzeneHtpEngine::CmdMiscDebug(HtpCommand& cmd)
 //     cmd.CheckNuArg(1);
 //     HexPoint point = HtpUtil::MoveArg(cmd, 0);
     cmd << *m_pe.brd << '\n';
-}
-
-//----------------------------------------------------------------------------
-
-void BenzeneHtpEngine::PlayerThread::operator()()
-{
-    LogInfo() << "*** PlayerThread ***\n";
-    double score;
-    HexBoard& brd = m_engine.m_pe.SyncBoard(m_engine.m_game.Board());
-    HexPoint move = m_engine.m_player.genmove(brd, m_engine.m_game,
-                                              m_color, m_max_time, 
-                                              score);
-    {
-        boost::mutex::scoped_lock lock(m_mutex);
-        if (m_engine.m_parallelResult == INVALID_POINT)
-        {
-            LogInfo() << "*** Player move: " << move << '\n';
-            m_engine.m_parallelResult = move;
-        }
-    }
-    SgSetUserAbort(true);
-    m_barrier.wait();
-}
-
-void BenzeneHtpEngine::SolverThread::operator()()
-{
-    LogInfo() << "*** SolverThread ***\n";
-    HexBoard& brd = m_engine.m_se.SyncBoard(m_engine.m_game.Board());
-    DfpnHashTable& hashTable = *m_engine.m_dfpn_tt.get();
-    PointSequence pv;
-    HexColor winner = m_engine.m_solverDfpn.StartSearch(brd, hashTable, pv);
-    
-    if (winner != EMPTY)
-    {
-        if (!pv.empty() && pv[0] != INVALID_POINT)
-        {  
-            /// FIXME: do we really need the above checks?
-            boost::mutex::scoped_lock lock(m_mutex);
-            m_engine.m_parallelResult = pv[0];
-            if (winner == brd.GetState().WhoseTurn())
-            {
-                LogInfo() << "*** FOUND WIN!!! ***\n" 
-                          << "PV:" << HexPointUtil::ToString(pv) << '\n';
-            }
-            else
-            {
-                LogInfo() << "*** FOUND LOSS!! ***\n" 
-                          << "PV: " << HexPointUtil::ToString(pv) << '\n';
-            }
-            SgSetUserAbort(true);
-        }
-    }
-    m_barrier.wait();
-}
-
-HexPoint BenzeneHtpEngine::ParallelGenMove(HexColor color, double timeleft)
-{
-    boost::mutex mutex;
-    boost::barrier barrier(3);
-    m_parallelResult = INVALID_POINT;
-    boost::thread playerThread(PlayerThread(*this, mutex, barrier, 
-                                            color, timeleft));
-    boost::thread solverThread(SolverThread(*this, mutex, barrier, color));
-    barrier.wait();
-    playerThread.join();
-    solverThread.join();
-    return m_parallelResult;
 }
 
 //----------------------------------------------------------------------------
