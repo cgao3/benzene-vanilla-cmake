@@ -31,7 +31,6 @@ public:
 
     /** @page benzenehtpenginecommands BenzeneHtpEngine Commands
         - @link CmdLicense() @c benzene-license @endlink
-        - @link CmdRegGenMove() @c reg_genmove @endlink
         - @link CmdGetAbsorbGroup() @c get_absorb_group @endlink
         - @link CmdHandbookAdd() @c handbook-add @endlink
         - @link CmdComputeInferior() @c compute-inferior @endlink
@@ -56,8 +55,6 @@ public:
     // The callback functions are documented in the cpp file
 
     void CmdLicense(HtpCommand& cmd);
-
-    void CmdRegGenMove(HtpCommand& cmd);
 
     void CmdGetAbsorbGroup(HtpCommand& cmd);
     
@@ -114,14 +111,13 @@ protected:
 
     DfpnCommands m_dfpnCommands;
 
+    bool m_useParallelSolver;
+
     virtual void NewGame(int width, int height);
     
-    virtual HexPoint GenMove(HexColor color, double max_time);
-
     void ParamPlayer(BenzenePlayer* player, HtpCommand& cmd);
 
 private:
-    bool m_useParallelSolver;
 
     void RegisterCmd(const std::string& name,
                      GtpCallback<BenzeneHtpEngine>::Method method);

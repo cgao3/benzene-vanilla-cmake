@@ -8,6 +8,7 @@
 #include "BitsetIterator.hpp"
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
+#include "PlayAndSolve.hpp"
 
 using namespace benzene;
 
@@ -51,6 +52,29 @@ double MoHexEngine::TimeForMove(HexColor color)
         throw HtpFailure("No MoHex instance!");
 
     return std::min(m_game.TimeRemaining(color), mohex->MaxTime());
+}
+
+HexPoint MoHexEngine::GenMove(HexColor color, bool useGameClock)
+{
+    SG_UNUSED(useGameClock);
+    double maxTime = TimeForMove(color);
+    return DoSearch(color, maxTime);
+}
+
+HexPoint MoHexEngine::DoSearch(HexColor color, double maxTime)
+{
+    if (m_useParallelSolver)
+    {
+        PlayAndSolve ps(*m_pe.brd, *m_se.brd, m_player, m_solverDfpn, 
+                        *m_dfpn_tt, m_game);
+        return ps.GenMove(color, maxTime);
+    }
+    else
+    {
+        double score;
+        return m_player.GenMove(m_pe.SyncBoard(m_game.Board()), m_game, 
+                                color, maxTime, score);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -319,16 +343,13 @@ void MoHexEngine::Ponder()
     MoHexPlayer* mohex = 
         BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
     HexAssert(mohex);
-
     if (!mohex->Ponder())
         return;
-
     if (!mohex->ReuseSubtree())
     {
-        LogWarning() << "Pondering requires reuse_subtree." << '\n';
+        LogWarning() << "Pondering requires reuse_subtree.\n";
         return;
     }
-
     // Call genmove() after 0.2 seconds delay to avoid calls 
     // in very short intervals between received commands
     boost::xtime time;
@@ -340,14 +361,9 @@ void MoHexEngine::Ponder()
         time.nsec += 1000000; // 1 msec
         boost::thread::sleep(time);
     }
-
-    LogInfo() << "MoHexEngine::Ponder: start" << '\n';
-
-    // Do a search for at most 10 minutes.
-    HexEval score;
-    m_player.GenMove(m_pe.SyncBoard(m_game.Board()), m_game,
-                     m_game.Board().WhoseTurn(), 600, score);
-
+    LogInfo() << "MoHexEngine::Ponder: start\n";
+    // Search for at most 10 minutes
+    DoSearch(m_game.Board().WhoseTurn(), 600);
 }
 
 void MoHexEngine::StopPonder()

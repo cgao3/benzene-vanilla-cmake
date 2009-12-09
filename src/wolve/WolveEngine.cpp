@@ -8,6 +8,7 @@
 #include "Misc.hpp"
 #include "WolveEngine.hpp"
 #include "WolvePlayer.hpp"
+#include "PlayAndSolve.hpp"
 
 using namespace benzene;
 
@@ -69,6 +70,22 @@ void WolveEngine::RegisterCmd(const std::string& name,
 double WolveEngine::TimeForMove(HexColor color)
 {
     return m_game.TimeRemaining(color);
+}
+
+/** Generates a move. */
+HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
+{
+    SG_UNUSED(useGameClock);
+    double maxTime = TimeForMove(color);
+    if (m_useParallelSolver)
+    {
+        PlayAndSolve ps(*m_pe.brd, *m_se.brd, m_player, m_solverDfpn, 
+                        *m_dfpn_tt, m_game);
+        return ps.GenMove(color, maxTime);
+    }
+    double score;
+    return m_player.GenMove(m_pe.SyncBoard(m_game.Board()), m_game, 
+                            color, maxTime, score);
 }
 
 void WolveEngine::WolveParam(HtpCommand& cmd)

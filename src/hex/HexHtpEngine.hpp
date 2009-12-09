@@ -38,6 +38,7 @@ public:
         - @link CmdExec() @c exec @endlink
         - @link CmdFinalScore() @c final_score @endlink
         - @link CmdGenMove() @c genmove @endlink
+        - @link CmdRegGenMove() @c reg_genmove @endlink
         - @link CmdInterrupt() @c gogui-interrupt @endlink
         - @link CmdLoadSgf() @c loadsgf @endlink
         - @link CmdName() @c name @endlink
@@ -60,6 +61,7 @@ public:
     virtual void CmdExec(HtpCommand& cmd);
     virtual void CmdFinalScore(HtpCommand& cmd);
     virtual void CmdGenMove(HtpCommand& cmd);
+    virtual void CmdRegGenMove(HtpCommand& cmd);
 #if GTPENGINE_INTERRUPT
     virtual void CmdInterrupt(HtpCommand& cmd);
 #endif
@@ -106,13 +108,8 @@ protected:
     /** Creates a new game on a board with given dimensions. */
     virtual void NewGame(int width, int height);
 
-    /** Generates a move. */
-    virtual HexPoint GenMove(HexColor color, double max_time) = 0;
-
-    /** Returns time available for the player to make their move. 
-        Default implementation returns time remaining in the game.
-     */
-    virtual double TimeForMove(HexColor color) = 0;
+    /** Generates a move for color. */
+    virtual HexPoint GenMove(HexColor color, bool useGameClock) = 0;
 
     void SetPosition(const SgNode* node);
 

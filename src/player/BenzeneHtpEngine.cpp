@@ -26,7 +26,6 @@
 #include "VCSet.hpp"
 #include "VCUtils.hpp"
 #include "VulPreCheck.hpp"
-#include "PlayAndSolve.hpp"
 
 using namespace benzene;
 
@@ -51,8 +50,6 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
       m_useParallelSolver(false)
 {
     RegisterCmd("benzene-license", &BenzeneHtpEngine::CmdLicense);
-
-    RegisterCmd("reg_genmove", &BenzeneHtpEngine::CmdRegGenMove);
 
     RegisterCmd("get_absorb_group", &BenzeneHtpEngine::CmdGetAbsorbGroup);
 
@@ -106,20 +103,6 @@ void BenzeneHtpEngine::NewGame(int width, int height)
     m_se.NewGame(width, height);
 }
 
-/** Generates a move. */
-HexPoint BenzeneHtpEngine::GenMove(HexColor color, double maxTime)
-{
-    if (m_useParallelSolver)
-    {
-        PlayAndSolve ps(*m_pe.brd, *m_se.brd, m_player, m_solverDfpn, 
-                        *m_dfpn_tt, m_game);
-        return ps.GenMove(color, maxTime);
-    }
-    double score;
-    return m_player.GenMove(m_pe.SyncBoard(m_game.Board()), m_game, 
-                            color, maxTime, score);
-}
-
 ////////////////////////////////////////////////////////////////////////
 // Commands
 ////////////////////////////////////////////////////////////////////////
@@ -133,17 +116,6 @@ void BenzeneHtpEngine::CmdLicense(HtpCommand& cmd)
         HexProgram::Get().getDate() << "\n"
         "Copyright (C) 2009 by the authors of the Benzene project.\n"
         "This version is for private use only. DO NOT DISTRIBUTE.\n\n";
-}
-
-/** Generates a move, but does not play it. */
-void BenzeneHtpEngine::CmdRegGenMove(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(1);
-    double score;
-    HexPoint move = m_player.GenMove(m_pe.SyncBoard(m_game.Board()),
-                                     m_game, HtpUtil::ColorArg(cmd, 0),
-                                     -1, score);
-    cmd << move;
 }
 
 /** Returns the set of stones this stone is part of. */

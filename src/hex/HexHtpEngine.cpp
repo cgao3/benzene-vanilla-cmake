@@ -42,6 +42,7 @@ HexHtpEngine::HexHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("exec", &HexHtpEngine::CmdExec);
     RegisterCmd("final_score", &HexHtpEngine::CmdFinalScore);
     RegisterCmd("genmove", &HexHtpEngine::CmdGenMove);
+    RegisterCmd("reg_genmove", &HexHtpEngine::CmdRegGenMove);    
 #if GTPENGINE_INTERRUPT
     RegisterCmd("gogui-interrupt", &HexHtpEngine::CmdInterrupt);
 #endif
@@ -189,7 +190,7 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
     SgTimer timer;
     timer.Start();
     double oldTimeRemaining = m_game.TimeRemaining(color);
-    HexPoint move = GenMove(color, TimeForMove(color));
+    HexPoint move = GenMove(color, true);
     timer.Stop();
 
     m_game.SetTimeRemaining(color, oldTimeRemaining - timer.GetTime());
@@ -198,6 +199,15 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
         LogWarning() << "**** FLAG DROPPED ****\n";
 
     Play(color, move);
+    cmd << move;
+}
+
+/** Generates a move, but does not play it. Sets random seed. */
+void HexHtpEngine::CmdRegGenMove(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    SgRandom::SetSeed(SgRandom::Seed());
+    HexPoint move = GenMove(HtpUtil::ColorArg(cmd, 0), false);
     cmd << move;
 }
 

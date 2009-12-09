@@ -43,6 +43,8 @@ private:
 
     double TimeForMove(HexColor color);
 
+    HexPoint GenMove(HexColor color, bool useGameClock);
+
     void RegisterCmd(const std::string& name,
                      GtpCallback<WolveEngine>::Method method);
 

@@ -53,6 +53,10 @@ private:
 
     BookBuilderCommands<MoHexPlayer> m_bookCommands;
 
+    HexPoint GenMove(HexColor color, bool useGameClock);
+
+    HexPoint DoSearch(HexColor color, double maxTime);
+
     void RegisterCmd(const std::string& name,
                      GtpCallback<MoHexEngine>::Method method);
 };
