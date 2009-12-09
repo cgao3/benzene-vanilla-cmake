@@ -28,9 +28,9 @@ public:
         true. If state is found in book, returns best book move. Otherwise
         calls player's pre_search() and returns the move it returns.
     */
-    virtual HexPoint pre_search(HexBoard& brd, const Game& game_state,
-				HexColor color, bitset_t& consider,
-                                double max_time, double& score);
+    virtual HexPoint PreSearch(HexBoard& brd, const Game& game_state,
+                               HexColor color, bitset_t& consider,
+                               double max_time, double& score);
     
     bool Enabled() const;
     

@@ -83,8 +83,8 @@ HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
 	    return killers.begin()->killer();
 	}
     }
-    return m_player->pre_search(brd, game_state, color, consider,
-				max_time, score);
+    return m_player->PreSearch(brd, game_state, color, consider,
+                               max_time, score);
 }
 
 //----------------------------------------------------------------------------

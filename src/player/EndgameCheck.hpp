@@ -30,9 +30,9 @@ public:
         INVALID_POINT and prunes consider by
         PlayerUtils::MovesToConsider().
      */
-    virtual HexPoint pre_search(HexBoard& brd, const Game& game_state,
-				HexColor color, bitset_t& consider,
-                                double max_time, double& score);
+    virtual HexPoint PreSearch(HexBoard& brd, const Game& game_state,
+                               HexColor color, bitset_t& consider,
+                               double max_time, double& score);
 
     bool Enabled() const;
 

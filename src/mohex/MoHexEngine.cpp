@@ -345,7 +345,7 @@ void MoHexEngine::Ponder()
 
     // Do a search for at most 10 minutes.
     HexEval score;
-    m_player.genmove(m_pe.SyncBoard(m_game.Board()), m_game,
+    m_player.GenMove(m_pe.SyncBoard(m_game.Board()), m_game,
                      m_game.Board().WhoseTurn(), 600, score);
 
 }
@@ -358,3 +358,4 @@ void MoHexEngine::StopPonder()
 #endif // GTPENGINE_PONDER
 
 //----------------------------------------------------------------------------
+

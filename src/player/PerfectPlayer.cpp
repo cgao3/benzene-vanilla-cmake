@@ -26,7 +26,7 @@ PerfectPlayer::~PerfectPlayer()
 
 //----------------------------------------------------------------------------
 
-HexPoint PerfectPlayer::search(HexBoard& brd, 
+HexPoint PerfectPlayer::Search(HexBoard& brd, 
                                const Game& game_state,
 			       HexColor color,
                                const bitset_t& consider,

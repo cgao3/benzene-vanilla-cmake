@@ -42,7 +42,7 @@ WolvePlayer::~WolvePlayer()
 
 //----------------------------------------------------------------------------
 
-HexPoint WolvePlayer::search(HexBoard& brd, 
+HexPoint WolvePlayer::Search(HexBoard& brd, 
                              const Game& game_state,
 			     HexColor color, 
                              const bitset_t& consider,

@@ -26,7 +26,7 @@ public:
     virtual ~MoHexPlayer();
 
     /** Returns "mohex". */
-    std::string name() const;
+    std::string Name() const;
 
     /** Returns the search. */
     HexUctSearch& Search();
@@ -100,7 +100,7 @@ protected:
     bool m_ponder;
     
     /** Generates a move in the given gamestate using uct. */
-    virtual HexPoint search(HexBoard& brd, const Game& game_state,
+    virtual HexPoint Search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider,
                             double max_time, double& score);
 
@@ -121,7 +121,7 @@ protected:
                            HexUctSharedData& newData) const;
 };
 
-inline std::string MoHexPlayer::name() const
+inline std::string MoHexPlayer::Name() const
 {
     return "mohex";
 }

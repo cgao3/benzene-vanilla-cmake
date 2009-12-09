@@ -28,7 +28,7 @@ public:
     virtual ~PerfectPlayer();
     
     /** Returns "perfect". */
-    std::string name() const;
+    std::string Name() const;
 
     SolverDB* DB();
 
@@ -37,7 +37,7 @@ public:
 protected:
 
     /** Generates a move in the given gamestate using Solver. */
-    virtual HexPoint search(HexBoard& brd, const Game& game_state,
+    virtual HexPoint Search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider,
                             double max_time, double& score);
 
@@ -56,7 +56,7 @@ private:
                          double& score) const;
 };
 
-inline std::string PerfectPlayer::name() const
+inline std::string PerfectPlayer::Name() const
 {
     return "perfect";
 }

@@ -20,9 +20,9 @@ SwapCheck::~SwapCheck()
 {
 }
 
-HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
-			       HexColor color, bitset_t& consider,
-			       double max_time, double& score)
+HexPoint SwapCheck::PreSearch(HexBoard& brd, const Game& game_state,
+                              HexColor color, bitset_t& consider,
+                              double max_time, double& score)
 {
     if (game_state.AllowSwap()
         && (1 == game_state.History().size())
@@ -60,8 +60,8 @@ HexPoint SwapCheck::pre_search(HexBoard& brd, const Game& game_state,
         }
         LogInfo() << "Opted not to swap.\n";
     }
-    return m_player->pre_search(brd, game_state, color, consider,
-				max_time, score);
+    return m_player->PreSearch(brd, game_state, color, consider,
+                               max_time, score);
 }
 
 /** Loads swap moves for each boardsize from the given file.

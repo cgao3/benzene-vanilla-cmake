@@ -45,8 +45,8 @@ void PlayAndSolve::PlayerThread::operator()()
     HexBoard& brd = m_ps.m_playerBrd;
     brd.GetState().SetState(m_ps.m_game.Board());
     double score;
-    HexPoint move = m_ps.m_player.genmove(brd, m_ps.m_game, 
-                                          m_color, m_maxTime, score);
+    HexPoint move = m_ps.m_player.GenMove(brd, m_ps.m_game, m_color, 
+                                          m_maxTime, score);
     {
         boost::mutex::scoped_lock lock(m_mutex);
         if (m_ps.m_parallelResult == INVALID_POINT)

@@ -116,7 +116,7 @@ HexPoint BenzeneHtpEngine::GenMove(HexColor color, double maxTime)
         return ps.GenMove(color, maxTime);
     }
     double score;
-    return m_player.genmove(m_pe.SyncBoard(m_game.Board()), m_game, 
+    return m_player.GenMove(m_pe.SyncBoard(m_game.Board()), m_game, 
                             color, maxTime, score);
 }
 
@@ -140,7 +140,7 @@ void BenzeneHtpEngine::CmdRegGenMove(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     double score;
-    HexPoint move = m_player.genmove(m_pe.SyncBoard(m_game.Board()),
+    HexPoint move = m_player.GenMove(m_pe.SyncBoard(m_game.Board()),
                                      m_game, HtpUtil::ColorArg(cmd, 0),
                                      -1, score);
     cmd << move;

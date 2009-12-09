@@ -29,9 +29,9 @@ BookCheck::~BookCheck()
 {
 }
 
-HexPoint BookCheck::pre_search(HexBoard& brd, const Game& game_state,
-			       HexColor color, bitset_t& consider,
-                               double max_time, double& score)
+HexPoint BookCheck::PreSearch(HexBoard& brd, const Game& game_state,
+                              HexColor color, bitset_t& consider,
+                              double max_time, double& score)
 {
     if (m_enabled) 
     {
@@ -44,8 +44,8 @@ HexPoint BookCheck::pre_search(HexBoard& brd, const Game& game_state,
         if (response != INVALID_POINT)
             return response;
     }
-    return m_player->pre_search(brd, game_state, color, consider,
-				max_time, score);
+    return m_player->PreSearch(brd, game_state, color, consider,
+                               max_time, score);
 }
 
 //----------------------------------------------------------------------------

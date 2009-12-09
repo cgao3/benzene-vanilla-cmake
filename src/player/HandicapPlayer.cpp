@@ -25,7 +25,7 @@ HandicapPlayer::~HandicapPlayer()
 
 //----------------------------------------------------------------------------
 
-HexPoint HandicapPlayer::search(HexBoard& brd, 
+HexPoint HandicapPlayer::Search(HexBoard& brd, 
                                 const Game& game_state,
 				HexColor color, 
                                 const bitset_t& consider,

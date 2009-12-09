@@ -23,26 +23,26 @@ BenzenePlayer::~BenzenePlayer()
 //----------------------------------------------------------------------------
 
 /** @bug Subtract time spent to here from max_time after each step. */
-HexPoint BenzenePlayer::genmove(HexBoard& brd, const Game& game_state, 
+HexPoint BenzenePlayer::GenMove(HexBoard& brd, const Game& game_state, 
                                 HexColor color, double max_time, double& score)
 {
     HexPoint move = INVALID_POINT;
     bitset_t consider;
 
-    move = init_search(brd, color, consider, score);
+    move = InitSearch(brd, color, consider, score);
     if (move != INVALID_POINT)
         return move;
 
     //----------------------------------------------------------------------
 
-    move = pre_search(brd, game_state, color, consider, max_time, score);
+    move = PreSearch(brd, game_state, color, consider, max_time, score);
     if (move != INVALID_POINT) 
         return move;
 
     //----------------------------------------------------------------------
 
     LogInfo() << "Best move cannot be determined, must search state.\n";
-    return search(brd, game_state, color, consider, max_time, score);
+    return Search(brd, game_state, color, consider, max_time, score);
 }
 
 /** Finds inferior cells, builds vcs. Sets moves to consider to all
@@ -55,8 +55,8 @@ HexPoint BenzenePlayer::genmove(HexBoard& brd, const Game& game_state,
     @return INVALID_POINT if a non-terminal state, otherwise the
     move to play in the terminal state.
 */
-HexPoint BenzenePlayer::init_search(HexBoard& brd, HexColor color, 
-                                    bitset_t& consider, double& score)
+HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color, 
+                                   bitset_t& consider, double& score)
 {
     // Resign if the game is already over
     Groups groups;
@@ -88,9 +88,9 @@ HexPoint BenzenePlayer::init_search(HexBoard& brd, HexColor color,
     return INVALID_POINT;
 }
 
-HexPoint BenzenePlayer::pre_search(HexBoard& brd, const Game& game_state,
-                                   HexColor color, bitset_t& consider,
-                                   double max_time, double& score)
+HexPoint BenzenePlayer::PreSearch(HexBoard& brd, const Game& game_state,
+                                  HexColor color, bitset_t& consider,
+                                  double max_time, double& score)
 {
     UNUSED(brd); 
     UNUSED(game_state);

@@ -26,12 +26,12 @@ public:
     /** Generates a move from this board position. If the game is
         already over (somebody has won), returns RESIGN.
 
-        Derived UofA players that use different search algorithms
+        Derived Benzene players that use different search algorithms
         should not extend this method, but the protected virtual
-        method search() below.
+        method Search() below.
 
-        Classes deriving from UofAFunctinality should extend the 
-        pre_search() method only.  
+        Classes deriving from BenzenePlayerFunctinality should extend the 
+        PreSearch() method only.  
         @see BenzenePlayerFunctionality.
 
         This method does the following:
@@ -39,10 +39,10 @@ public:
         1 - if state is terminal (game over, vc/fill-in win/loss),
             returns "appropriate" move. Otherwise, continues to 
             step 2. 
-        2 - Calls pre_search().
-            If pre_search() returns INVALID_POINT, continues to 
-            step 3. Otherwise, returns point returned by pre_search().
-        3 - returns move returned by search() 
+        2 - Calls PreSearch().
+            If PreSearch() returns INVALID_POINT, continues to 
+            step 3. Otherwise, returns point returned by PreSearch().
+        3 - returns move returned by Search() 
 
         @param brd HexBoard to do work on. Board position is set to
                the board position as that of the game board. 
@@ -51,7 +51,7 @@ public:
         @param max_time Time in minutes remaining in game.
         @param score Return score of move here. 
     */
-    HexPoint genmove(HexBoard& brd, const Game& game_state, HexColor color,
+    HexPoint GenMove(HexBoard& brd, const Game& game_state, HexColor color,
                      double max_time, double& score);
 
     //----------------------------------------------------------------------
@@ -60,8 +60,8 @@ public:
         usage of this method would be to check an opening book for the
         current state and to abort the call to search() if found.
         
-        If pre_search() is successful, the genmove() algorithm returns
-        the move pre_search() returns. If unsuccessfull, search() is
+        If PreSearch() is successful, the genmove() algorithm returns
+        the move PreSearch() returns. If unsuccessfull, search() is
         called. Default implementation does nothing.
         
         @param brd
@@ -74,9 +74,9 @@ public:
         @return INVALID_POINT on failure, otherwise a valid move on
         success.
     */
-    virtual HexPoint pre_search(HexBoard& brd, const Game& game_state,
-				HexColor color, bitset_t& consider,
-                                double max_time, double& score);
+    virtual HexPoint PreSearch(HexBoard& brd, const Game& game_state,
+                               HexColor color, bitset_t& consider,
+                               double max_time, double& score);
 
     /** Generates a move in the given gamestate. Derived players
         must implement this method. Score can be stored in score.
@@ -88,13 +88,13 @@ public:
         @param score
         @return The move to play.
     */
-    virtual HexPoint search(HexBoard& brd, const Game& game_state,
+    virtual HexPoint Search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider,
                             double max_time, double& score) = 0;
     
 private:
-    HexPoint init_search(HexBoard& brd, HexColor color, 
-                         bitset_t& consider, double& score);
+    HexPoint InitSearch(HexBoard& brd, HexColor color, 
+                        bitset_t& consider, double& score);
 };
 
 //----------------------------------------------------------------------------
@@ -116,21 +116,21 @@ public:
     BenzenePlayer* PlayerExtending();
 
     /** Returns name of player it is extending. */
-    std::string name() const;
+    std::string Name() const;
 
-    /** Extends BenzenePlayer::pre_search(). If this implementation
-        fails, pre_search() should call pre_search() of player it is
+    /** Extends BenzenePlayer::PreSearch(). If this implementation
+        fails, PreSearch() should call PreSearch() of player it is
         extending.  In this way, multiple functionalities can be
         chained together.  If you want to simply constrain the moves
-        to consider, alter it, and return player->pre_search().
+        to consider, alter it, and return player->PreSearch().
     */
-    virtual HexPoint pre_search(HexBoard& brd, const Game& game_state,
-				HexColor color, bitset_t& consider,
-                                double max_time, double& score) = 0;
+    virtual HexPoint PreSearch(HexBoard& brd, const Game& game_state,
+                               HexColor color, bitset_t& consider,
+                               double max_time, double& score) = 0;
 
 protected:
-    /** Calls search() method of player it is extending. */
-    HexPoint search(HexBoard& brd, const Game& game_state,
+    /** Calls Search() method of player it is extending. */
+    HexPoint Search(HexBoard& brd, const Game& game_state,
 		    HexColor color, const bitset_t& consider,
                     double max_time, double& score);
 
@@ -153,17 +153,17 @@ inline BenzenePlayer* BenzenePlayerFunctionality::PlayerExtending()
     return m_player;
 }
 
-inline std::string BenzenePlayerFunctionality::name() const
+inline std::string BenzenePlayerFunctionality::Name() const
 {
-    return m_player->name();
+    return m_player->Name();
 }
 
 inline HexPoint 
-BenzenePlayerFunctionality::search(HexBoard& brd, const Game& game_state,
+BenzenePlayerFunctionality::Search(HexBoard& brd, const Game& game_state,
                                    HexColor color, const bitset_t& consider,
                                    double max_time, double& score)
 {
-    return m_player->search(brd, game_state, color, consider,
+    return m_player->Search(brd, game_state, color, consider,
 			    max_time, score);
 }
 

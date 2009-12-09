@@ -27,14 +27,14 @@ public:
     virtual ~HandicapPlayer();
 
     /** returns "handicap". */
-    std::string name() const;
+    std::string Name() const;
 
 protected:
 
     /** Generates a move in the given gamestate using handicap
         strategy. The handicap player must always be WHITE.
     */
-    virtual HexPoint search(HexBoard& brd, const Game& game_state,
+    virtual HexPoint Search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider,
 			    double max_time, double& score);
     
@@ -77,7 +77,7 @@ private:
                     HexPoint dest, HexPoint p1, HexPoint p2, HexPoint p3);
 };
 
-inline std::string HandicapPlayer::name() const
+inline std::string HandicapPlayer::Name() const
 {
     return "handicap";
 }

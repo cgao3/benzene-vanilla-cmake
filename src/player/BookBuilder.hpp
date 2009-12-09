@@ -521,7 +521,7 @@ HexEval BookBuilder<PLAYER>::Worker::operator()(const StoneBoard& position)
 
     HexEval score;
     m_brd->GetState().SetState(position);
-    m_player->genmove(*m_brd, game, m_brd->GetState().WhoseTurn(), 
+    m_player->GenMove(*m_brd, game, m_brd->GetState().WhoseTurn(), 
                       99999, score);
     return score;
 }

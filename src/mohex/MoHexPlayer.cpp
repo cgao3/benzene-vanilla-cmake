@@ -86,7 +86,7 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
 
 //----------------------------------------------------------------------------
 
-HexPoint MoHexPlayer::search(HexBoard& brd, 
+HexPoint MoHexPlayer::Search(HexBoard& brd, 
                              const Game& game_state,
 			     HexColor color,
                              const bitset_t& given_to_consider,

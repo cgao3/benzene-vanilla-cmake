@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HexPlayer.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ public:
     virtual ~HexPlayer() { };
 
     /** Returns a unique identifier for this player. */
-    virtual std::string name() const=0;
+    virtual std::string Name() const = 0;
 
     /** Generates a move from this game position with color to move
         next.  If max_time is negative, then there is no
@@ -42,9 +42,9 @@ public:
         @param max_time Time in which to return the move. 
         @param score Return score of move here. 
     */
-    virtual HexPoint genmove(HexBoard& brd, 
-                             const Game& game_state, HexColor color,
-                             double max_time, double& score)=0;
+    virtual HexPoint GenMove(HexBoard& brd, const Game& game_state, 
+                             HexColor color, double max_time, 
+                             double& score) = 0;
 
 };
 

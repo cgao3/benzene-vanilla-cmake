@@ -21,9 +21,9 @@ EndgameCheck::~EndgameCheck()
 {
 }
 
-HexPoint EndgameCheck::pre_search(HexBoard& brd, const Game& game_state,
-                                  HexColor color, bitset_t& consider,
-                                  double max_time, double& score)
+HexPoint EndgameCheck::PreSearch(HexBoard& brd, const Game& game_state,
+                                 HexColor color, bitset_t& consider,
+                                 double max_time, double& score)
 {
     if (m_enabled)
     {
@@ -48,8 +48,8 @@ HexPoint EndgameCheck::pre_search(HexBoard& brd, const Game& game_state,
         }
     }
 
-    return m_player->pre_search(brd, game_state, color, consider,
-				max_time, score);
+    return m_player->PreSearch(brd, game_state, color, consider,
+                               max_time, score);
 }
 
 //----------------------------------------------------------------------------

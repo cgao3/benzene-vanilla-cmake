@@ -182,7 +182,7 @@ public:
     virtual ~WolvePlayer();
   
     /** Returns "wolve". */
-    std::string name() const;
+    std::string Name() const;
 
     /** Returns the search. */
     WolveSearch& Search();
@@ -231,12 +231,12 @@ private:
     double m_panic_time;
 
     /** Generates a move in the given gamestate using alphabeta. */
-    virtual HexPoint search(HexBoard& brd, const Game& game_state,
+    virtual HexPoint Search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider, 
                             double max_time, double& score);
 };
 
-inline std::string WolvePlayer::name() const
+inline std::string WolvePlayer::Name() const
 {
     return "wolve";
 }
