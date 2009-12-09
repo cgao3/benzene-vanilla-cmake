@@ -184,22 +184,25 @@ void HexHtpEngine::CmdPlay(HtpCommand& cmd)
 void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = HtpUtil::ColorArg(cmd, 0);
-
-    SgTime::SetDefaultMode(SG_TIME_REAL);
-    SgTimer timer;
-    timer.Start();
-    double oldTimeRemaining = m_game.TimeRemaining(color);
-    HexPoint move = GenMove(color, true);
-    timer.Stop();
-
-    m_game.SetTimeRemaining(color, oldTimeRemaining - timer.GetTime());
-
-    if (m_game.TimeRemaining(color) < 0)
-        LogWarning() << "**** FLAG DROPPED ****\n";
-
-    Play(color, move);
-    cmd << move;
+    if (GameUtil::IsGameOver(m_game))
+        cmd << RESIGN;
+    else
+    {
+        HexColor color = HtpUtil::ColorArg(cmd, 0);
+        SgTime::SetDefaultMode(SG_TIME_REAL);
+        SgTimer timer;
+        timer.Start();
+        double oldTimeRemaining = m_game.TimeRemaining(color);
+        HexPoint move = GenMove(color, true);
+        timer.Stop();
+        
+        m_game.SetTimeRemaining(color, oldTimeRemaining - timer.GetTime());
+        if (m_game.TimeRemaining(color) < 0)
+            LogWarning() << "**** FLAG DROPPED ****\n";
+        
+        Play(color, move);
+        cmd << move;
+    }
 }
 
 /** Generates a move, but does not play it. Sets random seed. */
@@ -207,8 +210,13 @@ void HexHtpEngine::CmdRegGenMove(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     SgRandom::SetSeed(SgRandom::Seed());
-    HexPoint move = GenMove(HtpUtil::ColorArg(cmd, 0), false);
-    cmd << move;
+    if (GameUtil::IsGameOver(m_game))
+        cmd << RESIGN;
+    else
+    {
+        HexPoint move = GenMove(HtpUtil::ColorArg(cmd, 0), false);
+        cmd << move;
+    }
 }
 
 /** Undo the last move. */

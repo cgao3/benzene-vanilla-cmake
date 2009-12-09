@@ -4,6 +4,7 @@
 //----------------------------------------------------------------------------
 
 #include "Game.hpp"
+#include "Groups.hpp"
 
 using namespace benzene;
 
@@ -62,6 +63,13 @@ void Game::UndoMove()
 }
 
 //----------------------------------------------------------------------------
+
+bool GameUtil::IsGameOver(const Game& game)
+{
+    Groups groups;
+    GroupBuilder::Build(game.Board(), groups);
+    return groups.IsGameOver();
+}
 
 bool GameUtil::SequenceFromPosition(const Game& game, const StoneBoard& pos, 
                                     MoveSequence& seq)

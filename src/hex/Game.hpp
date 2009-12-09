@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file Game.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -150,6 +150,10 @@ inline double Game::GameTime() const
 /** Utilities on Games. */
 namespace GameUtil
 {
+    /** Returns true if the game is over, that is, if the current
+        position contains a solid connection for one player. */
+    bool IsGameOver(const Game& game);
+
     /** If game contains the given position, returns the move history
         from that position to the current end of the game. */
     bool SequenceFromPosition(const Game& game, const StoneBoard& pos, 
