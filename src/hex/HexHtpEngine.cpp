@@ -395,25 +395,6 @@ void HexHtpEngine::CmdParamGame(HtpCommand& cmd)
         throw HtpFailure("Expected 0 or 2 arguments");
 }
 
-//----------------------------------------------------------------------------
-// Interrupt/Pondering
-
-#if GTPENGINE_PONDER
-
-void HexHtpEngine::InitPonder()
-{
-}
-
-void HexHtpEngine::Ponder()
-{
-}
-
-void HexHtpEngine::StopPonder()
-{
-}
-
-#endif // GTPENGINE_PONDER
-
 #if GTPENGINE_INTERRUPT
 
 void HexHtpEngine::Interrupt()
