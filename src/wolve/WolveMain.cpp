@@ -61,12 +61,11 @@ int main(int argc, char** argv)
     program.SetInfo("Wolve", VERSION, build_date);
     program.PrintStartupMessage();
     program.Initialize(argc, argv);
-    boost::scoped_ptr<BenzenePlayer> player(new SwapCheck
-                                            (new EndgameCheck
-                                             (new HandBookCheck
-                                              (new BookCheck
-                                               (new WolvePlayer())))));
-    try
+    boost::scoped_ptr<BenzenePlayer> player(new EndgameCheck
+                                            (new HandBookCheck
+                                             (new BookCheck
+                                              (new WolvePlayer()))));
+try
     {
         GtpInputStream gin(std::cin);
         GtpOutputStream gout(std::cout);

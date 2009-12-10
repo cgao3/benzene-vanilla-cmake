@@ -9,6 +9,7 @@
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
 #include "PlayAndSolve.hpp"
+#include "SwapCheck.hpp"
 
 using namespace benzene;
 
@@ -57,6 +58,8 @@ double MoHexEngine::TimeForMove(HexColor color)
 HexPoint MoHexEngine::GenMove(HexColor color, bool useGameClock)
 {
     SG_UNUSED(useGameClock);
+    if (SwapCheck::PlaySwap(m_game, color))
+        return SWAP_PIECES;
     double maxTime = TimeForMove(color);
     return DoSearch(color, maxTime);
 }

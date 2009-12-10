@@ -9,6 +9,7 @@
 #include "WolveEngine.hpp"
 #include "WolvePlayer.hpp"
 #include "PlayAndSolve.hpp"
+#include "SwapCheck.hpp"
 
 using namespace benzene;
 
@@ -76,6 +77,8 @@ double WolveEngine::TimeForMove(HexColor color)
 HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
 {
     SG_UNUSED(useGameClock);
+    if (SwapCheck::PlaySwap(m_game, color))
+        return SWAP_PIECES;
     double maxTime = TimeForMove(color);
     if (m_useParallelSolver)
     {
