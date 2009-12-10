@@ -34,12 +34,11 @@ private:
     void Register(GtpEngine& engine, const std::string& command,
                   typename GtpCallback<BookBuilderType>::Method method);
 
-    void CmdBookExpandParam(HtpCommand& cmd);
     void CmdBookPriorities(HtpCommand& cmd);
     void CmdBookExpand(HtpCommand& cmd);
     void CmdBookRefresh(HtpCommand& cmd);
     void CmdBookIncreaseWidth(HtpCommand& cmd);
-    void CmdParamBook(HtpCommand& cmd);
+    void CmdParamBookBuilder(HtpCommand& cmd);
 };
 
 //----------------------------------------------------------------------------
@@ -69,7 +68,8 @@ void BookBuilderCommands<PLAYER>::Register(GtpEngine& e)
     Register(e, "book-refresh", &BookBuilderCommands<PLAYER>::CmdBookRefresh);
     Register(e, "book-increase-width", 
              &BookBuilderCommands<PLAYER>::CmdBookIncreaseWidth);
-    Register(e, "param_book", &BookBuilderCommands<PLAYER>::CmdParamBook);
+    Register(e, "param_book_builder", 
+             &BookBuilderCommands<PLAYER>::CmdParamBookBuilder);
 }
 
 template<class PLAYER>
@@ -83,7 +83,7 @@ void BookBuilderCommands<PLAYER>::Register(GtpEngine& engine,
 //----------------------------------------------------------------------------
 
 template<class PLAYER>
-void BookBuilderCommands<PLAYER>::CmdParamBook(HtpCommand& cmd)
+void BookBuilderCommands<PLAYER>::CmdParamBookBuilder(HtpCommand& cmd)
 {
     if (cmd.NuArg() == 0)
     {
