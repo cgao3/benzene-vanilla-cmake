@@ -29,6 +29,7 @@ BookCommands::~BookCommands()
 void BookCommands::Register(GtpEngine& e)
 {
     Register(e, "book-open", &BookCommands::CmdBookOpen);
+    Register(e, "book-close", &BookCommands::CmdBookClose);
     Register(e, "book-depths", &BookCommands::CmdBookMainLineDepth);
     Register(e, "book-counts", &BookCommands::CmdBookCounts);
     Register(e, "book-scores", &BookCommands::CmdBookScores);
@@ -62,6 +63,15 @@ void BookCommands::CmdBookOpen(HtpCommand& cmd)
     catch (HexException& e) {
         cmd << "Error opening book: '" << e.what() << "'\n";
     }
+}
+
+/** Closes a book if one is open. */
+void BookCommands::CmdBookClose(HtpCommand& cmd)
+{
+    cmd.CheckArgNone();
+    if (m_book.get() == 0)
+        throw HtpFailure() << "No open book.";        
+    m_book.reset(0);
 }
 
 void BookCommands::CmdBookMainLineDepth(HtpCommand& cmd)

@@ -42,6 +42,7 @@ private:
                   GtpCallback<BookCommands>::Method method);
 
     void CmdBookOpen(HtpCommand& cmd);
+    void CmdBookClose(HtpCommand& cmd);
     void CmdBookMainLineDepth(HtpCommand& cmd);
     void CmdBookCounts(HtpCommand& cmd);
     void CmdBookScores(HtpCommand& cmd);
