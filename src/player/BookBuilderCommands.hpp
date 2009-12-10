@@ -19,8 +19,9 @@ template<class PLAYER>
 class BookBuilderCommands : public BookCommands
 {
 public:
-    BookBuilderCommands(Game& game, HexEnvironment& env, BookCheck* bookCheck,
-                        PLAYER& player);
+    BookBuilderCommands(Game& game, HexEnvironment& env, 
+                        boost::scoped_ptr<Book>& book,
+                        BookCheck& bookCheck, PLAYER& player);
 
     ~BookBuilderCommands();
 
@@ -46,9 +47,10 @@ private:
 template<class PLAYER>
 BookBuilderCommands<PLAYER>::BookBuilderCommands(Game& game, 
                                                  HexEnvironment& env,
-                                                 BookCheck* bookCheck,
+                                                 boost::scoped_ptr<Book>& book,
+                                                 BookCheck& bookCheck, 
                                                  PLAYER& player)
-    : BookCommands(game, env, bookCheck),
+    : BookCommands(game, env, book, bookCheck),
       m_bookBuilder(player)
 {
 }
@@ -127,7 +129,7 @@ void BookBuilderCommands<PLAYER>::CmdParamBookBuilder(HtpCommand& cmd)
 template<class PLAYER>
 void BookBuilderCommands<PLAYER>::CmdBookExpand(HtpCommand& cmd)
 {
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
     int iterations = cmd.IntArg(0, 1);
@@ -140,7 +142,7 @@ template<class PLAYER>
 void BookBuilderCommands<PLAYER>::CmdBookRefresh(HtpCommand& cmd)
 {
     UNUSED(cmd);
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     m_bookBuilder.Refresh(*m_book, brd);
@@ -152,7 +154,7 @@ template<class PLAYER>
 void BookBuilderCommands<PLAYER>::CmdBookIncreaseWidth(HtpCommand& cmd)
 {
     UNUSED(cmd);
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     m_bookBuilder.IncreaseWidth(*m_book, brd);
@@ -161,7 +163,7 @@ void BookBuilderCommands<PLAYER>::CmdBookIncreaseWidth(HtpCommand& cmd)
 template<class PLAYER>
 void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
 {
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     StoneBoard brd(m_game.Board());
     HexColor color = brd.WhoseTurn();

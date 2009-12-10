@@ -13,11 +13,12 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 BookCommands::BookCommands(Game& game, HexEnvironment& env, 
-                           BookCheck* bookCheck)
-    : m_game(game), 
+                           boost::scoped_ptr<Book>& book, 
+                           BookCheck& bookCheck)
+    : m_game(game),
       m_env(env),
-      m_bookCheck(bookCheck),
-      m_book(0)
+      m_book(book), 
+      m_bookCheck(bookCheck)
 {
 }
 
@@ -37,6 +38,7 @@ void BookCommands::Register(GtpEngine& e)
     Register(e, "book-import-solved", 
              &BookCommands::CmdBookImportSolvedStates);
     Register(e, "book-set-value", &BookCommands::CmdBookSetValue);
+    Register(e, "param_book", &BookCommands::CmdBookParam);
 }
 
 void BookCommands::Register(GtpEngine& engine, const std::string& command,
@@ -64,7 +66,7 @@ void BookCommands::CmdBookOpen(HtpCommand& cmd)
 
 void BookCommands::CmdBookMainLineDepth(HtpCommand& cmd)
 {
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     StoneBoard brd(m_game.Board());
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
@@ -77,7 +79,7 @@ void BookCommands::CmdBookMainLineDepth(HtpCommand& cmd)
 
 void BookCommands::CmdBookCounts(HtpCommand& cmd)
 {
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     StoneBoard& brd(m_game.Board());
     HexColor color = brd.WhoseTurn();
@@ -93,11 +95,9 @@ void BookCommands::CmdBookCounts(HtpCommand& cmd)
 
 void BookCommands::CmdBookScores(HtpCommand& cmd)
 {
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
-    if (!m_bookCheck)
-        throw HtpFailure() << "Player has no BookCheck!\n";
-    float countWeight = m_bookCheck->CountWeight();
+    float countWeight = m_bookCheck.CountWeight();
     StoneBoard brd(m_game.Board());
     HexColor color = brd.WhoseTurn();
 
@@ -137,7 +137,7 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
 
 void BookCommands::CmdBookVisualize(HtpCommand& cmd)
 {
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
@@ -157,7 +157,7 @@ void BookCommands::CmdBookVisualize(HtpCommand& cmd)
 */
 void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
 {
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArgLessEqual(3);
     float polarization = cmd.FloatArg(0);
@@ -198,7 +198,7 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
 /** Imports positions from file into book. */
 void BookCommands::CmdBookImportSolvedStates(HtpCommand& cmd)
 {
-    if (!m_book)
+    if (m_book.get() == 0)
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
@@ -216,7 +216,7 @@ void BookCommands::CmdBookImportSolvedStates(HtpCommand& cmd)
  */
 void BookCommands::CmdBookSetValue(HtpCommand& cmd)
 {
-    if (!m_book) 
+    if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
     float value = 0.5;
@@ -236,6 +236,28 @@ void BookCommands::CmdBookSetValue(HtpCommand& cmd)
         m_book->WriteNode(m_game.Board(), node);
     }
     m_book->Flush();
+}
+
+void BookCommands::CmdBookParam(HtpCommand& cmd)
+{
+    if (cmd.NuArg() == 0)
+    {
+        cmd << '\n'
+            << "[string] book_count_weight "
+            << m_bookCheck.CountWeight() << '\n'
+            << "[string] book_min_count "
+            << m_bookCheck.MinCount() << '\n';
+    }
+    else if (cmd.NuArg() == 2)
+    {
+        std::string name = cmd.Arg(0);
+        if (name == "book_min_count")
+            m_bookCheck.SetMinCount(cmd.SizeTypeArg(1, 0));
+        else if (name == "book_count_weight")
+            m_bookCheck.SetCountWeight(cmd.FloatArg(1));
+    }
+    else 
+        throw HtpFailure("Expected 0 ore 2 arguments");
 }
 
 //----------------------------------------------------------------------------

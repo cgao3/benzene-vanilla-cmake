@@ -63,8 +63,7 @@ int main(int argc, char** argv)
     program.Initialize(argc, argv);
     boost::scoped_ptr<BenzenePlayer> player(new EndgameCheck
                                             (new HandBookCheck
-                                             (new BookCheck
-                                              (new WolvePlayer()))));
+                                             (new WolvePlayer())));
 try
     {
         GtpInputStream gin(std::cin);

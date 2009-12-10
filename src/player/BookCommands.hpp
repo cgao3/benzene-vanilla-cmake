@@ -21,7 +21,8 @@ _BEGIN_BENZENE_NAMESPACE_
 class BookCommands
 {
 public:
-    BookCommands(Game& game, HexEnvironment& env, BookCheck* bookCheck);
+    BookCommands(Game& game, HexEnvironment& env, 
+                 boost::scoped_ptr<Book>& m_book, BookCheck& bookCheck);
 
     ~BookCommands();
 
@@ -32,9 +33,9 @@ protected:
 
     HexEnvironment& m_env;
 
-    BookCheck* m_bookCheck;
+    boost::scoped_ptr<Book>& m_book;
 
-    boost::scoped_ptr<Book> m_book;
+    BookCheck& m_bookCheck;
 
 private:
     void Register(GtpEngine& engine, const std::string& command,
@@ -48,6 +49,7 @@ private:
     void CmdBookDumpPolarizedLeafs(HtpCommand& cmd);
     void CmdBookImportSolvedStates(HtpCommand& cmd);
     void CmdBookSetValue(HtpCommand& cmd);
+    void CmdBookParam(HtpCommand& cmd);
 };
 
 //----------------------------------------------------------------------------

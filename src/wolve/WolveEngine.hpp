@@ -7,6 +7,7 @@
 #define WOLVEENGINE_HPP
 
 #include "BenzeneHtpEngine.hpp"
+#include "BookCheck.hpp"
 #include "BookCommands.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -38,6 +39,10 @@ public:
 #endif
 
 private:
+
+    boost::scoped_ptr<Book> m_book;
+
+    BookCheck m_bookCheck;
 
     BookCommands m_bookCommands;
 
