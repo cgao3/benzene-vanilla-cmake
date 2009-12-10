@@ -6,44 +6,25 @@
 #ifndef BOOKCHECK_HPP
 #define BOOKCHECK_HPP
 
-#include "BenzenePlayer.hpp"
 #include "Book.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Checks book before search. */
-class BookCheck : public BenzenePlayerFunctionality
+/** Returns best move from book. */
+class BookCheck
 {
 public:
 
-    /** Adds book check to the given player. */
-    BookCheck(BenzenePlayer* player);
+    BookCheck(boost::scoped_ptr<Book>& book);
 
-    /** Destructor. */
-    virtual ~BookCheck();
+    ~BookCheck();
 
-    /** Checks the book for the current state if Enabled() is
-        true. If state is found in book, returns best book move. Otherwise
-        calls player's pre_search() and returns the move it returns.
-    */
-    virtual HexPoint PreSearch(HexBoard& brd, const Game& game_state,
-                               HexColor color, bitset_t& consider,
-                               double max_time, double& score);
+    /** Returns best move from the book. Returns INVALID_POINT of no
+        book or position not found in book. */
+    HexPoint BestMove(const StoneBoard& position, HexColor toPlay);
     
-    bool Enabled() const;
-    
-    void SetEnabled(bool enable);
-
-    /** Name of book to open. */
-    std::string BookName() const;
-
-    /** See BookName(). Will set name of book that will be opened if
-        no book is currently opened, or close and attempt to open a
-        new book if one is already open.  */
-    void SetBookName(const std::string& name);
-
     /** Ignore nodes with counts below this. */
     unsigned MinCount() const;
 
@@ -57,57 +38,33 @@ public:
     void SetCountWeight(float factor);
 
 private:
+    boost::scoped_ptr<Book>& m_book;
 
-    std::string m_bookName;
-
-    boost::scoped_ptr<Book> m_book;
-
-    bool m_bookLoaded;
-
-    bool m_enabled;
-  
     /** See MinCount() */
-    unsigned m_min_count;
+    unsigned m_minCount;
 
     /** See CountWeight() */
-    float m_count_weight;
-
-    void LoadOpeningBook(const std::string& name);
+    float m_countWeight;
 };
-
-inline bool BookCheck::Enabled() const
-{
-    return m_enabled;
-}
-    
-inline void BookCheck::SetEnabled(bool enable)
-{
-    m_enabled = enable;
-}
-
-inline std::string BookCheck::BookName() const
-{
-    return m_bookName;
-}
 
 inline unsigned BookCheck::MinCount() const
 {
-    return m_min_count;
+    return m_minCount;
 }
 
 inline void BookCheck::SetMinCount(int count)
 {
-    m_min_count = count;
+    m_minCount = count;
 }
 
 inline float BookCheck::CountWeight() const
 {
-    return m_count_weight;
+    return m_countWeight;
 }
     
 inline void BookCheck::SetCountWeight(float weight)
 {
-    m_count_weight= weight;
+    m_countWeight= weight;
 }
 
 //----------------------------------------------------------------------------

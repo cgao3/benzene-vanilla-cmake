@@ -9,7 +9,6 @@
 #include <cmath>
 #include <functional>
 #include "BoardUtils.hpp"
-#include "BookCheck.hpp"
 #include "BitsetIterator.hpp"
 #include "EndgameCheck.hpp"
 #include "GraphUtils.hpp"
@@ -141,7 +140,6 @@ void BenzeneHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
 void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
 {
     using namespace benzene::BenzenePlayerUtil;
-    BookCheck* book = GetInstanceOf<BookCheck>(player);
     EndgameCheck* endgame = GetInstanceOf<EndgameCheck>(player);
     HandBookCheck* handbook = GetInstanceOf<HandBookCheck>(player);
     
@@ -151,9 +149,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
         if (endgame)
             cmd << "[bool] search_singleton "
                 << endgame->SearchSingleton() << '\n';
-        if (book) 
-            cmd << "[bool] use_book "
-                << book->Enabled() << '\n';
         if (endgame) 
             cmd << "[bool] use_endgame_check "
                 << endgame->Enabled() << '\n';
@@ -162,29 +157,11 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
                 << handbook->Enabled() << '\n';
         cmd << "[bool] use_parallel_solver "
             << m_useParallelSolver << '\n';
-        if (book) 
-        {
-            cmd << "[string] book_count_weight "
-                << book->CountWeight() << '\n'
-                << "[string] book_min_count "
-                << book->MinCount() << '\n'
-                << "[string] book_name "
-                << book->BookName() << '\n';
-        }
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
-
-        if (book && name == "book_min_count")
-            book->SetMinCount(cmd.SizeTypeArg(1, 0));
-        else if (book && name == "book_count_weight")
-            book->SetCountWeight(cmd.FloatArg(1));
-        else if (book && name == "book_name")
-            book->SetBookName(cmd.Arg(1));
-	else if (book && name == "use_book")
-	    book->SetEnabled(cmd.BoolArg(1));
-        else if (endgame && name == "search_singleton")
+        if (endgame && name == "search_singleton")
             endgame->SetSearchSingleton(cmd.BoolArg(1));
         else if (endgame && name == "use_endgame_check") 
             endgame->SetEnabled(cmd.BoolArg(1));

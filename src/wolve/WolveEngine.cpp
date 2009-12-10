@@ -47,8 +47,9 @@ void ParseDashSeparatedString(const std::string& str, std::vector<TYPE>& out)
 WolveEngine::WolveEngine(GtpInputStream& in, GtpOutputStream& out,
                          int boardsize, BenzenePlayer& player)
     : BenzeneHtpEngine(in, out, boardsize, player),
-      m_bookCommands(m_game, m_pe, 
-                     BenzenePlayerUtil::GetInstanceOf<BookCheck>(&player))
+      m_book(0),
+      m_bookCheck(m_book),
+      m_bookCommands(m_game, m_pe, m_book, m_bookCheck)
 {
     m_bookCommands.Register(*this);
     RegisterCmd("param_wolve", &WolveEngine::WolveParam);
@@ -79,6 +80,9 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
     SG_UNUSED(useGameClock);
     if (SwapCheck::PlaySwap(m_game, color))
         return SWAP_PIECES;
+    HexPoint bookMove = m_bookCheck.BestMove(m_game.Board(), color);
+    if (bookMove != INVALID_POINT)
+        return bookMove;
     double maxTime = TimeForMove(color);
     if (m_useParallelSolver)
     {

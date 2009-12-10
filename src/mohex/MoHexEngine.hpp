@@ -39,7 +39,6 @@ public:
     // @} // @name
 
 #if GTPENGINE_PONDER
-
     virtual void Ponder();
 
     virtual void InitPonder();
@@ -50,6 +49,10 @@ public:
     double TimeForMove(HexColor color);
 
 private:
+
+    boost::scoped_ptr<Book> m_book;
+    
+    BookCheck m_bookCheck;
 
     BookBuilderCommands<MoHexPlayer> m_bookCommands;
 
