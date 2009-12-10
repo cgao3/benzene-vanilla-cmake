@@ -137,8 +137,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.LockFree() << '\n'
             << "[bool] keep_games "
             << search.KeepGames() << '\n'
-            << "[bool] no_bias_term " 
-            << search.NoBiasTerm() << '\n'
             << "[bool] ponder "
             << mohex->Ponder() << '\n'
             << "[bool] reuse_subtree " 
@@ -199,8 +197,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
            mohex->SetReuseSubtree(cmd.BoolArg(1));
         else if (name == "bias_term")
             search.SetBiasTermConstant(cmd.FloatArg(1));
-        else if (name == "no_bias_term")
-            search.SetNoBiasTerm(cmd.BoolArg(1));
         else if (name == "expand_threshold")
             search.SetExpandThreshold(cmd.IntArg(1, 0));
         else if (name == "knowledge_threshold")
