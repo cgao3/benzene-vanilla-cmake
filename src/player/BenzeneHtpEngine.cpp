@@ -10,7 +10,6 @@
 #include <functional>
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
-#include "EndgameCheck.hpp"
 #include "GraphUtils.hpp"
 #include "HexProgram.hpp"
 #include "HexSgUtil.hpp"
@@ -29,9 +28,8 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
-                                   int boardsize, BenzenePlayer& player)
+                                   int boardsize)
     : HexHtpEngine(in, out, boardsize),
-      m_player(player),
       m_pe(m_board.Width(), m_board.Height()),
       m_se(m_board.Width(), m_board.Height()),
       m_solver(),
@@ -66,8 +64,6 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     m_vcCommands.Register(*this);
     m_solverCommands.Register(*this);
     m_dfpnCommands.Register(*this);
-
-    RegisterCmd("param_player", &BenzeneHtpEngine::CmdParamPlayer);
 
     RegisterCmd("eval-twod", &BenzeneHtpEngine::CmdEvalTwoDist);
     RegisterCmd("eval-resist", &BenzeneHtpEngine::CmdEvalResist);
@@ -131,44 +127,6 @@ void BenzeneHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
     for (BitsetIterator p(group.Members()); p; ++p) 
         if (*p != group.Captain()) 
             cmd << ' ' << *p;
-}
-
-//---------------------------------------------------------------------------
-
-void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
-{
-    using namespace benzene::BenzenePlayerUtil;
-    EndgameCheck* endgame = GetInstanceOf<EndgameCheck>(player);
-    
-    if (cmd.NuArg() == 0)
-    {
-        cmd << '\n';
-        if (endgame)
-            cmd << "[bool] search_singleton "
-                << endgame->SearchSingleton() << '\n';
-        if (endgame) 
-            cmd << "[bool] use_endgame_check "
-                << endgame->Enabled() << '\n';
-        cmd << "[bool] use_parallel_solver "
-            << m_useParallelSolver << '\n';
-    }
-    else if (cmd.NuArg() == 2)
-    {
-        std::string name = cmd.Arg(0);
-        if (endgame && name == "search_singleton")
-            endgame->SetSearchSingleton(cmd.BoolArg(1));
-        else if (endgame && name == "use_endgame_check") 
-            endgame->SetEnabled(cmd.BoolArg(1));
-        else if (name == "use_parallel_solver")
-            m_useParallelSolver = cmd.BoolArg(1);
-    }
-    else 
-        throw HtpFailure("Expected 0 ore 2 arguments");
-}
-
-void BenzeneHtpEngine::CmdParamPlayer(HtpCommand& cmd)
-{
-    ParamPlayer(&m_player, cmd);
 }
 
 //----------------------------------------------------------------------

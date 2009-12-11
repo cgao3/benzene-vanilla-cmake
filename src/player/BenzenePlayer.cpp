@@ -12,7 +12,8 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 BenzenePlayer::BenzenePlayer()
-    : HexPlayer()
+    : HexPlayer(),
+      m_search_singleton(false)
 {
 }
 
@@ -33,13 +34,9 @@ HexPoint BenzenePlayer::GenMove(HexBoard& brd, const Game& game_state,
     if (move != INVALID_POINT)
         return move;
 
-    //----------------------------------------------------------------------
-
-    move = PreSearch(brd, game_state, color, consider, max_time, score);
+    move = CheckEndgame(brd, color, consider, score);
     if (move != INVALID_POINT) 
         return move;
-
-    //----------------------------------------------------------------------
 
     LogInfo() << "Best move cannot be determined, must search state.\n";
     return Search(brd, game_state, color, consider, max_time, score);
@@ -88,18 +85,28 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
     return INVALID_POINT;
 }
 
-HexPoint BenzenePlayer::PreSearch(HexBoard& brd, const Game& game_state,
-                                  HexColor color, bitset_t& consider,
-                                  double max_time, double& score)
+
+HexPoint BenzenePlayer::CheckEndgame(HexBoard& brd, HexColor color, 
+                                     bitset_t& consider, double& score)
 {
-    UNUSED(brd); 
-    UNUSED(game_state);
-    UNUSED(color);
-    UNUSED(consider);
-    UNUSED(max_time);
-    UNUSED(score);
+    if (PlayerUtils::IsDeterminedState(brd, color, score)) 
+        return PlayerUtils::PlayDeterminedState(brd, color);
+    else 
+    {
+        consider = PlayerUtils::MovesToConsider(brd, color);
+        HexAssert(consider.any());
+    }
+    
+    score = 0;
+    if (consider.count() == 1 && !m_search_singleton) 
+    {
+        HexPoint move = static_cast<HexPoint>
+            (BitsetUtil::FindSetBit(consider));
+        LogInfo() << "Mustplay is singleton!\n";
+        return move;
+    }
     return INVALID_POINT;
 }
-    
+
 //----------------------------------------------------------------------------
 

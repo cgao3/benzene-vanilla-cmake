@@ -24,8 +24,7 @@ class BenzeneHtpEngine: public HexHtpEngine
 {
 public:
 
-    BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out, int boardsize, 
-                     BenzenePlayer& player);
+    BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out, int boardsize); 
     
     ~BenzeneHtpEngine();
 
@@ -41,7 +40,6 @@ public:
         - @link CmdFindCombDecomp() @c find-comb-decomp @endlink
         - @link CmdFindSplitDecomp() @c find-split-decomp @endlink
         - @link CmdEncodePattern() @c encode-pattern @endlink
-        - @link CmdParamPlayer() @c param_player @endlink
         - @link CmdParamDfpn() @c param_dfpn @endlink
         - @link CmdEvalTwoDist() @c eval-twod @endlink
         - @link CmdEvalResist() @c eval-resist @endlink
@@ -69,7 +67,6 @@ public:
     void CmdFindSplitDecomp(HtpCommand& cmd);
     void CmdEncodePattern(HtpCommand& cmd);
     
-    void CmdParamPlayer(HtpCommand& cmd);
     void CmdParamDfpn(HtpCommand& cmd);
     
     void CmdEvalTwoDist(HtpCommand& cmd);
@@ -82,8 +79,6 @@ public:
     // @} // @name
 
 protected:
-
-    BenzenePlayer& m_player;
 
     /** Player's environment. */
     HexEnvironment m_pe;

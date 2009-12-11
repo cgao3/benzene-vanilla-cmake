@@ -9,7 +9,6 @@
 #include "HexProgram.hpp"
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
-#include "EndgameCheck.hpp"
 
 using namespace benzene;
 
@@ -55,13 +54,12 @@ int main(int argc, char** argv)
     program.SetInfo("Mohex", VERSION, build_date);
     program.PrintStartupMessage();
     program.Initialize(argc, argv);
-    boost::scoped_ptr<BenzenePlayer> player(new EndgameCheck
-                                            (new MoHexPlayer()));
+    MoHexPlayer player;
     try
     {
         GtpInputStream gin(std::cin);
         GtpOutputStream gout(std::cout);
-        MoHexEngine gh(gin, gout, program.BoardSize(), *player);
+        MoHexEngine gh(gin, gout, program.BoardSize(), player);
     
         std::string config = program.ConfigFileToExecute();
         if (config != "")

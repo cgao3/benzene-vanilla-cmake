@@ -10,7 +10,6 @@
 #include "WolveEngine.hpp"
 #include "WolvePlayer.hpp"
 #include "SwapCheck.hpp"
-#include "EndgameCheck.hpp"
 
 using namespace benzene;
 
@@ -60,13 +59,12 @@ int main(int argc, char** argv)
     program.SetInfo("Wolve", VERSION, build_date);
     program.PrintStartupMessage();
     program.Initialize(argc, argv);
-    boost::scoped_ptr<BenzenePlayer> player(new EndgameCheck
-                                            (new WolvePlayer()));
+    WolvePlayer player;
     try
     {
         GtpInputStream gin(std::cin);
         GtpOutputStream gout(std::cout);
-        WolveEngine gh(gin, gout, program.BoardSize(), *player);
+        WolveEngine gh(gin, gout, program.BoardSize(), player);
     
         std::string config = program.ConfigFileToExecute();
         if (config != "")

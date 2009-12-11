@@ -9,6 +9,7 @@
 #include "BenzeneHtpEngine.hpp"
 #include "BookCheck.hpp"
 #include "BookCommands.hpp"
+#include "WolvePlayer.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -20,7 +21,7 @@ class WolveEngine : public BenzeneHtpEngine
 public:
 
     WolveEngine(GtpInputStream& in, GtpOutputStream& out, 
-                int boardsize, BenzenePlayer& player);
+                int boardsize, WolvePlayer& player);
     
     ~WolveEngine();
 
@@ -39,6 +40,8 @@ public:
 #endif
 
 private:
+
+    WolvePlayer& m_player;
 
     boost::scoped_ptr<Book> m_book;
 

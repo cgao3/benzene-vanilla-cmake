@@ -9,7 +9,6 @@
 #include <cmath>
 #include "BenzenePlayer.hpp"
 #include "BitsetIterator.hpp"
-#include "EndgameCheck.hpp"
 #include "HashDB.hpp"
 #include "Book.hpp"
 #include "PlayerUtils.hpp"
@@ -50,11 +49,8 @@ class BookBuilder
 public:
 
     /** Constructor. Takes a reference to the player that will
-        evaluate states, which must be a reference to a plain
-        BenzenePlayer, not a player wrapped in a
-        BenzenePlayerFunctionality decorator. BookBuilder will add its
-        own decorators to the player.
-    */
+        evaluate states, which must be a reference to a
+        BenzenePlayer. */
     BookBuilder(PLAYER& player);
     
     /** Destructor. */
@@ -471,12 +467,8 @@ void BookBuilder<PLAYER>::CreateWorkers()
         PLAYER* newPlayer = new PLAYER();
         /** @todo Use concept checking to verify this method exists. */
         newPlayer->CopySettingsFrom(m_orig_player);
-
-        // Add an endgame check and force player to search even if
-        // mustplay is a single move.
-        EndgameCheck* checkedPlayer = new EndgameCheck(newPlayer);
-        checkedPlayer->SetSearchSingleton(true);
-        m_players.push_back(checkedPlayer);
+        newPlayer->SetSearchSingleton(true);
+        m_players.push_back(newPlayer);
         m_boards.push_back(new HexBoard(*m_brd));
         m_workers.push_back(Worker(i, *m_players[i], *m_boards[i]));
     }

@@ -21,7 +21,7 @@ class MoHexEngine : public BenzeneHtpEngine
 public:
 
     MoHexEngine(GtpInputStream& in, GtpOutputStream& out,
-                int boardsize, BenzenePlayer& player);
+                int boardsize, MoHexPlayer& player);
     
     ~MoHexEngine();
 
@@ -49,6 +49,8 @@ public:
     double TimeForMove(HexColor color);
 
 private:
+
+    MoHexPlayer& m_player;
 
     boost::scoped_ptr<Book> m_book;
     

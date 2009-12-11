@@ -45,8 +45,9 @@ void ParseDashSeparatedString(const std::string& str, std::vector<TYPE>& out)
 //----------------------------------------------------------------------------
 
 WolveEngine::WolveEngine(GtpInputStream& in, GtpOutputStream& out,
-                         int boardsize, BenzenePlayer& player)
-    : BenzeneHtpEngine(in, out, boardsize, player),
+                         int boardsize, WolvePlayer& player)
+    : BenzeneHtpEngine(in, out, boardsize),
+      m_player(player),
       m_book(0),
       m_bookCheck(m_book),
       m_bookCommands(m_game, m_pe, m_book, m_bookCheck)
@@ -97,13 +98,7 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
 
 void WolveEngine::WolveParam(HtpCommand& cmd)
 {
-    
-    WolvePlayer* wolve 
-        = BenzenePlayerUtil::GetInstanceOf<WolvePlayer>(&m_player);
-
-    if (!wolve)
-        throw HtpFailure("No Wolve instance!");
-    WolveSearch& search = wolve->Search();
+    WolveSearch& search = m_player.Search();
 
     if (cmd.NuArg() == 0) 
     {
@@ -113,11 +108,15 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
             << "[bool] use_guifx "
             << search.GuiFx() << '\n'
 	    << "[string] panic_time "
-	    << wolve->PanicTime() << '\n'
+	    << m_player.PanicTime() << '\n'
             << "[string] ply_width " 
-            << MiscUtil::PrintVector(wolve->PlyWidth()) << '\n'
+            << MiscUtil::PrintVector(m_player.PlyWidth()) << '\n'
             << "[string] search_depths "
-            << MiscUtil::PrintVector(wolve->SearchDepths()) << '\n';
+            << MiscUtil::PrintVector(m_player.SearchDepths()) << '\n'
+            << "[bool] search_singleton "
+            << m_player.SearchSingleton() << '\n'
+            << "[bool] use_parallel_solver "
+            << m_useParallelSolver << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -125,21 +124,25 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
         if (name == "backup_ice_info")
             search.SetBackupIceInfo(cmd.BoolArg(1));
 	else if (name == "panic_time")
-	    wolve->SetPanicTime(cmd.FloatArg(1));
+	    m_player.SetPanicTime(cmd.FloatArg(1));
         else if (name == "ply_width")
         {
             std::vector<int> plywidth;
             ParseDashSeparatedString(cmd.Arg(1), plywidth);
-            wolve->SetPlyWidth(plywidth);
+            m_player.SetPlyWidth(plywidth);
         } 
         else if (name == "search_depths")
         {
             std::vector<int> depths;
             ParseDashSeparatedString(cmd.Arg(1), depths);
-            wolve->SetSearchDepths(depths);
+            m_player.SetSearchDepths(depths);
         }
         else if (name == "use_guifx")
             search.SetGuiFx(cmd.BoolArg(1));
+        else if (name == "search_singleton")
+            m_player.SetSearchSingleton(cmd.BoolArg(1));
+        else if (name == "use_parallel_solver")
+            m_useParallelSolver = cmd.BoolArg(1);
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

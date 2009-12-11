@@ -16,12 +16,12 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 MoHexEngine::MoHexEngine(GtpInputStream& in, GtpOutputStream& out, 
-                         int boardsize, BenzenePlayer& player)
-    : BenzeneHtpEngine(in, out, boardsize, player),
+                         int boardsize, MoHexPlayer& player)
+    : BenzeneHtpEngine(in, out, boardsize),
+      m_player(player), 
       m_book(0),
       m_bookCheck(m_book),
-      m_bookCommands(m_game, m_pe, m_book, m_bookCheck, 
-                     *BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&player))
+      m_bookCommands(m_game, m_pe, m_book, m_bookCheck, m_player)
 {
     m_bookCommands.Register(*this);
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
@@ -48,12 +48,7 @@ void MoHexEngine::RegisterCmd(const std::string& name,
 double MoHexEngine::TimeForMove(HexColor color)
 {
     /** @todo Use a proper time control mechanism! */
-    MoHexPlayer* mohex = 
-        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
-    if (!mohex)
-        throw HtpFailure("No MoHex instance!");
-
-    return std::min(m_game.TimeRemaining(color), mohex->MaxTime());
+    return std::min(m_game.TimeRemaining(color), m_player.MaxTime());
 }
 
 HexPoint MoHexEngine::GenMove(HexColor color, bool useGameClock)
@@ -88,11 +83,7 @@ HexPoint MoHexEngine::DoSearch(HexColor color, double maxTime)
 
 void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
 {
-    MoHexPlayer* mohex = 
-        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
-    if (!mohex)
-        throw HtpFailure("No MoHex instance!");
-    HexUctPolicyConfig& config = mohex->SharedPolicy().Config();
+    HexUctPolicyConfig& config = m_player.SharedPolicy().Config();
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
@@ -125,28 +116,27 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
 
 void MoHexEngine::MoHexParam(HtpCommand& cmd)
 {
-    MoHexPlayer* mohex = 
-        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
-    if (!mohex)
-        throw HtpFailure("No MoHex instance!");
-
-    HexUctSearch& search = mohex->Search();
+    HexUctSearch& search = m_player.Search();
 
     if (cmd.NuArg() == 0) 
     {
         cmd << '\n'
             << "[bool] backup_ice_info "
-            << mohex->BackupIceInfo() << '\n'
+            << m_player.BackupIceInfo() << '\n'
             << "[bool] lock_free " 
             << search.LockFree() << '\n'
             << "[bool] keep_games "
             << search.KeepGames() << '\n'
             << "[bool] ponder "
-            << mohex->Ponder() << '\n'
+            << m_player.Ponder() << '\n'
             << "[bool] reuse_subtree " 
-            << mohex->ReuseSubtree() << '\n'
+            << m_player.ReuseSubtree() << '\n'
+            << "[bool] search_singleton "
+            << m_player.SearchSingleton() << '\n'
             << "[bool] use_livegfx "
             << search.LiveGfx() << '\n'
+            << "[bool] use_parallel_solver "
+            << m_useParallelSolver << '\n'
             << "[bool] use_rave "
             << search.Rave() << '\n'
             << "[bool] weight_rave_updates "
@@ -160,13 +150,13 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << "[string] livegfx_interval "
             << search.LiveGfxInterval() << '\n'
             << "[string] max_games "
-            << mohex->MaxGames() << '\n'
+            << m_player.MaxGames() << '\n'
             << "[string] max_memory "
             << search.MaxNodes() * 2 * sizeof(SgUctNode) << '\n'
             << "[string] max_nodes "
             << search.MaxNodes() << '\n'
             << "[string] max_time "
-            << mohex->MaxTime() << '\n'
+            << m_player.MaxTime() << '\n'
             << "[string] num_threads "
             << search.NumberThreads() << '\n'
             << "[string] playout_update_radius "
@@ -184,13 +174,13 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
-            mohex->SetBackupIceInfo(cmd.BoolArg(1));
+            m_player.SetBackupIceInfo(cmd.BoolArg(1));
         else if (name == "lock_free")
             search.SetLockFree(cmd.BoolArg(1));
         else if (name == "keep_games")
             search.SetKeepGames(cmd.BoolArg(1));
         else if (name == "ponder")
-            mohex->SetPonder(cmd.BoolArg(1));
+            m_player.SetPonder(cmd.BoolArg(1));
         else if (name == "use_livegfx")
             search.SetLiveGfx(cmd.BoolArg(1));
         else if (name == "use_rave")
@@ -198,7 +188,7 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         else if (name == "randomize_rave_frequency")
             search.SetRandomizeRaveFrequency(cmd.IntArg(1, 0));
         else if (name == "reuse_subtree")
-           mohex->SetReuseSubtree(cmd.BoolArg(1));
+           m_player.SetReuseSubtree(cmd.BoolArg(1));
         else if (name == "bias_term")
             search.SetBiasTermConstant(cmd.FloatArg(1));
         else if (name == "expand_threshold")
@@ -208,11 +198,11 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         else if (name == "livegfx_interval")
             search.SetLiveGfxInterval(cmd.IntArg(1, 0));
         else if (name == "max_games")
-            mohex->SetMaxGames(cmd.IntArg(1, 0));
+            m_player.SetMaxGames(cmd.IntArg(1, 0));
         else if (name == "max_memory")
             search.SetMaxNodes(cmd.SizeTypeArg(1, 1) / sizeof(SgUctNode) / 2);
         else if (name == "max_time")
-            mohex->SetMaxTime(cmd.FloatArg(1));
+            m_player.SetMaxTime(cmd.FloatArg(1));
         else if (name == "max_nodes")
             search.SetMaxNodes(cmd.SizeTypeArg(1, 1));
         else if (name == "num_threads")
@@ -227,6 +217,10 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetWeightRaveUpdates(cmd.BoolArg(1));
         else if (name == "tree_update_radius")
             search.SetTreeUpdateRadius(cmd.IntArg(1, 0));
+        else if (name == "search_singleton")
+            m_player.SetSearchSingleton(cmd.BoolArg(1));
+        else if (name == "use_parallel_solver")
+            m_useParallelSolver = cmd.BoolArg(1);
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }
@@ -240,11 +234,7 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
 */
 void MoHexEngine::SaveTree(HtpCommand& cmd)
 {
-    MoHexPlayer* mohex = 
-        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
-    if (!mohex)
-        throw HtpFailure("No MoHex instance!");
-    HexUctSearch& search = mohex->Search();
+    HexUctSearch& search = m_player.Search();
 
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
@@ -260,11 +250,7 @@ void MoHexEngine::SaveTree(HtpCommand& cmd)
 /** Saves games from last search to a SGF. */
 void MoHexEngine::SaveGames(HtpCommand& cmd)
 {
-    MoHexPlayer* mohex = 
-        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
-    if (!mohex)
-        throw HtpFailure("No MoHex instance!");
-    HexUctSearch& search = mohex->Search();
+    HexUctSearch& search = m_player.Search();
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
     search.SaveGames(filename);
@@ -272,11 +258,7 @@ void MoHexEngine::SaveGames(HtpCommand& cmd)
 
 void MoHexEngine::Values(HtpCommand& cmd)
 {
-    MoHexPlayer* mohex = 
-        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
-    if (!mohex)
-        throw HtpFailure("No MoHex instance!");
-    HexUctSearch& search = mohex->Search();
+    HexUctSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
     for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
     {
@@ -294,11 +276,7 @@ void MoHexEngine::Values(HtpCommand& cmd)
 
 void MoHexEngine::RaveValues(HtpCommand& cmd)
 {
-    MoHexPlayer* mohex = 
-        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
-    if (!mohex)
-        throw HtpFailure("No MoHex instance!");
-    HexUctSearch& search = mohex->Search();
+    HexUctSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
     for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
     {
@@ -313,11 +291,7 @@ void MoHexEngine::RaveValues(HtpCommand& cmd)
 
 void MoHexEngine::Bounds(HtpCommand& cmd)
 {
-    MoHexPlayer* mohex = 
-        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
-    if (!mohex)
-        throw HtpFailure("No MoHex instance!");
-    HexUctSearch& search = mohex->Search();
+    HexUctSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
     for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
     {
@@ -343,12 +317,9 @@ void MoHexEngine::InitPonder()
 
 void MoHexEngine::Ponder()
 {
-    MoHexPlayer* mohex = 
-        BenzenePlayerUtil::GetInstanceOf<MoHexPlayer>(&m_player);
-    HexAssert(mohex);
-    if (!mohex->Ponder())
+    if (!m_player.Ponder())
         return;
-    if (!mohex->ReuseSubtree())
+    if (!m_player.ReuseSubtree())
     {
         LogWarning() << "Pondering requires reuse_subtree.\n";
         return;
