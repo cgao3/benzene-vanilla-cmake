@@ -34,7 +34,11 @@ HexPoint VulPreCheck::KillLastMove(HexBoard& brd, const Game& game_state,
 	    HexColor c = gh[i].color();
 	    
 	    /** If we've killed this opponent stone, give it to ourselves.
-		This often helps to find more vulnerable opponent moves. */
+		This often helps to find more vulnerable opponent moves. 
+            
+                @todo Make this both colors (ie, dead) once
+                PatternState supports stones of both colors.
+            */
 	    if (m_killedOpptStones.test(p)) 
             {
 		HexAssert(c == !color);
