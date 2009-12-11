@@ -12,7 +12,6 @@
 #include "BitsetIterator.hpp"
 #include "EndgameCheck.hpp"
 #include "GraphUtils.hpp"
-#include "HandBookCheck.hpp"
 #include "HexProgram.hpp"
 #include "HexSgUtil.hpp"
 #include "BenzeneHtpEngine.hpp"
@@ -141,7 +140,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
 {
     using namespace benzene::BenzenePlayerUtil;
     EndgameCheck* endgame = GetInstanceOf<EndgameCheck>(player);
-    HandBookCheck* handbook = GetInstanceOf<HandBookCheck>(player);
     
     if (cmd.NuArg() == 0)
     {
@@ -152,9 +150,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
         if (endgame) 
             cmd << "[bool] use_endgame_check "
                 << endgame->Enabled() << '\n';
-        if (handbook)
-            cmd << "[bool] use_handbook "
-                << handbook->Enabled() << '\n';
         cmd << "[bool] use_parallel_solver "
             << m_useParallelSolver << '\n';
     }
@@ -165,8 +160,6 @@ void BenzeneHtpEngine::ParamPlayer(BenzenePlayer* player, HtpCommand& cmd)
             endgame->SetSearchSingleton(cmd.BoolArg(1));
         else if (endgame && name == "use_endgame_check") 
             endgame->SetEnabled(cmd.BoolArg(1));
-        else if (handbook && name == "use_handbook")
-            handbook->SetEnabled(cmd.BoolArg(1));
         else if (name == "use_parallel_solver")
             m_useParallelSolver = cmd.BoolArg(1);
     }

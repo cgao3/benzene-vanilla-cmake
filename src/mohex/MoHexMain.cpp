@@ -10,7 +10,6 @@
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
 #include "EndgameCheck.hpp"
-#include "HandBookCheck.hpp"
 
 using namespace benzene;
 
@@ -57,8 +56,7 @@ int main(int argc, char** argv)
     program.PrintStartupMessage();
     program.Initialize(argc, argv);
     boost::scoped_ptr<BenzenePlayer> player(new EndgameCheck
-                                            (new HandBookCheck
-                                             (new MoHexPlayer())));
+                                            (new MoHexPlayer()));
     try
     {
         GtpInputStream gin(std::cin);

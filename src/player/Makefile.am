@@ -6,7 +6,6 @@ BenzenePlayer.cpp \
 BookCheck.cpp \
 BookCommands.cpp \
 EndgameCheck.cpp \
-HandBookCheck.cpp \
 HandicapPlayer.cpp \
 PerfectPlayer.cpp \
 PlayAndSolve.cpp \
@@ -21,7 +20,6 @@ BookBuilderCommands.hpp \
 BookCheck.hpp \
 BookCommands.hpp \
 EndgameCheck.hpp \
-HandBookCheck.hpp \
 HandicapPlayer.hpp \
 PerfectPlayer.hpp \
 PlayAndSolve.hpp \
