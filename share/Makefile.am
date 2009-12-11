@@ -1,6 +1,5 @@
 # data files to be installed in ${prefix}/share/benzene/ directory
 dist_pkgdata_DATA = \
-hand-book.txt \
 ice-patterns.txt \
 induced-domination.txt \
 induced-equivalence.txt \
