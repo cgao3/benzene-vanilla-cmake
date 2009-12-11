@@ -23,7 +23,6 @@
 #include "TwoDistance.hpp"
 #include "VCSet.hpp"
 #include "VCUtils.hpp"
-#include "VulPreCheck.hpp"
 
 using namespace benzene;
 

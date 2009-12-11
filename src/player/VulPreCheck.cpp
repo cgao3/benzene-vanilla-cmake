@@ -9,8 +9,8 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-VulPreCheck::VulPreCheck(BenzenePlayer* player)
-    : BenzenePlayerFunctionality(player)
+VulPreCheck::VulPreCheck()
+    : m_killedOpptStones()
 {
 }
 
@@ -18,12 +18,10 @@ VulPreCheck::~VulPreCheck()
 {
 }
 
-HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
-				 HexColor color, bitset_t& consider,
-				 double max_time, double& score)
+HexPoint VulPreCheck::KillLastMove(HexBoard& brd, const Game& game_state,
+                                   HexColor color)
 {
     LogWarning() << "Performing vulnerable pre-check...\n";
-    
     if (!game_state.History().empty()) 
     {
 	// Setup the board as it was prior to the opponent's last move.
@@ -78,13 +76,11 @@ HexPoint VulPreCheck::pre_search(HexBoard& brd, const Game& game_state,
 		    return i->killer();
 		}
 	    }
-	    
 	    // Otherwise, just kill it any which way.
 	    return killers.begin()->killer();
 	}
     }
-    return m_player->PreSearch(brd, game_state, color, consider,
-                               max_time, score);
+    return INVALID_POINT;
 }
 
 //----------------------------------------------------------------------------

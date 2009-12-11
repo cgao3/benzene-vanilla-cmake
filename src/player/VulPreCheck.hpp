@@ -9,23 +9,22 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Checks book before search. */
-class VulPreCheck : public BenzenePlayerFunctionality
+class VulPreCheck
 {
 public:
 
     /** Adds pre-check for vulnerable cells to the given player. */
-    VulPreCheck(BenzenePlayer* player);
+    VulPreCheck();
 
     /** Destructor. */
-    virtual ~VulPreCheck();
+    ~VulPreCheck();
 
     /** Checks to see if the last move played by the opponent is
 	vulnerable. If so, returns the killing move; otherwise,
 	returns INVALID_POINT.
     */
-    virtual HexPoint pre_search(HexBoard& brd, const Game& game_state,
-				HexColor color, bitset_t& consider,
-                                double max_time, double& score);
+    HexPoint KillLastMove(HexBoard& brd, const Game& game_state,
+                          HexColor color);
 
 private:
 
