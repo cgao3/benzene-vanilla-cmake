@@ -284,6 +284,7 @@ sgf/puzzles/7x7-henderson-58.sgf \
 sgf/puzzles/7x7-henderson-59.sgf \
 sgf/puzzles/7x7-henderson-60.sgf \
 sgf/puzzles/7x7-henderson-61.sgf \
+sgf/puzzles/7x7-henderson-62.sgf \
 sgf/puzzles/7x7-LG-01.sgf \
 sgf/puzzles/8x8-henderson-56.sgf \
 sgf/puzzles/9x9-boll-01.sgf \

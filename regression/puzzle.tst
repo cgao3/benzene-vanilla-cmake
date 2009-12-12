@@ -484,6 +484,11 @@ loadsgf sgf/puzzles/7x7-henderson-61.sgf
 130 solver-find-winning white
 #? [e4]
 
+solver-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-62.sgf
+131 solver-find-winning white
+#? [f3]
+
 
 # Little Golem puzzles
 

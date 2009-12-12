@@ -492,6 +492,11 @@ loadsgf sgf/puzzles/7x7-henderson-61.sgf
 130 dfpn-solver-find-winning
 #? [e4]
 
+dfpn-clear-tt
+loadsgf sgf/puzzles/7x7-henderson-62.sgf
+131 dfpn-solver-find-winning
+#? [f3]
+
 
 # Little Golem puzzles
 
