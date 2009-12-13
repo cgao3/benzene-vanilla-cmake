@@ -59,34 +59,11 @@ std::string BookNode::toString() const
 
 //----------------------------------------------------------------------------
 
-Book::Book(std::string filename)
+Book::Book(const std::string& filename)
     throw(HexException)
 {
     if (!m_db.Open(filename))
         throw HexException("Could not open database file!");
-
-    // Load settings from database and ensure they match the current
-    // settings.
-    char key[] = "settings";
-    Settings temp;
-    if (m_db.Get(key, strlen(key)+1, &temp, sizeof(temp))) 
-    {
-        LogInfo() << "Old book." << '\n';
-        if (m_settings != temp) 
-        {
-            LogInfo() << "Settings do not match book settings!" << '\n'
-		      << "Book: " << temp.toString() << '\n'
-		      << "Current: " << m_settings.toString() << '\n';
-            throw HexException("Book settings don't match given settings!");
-        } 
-    } 
-    else 
-    {
-        // Read failed: this is a new database. Store the settings.
-        LogInfo() << "New book!" << '\n';
-        if (!m_db.Put(key, strlen(key)+1, &m_settings, sizeof(m_settings)))
-            throw HexException("Could not write settings!");
-    }
 }
 
 Book::~Book()

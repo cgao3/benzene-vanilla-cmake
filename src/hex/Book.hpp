@@ -209,35 +209,12 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** Settings for this book. 
-        @note Not currently used!
-    */
-    struct Settings
-    {
-        int reserved1;
-
-        int reserved2;
-
-        bool operator==(const Settings& o) const;
-        
-        bool operator!=(const Settings& o) const;
-
-        std::string toString() const;
-    };
-    
-    //---------------------------------------------------------------------
-
-    /** Constructor. Opens the book with default settings. 
-        Throws error if settings do not match existing settings in
-        a pre-existing book. */
-    Book(std::string filename)
-        throw(HexException);
+    /** Opens the book with default settings, creates if file does not
+        exist. */ 
+    Book(const std::string& filename) throw(HexException);
 
     /** Destructor. */
     ~Book();
-
-    /** Returns a copy of the settings for this book. */
-    Settings GetSettings() const;
 
     /** Reads node from db. Returns true if node exists in book, false
         otherwise. Node is touched only if it exists in book. */
@@ -260,39 +237,12 @@ public:
 
 private:
 
-    /** Settings for this book. */
-    Settings m_settings;
-
     /** Database for this book. */
     HashDB<BookNode> m_db;
 
     std::size_t TreeSize(StoneBoard& brd, 
                          std::map<hash_t, std::size_t>& solved) const;
 };
-
-inline bool Book::Settings::operator==(const Book::Settings& o) const 
-{
-    SG_UNUSED(o);
-    return true;
-}
-        
-inline bool Book::Settings::operator!=(const Book::Settings& o) const
-{
-    return !(*this == o);
-}
-
-inline std::string Book::Settings::toString() const
-{
-    std::ostringstream os;
-    os << "["
-       << "]";
-    return os.str();
-}
-
-inline Book::Settings Book::GetSettings() const
-{
-    return m_settings;
-}
 
 inline void Book::Flush()
 {
