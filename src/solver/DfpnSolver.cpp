@@ -405,6 +405,69 @@ void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable,
 
 //----------------------------------------------------------------------------
 
+int DfpnData::PackedSize() const
+{
+    return sizeof(m_bounds)
+        + sizeof(m_bestMove)
+        + sizeof(m_work)
+        + sizeof(m_parentHash)
+        + sizeof(m_moveParentPlayed)
+        + sizeof(HexPoint) * (m_children.Size() + 1);
+}
+
+byte* DfpnData::Pack() const
+{
+    static byte data[4096];
+    byte* off = data;
+    *reinterpret_cast<DfpnBounds*>(off) = m_bounds;
+    off += sizeof(m_bounds);
+    *reinterpret_cast<HexPoint*>(off) = m_bestMove;
+    off += sizeof(m_bestMove);
+    *reinterpret_cast<size_t*>(off) = m_work;
+    off += sizeof(m_work);
+    *reinterpret_cast<hash_t*>(off) = m_parentHash;
+    off += sizeof(m_parentHash);
+    *reinterpret_cast<HexPoint*>(off) = m_moveParentPlayed;
+    off += sizeof(m_moveParentPlayed);
+    const std::vector<HexPoint>& moves = m_children.m_children;
+    for (std::size_t i = 0; i < moves.size(); ++i)
+    {
+        *reinterpret_cast<HexPoint*>(off) = moves[i];
+        off += sizeof(HexPoint);
+    }
+    *reinterpret_cast<HexPoint*>(off) = INVALID_POINT;
+    off += sizeof(HexPoint);
+    if (off - data != PackedSize())
+        throw HexException("Bad size!");
+    return data;
+}
+
+void DfpnData::Unpack(const byte* data)
+{
+    m_bounds = *reinterpret_cast<const DfpnBounds*>(data);
+    data += sizeof(m_bounds);
+    m_bestMove = *reinterpret_cast<const HexPoint*>(data);
+    data += sizeof(m_bestMove);
+    m_work = *reinterpret_cast<const size_t*>(data);
+    data += sizeof(m_work);
+    m_parentHash = *reinterpret_cast<const hash_t*>(data);
+    data += sizeof(m_parentHash);
+    m_moveParentPlayed = *reinterpret_cast<const HexPoint*>(data);
+    data += sizeof(m_moveParentPlayed);
+    std::vector<HexPoint> moves;
+    while (true)
+    {
+        HexPoint p = *reinterpret_cast<const HexPoint*>(data);
+        data += sizeof(HexPoint);
+        if (p == INVALID_POINT)
+            break;
+        moves.push_back(p);
+    }
+    m_children.SetChildren(moves);
+}
+
+//----------------------------------------------------------------------------
+
 DfpnSolver::DfpnSolver()
     : m_hashTable(0),
       m_useGuiFx(false),
@@ -420,13 +483,13 @@ DfpnSolver::~DfpnSolver()
 }
 
 void DfpnSolver::GetVariation(const StoneBoard& state, 
-                              std::vector<HexPoint>& pv) const
+                              std::vector<HexPoint>& pv)
 {
     StoneBoard brd(state);
     while (true) 
     {
         DfpnData data;
-        if (!m_hashTable->Get(brd.Hash(), data))
+        if (!TTRead(brd.Hash(), data))
             break;
         if (data.m_bestMove == INVALID_POINT)
             break;
@@ -501,8 +564,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     {
         // Skip search if already solved
         DfpnData data;
-        if (m_hashTable->Get(m_brd->Hash(), data)
-            && data.m_bounds.IsSolved())
+        if (TTRead(m_brd->Hash(), data) && data.m_bounds.IsSolved())
             performSearch = false;
     }
 
@@ -519,7 +581,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     if (!m_aborted)
     {
         DfpnData data;
-        m_hashTable->Get(m_brd->Hash(), data);
+        TTRead(m_brd->Hash(), data);
         CheckBounds(data.m_bounds);
 
         HexColor colorToMove = m_brd->WhoseTurn();
@@ -554,7 +616,7 @@ bool DfpnSolver::CheckAbort()
                 if (elapsed > m_timelimit)
                 {
                     m_aborted = true;
-                    LogInfo() << "DfpnSolver::CheckAbort(): Timelimit!" << '\n';
+                    LogInfo() << "DfpnSolver::CheckAbort(): Timelimit!\n";
                 }
                 else
                 {
@@ -592,7 +654,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     DfpnChildren children;
     {
         DfpnData data;
-        if (m_hashTable->Get(m_brd->Hash(), data)) 
+        if (TTRead(m_brd->Hash(), data)) 
         {
             children = data.m_children;
             HexAssert(bounds.phi > data.m_bounds.phi);
@@ -626,7 +688,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                     m_guiFx.UpdateCurrentBounds(terminal);
                     m_guiFx.Write();
                 }
-                TTStore(m_brd->Hash(), 
+                TTWrite(m_brd->Hash(), 
                         DfpnData(terminal, DfpnChildren(),
                                  INVALID_POINT, 1, parentHash, 
                                  history.LastMove()));
@@ -773,7 +835,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     {
         DfpnData data(currentBounds, children, bestMove, localWork, 
                       parentHash, history.LastMove());
-        TTStore(m_brd->Hash(), data);
+        TTWrite(m_brd->Hash(), data);
         
         if (data.m_bounds.IsSolved())
             NotifyListeners(history, data);
@@ -862,7 +924,7 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
     hash_t hash = m_brd->Hash();
     children.UndoMove(childIndex, *m_brd);
 
-    if (!m_hashTable->Get(hash, data))
+    if (!TTRead(hash, data))
     {
         data.m_bounds.phi = 1;
         data.m_bounds.delta = delta;
@@ -870,9 +932,16 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
     }
 }
 
-void DfpnSolver::TTStore(hash_t hash, const DfpnData& data)
+bool DfpnSolver::TTRead(hash_t hash, DfpnData& data)
+{
+    //return m_db.Get(hash, data);
+    return m_hashTable->Get(hash, data);
+}
+
+void DfpnSolver::TTWrite(hash_t hash, const DfpnData& data)
 {
     CheckBounds(data.m_bounds);
+    //m_db.Put(hash, data);
     m_hashTable->Put(hash, data);
 }
 

@@ -13,6 +13,7 @@
 #include "Hex.hpp"
 #include "HexBoard.hpp"
 #include "TransTable.hpp"
+#include "HashDB.hpp"
 
 #include <limits>
 #include <boost/scoped_ptr.hpp>
@@ -151,6 +152,8 @@ public:
     void UndoMove(int index, StoneBoard& brd) const;
 
 private:
+    friend class DfpnData;
+
     std::vector<HexPoint> m_children;
 };
 
@@ -198,6 +201,17 @@ public:
     bool Initialized() const;
     
     bool ReplaceWith(const DfpnData& data) const;
+
+    /** @name PackableConcept */
+    // @{
+
+    int PackedSize() const;
+
+    byte* Pack() const;
+
+    void Unpack(const byte* data);
+
+    // @}
 
 private:
 
@@ -571,10 +585,12 @@ private:
     void LookupData(DfpnData& data, const DfpnChildren& children, 
                     int childIndex, size_t delta);
 
-    void TTStore(hash_t hash, const DfpnData& data);
+    bool TTRead(hash_t hash, DfpnData& data);
+
+    void TTWrite(hash_t hash, const DfpnData& data);
 
     void GetVariation(const StoneBoard& state, 
-                      std::vector<HexPoint>& pv) const;
+                      std::vector<HexPoint>& pv);
 
     std::string PrintVariation(const std::vector<HexPoint>& pv) const;
 
