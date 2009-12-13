@@ -172,7 +172,7 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
     cmd.CheckNuArgLessEqual(3);
     float polarization = cmd.FloatArg(0);
     std::string filename = cmd.Arg(1);
-    std::set<hash_t> ignoreSet;
+    PositionSet ignoreSet;
     if (cmd.NuArg() == 3u)
     {
         std::string ignoreFile = cmd.Arg(2);
@@ -190,10 +190,10 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
                 brd.StartNewGame();
                 for (std::size_t i = 0; i < seq.size(); ++i)
                     brd.PlayMove(brd.WhoseTurn(), seq[i]);
-                ignoreSet.insert(BookUtil::GetHash(brd));
+                ignoreSet.Insert(brd);
             }
         }
-        LogInfo() << "Read " << ignoreSet.size() << " positions to ignore.\n";
+        LogInfo() << "Read " << ignoreSet.Size() << " positions to ignore.\n";
     }
     StoneBoard brd(m_game.Board());
     PointSequence pv;

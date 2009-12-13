@@ -11,6 +11,7 @@
 #include "HashDB.hpp"
 #include "HexException.hpp"
 #include "HexEval.hpp"
+#include "PositionDB.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -237,11 +238,10 @@ public:
 
 private:
 
-    /** Database for this book. */
-    HashDB<BookNode> m_db;
+    PositionDB<BookNode> m_db;
 
     std::size_t TreeSize(StoneBoard& brd, 
-                         std::map<hash_t, std::size_t>& solved) const;
+                         PositionMap<std::size_t>& solved) const;
 };
 
 inline void Book::Flush()
@@ -256,9 +256,6 @@ inline void Book::Flush()
 */
 namespace BookUtil
 {
-    /** Returns the canonical hash for this boardstate. */
-    hash_t GetHash(const StoneBoard& brd);
-
     /** Returns number of child states existing in this book. */
     unsigned NumChildren(const Book& book, const StoneBoard& brd);
 
@@ -293,7 +290,7 @@ namespace BookUtil
         the variation leading to the current state of the board. */
     void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
                             float polarization, PointSequence& pv, 
-                            std::ostream& out, const std::set<hash_t>& ignoreSet);
+                            std::ostream& out, const PositionSet& ignoreSet);
 
     /** Reads solved leaf positions from a file and adds them to the
         given book. Overwrites value of any existing states. */

@@ -12,6 +12,7 @@
 #include "HashDB.hpp"
 #include "Book.hpp"
 #include "PlayerUtils.hpp"
+#include "PositionDB.hpp"
 #include "Resistance.hpp"
 #include "ThreadedWorker.hpp"
 #include "Time.hpp"
@@ -153,9 +154,9 @@ private:
 
     void DoExpansion(StoneBoard& brd, PointSequence& pv);
 
-    bool Refresh(StoneBoard& brd, std::set<hash_t>& seen, bool root);
+    bool Refresh(StoneBoard& brd, PositionSet& seen, bool root);
 
-    void IncreaseWidth(StoneBoard& brd, std::set<hash_t>& seen, bool root);
+    void IncreaseWidth(StoneBoard& brd, PositionSet& seen, bool root);
 
     void CreateWorkers();
 
@@ -397,7 +398,7 @@ void BookBuilder<PLAYER>::Refresh(Book& book, HexBoard& board)
     CreateWorkers();
 
     LogInfo() << "Refreshing DB..." << '\n';
-    std::set<hash_t> seen;
+    PositionSet seen;
     Refresh(brd, seen, true);
 
     LogInfo() << "Flushing DB..." << '\n';
@@ -439,7 +440,7 @@ void BookBuilder<PLAYER>::IncreaseWidth(Book& book, HexBoard& board)
     CreateWorkers();
 
     LogInfo() << "Increasing DB's width..." << '\n';
-    std::set<hash_t> seen;
+    PositionSet seen;
     IncreaseWidth(brd, seen, true);
 
     LogInfo() << "Flushing DB..." << '\n';
@@ -727,10 +728,10 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
     @ref bookrefresh
 */
 template<class PLAYER>
-bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
+bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, PositionSet& seen,
                                   bool root)
 {
-    if (seen.count(BookUtil::GetHash(brd)))
+    if (seen.Exists(brd))
         return true;
     BookNode node;
     if (!GetNode(brd, node))
@@ -759,7 +760,7 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
     if (fabs(oldPriority - node.m_priority) > 0.0001)
         m_priority_updates++;
     WriteNode(brd, node);
-    seen.insert(BookUtil::GetHash(brd));
+    seen.Insert(brd);
     if (node.IsTerminal())
         m_terminal_nodes++;
     else
@@ -770,11 +771,10 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, std::set<hash_t>& seen,
 //----------------------------------------------------------------------------
 
 template<class PLAYER>
-void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd, 
-                                        std::set<hash_t>& seen,
+void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd, PositionSet& seen,
                                         bool root)
 {
-    if (seen.count(BookUtil::GetHash(brd)))
+    if (seen.Exists(brd))
         return;
     BookNode node;
     if (!GetNode(brd, node))
@@ -793,8 +793,8 @@ void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd,
         * m_expand_width;
     if (ExpandChildren(brd, width))
         ++m_num_widenings;
-    seen.insert(BookUtil::GetHash(brd));
-    if ((seen.size() % 500) == 0)
+    seen.Insert(brd);
+    if ((seen.Size() % 500) == 0)
     {
         m_book->Flush();
         LogInfo() << "Flushed book." << '\n';

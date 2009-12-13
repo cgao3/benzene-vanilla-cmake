@@ -85,14 +85,12 @@ float Book::InverseEval(float eval)
 
 bool Book::GetNode(const StoneBoard& brd, BookNode& node) const
 {
-    if (m_db.Get(BookUtil::GetHash(brd), node))
-        return true;
-    return false;
+    return m_db.Get(brd, node);
 }
 
 void Book::WriteNode(const StoneBoard& brd, const BookNode& node)
 {
-    m_db.Put(BookUtil::GetHash(brd), node);
+    m_db.Put(brd, node);
 }
 
 int Book::GetMainLineDepth(const StoneBoard& pos) const
@@ -131,17 +129,16 @@ int Book::GetMainLineDepth(const StoneBoard& pos) const
 
 std::size_t Book::GetTreeSize(const StoneBoard& board) const
 {
-    std::map<hash_t, std::size_t> solved;
+    PositionMap<std::size_t> solved;
     StoneBoard brd(board);
     return TreeSize(brd, solved);
 }
 
-std::size_t Book::TreeSize(StoneBoard& brd, std::map<hash_t, 
-                           std::size_t>& solved) const
+std::size_t Book::TreeSize(StoneBoard& brd, 
+                           PositionMap<std::size_t>& solved) const
 {
-    hash_t hash = BookUtil::GetHash(brd);
-    if (solved.find(hash) != solved.end())
-        return solved[hash];
+    if (solved.Exists(brd))
+        return solved[brd];
 
     BookNode node;
     if (!GetNode(brd, node))
@@ -154,20 +151,11 @@ std::size_t Book::TreeSize(StoneBoard& brd, std::map<hash_t,
         ret += TreeSize(brd, solved);
         brd.UndoMove(*p);
     }
-    solved[hash] = ret;
+    solved[brd] = ret;
     return ret;
 }
 
 //----------------------------------------------------------------------------
-
-hash_t BookUtil::GetHash(const StoneBoard& brd)
-{
-    hash_t hash1 = brd.Hash();
-    StoneBoard rotatedBrd(brd);
-    rotatedBrd.RotateBoard();
-    hash_t hash2 = rotatedBrd.Hash();
-    return std::min(hash1, hash2);
-}
 
 unsigned BookUtil::NumChildren(const Book& book, const StoneBoard& board)
 {
@@ -307,22 +295,21 @@ void BookUtil::DumpVisualizationData(const Book& book, StoneBoard& brd,
 namespace {
 
 void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
-                        float polarization, std::set<hash_t>& seen,
+                        float polarization, PositionSet& seen,
                         PointSequence& pv, std::ostream& out,
-                        const std::set<hash_t>& ignoreSet)
+                        const PositionSet& ignoreSet)
 {
-    hash_t hash = BookUtil::GetHash(brd);
-    if (seen.find(hash) != seen.end())
+    if (seen.Exists(brd))
         return;
     BookNode node;
     if (!book.GetNode(brd, node))
         return;
     if (fabs(node.Value(brd) - 0.5) >= polarization 
         && node.IsLeaf() && !node.IsTerminal()
-        && !ignoreSet.count(hash))
+        && ignoreSet.Exists(brd))
     {
         out << HexPointUtil::ToString(pv) << '\n';
-        seen.insert(hash);
+        seen.Insert(brd);
     }
     else
     {
@@ -332,11 +319,12 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
         {
             brd.PlayMove(brd.WhoseTurn(), *i);
             pv.push_back(*i);
-            DumpPolarizedLeafs(book, brd, polarization, seen, pv, out, ignoreSet);
+            DumpPolarizedLeafs(book, brd, polarization, seen, pv, out, 
+                               ignoreSet);
             pv.pop_back();
             brd.UndoMove(*i);
         }
-        seen.insert(hash);
+        seen.Insert(brd);
     } 
 }
 
@@ -345,9 +333,9 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
 void BookUtil::DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
                                   float polarization, PointSequence& pv, 
                                   std::ostream& out, 
-                                  const std::set<hash_t>& ignoreSet)
+                                  const PositionSet& ignoreSet)
 {
-    std::set<hash_t> seen;
+    PositionSet seen;
     ::DumpPolarizedLeafs(book, brd, polarization, seen, pv, out, ignoreSet);
 }
 
