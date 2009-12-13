@@ -526,7 +526,7 @@ HexEval BookBuilder<PLAYER>::Worker::operator()(const StoneBoard& position)
 template<class PLAYER>
 bool BookBuilder<PLAYER>::GetNode(const StoneBoard& brd, BookNode& node) const
 {
-    return m_book->GetNode(brd, node);
+    return m_book->Get(brd, node);
 }
 
 /** Writes node to book's db. */
@@ -534,7 +534,7 @@ template<class PLAYER>
 void BookBuilder<PLAYER>::WriteNode(const StoneBoard& brd, 
                                     const BookNode& node)
 {
-    m_book->WriteNode(brd, node);
+    m_book->Put(brd, node);
 }
 
 /** Creates root node if necessary. */

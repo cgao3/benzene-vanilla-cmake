@@ -23,13 +23,13 @@ using namespace benzene;
 float BookNode::Value(const StoneBoard& brd) const
 {
     if (brd.IsLegal(SWAP_PIECES))
-        return std::max(m_value, Book::InverseEval(m_value));
+        return std::max(m_value, BookUtil::InverseEval(m_value));
     return m_value;
 }
 
 float BookNode::Score(const StoneBoard& brd, float countWeight) const
 {
-    float score = Book::InverseEval(Value(brd));
+    float score = BookUtil::InverseEval(Value(brd));
     if (!IsTerminal())
         score += log(m_count + 1) * countWeight;
     return score;	
@@ -59,19 +59,7 @@ std::string BookNode::toString() const
 
 //----------------------------------------------------------------------------
 
-Book::Book(const std::string& filename)
-    throw(HexException)
-    : m_db(filename)
-{
-}
-
-Book::~Book()
-{
-}
-
-//----------------------------------------------------------------------------
-
-float Book::InverseEval(float eval)
+float BookUtil::InverseEval(float eval)
 {
     if (HexEvalUtil::IsWinOrLoss(eval))
         return -eval;
@@ -83,24 +71,14 @@ float Book::InverseEval(float eval)
 
 //----------------------------------------------------------------------------
 
-bool Book::GetNode(const StoneBoard& brd, BookNode& node) const
-{
-    return m_db.Get(brd, node);
-}
-
-void Book::WriteNode(const StoneBoard& brd, const BookNode& node)
-{
-    m_db.Put(brd, node);
-}
-
-int Book::GetMainLineDepth(const StoneBoard& pos) const
+int BookUtil::GetMainLineDepth(const Book& book, const StoneBoard& pos)
 {
     int depth = 0;
     StoneBoard brd(pos);
     for (;;) 
     {
         BookNode node;
-        if (!GetNode(brd, node))
+        if (!book.Get(brd, node))
             break;
         HexPoint move = INVALID_POINT;
         float value = -1e9;
@@ -108,7 +86,7 @@ int Book::GetMainLineDepth(const StoneBoard& pos) const
         {
             brd.PlayMove(brd.WhoseTurn(), *p);
             BookNode child;
-            if (GetNode(brd, child))
+            if (book.Get(brd, child))
             {
                 float curValue = InverseEval(child.Value(brd));
                 if (curValue > value)
@@ -127,32 +105,35 @@ int Book::GetMainLineDepth(const StoneBoard& pos) const
     return depth;
 }
 
-std::size_t Book::GetTreeSize(const StoneBoard& board) const
+namespace 
 {
-    PositionMap<std::size_t> solved;
-    StoneBoard brd(board);
-    return TreeSize(brd, solved);
-}
 
-std::size_t Book::TreeSize(StoneBoard& brd, 
-                           PositionMap<std::size_t>& solved) const
+std::size_t TreeSize(const Book& book, StoneBoard& brd, 
+                     PositionMap<std::size_t>& solved)
 {
     if (solved.Exists(brd))
         return solved[brd];
-
     BookNode node;
-    if (!GetNode(brd, node))
+    if (!book.Get(brd, node))
         return 0;
-   
     std::size_t ret = 1;
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.PlayMove(brd.WhoseTurn(), *p);
-        ret += TreeSize(brd, solved);
+        ret += TreeSize(book, brd, solved);
         brd.UndoMove(*p);
     }
     solved[brd] = ret;
     return ret;
+}
+
+}
+
+std::size_t BookUtil::GetTreeSize(const Book& book, const StoneBoard& board)
+{
+    PositionMap<std::size_t> solved;
+    StoneBoard brd(board);
+    return TreeSize(book, brd, solved);
 }
 
 //----------------------------------------------------------------------------
@@ -165,7 +146,7 @@ unsigned BookUtil::NumChildren(const Book& book, const StoneBoard& board)
     {
 	brd.PlayMove(brd.WhoseTurn(), *i);
 	BookNode child;
-        if (book.GetNode(brd, child))
+        if (book.Get(brd, child))
             ++num;
         brd.UndoMove(*i);
     }
@@ -180,10 +161,10 @@ void BookUtil::UpdateValue(const Book& book, BookNode& node, StoneBoard& brd)
     {
 	brd.PlayMove(brd.WhoseTurn(), *i);
 	BookNode child;
-        if (book.GetNode(brd, child))
+        if (book.Get(brd, child))
         {
             hasChild = true;
-            float value = Book::InverseEval(child.Value(brd));
+            float value = BookUtil::InverseEval(child.Value(brd));
             if (value > bestValue)
 		bestValue = value;
 	    
@@ -205,7 +186,7 @@ float BookUtil::ComputePriority(const StoneBoard& brd,
     // Must adjust child value for swap, but not the parent because we
     // are comparing with the best child's value, ie, the minmax
     // value.
-    float delta = parent.m_value - Book::InverseEval(child.Value(brd));
+    float delta = parent.m_value - BookUtil::InverseEval(child.Value(brd));
     HexAssert(delta >= 0.0);
     HexAssert(child.m_priority >= BookNode::LEAF_PRIORITY);
     HexAssert(child.m_priority < BookNode::DUMMY_PRIORITY);
@@ -222,7 +203,7 @@ HexPoint BookUtil::UpdatePriority(const Book& book, BookNode& node,
     {
 	brd.PlayMove(brd.WhoseTurn(), *i);
 	BookNode child;
-        if (book.GetNode(brd, child))
+        if (book.Get(brd, child))
         {
             hasChild = true;
             float priority 
@@ -246,7 +227,7 @@ HexPoint BookUtil::BestMove(const Book& book, const StoneBoard& pos,
                             unsigned minCount, float countWeight)
 {
     BookNode node;
-    if (!book.GetNode(pos, node) || node.m_count < minCount)
+    if (!book.Get(pos, node) || node.m_count < minCount)
         return INVALID_POINT;
 
     float bestScore = -1e9;
@@ -256,7 +237,7 @@ HexPoint BookUtil::BestMove(const Book& book, const StoneBoard& pos,
     {
         brd.PlayMove(brd.WhoseTurn(), *p);
         BookNode child;
-        if (book.GetNode(brd, child))
+        if (book.Get(brd, child))
         {
             float score = child.Score(brd, countWeight);
             if (score > bestScore)
@@ -277,7 +258,7 @@ void BookUtil::DumpVisualizationData(const Book& book, StoneBoard& brd,
                                      int depth, std::ostream& out)
 {
     BookNode node;
-    if (!book.GetNode(brd, node))
+    if (!book.Get(brd, node))
         return;
     if (node.IsLeaf())
     {
@@ -302,7 +283,7 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
     if (seen.Exists(brd))
         return;
     BookNode node;
-    if (!book.GetNode(brd, node))
+    if (!book.Get(brd, node))
         return;
     if (fabs(node.Value(brd) - 0.5) >= polarization 
         && node.IsLeaf() && !node.IsTerminal()
@@ -393,7 +374,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
         HexEval ourValue = (brd.WhoseTurn() == winner) 
             ? IMMEDIATE_WIN : IMMEDIATE_LOSS;
         BookNode node;
-        if (book.GetNode(brd, node))
+        if (book.Get(brd, node))
         {
             HexAssert(node.IsLeaf());
             HexAssert(!node.IsTerminal());
@@ -405,7 +386,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
             node = BookNode(ourValue);
             ++numNew;
         }
-        book.WriteNode(brd, node);
+        book.Put(brd, node);
     }
     book.Flush();
     LogInfo() << "   Lines: " << lineNumber << '\n';
