@@ -59,25 +59,16 @@ class HashDB
     BOOST_CLASS_REQUIRE(T, benzene, HashDBStateConcept);
 
 public:
+    /** Opens database, creates it if it does not exist. */
+    HashDB(const std::string& filename);
 
-    /** Constructor. */
-    HashDB();
-    
-    /** Destructor. */
+    /** Closes database. */    
     ~HashDB();
-
-    //------------------------------------------------------------------------
-    
-    /** Opens filename, creates it if it does not exist. */
-    bool Open(std::string filename);
-
-    /** Closes the database. */
-    bool Close();
 
     //------------------------------------------------------------------------
 
     /** Returns true if hash exists in database. */
-    bool Exists(hash_t hash);
+    bool Exists(hash_t hash) const;
 
     /** Returns true if get is successful. */
     bool Get(hash_t hash, T& data) const;
@@ -102,35 +93,23 @@ public:
 private:
 
     static const int PERMISSION_FLAGS = 0664;
+
     static const int CLOSE_FLAGS = 0;
 
     DB* m_db;
+
+    /** Name of database that was opened. */
     std::string m_filename;
 };
 
 template<class T>
-HashDB<T>::HashDB()
-    : m_db(0)
+HashDB<T>::HashDB(const std::string& filename)
+    : m_db(0),
+      m_filename(filename)
 {
-}
-
-template<class T>
-HashDB<T>::~HashDB()
-{
-    if (m_db)
-        Close();
-}
-
-//----------------------------------------------------------------------------
-
-template<class T>
-bool HashDB<T>::Open(std::string filename)
-{
-    if (m_db)
-        throw HexException("HashDB: db already open!");
-    m_filename = filename;
     int ret;
-    if ((ret = db_create(&m_db, NULL, 0)) != 0) {
+    if ((ret = db_create(&m_db, NULL, 0)) != 0) 
+    {
         fprintf(stderr, "db_create: %s\n", db_strerror(ret));
         throw HexException("HashDB: opening/creating db!");
     }
@@ -140,27 +119,24 @@ bool HashDB<T>::Open(std::string filename)
         m_db->err(m_db, ret, "%s", m_filename.c_str());
         throw HexException("HashDB: error opening db!");
     }
-    return true;
 }
 
 template<class T>
-bool HashDB<T>::Close()
+HashDB<T>::~HashDB()
 {
-    if (!m_db)
-        throw HexException("HashDB: Close() with no db open!");
     int ret;
-    if ((ret = m_db->close(m_db, CLOSE_FLAGS)) != 0) {
+    if ((ret = m_db->close(m_db, CLOSE_FLAGS)) != 0) 
+    {
         m_db->err(m_db, ret, "%s", m_filename.c_str());
         throw HexException("HashDB: error closing db!");
     }
     m_db = 0;
-    return true;    
 }
 
 //----------------------------------------------------------------------------
 
 template<class T>
-bool HashDB<T>::Exists(hash_t hash)
+bool HashDB<T>::Exists(hash_t hash) const
 {
     DBT key, data;
     memset(&key, 0, sizeof(key)); 
@@ -187,8 +163,6 @@ bool HashDB<T>::Exists(hash_t hash)
 template<class T>
 bool HashDB<T>::Get(hash_t hash, T& d) const
 {
-    assert(m_db);
-    
     DBT key, data;
     memset(&key, 0, sizeof(key)); 
     memset(&data, 0, sizeof(data)); 
@@ -216,8 +190,6 @@ bool HashDB<T>::Get(hash_t hash, T& d) const
 template<class T>
 bool HashDB<T>::Get(void* k, int ksize, void* d, int dsize)
 {
-    assert(m_db);
-    
     DBT key, data;
     memset(&key, 0, sizeof(key)); 
     memset(&data, 0, sizeof(data)); 
@@ -247,8 +219,6 @@ bool HashDB<T>::Get(void* k, int ksize, void* d, int dsize)
 template<class T>
 bool HashDB<T>::Put(hash_t hash, const T& d)
 {
-    assert(m_db);
-
     DBT key, data; 
     memset(&key, 0, sizeof(key)); 
     memset(&data, 0, sizeof(data)); 
@@ -271,8 +241,6 @@ bool HashDB<T>::Put(hash_t hash, const T& d)
 template<class T>
 bool HashDB<T>::Put(void* k, int ksize, void* d, int dsize)
 {
-    assert(m_db);
-
     DBT key, data; 
     memset(&key, 0, sizeof(key)); 
     memset(&data, 0, sizeof(data)); 

@@ -247,24 +247,24 @@ void SolverCommands::CmdDBOpen(HtpCommand& cmd)
     std::string filename = cmd.Arg(0);
     int maxstones = -1;
     int transtones = -1;
-
-    if (cmd.NuArg() == 2) {
+    if (cmd.NuArg() == 2) 
+    {
         maxstones = cmd.IntArg(1, 1);
         transtones = maxstones;
-    } else if (cmd.NuArg() == 3) {
+    } 
+    else if (cmd.NuArg() == 3) 
+    {
         transtones = cmd.IntArg(1, -1);
         maxstones = cmd.IntArg(2, 1);
     }
 
     const StoneBoard& brd = m_game.Board();
-
-    m_db.reset(new SolverDB());
     try {
         if (maxstones == -1)
-            m_db->open(brd.Width(), brd.Height(), filename);
+            m_db.reset(new SolverDB(brd.Width(), brd.Height(), filename));
         else
-            m_db->open(brd.Width(), brd.Height(),  maxstones,
-                       transtones, filename);
+            m_db.reset(new SolverDB(brd.Width(), brd.Height(), maxstones,
+                                    transtones, filename));
     }
     catch (HexException& e) {
         m_db.reset(0);

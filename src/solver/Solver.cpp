@@ -130,14 +130,14 @@ Solver::Result Solver::Solve(HexBoard& brd, HexColor tomove,
     m_settings.depth_limit = depth_limit;
     m_settings.time_limit = time_limit;
 
-    m_db = new SolverDB();
+    m_db = 0;
     try {
-        m_db->open(brd.Width(), brd.Height(), numstones, 
-                   transtones, filename);
+        m_db = new SolverDB(brd.Width(), brd.Height(), numstones, 
+                            transtones, filename);
     }
     catch (HexException& e) {
         LogWarning() << "Error opening db: '" << e.what() 
-                 << "'. Solver run aborted." << '\n';
+                     << "'. Solver run aborted.\n";
         return UNKNOWN;
     }
     m_delete_db_when_done = true;

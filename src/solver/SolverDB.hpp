@@ -92,29 +92,22 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** Constructor. */
-    SolverDB();
-
-    /** Destructor. */
-    ~SolverDB();
-
-    //------------------------------------------------------------------------
-    
     /** Opens (or creates if it does not already exist) a SolverDB for
         the given board dimensions, max number of stones, and number
         of stones for transposition states. Throws an exception if an
         error occur (eg: db already exists but with different
         settings). */
-    void open(int width, int height, int maxstones, int transtones,
+    SolverDB(int width, int height, int maxstones, int transtones,
               const std::string& filename) 
         throw (HexException);
-    
+
+
     /** Opens an existing database for the given boardsize. */
-    void open(int width, int height, const std::string& filename)
+    SolverDB(int width, int height, const std::string& filename)
         throw(HexException);
 
-    /** Close the db. */
-    void close();
+    /** Destructor. */
+    ~SolverDB();
 
     //------------------------------------------------------------------------
 
@@ -149,10 +142,8 @@ public:
     int put(const StoneBoard& brd, const SolvedState& state);
 
 private:
-
-    void init();
-
     Settings m_settings;
+
     HashDB<SolvedState> m_db;
 
     mutable Statistics m_stats;

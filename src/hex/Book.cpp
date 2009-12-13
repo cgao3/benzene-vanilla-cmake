@@ -61,9 +61,8 @@ std::string BookNode::toString() const
 
 Book::Book(const std::string& filename)
     throw(HexException)
+    : m_db(filename)
 {
-    if (!m_db.Open(filename))
-        throw HexException("Could not open database file!");
 }
 
 Book::~Book()

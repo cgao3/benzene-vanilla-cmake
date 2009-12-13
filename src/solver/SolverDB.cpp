@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file SolverDB.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -22,36 +22,22 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-SolverDB::SolverDB()
-{
-}
-
-SolverDB::~SolverDB()
-{
-}
-
-//----------------------------------------------------------------------------
-
-
-void SolverDB::open(int width, int height, int maxstones, int transtones,
-                    const std::string& filename)
+SolverDB::SolverDB(int width, int height, int maxstones, int transtones,
+                   const std::string& filename)
     throw(HexException)
+    : m_settings(width, height, transtones, maxstones),
+      m_db(filename)
 {
-    m_settings = Settings(width, height, transtones, maxstones);
-
-    if (!m_db.Open(filename))
-        throw HexException("Could not open database file!");
-
     // Load settings from database and ensure they match the current
     // settings.  
     char key[] = "settings";
     Settings temp;
     if (m_db.Get(key, strlen(key)+1, &temp, sizeof(temp))) 
     {
-        LogInfo() << "Database exists." << '\n';
+        LogInfo() << "Database exists.\n";
         if (m_settings != temp) 
         {
-            LogInfo() << "Settings do not match!" << '\n'
+            LogInfo() << "Settings do not match!\n"
 		      << "DB: " << temp.toString() << '\n'
 		      << "Current: " << m_settings.toString() << '\n';
             throw HexException("Settings do not match db settings!");
@@ -60,19 +46,17 @@ void SolverDB::open(int width, int height, int maxstones, int transtones,
     else 
     {
         // Read failed: this is a new database. Store the settings.
-        LogInfo() << "New database!" << '\n';
+        LogInfo() << "New database!\n";
         if (!m_db.Put(key, strlen(key)+1, &m_settings, sizeof(m_settings)))
             throw HexException("Could not write to database!");
     }
     LogInfo() << "Settings: " << m_settings.toString() << '\n';
 }
 
-void SolverDB::open(int width, int height, const std::string& filename)
+SolverDB::SolverDB(int width, int height, const std::string& filename)
     throw(HexException)
+    : m_db(filename)
 {
-    if (!m_db.Open(filename))
-        throw HexException("Could not open database!");
-
     // Load settings from database
     char key[] = "settings";
     if (m_db.Get(key, strlen(key)+1, &m_settings, sizeof(m_settings))) 
@@ -85,9 +69,8 @@ void SolverDB::open(int width, int height, const std::string& filename)
         throw HexException("Could not read from database!");
 }
 
-void SolverDB::close()
+SolverDB::~SolverDB()
 {
-    m_db.Close();
 }
 
 //----------------------------------------------------------------------------
