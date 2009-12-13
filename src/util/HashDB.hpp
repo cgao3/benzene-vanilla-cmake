@@ -8,7 +8,6 @@
 
 #include <boost/concept_check.hpp>
 
-#include <cassert>
 #include <cstdio>
 #include <string>
 
@@ -17,6 +16,7 @@
 #include "Benzene.hpp"
 #include "Types.hpp"
 #include "Hash.hpp"
+#include "HexException.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -117,9 +117,8 @@ HashDB<T>::HashDB()
 template<class T>
 HashDB<T>::~HashDB()
 {
-    if (m_db) {
+    if (m_db)
         Close();
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -127,38 +126,34 @@ HashDB<T>::~HashDB()
 template<class T>
 bool HashDB<T>::Open(std::string filename)
 {
-    assert(m_db == 0);
-
+    if (m_db)
+        throw HexException("HashDB: db already open!");
     m_filename = filename;
-
     int ret;
     if ((ret = db_create(&m_db, NULL, 0)) != 0) {
         fprintf(stderr, "db_create: %s\n", db_strerror(ret));
-        m_db = 0;
-        return false;
+        throw HexException("HashDB: opening/creating db!");
     }
-
     if ((ret = m_db->open(m_db, NULL, filename.c_str(), NULL, 
                           DB_HASH, DB_CREATE, PERMISSION_FLAGS)) != 0) 
     {
         m_db->err(m_db, ret, "%s", m_filename.c_str());
-        delete m_db;
-        return false;
+        throw HexException("HashDB: error opening db!");
     }
-
     return true;
 }
 
 template<class T>
 bool HashDB<T>::Close()
 {
-    assert(m_db);
-
+    if (!m_db)
+        throw HexException("HashDB: Close() with no db open!");
     int ret;
     if ((ret = m_db->close(m_db, CLOSE_FLAGS)) != 0) {
         m_db->err(m_db, ret, "%s", m_filename.c_str());
-        return false;
+        throw HexException("HashDB: error closing db!");
     }
+    m_db = 0;
     return true;    
 }
 
@@ -183,7 +178,7 @@ bool HashDB<T>::Exists(hash_t hash)
 
     default:
         m_db->err(m_db, ret, "%s", m_filename.c_str());
-        assert(false);
+        throw HexException("HashDB: error in Exists()!");
     }
 
     return true;
@@ -212,7 +207,7 @@ bool HashDB<T>::Get(hash_t hash, T& d) const
 
     default:
         m_db->err(m_db, ret, "%s", m_filename.c_str());
-        assert(false);
+        throw HexException("HashDB: error in Get()!");
     }
 
     return false;
@@ -241,7 +236,7 @@ bool HashDB<T>::Get(void* k, int ksize, void* d, int dsize)
 
     default:
         m_db->err(m_db, ret, "%s", m_filename.c_str());
-        assert(false);
+        throw HexException("HashDB: error in general Get()!");
     }
 
     return false;
@@ -266,8 +261,8 @@ bool HashDB<T>::Put(hash_t hash, const T& d)
 
     int ret;
     if ((ret = m_db->put(m_db, NULL, &key, &data, 0)) != 0) {
-        m_db->err(m_db, ret, "%s", m_filename.c_str()); 
-        return false;
+        m_db->err(m_db, ret, "%s", m_filename.c_str());
+        throw HexException("HashDB: error in Put()!");
     } 
 
     return true;
@@ -290,8 +285,8 @@ bool HashDB<T>::Put(void* k, int ksize, void* d, int dsize)
 
     int ret;
     if ((ret = m_db->put(m_db, NULL, &key, &data, 0)) != 0) {
-        m_db->err(m_db, ret, "%s", m_filename.c_str()); 
-        return false;
+        m_db->err(m_db, ret, "%s", m_filename.c_str());
+        throw HexException("HashDB: error in general Put()!");
     } 
 
     return true;
