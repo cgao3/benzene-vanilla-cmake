@@ -65,8 +65,6 @@ public:
     /** Closes database. */    
     ~HashDB();
 
-    //------------------------------------------------------------------------
-
     /** Returns true if hash exists in database. */
     bool Exists(hash_t hash) const;
 
@@ -82,13 +80,8 @@ public:
     /** Generic Get. */
     bool Get(void* k, int ksize, void* d, int dsize);
 
-    //------------------------------------------------------------------------
-
     /** Flush the db to disk. */
     void Flush();
-
-    /** Returns pointer to DB handle. */
-    DB* BerkelyDB();
 
 private:
 
@@ -98,7 +91,7 @@ private:
 
     DB* m_db;
 
-    /** Name of database that was opened. */
+    /** Name of database file. */
     std::string m_filename;
 };
 
@@ -132,8 +125,6 @@ HashDB<T>::~HashDB()
     }
     m_db = 0;
 }
-
-//----------------------------------------------------------------------------
 
 template<class T>
 bool HashDB<T>::Exists(hash_t hash) const
@@ -214,8 +205,6 @@ bool HashDB<T>::Get(void* k, int ksize, void* d, int dsize)
     return false;
 }
 
-//----------------------------------------------------------------------------
-
 template<class T>
 bool HashDB<T>::Put(hash_t hash, const T& d)
 {
@@ -260,18 +249,10 @@ bool HashDB<T>::Put(void* k, int ksize, void* d, int dsize)
     return true;
 }
 
-//----------------------------------------------------------------------------
-
 template<class T>
 void HashDB<T>::Flush()
 {
     m_db->sync(m_db, 0);
-}
-
-template<class T>
-DB* HashDB<T>::BerkelyDB()
-{
-    return m_db;
 }
 
 //----------------------------------------------------------------------------
