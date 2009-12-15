@@ -323,8 +323,8 @@ bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
         For example, if state is close to last one, use incremental
         builds to transition from old to current. */
     m_vc_brd->GetState().StartNewGame();
-    m_vc_brd->GetState().SetColor(BLACK, m_bd->GetBlack() & m_bd->GetPlayed());
-    m_vc_brd->GetState().SetColor(WHITE, m_bd->GetWhite() & m_bd->GetPlayed());
+    m_vc_brd->GetState().SetColor(BLACK, m_bd->GetPlayed(BLACK));
+    m_vc_brd->GetState().SetColor(WHITE, m_bd->GetPlayed(WHITE));
     m_vc_brd->GetState().SetPlayed(m_bd->GetPlayed());
     m_vc_brd->ComputeAll(m_toPlay);
 

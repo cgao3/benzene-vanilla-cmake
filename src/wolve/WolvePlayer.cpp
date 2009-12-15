@@ -193,8 +193,8 @@ void WolveSearch::ComputeResistance(Resistance& resist)
 {
     StoneBoard plain(m_brd->Width(), m_brd->Height());
     StoneBoard& state = m_brd->GetState();
-    plain.AddColor(BLACK, state.GetBlack() & state.GetPlayed());
-    plain.AddColor(WHITE, state.GetWhite() & state.GetPlayed());    
+    plain.AddColor(BLACK, state.GetPlayed(BLACK));
+    plain.AddColor(WHITE, state.GetPlayed(WHITE));
     plain.SetPlayed(state.GetPlayed());
     Groups groups;
     GroupBuilder::Build(plain, groups);

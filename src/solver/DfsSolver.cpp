@@ -1415,7 +1415,7 @@ void DfsSolverUtil::ShrinkProof(bitset_t& proof,
 
     // Give winner only his stones inside proof; 
     HexColor winner = !loser;
-    brd.AddColor(winner, board.GetColor(winner) & board.GetPlayed() & proof);
+    brd.AddColor(winner, board.GetPlayed(winner) & proof);
     pastate.Update();
     GroupBuilder::Build(brd, groups);
 

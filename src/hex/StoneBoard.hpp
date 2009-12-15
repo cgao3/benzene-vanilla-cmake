@@ -177,6 +177,7 @@ public:
 
     /** Returns the set of played cells. */
     bitset_t GetPlayed() const;
+    bitset_t GetPlayed(HexColor color) const;
 
     /** Returns the set of all legal moves; ie, moves that can be
         played from this state. */
@@ -376,6 +377,12 @@ inline bool StoneBoard::IsOccupied(HexPoint cell) const
 inline bitset_t StoneBoard::GetPlayed() const 
 {
     return m_played;
+}
+
+inline bitset_t StoneBoard::GetPlayed(HexColor color) const 
+{
+    HexAssert(HexColorUtil::isBlackWhite(color));
+    return m_played & GetColor(color);
 }
 
 inline bool StoneBoard::IsPlayed(HexPoint cell) const

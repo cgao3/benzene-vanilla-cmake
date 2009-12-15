@@ -253,9 +253,9 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
     // Start by computing the flipped board position.
     // This involves mirroring the stones and *flipping their colour*.
     bitset_t flippedBlack = BoardUtils::Mirror(brd.Const(), 
-                    brd.GetWhite() & brd.GetPlayed() & brd.Const().GetCells());
+                    brd.GetPlayed(WHITE) & brd.Const().GetCells());
     bitset_t flippedWhite = BoardUtils::Mirror(brd.Const(),
-                    brd.GetBlack() & brd.GetPlayed() & brd.Const().GetCells());
+                    brd.GetPlayed(BLACK) & brd.Const().GetCells());
     StoneBoard flippedBrd(brd.Width(), brd.Height());
     flippedBrd.AddColor(BLACK, flippedBlack);
     flippedBrd.AddColor(WHITE, flippedWhite);

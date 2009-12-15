@@ -66,7 +66,7 @@ bitset_t StoneBoard::GetLegal() const
     {
 	HexAssert(!IsPlayed(SWAP_PIECES));
 	HexAssert(GetColor(FIRST_TO_PLAY).count() >= 3);
-	HexAssert((GetPlayed() & GetColor(FIRST_TO_PLAY)).count() == 3);
+	HexAssert((GetPlayed(FIRST_TO_PLAY)).count() == 3);
 	HexAssert(GetColor(!FIRST_TO_PLAY).count() == 2);
 	legal.set(SWAP_PIECES);
     }
