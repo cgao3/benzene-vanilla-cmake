@@ -10,23 +10,6 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-void SolvedState::CheckCollision(const SolvedState& other) const
-{
-    if (this->black != other.black || this->white != other.white)
-    {
-        LogSevere() << "HASH COLLISION!" << '\n'
-		    << "this:" << '\n'
-		    << HexPointUtil::ToString(this->black) << '\n'
-		    << HexPointUtil::ToString(this->white) << '\n'
-		    << "other:" << '\n'
-		    << HexPointUtil::ToString(other.black) << '\n'
-		    << HexPointUtil::ToString(other.white) << '\n';
-	abort();
-    } 
-}
-
-//----------------------------------------------------------------------------
-
 int SolvedState::PackedSize() const
 {
     return (sizeof(win) + 

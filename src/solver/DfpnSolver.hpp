@@ -187,9 +187,14 @@ public:
 
     std::string Print() const; 
     
+    /** @name TransTableStateConcept */
+    // @{
+
     bool Initialized() const;
     
     bool ReplaceWith(const DfpnData& data) const;
+
+    // @}
 
     /** @name PositionDBStateConcept */
     // @{

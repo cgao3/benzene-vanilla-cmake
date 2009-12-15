@@ -843,9 +843,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
                            winning_state, solution.stats.total_states, 
                            solution.moves_to_connection, 
                            solution.pv[0], 
-                           solution.proof, winners_stones, 
-                           m_stoneboard->GetBlack(), 
-                           m_stoneboard->GetWhite()));
+                           solution.proof, winners_stones));
 }
 
 //----------------------------------------------------------------------------

@@ -64,14 +64,6 @@ struct SolvedState
         priority. */
     int numstones;
     
-    /** Black stones; used to check for hash collisions. Not
-        always set (if from DB hit). */
-    bitset_t black;
-    
-    /** White stones; used to check for hash collisions. Not
-        always set (if from DB hit). */
-    bitset_t white;
-
     //--------------------------------------------------------------------
 
     /** Contructs state with default values. Required by
@@ -79,13 +71,14 @@ struct SolvedState
     SolvedState();
     
     /** Initializes state to given values. */
-    SolvedState(int d, bool w, int nstates, 
-                int nmoves, HexPoint bmove, 
-                const bitset_t& bp, const bitset_t& ws,
-                const bitset_t& bb, const bitset_t& bw);
+    SolvedState(int d, bool w, int nstates, int nmoves, HexPoint bmove, 
+                const bitset_t& bp, const bitset_t& ws);
 
     //--------------------------------------------------------------------
 
+    /** @name TransTableStateConcept */
+    // @{
+    
     /** Returns true if this state is not the same as that built by
         the default constructor. */
     bool Initialized() const;
@@ -94,14 +87,11 @@ struct SolvedState
         @note ALWAYS RETURNS TRUE FOR NOW!  */
     bool ReplaceWith(const SolvedState& other) const;
     
-    /** Checks for hash collisions betweent his and the given
-        hash/black/white bitsets. 
-        @bug CheckCollision() currently not used. */
-    void CheckCollision(const SolvedState& other) const;
+    // @} 
 
     //--------------------------------------------------------------------
 
-    /** @name Methods for PackableConcept (needed byHashDB). */
+    /** @name PackableConcept. */
     // @{
 
     int PackedSize() const;
@@ -114,19 +104,29 @@ struct SolvedState
 };
 
 inline SolvedState::SolvedState()
-    : win(false), flags(0), numstates(0), nummoves(0), 
-      bestmove(INVALID_POINT), proof(), winners_stones(),
-      numstones(9999), black(), white()
+    : win(false), 
+      flags(0), 
+      numstates(0), 
+      nummoves(0), 
+      bestmove(INVALID_POINT), 
+      proof(), 
+      winners_stones(),
+      numstones(9999)
 { 
 }
     
 inline SolvedState::SolvedState(int d, bool w, int nstates, 
-                                int nmoves, HexPoint bmove, 
-                                const bitset_t& bp, const bitset_t& ws,
-                                const bitset_t& bb, const bitset_t& bw)
-    : win(w), flags(0), numstates(nstates), nummoves(nmoves), 
-      bestmove(bmove), proof(bp), winners_stones(ws),
-      numstones(d), black(bb), white(bw)
+                                int nmoves, HexPoint bmove,
+                                const bitset_t& bp,
+                                const bitset_t& ws)
+    : win(w), 
+      flags(0), 
+      numstates(nstates), 
+      nummoves(nmoves), 
+      bestmove(bmove), 
+      proof(bp), 
+      winners_stones(ws),
+      numstones(d)
 { 
     HexAssert(BitsetUtil::IsSubsetOf(winners_stones, proof)); 
 }
