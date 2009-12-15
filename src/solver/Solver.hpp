@@ -349,25 +349,22 @@ private:
 
     /** Returns true if state is in DB or TT.  Checks DB first, then TT. 
         If return is true, info is stored in state. */
-    bool CheckTransposition(const HexBoard& brd, HexColor toplay, 
-                            SolvedState& state) const;
+    bool CheckTransposition(SolvedState& state) const;
 
     /** Stores the solved state in the TT or DB. Sets the state's
         bestmove parameter to the best move computed by solver. */
-    void StoreState(hash_t hash, const SolvedState& state);
+    void StoreState(hash_t hash, const SolvedState& state, 
+                    const bitset_t& proof);
 
-    bitset_t DefaultProofForWinner(const HexBoard& brd, 
-                                   HexColor winner) const;
+    bitset_t DefaultProofForWinner(const HexBoard& brd, HexColor winner) const;
 
-    bool CheckDB(const HexBoard& brd, HexColor toplay, 
-                 SolvedState& state) const;
+    bool CheckDB(SolvedState& state) const;
 
-    bool CheckTT(const HexBoard& brd, HexColor toplay, 
-                 SolvedState& state) const;
+    bool CheckTT(SolvedState& state) const;
 
     void StoreInTT(hash_t hash, const SolvedState& state);
 
-    void StoreInDB(const SolvedState& state);
+    void StoreInDB(const SolvedState& state, const bitset_t& proof);
 
     //------------------------------------------------------------------------
 
@@ -381,13 +378,14 @@ private:
         is true and SOLVE_ROOT_AGAIN is set, then no transpositions
         are checked. */
     bool HandleLeafNode(const HexBoard& brd, HexColor color, 
-                        SolvedState& state, bool root_node) const;
+                        SolvedState& state, bool root_node,
+                        bitset_t& proof) const;
 
     /** Returns true if node is terminal. Fills in state if terminal. 
         State's bestmove field is not specified here.
      */
     bool HandleTerminalNode(const HexBoard& brd, HexColor color, 
-                            SolvedState& state) const;
+                            SolvedState& state, bitset_t& proof) const;
 
     //------------------------------------------------------------------------
 

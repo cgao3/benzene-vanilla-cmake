@@ -299,7 +299,6 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     // dump winner and proof
     cmd << (state.win ? toplay : !toplay);
     cmd << ' ' << state.nummoves;
-    cmd << HexPointUtil::ToString(state.proof);
 
     std::vector<int> nummoves(BITSETSIZE);
     std::vector<int> flags(BITSETSIZE);

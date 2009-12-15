@@ -81,12 +81,9 @@ public:
         unsigned saved;            /** Number of states below gets.    */
         unsigned puts;             /** Number of successful put calls. */
         unsigned writes;           /** Number of chunks written.       */
-        unsigned shrunk;           /** Proofs shrunk by later proofs.  */
-        unsigned shrinkage;        /** Used to calc. avg. shrinkage.   */
 
         Statistics() 
-            : gets(0), saved(0), puts(0), 
-              writes(0), shrunk(0), shrinkage(0) 
+            : gets(0), saved(0), puts(0), writes(0)
         { }
     };
 
@@ -130,16 +127,15 @@ public:
     /** Returns true if state (or its rotation) exists in db. */
     bool check(const StoneBoard& brd);
 
-    /** Stores state in the db under the given board position. If a
-        state already exists in the db, the new state is stored only
-        if its proof is smaller.  Returns number of states written (0
-        or 1). */
+    /** Stores state in the db under the given board position.
+        Returns number of states written (0 or 1). */
     int write(const StoneBoard& brd, const SolvedState& state);
 
     /** Stores state in db for all transpositions of the given proof
         if state has fewer than m_settings.trans_stones
         stones. Returns number of tranpositions written. */
-    int put(const StoneBoard& brd, const SolvedState& state);
+    int put(const StoneBoard& brd, const SolvedState& state,
+            const bitset_t& proof);
 
 private:
     Settings m_settings;
@@ -173,13 +169,13 @@ namespace SolverDBUtil
         the given boardstate. Returns number of db entries
         successfully added or updated. */
     int StoreTranspositions(SolverDB& db, const StoneBoard& brd, 
-                            const SolvedState& state);
+                            const SolvedState& state, const bitset_t& proof);
 
     /** Computes and stores in db the flipped transpostions of this
         proof on the given boardstate. Returns number of db entries
         successfully added or updated. */
     int StoreFlippedStates(SolverDB& db, const StoneBoard& brd, 
-                           const SolvedState& state);
+                           const SolvedState& state, const bitset_t& proof);
 }
 
 //----------------------------------------------------------------------------

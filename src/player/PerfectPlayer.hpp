@@ -48,12 +48,10 @@ protected:
 private:
 
     bool find_db_move(StoneBoard& brd, HexColor color, 
-                      HexPoint& move_to_play, bitset_t& proof, 
-                      double& score) const;
+                      HexPoint& move_to_play, double& score) const;
 
     void solve_new_state(HexBoard& brd, HexColor color, 
-                         HexPoint& move_to_play, bitset_t& proof, 
-                         double& score) const;
+                         HexPoint& move_to_play, double& score) const;
 };
 
 inline std::string PerfectPlayer::Name() const

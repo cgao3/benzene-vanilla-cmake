@@ -157,7 +157,7 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
     // Check if move already exists in db/tt before doing anything
     {
         SolvedState state;
-        if (CheckTransposition(brd, tomove, state))
+        if (CheckTransposition(state))
         {
             LogInfo() << "Solver: Found cached result!" << '\n';
             Result result = state.win ? Solver::WIN : Solver::LOSS;
@@ -201,75 +201,55 @@ Solver::DefaultProofForWinner(const HexBoard& brd, HexColor winner) const
         - brd.GetDead();
 }
 
-bool Solver::CheckDB(const HexBoard& brd, HexColor toplay, 
-                     SolvedState& state) const
+bool Solver::CheckDB(SolvedState& state) const
 {
-    if (m_settings.use_db && m_db->get(*m_stoneboard, state)) {
+    if (m_settings.use_db && m_db->get(*m_stoneboard, state)) 
+    {
         LogFine() << "DB[" << m_stoneboard->NumStones()
                  << "] hit: "<< ((state.win)?"Win":"Loss") << ", "
                  << state.numstates << " states."
                  << '\n';
-
-        // Can't use proof stored in state.
-        // Could use it if this was a variation db, instead of
-        // a state-based db.
-        HexColor winner = (state.win) ? toplay : !toplay;
-        state.proof = DefaultProofForWinner(brd, winner);
-
         m_histogram.tthits[m_stoneboard->NumStones()]++;
         return true;
     }
     return false;
 }
 
-bool Solver::CheckTT(const HexBoard& brd, HexColor toplay, 
-                     SolvedState& state) const
+bool Solver::CheckTT(SolvedState& state) const
 {
-    if (m_tt && m_tt->Get(brd.GetState().Hash(), state)) 
+    if (m_tt && m_tt->Get(m_stoneboard->Hash(), state)) 
     {
     
 #if OUTPUT_TT_HITS
-        LogFine() << "TT [" << state.numstones << "] "
+        LogFine() << "TT[" << m_stoneboard->NumStones() << "] "
 		  << state.numstates << " " 
 		  << ((state.win) ? "Win" : "Loss")
-		  << brd << '\n';
+		  << *m_stoneboard << '\n';
 #endif
-
-#if CHECK_HASH_COLLISION
-#       error "Implement hash collision detection!"
-#endif
-
-        // Can't use proof stored in state.
-        // No way to transfer proofs between variations.
-        HexColor winner = (state.win) ? toplay : !toplay;
-        state.proof = DefaultProofForWinner(brd, winner);
-  
         m_histogram.tthits[m_stoneboard->NumStones()]++;
         return true;
     }
     return false;
 }
 
-bool Solver::CheckTransposition(const HexBoard& brd, HexColor toplay, 
-                                SolvedState& state) const
+bool Solver::CheckTransposition(SolvedState& state) const
 {
     if (m_settings.use_db && m_stoneboard->NumStones() <= m_db->maxstones())
-        return CheckDB(brd, toplay, state);
+        return CheckDB(state);
 
-    return CheckTT(brd, toplay, state);    
+    return CheckTT(state);    
 }
 
-void Solver::StoreInDB(const SolvedState& state)
+void Solver::StoreInDB(const SolvedState& state, const bitset_t& proof)
 {
     if (!m_settings.use_db)
         return;
 
     int numstones = m_stoneboard->NumStones();
-    int numwritten = m_db->put(*m_stoneboard, state);
+    int numwritten = m_db->put(*m_stoneboard, state, proof);
     if (numwritten && numstones == m_db->maxstones()) {
         LogInfo() << "Stored DB[" << numstones << "] result: "
-		  << m_stoneboard->Write(state.proof & 
-                                         m_stoneboard->GetEmpty())
+		  << m_stoneboard->Write(proof & m_stoneboard->GetEmpty())
 		  << '\n'
 		  << ((state.win)?"Win":"Loss") << ", " 
 		  << state.numstates << " states."
@@ -286,16 +266,16 @@ void Solver::StoreInTT(hash_t hash, const SolvedState& state)
     if (m_tt) 
     {
         LogFine() << "Storing proof in " << HashUtil::toString(hash) 
-		  << "(win " << state.win << ")"             
-		  << m_stoneboard->Write(state.proof) << '\n';
+		  << "(win " << state.win << ")\n";
         m_tt->Put(hash, state);
     }
 }
 
-void Solver::StoreState(hash_t hash, const SolvedState& state) 
+void Solver::StoreState(hash_t hash, const SolvedState& state,
+                        const bitset_t& proof)
 {
     if (m_settings.use_db && m_stoneboard->NumStones() <= m_db->maxstones()) {
-        StoreInDB(state);
+        StoreInDB(state, proof);
     } else {
         StoreInTT(hash, state);
     }
@@ -310,30 +290,27 @@ bool Solver::CheckAbort()
         if (SgUserAbort()) 
         {
             m_aborted = true;
-            LogInfo() << "Solver::CheckAbort(): Abort flag!" << '\n';
+            LogInfo() << "Solver::CheckAbort(): Abort flag!\n";
         }
         else if ((m_settings.time_limit > 0) && 
                  ((Time::Get() - m_start_time) > m_settings.time_limit))
         {
             m_aborted = true;
-            LogInfo() << "Solver::CheckAbort(): Timelimit!" << '\n';
+            LogInfo() << "Solver::CheckAbort(): Timelimit!\n";
         }
     }
     return m_aborted;
 }
 
 bool Solver::HandleTerminalNode(const HexBoard& brd, HexColor color,
-                                SolvedState& state) const
+                                SolvedState& state, bitset_t& proof) const
 {
-    bitset_t proof;
     int numstones = m_stoneboard->NumStones();
-
     if (SolverUtil::isWinningState(brd, color, proof)) 
     {
         state.win = true;
         state.nummoves = 0;
         state.numstates = 1;
-        state.proof = proof;
         m_histogram.terminal[numstones]++;
         return true;
     } 
@@ -342,7 +319,6 @@ bool Solver::HandleTerminalNode(const HexBoard& brd, HexColor color,
         state.win = false;
         state.nummoves = 0;
         state.numstates = 1;
-        state.proof = proof;
         m_histogram.terminal[numstones]++;
         return true;
     } 
@@ -350,9 +326,10 @@ bool Solver::HandleTerminalNode(const HexBoard& brd, HexColor color,
 }
 
 bool Solver::HandleLeafNode(const HexBoard& brd, HexColor color, 
-                            SolvedState& state, bool root_node) const
+                            SolvedState& state, bool root_node,
+                            bitset_t& proof) const
 {
-    if (HandleTerminalNode(brd, color, state))
+    if (HandleTerminalNode(brd, color, state, proof))
         return true;
 
     // Skip the transposition check if the flag is set and we are at
@@ -360,7 +337,9 @@ bool Solver::HandleLeafNode(const HexBoard& brd, HexColor color,
     if (root_node && m_settings.flags & SOLVE_ROOT_AGAIN)
         return false;
 
-    return CheckTransposition(brd, color, state);
+    if (CheckTransposition(state))
+        proof = DefaultProofForWinner(brd, state.win ? color : !color);
+    return false;
 }
 
 //----------------------------------------------------------------------------
@@ -375,15 +354,16 @@ bool Solver::solve_state(HexBoard& brd, HexColor color,
     // Check for VC/DB/TT states
     {
         SolvedState state;
-        if (HandleLeafNode(brd, color, state, variation.empty())) {
-            
+        bitset_t proof;
+        if (HandleLeafNode(brd, color, state, variation.empty(), proof)) 
+        {
             solution.stats.explored_states = 1;
             solution.stats.minimal_explored = 1;
             solution.stats.total_states += state.numstates;
             
             solution.pv.clear();
             solution.moves_to_connection = state.nummoves;
-            solution.proof = state.proof;
+            solution.proof = proof;
             
             return state.win;
         }
@@ -447,7 +427,8 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
     // solve each side
     SolvedState state;
     SolutionSet dsolution[2];
-    for (int s=0; s<2; ++s) {
+    for (int s=0; s<2; ++s) 
+    {
         LogFine() << "----------- Side" << s << ":" 
 		  << brd.Write(carrier[s]) << '\n';
 
@@ -455,27 +436,27 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
         brd.PlayStones(!color, carrier[s^1] & brd.Const().GetCells(), color);
 
         // check if new stones caused terminal state; if not, solve it
-        if (HandleTerminalNode(brd, color, state)) {
+        bitset_t proof;
+        if (HandleTerminalNode(brd, color, state, proof)) 
+        {
             win = state.win;
-
             dsolution[s].stats.expanded_states = 0;
             dsolution[s].stats.explored_states = 1;
             dsolution[s].stats.minimal_explored = 1;
             dsolution[s].stats.total_states = 1;
-
-            dsolution[s].proof = state.proof;
+            dsolution[s].proof = proof;
             dsolution[s].moves_to_connection = state.nummoves;
             dsolution[s].pv.clear();
-
-        } else {
-
+        } 
+        else 
+        {
             win = solve_interior_state(brd, color, variation, dsolution[s]);
-
         }
         brd.UndoMove();
         
         // abort if we won this side
-        if (win) {
+        if (win) 
+        {
             LogFine() << "##### WON SIDE " << s << " #####" << '\n'
 		      << brd.Write(dsolution[s].proof) << '\n'
 		      << "explored_states: " 
@@ -839,11 +820,9 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
         solution.pv.push_back(INVALID_POINT);
 
     StoreState(brd.GetState().Hash(), 
-               SolvedState(m_stoneboard->NumStones(),
-                           winning_state, solution.stats.total_states, 
-                           solution.moves_to_connection, 
-                           solution.pv[0], 
-                           solution.proof, winners_stones));
+               SolvedState(winning_state, solution.stats.total_states, 
+                           solution.moves_to_connection, solution.pv[0]), 
+               solution.proof);
 }
 
 //----------------------------------------------------------------------------
@@ -888,7 +867,7 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 	m_stoneboard->PlayMove(color, *it);
 
 	SolvedState state;
-	if (CheckTransposition(brd, other, state))
+	if (CheckTransposition(state))
 	{
 	    solution.stats.explored_states += 1;
 	    solution.stats.minimal_explored++;
@@ -903,7 +882,8 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		// this state plus the child winning state
 		// (which is a leaf).
 		solution.stats.minimal_explored = 2;
-		solution.proof = state.proof;
+                solution.proof = DefaultProofForWinner(brd, color);
+
 		solution.moves_to_connection = state.nummoves+1;
 		solution.pv.clear();
 		solution.pv.push_back(*it);
@@ -919,8 +899,9 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		}
 		
 		// will prune the mustplay later on with the proof
-		proof_intersection &= state.proof;
-		proof_union |= state.proof;
+                bitset_t proof = DefaultProofForWinner(brd, !color);
+		proof_intersection &= proof;
+		proof_union |= proof;
 	    }
 	}
 	brd.GetState().UndoMove(*it);
@@ -983,8 +964,9 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
                 PlayMove(brd, *it, color);
 
                 SolvedState state;
+                bitset_t proof;
 		// no need to check DB/TT since did this above
-		if (HandleTerminalNode(brd, other, state))
+		if (HandleTerminalNode(brd, other, state, proof))
 		{
                     exact_score = true;
 
@@ -1000,7 +982,7 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
                         // this state plus the child winning state
                         // (which is a leaf).
                         solution.stats.minimal_explored = 2;
-                        solution.proof = state.proof;
+                        solution.proof = proof;
                         solution.moves_to_connection = state.nummoves+1;
                         solution.pv.clear();
                         solution.pv.push_back(*it);
@@ -1016,8 +998,8 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
                         }
 
                         // will prune the mustplay with the proof below
-                        proof_intersection &= state.proof;
-                        proof_union |= state.proof;
+                        proof_intersection &= proof;
+                        proof_union |= proof;
                     }
                 }
 		else
@@ -1225,9 +1207,6 @@ void Solver::DumpStats(const SolutionSet& solution) const
 		  << db_stats.gets << " (" << db_stats.saved << ")" << '\n'
 		  << "      DB Solved: " << db_stats.puts << '\n'
 		  << "       DB Trans: " << db_stats.writes << '\n'
-		  << "      DB Shrunk: " << db_stats.shrunk << '\n'
-		  << "    Avg. Shrink: " 
-		  << (double)db_stats.shrinkage/db_stats.shrunk << '\n'
 		  << "########################################" << '\n';
     }
    

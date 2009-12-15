@@ -85,8 +85,6 @@ bool SolverDB::get(const StoneBoard& brd, SolvedState& state)
         {
             m_stats.gets++;
             m_stats.saved += state.numstates;
-           
-            state.numstones = brd.NumStones();
             return true;
         }
 
@@ -97,15 +95,7 @@ bool SolverDB::get(const StoneBoard& brd, SolvedState& state)
         {
             m_stats.gets++;
             m_stats.saved += state.numstates;
-
-            // rotate data so it matches the given board
-            state.proof = BoardUtils::Rotate(brd.Const(), state.proof);
-            state.winners_stones = BoardUtils::Rotate(brd.Const(), 
-                                                      state.winners_stones);
-            state.bestmove = BoardUtils::Rotate(brd.Const(), 
-                                                state.bestmove);
-
-            state.numstones = brd.NumStones();
+            state.bestmove = BoardUtils::Rotate(brd.Const(), state.bestmove);
             return true;
         }
     }
@@ -130,36 +120,19 @@ bool SolverDB::check(const StoneBoard& brd)
 int SolverDB::write(const StoneBoard& brd, const SolvedState& state)
 {
     int count = brd.NumStones();
-    if (0 < count && count <= m_settings.maxstones) {
-        
+    if (0 < count && count <= m_settings.maxstones) 
+    {
         SolvedState old_state;
         bool old_exists = get(brd, old_state);
 
-        if (old_exists && old_state.win != state.win) {
-            LogSevere()
-                     << "old win = " << old_state.win << '\n'
-                     << "new win = " << state.win << '\n'
-                     << "old_proof = " 
-                     << brd.Write(old_state.proof & brd.GetEmpty())
-                     << '\n'
-                     << "new_proof = " 
-                     << brd.Write(state.proof & brd.GetEmpty()) 
-                     << '\n';
-            HexAssert(false);
+        if (old_exists && old_state.win != state.win) 
+        {
+            LogSevere() << "old win = " << old_state.win << '\n'
+                        << "new win = " << state.win << '\n';
+            throw HexException("Bad proof!");
         }
-
-        // do not overwrite a proof unless the new one is smaller
-        if (old_exists && old_state.proof.count() <= state.proof.count())
-            return 0;
-
-        // track the shrinkage
-        if (old_exists) {
-            m_stats.shrunk++;
-            m_stats.shrinkage += 
-                old_state.proof.count() - state.proof.count();
-        }
-        
-        if (m_db.Put(brd.Hash(), state)) {
+        if (m_db.Put(brd.Hash(), state)) 
+        {
             m_stats.writes++;
             return 1;
         }
@@ -167,20 +140,22 @@ int SolverDB::write(const StoneBoard& brd, const SolvedState& state)
     return 0;
 }
 
-int SolverDB::put(const StoneBoard& brd, const SolvedState& state)
+int SolverDB::put(const StoneBoard& brd, const SolvedState& state, 
+                  const bitset_t& proof)
 {
     int count = brd.NumStones();
-    if (0 < count && count <= m_settings.maxstones) {
-
+    if (0 < count && count <= m_settings.maxstones) 
+    {
         int wrote = write(brd, state);
-        if (count <= m_settings.trans_stones) {
-            wrote += SolverDBUtil::StoreTranspositions(*this, brd, state);
-            wrote += SolverDBUtil::StoreFlippedStates(*this, brd, state);
+        if (count <= m_settings.trans_stones) 
+        {
+            wrote += SolverDBUtil::StoreTranspositions(*this, brd, 
+                                                       state, proof);
+            wrote += SolverDBUtil::StoreFlippedStates(*this, brd, 
+                                                      state, proof);
         }
-	
-        if (wrote) {
+        if (wrote)
             m_stats.puts++;
-        }
         return wrote;
     }
     return 0;
@@ -190,7 +165,8 @@ int SolverDB::put(const StoneBoard& brd, const SolvedState& state)
 
 int SolverDBUtil::StoreTranspositions(SolverDB& db, 
                                       const StoneBoard& brd, 
-                                      const SolvedState& state)
+                                      const SolvedState& state,
+                                      const bitset_t& proof)
 {
     int numstones = brd.NumStones();
     int numblack = (numstones+1) / 2;
@@ -204,7 +180,7 @@ int SolverDBUtil::StoreTranspositions(SolverDB& db,
     HexColor winner = (state.win) ? toplay : other;
 
     // Loser can use his stones as well as all those outside the proof
-    bitset_t outside = (~state.proof & brd.GetEmpty()) 
+    bitset_t outside = (~proof & brd.GetEmpty()) 
         | (brd.GetColor(loser) & brd.Const().GetCells());
 
     // Winner can use his stones
@@ -224,7 +200,7 @@ int SolverDBUtil::StoreTranspositions(SolverDB& db,
 #if 0
     LogInfo() << "[" << numstones << "]" 
 	      << " StoreTranspositions" << '\n'
-	      << brd.Write(state.proof & brd.getEmpty()) << '\n'
+	      << brd.Write(proof & brd.getEmpty()) << '\n'
 	      << "Winner: " << winner << '\n'
 	      << "Black positions: " << black.size() << '\n'
 	      << HexPointUtil::ToPointListString(black)<< '\n'
@@ -271,7 +247,8 @@ int SolverDBUtil::StoreTranspositions(SolverDB& db,
 
 int SolverDBUtil::StoreFlippedStates(SolverDB& db, 
                                      const StoneBoard& brd,
-                                     const SolvedState& state)
+                                     const SolvedState& state,
+                                     const bitset_t& proof)
 {
     // Start by computing the flipped board position.
     // This involves mirroring the stones and *flipping their colour*.
@@ -299,7 +276,7 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
 #endif
     
     // Find empty cells outside the flipped proof, if any
-    bitset_t flippedProof = BoardUtils::Mirror(brd.Const(), state.proof);
+    bitset_t flippedProof = BoardUtils::Mirror(brd.Const(), proof);
     bitset_t flippedOutside = (~flippedProof & flippedBrd.GetEmpty());
 #if PRINT_OUTPUT
     LogInfo() << "Flipped proof:"
@@ -341,8 +318,7 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
     ss.numstates = state.numstates;
     ss.nummoves = state.nummoves;
     ss.bestmove = BoardUtils::Mirror(brd.Const(), state.bestmove);
-    ss.proof = flippedProof;
-    ss.winners_stones = (flippedWinner == BLACK) ? flippedBlack : flippedWhite;
+    //ss.proof = flippedProof;
     
     int count = 0;
     if (canAddFlippedBlack) {
@@ -353,16 +329,14 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
 	    flippedBrd.PlayMove(BLACK, *i);
 	    HexAssert(!toPlay == flippedBrd.WhoseTurn());
 	    HexAssert(!ss.winners_stones.test(*i));
-	    if (flippedWinner == BLACK) {
-		ss.winners_stones.set(*i);
-		ss.proof.set(*i);
-	    }
+// 	    if (flippedWinner == BLACK) {
+// 		ss.proof.set(*i);
+// 	    }
 #if PRINT_OUTPUT
 	    LogInfo() << flippedBrd << '\n';
 #endif
 	    count += db.write(flippedBrd, ss);
-	    ss.proof = flippedProof;
-	    ss.winners_stones.reset(*i);
+	    //ss.proof = flippedProof;
 	    flippedBrd.UndoMove(*i);
 	}
     }

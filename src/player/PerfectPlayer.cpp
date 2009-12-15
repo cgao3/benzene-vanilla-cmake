@@ -17,7 +17,7 @@ PerfectPlayer::PerfectPlayer(Solver* solver)
       m_solver(solver),
       m_db(0)
 {
-    LogFine() << "--- PerfectPlayer" << '\n';
+    LogFine() << "--- PerfectPlayer\n";
 }
 
 PerfectPlayer::~PerfectPlayer()
@@ -43,43 +43,37 @@ HexPoint PerfectPlayer::Search(HexBoard& brd,
     HexPoint move_to_play = INVALID_POINT;
 
     // check db 
-    if (find_db_move(brd.GetState(), color, move_to_play, proof, score)) 
+    if (find_db_move(brd.GetState(), color, move_to_play, score)) 
         need_to_run_solver = false;
 
     // state not currently in db; solve it. 
-    if (need_to_run_solver) {
-       
-        solve_new_state(brd, color, move_to_play, proof, score);
-
-    }
+    if (need_to_run_solver)
+        solve_new_state(brd, color, move_to_play, score);
 
     LogInfo() << brd.Write(proof) << '\n';
-    if (HexEvalUtil::IsWin(score)) {
-        LogInfo() << "Win in " << HexEvalUtil::PlyToWin(score) << "." << '\n';
-    } else {
-        LogInfo() << "Loss in " << HexEvalUtil::PlyToLoss(score) << "." << '\n';
-    }
-
+    if (HexEvalUtil::IsWin(score))
+        LogInfo() << "Win in " << HexEvalUtil::PlyToWin(score) << ".\n";
+    else
+        LogInfo() << "Loss in " << HexEvalUtil::PlyToLoss(score) << ".\n";
     return move_to_play;
 }
 
 bool PerfectPlayer::find_db_move(StoneBoard& brd, HexColor color, 
-                                   HexPoint& move_to_play, bitset_t& proof, 
-                                   double& score) const
+                                   HexPoint& move_to_play, double& score) const
 {
     if (!m_db)
         return false;
 
     // bail if state doesn't exist in db
     SolvedState root_state;
-    if (!m_db->get(brd, root_state)) {
-        LogInfo() << "perfect: state not in db." << '\n';
+    if (!m_db->get(brd, root_state)) 
+    {
+        LogInfo() << "perfect: state not in db.\n";
         return false;
     }
     bool winning = root_state.win;
-    proof = root_state.proof;
 
-    LogInfo() << "perfect: state in db; finding best move..." << '\n';
+    LogInfo() << "perfect: state in db; finding best move...\n";
 
     // check all children to find the shortest win/longest loss
     HexPoint best_win  = INVALID_POINT;
@@ -130,10 +124,9 @@ bool PerfectPlayer::find_db_move(StoneBoard& brd, HexColor color,
 }
 
 void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color, 
-                                    HexPoint& move_to_play, bitset_t& proof, 
-                                    double& score) const
+                                    HexPoint& move_to_play, double& score) const
 {
-    LogInfo() << "perfect: state not in db; solving from scratch." << '\n';
+    LogInfo() << "perfect: state not in db; solving from scratch.\n";
         
     Solver::SolutionSet solution;
     HexEval result = Solver::UNKNOWN;
@@ -151,7 +144,7 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
     } 
     else 
     {
-        LogInfo() << "perfect: solving state without db..." << '\n';
+        LogInfo() << "perfect: solving state without db...\n";
         result = m_solver->Solve(brd, color, solution);
     }
     HexAssert(result != Solver::UNKNOWN);
@@ -161,15 +154,13 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
         moves_to_connection value in parent states. This is
         somewhat cosmetic. */
 
-    proof = solution.proof;
     HexAssert(!solution.pv.empty());
     move_to_play = solution.pv[0];
     
-    if (solution.result) {
+    if (solution.result)
         score = IMMEDIATE_WIN - solution.moves_to_connection;
-    } else {
+    else
         score = IMMEDIATE_LOSS + solution.moves_to_connection;
-    }
 }
 
 //----------------------------------------------------------------------------

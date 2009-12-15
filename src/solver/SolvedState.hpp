@@ -48,33 +48,12 @@ struct SolvedState
     HexPoint bestmove;
 
     //--------------------------------------------------------------------
-    
-    /** Carrier of the proof. 
-        @todo Take this out of here since the proof computed for a
-        state depends on the sequence of moves used to reach it.
-    */
-    bitset_t proof;
-    
-    /** Winner's stones inside proof. 
-        @todo Take this out.
-    */
-    bitset_t winners_stones;
 
-    /** Number of stones on board; could be used to determine TT
-        priority. */
-    int numstones;
-    
-    //--------------------------------------------------------------------
-
-    /** Contructs state with default values. Required by
-        TransTableStateConcept. */
+    /** Contructs state with default values. */
     SolvedState();
     
     /** Initializes state to given values. */
-    SolvedState(int d, bool w, int nstates, int nmoves, HexPoint bmove, 
-                const bitset_t& bp, const bitset_t& ws);
-
-    //--------------------------------------------------------------------
+    SolvedState(bool w, int nstates, int nmoves, HexPoint bmove);
 
     /** @name TransTableStateConcept */
     // @{
@@ -88,8 +67,6 @@ struct SolvedState
     bool ReplaceWith(const SolvedState& other) const;
     
     // @} 
-
-    //--------------------------------------------------------------------
 
     /** @name PackableConcept. */
     // @{
@@ -108,32 +85,23 @@ inline SolvedState::SolvedState()
       flags(0), 
       numstates(0), 
       nummoves(0), 
-      bestmove(INVALID_POINT), 
-      proof(), 
-      winners_stones(),
-      numstones(9999)
+      bestmove(INVALID_POINT)
 { 
 }
     
-inline SolvedState::SolvedState(int d, bool w, int nstates, 
-                                int nmoves, HexPoint bmove,
-                                const bitset_t& bp,
-                                const bitset_t& ws)
-    : win(w), 
-      flags(0), 
-      numstates(nstates), 
-      nummoves(nmoves), 
-      bestmove(bmove), 
-      proof(bp), 
-      winners_stones(ws),
-      numstones(d)
+inline SolvedState::SolvedState(bool w, int nstates, int nmoves, 
+                                HexPoint bmove)
+    : win(w),
+      flags(0),
+      numstates(nstates),
+      nummoves(nmoves),
+      bestmove(bmove)
 { 
-    HexAssert(BitsetUtil::IsSubsetOf(winners_stones, proof)); 
 }
 
 inline bool SolvedState::Initialized() const
 {
-    return (numstones != 9999);
+    return bestmove != INVALID_POINT;
 }
 
 inline bool SolvedState::ReplaceWith(const SolvedState& other) const
