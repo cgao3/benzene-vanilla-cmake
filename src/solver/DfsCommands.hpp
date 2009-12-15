@@ -10,7 +10,7 @@
 #include "HexBoard.hpp"
 #include "HexHtpEngine.hpp"
 #include "HexEnvironment.hpp"
-#include "Solver.hpp"
+#include "DfsSolver.hpp"
 #include "SolverDB.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -21,8 +21,8 @@ _BEGIN_BENZENE_NAMESPACE_
 class SolverCommands
 {
 public:
-    SolverCommands(Game& game, HexEnvironment& env, Solver& solver,
-                   boost::scoped_ptr<SolverTT>& solverTT, 
+    SolverCommands(Game& game, HexEnvironment& env, DfsSolver& solver,
+                   boost::scoped_ptr<DfsSolverTT>& solverTT, 
                    boost::scoped_ptr<SolverDB>& solverDB);
 
     void Register(GtpEngine& engine);
@@ -32,9 +32,9 @@ private:
 
     HexEnvironment& m_env;
 
-    Solver& m_solver;
+    DfsSolver& m_solver;
 
-    boost::scoped_ptr<SolverTT>& m_tt;
+    boost::scoped_ptr<DfsSolverTT>& m_tt;
     
     boost::scoped_ptr<SolverDB>& m_db;
         

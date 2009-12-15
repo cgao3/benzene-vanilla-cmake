@@ -6,7 +6,7 @@
 #ifndef PERFECTPLAYER_HPP
 #define PERFECTPLAYER_HPP
 
-#include "Solver.hpp"
+#include "DfsSolver.hpp"
 #include "HexBoard.hpp"
 #include "BenzenePlayer.hpp"
 
@@ -23,7 +23,7 @@ class PerfectPlayer : public BenzenePlayer
 {
 public:
 
-    explicit PerfectPlayer(Solver* solver);
+    explicit PerfectPlayer(DfsSolver* solver);
 
     virtual ~PerfectPlayer();
     
@@ -36,12 +36,12 @@ public:
     
 protected:
 
-    /** Generates a move in the given gamestate using Solver. */
+    /** Generates a move in the given gamestate using DfsSolver. */
     virtual HexPoint Search(HexBoard& brd, const Game& game_state,
 			    HexColor color, const bitset_t& consider,
                             double max_time, double& score);
 
-    Solver* m_solver;
+    DfsSolver* m_solver;
 
     SolverDB* m_db;
 

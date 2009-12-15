@@ -1,10 +1,10 @@
 //----------------------------------------------------------------------------
-/** @file SolvedState.hpp
+/** @file DfsData.hpp
  */
 //----------------------------------------------------------------------------
 
-#ifndef SOLVEDSTATE_H
-#define SOLVEDSTATE_H
+#ifndef DFSDATA_H
+#define DFSDATA_H
 
 #include "Hex.hpp"
 
@@ -15,7 +15,7 @@ _BEGIN_BENZENE_NAMESPACE_
 /** A solved state. Stored in a TT or DB. Matches
     TransTableStateConcept.
 */
-struct SolvedState
+struct DfsData
 {
     /** Marks the proof as that of a transposition of some other
         state. */
@@ -50,10 +50,10 @@ struct SolvedState
     //--------------------------------------------------------------------
 
     /** Contructs state with default values. */
-    SolvedState();
+    DfsData();
     
     /** Initializes state to given values. */
-    SolvedState(bool w, int nstates, int nmoves, HexPoint bmove);
+    DfsData(bool w, int nstates, int nmoves, HexPoint bmove);
 
     /** @name TransTableStateConcept */
     // @{
@@ -64,7 +64,7 @@ struct SolvedState
 
     /** If true, then this will give up its TT slot to other.
         @note ALWAYS RETURNS TRUE FOR NOW!  */
-    bool ReplaceWith(const SolvedState& other) const;
+    bool ReplaceWith(const DfsData& other) const;
     
     // @} 
 
@@ -80,7 +80,7 @@ struct SolvedState
     // @}
 };
 
-inline SolvedState::SolvedState()
+inline DfsData::DfsData()
     : win(false), 
       flags(0), 
       numstates(0), 
@@ -89,7 +89,7 @@ inline SolvedState::SolvedState()
 { 
 }
     
-inline SolvedState::SolvedState(bool w, int nstates, int nmoves, 
+inline DfsData::DfsData(bool w, int nstates, int nmoves, 
                                 HexPoint bmove)
     : win(w),
       flags(0),
@@ -99,12 +99,12 @@ inline SolvedState::SolvedState(bool w, int nstates, int nmoves,
 { 
 }
 
-inline bool SolvedState::Initialized() const
+inline bool DfsData::Initialized() const
 {
     return bestmove != INVALID_POINT;
 }
 
-inline bool SolvedState::ReplaceWith(const SolvedState& other) const
+inline bool DfsData::ReplaceWith(const DfsData& other) const
 {
     UNUSED(other);
     return true;
@@ -114,4 +114,4 @@ inline bool SolvedState::ReplaceWith(const SolvedState& other) const
 
 _END_BENZENE_NAMESPACE_
 
-#endif // SOLVEDSTATE_H
+#endif // DFSDATA_H

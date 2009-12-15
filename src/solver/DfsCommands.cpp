@@ -7,15 +7,15 @@
 #include "SgTimer.h"
 #include "BitsetIterator.hpp"
 #include "PlayerUtils.hpp"
-#include "SolverCommands.hpp"
+#include "DfsCommands.hpp"
 
 using namespace benzene;
 
 //----------------------------------------------------------------------------
 
 SolverCommands::SolverCommands(Game& game, HexEnvironment& env,
-                               Solver& solver,
-                               boost::scoped_ptr<SolverTT>& solverTT, 
+                               DfsSolver& solver,
+                               boost::scoped_ptr<DfsSolverTT>& solverTT, 
                                boost::scoped_ptr<SolverDB>& solverDB)
     : m_game(game), 
       m_env(env),
@@ -88,7 +88,7 @@ void SolverCommands::CmdParamSolver(HtpCommand& cmd)
 	    if (bits == 0)
 		m_tt.reset(0);
 	    else
-		m_tt.reset(new SolverTT(bits));
+		m_tt.reset(new DfsSolverTT(bits));
 	    m_solver.SetTT(m_tt.get());
 	}
         else if (name == "update_depth")
@@ -129,8 +129,8 @@ void SolverCommands::CmdSolveState(HtpCommand& cmd)
 
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
 
-    Solver::SolutionSet solution;
-    Solver::Result result = (use_db) ?
+    DfsSolver::SolutionSet solution;
+    DfsSolver::Result result = (use_db) ?
         m_solver.Solve(brd, color, filename, maxstones, transtones, solution,
                       depthlimit, timelimit) :
         m_solver.Solve(brd, color, solution, depthlimit, timelimit);
@@ -138,8 +138,8 @@ void SolverCommands::CmdSolveState(HtpCommand& cmd)
     m_solver.DumpStats(solution);
 
     HexColor winner = EMPTY;
-    if (result != Solver::UNKNOWN) {
-        winner = (result==Solver::WIN) ? color : !color;
+    if (result != DfsSolver::UNKNOWN) {
+        winner = (result==DfsSolver::WIN) ? color : !color;
         LogInfo() << winner << " wins!" << '\n'
 		  << brd.Write(solution.proof) << '\n';
     } else {
@@ -209,26 +209,26 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
 
         HexColor winner = EMPTY;
-        Solver::SolutionSet solution;
-        Solver::Result result = (use_db) 
+        DfsSolver::SolutionSet solution;
+        DfsSolver::Result result = (use_db) 
             ? m_solver.Solve(brd, other, filename, 
                               maxstones, transtones, solution)
             : m_solver.Solve(brd, other, solution);
         m_solver.DumpStats(solution);
         LogInfo() << "Proof:" << brd.Write(solution.proof) << '\n';
 
-        if (result != Solver::UNKNOWN) {
-            winner = (result==Solver::WIN) ? !color : color;
+        if (result != DfsSolver::UNKNOWN) 
+        {
+            winner = (result == DfsSolver::WIN) ? !color : color;
             LogInfo() << "****** " << winner << " wins ******\n";
-        } else {
+        } 
+        else 
             LogInfo() << "****** unknown ******\n";
-        }
 
-        if (winner == color) {
+        if (winner == color)
             winning.set(*p);
-        } else {
+        else
 	    consider &= solution.proof;
-	}
     }
     LogInfo() << "****** Winning Moves ******\n"
               << m_game.Board().Write(winning) << '\n';
@@ -288,7 +288,7 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
 
     StoneBoard brd(m_game.Board());
     HexColor toplay = brd.WhoseTurn();
-    SolvedState state;
+    DfsData state;
 
     if (!m_db->get(brd, state)) 
     {
@@ -324,9 +324,9 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     {
         cmd << " " << winning[i];
         cmd << " " << nummoves[winning[i]];
-        if (flags[winning[i]] & SolvedState::FLAG_MIRROR_TRANSPOSITION)
+        if (flags[winning[i]] & DfsData::FLAG_MIRROR_TRANSPOSITION)
             cmd << "m";
-        else if (flags[winning[i]] & SolvedState::FLAG_TRANSPOSITION)
+        else if (flags[winning[i]] & DfsData::FLAG_TRANSPOSITION)
             cmd << "t";
     }
 
@@ -335,9 +335,9 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     {
         cmd << " " << losing[i];
         cmd << " " << nummoves[losing[i]];
-        if (flags[losing[i]] & SolvedState::FLAG_MIRROR_TRANSPOSITION)
+        if (flags[losing[i]] & DfsData::FLAG_MIRROR_TRANSPOSITION)
             cmd << "m";
-        else if (flags[losing[i]] & SolvedState::FLAG_TRANSPOSITION)
+        else if (flags[losing[i]] & DfsData::FLAG_TRANSPOSITION)
             cmd << "t";
     }
 }

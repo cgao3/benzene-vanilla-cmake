@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file Solver.cpp
+/** @file DfsSolver.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@
 #include "HexBoard.hpp"
 #include "GraphUtils.hpp"
 #include "Resistance.hpp"
-#include "Solver.hpp"
+#include "DfsSolver.hpp"
 #include "Time.hpp"
 #include "VCUtils.hpp"
 #include "BoardUtils.hpp"
@@ -42,7 +42,7 @@ unsigned g_last_histogram_dump;
 
 //----------------------------------------------------------------------------
 
-Solver::Solver()
+DfsSolver::DfsSolver()
     : m_tt(0),
       m_db(0),
       m_use_decompositions(true),
@@ -55,16 +55,16 @@ Solver::Solver()
                       | ORDER_WITH_RESIST 
                       | ORDER_FROM_CENTER)
 {
-    LogFine() << "--- Solver" << '\n';
+    LogFine() << "--- DfsSolver" << '\n';
 }
 
-Solver::~Solver()
+DfsSolver::~DfsSolver()
 {
 }
 
 //----------------------------------------------------------------------------
 
-void Solver::Initialize(const HexBoard& brd)
+void DfsSolver::Initialize(const HexBoard& brd)
 {
     g_last_histogram_dump = 0;
 
@@ -77,14 +77,14 @@ void Solver::Initialize(const HexBoard& brd)
     m_stoneboard.reset(new StoneBoard(brd.GetState()));
 }
 
-void Solver::Cleanup()
+void DfsSolver::Cleanup()
 {
     m_stoneboard.reset();
     if (m_db && m_delete_db_when_done) 
         delete m_db;
 }
 
-Solver::Result Solver::Solve(HexBoard& brd, HexColor tomove, 
+DfsSolver::Result DfsSolver::Solve(HexBoard& brd, HexColor tomove, 
                              SolutionSet& solution,
                              int depth_limit, 
                              double time_limit)
@@ -100,7 +100,7 @@ Solver::Result Solver::Solve(HexBoard& brd, HexColor tomove,
     return run_solver(brd, tomove, solution);
 }
 
-Solver::Result Solver::Solve(HexBoard& brd, HexColor tomove, 
+DfsSolver::Result DfsSolver::Solve(HexBoard& brd, HexColor tomove, 
                              SolverDB& db, 
                              SolutionSet& solution,
                              int depth_limit, 
@@ -119,7 +119,7 @@ Solver::Result Solver::Solve(HexBoard& brd, HexColor tomove,
 
 }
 
-Solver::Result Solver::Solve(HexBoard& brd, HexColor tomove, 
+DfsSolver::Result DfsSolver::Solve(HexBoard& brd, HexColor tomove, 
                              const std::string& filename, 
                              int numstones, int transtones, 
                              SolutionSet& solution,
@@ -147,20 +147,20 @@ Solver::Result Solver::Solve(HexBoard& brd, HexColor tomove,
     return run_solver(brd, tomove, solution);
 }
 
-Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
+DfsSolver::Result DfsSolver::run_solver(HexBoard& brd, HexColor tomove,
                                   SolutionSet& solution)
 {
-    // Solver currently cannot handle permanently inferior cells.
+    // DfsSolver currently cannot handle permanently inferior cells.
     if (brd.ICE().FindPermanentlyInferior())
-        throw HexException("Permanently Inferior not supported in Solver!\n");
+        throw HexException("Permanently Inferior not supported in DfsSolver!\n");
 
     // Check if move already exists in db/tt before doing anything
     {
-        SolvedState state;
+        DfsData state;
         if (CheckTransposition(state))
         {
-            LogInfo() << "Solver: Found cached result!" << '\n';
-            Result result = state.win ? Solver::WIN : Solver::LOSS;
+            LogInfo() << "DfsSolver: Found cached result!" << '\n';
+            Result result = state.win ? DfsSolver::WIN : DfsSolver::LOSS;
             solution.result = result;
             solution.moves_to_connection = state.nummoves;
             solution.pv.clear();
@@ -187,21 +187,21 @@ Solver::Result Solver::run_solver(HexBoard& brd, HexColor tomove,
 
     Cleanup();
 
-    if (m_aborted) return Solver::UNKNOWN;
+    if (m_aborted) return DfsSolver::UNKNOWN;
 
-    return (win) ? Solver::WIN : Solver::LOSS;
+    return (win) ? DfsSolver::WIN : DfsSolver::LOSS;
 }
 
 //----------------------------------------------------------------------------
 
 bitset_t 
-Solver::DefaultProofForWinner(const HexBoard& brd, HexColor winner) const
+DfsSolver::DefaultProofForWinner(const HexBoard& brd, HexColor winner) const
 {
     return (brd.GetState().GetColor(winner) | brd.GetState().GetEmpty()) 
         - brd.GetDead();
 }
 
-bool Solver::CheckDB(SolvedState& state) const
+bool DfsSolver::CheckDB(DfsData& state) const
 {
     if (m_settings.use_db && m_db->get(*m_stoneboard, state)) 
     {
@@ -215,7 +215,7 @@ bool Solver::CheckDB(SolvedState& state) const
     return false;
 }
 
-bool Solver::CheckTT(SolvedState& state) const
+bool DfsSolver::CheckTT(DfsData& state) const
 {
     if (m_tt && m_tt->Get(m_stoneboard->Hash(), state)) 
     {
@@ -232,7 +232,7 @@ bool Solver::CheckTT(SolvedState& state) const
     return false;
 }
 
-bool Solver::CheckTransposition(SolvedState& state) const
+bool DfsSolver::CheckTransposition(DfsData& state) const
 {
     if (m_settings.use_db && m_stoneboard->NumStones() <= m_db->maxstones())
         return CheckDB(state);
@@ -240,7 +240,7 @@ bool Solver::CheckTransposition(SolvedState& state) const
     return CheckTT(state);    
 }
 
-void Solver::StoreInDB(const SolvedState& state, const bitset_t& proof)
+void DfsSolver::StoreInDB(const DfsData& state, const bitset_t& proof)
 {
     if (!m_settings.use_db)
         return;
@@ -261,7 +261,7 @@ void Solver::StoreInDB(const SolvedState& state, const bitset_t& proof)
     }
 }
 
-void Solver::StoreInTT(hash_t hash, const SolvedState& state)
+void DfsSolver::StoreInTT(hash_t hash, const DfsData& state)
 {
     if (m_tt) 
     {
@@ -271,7 +271,7 @@ void Solver::StoreInTT(hash_t hash, const SolvedState& state)
     }
 }
 
-void Solver::StoreState(hash_t hash, const SolvedState& state,
+void DfsSolver::StoreState(hash_t hash, const DfsData& state,
                         const bitset_t& proof)
 {
     if (m_settings.use_db && m_stoneboard->NumStones() <= m_db->maxstones()) {
@@ -283,30 +283,30 @@ void Solver::StoreState(hash_t hash, const SolvedState& state,
 
 //----------------------------------------------------------------------------
 
-bool Solver::CheckAbort()
+bool DfsSolver::CheckAbort()
 {
     if (!m_aborted)
     {
         if (SgUserAbort()) 
         {
             m_aborted = true;
-            LogInfo() << "Solver::CheckAbort(): Abort flag!\n";
+            LogInfo() << "DfsSolver::CheckAbort(): Abort flag!\n";
         }
         else if ((m_settings.time_limit > 0) && 
                  ((Time::Get() - m_start_time) > m_settings.time_limit))
         {
             m_aborted = true;
-            LogInfo() << "Solver::CheckAbort(): Timelimit!\n";
+            LogInfo() << "DfsSolver::CheckAbort(): Timelimit!\n";
         }
     }
     return m_aborted;
 }
 
-bool Solver::HandleTerminalNode(const HexBoard& brd, HexColor color,
-                                SolvedState& state, bitset_t& proof) const
+bool DfsSolver::HandleTerminalNode(const HexBoard& brd, HexColor color,
+                                DfsData& state, bitset_t& proof) const
 {
     int numstones = m_stoneboard->NumStones();
-    if (SolverUtil::isWinningState(brd, color, proof)) 
+    if (DfsSolverUtil::isWinningState(brd, color, proof)) 
     {
         state.win = true;
         state.nummoves = 0;
@@ -314,7 +314,7 @@ bool Solver::HandleTerminalNode(const HexBoard& brd, HexColor color,
         m_histogram.terminal[numstones]++;
         return true;
     } 
-    else if (SolverUtil::isLosingState(brd, color, proof)) 
+    else if (DfsSolverUtil::isLosingState(brd, color, proof)) 
     {
         state.win = false;
         state.nummoves = 0;
@@ -325,8 +325,8 @@ bool Solver::HandleTerminalNode(const HexBoard& brd, HexColor color,
     return false;
 }
 
-bool Solver::HandleLeafNode(const HexBoard& brd, HexColor color, 
-                            SolvedState& state, bool root_node,
+bool DfsSolver::HandleLeafNode(const HexBoard& brd, HexColor color, 
+                            DfsData& state, bool root_node,
                             bitset_t& proof) const
 {
     if (HandleTerminalNode(brd, color, state, proof))
@@ -344,7 +344,7 @@ bool Solver::HandleLeafNode(const HexBoard& brd, HexColor color,
 
 //----------------------------------------------------------------------------
 
-bool Solver::solve_state(HexBoard& brd, HexColor color, 
+bool DfsSolver::solve_state(HexBoard& brd, HexColor color, 
                          PointSequence& variation,
                          SolutionSet& solution)
 {
@@ -353,7 +353,7 @@ bool Solver::solve_state(HexBoard& brd, HexColor color,
 
     // Check for VC/DB/TT states
     {
-        SolvedState state;
+        DfsData state;
         bitset_t proof;
         if (HandleLeafNode(brd, color, state, variation.empty(), proof)) 
         {
@@ -397,7 +397,7 @@ bool Solver::solve_state(HexBoard& brd, HexColor color,
     return winning_state;
 }
 
-bool Solver::solve_decomposition(HexBoard& brd, HexColor color, 
+bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color, 
                                  PointSequence& variation,
                                  SolutionSet& solution,
                                  HexPoint group)
@@ -425,7 +425,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
     }
         
     // solve each side
-    SolvedState state;
+    DfsData state;
     SolutionSet dsolution[2];
     for (int s=0; s<2; ++s) 
     {
@@ -502,7 +502,7 @@ bool Solver::solve_decomposition(HexBoard& brd, HexColor color,
 //--------------------------------------------------------------------------
 // Internal state
 //--------------------------------------------------------------------------
-bool Solver::solve_interior_state(HexBoard& brd, HexColor color, 
+bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color, 
                                   PointSequence& variation,
                                   SolutionSet& solution)
 {
@@ -511,7 +511,7 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
     int numstones = m_stoneboard->NumStones();
 
     // Print some output for debugging/tracing purposes
-    LogFine() << SolverUtil::PrintVariation(variation) << '\n' << brd << '\n';
+    LogFine() << DfsSolverUtil::PrintVariation(variation) << '\n' << brd << '\n';
 
     //
     // Set initial proof for this state to be the union of all
@@ -523,10 +523,10 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
     // if we win instead, we use the proof generated from that state,
     // not this one. 
     //
-    solution.proof = SolverUtil::InitialProof(brd, color);
+    solution.proof = DfsSolverUtil::InitialProof(brd, color);
 
     // Get the moves to consider
-    bitset_t mustplay = SolverUtil::MovesToConsider(brd, color, solution.proof);
+    bitset_t mustplay = DfsSolverUtil::MovesToConsider(brd, color, solution.proof);
     LogFine() << "mustplay: [" 
               << HexPointUtil::ToString(mustplay) 
               << " ]" << '\n';
@@ -735,7 +735,7 @@ bool Solver::solve_interior_state(HexBoard& brd, HexColor color,
     return winning_state;
 }
 
-void Solver::handle_proof(const HexBoard& brd, HexColor color, 
+void DfsSolver::handle_proof(const HexBoard& brd, HexColor color, 
                           const PointSequence& variation,
                           bool winning_state, 
                           SolutionSet& solution)
@@ -753,7 +753,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
 		     << "Losing stones hit proof:" << '\n'
 		     << brd.Write(solution.proof) << '\n'
 		     << brd << '\n'
-		     << SolverUtil::PrintVariation(variation) << '\n';
+		     << DfsSolverUtil::PrintVariation(variation) << '\n';
         HexAssert(false);
     }
 
@@ -764,14 +764,14 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
 		     << "Dead cells hit proof:" << '\n'
 		     << brd.Write(solution.proof) << '\n'
 		     << brd << '\n'
-		     << SolverUtil::PrintVariation(variation) << '\n';
+		     << DfsSolverUtil::PrintVariation(variation) << '\n';
         HexAssert(false);
     }
 
     // Shrink proof.
     bitset_t old_proof = solution.proof;
     if (m_shrink_proofs) {
-        SolverUtil::ShrinkProof(solution.proof, *m_stoneboard, 
+        DfsSolverUtil::ShrinkProof(solution.proof, *m_stoneboard, 
                                 loser, brd.ICE());
         
         bitset_t pruned;
@@ -802,7 +802,7 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
 		     << brd.Write(old_proof) << '\n'
 		     << brd << '\n'
 		     << color << " to play." << '\n'
-		     << SolverUtil::PrintVariation(variation) << '\n';
+		     << DfsSolverUtil::PrintVariation(variation) << '\n';
         abort();
     }
 #endif    
@@ -820,21 +820,21 @@ void Solver::handle_proof(const HexBoard& brd, HexColor color,
         solution.pv.push_back(INVALID_POINT);
 
     StoreState(brd.GetState().Hash(), 
-               SolvedState(winning_state, solution.stats.total_states, 
+               DfsData(winning_state, solution.stats.total_states, 
                            solution.moves_to_connection, solution.pv[0]), 
                solution.proof);
 }
 
 //----------------------------------------------------------------------------
 
-void Solver::PlayMove(HexBoard& brd, HexPoint cell, HexColor color) 
+void DfsSolver::PlayMove(HexBoard& brd, HexPoint cell, HexColor color) 
 {
     m_statistics.played++;
     m_stoneboard->PlayMove(color, cell);
     brd.PlayMove(color, cell);
 }
 
-void Solver::UndoMove(HexBoard& brd, HexPoint cell)
+void DfsSolver::UndoMove(HexBoard& brd, HexPoint cell)
 {
     m_stoneboard->UndoMove(cell);
     brd.UndoMove();
@@ -842,7 +842,7 @@ void Solver::UndoMove(HexBoard& brd, HexPoint cell)
 
 //----------------------------------------------------------------------------
 
-bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay, 
+bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay, 
                         SolutionSet& solution,
                         std::vector<HexMoveValue>& moves)
 {        
@@ -866,7 +866,7 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 	brd.GetState().PlayMove(color, *it);
 	m_stoneboard->PlayMove(color, *it);
 
-	SolvedState state;
+	DfsData state;
 	if (CheckTransposition(state))
 	{
 	    solution.stats.explored_states += 1;
@@ -963,7 +963,7 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 	    {
                 PlayMove(brd, *it, color);
 
-                SolvedState state;
+                DfsData state;
                 bitset_t proof;
 		// no need to check DB/TT since did this above
 		if (HandleTerminalNode(brd, other, state, proof))
@@ -1023,7 +1023,7 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
                 if (with_center)
 		{
                     fromcenter 
-                        += SolverUtil::DistanceFromCenter(brd.Const(), *it);
+                        += DfsSolverUtil::DistanceFromCenter(brd.Const(), *it);
                 }
                 if (with_resist)
 		{
@@ -1061,9 +1061,9 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
     {
         if (m_backup_ice_info)
 	{
-            bitset_t new_initial_proof = SolverUtil::InitialProof(brd, color);
+            bitset_t new_initial_proof = DfsSolverUtil::InitialProof(brd, color);
             bitset_t new_mustplay = 
-                SolverUtil::MovesToConsider(brd, color, new_initial_proof);
+                DfsSolverUtil::MovesToConsider(brd, color, new_initial_proof);
             HexAssert(BitsetUtil::IsSubsetOf(new_mustplay, mustplay));
             
             if (new_mustplay.count() < mustplay.count())
@@ -1098,7 +1098,7 @@ bool Solver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 
 // Stats output
 
-std::string Solver::Histogram::Dump()
+std::string DfsSolver::Histogram::Dump()
 {
     std::ostringstream os;
     os << std::endl;
@@ -1173,7 +1173,7 @@ std::string Solver::Histogram::Dump()
     return os.str();
 }
 
-void Solver::DumpStats(const SolutionSet& solution) const
+void DfsSolver::DumpStats(const SolutionSet& solution) const
 {
     double total_time = m_end_time - m_start_time;
 
@@ -1229,7 +1229,7 @@ void Solver::DumpStats(const SolutionSet& solution) const
 
 // Debugging utilities
 
-std::string SolverUtil::PrintVariation(const PointSequence& variation)
+std::string DfsSolverUtil::PrintVariation(const PointSequence& variation)
 {
     std::ostringstream os;
     os << "Variation: ";
@@ -1241,7 +1241,7 @@ std::string SolverUtil::PrintVariation(const PointSequence& variation)
  
 // Move ordering utilities
 
-int SolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
+int DfsSolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
 {
     // Odd boards are easy
     if ((brd.Width() & 1) && (brd.Height() & 1))
@@ -1256,7 +1256,7 @@ int SolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
 
 // Misc. other utilities for playing moves, checking for lost states, etc. 
 
-bool SolverUtil::isWinningState(const HexBoard& brd, HexColor color, 
+bool DfsSolverUtil::isWinningState(const HexBoard& brd, HexColor color, 
                                 bitset_t& proof)
 {
     if (brd.GetGroups().IsGameOver()) 
@@ -1287,7 +1287,7 @@ bool SolverUtil::isWinningState(const HexBoard& brd, HexColor color,
     return false;
 }
 
-bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color, 
+bool DfsSolverUtil::isLosingState(const HexBoard& brd, HexColor color, 
                                bitset_t& proof)
 {
     HexColor other = !color;
@@ -1319,7 +1319,7 @@ bool SolverUtil::isLosingState(const HexBoard& brd, HexColor color,
 
 // Moves to consider calculation
 
-bitset_t SolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
+bitset_t DfsSolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
                                      bitset_t& proof)
 {
     bitset_t ret = VCUtils::GetMustplay(brd, color);
@@ -1369,7 +1369,7 @@ bitset_t SolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
 
 // Utilities on proofs
 
-bitset_t SolverUtil::MustplayCarrier(const HexBoard& brd, HexColor color)
+bitset_t DfsSolverUtil::MustplayCarrier(const HexBoard& brd, HexColor color)
 {
     HexPoint edge1 = HexPointUtil::colorEdge1(!color);
     HexPoint edge2 = HexPointUtil::colorEdge2(!color);
@@ -1379,7 +1379,7 @@ bitset_t SolverUtil::MustplayCarrier(const HexBoard& brd, HexColor color)
         : lst.getUnion();
 }
 
-bitset_t SolverUtil::InitialProof(const HexBoard& brd, HexColor color)
+bitset_t DfsSolverUtil::InitialProof(const HexBoard& brd, HexColor color)
 {
     LogFine() << "mustplay-carrier:" << '\n'
 	      << brd.Write(MustplayCarrier(brd, color)) << '\n';
@@ -1401,9 +1401,9 @@ bitset_t SolverUtil::InitialProof(const HexBoard& brd, HexColor color)
     return proof;
 }
 
-void SolverUtil::ShrinkProof(bitset_t& proof, 
-                             const StoneBoard& board, HexColor loser, 
-                             const ICEngine& ice)
+void DfsSolverUtil::ShrinkProof(bitset_t& proof, 
+                                const StoneBoard& board, HexColor loser, 
+                                const ICEngine& ice)
 {
     StoneBoard brd(board.Width(), board.Height());
     PatternState pastate(brd);

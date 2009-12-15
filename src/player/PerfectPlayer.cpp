@@ -12,7 +12,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-PerfectPlayer::PerfectPlayer(Solver* solver)
+PerfectPlayer::PerfectPlayer(DfsSolver* solver)
     : BenzenePlayer(),
       m_solver(solver),
       m_db(0)
@@ -65,7 +65,7 @@ bool PerfectPlayer::find_db_move(StoneBoard& brd, HexColor color,
         return false;
 
     // bail if state doesn't exist in db
-    SolvedState root_state;
+    DfsData root_state;
     if (!m_db->get(brd, root_state)) 
     {
         LogInfo() << "perfect: state not in db.\n";
@@ -85,7 +85,7 @@ bool PerfectPlayer::find_db_move(StoneBoard& brd, HexColor color,
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) {
         brd.PlayMove(color, *p);
         
-        SolvedState state;
+        DfsData state;
         if (m_db->get(brd, state)) {
             found_child = true;
             if (state.win) {
@@ -128,8 +128,8 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
 {
     LogInfo() << "perfect: state not in db; solving from scratch.\n";
         
-    Solver::SolutionSet solution;
-    HexEval result = Solver::UNKNOWN;
+    DfsSolver::SolutionSet solution;
+    HexEval result = DfsSolver::UNKNOWN;
 
     /** @todo Make this an option? */
     m_solver->GetTT()->Clear();
@@ -138,7 +138,7 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
     if (m_db) 
     {
         int flags = m_solver->GetFlags();
-        m_solver->SetFlags(flags | Solver::SOLVE_ROOT_AGAIN);
+        m_solver->SetFlags(flags | DfsSolver::SOLVE_ROOT_AGAIN);
         result = m_solver->Solve(brd, color, *m_db, solution);
         m_solver->SetFlags(flags);
     } 
@@ -147,7 +147,7 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
         LogInfo() << "perfect: solving state without db...\n";
         result = m_solver->Solve(brd, color, solution);
     }
-    HexAssert(result != Solver::UNKNOWN);
+    HexAssert(result != DfsSolver::UNKNOWN);
         
     /** @todo Propagate these values up the tree. This is
         necessary because finding an alternate win can change the

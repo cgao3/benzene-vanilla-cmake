@@ -75,7 +75,7 @@ SolverDB::~SolverDB()
 
 //----------------------------------------------------------------------------
 
-bool SolverDB::get(const StoneBoard& brd, SolvedState& state)
+bool SolverDB::get(const StoneBoard& brd, DfsData& state)
 {
     int count = brd.NumStones();
     if (0 < count && count <= m_settings.maxstones) {
@@ -117,12 +117,12 @@ bool SolverDB::check(const StoneBoard& brd)
     return false;
 }
 
-int SolverDB::write(const StoneBoard& brd, const SolvedState& state)
+int SolverDB::write(const StoneBoard& brd, const DfsData& state)
 {
     int count = brd.NumStones();
     if (0 < count && count <= m_settings.maxstones) 
     {
-        SolvedState old_state;
+        DfsData old_state;
         bool old_exists = get(brd, old_state);
 
         if (old_exists && old_state.win != state.win) 
@@ -140,7 +140,7 @@ int SolverDB::write(const StoneBoard& brd, const SolvedState& state)
     return 0;
 }
 
-int SolverDB::put(const StoneBoard& brd, const SolvedState& state, 
+int SolverDB::put(const StoneBoard& brd, const DfsData& state, 
                   const bitset_t& proof)
 {
     int count = brd.NumStones();
@@ -165,7 +165,7 @@ int SolverDB::put(const StoneBoard& brd, const SolvedState& state,
 
 int SolverDBUtil::StoreTranspositions(SolverDB& db, 
                                       const StoneBoard& brd, 
-                                      const SolvedState& state,
+                                      const DfsData& state,
                                       const bitset_t& proof)
 {
     int numstones = brd.NumStones();
@@ -229,9 +229,9 @@ int SolverDBUtil::StoreTranspositions(SolverDB& db,
 
             // mark state as transposition if the current one is not
             // the original.
-            SolvedState ss(state);
+            DfsData ss(state);
             if (board.Hash() != brd.Hash())
-                ss.flags |= SolvedState::FLAG_TRANSPOSITION;
+                ss.flags |= DfsData::FLAG_TRANSPOSITION;
             
             // do the write; this handles replacing only larger
             // proofs, etc.
@@ -247,7 +247,7 @@ int SolverDBUtil::StoreTranspositions(SolverDB& db,
 
 int SolverDBUtil::StoreFlippedStates(SolverDB& db, 
                                      const StoneBoard& brd,
-                                     const SolvedState& state,
+                                     const DfsData& state,
                                      const bitset_t& proof)
 {
     // Start by computing the flipped board position.
@@ -310,11 +310,11 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
     
     // Now we can create and store the desired flipped states.
     // Note that numstates and nummoves are approximations.
-    SolvedState ss;
+    DfsData ss;
     ss.win = state.win;
     ss.flags = state.flags 
-        | SolvedState::FLAG_TRANSPOSITION 
-        | SolvedState::FLAG_MIRROR_TRANSPOSITION;
+        | DfsData::FLAG_TRANSPOSITION 
+        | DfsData::FLAG_MIRROR_TRANSPOSITION;
     ss.numstates = state.numstates;
     ss.nummoves = state.nummoves;
     ss.bestmove = BoardUtils::Mirror(brd.Const(), state.bestmove);
