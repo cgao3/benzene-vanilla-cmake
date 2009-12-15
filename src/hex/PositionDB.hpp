@@ -41,8 +41,8 @@ struct RotatableConcept
 {
     void constraints() 
     {
-        const T t;
         const ConstBoard& brd = ConstBoard::Get(1, 1);
+        T t;
         t.Rotate(brd);
     }
 };
