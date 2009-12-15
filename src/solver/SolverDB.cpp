@@ -328,10 +328,10 @@ int SolverDBUtil::StoreFlippedStates(SolverDB& db,
 	for (BitsetIterator i(flippedBlackToAdd); i; ++i) {
 	    flippedBrd.PlayMove(BLACK, *i);
 	    HexAssert(!toPlay == flippedBrd.WhoseTurn());
-	    HexAssert(!ss.winners_stones.test(*i));
-// 	    if (flippedWinner == BLACK) {
-// 		ss.proof.set(*i);
-// 	    }
+//             HexAssert(!ss.winners_stones.test(*i));
+//             if (flippedWinner == BLACK) {
+//                 ss.proof.set(*i);
+//             }
 #if PRINT_OUTPUT
 	    LogInfo() << flippedBrd << '\n';
 #endif
