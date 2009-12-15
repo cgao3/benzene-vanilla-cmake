@@ -327,7 +327,11 @@ void DfpnSolver::PrintStatistics()
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime()<<'\n';
     LogInfo() << "       VCs/sec: " << m_numVCbuilds / m_timer.GetTime()<<'\n';
+#if USE_DB
+    LogInfo() << m_db->GetStatistics().Write() << '\n';
+#else
     LogInfo() << m_hashTable->Stats() << '\n';
+#endif
 }
 
 HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
