@@ -13,7 +13,7 @@
 #include "Hex.hpp"
 #include "HexBoard.hpp"
 #include "TransTable.hpp"
-#include "HashDB.hpp"
+#include "PositionDB.hpp"
 
 #include <limits>
 #include <boost/scoped_ptr.hpp>
@@ -191,7 +191,7 @@ public:
     
     bool ReplaceWith(const DfpnData& data) const;
 
-    /** @name PackableConcept */
+    /** @name PositionDBStateConcept */
     // @{
 
     int PackedSize() const;
@@ -199,6 +199,8 @@ public:
     byte* Pack() const;
 
     void Unpack(const byte* data);
+
+    void Rotate(const ConstBoard& brd);
 
     // @}
 
@@ -347,6 +349,11 @@ public:
 
 //----------------------------------------------------------------------------
 
+/** Database of solved positions. */
+typedef PositionDB<DfpnData> DfpnDB;
+
+//----------------------------------------------------------------------------
+
 /** Hex solver using DFPN search. 
     @ingroup dfpn
 */
@@ -472,6 +479,8 @@ private:
 
     size_t m_numProbeChecks;
 
+    DfpnDB* m_db;
+    
     size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
@@ -487,9 +496,9 @@ private:
     void LookupData(DfpnData& data, const DfpnChildren& children, 
                     int childIndex, size_t delta);
 
-    bool TTRead(hash_t hash, DfpnData& data);
+    bool TTRead(const StoneBoard& brd, DfpnData& data);
 
-    void TTWrite(hash_t hash, const DfpnData& data);
+    void TTWrite(const StoneBoard& brd, const DfpnData& data);
 
     void GetVariation(const StoneBoard& state, 
                       std::vector<HexPoint>& pv);

@@ -127,7 +127,8 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** Methods for PackableConcept (so it can be used in a HashDB) */
+    /** @name Methods for PositionDBStateConcept (so it can be stored
+        in a PositionDB) */
     // @{
 
     int PackedSize() const;
@@ -135,6 +136,8 @@ public:
     byte* Pack() const;
 
     void Unpack(const byte* t);
+
+    void Rotate(const ConstBoard& brd);
 
     // @}
 
@@ -181,6 +184,12 @@ inline byte* BookNode::Pack() const
 inline void BookNode::Unpack(const byte* t)
 {
     *this = *(const BookNode*)t;
+}
+
+inline void BookNode::Rotate(const ConstBoard& brd)
+{
+    SG_UNUSED(brd);
+    // No rotation-dependant data
 }
 
 //----------------------------------------------------------------------------

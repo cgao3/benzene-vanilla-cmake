@@ -4,6 +4,7 @@
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
+#include "BoardUtils.hpp"
 #include "DfpnSolver.hpp"
 #include "PatternState.hpp"
 #include "PlayerUtils.hpp"
@@ -13,7 +14,10 @@
 
 using namespace benzene;
 
-#define DEBUG_BOUNDS_CORRECTION 0
+//----------------------------------------------------------------------------
+
+/** If true, uses PositionDB instead of TransTable. */
+#define USE_DB 0
 
 //----------------------------------------------------------------------------
 
@@ -258,6 +262,14 @@ void DfpnData::Unpack(const byte* data)
     m_children.SetChildren(moves);
 }
 
+void DfpnData::Rotate(const ConstBoard& brd)
+{
+    m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
+    std::vector<HexPoint>& moves = m_children.m_children;
+    for (std::size_t i = 0; i < moves.size(); ++i)
+        moves[i] = BoardUtils::Rotate(brd, moves[i]);
+}
+
 //----------------------------------------------------------------------------
 
 DfpnSolver::DfpnSolver()
@@ -280,7 +292,7 @@ void DfpnSolver::GetVariation(const StoneBoard& state,
     while (true) 
     {
         DfpnData data;
-        if (!TTRead(brd.Hash(), data))
+        if (!TTRead(brd, data))
             break;
         if (data.m_bestMove == INVALID_POINT)
             break;
@@ -332,13 +344,20 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     m_workBoard = &board;
     m_checkTimerAbortCalls = 0;
 
+#if USE_DB
+    boost::scoped_ptr<DfpnDB> db(new DfpnDB("test.db"));
+    m_db = db.get();
+#else
+    m_db = 0;
+#endif
+
     InitializeUniqueProbes();
 
     bool performSearch = true;
     {
         // Skip search if already solved
         DfpnData data;
-        if (TTRead(m_brd->Hash(), data) && data.m_bounds.IsSolved())
+        if (TTRead(*m_brd, data) && data.m_bounds.IsSolved())
             performSearch = false;
     }
 
@@ -355,7 +374,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     if (!m_aborted)
     {
         DfpnData data;
-        TTRead(m_brd->Hash(), data);
+        TTRead(*m_brd, data);
         CheckBounds(data.m_bounds);
 
         HexColor colorToMove = m_brd->WhoseTurn();
@@ -427,7 +446,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     DfpnChildren children;
     {
         DfpnData data;
-        if (TTRead(m_brd->Hash(), data)) 
+        if (TTRead(*m_brd, data)) 
         {
             children = data.m_children;
             HexAssert(bounds.phi > data.m_bounds.phi);
@@ -452,8 +471,8 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                     m_guiFx.UpdateCurrentBounds(terminal);
                     m_guiFx.Write();
                 }
-                TTWrite(m_brd->Hash(), 
-                        DfpnData(terminal, DfpnChildren(), INVALID_POINT, 1));
+                TTWrite(*m_brd, DfpnData(terminal, DfpnChildren(), 
+                                         INVALID_POINT, 1));
                 return 1;
             }
             bitset_t childrenBitset 
@@ -590,8 +609,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     if (!m_aborted)
     {
         DfpnData data(currentBounds, children, bestMove, localWork);
-        TTWrite(m_brd->Hash(), data);
-        
+        TTWrite(*m_brd, data);
         if (data.m_bounds.IsSolved())
             NotifyListeners(history, data);
     }
@@ -660,28 +678,32 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
                             int childIndex, size_t delta)
 {
     children.PlayMove(childIndex, *m_brd);
-    hash_t hash = m_brd->Hash();
-    children.UndoMove(childIndex, *m_brd);
-
-    if (!TTRead(hash, data))
+    if (!TTRead(*m_brd, data))
     {
         data.m_bounds.phi = 1;
         data.m_bounds.delta = delta;
         data.m_work = 0;
     }
+    children.UndoMove(childIndex, *m_brd);
 }
 
-bool DfpnSolver::TTRead(hash_t hash, DfpnData& data)
+bool DfpnSolver::TTRead(const StoneBoard& brd, DfpnData& data)
 {
-    //return m_db.Get(hash, data);
-    return m_hashTable->Get(hash, data);
+#if USE_DB
+    return m_db->Get(brd, data);
+#else
+    return m_hashTable->Get(brd.Hash(), data);
+#endif
 }
 
-void DfpnSolver::TTWrite(hash_t hash, const DfpnData& data)
+void DfpnSolver::TTWrite(const StoneBoard& brd, const DfpnData& data)
 {
     CheckBounds(data.m_bounds);
-    //m_db.Put(hash, data);
-    m_hashTable->Put(hash, data);
+#if USE_DB
+    m_db->Put(brd, data);
+#else
+    m_hashTable->Put(brd.Hash(), data);
+#endif
 }
 
 #ifndef NDEBUG

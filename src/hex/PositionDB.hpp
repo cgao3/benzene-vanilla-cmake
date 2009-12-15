@@ -6,6 +6,7 @@
 #ifndef POSITIONDB_HPP
 #define POSITIONDB_HPP
 
+#include <boost/concept_check.hpp>
 #include "HashDB.hpp"
 #include "StoneBoard.hpp"
 
@@ -13,13 +14,9 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-namespace PositionUtil
-{
-    /** Returns minimum hash of the position and its rotation. */
-    hash_t GetHash(const StoneBoard& pos);
-}
+namespace {
 
-inline hash_t PositionUtil::GetHash(const StoneBoard& pos)
+hash_t GetHash(const StoneBoard& pos)
 {
     hash_t hash1 = pos.Hash();
     StoneBoard rotatedBrd(pos);
@@ -28,12 +25,47 @@ inline hash_t PositionUtil::GetHash(const StoneBoard& pos)
     return std::min(hash1, hash2);
 }
 
+/** Data must be stored for the boardstate of the minimum hash. */
+inline bool NeedToRotate(const StoneBoard& pos, hash_t minHash)
+{
+    return pos.Hash() != minHash;
+}
+
+}
+
+//----------------------------------------------------------------------------
+
+/** Class is rotatable by calling Rotate(). */
+template<class T>
+struct RotatableConcept
+{
+    void constraints() 
+    {
+        const T t;
+        const ConstBoard& brd = ConstBoard::Get(1, 1);
+        t.Rotate(brd);
+    }
+};
+
+/** Concept of a state in a HashDB. */
+template<class T>
+struct PositionDBStateConcept
+{
+    void constraints() 
+    {
+        boost::function_requires< HashDBStateConcept<T> >();
+        boost::function_requires< RotatableConcept<T> >();
+    }
+};
+
 //----------------------------------------------------------------------------
 
 /** Database of hex positions handling rotations. */
 template<class T>
 class PositionDB
 {
+    BOOST_CLASS_REQUIRE(T, benzene, PositionDBStateConcept);
+
 public:
     /** Opens database, creates it if it does not exist. */
     PositionDB(const std::string& filename);
@@ -70,19 +102,28 @@ PositionDB<T>::~PositionDB()
 template<class T>
 bool PositionDB<T>::Exists(const StoneBoard& brd) const
 {
-    return m_db.Exists(PositionUtil::GetHash(brd));
+    return m_db.Exists(GetHash(brd));
 }
 
 template<class T>
 bool PositionDB<T>::Get(const StoneBoard& brd, T& data) const
 {
-    return m_db.Get(PositionUtil::GetHash(brd), data);
+    hash_t hash = GetHash(brd);
+    if (!m_db.Get(hash, data))
+        return false;
+    if (NeedToRotate(brd, hash))
+        data.Rotate(brd.Const());
+    return true;
 }
 
 template<class T>
 bool PositionDB<T>::Put(const StoneBoard& brd, const T& data)
 {
-    return m_db.Put(PositionUtil::GetHash(brd), data);
+    hash_t hash = GetHash(brd);
+    T myData(data);
+    if (NeedToRotate(brd, hash))
+        myData.Rotate(brd.Const());
+    return m_db.Put(hash, myData);
 }
 
 template<class T>
@@ -121,12 +162,12 @@ inline PositionSet::~PositionSet()
 
 inline void PositionSet::Insert(const StoneBoard& brd)
 {
-    m_set.insert(PositionUtil::GetHash(brd));
+    m_set.insert(GetHash(brd));
 }
 
 inline bool PositionSet::Exists(const StoneBoard& brd) const
 {
-    return m_set.count(PositionUtil::GetHash(brd)) > 0;
+    return m_set.count(GetHash(brd)) > 0;
 }
 
 inline std::size_t PositionSet::Size() const
@@ -166,13 +207,13 @@ inline PositionMap<T>::~PositionMap()
 template<class T>
 bool PositionMap<T>::Exists(const StoneBoard& pos) const
 {
-    return m_map.find(PositionUtil::GetHash(pos)) != m_map.end();
+    return m_map.find(GetHash(pos)) != m_map.end();
 }
 
 template<class T>
 inline T& PositionMap<T>::operator[](const StoneBoard& pos)
 {
-    return m_map[PositionUtil::GetHash(pos)];
+    return m_map[GetHash(pos)];
 }
 
 //----------------------------------------------------------------------------
