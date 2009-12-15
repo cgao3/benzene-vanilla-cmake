@@ -21,8 +21,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-namespace 
-{
+namespace {
 
 /** Returns the initial delta for a state that has not been visited
     yet. A simple function of its index in the sorted list of children
@@ -84,7 +83,7 @@ bool UniqueProbe(StoneBoard& brd, HexPoint losingMove,
     return false;
 }
 
-}
+} // namespace
 
 //----------------------------------------------------------------------------
 
