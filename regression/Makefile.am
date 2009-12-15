@@ -4,6 +4,11 @@ dfpn-puzzle.tst \
 dfpn-solve-6x6.tst \
 dfpn-solve-7x7.tst \
 dfpn-solve-8x8.tst \
+dfs-puzzle.tst \
+dfs-solve-6x6.tst \
+dfs-solve-6x7.tst \
+dfs-solve-7x7.tst \
+dfs-solve-7x8.tst \
 endgame.tst \
 gtpregress \
 gtpregress.jar \
@@ -13,14 +18,9 @@ midgame.tst \
 on14x14.tst \
 opening.tst \
 play.tst \
-puzzle.tst \
 README \
 settings-puzzle.htp \
 settings-vc.htp \
-solve-6x6.tst \
-solve-6x7.tst \
-solve-7x7.tst \
-solve-7x8.tst \
 vc.tst \
 sgf/endgame/close-endgame01.sgf \
 sgf/endgame/close-endgame02.sgf \

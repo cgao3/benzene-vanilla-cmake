@@ -27,10 +27,11 @@ SolverCommands::SolverCommands(Game& game, HexEnvironment& env,
 
 void SolverCommands::Register(GtpEngine& e)
 {
-    Register(e, "param_solver", &SolverCommands::CmdParamSolver);
-    Register(e, "solve-state", &SolverCommands::CmdSolveState);
-    Register(e, "solver-clear-tt", &SolverCommands::CmdSolverClearTT);
-    Register(e, "solver-find-winning", &SolverCommands::CmdSolverFindWinning);
+    Register(e, "param_dfs", &SolverCommands::CmdParamSolver);
+    Register(e, "dfs-solve-state", &SolverCommands::CmdSolveState);
+    Register(e, "dfs-clear-tt", &SolverCommands::CmdSolverClearTT);
+    Register(e, "dfs-solver-find-winning", 
+             &SolverCommands::CmdSolverFindWinning);
 
     Register(e, "db-open", &SolverCommands::CmdDBOpen);
     Register(e, "db-close", &SolverCommands::CmdDBClose);
