@@ -23,7 +23,7 @@ VCBuilderParam::VCBuilderParam()
     : max_ors(4),
       and_over_edge(false),
       use_patterns(true),
-      use_non_edge_patterns(false),
+      use_non_edge_patterns(true),
       use_crossing_rule(false),
       use_greedy_union(true),
       abort_on_winning_connection(false)
