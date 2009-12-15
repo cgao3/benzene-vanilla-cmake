@@ -15,7 +15,7 @@ using namespace benzene;
 
 SolverCommands::SolverCommands(Game& game, HexEnvironment& env,
                                DfsSolver& solver,
-                               boost::scoped_ptr<DfsSolverTT>& solverTT, 
+                               boost::scoped_ptr<DfsHashTable>& solverTT, 
                                boost::scoped_ptr<SolverDB>& solverDB)
     : m_game(game), 
       m_env(env),
@@ -89,7 +89,7 @@ void SolverCommands::CmdParamSolver(HtpCommand& cmd)
 	    if (bits == 0)
 		m_tt.reset(0);
 	    else
-		m_tt.reset(new DfsSolverTT(bits));
+		m_tt.reset(new DfsHashTable(bits));
 	    m_solver.SetTT(m_tt.get());
 	}
         else if (name == "update_depth")

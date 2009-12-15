@@ -34,7 +34,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
       m_se(m_board.Width(), m_board.Height()),
       m_dfsSolver(),
       m_dfpnSolver(),
-      m_dfsHashTable(new DfsSolverTT(20)), // TT with 2^20 entries
+      m_dfsHashTable(new DfsHashTable(20)), // TT with 2^20 entries
       m_dfpnHashTable(new DfpnHashTable(20)), // TT with 2^20 entries
       m_db(0),
       m_playerEnvCommands(m_pe),

@@ -21,7 +21,7 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------
 
 /** Transposition table for use in DfsSolver. */
-typedef TransTable<DfsData> DfsSolverTT;
+typedef TransTable<DfsData> DfsHashTable;
 
 //----------------------------------------------------------------------
 
@@ -207,10 +207,10 @@ public:
     // @{
 
     /** Returns the TT used in the search; 0 if no TT is set. */
-    DfsSolverTT* GetTT() const;
+    DfsHashTable* GetTT() const;
 
     /** See GetTT() */
-    void SetTT(DfsSolverTT* TT);
+    void SetTT(DfsHashTable* TT);
 
     /** Controls whether gamestates decomposible into separate
         components have each side solved separately and the proofs
@@ -441,7 +441,7 @@ private:
     //------------------------------------------------------------------------
 
     /** Transposition table. */
-    DfsSolverTT* m_tt;
+    DfsHashTable* m_tt;
 
     /** Database of solved positions.
         
@@ -571,12 +571,12 @@ inline void DfsSolver::SetMoveOrdering(int flags)
     m_move_ordering = flags;
 }
 
-inline DfsSolverTT* DfsSolver::GetTT() const
+inline DfsHashTable* DfsSolver::GetTT() const
 {
     return m_tt;
 }
 
-inline void DfsSolver::SetTT(DfsSolverTT* TT)
+inline void DfsSolver::SetTT(DfsHashTable* TT)
 {
     m_tt = TT;
 }

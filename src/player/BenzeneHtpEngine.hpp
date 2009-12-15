@@ -90,7 +90,7 @@ protected:
 
     DfpnSolver m_dfpnSolver;
 
-    boost::scoped_ptr<DfsSolverTT> m_dfsHashTable;
+    boost::scoped_ptr<DfsHashTable> m_dfsHashTable;
 
     boost::scoped_ptr<DfpnHashTable> m_dfpnHashTable;
 

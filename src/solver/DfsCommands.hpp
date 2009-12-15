@@ -22,7 +22,7 @@ class SolverCommands
 {
 public:
     SolverCommands(Game& game, HexEnvironment& env, DfsSolver& solver,
-                   boost::scoped_ptr<DfsSolverTT>& solverTT, 
+                   boost::scoped_ptr<DfsHashTable>& solverTT, 
                    boost::scoped_ptr<SolverDB>& solverDB);
 
     void Register(GtpEngine& engine);
@@ -34,7 +34,7 @@ private:
 
     DfsSolver& m_solver;
 
-    boost::scoped_ptr<DfsSolverTT>& m_tt;
+    boost::scoped_ptr<DfsHashTable>& m_tt;
     
     boost::scoped_ptr<SolverDB>& m_db;
         
