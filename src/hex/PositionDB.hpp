@@ -67,6 +67,22 @@ class PositionDB
     BOOST_CLASS_REQUIRE(T, benzene, PositionDBStateConcept);
 
 public:
+
+    struct Statistics
+    {
+        std::size_t m_gets;
+
+        std::size_t m_hits;
+
+        std::size_t m_puts;
+
+        std::size_t m_rotations;
+
+        std::string Write() const;
+
+        Statistics();
+    };
+
     /** Opens database, creates it if it does not exist. */
     PositionDB(const std::string& filename);
 
@@ -84,13 +100,18 @@ public:
 
     void Flush();
 
+    Statistics GetStatistics() const;
+
 private:
     HashDB<T> m_db;
+
+    mutable Statistics m_stats;
 };
 
 template<class T>
 PositionDB<T>::PositionDB(const std::string& filename)
-    : m_db(filename)
+    : m_db(filename),
+      m_stats()
 {
 }
 
@@ -108,21 +129,30 @@ bool PositionDB<T>::Exists(const StoneBoard& brd) const
 template<class T>
 bool PositionDB<T>::Get(const StoneBoard& brd, T& data) const
 {
+    m_stats.m_gets++;
     hash_t hash = GetHash(brd);
     if (!m_db.Get(hash, data))
         return false;
+    m_stats.m_hits++;
     if (NeedToRotate(brd, hash))
+    {
+        m_stats.m_rotations++;
         data.Rotate(brd.Const());
+    }
     return true;
 }
 
 template<class T>
 bool PositionDB<T>::Put(const StoneBoard& brd, const T& data)
 {
+    m_stats.m_puts++;
     hash_t hash = GetHash(brd);
     T myData(data);
     if (NeedToRotate(brd, hash))
+    {
+        m_stats.m_rotations++;
         myData.Rotate(brd.Const());
+    }
     return m_db.Put(hash, myData);
 }
 
@@ -130,6 +160,34 @@ template<class T>
 void PositionDB<T>::Flush()
 {
     m_db.Flush();
+}
+
+template<class T>
+typename PositionDB<T>::Statistics 
+PositionDB<T>::GetStatistics() const
+{
+    return m_stats;
+}
+
+template<class T>
+PositionDB<T>::Statistics::Statistics()
+    : m_gets(0), 
+      m_hits(0), 
+      m_puts(0), 
+      m_rotations(0) 
+{ 
+}
+
+template<class T>
+std::string PositionDB<T>::Statistics::Write() const
+{
+    std::ostringstream os;
+    os << "\nPositionDB statistics\n"
+       << "     Reads: " << m_gets << '\n'
+       << "      Hits: " << m_hits << '\n'
+       << "    Writes: " << m_puts << '\n'
+       << " Rotations: " << m_rotations;
+    return os.str();
 }
 
 //----------------------------------------------------------------------------
