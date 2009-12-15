@@ -141,6 +141,17 @@ public:
         presimplicial cells on the cells they kill. */
     bitset_t FindPresimplicialPairs() const;
 
+    /** Uses the inferior cell information to compute the deduction set.
+        This is the part of the proof set used to derive the equivalent
+        ICE-reduced board.
+        The proof set is composed of this, the played stones, and (some
+        subset of) the empty cells on the ICE-reduced board.
+        Note: it is assumed the color passed in is the player for whom
+        the pruning (vulnerable, reversible, dominated) was computed, so
+        these are not used... just the fillin.
+    */
+    bitset_t DeductionSet(HexColor color) const;
+
     //------------------------------------------------------------------------
 
     void AddDead(const bitset_t& dead);
