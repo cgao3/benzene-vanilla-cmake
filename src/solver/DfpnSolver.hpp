@@ -13,6 +13,7 @@
 #include "Hex.hpp"
 #include "HexBoard.hpp"
 #include "TransTable.hpp"
+#include "PositionDB.hpp"
 
 #include <limits>
 #include <boost/scoped_ptr.hpp>
@@ -25,12 +26,6 @@ _BEGIN_BENZENE_NAMESPACE_
     Hex Solver Using DFPN
     
     Based on [reference Martin & Kishi's paper]. 
-   
-    @todo
-    - Make game independent.
-    - Heuristic leaf scores.
-    - Add database read/write.
-    - Re-use move ordering between siblings (worked in go).
 */
 
 //----------------------------------------------------------------------------
@@ -151,6 +146,8 @@ public:
     void UndoMove(int index, StoneBoard& brd) const;
 
 private:
+    friend class DfpnData;
+
     std::vector<HexPoint> m_children;
 };
 
@@ -181,23 +178,36 @@ public:
     
     size_t m_work;
 
-    hash_t m_parentHash;
-
-    HexPoint m_moveParentPlayed;
-
     DfpnData();
 
     DfpnData(const DfpnBounds& bounds, const DfpnChildren& children, 
-             HexPoint bestMove, size_t work, hash_t parentHash,
-             HexPoint moveParentPlayed);
+             HexPoint bestMove, size_t work);
 
     ~DfpnData();
 
     std::string Print() const; 
     
+    /** @name TransTableStateConcept */
+    // @{
+
     bool Initialized() const;
     
     bool ReplaceWith(const DfpnData& data) const;
+
+    // @}
+
+    /** @name PositionDBStateConcept */
+    // @{
+
+    int PackedSize() const;
+
+    byte* Pack() const;
+
+    void Unpack(const byte* data);
+
+    void Rotate(const ConstBoard& brd);
+
+    // @}
 
 private:
 
@@ -212,14 +222,11 @@ inline DfpnData::DfpnData()
 
 inline DfpnData::DfpnData(const DfpnBounds& bounds, 
                           const DfpnChildren& children, 
-                          HexPoint bestMove, size_t work, hash_t parentHash,
-                          HexPoint moveParentPlayed)
+                          HexPoint bestMove, size_t work)
     : m_bounds(bounds),
       m_children(children),
       m_bestMove(bestMove),
       m_work(work),
-      m_parentHash(parentHash),
-      m_moveParentPlayed(moveParentPlayed),
       m_initialized(true)
 { 
 }
@@ -236,8 +243,6 @@ inline std::string DfpnData::Print() const
        << "children=" << m_children.Size() << ' '
        << "bestmove=" << m_bestMove << ' '
        << "work=" << m_work << ' '
-       << "parent=" << HashUtil::toString(m_parentHash) << ' '
-       << "parentmove=" << m_moveParentPlayed
        << ']';
     return os.str();
 }
@@ -268,56 +273,6 @@ typedef TransTable<DfpnData> DfpnHashTable;
 
 //----------------------------------------------------------------------------
 
-/** Stores enough information on an encountered transposition that the
-    bounds can be fixed in the state it starts from. 
-    @ingroup dfpn
-*/
-struct DfpnTransposition
-{
-    static const size_t MAX_LENGTH = 8;
-
-    /** Hash of dependant state; used as an id for this
-        transposition. */
-    hash_t m_hash;
-    
-    std::vector<HexPoint> m_rightMove;
-
-    std::vector<hash_t> m_rightHash;
-
-    std::vector<HexPoint> m_leftMove;
-
-    std::vector<hash_t> m_leftHash;
-    
-    DfpnTransposition();
-
-    DfpnTransposition(hash_t hash);
-
-    bool IsMinPath(DfpnHashTable& hashTable, 
-                   const std::vector<HexPoint>& move,
-                   const std::vector<hash_t>& hash) const;
-
-    bool ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
-                      DfpnHashTable& hashTable) const;
-};
-
-/** Stores a number of transpositions. */
-struct DfpnTranspositions
-{
-    static const size_t NUM_SLOTS = 8;
-
-    std::vector<DfpnTransposition> m_slot;
-
-    void Add(hash_t hash, size_t length, 
-             HexPoint* rightMove, hash_t* rightHashes, 
-             HexPoint* leftMove, hash_t* leftHashes);
-
-    size_t ModifyBounds(hash_t currentHash, DfpnBounds& bounds, 
-                        DfpnHashTable& hashTable, 
-                        DfpnStatistics& slotStats) const;
-};
-
-//----------------------------------------------------------------------------
-
 /** History of moves played from root state to current state. 
     @ingroup dfpn
 */
@@ -341,11 +296,6 @@ public:
     /** Move played from parent state to bring us to this state. */
     HexPoint LastMove() const;
 
-    DfpnTranspositions& Transpositions();
-
-    void NotifyCommonAncestor(DfpnHashTable& hashTable, DfpnData data,
-                              hash_t hash, DfpnStatistics& stats);
-
 private:
 
     /** Move played from state. */
@@ -353,30 +303,24 @@ private:
 
     /** Hash of state. */
     std::vector<hash_t> m_hash;
-
-    /** Stores up to NUM_SLOTS tranposed decendents. */
-    std::vector<DfpnTranspositions> m_transposition;
 };
 
 inline DfpnHistory::DfpnHistory()
 {
     m_move.push_back(INVALID_POINT);
     m_hash.push_back(0);
-    m_transposition.push_back(DfpnTranspositions());
 }
 
 inline void DfpnHistory::Push(HexPoint move, hash_t hash)
 {
     m_move.push_back(move);
     m_hash.push_back(hash);
-    m_transposition.push_back(DfpnTranspositions());
 }
 
 inline void DfpnHistory::Pop()
 {
     m_move.pop_back();
     m_hash.pop_back();
-    m_transposition.pop_back();
 }
 
 inline int DfpnHistory::Depth() const
@@ -394,14 +338,11 @@ inline HexPoint DfpnHistory::LastMove() const
     return m_move.back();
 }
 
-inline DfpnTranspositions& DfpnHistory::Transpositions()
-{
-    return m_transposition.back();
-}
-
 //----------------------------------------------------------------------------
 
-/** Interface for listeners of DfpnSolver. */
+/** Interface for listeners of DfpnSolver. 
+    @ingroup dfpn
+ */
 class DfpnListener
 {
 public:
@@ -410,6 +351,11 @@ public:
     /** Called when a state is solved. */
     virtual void StateSolved(const DfpnHistory& history, const DfpnData& data) = 0;
 };
+
+//----------------------------------------------------------------------------
+
+/** Database of solved positions. */
+typedef PositionDB<DfpnData> DfpnDB;
 
 //----------------------------------------------------------------------------
 
@@ -449,13 +395,6 @@ public:
 
     /** See Timelimit() */
     void SetTimelimit(double timelimit);
-
-    /** Fix bounds due to transpositions double counting descendant
-        states. */
-    bool UseBoundsCorrection() const;
-    
-    /** See UseBoundsCorrection() */
-    void SetUseBoundsCorrection(bool flag);
 
     /** Prune Unique Probes
         @todo PHIL DOCUMENT THIS! */
@@ -520,9 +459,6 @@ private:
     /** See UseGuiFx() */
     bool m_useGuiFx;
 
-    /** See BoundsCorrection() */
-    bool m_useBoundsCorrection;
-
     /** See UniqueProbes() */
     bool m_useUniqueProbes;
 
@@ -540,14 +476,6 @@ private:
 
     size_t m_numTerminal;
 
-    size_t m_numTranspositions;
-    
-    DfpnStatistics m_transStats;
-
-    DfpnStatistics m_slotStats;
-
-    size_t m_numBoundsCorrections;
-
     size_t m_numMIDcalls;
 
     size_t m_numVCbuilds;
@@ -556,12 +484,14 @@ private:
 
     size_t m_numProbeChecks;
 
+    DfpnDB* m_db;
+    
     size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
                      const std::vector<DfpnData>& childrenDfpnBounds) const;
 
-    void UpdateBounds(hash_t parentHash, DfpnBounds& bounds, 
+    void UpdateBounds(DfpnBounds& bounds, 
                       const std::vector<DfpnData>& childBounds) const;
 
     bool CheckAbort();
@@ -571,10 +501,12 @@ private:
     void LookupData(DfpnData& data, const DfpnChildren& children, 
                     int childIndex, size_t delta);
 
-    void TTStore(hash_t hash, const DfpnData& data);
+    bool TTRead(const StoneBoard& brd, DfpnData& data);
+
+    void TTWrite(const StoneBoard& brd, const DfpnData& data);
 
     void GetVariation(const StoneBoard& state, 
-                      std::vector<HexPoint>& pv) const;
+                      std::vector<HexPoint>& pv);
 
     std::string PrintVariation(const std::vector<HexPoint>& pv) const;
 
@@ -611,16 +543,6 @@ inline double DfpnSolver::Timelimit() const
 inline void DfpnSolver::SetTimelimit(double timelimit)
 {
     m_timelimit = timelimit;
-}
-
-inline bool DfpnSolver::UseBoundsCorrection() const
-{
-    return m_useBoundsCorrection;
-}
-
-inline void DfpnSolver::SetUseBoundsCorrection(bool flag)
-{
-    m_useBoundsCorrection = flag;
 }
 
 inline bool DfpnSolver::UseUniqueProbes() const

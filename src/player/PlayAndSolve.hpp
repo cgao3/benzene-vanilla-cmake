@@ -14,8 +14,8 @@
 #include "DfpnCommands.hpp"
 #include "HexEnvironment.hpp"
 #include "HexHtpEngine.hpp"
-#include "Solver.hpp"
-#include "SolverCommands.hpp"
+#include "DfsSolver.hpp"
+#include "DfsCommands.hpp"
 #include "VCCommands.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_

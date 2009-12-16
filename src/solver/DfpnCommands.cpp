@@ -43,8 +43,6 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
-            << "[bool] use_bounds_correction "
-            << m_solver.UseBoundsCorrection() << '\n'
             << "[bool] use_guifx "
             << m_solver.UseGuiFx() << '\n'
             << "[bool] use_unique_probes "
@@ -57,8 +55,6 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "use_guifx")
             m_solver.SetUseGuiFx(cmd.BoolArg(1));
-        else if (name == "use_bounds_correction")
-            m_solver.SetUseBoundsCorrection(cmd.BoolArg(1));
         else if (name == "use_unique_probes")
             m_solver.SetUseUniqueProbes(cmd.BoolArg(1));
         else if (name == "timelimit")

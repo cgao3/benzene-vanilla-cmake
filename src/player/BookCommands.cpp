@@ -82,7 +82,7 @@ void BookCommands::CmdBookMainLineDepth(HtpCommand& cmd)
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.PlayMove(brd.WhoseTurn(), *p);
-        cmd << " " << *p << " " << m_book->GetMainLineDepth(brd);
+        cmd << " " << *p << " " << BookUtil::GetMainLineDepth(*m_book, brd);
         brd.UndoMove(*p);
     }
 }
@@ -97,7 +97,7 @@ void BookCommands::CmdBookCounts(HtpCommand& cmd)
     {
         brd.PlayMove(color, *p);
         BookNode node;
-        if (m_book->GetNode(brd, node))
+        if (m_book->Get(brd, node))
             cmd << " " << *p << " " << node.m_count;
         brd.UndoMove(*p);
     }
@@ -118,10 +118,10 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
     {
         brd.PlayMove(color, *p);
         BookNode node;
-        if (m_book->GetNode(brd, node))
+        if (m_book->Get(brd, node))
         {
             counts[*p] = node.m_count;
-            values[*p] = Book::InverseEval(node.Value(brd));
+            values[*p] = BookUtil::InverseEval(node.Value(brd));
             scores.push_back(std::make_pair
                              (-node.Score(brd, countWeight), *p));
         }
@@ -172,7 +172,7 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
     cmd.CheckNuArgLessEqual(3);
     float polarization = cmd.FloatArg(0);
     std::string filename = cmd.Arg(1);
-    std::set<hash_t> ignoreSet;
+    PositionSet ignoreSet;
     if (cmd.NuArg() == 3u)
     {
         std::string ignoreFile = cmd.Arg(2);
@@ -190,10 +190,10 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
                 brd.StartNewGame();
                 for (std::size_t i = 0; i < seq.size(); ++i)
                     brd.PlayMove(brd.WhoseTurn(), seq[i]);
-                ignoreSet.insert(BookUtil::GetHash(brd));
+                ignoreSet.Insert(brd);
             }
         }
-        LogInfo() << "Read " << ignoreSet.size() << " positions to ignore.\n";
+        LogInfo() << "Read " << ignoreSet.Size() << " positions to ignore.\n";
     }
     StoneBoard brd(m_game.Board());
     PointSequence pv;
@@ -238,12 +238,12 @@ void BookCommands::CmdBookSetValue(HtpCommand& cmd)
     else
         value = cmd.FloatArg(0);
     BookNode node;
-    if (!m_book->GetNode(m_game.Board(), node))
-        m_book->WriteNode(m_game.Board(), BookNode(value));
+    if (!m_book->Get(m_game.Board(), node))
+        m_book->Put(m_game.Board(), BookNode(value));
     else
     {
         node.m_value = value;
-        m_book->WriteNode(m_game.Board(), node);
+        m_book->Put(m_game.Board(), node);
     }
     m_book->Flush();
 }

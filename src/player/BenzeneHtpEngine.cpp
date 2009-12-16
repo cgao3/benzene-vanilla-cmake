@@ -16,7 +16,7 @@
 #include "BenzeneHtpEngine.hpp"
 #include "PlayerUtils.hpp"
 #include "Resistance.hpp"
-#include "Solver.hpp"
+#include "DfsSolver.hpp"
 #include "SolverDB.hpp"
 #include "SwapCheck.hpp"
 #include "TwoDistance.hpp"
@@ -32,16 +32,16 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     : HexHtpEngine(in, out, boardsize),
       m_pe(m_board.Width(), m_board.Height()),
       m_se(m_board.Width(), m_board.Height()),
-      m_solver(),
-      m_solverDfpn(),
-      m_solver_tt(new SolverTT(20)), // TT with 2^20 entries
-      m_dfpn_tt(new DfpnHashTable(20)), // TT with 2^20 entries
+      m_dfsSolver(),
+      m_dfpnSolver(),
+      m_dfsHashTable(new DfsHashTable(20)), // TT with 2^20 entries
+      m_dfpnHashTable(new DfpnHashTable(20)), // TT with 2^20 entries
       m_db(0),
       m_playerEnvCommands(m_pe),
       m_solverEnvCommands(m_se),
       m_vcCommands(m_game, m_pe),
-      m_solverCommands(m_game, m_se, m_solver, m_solver_tt, m_db),
-      m_dfpnCommands(m_game, m_se, m_solverDfpn, m_dfpn_tt),
+      m_dfsSolverCommands(m_game, m_se, m_dfsSolver, m_dfsHashTable, m_db),
+      m_dfpnSolverCommands(m_game, m_se, m_dfpnSolver, m_dfpnHashTable),
       m_useParallelSolver(false)
 {
     RegisterCmd("benzene-license", &BenzeneHtpEngine::CmdLicense);
@@ -62,8 +62,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     m_playerEnvCommands.Register(*this, "player");
     m_solverEnvCommands.Register(*this, "solver");
     m_vcCommands.Register(*this);
-    m_solverCommands.Register(*this);
-    m_dfpnCommands.Register(*this);
+    m_dfsSolverCommands.Register(*this);
+    m_dfpnSolverCommands.Register(*this);
 
     RegisterCmd("eval-twod", &BenzeneHtpEngine::CmdEvalTwoDist);
     RegisterCmd("eval-resist", &BenzeneHtpEngine::CmdEvalResist);
@@ -73,7 +73,7 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("misc-debug", &BenzeneHtpEngine::CmdMiscDebug);
 
     // Set some defaults
-    m_solver.SetTT(m_solver_tt.get());
+    m_dfsSolver.SetTT(m_dfsHashTable.get());
 }
 
 BenzeneHtpEngine::~BenzeneHtpEngine()

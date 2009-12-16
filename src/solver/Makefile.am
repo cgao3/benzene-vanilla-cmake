@@ -3,18 +3,18 @@ noinst_LIBRARIES = libsolver.a
 libsolver_a_SOURCES = \
 DfpnCommands.cpp \
 DfpnSolver.cpp \
-SolvedState.cpp \
-SolverCommands.cpp \
-SolverDB.cpp \
-Solver.cpp
+DfsCommands.cpp \
+DfsData.cpp \
+DfsSolver.cpp \
+SolverDB.cpp
 
 noinst_HEADERS = \
 DfpnCommands.hpp \
 DfpnSolver.hpp \
-SolvedState.hpp \
-SolverCommands.hpp \
-SolverDB.hpp \
-Solver.hpp
+DfsCommands.hpp \
+DfsData.hpp \
+DfsSolver.hpp \
+SolverDB.hpp
 
 libsolver_a_CPPFLAGS = \
 $(BOOST_CPPFLAGS) \

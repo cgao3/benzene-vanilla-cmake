@@ -246,22 +246,14 @@ void InferiorCells::AddPermInfFrom(HexColor color, const InferiorCells& other)
 
 void InferiorCells::Clear()
 {
-    m_dead.reset();
-    m_vulnerable.reset();
-    for (int i=0; i<BITSETSIZE; i++) {
-        m_killers[i].clear();
-    }
-    m_reversible.reset();
-    for (int i=0; i<BITSETSIZE; i++) {
-        m_reversers[i].clear();
-    }
+    ClearDead();
+    ClearVulnerable();
+    ClearReversible();
     for (BWIterator c; c; ++c) {
-        m_captured[*c].reset();
-        m_perm_inf[*c].reset();
-        m_perm_inf_carrier[*c].reset();
+        ClearCaptured(*c);
+        ClearPermInf(*c);
     }
-    m_dom_graph.Clear();
-    m_dominated_computed = false;
+    ClearDominated();
 }
 
 void InferiorCells::ClearDead()
@@ -413,6 +405,15 @@ bitset_t InferiorCells::FindPresimplicialPairs() const
     }
 
     return fillin;
+}
+
+bitset_t InferiorCells::DeductionSet(HexColor color) const
+{
+    bitset_t deductionSet;
+    deductionSet = Captured(color);
+    deductionSet |= PermInf(color);
+    deductionSet |= PermInfCarrier(color);
+    return deductionSet;
 }
 
 //----------------------------------------------------------------------------

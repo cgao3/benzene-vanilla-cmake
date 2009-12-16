@@ -1,10 +1,10 @@
 //----------------------------------------------------------------------------
-/** @file Solver.hpp
+/** @file DfsSolver.hpp
  */
 //----------------------------------------------------------------------------
 
-#ifndef SOLVER_H
-#define SOLVER_H
+#ifndef DFSSOLVER_H
+#define DFSSOLVER_H
 
 #include <boost/scoped_ptr.hpp>
 
@@ -12,7 +12,7 @@
 #include "HexBoard.hpp"
 #include "VC.hpp"
 #include "TransTable.hpp"
-#include "SolvedState.hpp"
+#include "DfsData.hpp"
 #include "SolverDB.hpp"
 #include "HexEval.hpp"
 
@@ -20,28 +20,28 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------
 
-/** Transposition table for use in Solver. */
-typedef TransTable<SolvedState> SolverTT;
+/** Transposition table for use in DfsSolver. */
+typedef TransTable<DfsData> DfsHashTable;
 
 //----------------------------------------------------------------------
 
 /** Determines the winner of a gamestate. 
     
-    Solver uses a mustplay driven depth-first search to determine the
+    DfsSolver uses a mustplay driven depth-first search to determine the
     winner in the given state.  A transposition table and a database
     of solved positions are also used to reduce the amount of work.
 */
-class Solver 
+class DfsSolver 
 {
 public:
 
     //------------------------------------------------------------------------
 
     /** Constructor. */
-    Solver();
+    DfsSolver();
 
     /** Destructor. */
-    virtual ~Solver();
+    ~DfsSolver();
 
     //------------------------------------------------------------------------
 
@@ -207,10 +207,10 @@ public:
     // @{
 
     /** Returns the TT used in the search; 0 if no TT is set. */
-    SolverTT* GetTT() const;
+    DfsHashTable* GetTT() const;
 
     /** See GetTT() */
-    void SetTT(SolverTT* TT);
+    void SetTT(DfsHashTable* TT);
 
     /** Controls whether gamestates decomposible into separate
         components have each side solved separately and the proofs
@@ -349,25 +349,22 @@ private:
 
     /** Returns true if state is in DB or TT.  Checks DB first, then TT. 
         If return is true, info is stored in state. */
-    bool CheckTransposition(const HexBoard& brd, HexColor toplay, 
-                            SolvedState& state) const;
+    bool CheckTransposition(DfsData& state) const;
 
     /** Stores the solved state in the TT or DB. Sets the state's
         bestmove parameter to the best move computed by solver. */
-    void StoreState(hash_t hash, const SolvedState& state);
+    void StoreState(hash_t hash, const DfsData& state, 
+                    const bitset_t& proof);
 
-    bitset_t DefaultProofForWinner(const HexBoard& brd, 
-                                   HexColor winner) const;
+    bitset_t DefaultProofForWinner(const HexBoard& brd, HexColor winner) const;
 
-    bool CheckDB(const HexBoard& brd, HexColor toplay, 
-                 SolvedState& state) const;
+    bool CheckDB(DfsData& state) const;
 
-    bool CheckTT(const HexBoard& brd, HexColor toplay, 
-                 SolvedState& state) const;
+    bool CheckTT(DfsData& state) const;
 
-    void StoreInTT(hash_t hash, const SolvedState& state);
+    void StoreInTT(hash_t hash, const DfsData& state);
 
-    void StoreInDB(const SolvedState& state);
+    void StoreInDB(const DfsData& state, const bitset_t& proof);
 
     //------------------------------------------------------------------------
 
@@ -381,13 +378,14 @@ private:
         is true and SOLVE_ROOT_AGAIN is set, then no transpositions
         are checked. */
     bool HandleLeafNode(const HexBoard& brd, HexColor color, 
-                        SolvedState& state, bool root_node) const;
+                        DfsData& state, bool root_node,
+                        bitset_t& proof) const;
 
     /** Returns true if node is terminal. Fills in state if terminal. 
         State's bestmove field is not specified here.
      */
     bool HandleTerminalNode(const HexBoard& brd, HexColor color, 
-                            SolvedState& state) const;
+                            DfsData& state, bitset_t& proof) const;
 
     //------------------------------------------------------------------------
 
@@ -443,7 +441,7 @@ private:
     //------------------------------------------------------------------------
 
     /** Transposition table. */
-    SolverTT* m_tt;
+    DfsHashTable* m_tt;
 
     /** Database of solved positions.
         
@@ -493,101 +491,101 @@ private:
 
 //----------------------------------------------------------------------------
 
-inline void Solver::SetFlags(int flags)
+inline void DfsSolver::SetFlags(int flags)
 {
     m_settings.flags = flags;
 }
 
-inline int Solver::GetFlags() const
+inline int DfsSolver::GetFlags() const
 {
     return m_settings.flags;
 }
 
-inline bool Solver::UseDecompositions() const
+inline bool DfsSolver::UseDecompositions() const
 {
     return m_use_decompositions;
 }
 
-inline void Solver::SetUseDecompositions(bool enable)
+inline void DfsSolver::SetUseDecompositions(bool enable)
 {
     m_use_decompositions = enable;
 }
 
-inline int Solver::ProgressDepth() const
+inline int DfsSolver::ProgressDepth() const
 {
     return m_progress_depth;
 }
 
-inline void Solver::SetProgressDepth(int depth)
+inline void DfsSolver::SetProgressDepth(int depth)
 {
     m_progress_depth = depth;
 }
 
-inline int Solver::UpdateDepth() const
+inline int DfsSolver::UpdateDepth() const
 {
     return m_update_depth;
 }
 
-inline void Solver::SetUpdateDepth(int depth)
+inline void DfsSolver::SetUpdateDepth(int depth)
 {
     m_update_depth = depth;
 }
 
-inline bool Solver::ShrinkProofs() const
+inline bool DfsSolver::ShrinkProofs() const
 {
     return m_shrink_proofs;
 }
 
-inline void Solver::SetShrinkProofs(bool enable)
+inline void DfsSolver::SetShrinkProofs(bool enable)
 {
     m_shrink_proofs = enable;
 }
 
-inline bool Solver::BackupIceInfo() const
+inline bool DfsSolver::BackupIceInfo() const
 {
     return m_backup_ice_info;
 }
 
-inline void Solver::SetBackupIceInfo(bool enable)
+inline void DfsSolver::SetBackupIceInfo(bool enable)
 {
     m_backup_ice_info = enable;
 }
 
-inline bool Solver::UseGuiFx() const
+inline bool DfsSolver::UseGuiFx() const
 {
     return m_use_guifx;
 }
 
-inline void Solver::SetUseGuiFx(bool enable)
+inline void DfsSolver::SetUseGuiFx(bool enable)
 {
     m_use_guifx = enable;
 }
 
-inline int Solver::MoveOrdering() const
+inline int DfsSolver::MoveOrdering() const
 {
     return m_move_ordering;
 }
 
-inline void Solver::SetMoveOrdering(int flags)
+inline void DfsSolver::SetMoveOrdering(int flags)
 {
     m_move_ordering = flags;
 }
 
-inline SolverTT* Solver::GetTT() const
+inline DfsHashTable* DfsSolver::GetTT() const
 {
     return m_tt;
 }
 
-inline void Solver::SetTT(SolverTT* TT)
+inline void DfsSolver::SetTT(DfsHashTable* TT)
 {
     m_tt = TT;
 }
 
 //----------------------------------------------------------------------------
 
-/** Methods in Solver that do not need Solver's private data. */
+/** Methods in DfsSolver that do not need DfsSolver's private data. */
 /** @todo Refactor some of these out? */
-namespace SolverUtil 
+namespace DfsSolverUtil 
 {
     /** Prints the variation; for debugging purposes. */
     std::string PrintVariation(const PointSequence& variation);
@@ -626,4 +624,4 @@ namespace SolverUtil
 
 _END_BENZENE_NAMESPACE_
 
-#endif // SOLVER_H
+#endif // DFSSOLVER_H

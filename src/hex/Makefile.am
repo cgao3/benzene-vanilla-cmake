@@ -73,6 +73,7 @@ Move.hpp \
 PatternState.hpp \
 Pattern.hpp \
 PlayerUtils.hpp \
+PositionDB.hpp \
 Resistance.hpp \
 RingGodel.hpp \
 SearchedState.hpp \

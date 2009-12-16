@@ -23,13 +23,13 @@ using namespace benzene;
 float BookNode::Value(const StoneBoard& brd) const
 {
     if (brd.IsLegal(SWAP_PIECES))
-        return std::max(m_value, Book::InverseEval(m_value));
+        return std::max(m_value, BookUtil::InverseEval(m_value));
     return m_value;
 }
 
 float BookNode::Score(const StoneBoard& brd, float countWeight) const
 {
-    float score = Book::InverseEval(Value(brd));
+    float score = BookUtil::InverseEval(Value(brd));
     if (!IsTerminal())
         score += log(m_count + 1) * countWeight;
     return score;	
@@ -59,43 +59,7 @@ std::string BookNode::toString() const
 
 //----------------------------------------------------------------------------
 
-Book::Book(std::string filename)
-    throw(HexException)
-{
-    if (!m_db.Open(filename))
-        throw HexException("Could not open database file!");
-
-    // Load settings from database and ensure they match the current
-    // settings.
-    char key[] = "settings";
-    Settings temp;
-    if (m_db.Get(key, strlen(key)+1, &temp, sizeof(temp))) 
-    {
-        LogInfo() << "Old book." << '\n';
-        if (m_settings != temp) 
-        {
-            LogInfo() << "Settings do not match book settings!" << '\n'
-		      << "Book: " << temp.toString() << '\n'
-		      << "Current: " << m_settings.toString() << '\n';
-            throw HexException("Book settings don't match given settings!");
-        } 
-    } 
-    else 
-    {
-        // Read failed: this is a new database. Store the settings.
-        LogInfo() << "New book!" << '\n';
-        if (!m_db.Put(key, strlen(key)+1, &m_settings, sizeof(m_settings)))
-            throw HexException("Could not write settings!");
-    }
-}
-
-Book::~Book()
-{
-}
-
-//----------------------------------------------------------------------------
-
-float Book::InverseEval(float eval)
+float BookUtil::InverseEval(float eval)
 {
     if (HexEvalUtil::IsWinOrLoss(eval))
         return -eval;
@@ -107,26 +71,14 @@ float Book::InverseEval(float eval)
 
 //----------------------------------------------------------------------------
 
-bool Book::GetNode(const StoneBoard& brd, BookNode& node) const
-{
-    if (m_db.Get(BookUtil::GetHash(brd), node))
-        return true;
-    return false;
-}
-
-void Book::WriteNode(const StoneBoard& brd, const BookNode& node)
-{
-    m_db.Put(BookUtil::GetHash(brd), node);
-}
-
-int Book::GetMainLineDepth(const StoneBoard& pos) const
+int BookUtil::GetMainLineDepth(const Book& book, const StoneBoard& pos)
 {
     int depth = 0;
     StoneBoard brd(pos);
     for (;;) 
     {
         BookNode node;
-        if (!GetNode(brd, node))
+        if (!book.Get(brd, node))
             break;
         HexPoint move = INVALID_POINT;
         float value = -1e9;
@@ -134,7 +86,7 @@ int Book::GetMainLineDepth(const StoneBoard& pos) const
         {
             brd.PlayMove(brd.WhoseTurn(), *p);
             BookNode child;
-            if (GetNode(brd, child))
+            if (book.Get(brd, child))
             {
                 float curValue = InverseEval(child.Value(brd));
                 if (curValue > value)
@@ -153,45 +105,38 @@ int Book::GetMainLineDepth(const StoneBoard& pos) const
     return depth;
 }
 
-std::size_t Book::GetTreeSize(const StoneBoard& board) const
+namespace 
 {
-    std::map<hash_t, std::size_t> solved;
-    StoneBoard brd(board);
-    return TreeSize(brd, solved);
-}
 
-std::size_t Book::TreeSize(StoneBoard& brd, std::map<hash_t, 
-                           std::size_t>& solved) const
+std::size_t TreeSize(const Book& book, StoneBoard& brd, 
+                     PositionMap<std::size_t>& solved)
 {
-    hash_t hash = BookUtil::GetHash(brd);
-    if (solved.find(hash) != solved.end())
-        return solved[hash];
-
+    if (solved.Exists(brd))
+        return solved[brd];
     BookNode node;
-    if (!GetNode(brd, node))
+    if (!book.Get(brd, node))
         return 0;
-   
     std::size_t ret = 1;
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.PlayMove(brd.WhoseTurn(), *p);
-        ret += TreeSize(brd, solved);
+        ret += TreeSize(book, brd, solved);
         brd.UndoMove(*p);
     }
-    solved[hash] = ret;
+    solved[brd] = ret;
     return ret;
 }
 
-//----------------------------------------------------------------------------
-
-hash_t BookUtil::GetHash(const StoneBoard& brd)
-{
-    hash_t hash1 = brd.Hash();
-    StoneBoard rotatedBrd(brd);
-    rotatedBrd.RotateBoard();
-    hash_t hash2 = rotatedBrd.Hash();
-    return std::min(hash1, hash2);
 }
+
+std::size_t BookUtil::GetTreeSize(const Book& book, const StoneBoard& board)
+{
+    PositionMap<std::size_t> solved;
+    StoneBoard brd(board);
+    return TreeSize(book, brd, solved);
+}
+
+//----------------------------------------------------------------------------
 
 unsigned BookUtil::NumChildren(const Book& book, const StoneBoard& board)
 {
@@ -201,7 +146,7 @@ unsigned BookUtil::NumChildren(const Book& book, const StoneBoard& board)
     {
 	brd.PlayMove(brd.WhoseTurn(), *i);
 	BookNode child;
-        if (book.GetNode(brd, child))
+        if (book.Get(brd, child))
             ++num;
         brd.UndoMove(*i);
     }
@@ -216,10 +161,10 @@ void BookUtil::UpdateValue(const Book& book, BookNode& node, StoneBoard& brd)
     {
 	brd.PlayMove(brd.WhoseTurn(), *i);
 	BookNode child;
-        if (book.GetNode(brd, child))
+        if (book.Get(brd, child))
         {
             hasChild = true;
-            float value = Book::InverseEval(child.Value(brd));
+            float value = BookUtil::InverseEval(child.Value(brd));
             if (value > bestValue)
 		bestValue = value;
 	    
@@ -241,7 +186,7 @@ float BookUtil::ComputePriority(const StoneBoard& brd,
     // Must adjust child value for swap, but not the parent because we
     // are comparing with the best child's value, ie, the minmax
     // value.
-    float delta = parent.m_value - Book::InverseEval(child.Value(brd));
+    float delta = parent.m_value - BookUtil::InverseEval(child.Value(brd));
     HexAssert(delta >= 0.0);
     HexAssert(child.m_priority >= BookNode::LEAF_PRIORITY);
     HexAssert(child.m_priority < BookNode::DUMMY_PRIORITY);
@@ -258,7 +203,7 @@ HexPoint BookUtil::UpdatePriority(const Book& book, BookNode& node,
     {
 	brd.PlayMove(brd.WhoseTurn(), *i);
 	BookNode child;
-        if (book.GetNode(brd, child))
+        if (book.Get(brd, child))
         {
             hasChild = true;
             float priority 
@@ -282,7 +227,7 @@ HexPoint BookUtil::BestMove(const Book& book, const StoneBoard& pos,
                             unsigned minCount, float countWeight)
 {
     BookNode node;
-    if (!book.GetNode(pos, node) || node.m_count < minCount)
+    if (!book.Get(pos, node) || node.m_count < minCount)
         return INVALID_POINT;
 
     float bestScore = -1e9;
@@ -292,7 +237,7 @@ HexPoint BookUtil::BestMove(const Book& book, const StoneBoard& pos,
     {
         brd.PlayMove(brd.WhoseTurn(), *p);
         BookNode child;
-        if (book.GetNode(brd, child))
+        if (book.Get(brd, child))
         {
             float score = child.Score(brd, countWeight);
             if (score > bestScore)
@@ -313,7 +258,7 @@ void BookUtil::DumpVisualizationData(const Book& book, StoneBoard& brd,
                                      int depth, std::ostream& out)
 {
     BookNode node;
-    if (!book.GetNode(brd, node))
+    if (!book.Get(brd, node))
         return;
     if (node.IsLeaf())
     {
@@ -331,22 +276,21 @@ void BookUtil::DumpVisualizationData(const Book& book, StoneBoard& brd,
 namespace {
 
 void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
-                        float polarization, std::set<hash_t>& seen,
+                        float polarization, PositionSet& seen,
                         PointSequence& pv, std::ostream& out,
-                        const std::set<hash_t>& ignoreSet)
+                        const PositionSet& ignoreSet)
 {
-    hash_t hash = BookUtil::GetHash(brd);
-    if (seen.find(hash) != seen.end())
+    if (seen.Exists(brd))
         return;
     BookNode node;
-    if (!book.GetNode(brd, node))
+    if (!book.Get(brd, node))
         return;
     if (fabs(node.Value(brd) - 0.5) >= polarization 
         && node.IsLeaf() && !node.IsTerminal()
-        && !ignoreSet.count(hash))
+        && ignoreSet.Exists(brd))
     {
         out << HexPointUtil::ToString(pv) << '\n';
-        seen.insert(hash);
+        seen.Insert(brd);
     }
     else
     {
@@ -356,11 +300,12 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
         {
             brd.PlayMove(brd.WhoseTurn(), *i);
             pv.push_back(*i);
-            DumpPolarizedLeafs(book, brd, polarization, seen, pv, out, ignoreSet);
+            DumpPolarizedLeafs(book, brd, polarization, seen, pv, out, 
+                               ignoreSet);
             pv.pop_back();
             brd.UndoMove(*i);
         }
-        seen.insert(hash);
+        seen.Insert(brd);
     } 
 }
 
@@ -369,9 +314,9 @@ void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
 void BookUtil::DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
                                   float polarization, PointSequence& pv, 
                                   std::ostream& out, 
-                                  const std::set<hash_t>& ignoreSet)
+                                  const PositionSet& ignoreSet)
 {
-    std::set<hash_t> seen;
+    PositionSet seen;
     ::DumpPolarizedLeafs(book, brd, polarization, seen, pv, out, ignoreSet);
 }
 
@@ -429,7 +374,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
         HexEval ourValue = (brd.WhoseTurn() == winner) 
             ? IMMEDIATE_WIN : IMMEDIATE_LOSS;
         BookNode node;
-        if (book.GetNode(brd, node))
+        if (book.Get(brd, node))
         {
             HexAssert(node.IsLeaf());
             HexAssert(!node.IsTerminal());
@@ -441,7 +386,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
             node = BookNode(ourValue);
             ++numNew;
         }
-        book.WriteNode(brd, node);
+        book.Put(brd, node);
     }
     book.Flush();
     LogInfo() << "   Lines: " << lineNumber << '\n';

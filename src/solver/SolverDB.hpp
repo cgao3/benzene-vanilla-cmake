@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file SolverDB.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -8,7 +8,7 @@
 
 #include "Hex.hpp"
 #include "HexException.hpp"
-#include "SolvedState.hpp"
+#include "DfsData.hpp"
 #include "StoneBoard.hpp"
 #include "HashDB.hpp"
 
@@ -81,40 +81,30 @@ public:
         unsigned saved;            /** Number of states below gets.    */
         unsigned puts;             /** Number of successful put calls. */
         unsigned writes;           /** Number of chunks written.       */
-        unsigned shrunk;           /** Proofs shrunk by later proofs.  */
-        unsigned shrinkage;        /** Used to calc. avg. shrinkage.   */
 
         Statistics() 
-            : gets(0), saved(0), puts(0), 
-              writes(0), shrunk(0), shrinkage(0) 
+            : gets(0), saved(0), puts(0), writes(0)
         { }
     };
 
     //------------------------------------------------------------------------
 
-    /** Constructor. */
-    SolverDB();
-
-    /** Destructor. */
-    ~SolverDB();
-
-    //------------------------------------------------------------------------
-    
     /** Opens (or creates if it does not already exist) a SolverDB for
         the given board dimensions, max number of stones, and number
         of stones for transposition states. Throws an exception if an
         error occur (eg: db already exists but with different
         settings). */
-    void open(int width, int height, int maxstones, int transtones,
+    SolverDB(int width, int height, int maxstones, int transtones,
               const std::string& filename) 
         throw (HexException);
-    
+
+
     /** Opens an existing database for the given boardsize. */
-    void open(int width, int height, const std::string& filename)
+    SolverDB(int width, int height, const std::string& filename)
         throw(HexException);
 
-    /** Close the db. */
-    void close();
+    /** Destructor. */
+    ~SolverDB();
 
     //------------------------------------------------------------------------
 
@@ -132,28 +122,25 @@ public:
     /** Gets the DB data for the given state. Returns false if state
         is not in DB. If return is true, data is stored in state. 
         Checks for rotations as well. */
-    bool get(const StoneBoard& brd, SolvedState& state);
+    bool get(const StoneBoard& brd, DfsData& state);
 
     /** Returns true if state (or its rotation) exists in db. */
     bool check(const StoneBoard& brd);
 
-    /** Stores state in the db under the given board position. If a
-        state already exists in the db, the new state is stored only
-        if its proof is smaller.  Returns number of states written (0
-        or 1). */
-    int write(const StoneBoard& brd, const SolvedState& state);
+    /** Stores state in the db under the given board position.
+        Returns number of states written (0 or 1). */
+    int write(const StoneBoard& brd, const DfsData& state);
 
     /** Stores state in db for all transpositions of the given proof
         if state has fewer than m_settings.trans_stones
         stones. Returns number of tranpositions written. */
-    int put(const StoneBoard& brd, const SolvedState& state);
+    int put(const StoneBoard& brd, const DfsData& state,
+            const bitset_t& proof);
 
 private:
-
-    void init();
-
     Settings m_settings;
-    HashDB<SolvedState> m_db;
+
+    HashDB<DfsData> m_db;
 
     mutable Statistics m_stats;
 };
@@ -182,13 +169,13 @@ namespace SolverDBUtil
         the given boardstate. Returns number of db entries
         successfully added or updated. */
     int StoreTranspositions(SolverDB& db, const StoneBoard& brd, 
-                            const SolvedState& state);
+                            const DfsData& state, const bitset_t& proof);
 
     /** Computes and stores in db the flipped transpostions of this
         proof on the given boardstate. Returns number of db entries
         successfully added or updated. */
     int StoreFlippedStates(SolverDB& db, const StoneBoard& brd, 
-                           const SolvedState& state);
+                           const DfsData& state, const bitset_t& proof);
 }
 
 //----------------------------------------------------------------------------

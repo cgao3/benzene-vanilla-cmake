@@ -8,7 +8,6 @@
 
 #include <boost/concept_check.hpp>
 
-#include <cassert>
 #include <cstdio>
 #include <string>
 
@@ -17,6 +16,7 @@
 #include "Benzene.hpp"
 #include "Types.hpp"
 #include "Hash.hpp"
+#include "HexException.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -59,25 +59,14 @@ class HashDB
     BOOST_CLASS_REQUIRE(T, benzene, HashDBStateConcept);
 
 public:
+    /** Opens database, creates it if it does not exist. */
+    HashDB(const std::string& filename);
 
-    /** Constructor. */
-    HashDB();
-    
-    /** Destructor. */
+    /** Closes database. */    
     ~HashDB();
 
-    //------------------------------------------------------------------------
-    
-    /** Opens filename, creates it if it does not exist. */
-    bool Open(std::string filename);
-
-    /** Closes the database. */
-    bool Close();
-
-    //------------------------------------------------------------------------
-
     /** Returns true if hash exists in database. */
-    bool Exists(hash_t hash);
+    bool Exists(hash_t hash) const;
 
     /** Returns true if get is successful. */
     bool Get(hash_t hash, T& data) const;
@@ -91,81 +80,54 @@ public:
     /** Generic Get. */
     bool Get(void* k, int ksize, void* d, int dsize);
 
-    //------------------------------------------------------------------------
-
     /** Flush the db to disk. */
     void Flush();
-
-    /** Returns pointer to DB handle. */
-    DB* BerkelyDB();
 
 private:
 
     static const int PERMISSION_FLAGS = 0664;
+
     static const int CLOSE_FLAGS = 0;
 
     DB* m_db;
+
+    /** Name of database file. */
     std::string m_filename;
 };
 
 template<class T>
-HashDB<T>::HashDB()
-    : m_db(0)
+HashDB<T>::HashDB(const std::string& filename)
+    : m_db(0),
+      m_filename(filename)
 {
+    int ret;
+    if ((ret = db_create(&m_db, NULL, 0)) != 0) 
+    {
+        fprintf(stderr, "db_create: %s\n", db_strerror(ret));
+        throw HexException("HashDB: opening/creating db!");
+    }
+    if ((ret = m_db->open(m_db, NULL, filename.c_str(), NULL, 
+                          DB_HASH, DB_CREATE, PERMISSION_FLAGS)) != 0) 
+    {
+        m_db->err(m_db, ret, "%s", m_filename.c_str());
+        throw HexException("HashDB: error opening db!");
+    }
 }
 
 template<class T>
 HashDB<T>::~HashDB()
 {
-    if (m_db) {
-        Close();
-    }
-}
-
-//----------------------------------------------------------------------------
-
-template<class T>
-bool HashDB<T>::Open(std::string filename)
-{
-    assert(m_db == 0);
-
-    m_filename = filename;
-
     int ret;
-    if ((ret = db_create(&m_db, NULL, 0)) != 0) {
-        fprintf(stderr, "db_create: %s\n", db_strerror(ret));
-        m_db = 0;
-        return false;
-    }
-
-    if ((ret = m_db->open(m_db, NULL, filename.c_str(), NULL, 
-                          DB_HASH, DB_CREATE, PERMISSION_FLAGS)) != 0) 
+    if ((ret = m_db->close(m_db, CLOSE_FLAGS)) != 0) 
     {
         m_db->err(m_db, ret, "%s", m_filename.c_str());
-        delete m_db;
-        return false;
+        throw HexException("HashDB: error closing db!");
     }
-
-    return true;
+    m_db = 0;
 }
 
 template<class T>
-bool HashDB<T>::Close()
-{
-    assert(m_db);
-
-    int ret;
-    if ((ret = m_db->close(m_db, CLOSE_FLAGS)) != 0) {
-        m_db->err(m_db, ret, "%s", m_filename.c_str());
-        return false;
-    }
-    return true;    
-}
-
-//----------------------------------------------------------------------------
-
-template<class T>
-bool HashDB<T>::Exists(hash_t hash)
+bool HashDB<T>::Exists(hash_t hash) const
 {
     DBT key, data;
     memset(&key, 0, sizeof(key)); 
@@ -183,7 +145,7 @@ bool HashDB<T>::Exists(hash_t hash)
 
     default:
         m_db->err(m_db, ret, "%s", m_filename.c_str());
-        assert(false);
+        throw HexException("HashDB: error in Exists()!");
     }
 
     return true;
@@ -192,8 +154,6 @@ bool HashDB<T>::Exists(hash_t hash)
 template<class T>
 bool HashDB<T>::Get(hash_t hash, T& d) const
 {
-    assert(m_db);
-    
     DBT key, data;
     memset(&key, 0, sizeof(key)); 
     memset(&data, 0, sizeof(data)); 
@@ -212,7 +172,7 @@ bool HashDB<T>::Get(hash_t hash, T& d) const
 
     default:
         m_db->err(m_db, ret, "%s", m_filename.c_str());
-        assert(false);
+        throw HexException("HashDB: error in Get()!");
     }
 
     return false;
@@ -221,8 +181,6 @@ bool HashDB<T>::Get(hash_t hash, T& d) const
 template<class T>
 bool HashDB<T>::Get(void* k, int ksize, void* d, int dsize)
 {
-    assert(m_db);
-    
     DBT key, data;
     memset(&key, 0, sizeof(key)); 
     memset(&data, 0, sizeof(data)); 
@@ -241,19 +199,15 @@ bool HashDB<T>::Get(void* k, int ksize, void* d, int dsize)
 
     default:
         m_db->err(m_db, ret, "%s", m_filename.c_str());
-        assert(false);
+        throw HexException("HashDB: error in general Get()!");
     }
 
     return false;
 }
 
-//----------------------------------------------------------------------------
-
 template<class T>
 bool HashDB<T>::Put(hash_t hash, const T& d)
 {
-    assert(m_db);
-
     DBT key, data; 
     memset(&key, 0, sizeof(key)); 
     memset(&data, 0, sizeof(data)); 
@@ -266,8 +220,8 @@ bool HashDB<T>::Put(hash_t hash, const T& d)
 
     int ret;
     if ((ret = m_db->put(m_db, NULL, &key, &data, 0)) != 0) {
-        m_db->err(m_db, ret, "%s", m_filename.c_str()); 
-        return false;
+        m_db->err(m_db, ret, "%s", m_filename.c_str());
+        throw HexException("HashDB: error in Put()!");
     } 
 
     return true;
@@ -276,8 +230,6 @@ bool HashDB<T>::Put(hash_t hash, const T& d)
 template<class T>
 bool HashDB<T>::Put(void* k, int ksize, void* d, int dsize)
 {
-    assert(m_db);
-
     DBT key, data; 
     memset(&key, 0, sizeof(key)); 
     memset(&data, 0, sizeof(data)); 
@@ -290,25 +242,17 @@ bool HashDB<T>::Put(void* k, int ksize, void* d, int dsize)
 
     int ret;
     if ((ret = m_db->put(m_db, NULL, &key, &data, 0)) != 0) {
-        m_db->err(m_db, ret, "%s", m_filename.c_str()); 
-        return false;
+        m_db->err(m_db, ret, "%s", m_filename.c_str());
+        throw HexException("HashDB: error in general Put()!");
     } 
 
     return true;
 }
 
-//----------------------------------------------------------------------------
-
 template<class T>
 void HashDB<T>::Flush()
 {
     m_db->sync(m_db, 0);
-}
-
-template<class T>
-DB* HashDB<T>::BerkelyDB()
-{
-    return m_db;
 }
 
 //----------------------------------------------------------------------------

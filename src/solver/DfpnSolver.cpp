@@ -4,6 +4,7 @@
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
+#include "BoardUtils.hpp"
 #include "DfpnSolver.hpp"
 #include "PatternState.hpp"
 #include "PlayerUtils.hpp"
@@ -13,12 +14,14 @@
 
 using namespace benzene;
 
-#define DEBUG_BOUNDS_CORRECTION 0
+//----------------------------------------------------------------------------
+
+/** If true, uses PositionDB instead of TransTable. */
+#define USE_DB 0
 
 //----------------------------------------------------------------------------
 
-namespace 
-{
+namespace {
 
 /** Returns the initial delta for a state that has not been visited
     yet. A simple function of its index in the sorted list of children
@@ -80,7 +83,7 @@ bool UniqueProbe(StoneBoard& brd, HexPoint losingMove,
     return false;
 }
 
-}
+} // namespace
 
 //----------------------------------------------------------------------------
 
@@ -207,200 +210,63 @@ void DfpnSolver::GuiFx::DoWrite()
 
 //----------------------------------------------------------------------------
 
-/** @page boundscorrection Dfpn Bounds Correction
-    @ingroup dfpn
-
-    Transpositions in the graph of visited states can cause the bounds
-    to be artificially inflated. We try to alleviate this by noting a
-    fixed number of transpositions per state and checking wether each
-    would actually affect the bound.
-
-    This is not that effective in Hex. Transpositions are rare (less
-    than 1% of states have one) and of those, only a small percentage
-    result in actual bounds inflation.
-
-    This technique may be useful in other domains where transpositions
-    are more common and more likely to inflate the bounds.
-*/
-
-DfpnTransposition::DfpnTransposition()
-    : m_hash(0)
+int DfpnData::PackedSize() const
 {
+    return sizeof(m_bounds)
+        + sizeof(m_bestMove)
+        + sizeof(m_work)
+        + sizeof(HexPoint) * (m_children.Size() + 1);
 }
 
-DfpnTransposition::DfpnTransposition(hash_t hash)
-    : m_hash(hash)
+byte* DfpnData::Pack() const
 {
-}
-
-void DfpnTranspositions::Add(hash_t hash, size_t length, 
-                             HexPoint* rightMove, hash_t* rightHashes, 
-                             HexPoint* leftMove, hash_t* leftHashes)
-{
-    if (m_slot.size() >= NUM_SLOTS)
-        return;
-    for (size_t i = 0; i < m_slot.size(); ++i)
-        if (m_slot[i].m_hash == hash)
-            return;
-    m_slot.push_back(DfpnTransposition(hash));
-    while (length--)
+    static byte data[4096];
+    byte* off = data;
+    *reinterpret_cast<DfpnBounds*>(off) = m_bounds;
+    off += sizeof(m_bounds);
+    *reinterpret_cast<HexPoint*>(off) = m_bestMove;
+    off += sizeof(m_bestMove);
+    *reinterpret_cast<size_t*>(off) = m_work;
+    off += sizeof(m_work);
+    const std::vector<HexPoint>& moves = m_children.m_children;
+    for (std::size_t i = 0; i < moves.size(); ++i)
     {
-        m_slot.back().m_rightMove.push_back(*rightMove++);
-        m_slot.back().m_rightHash.push_back(*rightHashes++);
-        m_slot.back().m_leftMove.push_back(*leftMove++);
-        m_slot.back().m_leftHash.push_back(*leftHashes++);
+        *reinterpret_cast<HexPoint*>(off) = moves[i];
+        off += sizeof(HexPoint);
     }
+    *reinterpret_cast<HexPoint*>(off) = INVALID_POINT;
+    off += sizeof(HexPoint);
+    if (off - data != PackedSize())
+        throw HexException("Bad size!");
+    return data;
 }
 
-/** Attempts to modify the bounds for the current state by removing
-    duplicate estimates created by each transposition. */
-size_t DfpnTranspositions::ModifyBounds(hash_t currentHash, 
-                                        DfpnBounds& bounds, 
-                                        DfpnHashTable& hashTable,
-                                        DfpnStatistics& slotStats) const
+void DfpnData::Unpack(const byte* data)
 {
-    if (m_slot.empty())
-        return 0;
-    slotStats.Add(m_slot.size());
-    size_t ret = 0;
-    for (std::size_t i = 0; i < m_slot.size(); ++i)
-        if (m_slot[i].ModifyBounds(currentHash, bounds, hashTable))
-            ++ret;
-    return ret;
-}
-
-/** Checks that the sequence of moves matches those in the hashtable
-    on every second level (the level where the bound is propagated via
-    a min operation). The 'bestmove' stored in DfpnData corresponds to
-    the child with min delta, and so much match the move at this
-    location in the transposition. */
-bool DfpnTransposition::IsMinPath(DfpnHashTable& hashTable, 
-                                  const std::vector<HexPoint>& move,
-                                  const std::vector<hash_t>& hash) const
-{
-    bool minMove = true;
-    // Skip the check for position 0:
-    //  1) not a min check anyway
-    //  2) state may not be in table if first time state was visited
-    for (std::size_t i = 1; i < hash.size(); ++i)
+    m_bounds = *reinterpret_cast<const DfpnBounds*>(data);
+    data += sizeof(m_bounds);
+    m_bestMove = *reinterpret_cast<const HexPoint*>(data);
+    data += sizeof(m_bestMove);
+    m_work = *reinterpret_cast<const size_t*>(data);
+    data += sizeof(m_work);
+    std::vector<HexPoint> moves;
+    while (true)
     {
-#if DEBUG_BOUNDS_CORRECTION
-        LogInfo() << i << ": " << HashUtil::toString(hash[i]) 
-                  << ' ' << move[i] << '\n';
-#endif
-        DfpnData data;
-        if (!hashTable.Get(hash[i], data))
-            return false;
-        if (minMove && data.m_bestMove != move[i])
-        {
-#if DEBUG_BOUNDS_CORRECTION
-            LogInfo() << "Not min path!\n";
-#endif
-            return false;
-        }
-        minMove = !minMove;
-    }
-    return true;
-}
-
-/** If both paths from ancestor to descendant contribute to the
-    ancestor's delta, reduces delta by descendant's phi or delta
-    (which to use is dependant on length of path).
-    We can only modify delta because phi is computed as the min of
-    child deltas, hence the descendant's bound is counted at most
-    once. Delta, however, is the sum of child phis and so the
-    descendant's bound could be counted twice.
-*/
-bool DfpnTransposition::ModifyBounds(hash_t currentHash, DfpnBounds& bounds,
-                                     DfpnHashTable& hashTable) const
-{
-#ifdef NDEBUG
-    SG_UNUSED(currentHash);
-#else
-    HexAssert(currentHash == m_rightHash[0]);
-    HexAssert(currentHash == m_leftHash[0]);
-#endif
-#if DEBUG_BOUNDS_CORRECTION
-    LogInfo() << "ModifyBounds():\n";
-    LogInfo() << "bounds: " << bounds << '\n';
-    LogInfo() << "m_hash: " << HashUtil::toString(m_hash) << '\n';
-    LogInfo() << "length: " << m_rightHash.size() << '\n';
-#endif
-    DfpnData descendant;   
-    if (!hashTable.Get(m_hash, descendant))
-        return false;
-#if DEBUG_BOUNDS_CORRECTION
-    LogInfo() << "Descendant bounds: " << descendant.m_bounds << '\n';
-#endif
-    if (descendant.m_bounds.IsSolved())
-        return false;
-    if (!IsMinPath(hashTable, m_rightMove, m_rightHash))
-        return false;
-    if (!IsMinPath(hashTable, m_leftMove, m_leftHash))
-        return false;
-    if (m_rightHash.size() & 1)
-        bounds.delta -= descendant.m_bounds.phi;
-    else
-        bounds.delta -= descendant.m_bounds.delta;
-#if DEBUG_BOUNDS_CORRECTION
-    LogInfo() << "Corrected bounds: " << bounds << '\n';
-#endif
-    return true;
-}
-
-/** Traverses hashtable to find the common ancestor of the current
-    state's two parents. Adds a DfpnTransposition at the level of the
-    ancestor. */
-void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable, 
-                                       DfpnData data, hash_t hash,
-                                       DfpnStatistics& stats)
-{
-    std::size_t depth = m_hash.size();
-
-#if DEBUG_BOUNDS_CORRECTION
-    LogInfo() << "History:\n";
-    for (std::size_t i = 0; i < depth; ++i)
-        LogInfo() << i << ": " << HashUtil::toString(m_hash[i]) 
-                  << ' ' << m_move[i] << '\n';
-    LogInfo() << "x: " << HashUtil::toString(hash) << '\n';
-#endif
-
-    std::vector<hash_t> leftHash(depth, 0);
-    std::vector<HexPoint> leftMove(depth, INVALID_POINT);
-    for (std::size_t i = depth - 1; i > 0; --i)
-    {
-        leftHash[i] = data.m_parentHash;
-        leftMove[i] = data.m_moveParentPlayed;
-        if (!hashTable.Get(data.m_parentHash, data))
+        HexPoint p = *reinterpret_cast<const HexPoint*>(data);
+        data += sizeof(HexPoint);
+        if (p == INVALID_POINT)
             break;
+        moves.push_back(p);
     }
+    m_children.SetChildren(moves);
+}
 
-#if DEBUG_BOUNDS_CORRECTION
-    LogInfo() << "Table History:\n";
-    for (std::size_t i = 0; i < depth; ++i)
-        LogInfo() << i << ": " << HashUtil::toString(leftHash[i]) 
-                  << ' ' << leftMove[i] << '\n';
-    LogInfo() << "x: " << HashUtil::toString(hash) << '\n';
-#endif
-
-    std::size_t length = 1;
-    for (std::size_t i = m_hash.size() - 1; i > 0; --i, ++length)
-    {
-        if (length > DfpnTransposition::MAX_LENGTH)
-            break;
-        if (std::find(m_hash.begin(), m_hash.end(), leftHash[i])
-            != m_hash.end())
-        {
-#if DEBUG_BOUNDS_CORRECTION
-            LogInfo() << "Found command ancestor at i = " << i 
-                      << " (length " << length << ")\n";
-#endif
-            stats.Add(length);
-            m_transposition[i].Add(hash, length, &m_move[i], &m_hash[i], 
-                                   &leftMove[i], &leftHash[i]);
-            break;
-        }
-    }
+void DfpnData::Rotate(const ConstBoard& brd)
+{
+    m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
+    std::vector<HexPoint>& moves = m_children.m_children;
+    for (std::size_t i = 0; i < moves.size(); ++i)
+        moves[i] = BoardUtils::Rotate(brd, moves[i]);
 }
 
 //----------------------------------------------------------------------------
@@ -408,7 +274,6 @@ void DfpnHistory::NotifyCommonAncestor(DfpnHashTable& hashTable,
 DfpnSolver::DfpnSolver()
     : m_hashTable(0),
       m_useGuiFx(false),
-      m_useBoundsCorrection(false),
       m_useUniqueProbes(false),
       m_timelimit(0.0),
       m_guiFx()
@@ -420,13 +285,13 @@ DfpnSolver::~DfpnSolver()
 }
 
 void DfpnSolver::GetVariation(const StoneBoard& state, 
-                              std::vector<HexPoint>& pv) const
+                              std::vector<HexPoint>& pv)
 {
     StoneBoard brd(state);
     while (true) 
     {
         DfpnData data;
-        if (!m_hashTable->Get(brd.Hash(), data))
+        if (!TTRead(brd, data))
             break;
         if (data.m_bestMove == INVALID_POINT)
             break;
@@ -458,23 +323,14 @@ void DfpnSolver::PrintStatistics()
                   << " (" << (100 * m_numUniqueProbes 
                               / m_numProbeChecks) << "%)\n";
     }
-    LogInfo() << "Transpositions: " << m_numTranspositions << '\n';
-    if (m_useBoundsCorrection)
-    {
-        std::ostringstream os;
-        os << "     Length: ";
-        m_transStats.Write(os);
-        LogInfo() << os.str() << '\n';
-        os.str("");
-        os << "      Slots: ";
-        m_slotStats.Write(os);
-        LogInfo() << os.str() << '\n';
-        LogInfo() << "Corrections: " << m_numBoundsCorrections << '\n';
-    }
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime()<<'\n';
     LogInfo() << "       VCs/sec: " << m_numVCbuilds / m_timer.GetTime()<<'\n';
+#if USE_DB
+    LogInfo() << m_db->GetStatistics().Write() << '\n';
+#else
     LogInfo() << m_hashTable->Stats() << '\n';
+#endif
 }
 
 HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
@@ -483,10 +339,6 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     m_aborted = false;
     m_hashTable = &hashtable;
     m_numTerminal = 0;
-    m_numTranspositions = 0;
-    m_numBoundsCorrections = 0;
-    m_transStats.Clear();
-    m_slotStats.Clear();
     m_numMIDcalls = 0;
     m_numVCbuilds = 0;
     m_numUniqueProbes = 0;
@@ -495,14 +347,20 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     m_workBoard = &board;
     m_checkTimerAbortCalls = 0;
 
+#if USE_DB
+    boost::scoped_ptr<DfpnDB> db(new DfpnDB("test.db"));
+    m_db = db.get();
+#else
+    m_db = 0;
+#endif
+
     InitializeUniqueProbes();
 
     bool performSearch = true;
     {
         // Skip search if already solved
         DfpnData data;
-        if (m_hashTable->Get(m_brd->Hash(), data)
-            && data.m_bounds.IsSolved())
+        if (TTRead(*m_brd, data) && data.m_bounds.IsSolved())
             performSearch = false;
     }
 
@@ -519,7 +377,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     if (!m_aborted)
     {
         DfpnData data;
-        m_hashTable->Get(m_brd->Hash(), data);
+        TTRead(*m_brd, data);
         CheckBounds(data.m_bounds);
 
         HexColor colorToMove = m_brd->WhoseTurn();
@@ -554,7 +412,7 @@ bool DfpnSolver::CheckAbort()
                 if (elapsed > m_timelimit)
                 {
                     m_aborted = true;
-                    LogInfo() << "DfpnSolver::CheckAbort(): Timelimit!" << '\n';
+                    LogInfo() << "DfpnSolver::CheckAbort(): Timelimit!\n";
                 }
                 else
                 {
@@ -586,26 +444,16 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         return 0;
 
     int depth = history.Depth();
-    hash_t parentHash = history.LastHash();
     HexColor colorToMove = m_brd->WhoseTurn();
 
     DfpnChildren children;
     {
         DfpnData data;
-        if (m_hashTable->Get(m_brd->Hash(), data)) 
+        if (TTRead(*m_brd, data)) 
         {
             children = data.m_children;
             HexAssert(bounds.phi > data.m_bounds.phi);
             HexAssert(bounds.delta > data.m_bounds.delta);
-
-            // Check if our stored parent differs from our current parent
-            if (data.m_parentHash != parentHash)
-            {
-                ++m_numTranspositions;
-                if (m_useBoundsCorrection)
-                    history.NotifyCommonAncestor(*m_hashTable, data, 
-                                                 m_brd->Hash(), m_transStats);
-            }
         }
         else
         {
@@ -626,10 +474,8 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                     m_guiFx.UpdateCurrentBounds(terminal);
                     m_guiFx.Write();
                 }
-                TTStore(m_brd->Hash(), 
-                        DfpnData(terminal, DfpnChildren(),
-                                 INVALID_POINT, 1, parentHash, 
-                                 history.LastMove()));
+                TTWrite(*m_brd, DfpnData(terminal, DfpnChildren(), 
+                                         INVALID_POINT, 1));
                 return 1;
             }
             bitset_t childrenBitset 
@@ -666,15 +512,10 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     hash_t currentHash = m_brd->Hash();   
     HexPoint bestMove = INVALID_POINT;
     DfpnBounds currentBounds;
-    DfpnTranspositions transpositions;
     while (!m_aborted) 
     {
-        UpdateBounds(currentHash, currentBounds, childrenData);
-        
-        if (m_useBoundsCorrection)
-            m_numBoundsCorrections 
-                += transpositions.ModifyBounds(currentHash, currentBounds, 
-                                               *m_hashTable, m_slotStats);
+        UpdateBounds(currentBounds, childrenData);
+
         if (m_useGuiFx && depth == 1)
         {
             m_guiFx.UpdateCurrentBounds(currentBounds);
@@ -707,7 +548,6 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         children.PlayMove(bestIndex, *m_brd);
         history.Push(bestMove, currentHash); // FIXME: handle sequences!
         localWork += MID(child, history);
-        transpositions = history.Transpositions();
         history.Pop();
         children.UndoMove(bestIndex, *m_brd);
 
@@ -771,10 +611,8 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     // Store search results and notify listeners
     if (!m_aborted)
     {
-        DfpnData data(currentBounds, children, bestMove, localWork, 
-                      parentHash, history.LastMove());
-        TTStore(m_brd->Hash(), data);
-        
+        DfpnData data(currentBounds, children, bestMove, localWork);
+        TTWrite(*m_brd, data);
         if (data.m_bounds.IsSolved())
             NotifyListeners(history, data);
     }
@@ -818,19 +656,10 @@ void DfpnSolver::SelectChild(int& bestIndex, std::size_t& delta2,
     HexAssert(delta1 < INFTY);
 }
 
-void DfpnSolver::UpdateBounds(hash_t parentHash, DfpnBounds& bounds, 
+void DfpnSolver::UpdateBounds(DfpnBounds& bounds, 
                               const std::vector<DfpnData>& childData) const
 {
-    // Track two sets of bounds: all of our children and children that
-    // have parentHash as their parent. If some children have
-    // parentHash as a parent, then we use only the sum of their phis
-    // as our estimate for the parent's delta. This is to reduce
-    // artificially inflated delta estimates due to transpositions. To
-    // turn this off, uncomment the second last line and comment out
-    // the last line of this method.
     DfpnBounds boundsAll(INFTY, 0);
-    DfpnBounds boundsParent(INFTY, 0);
-    bool useBoundsParent = false;
     for (std::size_t i = 0; i < childData.size(); ++i)
     {
         const DfpnBounds& childBounds = childData[i].m_bounds;
@@ -842,38 +671,42 @@ void DfpnSolver::UpdateBounds(hash_t parentHash, DfpnBounds& bounds,
             return;
         }
         boundsAll.phi = std::min(boundsAll.phi, childBounds.delta);
-        boundsParent.phi = std::min(boundsParent.phi, childBounds.delta);
         HexAssert(childBounds.phi != INFTY);
         boundsAll.delta += childBounds.phi;
-        if (childData[i].m_parentHash == parentHash)
-        {
-            useBoundsParent = true;
-            boundsParent.delta += childBounds.phi;
-        }
     }
     bounds = boundsAll;
-    //bounds = useBoundsParent ? boundsParent : boundsAll;
 }
 
 void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children, 
                             int childIndex, size_t delta)
 {
     children.PlayMove(childIndex, *m_brd);
-    hash_t hash = m_brd->Hash();
-    children.UndoMove(childIndex, *m_brd);
-
-    if (!m_hashTable->Get(hash, data))
+    if (!TTRead(*m_brd, data))
     {
         data.m_bounds.phi = 1;
         data.m_bounds.delta = delta;
         data.m_work = 0;
     }
+    children.UndoMove(childIndex, *m_brd);
 }
 
-void DfpnSolver::TTStore(hash_t hash, const DfpnData& data)
+bool DfpnSolver::TTRead(const StoneBoard& brd, DfpnData& data)
+{
+#if USE_DB
+    return m_db->Get(brd, data);
+#else
+    return m_hashTable->Get(brd.Hash(), data);
+#endif
+}
+
+void DfpnSolver::TTWrite(const StoneBoard& brd, const DfpnData& data)
 {
     CheckBounds(data.m_bounds);
-    m_hashTable->Put(hash, data);
+#if USE_DB
+    m_db->Put(brd, data);
+#else
+    m_hashTable->Put(brd.Hash(), data);
+#endif
 }
 
 #ifndef NDEBUG

@@ -11,6 +11,7 @@
 #include "HashDB.hpp"
 #include "HexException.hpp"
 #include "HexEval.hpp"
+#include "PositionDB.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -126,7 +127,8 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** Methods for PackableConcept (so it can be used in a HashDB) */
+    /** @name Methods for PositionDBStateConcept (so it can be stored
+        in a PositionDB) */
     // @{
 
     int PackedSize() const;
@@ -134,6 +136,8 @@ public:
     byte* Pack() const;
 
     void Unpack(const byte* t);
+
+    void Rotate(const ConstBoard& brd);
 
     // @}
 
@@ -182,6 +186,12 @@ inline void BookNode::Unpack(const byte* t)
     *this = *(const BookNode*)t;
 }
 
+inline void BookNode::Rotate(const ConstBoard& brd)
+{
+    SG_UNUSED(brd);
+    // No rotation-dependant data
+}
+
 //----------------------------------------------------------------------------
 
 /** Extends standard stream output operator for BookNodes. */
@@ -193,111 +203,8 @@ inline std::ostream& operator<<(std::ostream& os, const BookNode& node)
 
 //----------------------------------------------------------------------------
 
-/** Provides an interface for reading/writing states to
-    a database of scored positions.
-
-    @ingroup openingbook
-*/
-class Book
-{
-public:
-
-    //------------------------------------------------------------------------
-
-    /** Evaluation for other player. */
-    static float InverseEval(float eval);
-
-    //------------------------------------------------------------------------
-
-    /** Settings for this book. 
-        @note Not currently used!
-    */
-    struct Settings
-    {
-        int reserved1;
-
-        int reserved2;
-
-        bool operator==(const Settings& o) const;
-        
-        bool operator!=(const Settings& o) const;
-
-        std::string toString() const;
-    };
-    
-    //---------------------------------------------------------------------
-
-    /** Constructor. Opens the book with default settings. 
-        Throws error if settings do not match existing settings in
-        a pre-existing book. */
-    Book(std::string filename)
-        throw(HexException);
-
-    /** Destructor. */
-    ~Book();
-
-    /** Returns a copy of the settings for this book. */
-    Settings GetSettings() const;
-
-    /** Reads node from db. Returns true if node exists in book, false
-        otherwise. Node is touched only if it exists in book. */
-    bool GetNode(const StoneBoard& brd, BookNode& node) const;
-
-    /** Writes node to db. */
-    void WriteNode(const StoneBoard& brd, const BookNode& node);
-
-    /** Flushes the db to disk. */
-    void Flush();
-
-    //---------------------------------------------------------------------
-
-    /** Returns the depth of the mainline from the given position. */
-    int GetMainLineDepth(const StoneBoard& pos) const;
-
-    /** Returns the number of nodes in the tree rooted at the current
-        position. */
-    std::size_t GetTreeSize(const StoneBoard& brd) const;
-
-private:
-
-    /** Settings for this book. */
-    Settings m_settings;
-
-    /** Database for this book. */
-    HashDB<BookNode> m_db;
-
-    std::size_t TreeSize(StoneBoard& brd, 
-                         std::map<hash_t, std::size_t>& solved) const;
-};
-
-inline bool Book::Settings::operator==(const Book::Settings& o) const 
-{
-    SG_UNUSED(o);
-    return true;
-}
-        
-inline bool Book::Settings::operator!=(const Book::Settings& o) const
-{
-    return !(*this == o);
-}
-
-inline std::string Book::Settings::toString() const
-{
-    std::ostringstream os;
-    os << "["
-       << "]";
-    return os.str();
-}
-
-inline Book::Settings Book::GetSettings() const
-{
-    return m_settings;
-}
-
-inline void Book::Flush()
-{
-    m_db.Flush();
-}
+/** A book is just a database of BookNodes. */
+typedef PositionDB<BookNode> Book;
 
 //----------------------------------------------------------------------------
 
@@ -306,8 +213,8 @@ inline void Book::Flush()
 */
 namespace BookUtil
 {
-    /** Returns the canonical hash for this boardstate. */
-    hash_t GetHash(const StoneBoard& brd);
+    /** Evaluation for other player. */
+    float InverseEval(float eval);
 
     /** Returns number of child states existing in this book. */
     unsigned NumChildren(const Book& book, const StoneBoard& brd);
@@ -333,22 +240,35 @@ namespace BookUtil
     HexPoint BestMove(const Book& book, const StoneBoard& pos,
                       unsigned minCount, float countWeight);
 
+    //-----------------------------------------------------------------------
+
     /** Writes a (score, depth) pair to output stream for each leaf in
         the book. Can be visualized with GnuPlot. */
     void DumpVisualizationData(const Book& book, StoneBoard& brd, 
                                int depth, std::ostream& out);
+
+    //-----------------------------------------------------------------------
 
     /** Writes variations leading to non-terminal leafs whose values
         differ from 0.5 by at least polarization. The given pv must be
         the variation leading to the current state of the board. */
     void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
                             float polarization, PointSequence& pv, 
-                            std::ostream& out, const std::set<hash_t>& ignoreSet);
+                            std::ostream& out, const PositionSet& ignoreSet);
 
     /** Reads solved leaf positions from a file and adds them to the
         given book. Overwrites value of any existing states. */
     void ImportSolvedStates(Book& book, const ConstBoard& constBoard,
                             std::istream& positions);
+    
+    //-----------------------------------------------------------------------
+
+    /** Returns the depth of the mainline from the given position. */
+    int GetMainLineDepth(const Book& book, const StoneBoard& pos);
+
+    /** Returns the number of nodes in the tree rooted at the current
+        position. */
+    std::size_t GetTreeSize(const Book& book, const StoneBoard& brd);
 }
 
 //----------------------------------------------------------------------------

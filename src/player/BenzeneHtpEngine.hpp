@@ -10,8 +10,8 @@
 #include "DfpnCommands.hpp"
 #include "HexEnvironment.hpp"
 #include "HexHtpEngine.hpp"
-#include "Solver.hpp"
-#include "SolverCommands.hpp"
+#include "DfsSolver.hpp"
+#include "DfsCommands.hpp"
 #include "VCCommands.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -86,13 +86,13 @@ protected:
     /** Solver's environment. */
     HexEnvironment m_se;
 
-    Solver m_solver;
+    DfsSolver m_dfsSolver;
 
-    DfpnSolver m_solverDfpn;
+    DfpnSolver m_dfpnSolver;
 
-    boost::scoped_ptr<SolverTT> m_solver_tt;
+    boost::scoped_ptr<DfsHashTable> m_dfsHashTable;
 
-    boost::scoped_ptr<DfpnHashTable> m_dfpn_tt;
+    boost::scoped_ptr<DfpnHashTable> m_dfpnHashTable;
 
     boost::scoped_ptr<SolverDB> m_db;
 
@@ -102,9 +102,9 @@ protected:
 
     VCCommands m_vcCommands;
 
-    SolverCommands m_solverCommands;
+    SolverCommands m_dfsSolverCommands;
 
-    DfpnCommands m_dfpnCommands;
+    DfpnCommands m_dfpnSolverCommands;
 
     bool m_useParallelSolver;
 

@@ -168,18 +168,18 @@ void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
     StoneBoard brd(m_game.Board());
     HexColor color = brd.WhoseTurn();
     BookNode parent;
-    if (!m_book->GetNode(brd, parent))
+    if (!m_book->Get(brd, parent))
         return;
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.PlayMove(color, *p);
         BookNode succ;
-        if (m_book->GetNode(brd, succ))
+        if (m_book->Get(brd, succ))
         {
             cmd << " " << *p;
             float priority = BookUtil::ComputePriority(brd, parent, 
                                                succ, m_bookBuilder.Alpha());
-            float value = Book::InverseEval(succ.m_value);
+            float value = BookUtil::InverseEval(succ.m_value);
             if (HexEvalUtil::IsWin(value))
                 cmd << " W";
             else if (HexEvalUtil::IsLoss(value))

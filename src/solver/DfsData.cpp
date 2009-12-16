@@ -1,33 +1,16 @@
 //----------------------------------------------------------------------------
-/** @file SolvedState.cpp
+/** @file DfsData.cpp
  */
 //----------------------------------------------------------------------------
 
 #include "Misc.hpp"
-#include "SolvedState.hpp"
+#include "DfsData.hpp"
 
 using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-void SolvedState::CheckCollision(const SolvedState& other) const
-{
-    if (this->black != other.black || this->white != other.white)
-    {
-        LogSevere() << "HASH COLLISION!" << '\n'
-		    << "this:" << '\n'
-		    << HexPointUtil::ToString(this->black) << '\n'
-		    << HexPointUtil::ToString(this->white) << '\n'
-		    << "other:" << '\n'
-		    << HexPointUtil::ToString(other.black) << '\n'
-		    << HexPointUtil::ToString(other.white) << '\n';
-	abort();
-    } 
-}
-
-//----------------------------------------------------------------------------
-
-int SolvedState::PackedSize() const
+int DfsData::PackedSize() const
 {
     return (sizeof(win) + 
             sizeof(flags) +
@@ -37,7 +20,7 @@ int SolvedState::PackedSize() const
 }
 
 /** @bug NOT THREADSAFE! */
-byte* SolvedState::Pack() const
+byte* DfsData::Pack() const
 {
     // replace this to make it threadsafe
     static byte data[256];
@@ -61,7 +44,7 @@ byte* SolvedState::Pack() const
     return data;
 }
 
-void SolvedState::Unpack(const byte* data)
+void DfsData::Unpack(const byte* data)
 {
     int index = 0;
     
