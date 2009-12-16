@@ -640,6 +640,8 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                 }
                 HexAssert(children.Size() > 0);
                 HexAssert(children.Size() == childrenData.size());
+                if (m_useGuiFx && depth == 0)
+                    m_guiFx.SetChildren(children, childrenData);
             }
         }
     }
