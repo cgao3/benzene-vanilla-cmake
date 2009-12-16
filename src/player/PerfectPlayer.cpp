@@ -17,7 +17,6 @@ PerfectPlayer::PerfectPlayer(DfsSolver* solver)
       m_solver(solver),
       m_db(0)
 {
-    LogFine() << "--- PerfectPlayer\n";
 }
 
 PerfectPlayer::~PerfectPlayer()
@@ -66,7 +65,7 @@ bool PerfectPlayer::find_db_move(StoneBoard& brd, HexColor color,
 
     // bail if state doesn't exist in db
     DfsData root_state;
-    if (!m_db->get(brd, root_state)) 
+    if (!m_db->Get(brd, root_state)) 
     {
         LogInfo() << "perfect: state not in db.\n";
         return false;
@@ -82,49 +81,57 @@ bool PerfectPlayer::find_db_move(StoneBoard& brd, HexColor color,
     int loss_length =-999999;
 
     bool found_child = false;
-    for (BitsetIterator p(brd.GetEmpty()); p; ++p) {
+    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
+    {
         brd.PlayMove(color, *p);
-        
         DfsData state;
-        if (m_db->get(brd, state)) {
+        if (m_db->Get(brd, state)) 
+        {
             found_child = true;
-            if (state.win) {
-                if (state.nummoves > loss_length) {
+            if (state.win) 
+            {
+                if (state.nummoves > loss_length) 
+                {
                     best_loss = *p;
                     loss_length = state.nummoves;
                 }
-            } else {
-                if (state.nummoves < win_length) {
+            } 
+            else 
+            {
+                if (state.nummoves < win_length) 
+                {
                     best_win = *p;
                     win_length = state.nummoves;
                 }
             }
         }
-        
         brd.UndoMove(*p);
     }
     
     // if no child (ie, a db leaf state), we have to solve it by hand
-    if (!found_child) {
-        LogInfo() << "perfect: db leaf." << '\n';
+    if (!found_child) 
+    {
+        LogInfo() << "perfect: db leaf.\n";
         return false;
     }
-
-    if (winning) {
+    if (winning) 
+    {
         HexAssert(best_win != INVALID_POINT);
         move_to_play = best_win;
         score = IMMEDIATE_WIN - win_length;
-    } else {
+    } 
+    else 
+    {
         HexAssert(best_loss != INVALID_POINT);
         move_to_play = best_loss;
         score = IMMEDIATE_LOSS + loss_length;
     }
-
     return true;
 }
 
 void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color, 
-                                    HexPoint& move_to_play, double& score) const
+                                    HexPoint& move_to_play, 
+                                    double& score) const
 {
     LogInfo() << "perfect: state not in db; solving from scratch.\n";
         
@@ -139,13 +146,14 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
     {
         int flags = m_solver->GetFlags();
         m_solver->SetFlags(flags | DfsSolver::SOLVE_ROOT_AGAIN);
-        result = m_solver->Solve(brd, color, *m_db, solution);
+        // PERFECT PLAYER IS BROKEN NOW
+        //result = m_solver->Solve(brd, color, *m_db, solution);
         m_solver->SetFlags(flags);
     } 
     else 
     {
         LogInfo() << "perfect: solving state without db...\n";
-        result = m_solver->Solve(brd, color, solution);
+        result = m_solver->Solve(brd, color, 0, 0, 0, solution);
     }
     HexAssert(result != DfsSolver::UNKNOWN);
         
@@ -157,7 +165,7 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
     HexAssert(!solution.pv.empty());
     move_to_play = solution.pv[0];
     
-    if (solution.result)
+    if (result == DfsSolver::WIN)
         score = IMMEDIATE_WIN - solution.moves_to_connection;
     else
         score = IMMEDIATE_LOSS + solution.moves_to_connection;

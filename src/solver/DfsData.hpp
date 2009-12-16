@@ -7,6 +7,7 @@
 #define DFSDATA_H
 
 #include "Hex.hpp"
+#include "ConstBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -68,7 +69,7 @@ struct DfsData
     
     // @} 
 
-    /** @name PackableConcept. */
+    /** @name PositionDBStateConcept. */
     // @{
 
     int PackedSize() const;
@@ -76,6 +77,8 @@ struct DfsData
     byte* Pack() const;
 
     void Unpack(const byte* t);
+
+    void Rotate(const ConstBoard& brd);
 
     // @}
 };

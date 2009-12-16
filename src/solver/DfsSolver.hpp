@@ -13,7 +13,7 @@
 #include "VC.hpp"
 #include "TransTable.hpp"
 #include "DfsData.hpp"
-#include "SolverDB.hpp"
+#include "PositionDB.hpp"
 #include "HexEval.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -25,8 +25,12 @@ typedef TransTable<DfsData> DfsHashTable;
 
 //----------------------------------------------------------------------
 
-/** Determines the winner of a gamestate. 
-    
+/** Database for use in DfsSolver. */
+typedef PositionDB<DfsData> DfsDB;
+
+//----------------------------------------------------------------------
+
+/** Determines the winner of a gamestate.
     DfsSolver uses a mustplay driven depth-first search to determine the
     winner in the given state.  A transposition table and a database
     of solved positions are also used to reduce the amount of work.
@@ -34,13 +38,8 @@ typedef TransTable<DfsData> DfsHashTable;
 class DfsSolver 
 {
 public:
-
-    //------------------------------------------------------------------------
-
-    /** Constructor. */
     DfsSolver();
 
-    /** Destructor. */
     ~DfsSolver();
 
     //------------------------------------------------------------------------
@@ -123,12 +122,12 @@ public:
     /** Contains all relevant data for a solution to a state. */
     struct SolutionSet
     {
-        /** @todo not currently used! */
-        Result result;
-
         bitset_t proof;
+
         int moves_to_connection;
+
         PointSequence pv;
+
         BranchStatistics stats;
 
         SolutionSet()
@@ -144,7 +143,6 @@ public:
     static const int SOLVE_ROOT_AGAIN = 1;
 
     /** User controllable settings. 
-
         @todo Combine these with the parameters below.
     */
     struct Settings
@@ -153,9 +151,13 @@ public:
 
         bool use_db;
 
-        int depth_limit;
+        int maxStones;
 
-        double time_limit;
+        int transStones;
+
+        int depthLimit;
+
+        double timeLimit;
 
         Settings() : flags(0) { };
     };
@@ -166,40 +168,19 @@ public:
     /** Gets the current flags. */
     int GetFlags() const;
    
-    //------------------------------------------------------------------------    
+    //------------------------------------------------------------------------
 
-    /** @name Methods to solve a given boardstate. 
-        
-        All Return WIN/LOSS if color to play wins/loses; otherwise
-        UNKNOWN. 
+    /** Solves state using the given database (pass in 0 for no
+        database). Numstones sets the maximum number of stones allowed
+        in a db state; transtones sets the maximum number of stones in
+        states stored with proof transpositions.  Returns WIN/LOSS if
+        color to play wins/loses; otherwise UNKNOWN.
     */
-
-    // @{
-
-    /** Solves state with no db. */
-    Result Solve(HexBoard& board, HexColor toplay, SolutionSet& solution,
-                 int depth_limit = NO_DEPTH_LIMIT, 
-                 double time_imit = NO_TIME_LIMIT);
-
-    /** Uses db in file filename; db is created if it does not
-        currently exist. Numstones sets the maximum number of stones
-        allowed in a db state; transtones sets the maximum number of
-        stones in states stored with proof transpositions. */
     Result Solve(HexBoard& board, HexColor toplay, 
-                 const std::string& filename, 
-                 int numstones, int transtones, 
+                 DfsDB* db, int numstones, int transtones, 
                  SolutionSet& solution,
                  int depth_limit = NO_DEPTH_LIMIT, 
                  double time_imit = NO_TIME_LIMIT);
-
-    /** Solves state using the supplied db. */
-    Result Solve(HexBoard& board, HexColor toplay, 
-                 SolverDB& db,
-                 SolutionSet& solution, 
-                 int depth_limit = NO_DEPTH_LIMIT, 
-                 double time_imit = NO_TIME_LIMIT);
-
-    // @} // @name
 
     //------------------------------------------------------------------------
 
@@ -345,8 +326,6 @@ private:
 
     void Initialize(const HexBoard&);
 
-    void Cleanup();
-
     /** Returns true if state is in DB or TT.  Checks DB first, then TT. 
         If return is true, info is stored in state. */
     bool CheckTransposition(DfsData& state) const;
@@ -440,17 +419,9 @@ private:
 
     //------------------------------------------------------------------------
 
-    /** Transposition table. */
     DfsHashTable* m_tt;
 
-    /** Database of solved positions.
-        
-        @note m_db cannot be a smart pointer because we may be passing
-        it in from the outside in one of the solve() methods. 
-    */
-    SolverDB* m_db;
-
-    bool m_delete_db_when_done;
+    DfsDB* m_db;
 
     double m_start_time, m_end_time;
 
@@ -463,7 +434,7 @@ private:
     mutable Histogram m_histogram;
 
     mutable GlobalStatistics m_statistics;
-
+    
     /** Board with no fillin. */
     boost::scoped_ptr<StoneBoard> m_stoneboard;
 

@@ -6,7 +6,7 @@ DfpnSolver.cpp \
 DfsCommands.cpp \
 DfsData.cpp \
 DfsSolver.cpp \
-SolverDB.cpp
+ProofUtil.cpp
 
 noinst_HEADERS = \
 DfpnCommands.hpp \
@@ -14,7 +14,7 @@ DfpnSolver.hpp \
 DfsCommands.hpp \
 DfsData.hpp \
 DfsSolver.hpp \
-SolverDB.hpp
+ProofUtil.hpp
 
 libsolver_a_CPPFLAGS = \
 $(BOOST_CPPFLAGS) \

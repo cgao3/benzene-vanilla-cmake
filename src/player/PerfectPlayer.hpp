@@ -30,9 +30,9 @@ public:
     /** Returns "perfect". */
     std::string Name() const;
 
-    SolverDB* DB();
+    DfsDB* DB();
 
-    void SetDB(SolverDB* db);
+    void SetDB(DfsDB* db);
     
 protected:
 
@@ -43,7 +43,7 @@ protected:
 
     DfsSolver* m_solver;
 
-    SolverDB* m_db;
+    DfsDB* m_db;
 
 private:
 
@@ -59,12 +59,12 @@ inline std::string PerfectPlayer::Name() const
     return "perfect";
 }
 
-inline SolverDB* PerfectPlayer::DB() 
+inline DfsDB* PerfectPlayer::DB() 
 {
     return m_db;
 }
 
-inline void PerfectPlayer::SetDB(SolverDB* db)
+inline void PerfectPlayer::SetDB(DfsDB* db)
 {
     m_db = db;
 }

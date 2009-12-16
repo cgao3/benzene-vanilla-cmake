@@ -17,7 +17,6 @@
 #include "PlayerUtils.hpp"
 #include "Resistance.hpp"
 #include "DfsSolver.hpp"
-#include "SolverDB.hpp"
 #include "SwapCheck.hpp"
 #include "TwoDistance.hpp"
 #include "VCSet.hpp"

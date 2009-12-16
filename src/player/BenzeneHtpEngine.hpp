@@ -94,7 +94,7 @@ protected:
 
     boost::scoped_ptr<DfpnHashTable> m_dfpnHashTable;
 
-    boost::scoped_ptr<SolverDB> m_db;
+    boost::scoped_ptr<DfsDB> m_db;
 
     HexEnvironmentCommands m_playerEnvCommands;
 

@@ -5,6 +5,7 @@
 
 #include "Misc.hpp"
 #include "DfsData.hpp"
+#include "BoardUtils.hpp"
 
 using namespace benzene;
 
@@ -61,6 +62,11 @@ void DfsData::Unpack(const byte* data)
     index += 4;
 
     bestmove = static_cast<HexPoint>(MiscUtil::BytesToWord(&data[index]));
+}
+
+void DfsData::Rotate(const ConstBoard& brd)
+{
+    bestmove = BoardUtils::Rotate(brd, bestmove);
 }
 
 //----------------------------------------------------------------------------
