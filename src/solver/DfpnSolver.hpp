@@ -147,6 +147,7 @@ public:
 
 private:
     friend class DfpnData;
+    friend class DfpnSolver;
 
     std::vector<HexPoint> m_children;
 };
@@ -178,10 +179,12 @@ public:
     
     size_t m_work;
 
+    bitset_t m_maxProofSet;
+
     DfpnData();
 
     DfpnData(const DfpnBounds& bounds, const DfpnChildren& children, 
-             HexPoint bestMove, size_t work);
+             HexPoint bestMove, size_t work, bitset_t maxProofSet);
 
     ~DfpnData();
 
@@ -222,11 +225,13 @@ inline DfpnData::DfpnData()
 
 inline DfpnData::DfpnData(const DfpnBounds& bounds, 
                           const DfpnChildren& children, 
-                          HexPoint bestMove, size_t work)
+                          HexPoint bestMove, size_t work,
+                          bitset_t maxProofSet)
     : m_bounds(bounds),
       m_children(children),
       m_bestMove(bestMove),
       m_work(work),
+      m_maxProofSet(maxProofSet),
       m_initialized(true)
 { 
 }
@@ -243,6 +248,7 @@ inline std::string DfpnData::Print() const
        << "children=" << m_children.Size() << ' '
        << "bestmove=" << m_bestMove << ' '
        << "work=" << m_work << ' '
+       << "maxpfset=not printing"
        << ']';
     return os.str();
 }
@@ -483,6 +489,8 @@ private:
     size_t m_numUniqueProbes;
 
     size_t m_numProbeChecks;
+
+    SgStatisticsExt<float, std::size_t> m_prunedSiblingStats;
 
     DfpnDB* m_db;
     

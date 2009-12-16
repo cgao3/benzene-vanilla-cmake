@@ -316,6 +316,12 @@ void DfpnSolver::PrintStatistics()
     LogInfo() << "     MID calls: " << m_numMIDcalls << '\n';
     LogInfo() << "     VC builds: " << m_numVCbuilds << '\n';
     LogInfo() << "Terminal nodes: " << m_numTerminal << '\n';
+    LogInfo() << " Cnt prune sib: " << m_prunedSiblingStats.Count() << '\n';
+    std::ostringstream os;
+    os << " Avg prune sib: ";
+    m_prunedSiblingStats.Write(os);
+    os << '\n';
+    LogInfo() << os.str();
     if (m_useUniqueProbes)
     {
         LogInfo() << "  Probe Checks: " << m_numProbeChecks << '\n';
@@ -343,6 +349,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     m_numVCbuilds = 0;
     m_numUniqueProbes = 0;
     m_numProbeChecks = 0;
+    m_prunedSiblingStats.Clear();
     m_brd.reset(new StoneBoard(board.GetState()));
     m_workBoard = &board;
     m_checkTimerAbortCalls = 0;
@@ -446,12 +453,14 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     int depth = history.Depth();
     HexColor colorToMove = m_brd->WhoseTurn();
 
+    bitset_t maxProofSet;
     DfpnChildren children;
     {
         DfpnData data;
         if (TTRead(*m_brd, data)) 
         {
             children = data.m_children;
+            maxProofSet = data.m_maxProofSet;
             HexAssert(bounds.phi > data.m_bounds.phi);
             HexAssert(bounds.delta > data.m_bounds.delta);
         }
@@ -460,6 +469,12 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
             m_workBoard->GetState().SetState(*m_brd);
             m_workBoard->ComputeAll(colorToMove);
             ++m_numVCbuilds;
+            // Compute the maximum possible proof set if !colorToMove wins.
+            // This data is used to prune siblings of this state.
+            maxProofSet = m_workBoard->GetState().GetEmpty()
+                | m_workBoard->GetState().GetPlayed(colorToMove)
+                | m_workBoard->GetInferiorCells().DeductionSet(colorToMove);
+
             if (PlayerUtils::IsDeterminedState(*m_workBoard, colorToMove))
             {
                 ++m_numTerminal;
@@ -475,7 +490,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                     m_guiFx.Write();
                 }
                 TTWrite(*m_brd, DfpnData(terminal, DfpnChildren(), 
-                                         INVALID_POINT, 1));
+                                         INVALID_POINT, 1, maxProofSet));
                 return 1;
             }
             bitset_t childrenBitset 
@@ -572,6 +587,61 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                 break;
             }
         }
+
+        // Shrink children list using knowledge of bestMove child's proof set.
+        // That is, if this child is losing, conclude what other children
+        // must also be losing (i.e. cannot interfere with the proof set
+        // that disproves this child).
+        // And of course if this child is winning, no need to explore
+        // these other siblings either.
+        {
+            /* @todo Perhaps track allChildren instead of recomputing? */
+            bitset_t allChildren;
+            for (std::vector<HexPoint>::iterator it
+                     = children.m_children.begin();
+                 it != children.m_children.end(); ++it)
+            {
+                allChildren.set(*it);
+            }
+            bitset_t canPrune = allChildren
+                - childrenData[bestIndex].m_maxProofSet;
+            canPrune.reset(bestMove);
+            int pruneCount = canPrune.count();
+
+            if (pruneCount)
+            {
+                m_prunedSiblingStats.Add(pruneCount);
+                /*
+                LogInfo() << "Pruning " << pruneCount
+                          << " moves via " << bestMove
+                          << ".\nChildren:\n" << m_brd->Write(allChildren)
+                          << "\nRemoving...\n" << m_brd->Write(canPrune)
+                          << "\n";
+                */
+                //TODO: This should be two different methods...
+                // want m_children to be private again
+                // childrenData should be processed separately
+                std::vector<HexPoint>::iterator it1
+                    = children.m_children.begin();
+                std::vector<DfpnData>::iterator it2 = childrenData.begin();
+                while (it1 != children.m_children.end())
+                {
+                    HexAssert(it2 != childrenData.end());
+                    if (canPrune.test(*it1))
+                    {
+                        it1 = children.m_children.erase(it1);
+                        it2 = childrenData.erase(it2);
+                    }
+                    else
+                    {
+                        ++it1;
+                        ++it2;
+                    }
+                }
+                HexAssert(children.Size() > 0);
+                HexAssert(children.Size() == childrenData.size());
+            }
+        }
     }
 
     if (m_useGuiFx && depth == 0)
@@ -611,7 +681,8 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     // Store search results and notify listeners
     if (!m_aborted)
     {
-        DfpnData data(currentBounds, children, bestMove, localWork);
+        DfpnData data(currentBounds, children, bestMove,
+                      localWork, maxProofSet);
         TTWrite(*m_brd, data);
         if (data.m_bounds.IsSolved())
             NotifyListeners(history, data);
