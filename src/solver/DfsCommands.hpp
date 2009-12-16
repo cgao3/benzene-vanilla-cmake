@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file SolverCommands.hpp
+/** @file DfsCommands.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -11,19 +11,18 @@
 #include "HexHtpEngine.hpp"
 #include "HexEnvironment.hpp"
 #include "DfsSolver.hpp"
-#include "SolverDB.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
 /** Commands for building/inspecting virtual connections. */
-class SolverCommands
+class DfsCommands
 {
 public:
-    SolverCommands(Game& game, HexEnvironment& env, DfsSolver& solver,
+    DfsCommands(Game& game, HexEnvironment& env, DfsSolver& solver,
                    boost::scoped_ptr<DfsHashTable>& solverTT, 
-                   boost::scoped_ptr<SolverDB>& solverDB);
+                   boost::scoped_ptr<DfsDB>& solverDB);
 
     void Register(GtpEngine& engine);
 
@@ -36,10 +35,10 @@ private:
 
     boost::scoped_ptr<DfsHashTable>& m_tt;
     
-    boost::scoped_ptr<SolverDB>& m_db;
+    boost::scoped_ptr<DfsDB>& m_db;
         
     void Register(GtpEngine& engine, const std::string& command,
-                  GtpCallback<SolverCommands>::Method method);
+                  GtpCallback<DfsCommands>::Method method);
 
     void CmdParamSolver(HtpCommand& cmd);
     void CmdSolveState(HtpCommand& cmd);

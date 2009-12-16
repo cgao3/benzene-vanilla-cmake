@@ -79,6 +79,8 @@ public:
         @todo Moves this out of here? */
     std::string GetBoardIDString() const;
 
+    //-----------------------------------------------------------------------
+
     /** Number of played stones on the interior of the board. 
         Similar to:
         @code
@@ -87,9 +89,14 @@ public:
     */
     int NumStones() const;
 
-    /** Computes whose turn it is on the given board, assuming FIRST_TO_PLAY
-        moves first and alternating play. */
+    /** Computes whose turn it is on the given board;
+        IsStandardPosition() must be true to use this method. */
     HexColor WhoseTurn() const;
+
+    /** Returns true if position is attainable in a normal game.
+        That is, FIRST_TO_PLAY went first, and the colors alternated
+        afterwards. */
+    bool IsStandardPosition() const;
 
     //-----------------------------------------------------------------------
 
@@ -411,10 +418,17 @@ inline bool StoneBoard::operator!=(const StoneBoard& other) const
 
 inline HexColor StoneBoard::WhoseTurn() const
 {
+    HexAssert(IsStandardPosition());
     bitset_t mask = GetPlayed() & Const().GetCells();
     int first = (GetColor(FIRST_TO_PLAY) & mask).count();
     int second = (GetColor(!FIRST_TO_PLAY) & mask).count();
     return (first > second) ? !FIRST_TO_PLAY : FIRST_TO_PLAY;
+}
+
+inline bool StoneBoard::IsStandardPosition() const
+{
+    int diff = GetPlayed(BLACK).count() - GetPlayed(WHITE).count();
+    return (diff == 1) || (diff == 0);
 }
 
 inline BoardIterator StoneBoard::Stones(HexColor color) const

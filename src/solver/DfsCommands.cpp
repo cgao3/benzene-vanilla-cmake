@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file SolverCommands.cpp
+/** @file DfsCommands.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -13,10 +13,10 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-SolverCommands::SolverCommands(Game& game, HexEnvironment& env,
-                               DfsSolver& solver,
-                               boost::scoped_ptr<DfsHashTable>& solverTT, 
-                               boost::scoped_ptr<SolverDB>& solverDB)
+DfsCommands::DfsCommands(Game& game, HexEnvironment& env,
+                         DfsSolver& solver,
+                         boost::scoped_ptr<DfsHashTable>& solverTT, 
+                         boost::scoped_ptr<DfsDB>& solverDB)
     : m_game(game), 
       m_env(env),
       m_solver(solver),
@@ -25,28 +25,28 @@ SolverCommands::SolverCommands(Game& game, HexEnvironment& env,
 {
 }
 
-void SolverCommands::Register(GtpEngine& e)
+void DfsCommands::Register(GtpEngine& e)
 {
-    Register(e, "param_dfs", &SolverCommands::CmdParamSolver);
-    Register(e, "dfs-solve-state", &SolverCommands::CmdSolveState);
-    Register(e, "dfs-clear-tt", &SolverCommands::CmdSolverClearTT);
+    Register(e, "param_dfs", &DfsCommands::CmdParamSolver);
+    Register(e, "dfs-solve-state", &DfsCommands::CmdSolveState);
+    Register(e, "dfs-clear-tt", &DfsCommands::CmdSolverClearTT);
     Register(e, "dfs-solver-find-winning", 
-             &SolverCommands::CmdSolverFindWinning);
+             &DfsCommands::CmdSolverFindWinning);
 
-    Register(e, "db-open", &SolverCommands::CmdDBOpen);
-    Register(e, "db-close", &SolverCommands::CmdDBClose);
-    Register(e, "db-get", &SolverCommands::CmdDBGet);
+    Register(e, "db-open", &DfsCommands::CmdDBOpen);
+    Register(e, "db-close", &DfsCommands::CmdDBClose);
+    Register(e, "db-get", &DfsCommands::CmdDBGet);
 }
 
-void SolverCommands::Register(GtpEngine& engine, const std::string& command,
-                              GtpCallback<SolverCommands>::Method method)
+void DfsCommands::Register(GtpEngine& engine, const std::string& command,
+                              GtpCallback<DfsCommands>::Method method)
 {
-    engine.Register(command, new GtpCallback<SolverCommands>(this, method));
+    engine.Register(command, new GtpCallback<DfsCommands>(this, method));
 }
 
 //----------------------------------------------------------------------------
 
-void SolverCommands::CmdParamSolver(HtpCommand& cmd)
+void DfsCommands::CmdParamSolver(HtpCommand& cmd)
 {
     if (cmd.NuArg() == 0)
     {
@@ -90,7 +90,6 @@ void SolverCommands::CmdParamSolver(HtpCommand& cmd)
 		m_tt.reset(0);
 	    else
 		m_tt.reset(new DfsHashTable(bits));
-	    m_solver.SetTT(m_tt.get());
 	}
         else if (name == "update_depth")
             m_solver.SetUpdateDepth(cmd.IntArg(1, 0));
@@ -104,53 +103,56 @@ void SolverCommands::CmdParamSolver(HtpCommand& cmd)
     (Where M is maximum number of stones in db and T is the maximum
     number of stones for which transpositions are computed.)
 */
-void SolverCommands::CmdSolveState(HtpCommand& cmd)
+void DfsCommands::CmdSolveState(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(4);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
 
-    bool use_db = false;
-    std::string filename = "dummy";
-    int maxstones = 5;
-    int transtones = maxstones;
-    if (cmd.NuArg() >= 2) {
-        use_db = true;
-        filename = cmd.Arg(1);
+    int maxStones = 5;
+    int transStones = maxStones;
+    boost::scoped_ptr<DfsDB> db(0);
+    if (cmd.NuArg() >= 2) 
+    {
+        std::string filename = cmd.Arg(1);
+        db.reset(new DfsDB(filename));
     }
-    if (cmd.NuArg() == 3) {
-        maxstones = cmd.IntArg(2, 1);
-        transtones = maxstones;
-    } else if (cmd.NuArg() == 4) {
-        transtones = cmd.IntArg(2, -1);
-        maxstones = cmd.IntArg(3, 1);
+    if (cmd.NuArg() == 3) 
+    {
+        maxStones = cmd.IntArg(2, 1);
+        transStones = maxStones;
+    } 
+    else if (cmd.NuArg() == 4) 
+    {
+        transStones = cmd.IntArg(2, -1);
+        maxStones = cmd.IntArg(3, 1);
     }
 
-    double timelimit = -1.0;  // FIXME: WHY ARE THESE HERE?!?!
+    double timelimit = -1.0;
     int depthlimit = -1;
 
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
 
     DfsSolver::SolutionSet solution;
-    DfsSolver::Result result = (use_db) ?
-        m_solver.Solve(brd, color, filename, maxstones, transtones, solution,
-                      depthlimit, timelimit) :
-        m_solver.Solve(brd, color, solution, depthlimit, timelimit);
-
+    DfsSolver::Result result = 
+        m_solver.Solve(brd, color, m_tt.get(), db.get(), 
+                       maxStones, transStones, solution,
+                       depthlimit, timelimit);
     m_solver.DumpStats(solution);
 
     HexColor winner = EMPTY;
-    if (result != DfsSolver::UNKNOWN) {
-        winner = (result==DfsSolver::WIN) ? color : !color;
-        LogInfo() << winner << " wins!" << '\n'
-		  << brd.Write(solution.proof) << '\n';
-    } else {
-        LogInfo() << "Search aborted!" << '\n';
-    }
+    if (result != DfsSolver::UNKNOWN) 
+    {
+        winner = (result == DfsSolver::WIN) ? color : !color;
+        LogInfo() << winner << " wins!\n"
+                  << brd.Write(solution.proof) << '\n';
+    } 
+    else 
+        LogInfo() << "Search aborted!\n";
     cmd << winner;
 }
 
 /** Clears the current TT. */
-void SolverCommands::CmdSolverClearTT(HtpCommand& cmd)
+void DfsCommands::CmdSolverClearTT(HtpCommand& cmd)
 {
     UNUSED(cmd);
     m_tt->Clear();
@@ -160,31 +162,30 @@ void SolverCommands::CmdSolverClearTT(HtpCommand& cmd)
     on each child move. 
     Usage: same as 'solve-state'.
 */
-void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
+void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(4);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexColor other = !color;
 
-    bool use_db = false;
-    std::string filename = "dummy";
-    int maxstones = 5; // FIXME: Good?
-    int transtones = maxstones;
+    boost::scoped_ptr<DfsDB> db(0);
+    int maxStones = 5;
+    int transStones = maxStones;
     if (cmd.NuArg() >= 2)
     {
-        use_db = true;
-        filename = cmd.Arg(1);
+        std::string filename = cmd.Arg(1);
+        db.reset(new DfsDB(filename));
     }
 
     if (cmd.NuArg() == 3)
     {
-        maxstones = cmd.IntArg(2, 1);
-        transtones = maxstones;
+        maxStones = cmd.IntArg(2, 1);
+        transStones = maxStones;
     }
     else if (cmd.NuArg() == 4)
     {
-        transtones = cmd.IntArg(2, -1);
-        maxstones = cmd.IntArg(3, 1);
+        transStones = cmd.IntArg(2, -1);
+        maxStones = cmd.IntArg(3, 1);
     }
 
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
@@ -204,17 +205,14 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
 
         HexBoard& brd = m_env.SyncBoard(board);
 
-        bitset_t proof;
-        std::vector<HexPoint> pv;
-
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
 
         HexColor winner = EMPTY;
         DfsSolver::SolutionSet solution;
-        DfsSolver::Result result = (use_db) 
-            ? m_solver.Solve(brd, other, filename, 
-                              maxstones, transtones, solution)
-            : m_solver.Solve(brd, other, solution);
+        DfsSolver::Result result = m_solver.Solve(brd, other, 
+                                                  m_tt.get(), db.get(), 
+                                                  maxStones, transStones, 
+                                                  solution);
         m_solver.DumpStats(solution);
         LogInfo() << "Proof:" << brd.Write(solution.proof) << '\n';
 
@@ -242,7 +240,7 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
 /** Opens a database. 
     Usage: "db-open [filename] { M | T M }"
 */
-void SolverCommands::CmdDBOpen(HtpCommand& cmd)
+void DfsCommands::CmdDBOpen(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(3);
     std::string filename = cmd.Arg(0);
@@ -259,13 +257,8 @@ void SolverCommands::CmdDBOpen(HtpCommand& cmd)
         maxstones = cmd.IntArg(2, 1);
     }
 
-    const StoneBoard& brd = m_game.Board();
     try {
-        if (maxstones == -1)
-            m_db.reset(new SolverDB(brd.Width(), brd.Height(), filename));
-        else
-            m_db.reset(new SolverDB(brd.Width(), brd.Height(), maxstones,
-                                    transtones, filename));
+        m_db.reset(new DfsDB(filename));
     }
     catch (HexException& e) {
         m_db.reset(0);
@@ -274,14 +267,14 @@ void SolverCommands::CmdDBOpen(HtpCommand& cmd)
 }
 
 /** Closes an open database. */
-void SolverCommands::CmdDBClose(HtpCommand& cmd)
+void DfsCommands::CmdDBClose(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
     m_db.reset(0);
 }
 
 /** Dumps info from db on current state. */
-void SolverCommands::CmdDBGet(HtpCommand& cmd)
+void DfsCommands::CmdDBGet(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
     if (!m_db) 
@@ -290,8 +283,7 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     StoneBoard brd(m_game.Board());
     HexColor toplay = brd.WhoseTurn();
     DfsData state;
-
-    if (!m_db->get(brd, state)) 
+    if (!m_db->Get(brd, state)) 
     {
         cmd << "State not in database.";
         return;
@@ -308,7 +300,7 @@ void SolverCommands::CmdDBGet(HtpCommand& cmd)
     {
         brd.PlayMove(toplay, *p);
 
-        if (m_db->get(brd, state)) 
+        if (m_db->Get(brd, state)) 
         {
             if (state.win)
                 losing.push_back(*p);

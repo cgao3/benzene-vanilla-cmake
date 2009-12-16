@@ -17,7 +17,6 @@
 #include "PlayerUtils.hpp"
 #include "Resistance.hpp"
 #include "DfsSolver.hpp"
-#include "SolverDB.hpp"
 #include "SwapCheck.hpp"
 #include "TwoDistance.hpp"
 #include "VCSet.hpp"
@@ -71,9 +70,6 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("eval-influence", &BenzeneHtpEngine::CmdEvalInfluence);
 
     RegisterCmd("misc-debug", &BenzeneHtpEngine::CmdMiscDebug);
-
-    // Set some defaults
-    m_dfsSolver.SetTT(m_dfsHashTable.get());
 }
 
 BenzeneHtpEngine::~BenzeneHtpEngine()

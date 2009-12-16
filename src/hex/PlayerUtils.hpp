@@ -54,26 +54,6 @@ namespace PlayerUtils
         @see @ref computingmovestoconsider
     */
     bitset_t MovesToConsider(const HexBoard& brd, HexColor color);
-
-    /** Returns the set of moves that need to be considered from a
-        losing boardstate; that is, without the moves that we can
-        provably ignore.
-        
-        This is useful in the 1-ply pre-search of MoHex; there the
-        root is not a determined state, but it is possible that all
-        children returned by MovesToConsider() are actually losing
-        (discovered after playing them).  In this case, MoHex should
-        return the "best" possible losing move, but we cannot call
-        PlayDeterminedState() because the root is not determined.  To
-        find the best possible move, MoHex just searches. This method
-        is called to determine the mustplay of the losing moves.
-        
-        Mustplay should be empty.  Returned set of moves to consider
-        is guaranteed to be non-empty. This assumes IsLosGame()
-        returns true.
-    */
-    bitset_t MovesToConsiderInLosingState(const HexBoard& brd, HexColor color);
-
 }
 
 //----------------------------------------------------------------------------

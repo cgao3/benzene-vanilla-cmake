@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file PlayerUtils.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -36,12 +36,9 @@ using namespace benzene;
 /** @page computingmovestoconsider Computing the set of moves to consider
 
     The set of moves to consider is defined as the mustplay minus
-    as many inferior cells as possible.  
-
-    @note We cannot remove all inferior cells since playing our
-    own captured can be a winning move (if HexBoard is handling
-    endgames and removed the winning captured stones). Thus we
-    always ensure there is at least one move to play.
+    the inferior cells. This set can never be empty, because 
+    IsLostGame() detects such states and reports them as losing (these
+    states will be handled by PlayDeterminedState()).
 */
 
 //----------------------------------------------------------------------------
@@ -76,46 +73,48 @@ HexPoint MostOverlappingMove(const std::vector<VC>& VClist,
     
     // compute intersection of smallest until next one makes it empty
     std::vector<VC>::const_iterator it;
-    for (it=VClist.begin(); it!=VClist.end(); ++it) {
+    for (it = VClist.begin(); it != VClist.end(); ++it) 
+    {
         bitset_t carrier = it->carrier();
         if ((carrier & intersectSmallest).none())
 	    break;
 	intersectSmallest &= carrier;
     }
-    LogFine() << "Intersection of smallest set is:" << '\n'
+    LogFine() << "Intersection of smallest set is:\n"
 	      << HexPointUtil::ToString(intersectSmallest) << '\n';
     
     // remove as many inferior moves as possible from this intersection
     TightenMoveBitset(intersectSmallest, inf);
     
-    LogFine() << "After elimination of inferior cells:" << '\n'
+    LogFine() << "After elimination of inferior cells:\n"
 	      << HexPointUtil::ToString(intersectSmallest) << '\n';
     
     // determine which of the remaining cells performs best with
     // regards to other connections
     int numHits[BITSETSIZE];
     memset(numHits, 0, sizeof(numHits));
-    for (it=VClist.begin(); it!=VClist.end(); ++it) {
+    for (it = VClist.begin(); it != VClist.end(); ++it) 
+    {
 	bitset_t carrier = it->carrier();
-	for (int i=0; i<BITSETSIZE; i++) {
+	for (int i = 0; i < BITSETSIZE; i++) 
 	    if (intersectSmallest.test(i) && carrier.test(i))
 		numHits[i]++;
-	}
     }
     
     int curBestMove = -1;
     int curMostHits = 0;
-    for (int i=0; i<BITSETSIZE; i++) {
-	if (numHits[i] > curMostHits) {
+    for (int i = 0; i < BITSETSIZE; i++) 
+    {
+	if (numHits[i] > curMostHits) 
+        {
 	    HexAssert(intersectSmallest.test(i));
 	    curMostHits = numHits[i];
 	    curBestMove = i;
 	}
     }
     
-    if (curMostHits == 0) {
-        LogWarning() << "curMostHits == 0!!" << '\n';
-    }
+    if (curMostHits == 0)
+        LogWarning() << "curMostHits == 0!!\n";
     HexAssert(curMostHits > 0);
     return (HexPoint)curBestMove;
 }
@@ -125,7 +124,7 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
 {
     HexAssert(PlayerUtils::IsWonGame(brd, color));
 
-    // if we have a winning SC, then play in the key of the smallest one
+    // If we have a winning SC, then play in the key of the smallest one
     VC winningVC;
     if (brd.Cons(color).SmallestVC(HexPointUtil::colorEdge1(color), 
                                    HexPointUtil::colorEdge2(color), 
@@ -135,7 +134,7 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
         return winningVC.key();
     }
     
-    // if instead we have a winning VC, then play best move in its carrier set
+    // If instead we have a winning VC, then play best move in its carrier set
     if (brd.Cons(color).Exists(HexPointUtil::colorEdge1(color),
                                HexPointUtil::colorEdge2(color),
                                VC::FULL))
@@ -147,8 +146,7 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
                             VC::FULL, vcs);
 	return MostOverlappingMove(vcs, brd.GetInferiorCells());
     }
-    
-    // should never get here!
+    // Should never get here!
     HexAssert(false);
     return INVALID_POINT;
 }
@@ -273,23 +271,6 @@ bitset_t PlayerUtils::MovesToConsider(const HexBoard& brd, HexColor color)
 
     LogFine() << "Moves to consider for " << color << ":" 
               << brd.Write(consider) << '\n';
-    return consider;
-}
-
-bitset_t PlayerUtils::MovesToConsiderInLosingState(const HexBoard& brd, 
-                                                   HexColor color)
-{
-    HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(!IsLostGame(brd, color));
-    
-    bitset_t consider = brd.GetState().GetEmpty();
-    HexAssert(consider.any());
-    
-    TightenMoveBitset(consider, brd.GetInferiorCells());
-
-    LogFine() << "Losing moves to consider for " << color << ":" 
-              << brd.Write(consider) << '\n';
-
     return consider;
 }
 
