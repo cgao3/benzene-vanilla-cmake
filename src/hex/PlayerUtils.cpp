@@ -36,12 +36,9 @@ using namespace benzene;
 /** @page computingmovestoconsider Computing the set of moves to consider
 
     The set of moves to consider is defined as the mustplay minus
-    as many inferior cells as possible.  
-
-    @note We cannot remove all inferior cells since playing our
-    own captured can be a winning move (if HexBoard is handling
-    endgames and removed the winning captured stones). Thus we
-    always ensure there is at least one move to play.
+    the inferior cells. This set can never be empty, because 
+    IsLostGame() detects such states and reports them as losing (these
+    states will be handled by PlayDeterminedState()).
 */
 
 //----------------------------------------------------------------------------
