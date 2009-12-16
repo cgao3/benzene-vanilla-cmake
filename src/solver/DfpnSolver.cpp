@@ -34,55 +34,6 @@ size_t ComputeInitialDelta(size_t index, size_t numChildren, size_t boardSize)
     return (index < numChildren / 2) ? 1 : 2 * boardSize;
 }
 
-bool g_UniqueProbesInitialized = false;
-std::vector<Pattern> g_uniqueProbe[BLACK_AND_WHITE];
-HashedPatternSet g_hash_uniqueProbe[BLACK_AND_WHITE];
-
-/** Initialize the unique probe patterns.  */
-void InitializeUniqueProbes()
-{
-    if (g_UniqueProbesInitialized) 
-        return;
-    LogFine() << "--InitializeUniqueProbes\n";
-
-    using namespace boost::filesystem;
-    path filename = path(ABS_TOP_SRCDIR) / "share" / "unique-probe.txt";
-    filename.normalize();
-    
-    std::vector<Pattern> patterns;
-    Pattern::LoadPatternsFromFile(filename.native_file_string().c_str(), 
-                                  patterns);
-    LogFine() << "Read " << patterns.size() << " patterns.\n";
-    for (std::size_t i = 0; i < patterns.size(); ++i)
-    {
-        g_uniqueProbe[BLACK].push_back(patterns[i]);
-        patterns[i].flipColors();
-        g_uniqueProbe[WHITE].push_back(patterns[i]);
-    }
-    for (BWIterator c; c; ++c) 
-        g_hash_uniqueProbe[*c].hash(g_uniqueProbe[*c]);
-    g_UniqueProbesInitialized = true;
-}
-
-bool UniqueProbe(StoneBoard& brd, HexPoint losingMove, 
-                 HexPoint winningMove)
-{
-    PatternState pstate(brd);
-    pstate.Update();
-    
-    PatternHits hits;
-    pstate.MatchOnCell(g_hash_uniqueProbe[brd.WhoseTurn()],
-                       losingMove, PatternState::MATCH_ALL, hits);
-    for (std::size_t i = 0; i < hits.size(); ++i)
-    {
-        const std::vector<HexPoint>& moves = hits[i].moves1();
-        HexAssert(moves.size() == 1);
-        if (moves[0] == winningMove)
-            return true;
-    }
-    return false;
-}
-
 } // namespace
 
 //----------------------------------------------------------------------------
@@ -274,7 +225,6 @@ void DfpnData::Rotate(const ConstBoard& brd)
 DfpnSolver::DfpnSolver()
     : m_hashTable(0),
       m_useGuiFx(false),
-      m_useUniqueProbes(false),
       m_timelimit(0.0),
       m_guiFx()
 {
@@ -322,13 +272,6 @@ void DfpnSolver::PrintStatistics()
     m_prunedSiblingStats.Write(os);
     os << '\n';
     LogInfo() << os.str();
-    if (m_useUniqueProbes)
-    {
-        LogInfo() << "  Probe Checks: " << m_numProbeChecks << '\n';
-        LogInfo() << " Unique Probes: " << m_numUniqueProbes 
-                  << " (" << (100 * m_numUniqueProbes 
-                              / m_numProbeChecks) << "%)\n";
-    }
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime()<<'\n';
     LogInfo() << "       VCs/sec: " << m_numVCbuilds / m_timer.GetTime()<<'\n';
@@ -347,8 +290,6 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     m_numTerminal = 0;
     m_numMIDcalls = 0;
     m_numVCbuilds = 0;
-    m_numUniqueProbes = 0;
-    m_numProbeChecks = 0;
     m_prunedSiblingStats.Clear();
     m_brd.reset(new StoneBoard(board.GetState()));
     m_workBoard = &board;
@@ -360,8 +301,6 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
 #else
     m_db = 0;
 #endif
-
-    InitializeUniqueProbes();
 
     bool performSearch = true;
     {
@@ -571,22 +510,6 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
 
         // Update bounds for best child
         LookupData(childrenData[bestIndex], children, bestIndex, 1);
-
-        // Check unique probe heuristic
-        if (m_useUniqueProbes && childrenData[bestIndex].m_bounds.IsWinning())
-        {
-            HexPoint losingMove = bestMove;
-            HexPoint winningMove = childrenData[bestIndex].m_bestMove;
-            ++m_numProbeChecks;
-            if (UniqueProbe(*m_brd, losingMove, winningMove))
-            {
-                ++m_numUniqueProbes;
-                DfpnBounds::SetToLosing(currentBounds);
-                //LogInfo() << *m_brd << losingMove << ' ' 
-                //          << winningMove << '\n';
-                break;
-            }
-        }
 
         // Shrink children list using knowledge of bestMove child's proof set.
         // That is, if this child is losing, conclude what other children

@@ -402,13 +402,6 @@ public:
     /** See Timelimit() */
     void SetTimelimit(double timelimit);
 
-    /** Prune Unique Probes
-        @todo PHIL DOCUMENT THIS! */
-    bool UseUniqueProbes() const;
-
-    /** See UseUniqueProbes() */
-    void SetUseUniqueProbes(bool flag);
-
     // @}
 
 private:
@@ -465,9 +458,6 @@ private:
     /** See UseGuiFx() */
     bool m_useGuiFx;
 
-    /** See UniqueProbes() */
-    bool m_useUniqueProbes;
-
     /** See TimeLimit() */
     double m_timelimit;
 
@@ -485,10 +475,6 @@ private:
     size_t m_numMIDcalls;
 
     size_t m_numVCbuilds;
-
-    size_t m_numUniqueProbes;
-
-    size_t m_numProbeChecks;
 
     SgStatisticsExt<float, std::size_t> m_prunedSiblingStats;
 
@@ -551,16 +537,6 @@ inline double DfpnSolver::Timelimit() const
 inline void DfpnSolver::SetTimelimit(double timelimit)
 {
     m_timelimit = timelimit;
-}
-
-inline bool DfpnSolver::UseUniqueProbes() const
-{
-    return m_useUniqueProbes;
-}
-
-inline void DfpnSolver::SetUseUniqueProbes(bool flag)
-{
-    m_useUniqueProbes = flag;
 }
 
 //----------------------------------------------------------------------------
