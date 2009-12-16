@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file SolverCommands.hpp
+/** @file DfsCommands.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -17,10 +17,10 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Commands for building/inspecting virtual connections. */
-class SolverCommands
+class DfsCommands
 {
 public:
-    SolverCommands(Game& game, HexEnvironment& env, DfsSolver& solver,
+    DfsCommands(Game& game, HexEnvironment& env, DfsSolver& solver,
                    boost::scoped_ptr<DfsHashTable>& solverTT, 
                    boost::scoped_ptr<DfsDB>& solverDB);
 
@@ -38,7 +38,7 @@ private:
     boost::scoped_ptr<DfsDB>& m_db;
         
     void Register(GtpEngine& engine, const std::string& command,
-                  GtpCallback<SolverCommands>::Method method);
+                  GtpCallback<DfsCommands>::Method method);
 
     void CmdParamSolver(HtpCommand& cmd);
     void CmdSolveState(HtpCommand& cmd);

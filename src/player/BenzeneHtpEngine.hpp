@@ -102,7 +102,7 @@ protected:
 
     VCCommands m_vcCommands;
 
-    SolverCommands m_dfsSolverCommands;
+    DfsCommands m_dfsSolverCommands;
 
     DfpnCommands m_dfpnSolverCommands;
 

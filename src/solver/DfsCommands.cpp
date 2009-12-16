@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file SolverCommands.cpp
+/** @file DfsCommands.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -13,10 +13,10 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-SolverCommands::SolverCommands(Game& game, HexEnvironment& env,
-                               DfsSolver& solver,
-                               boost::scoped_ptr<DfsHashTable>& solverTT, 
-                               boost::scoped_ptr<DfsDB>& solverDB)
+DfsCommands::DfsCommands(Game& game, HexEnvironment& env,
+                         DfsSolver& solver,
+                         boost::scoped_ptr<DfsHashTable>& solverTT, 
+                         boost::scoped_ptr<DfsDB>& solverDB)
     : m_game(game), 
       m_env(env),
       m_solver(solver),
@@ -25,28 +25,28 @@ SolverCommands::SolverCommands(Game& game, HexEnvironment& env,
 {
 }
 
-void SolverCommands::Register(GtpEngine& e)
+void DfsCommands::Register(GtpEngine& e)
 {
-    Register(e, "param_dfs", &SolverCommands::CmdParamSolver);
-    Register(e, "dfs-solve-state", &SolverCommands::CmdSolveState);
-    Register(e, "dfs-clear-tt", &SolverCommands::CmdSolverClearTT);
+    Register(e, "param_dfs", &DfsCommands::CmdParamSolver);
+    Register(e, "dfs-solve-state", &DfsCommands::CmdSolveState);
+    Register(e, "dfs-clear-tt", &DfsCommands::CmdSolverClearTT);
     Register(e, "dfs-solver-find-winning", 
-             &SolverCommands::CmdSolverFindWinning);
+             &DfsCommands::CmdSolverFindWinning);
 
-    Register(e, "db-open", &SolverCommands::CmdDBOpen);
-    Register(e, "db-close", &SolverCommands::CmdDBClose);
-    Register(e, "db-get", &SolverCommands::CmdDBGet);
+    Register(e, "db-open", &DfsCommands::CmdDBOpen);
+    Register(e, "db-close", &DfsCommands::CmdDBClose);
+    Register(e, "db-get", &DfsCommands::CmdDBGet);
 }
 
-void SolverCommands::Register(GtpEngine& engine, const std::string& command,
-                              GtpCallback<SolverCommands>::Method method)
+void DfsCommands::Register(GtpEngine& engine, const std::string& command,
+                              GtpCallback<DfsCommands>::Method method)
 {
-    engine.Register(command, new GtpCallback<SolverCommands>(this, method));
+    engine.Register(command, new GtpCallback<DfsCommands>(this, method));
 }
 
 //----------------------------------------------------------------------------
 
-void SolverCommands::CmdParamSolver(HtpCommand& cmd)
+void DfsCommands::CmdParamSolver(HtpCommand& cmd)
 {
     if (cmd.NuArg() == 0)
     {
@@ -103,7 +103,7 @@ void SolverCommands::CmdParamSolver(HtpCommand& cmd)
     (Where M is maximum number of stones in db and T is the maximum
     number of stones for which transpositions are computed.)
 */
-void SolverCommands::CmdSolveState(HtpCommand& cmd)
+void DfsCommands::CmdSolveState(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(4);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -152,7 +152,7 @@ void SolverCommands::CmdSolveState(HtpCommand& cmd)
 }
 
 /** Clears the current TT. */
-void SolverCommands::CmdSolverClearTT(HtpCommand& cmd)
+void DfsCommands::CmdSolverClearTT(HtpCommand& cmd)
 {
     UNUSED(cmd);
     m_tt->Clear();
@@ -162,7 +162,7 @@ void SolverCommands::CmdSolverClearTT(HtpCommand& cmd)
     on each child move. 
     Usage: same as 'solve-state'.
 */
-void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
+void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(4);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -240,7 +240,7 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
 /** Opens a database. 
     Usage: "db-open [filename] { M | T M }"
 */
-void SolverCommands::CmdDBOpen(HtpCommand& cmd)
+void DfsCommands::CmdDBOpen(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(3);
     std::string filename = cmd.Arg(0);
@@ -267,14 +267,14 @@ void SolverCommands::CmdDBOpen(HtpCommand& cmd)
 }
 
 /** Closes an open database. */
-void SolverCommands::CmdDBClose(HtpCommand& cmd)
+void DfsCommands::CmdDBClose(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
     m_db.reset(0);
 }
 
 /** Dumps info from db on current state. */
-void SolverCommands::CmdDBGet(HtpCommand& cmd)
+void DfsCommands::CmdDBGet(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
     if (!m_db) 
