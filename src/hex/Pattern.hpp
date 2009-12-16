@@ -135,9 +135,7 @@ public:
         holds its carrier. */
     static const char VULNERABLE = 'v';
 
-    /** Marks a reversible cell. MARKED1 holds its reverser, and MARKED2
-        holds its carrier (all other cells in carrier are also reversible,
-        with the same reverser). */
+    /** Marks a reversible cell. MARKED1 holds its reverser. */
     static const char REVERSIBLE = 'r';
 
     /** Marks a dominated cell. MARKED1 holds its killer. */

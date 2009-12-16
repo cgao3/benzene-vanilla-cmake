@@ -88,6 +88,12 @@ public:
     void FindDominated(const PatternState& board, HexColor color, 
                        const bitset_t& consider, InferiorCells& inf) const;
 
+    /** Finds all dominated cell patterns for color on this one cell. */
+    void FindDominatedOnCell(const PatternState& pastate,
+                             HexColor color, 
+                             HexPoint cell,
+                             PatternHits& hits) const;
+
     /** Finds cells dominated via hand-coded patterns. */
     void FindHandCodedDominated(const StoneBoard& board, HexColor color,
                                 const bitset_t& consider, 

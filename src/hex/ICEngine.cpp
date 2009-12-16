@@ -836,7 +836,7 @@ bitset_t ICEngine::FindPermanentlyInferior(const PatternState& pastate,
                                  PatternState::STOP_AT_FIRST_HIT, hits);
     for (BitsetIterator p(ret); p; ++p) 
     {
-        HexAssert(hits[*p].size()==1);
+        HexAssert(hits[*p].size() == 1);
         const std::vector<HexPoint>& moves = hits[*p][0].moves2();
         for (unsigned i=0; i<moves.size(); ++i)
             carrier.set(moves[i]);
@@ -899,12 +899,10 @@ void ICEngine::FindReversible(const PatternState& pastate, HexColor color,
             HexPoint reverser = moves1[0];
             inf.AddReversible(*p, reverser);
 
-            // All cells in the carrier are also reversible (to same reverser)
-            const std::vector<HexPoint>& moves2 = hits[*p][j].moves2();
-            for (unsigned i=0; i<moves2.size(); ++i) {
-                if (consider.test(moves2[i]))
-                    inf.AddReversible(moves2[i], reverser);
-            }
+            // For now, no reversible patterns have carriers
+            // Note: this can change in the future if more complex ICE
+            // patterns are found
+            HexAssert(hits[*p][j].moves2().size() == 0);
         }
     }
 }
@@ -930,11 +928,26 @@ void ICEngine::FindDominated(const PatternState& pastate, HexColor color,
             const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
             HexAssert(moves1.size() == 1);
             inf.AddDominated(*p, moves1[0]);
+
+            // For now, no dominated patterns have carriers
+            // Note: this can change in the future if more complex ICE
+            // patterns are found
+            HexAssert(hits[*p][j].moves2().size() == 0);
         }
     }
     // Add dominators found via hand coded patterns
     if (m_use_handcoded_patterns)
         FindHandCodedDominated(pastate.Board(), color, consider, inf);
+}
+
+void ICEngine::FindDominatedOnCell(const PatternState& pastate,
+                                   HexColor color, 
+                                   HexPoint cell,
+                                   PatternHits& hits) const
+{
+    PatternState::MatchMode matchmode = PatternState::MATCH_ALL;
+    pastate.MatchOnCell(m_patterns.HashedDominated(color), cell,
+                        matchmode, hits);
 }
 
 void ICEngine::FindHandCodedDominated(const StoneBoard& board, 
