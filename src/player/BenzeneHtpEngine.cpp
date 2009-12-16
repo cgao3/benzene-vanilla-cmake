@@ -54,6 +54,8 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("compute-vulnerable", &BenzeneHtpEngine::CmdComputeVulnerable);
     RegisterCmd("compute-reversible", &BenzeneHtpEngine::CmdComputeReversible);
     RegisterCmd("compute-dominated", &BenzeneHtpEngine::CmdComputeDominated);
+    RegisterCmd("compute-dominated-cell",
+                &BenzeneHtpEngine::CmdComputeDominatedOnCell);
     RegisterCmd("find-comb-decomp", &BenzeneHtpEngine::CmdFindCombDecomp);
     RegisterCmd("find-split-decomp", &BenzeneHtpEngine::CmdFindSplitDecomp);
     RegisterCmd("encode-pattern", &BenzeneHtpEngine::CmdEncodePattern);
@@ -285,6 +287,23 @@ void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
     m_pe.ice.FindDominated(brd.GetPatternState(), col, 
                            brd.GetState().GetEmpty(), inf);
     cmd << inf.GuiOutput();
+    cmd << '\n';
+}
+
+void BenzeneHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(2);
+    HexColor col = HtpUtil::ColorArg(cmd, 0);
+    HexPoint cell = HtpUtil::MoveArg(cmd, 1);
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
+    if (m_game.Board().GetColor(cell) != EMPTY)
+        return;
+    brd.GetPatternState().Update();
+    PatternHits hits;
+    m_pe.ice.FindDominatedOnCell(brd.GetPatternState(), col, 
+                                 cell, hits);
+    for (std::size_t i=0; i<hits.size(); ++i)
+        cmd << " " << hits[i].pattern()->getName();
     cmd << '\n';
 }
 

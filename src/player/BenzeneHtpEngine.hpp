@@ -37,6 +37,7 @@ public:
         - @link CmdComputeVulnerable() @c compute-vulnerable @endlink
         - @link CmdComputeReversible() @c compute-reversible @endlink
         - @link CmdComputeDominated() @c compute-dominated @endlink
+        - @link CmdComputeDominatedOnCell() @c compute-dominated-cell @endlink
         - @link CmdFindCombDecomp() @c find-comb-decomp @endlink
         - @link CmdFindSplitDecomp() @c find-split-decomp @endlink
         - @link CmdEncodePattern() @c encode-pattern @endlink
@@ -63,6 +64,7 @@ public:
     void CmdComputeVulnerable(HtpCommand& cmd);
     void CmdComputeReversible(HtpCommand& cmd);
     void CmdComputeDominated(HtpCommand& cmd);
+    void CmdComputeDominatedOnCell(HtpCommand& cmd);
     void CmdFindCombDecomp(HtpCommand& cmd);
     void CmdFindSplitDecomp(HtpCommand& cmd);
     void CmdEncodePattern(HtpCommand& cmd);
