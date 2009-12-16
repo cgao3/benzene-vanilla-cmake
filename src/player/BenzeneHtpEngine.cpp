@@ -70,9 +70,6 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
     RegisterCmd("eval-influence", &BenzeneHtpEngine::CmdEvalInfluence);
 
     RegisterCmd("misc-debug", &BenzeneHtpEngine::CmdMiscDebug);
-
-    // Set some defaults
-    m_dfsSolver.SetTT(m_dfsHashTable.get());
 }
 
 BenzeneHtpEngine::~BenzeneHtpEngine()

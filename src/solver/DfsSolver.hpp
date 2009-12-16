@@ -177,7 +177,7 @@ public:
         color to play wins/loses; otherwise UNKNOWN.
     */
     Result Solve(HexBoard& board, HexColor toplay, 
-                 DfsDB* db, int numstones, int transtones, 
+                 DfsHashTable* tt, DfsDB* db, int numstones, int transtones, 
                  SolutionSet& solution,
                  int depth_limit = NO_DEPTH_LIMIT, 
                  double time_imit = NO_TIME_LIMIT);
@@ -186,12 +186,6 @@ public:
 
     /** @name Parameters */
     // @{
-
-    /** Returns the TT used in the search; 0 if no TT is set. */
-    DfsHashTable* GetTT() const;
-
-    /** See GetTT() */
-    void SetTT(DfsHashTable* TT);
 
     /** Controls whether gamestates decomposible into separate
         components have each side solved separately and the proofs
@@ -540,16 +534,6 @@ inline int DfsSolver::MoveOrdering() const
 inline void DfsSolver::SetMoveOrdering(int flags)
 {
     m_move_ordering = flags;
-}
-
-inline DfsHashTable* DfsSolver::GetTT() const
-{
-    return m_tt;
-}
-
-inline void DfsSolver::SetTT(DfsHashTable* TT)
-{
-    m_tt = TT;
 }
 
 //----------------------------------------------------------------------------

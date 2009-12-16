@@ -138,9 +138,6 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
     DfsSolver::SolutionSet solution;
     HexEval result = DfsSolver::UNKNOWN;
 
-    /** @todo Make this an option? */
-    m_solver->GetTT()->Clear();
-    
     // solve the state; try to use the db if possible
     if (m_db) 
     {
@@ -153,7 +150,7 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
     else 
     {
         LogInfo() << "perfect: solving state without db...\n";
-        result = m_solver->Solve(brd, color, 0, 0, 0, solution);
+        result = m_solver->Solve(brd, color, 0, 0, 0, 0, solution);
     }
     HexAssert(result != DfsSolver::UNKNOWN);
         

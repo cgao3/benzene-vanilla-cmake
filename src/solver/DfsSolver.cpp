@@ -75,10 +75,12 @@ void DfsSolver::Initialize(const HexBoard& brd)
 }
 
 DfsSolver::Result DfsSolver::Solve(HexBoard& brd, HexColor tomove, 
-                                   DfsDB* db, int maxStones, int transStones, 
+                                   DfsHashTable* tt, DfsDB* db, 
+                                   int maxStones, int transStones, 
                                    SolutionSet& solution,
                                    int depthLimit, double timeLimit)
 {
+    m_tt = tt;
     if (db == 0)
         m_settings.use_db = false;
     else

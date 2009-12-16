@@ -90,7 +90,6 @@ void SolverCommands::CmdParamSolver(HtpCommand& cmd)
 		m_tt.reset(0);
 	    else
 		m_tt.reset(new DfsHashTable(bits));
-	    m_solver.SetTT(m_tt.get());
 	}
         else if (name == "update_depth")
             m_solver.SetUpdateDepth(cmd.IntArg(1, 0));
@@ -135,7 +134,8 @@ void SolverCommands::CmdSolveState(HtpCommand& cmd)
 
     DfsSolver::SolutionSet solution;
     DfsSolver::Result result = 
-        m_solver.Solve(brd, color, db.get(), maxStones, transStones, solution,
+        m_solver.Solve(brd, color, m_tt.get(), db.get(), 
+                       maxStones, transStones, solution,
                        depthlimit, timelimit);
     m_solver.DumpStats(solution);
 
@@ -209,7 +209,8 @@ void SolverCommands::CmdSolverFindWinning(HtpCommand& cmd)
 
         HexColor winner = EMPTY;
         DfsSolver::SolutionSet solution;
-        DfsSolver::Result result = m_solver.Solve(brd, other, db.get(), 
+        DfsSolver::Result result = m_solver.Solve(brd, other, 
+                                                  m_tt.get(), db.get(), 
                                                   maxStones, transStones, 
                                                   solution);
         m_solver.DumpStats(solution);
