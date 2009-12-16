@@ -58,11 +58,12 @@ all)
   play.tst \
   ice.tst \
   vc.tst \
-  solve-6x6.tst \
-  solve-6x7.tst \
-  solve-7x7.tst \
-  solve-7x8.tst \
-  dfpn-solve-6x6.tst
+  dfs-solve-6x6.tst \
+  dfs-solve-6x7.tst \
+  dfs-solve-7x7.tst \
+  dfs-solve-7x8.tst \
+  dfpn-solve-6x6.tst \
+  dfpn-solve-7x7.tst \
   ";;
 basics)
   # Tests in basics should be fast, specific and produce no unexpected fails
@@ -72,8 +73,8 @@ basics)
   htp.tst \
   play.tst \
   ice.tst \
-  solve-6x6.tst \
-  solve-6x7.tst \
+  dfs-solve-6x6.tst \
+  dfs-solve-6x7.tst \
   dfpn-solve-6x6.tst
   ";;
 *.tst)
