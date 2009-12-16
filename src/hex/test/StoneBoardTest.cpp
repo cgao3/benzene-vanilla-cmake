@@ -362,6 +362,22 @@ BOOST_AUTO_TEST_CASE(StoneBoard_WhoseTurn)
     BOOST_CHECK_EQUAL(sb.WhoseTurn(), FIRST_TO_PLAY);
 }
 
+BOOST_AUTO_TEST_CASE(StoneBoard_IsStandardPosition)
+{
+    StoneBoard brd(5, 5);
+    BOOST_CHECK(brd.IsStandardPosition());
+    brd.PlayMove(BLACK, HEX_CELL_A1);
+    BOOST_CHECK(brd.IsStandardPosition());
+    brd.PlayMove(WHITE, HEX_CELL_A2);
+    BOOST_CHECK(brd.IsStandardPosition());
+    brd.PlayMove(WHITE, HEX_CELL_A3);
+    BOOST_CHECK(!brd.IsStandardPosition());
+    brd.PlayMove(BLACK, HEX_CELL_A4);
+    BOOST_CHECK(brd.IsStandardPosition());
+    brd.PlayMove(BLACK, HEX_CELL_A5);
+    BOOST_CHECK(brd.IsStandardPosition());
+}
+
 //---------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_CASE(StoneBoard_SetStateString)
