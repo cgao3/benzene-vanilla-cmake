@@ -478,6 +478,14 @@ private:
 
     SgStatisticsExt<float, std::size_t> m_prunedSiblingStats;
 
+    SgStatisticsExt<float, std::size_t> m_moveOrderingPercent;
+
+    SgStatisticsExt<float, std::size_t> m_moveOrderingIndex;
+
+    SgStatisticsExt<float, std::size_t> m_considerSetSize;
+
+    size_t m_totalWastedWork;
+
     DfpnDB* m_db;
     
     size_t MID(const DfpnBounds& n, DfpnHistory& history);

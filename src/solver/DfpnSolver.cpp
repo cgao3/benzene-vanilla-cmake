@@ -272,6 +272,24 @@ void DfpnSolver::PrintStatistics()
     m_prunedSiblingStats.Write(os);
     os << '\n';
     LogInfo() << os.str();
+    os.str("");
+    os << " Consider Size: ";
+    m_considerSetSize.Write(os);
+    os << '\n';
+    LogInfo() << os.str();
+    os.str("");
+    os << "    Move Index: ";
+    m_moveOrderingIndex.Write(os);
+    os << '\n';
+    LogInfo() << os.str();
+    os.str("");
+    os << "  Move Percent: ";
+    m_moveOrderingPercent.Write(os);
+    os << '\n';
+    LogInfo() << os.str();
+    LogInfo() << "   Wasted Work: " << m_totalWastedWork
+              << " (" << (m_totalWastedWork * 100.0 
+                          / (m_numMIDcalls + m_numTerminal)) << "%)\n";
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime()<<'\n';
     LogInfo() << "       VCs/sec: " << m_numVCbuilds / m_timer.GetTime()<<'\n';
@@ -290,7 +308,12 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     m_numTerminal = 0;
     m_numMIDcalls = 0;
     m_numVCbuilds = 0;
+    m_totalWastedWork = 0;
     m_prunedSiblingStats.Clear();
+    m_moveOrderingPercent.Clear();
+    m_moveOrderingIndex.Clear();
+    m_considerSetSize.Clear();
+
     m_brd.reset(new StoneBoard(board.GetState()));
     m_workBoard = &board;
     m_checkTimerAbortCalls = 0;
@@ -436,7 +459,8 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
             }
             bitset_t childrenBitset 
                 = PlayerUtils::MovesToConsider(*m_workBoard, colorToMove);
-          
+
+            m_considerSetSize.Add(childrenBitset.count());
             Resistance resist;
             resist.Evaluate(*m_workBoard);
             std::vector<std::pair<HexEval, HexPoint> > mvsc;
@@ -512,6 +536,15 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
 
         // Update bounds for best child
         LookupData(childrenData[bestIndex], children, bestIndex, 1);
+
+        // Compute some stats in winning states
+        if (childrenData[bestIndex].m_bounds.IsLosing())
+        {
+            m_moveOrderingIndex.Add(bestIndex);
+            m_moveOrderingPercent.Add(bestIndex / (double)childrenData.size());
+            m_totalWastedWork += prevWork + localWork
+                - childrenData[bestIndex].m_work;
+        }
 
         // Shrink children list using knowledge of bestMove child's proof set.
         // That is, if this child is losing, conclude what other children
