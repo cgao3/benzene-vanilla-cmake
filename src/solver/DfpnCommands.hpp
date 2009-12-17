@@ -42,6 +42,8 @@ private:
     void CmdFindWinning(HtpCommand& cmd);
     void CmdClearTT(HtpCommand& cmd);
     void CmdGetState(HtpCommand& cmd);
+    void CmdGetBounds(HtpCommand& cmd);
+    void CmdGetWork(HtpCommand& cmd);
 };
 
 //----------------------------------------------------------------------------

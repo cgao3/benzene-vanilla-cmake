@@ -25,7 +25,9 @@ void DfpnCommands::Register(GtpEngine& e)
 {
     Register(e, "param_dfpn", &DfpnCommands::CmdParam);
     Register(e, "dfpn-clear-tt", &DfpnCommands::CmdClearTT);
+    Register(e, "dfpn-get-bounds", &DfpnCommands::CmdGetBounds);
     Register(e, "dfpn-get-state", &DfpnCommands::CmdGetState);    
+    Register(e, "dfpn-get-work", &DfpnCommands::CmdGetWork);
     Register(e, "dfpn-solve-state", &DfpnCommands::CmdSolveState);
     Register(e, "dfpn-solver-find-winning", &DfpnCommands::CmdFindWinning);
 }
@@ -117,6 +119,46 @@ void DfpnCommands::CmdGetState(HtpCommand& cmd)
     DfpnData data;
     if (m_tt->Get(m_game.Board().Hash(), data))
         cmd << data << '\n';
+}
+
+/** Displays bounds of every empty cell in current state.
+    Bounds are obtained from the current hashtable. */
+void DfpnCommands::CmdGetBounds(HtpCommand& cmd)
+{
+    cmd.CheckArgNone();
+    StoneBoard brd(m_game.Board());
+    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+    {
+        brd.PlayMove(brd.WhoseTurn(), *it);
+        DfpnData data;
+        if (m_tt->Get(brd.Hash(), data))
+        {
+            cmd << ' ' << *it << ' ';
+            if (data.m_bounds.IsWinning())
+                cmd << 'L';
+            else if (data.m_bounds.IsLosing())
+                cmd << 'W';
+            else 
+                cmd << data.m_bounds.phi << ':' << data.m_bounds.delta;
+        }
+        brd.UndoMove(*it);
+    }
+}
+
+/** Displays work of every empty cell in current state.
+    Bounds are obtained from the current hashtable. */
+void DfpnCommands::CmdGetWork(HtpCommand& cmd)
+{
+    cmd.CheckArgNone();
+    StoneBoard brd(m_game.Board());
+    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+    {
+        brd.PlayMove(brd.WhoseTurn(), *it);
+        DfpnData data;
+        if (m_tt->Get(brd.Hash(), data))
+            cmd << ' ' << *it << ' ' << data.m_work;
+        brd.UndoMove(*it);
+    }
 }
 
 //----------------------------------------------------------------------------

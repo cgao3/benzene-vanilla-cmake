@@ -5,6 +5,7 @@
 
 #include "PlayerUtils.hpp"
 #include "BitsetIterator.hpp"
+#include "BoardUtils.hpp"
 #include "VCSet.hpp"
 #include "VCUtils.hpp"
 
@@ -35,16 +36,51 @@ using namespace benzene;
 
 /** @page computingmovestoconsider Computing the set of moves to consider
 
-    The set of moves to consider is defined as the mustplay minus
-    the inferior cells. This set can never be empty, because 
-    IsLostGame() detects such states and reports them as losing (these
-    states will be handled by PlayDeterminedState()).
+    The set of moves to consider is defined as the mustplay minus the
+    inferior cells minus cells that create states that are mirrors of
+    themselves (these are losing via the strategy stealing
+    argument). This set can never be empty, because IsLostGame()
+    detects such states and reports them as losing (these states will
+    be handled by PlayDeterminedState()).
 */
 
 //----------------------------------------------------------------------------
 
 /** Local functions. */
 namespace {
+
+bitset_t ComputeLossesViaStrategyStealingArgument(const StoneBoard& brd,
+                                                  HexColor color)
+{
+    bitset_t ret;
+    if (brd.GetPlayed(!color).count() - brd.GetPlayed(color).count() == 1)
+    {
+        bitset_t mirror1 
+            = BoardUtils::Mirror(brd.Const(), brd.GetPlayed(!color))
+            - brd.GetPlayed(color);
+        if (mirror1.count() == 1)
+            ret |= mirror1;
+        bitset_t mirror2 =
+            BoardUtils::Mirror(brd.Const(), BoardUtils::Rotate(brd.Const(), 
+                                                     brd.GetPlayed(!color)))
+            - brd.GetPlayed(color);
+        if (mirror2.count() == 1)
+            ret |= mirror2;
+        ret &= brd.GetEmpty();
+    }
+    return ret;
+}
+
+bitset_t ComputeConsiderSet(const HexBoard& brd, HexColor color)
+{
+    bitset_t consider = VCUtils::GetMustplay(brd, color);
+    const InferiorCells& inf = brd.GetInferiorCells();
+    consider = consider - inf.Vulnerable()
+                        - inf.Reversible()
+                        - inf.Dominated()
+          - ComputeLossesViaStrategyStealingArgument(brd.GetState(), color);
+    return consider;
+}
 
 /** Priority is given to eliminating the most easily-answered
     moves first (i.e. dead cells require no answer, answering
@@ -207,12 +243,8 @@ bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color)
     {
 	return true;
     }
-    bitset_t mustplay = VCUtils::GetMustplay(brd, color);
-    const InferiorCells& inf = brd.GetInferiorCells();
-    bitset_t remaining = mustplay - inf.Vulnerable()
-                                  - inf.Reversible()
-                                  - inf.Dominated();
-    return remaining.none();
+    bitset_t consider = ComputeConsiderSet(brd, color);
+    return consider.none();
 }
 
 bool PlayerUtils::IsDeterminedState(const HexBoard& brd, HexColor color, 
@@ -256,14 +288,9 @@ bitset_t PlayerUtils::MovesToConsider(const HexBoard& brd, HexColor color)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(!IsDeterminedState(brd, color));
+
     
-    bitset_t consider = VCUtils::GetMustplay(brd, color);
-    HexAssert(consider.any());
-    
-    const InferiorCells& inf = brd.GetInferiorCells();
-    consider = consider - inf.Vulnerable()
-                        - inf.Reversible()
-                        - inf.Dominated();
+    bitset_t consider = ComputeConsiderSet(brd, color);
     HexAssert(consider.any());
 
     if (consider.count() == 1) 
