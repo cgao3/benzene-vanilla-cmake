@@ -576,28 +576,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
                           << "\nRemoving...\n" << m_brd->Write(canPrune)
                           << "\n";
                 */
-                //TODO: This should be two different methods...
-                // want m_children to be private again
-                // childrenData should be processed separately
-                std::vector<HexPoint>::iterator it1
-                    = children.m_children.begin();
-                std::vector<DfpnData>::iterator it2 = childrenData.begin();
-                while (it1 != children.m_children.end())
-                {
-                    HexAssert(it2 != childrenData.end());
-                    if (canPrune.test(*it1))
-                    {
-                        it1 = children.m_children.erase(it1);
-                        it2 = childrenData.erase(it2);
-                    }
-                    else
-                    {
-                        ++it1;
-                        ++it2;
-                    }
-                }
-                HexAssert(children.Size() > 0);
-                HexAssert(children.Size() == childrenData.size());
+                DeleteChildren(children, childrenData, canPrune);
                 if (m_useGuiFx && depth == 0)
                     m_guiFx.SetChildren(children, childrenData);
             }
@@ -648,6 +627,35 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
             NotifyListeners(history, data);
     }
     return localWork;
+}
+
+void DfpnSolver::DeleteChildren(DfpnChildren& children,
+                                std::vector<DfpnData>& childrenData,
+                                bitset_t deleteChildren) const
+{
+    HexAssert(children.Size() == childrenData.size());
+    bitset_t deleted;
+    std::vector<HexPoint>::iterator it1 = children.m_children.begin();
+    std::vector<DfpnData>::iterator it2 = childrenData.begin();
+    while (it1 != children.m_children.end())
+    {
+        HexAssert(it2 != childrenData.end());
+        if (deleteChildren.test(*it1))
+        {
+            HexAssert(!deleted.test(*it1));
+            deleted.set(*it1);
+            it1 = children.m_children.erase(it1);
+            it2 = childrenData.erase(it2);
+        }
+        else
+        {
+            ++it1;
+            ++it2;
+        }
+    }
+    HexAssert(children.Size() > 0);
+    HexAssert(children.Size() == childrenData.size());
+    HexAssert(deleteChildren == deleted);
 }
 
 void DfpnSolver::NotifyListeners(const DfpnHistory& history,

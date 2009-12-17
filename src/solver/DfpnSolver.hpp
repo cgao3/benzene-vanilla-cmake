@@ -517,6 +517,10 @@ private:
 
     void PrintStatistics();
 
+    void DeleteChildren(DfpnChildren& children,
+                        std::vector<DfpnData>& childrenData,
+                        bitset_t deleteChildren) const;
+
     void NotifyListeners(const DfpnHistory& history, const DfpnData& data);
 };
 
