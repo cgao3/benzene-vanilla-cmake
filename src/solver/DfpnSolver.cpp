@@ -392,6 +392,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     int depth = history.Depth();
     HexColor colorToMove = m_brd->WhoseTurn();
 
+    size_t prevWork = 0;
     bitset_t maxProofSet;
     DfpnChildren children;
     {
@@ -400,6 +401,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         {
             children = data.m_children;
             maxProofSet = data.m_maxProofSet;
+            prevWork = data.m_work;
             HexAssert(bounds.phi > data.m_bounds.phi);
             HexAssert(bounds.delta > data.m_bounds.delta);
         }
@@ -607,7 +609,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     if (!m_aborted)
     {
         DfpnData data(currentBounds, children, bestMove,
-                      localWork, maxProofSet);
+                      localWork + prevWork, maxProofSet);
         TTWrite(*m_brd, data);
         if (data.m_bounds.IsSolved())
             NotifyListeners(history, data);
