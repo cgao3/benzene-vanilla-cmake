@@ -44,8 +44,7 @@ unsigned g_last_histogram_dump;
 //----------------------------------------------------------------------------
 
 DfsSolver::DfsSolver()
-    : m_tt(0),
-      m_db(0),
+    : m_positions(0),
       m_use_decompositions(true),
       m_progress_depth(8),
       m_update_depth(4),
@@ -75,21 +74,11 @@ void DfsSolver::Initialize(const HexBoard& brd)
 }
 
 DfsSolver::Result DfsSolver::Solve(HexBoard& brd, HexColor tomove, 
-                                   DfsHashTable* tt, DfsDB* db, 
-                                   int maxStones, int transStones, 
                                    SolutionSet& solution,
+                                   DfsPositions& positions,
                                    int depthLimit, double timeLimit)
 {
-    m_tt = tt;
-    if (db == 0)
-        m_settings.use_db = false;
-    else
-    {
-        m_settings.use_db = true;
-        m_settings.maxStones = maxStones;
-        m_settings.transStones = transStones;
-        m_db = db;
-    } 
+    m_positions = &positions;
     m_settings.depthLimit = depthLimit;
     m_settings.timeLimit = timeLimit;
     
@@ -142,84 +131,24 @@ DfsSolver::DefaultProofForWinner(const HexBoard& brd, HexColor winner) const
         - brd.GetDead();
 }
 
-bool DfsSolver::CheckDB(DfsData& state) const
-{
-    if (m_settings.use_db && m_db->Get(*m_stoneboard, state)) 
-    {
-        LogFine() << "DB[" << m_stoneboard->NumStones() << "] "
-                  << "hit: " << ((state.win) ?" Win" : "Loss") << ", "
-                  << state.numstates << " states.\n";
-        m_histogram.tthits[m_stoneboard->NumStones()]++;
-        return true;
-    }
-    return false;
-}
-
-bool DfsSolver::CheckTT(DfsData& state) const
-{
-    if (m_tt && m_tt->Get(m_stoneboard->Hash(), state)) 
-    {
-    
-#if OUTPUT_TT_HITS
-        LogFine() << "TT[" << m_stoneboard->NumStones() << "] "
-		  << state.numstates << " " 
-		  << ((state.win) ? "Win" : "Loss")
-		  << *m_stoneboard << '\n';
-#endif
-        m_histogram.tthits[m_stoneboard->NumStones()]++;
-        return true;
-    }
-    return false;
-}
-
 bool DfsSolver::CheckTransposition(DfsData& state) const
 {
-    if (m_settings.use_db && m_stoneboard->NumStones() <= m_settings.maxStones)
-        return CheckDB(state);
-    return CheckTT(state);    
+    return m_positions->Get(*m_stoneboard, state);
 }
 
-void DfsSolver::StoreInDB(const DfsData& state, const bitset_t& proof)
+void DfsSolver::StoreState(const DfsData& state, const bitset_t& proof)
 {
-    if (!m_settings.use_db)
-        return;
-    int numstones = m_stoneboard->NumStones();
-    int numwritten = m_db->Put(*m_stoneboard, state);
-    if (numstones <= m_settings.transStones)
+    m_positions->Put(*m_stoneboard, state);
+    const SolverDBParameters& param = m_positions->Parameters();
+    if (m_stoneboard->NumStones() <= param.m_transStones)
     {
-        numwritten += ProofUtil::StoreTranspositions(*m_db, *m_stoneboard, 
-                                                     state, proof);
-        numwritten += ProofUtil::StoreFlippedStates(*m_db, *m_stoneboard, 
-                                                    state, proof);
+        if (param.m_useProofTranspositions)
+            ProofUtil::StoreTranspositions(*m_positions->Database(),
+                                           *m_stoneboard, state, proof);
+        if (param.m_useFlippedStates)
+            ProofUtil::StoreFlippedStates(*m_positions->Database(), 
+                                          *m_stoneboard, state, proof);
     }
-    if (numwritten && numstones == m_settings.maxStones) 
-        LogInfo() << "Stored DB[" << numstones << "] result: "
-		  << m_stoneboard->Write(proof & m_stoneboard->GetEmpty())
-		  << '\n'
-		  << ((state.win)?"Win":"Loss") << ", " 
-		  << state.numstates << " states.\n"
-		  << "Wrote " << numwritten << " transpositions.\n"
-		  << "====================\n";
-}
-
-void DfsSolver::StoreInTT(hash_t hash, const DfsData& state)
-{
-    if (m_tt) 
-    {
-        LogFine() << "Storing proof in " << HashUtil::toString(hash) 
-		  << "(win " << state.win << ")\n";
-        m_tt->Put(hash, state);
-    }
-}
-
-void DfsSolver::StoreState(hash_t hash, const DfsData& state,
-                        const bitset_t& proof)
-{
-    if (m_settings.use_db 
-        && m_stoneboard->NumStones() <= m_settings.maxStones)
-        StoreInDB(state, proof);
-    else
-        StoreInTT(hash, state);
 }
 
 //----------------------------------------------------------------------------
@@ -757,9 +686,8 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
     if (solution.pv.empty())
         solution.pv.push_back(INVALID_POINT);
 
-    StoreState(brd.GetState().Hash(), 
-               DfsData(winning_state, solution.stats.total_states, 
-                           solution.moves_to_connection, solution.pv[0]), 
+    StoreState(DfsData(winning_state, solution.stats.total_states, 
+                       solution.moves_to_connection, solution.pv[0]), 
                solution.proof);
 }
 
@@ -1138,12 +1066,12 @@ void DfsSolver::DumpStats(const SolutionSet& solution) const
 		  / solution.stats.winning_expanded) << '\n'
 	      << "########################################" << '\n';
 
-    if (m_settings.use_db && m_db) 
-        LogInfo() << m_db->GetStatistics().Write() << '\n';
+    if (m_positions->Database()) 
+        LogInfo() << m_positions->Database()->GetStatistics().Write() << '\n';
    
-    if (m_tt) 
+    if (m_positions->HashTable()) 
     {
-        LogInfo() << m_tt->Stats()
+        LogInfo() << m_positions->HashTable()->Stats()
 		  << "########################################" << '\n';
     }
     

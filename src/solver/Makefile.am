@@ -14,7 +14,8 @@ DfpnSolver.hpp \
 DfsCommands.hpp \
 DfsData.hpp \
 DfsSolver.hpp \
-ProofUtil.hpp
+ProofUtil.hpp \
+SolverDB.hpp
 
 libsolver_a_CPPFLAGS = \
 $(BOOST_CPPFLAGS) \

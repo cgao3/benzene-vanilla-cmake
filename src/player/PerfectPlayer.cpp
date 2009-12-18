@@ -1,5 +1,6 @@
 //----------------------------------------------------------------------------
 /** @file PerfectPlayer.cpp
+    TOTALLY BROKEN. DOES NOT SOLVE ANYTHING CURRENTLY!
  */
 //----------------------------------------------------------------------------
 
@@ -133,6 +134,8 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
                                     HexPoint& move_to_play, 
                                     double& score) const
 {
+    SG_UNUSED(brd);
+    SG_UNUSED(color);
     LogInfo() << "perfect: state not in db; solving from scratch.\n";
         
     DfsSolver::SolutionSet solution;
@@ -150,7 +153,7 @@ void PerfectPlayer::solve_new_state(HexBoard& brd, HexColor color,
     else 
     {
         LogInfo() << "perfect: solving state without db...\n";
-        result = m_solver->Solve(brd, color, 0, 0, 0, 0, solution);
+        //result = m_solver->Solve(brd, color, 0, 0, 0, 0, solution);
     }
     HexAssert(result != DfsSolver::UNKNOWN);
         

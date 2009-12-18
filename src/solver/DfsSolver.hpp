@@ -13,6 +13,7 @@
 #include "VC.hpp"
 #include "TransTable.hpp"
 #include "DfsData.hpp"
+#include "SolverDB.hpp"
 #include "PositionDB.hpp"
 #include "HexEval.hpp"
 
@@ -23,10 +24,11 @@ _BEGIN_BENZENE_NAMESPACE_
 /** Transposition table for use in DfsSolver. */
 typedef TransTable<DfsData> DfsHashTable;
 
-//----------------------------------------------------------------------
-
 /** Database for use in DfsSolver. */
 typedef PositionDB<DfsData> DfsDB;
+
+/** Solver database combining both of the above. */
+typedef SolverDB<DfsHashTable, DfsDB, DfsData> DfsPositions;
 
 //----------------------------------------------------------------------
 
@@ -149,12 +151,6 @@ public:
     {
         int flags;
 
-        bool use_db;
-
-        int maxStones;
-
-        int transStones;
-
         int depthLimit;
 
         double timeLimit;
@@ -176,9 +172,8 @@ public:
         states stored with proof transpositions.  Returns WIN/LOSS if
         color to play wins/loses; otherwise UNKNOWN.
     */
-    Result Solve(HexBoard& board, HexColor toplay, 
-                 DfsHashTable* tt, DfsDB* db, int numstones, int transtones, 
-                 SolutionSet& solution,
+    Result Solve(HexBoard& board, HexColor toplay, SolutionSet& solution,
+                 DfsPositions& positions,
                  int depth_limit = NO_DEPTH_LIMIT, 
                  double time_imit = NO_TIME_LIMIT);
 
@@ -326,18 +321,9 @@ private:
 
     /** Stores the solved state in the TT or DB. Sets the state's
         bestmove parameter to the best move computed by solver. */
-    void StoreState(hash_t hash, const DfsData& state, 
-                    const bitset_t& proof);
+    void StoreState(const DfsData& state, const bitset_t& proof);
 
     bitset_t DefaultProofForWinner(const HexBoard& brd, HexColor winner) const;
-
-    bool CheckDB(DfsData& state) const;
-
-    bool CheckTT(DfsData& state) const;
-
-    void StoreInTT(hash_t hash, const DfsData& state);
-
-    void StoreInDB(const DfsData& state, const bitset_t& proof);
 
     //------------------------------------------------------------------------
 
@@ -413,9 +399,7 @@ private:
 
     //------------------------------------------------------------------------
 
-    DfsHashTable* m_tt;
-
-    DfsDB* m_db;
+    DfsPositions* m_positions;
 
     double m_start_time, m_end_time;
 

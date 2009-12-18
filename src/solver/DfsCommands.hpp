@@ -21,8 +21,8 @@ class DfsCommands
 {
 public:
     DfsCommands(Game& game, HexEnvironment& env, DfsSolver& solver,
-                   boost::scoped_ptr<DfsHashTable>& solverTT, 
-                   boost::scoped_ptr<DfsDB>& solverDB);
+                boost::scoped_ptr<DfsHashTable>& solverTT, 
+                boost::scoped_ptr<DfsDB>& solverDB);
 
     void Register(GtpEngine& engine);
 
@@ -36,17 +36,22 @@ private:
     boost::scoped_ptr<DfsHashTable>& m_tt;
     
     boost::scoped_ptr<DfsDB>& m_db;
+
+    SolverDBParameters m_param;
+
+    SolverDB<DfsHashTable, DfsDB, DfsData> m_solverDB;
         
     void Register(GtpEngine& engine, const std::string& command,
                   GtpCallback<DfsCommands>::Method method);
 
     void CmdParamSolver(HtpCommand& cmd);
+    void CmdParamSolverDB(HtpCommand& cmd);
     void CmdSolveState(HtpCommand& cmd);
     void CmdSolverClearTT(HtpCommand& cmd);
     void CmdSolverFindWinning(HtpCommand& cmd);
     void CmdDBOpen(HtpCommand& cmd);
     void CmdDBClose(HtpCommand& cmd);
-    void CmdDBGet(HtpCommand& cmd);
+    void CmdGetState(HtpCommand& cmd);
 };
 
 //----------------------------------------------------------------------------
