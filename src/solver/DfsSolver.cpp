@@ -86,7 +86,8 @@ DfsSolver::Result DfsSolver::run_solver(HexBoard& brd, HexColor tomove,
 {
     // DfsSolver currently cannot handle permanently inferior cells.
     if (brd.ICE().FindPermanentlyInferior())
-  throw BenzeneException("Permanently Inferior not supported in DfsSolver!\n");
+        throw BenzeneException("Permanently Inferior not supported "
+                               "in DfsSolver!");
 
     // Check if move already exists in db/tt before doing anything
     DfsData state;
@@ -284,12 +285,11 @@ bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color,
     carrier[1] = 
         GraphUtils::BFS(HexPointUtil::colorEdge2(!color), nbs, stopset);
 
-    if ((carrier[0] & carrier[1]).any()) 
-    {
-        LogFine() << "Side0:" << brd.Write(carrier[0]) << '\n'
-		  << "Side1:" << brd.Write(carrier[1]) << '\n';
-        HexAssert(false);
-    }
+    if ((carrier[0] & carrier[1]).any())
+        throw BenzeneException()
+            << "DfsSolver::solve_decomposition:\n"
+            << "Side0:" << brd.Write(carrier[0]) << '\n'
+            << "Side1:" << brd.Write(carrier[1]) << '\n';
         
     // solve each side
     DfsData state;
@@ -554,7 +554,6 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
 			  << child_solution.moves_to_connection << '\n';
 	    }
 	    HexAssert(solution.moves_to_connection != -1);	    
-
         } 
         else 
         {
@@ -610,27 +609,25 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
 
     // Verify loser's stones do not intersect proof
     if ((brd.GetState().GetColor(loser) & solution.proof).any()) 
-    {
-        LogWarning() << color << " to play.\n"
-		     << loser << " loses.\n"
-		     << "Losing stones hit proof:\n"
-		     << brd.Write(solution.proof) << '\n'
-		     << brd << '\n'
-		     << DfsSolverUtil::PrintVariation(variation) << '\n';
-        HexAssert(false);
-    }
+        throw BenzeneException()
+            << "DfsSolver::handle_proof:\n"
+            << color << " to play.\n"
+            << loser << " loses.\n"
+            << "Losing stones hit proof:\n"
+            << brd.Write(solution.proof) << '\n'
+            << brd << '\n'
+            << DfsSolverUtil::PrintVariation(variation) << '\n';
 
     // Verify dead cells do not intersect proof
     if ((brd.GetDead() & solution.proof).any()) 
-    {
-        LogWarning() << color << " to play.\n"
-		     << loser << " loses.\n"
-		     << "Dead cells hit proof:\n"
-		     << brd.Write(solution.proof) << '\n'
-		     << brd << '\n'
-		     << DfsSolverUtil::PrintVariation(variation) << '\n';
-        HexAssert(false);
-    }
+        throw BenzeneException()
+            << "DfsSolver::handle_proof:\n"
+            << color << " to play.\n"
+            << loser << " loses.\n"
+            << "Dead cells hit proof:\n"
+            << brd.Write(solution.proof) << '\n'
+            << brd << '\n'
+            << DfsSolverUtil::PrintVariation(variation) << '\n';
 
     // Shrink proof.
     bitset_t old_proof = solution.proof;
@@ -660,16 +657,15 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
     if (!BoardUtils::ConnectedOnBitset(brd.Const(), solution.proof, 
                                        HexPointUtil::colorEdge1(winner),
                                        HexPointUtil::colorEdge2(winner)))
-    {
-        LogWarning() << "Proof does not touch both edges!\n"
-		     << brd.Write(solution.proof) << '\n'
-		     << "Original proof:\n"
-		     << brd.Write(old_proof) << '\n'
-		     << brd << '\n'
-		     << color << " to play.\n"
-		     << DfsSolverUtil::PrintVariation(variation) << '\n';
-        abort();
-    }
+        throw BenzeneException()
+            << "DfsSolver::handle_proof:\n"
+            << "Proof does not touch both edges!\n"
+            << brd.Write(solution.proof) << '\n'
+            << "Original proof:\n"
+            << brd.Write(old_proof) << '\n'
+            << brd << '\n'
+            << color << " to play.\n"
+            << DfsSolverUtil::PrintVariation(variation) << '\n';
 #endif    
 
     /** @todo HANDLE BEST MOVES PROPERLY! 
@@ -1177,12 +1173,11 @@ bitset_t DfsSolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
 {
     bitset_t ret = VCUtils::GetMustplay(brd, color);
     if (ret.none()) 
-        LogWarning() << "EMPTY MUSTPLAY!" << '\n' << brd << '\n';
-    HexAssert(ret.any());
+        throw BenzeneException()<< "DfsSolverUtil::MovesToConsider: "
+                                << "EMPTY MUSTPLAY!: " << brd << '\n';
     
+    // Take out the dead, dominated, reversible, and vulnerable
     const InferiorCells& inf = brd.GetInferiorCells();
-
-    // take out the dead, dominated, reversible, and vulnerable
     ret = ret - inf.Dead();
     ret = ret - inf.Dominated();
     ret = ret - inf.Reversible();
@@ -1233,23 +1228,17 @@ bitset_t DfsSolverUtil::MustplayCarrier(const HexBoard& brd, HexColor color)
 
 bitset_t DfsSolverUtil::InitialProof(const HexBoard& brd, HexColor color)
 {
-    LogFine() << "mustplay-carrier:\n"
+    LogFine() << "mustplay-carrier:"
 	      << brd.Write(MustplayCarrier(brd, color)) << '\n';
 
     bitset_t proof = 
         (MustplayCarrier(brd, color) | brd.GetState().GetColor(!color)) 
         - brd.GetDead();
 
-    LogFine() << "Initial mustplay-carrier:\n"
-	      << brd.Write(proof) << '\n';
-
-    if ((proof & brd.GetState().GetColor(color)).any()) 
-    {
-        LogSevere() << "Initial mustplay hits toPlay's stones!\n"
-		    << brd << '\n' << brd.Write(proof) << '\n';
-        HexAssert(false);
-    }
-    
+    LogFine() << "Initial mustplay-carrier:" << brd.Write(proof) << '\n';
+    if ((proof & brd.GetState().GetColor(color)).any())
+        throw BenzeneException() << "Initial mustplay hits toPlay's stones!"
+                                 << brd << '\n' << brd.Write(proof) << '\n';
     return proof;
 }
 
