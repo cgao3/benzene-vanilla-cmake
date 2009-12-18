@@ -48,7 +48,9 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             << "[bool] use_guifx "
             << m_solver.UseGuiFx() << '\n'
             << "[string] timelimit "
-            << m_solver.Timelimit() << '\n';
+            << m_solver.Timelimit() << '\n'
+            << "[string] widening_factor "
+            << m_solver.WideningFactor() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -57,6 +59,14 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             m_solver.SetUseGuiFx(cmd.BoolArg(1));
         else if (name == "timelimit")
             m_solver.SetTimelimit(cmd.FloatArg(1));
+        else if (name == "widening_factor")
+        {
+            float value = cmd.FloatArg(1);
+            if (0.0f < value && value <= 1.0f)
+                m_solver.SetWideningFactor(value);
+            else
+                throw GtpFailure() << "widening_factor must be in (0, 1]";
+        }
         else
             throw GtpFailure() << "Unknown parameter: " << name;
     }
