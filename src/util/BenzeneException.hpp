@@ -3,10 +3,11 @@
  */
 //----------------------------------------------------------------------------
 
-#ifndef HEXEXCEPTION_H
-#define HEXEXCEPTION_H
+#ifndef BENZENEEXCEPTION_H
+#define BENZENEEXCEPTION_H
 
 #include <string>
+#include <sstream>
 #include <exception>
 #include "Benzene.hpp"
 
@@ -14,7 +15,13 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Base class for exceptions. */
+/** Base class for exceptions. 
+    Usage examples:
+    @verbatim
+      BenzeneException("Message");
+      BenzeneException() << "Message" << data << "more message.";
+    @endverbatim
+ */
 class BenzeneException
     : public std::exception
 {
@@ -24,31 +31,58 @@ public:
 
     /** Construct an exception with the given message. */
     BenzeneException(const std::string& message);
+
+    /** Needed for operator<<. */
+    BenzeneException(const BenzeneException& other);
     
     /** Destructor. */
     virtual ~BenzeneException() throw();
 
-    /** Implementation of std::exception::what(). */
+    /** Returns the error message. */
     const char* what() const throw();
 
+    std::string Response() const;
+
+    std::ostream& Stream();
+
 private:
-    std::string m_message;
+    std::ostringstream m_stream;
+
+    mutable std::string m_what;
 };
 
-inline BenzeneException::BenzeneException()
-    : m_message("")
-{ }
-
-inline BenzeneException::BenzeneException(const std::string& message)
-    : m_message(message)
-{ }
-
-inline BenzeneException::~BenzeneException() throw()
-{ }
-
-inline const char* BenzeneException::what() const throw()
+inline std::ostream& BenzeneException::Stream()
 {
-    return m_message.c_str();
+    return m_stream;
+}
+
+inline std::string BenzeneException::Response() const
+{
+    return m_stream.str();
+}
+
+//----------------------------------------------------------------------------
+
+/** @relates BenzeneException
+    @note Returns a new object, see @ref BenzeneException
+*/
+template<typename TYPE>
+BenzeneException operator<<(const BenzeneException& except, const TYPE& type)
+{
+    BenzeneException result(except);
+    result.Stream() << type;
+    return result;
+}
+
+/** @relates BenzeneException
+    @note Returns a new object, see @ref BenzeneException
+*/
+template<typename TYPE>
+BenzeneException operator<<(const BenzeneException& except, TYPE& type)
+{
+    BenzeneException result(except);
+    result.Stream() << type;
+    return result;
 }
 
 //----------------------------------------------------------------------------
