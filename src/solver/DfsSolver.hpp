@@ -436,6 +436,8 @@ private:
 
     /** See MoveOrdering() */
     int m_move_ordering;
+
+    unsigned m_last_histogram_dump;
 };
 
 //----------------------------------------------------------------------------

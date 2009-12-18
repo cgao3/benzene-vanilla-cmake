@@ -33,13 +33,8 @@ using namespace benzene;
 /** Output data each time we shrink a proof. */
 #define OUTPUT_PROOF_SHRINKINGS   1
 
-/** Display TT hits. */
-#define OUTPUT_TT_HITS            1
-
 /** Output extra debugging info to log if true. */
 #define VERBOSE_LOG_MESSAGES      0
-
-unsigned g_last_histogram_dump;
 
 //----------------------------------------------------------------------------
 
@@ -66,7 +61,7 @@ DfsSolver::~DfsSolver()
 void DfsSolver::Initialize(const HexBoard& brd)
 {
     m_aborted = false;
-    g_last_histogram_dump = 0;
+    m_last_histogram_dump = 0;
     m_start_time = Time::Get();
     m_histogram = Histogram();
     m_statistics = GlobalStatistics();
@@ -260,10 +255,10 @@ bool DfsSolver::solve_state(HexBoard& brd, HexColor color,
     handle_proof(brd, color, variation, winning_state, solution);
 
     // Dump histogram every 1M moves
-    if ((m_statistics.played / 1000000) > (g_last_histogram_dump)) 
+    if ((m_statistics.played / 1000000) > (m_last_histogram_dump)) 
     {
         LogInfo() << m_histogram.Dump() << '\n';
-        g_last_histogram_dump = m_statistics.played / 1000000;
+        m_last_histogram_dump = m_statistics.played / 1000000;
     }
     return winning_state;
 }
@@ -604,12 +599,11 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
 }
 
 void DfsSolver::handle_proof(const HexBoard& brd, HexColor color, 
-                          const PointSequence& variation,
-                          bool winning_state, 
-                          SolutionSet& solution)
+                             const PointSequence& variation,
+                             bool winning_state, SolutionSet& solution)
 {
-    // do nothing if we aborted the search
-    if (m_aborted) return;
+    if (m_aborted)
+        return;
 
     HexColor winner = (winning_state) ? color : !color;
     HexColor loser = !winner;
