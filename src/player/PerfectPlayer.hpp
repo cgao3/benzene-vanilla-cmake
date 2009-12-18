@@ -6,7 +6,7 @@
 #ifndef PERFECTPLAYER_HPP
 #define PERFECTPLAYER_HPP
 
-#include "DfsSolver.hpp"
+#include "DfpnSolver.hpp"
 #include "HexBoard.hpp"
 #include "BenzenePlayer.hpp"
 
@@ -23,35 +23,23 @@ class PerfectPlayer : public BenzenePlayer
 {
 public:
 
-    explicit PerfectPlayer(DfsSolver* solver);
+    explicit PerfectPlayer(DfpnSolver& solver, DfpnPositions& positions);
 
     virtual ~PerfectPlayer();
     
     /** Returns "perfect". */
     std::string Name() const;
 
-    DfsDB* DB();
-
-    void SetDB(DfsDB* db);
-    
-protected:
-
-    /** Generates a move in the given gamestate using DfsSolver. */
-    virtual HexPoint Search(HexBoard& brd, const Game& game_state,
-			    HexColor color, const bitset_t& consider,
-                            double max_time, double& score);
-
-    DfsSolver* m_solver;
-
-    DfsDB* m_db;
-
 private:
 
-    bool find_db_move(StoneBoard& brd, HexColor color, 
-                      HexPoint& move_to_play, double& score) const;
+    /** Generates a move in the given gamestate using DfpnSolver. */
+    HexPoint Search(HexBoard& brd, const Game& game_state,
+                    HexColor color, const bitset_t& consider,
+                    double max_time, double& score);
 
-    void solve_new_state(HexBoard& brd, HexColor color, 
-                         HexPoint& move_to_play, double& score) const;
+    DfpnSolver& m_solver;
+
+    DfpnPositions& m_positions;
 };
 
 inline std::string PerfectPlayer::Name() const
@@ -59,18 +47,8 @@ inline std::string PerfectPlayer::Name() const
     return "perfect";
 }
 
-inline DfsDB* PerfectPlayer::DB() 
-{
-    return m_db;
-}
-
-inline void PerfectPlayer::SetDB(DfsDB* db)
-{
-    m_db = db;
-}
-
 //----------------------------------------------------------------------------
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HEXSOLVERPLAYER_HPP
+#endif // PERFECTPLAYER_HPP
