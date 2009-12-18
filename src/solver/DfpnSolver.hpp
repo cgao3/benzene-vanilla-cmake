@@ -410,6 +410,16 @@ public:
     /** See Timelimit() */
     void SetTimelimit(double timelimit);
 
+    /** Widening base affects what number of the moves to consider
+        are always looked at by the dfpn search (omitting losing moves),
+        regardless of branching factor. This amount is added to the
+        proportion computed by the WideningFactor (see below).
+        The base must be set to at least 1. */
+    int WideningBase() const;
+
+    /** See WideningBase() */
+    void SetWideningBase(int wideningBase);
+
     /** Widening factor affects what fraction of the moves to consider
         are looked at by the dfpn search (omitting losing moves).
         Must be in the range (0, 1], where 1 ensures no pruning. */
@@ -476,6 +486,9 @@ private:
 
     /** See TimeLimit() */
     double m_timelimit;
+
+    /** See WideningBase() */
+    int m_wideningBase;
 
     /** See WideningFactor() */
     float m_wideningFactor;
@@ -571,6 +584,16 @@ inline double DfpnSolver::Timelimit() const
 inline void DfpnSolver::SetTimelimit(double timelimit)
 {
     m_timelimit = timelimit;
+}
+
+inline int DfpnSolver::WideningBase() const
+{
+    return m_wideningBase;
+}
+
+inline void DfpnSolver::SetWideningBase(int wideningBase)
+{
+    m_wideningBase = wideningBase;
 }
 
 inline float DfpnSolver::WideningFactor() const

@@ -86,6 +86,8 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             << m_solver.UseGuiFx() << '\n'
             << "[string] timelimit "
             << m_solver.Timelimit() << '\n'
+            << "[string] widening_base "
+            << m_solver.WideningBase() << '\n'
             << "[string] widening_factor "
             << m_solver.WideningFactor() << '\n';
     }
@@ -96,6 +98,14 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             m_solver.SetUseGuiFx(cmd.BoolArg(1));
         else if (name == "timelimit")
             m_solver.SetTimelimit(cmd.FloatArg(1));
+        else if (name == "widening_base")
+        {
+            int value = cmd.IntArg(1, 0);
+            if (0 < value)
+                m_solver.SetWideningBase(value);
+            else
+                throw GtpFailure() << "widening_base must be positive.";
+        }
         else if (name == "widening_factor")
         {
             float value = cmd.FloatArg(1);

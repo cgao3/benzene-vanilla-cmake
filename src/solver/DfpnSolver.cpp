@@ -213,6 +213,7 @@ DfpnSolver::DfpnSolver()
     : m_positions(0),
       m_useGuiFx(false),
       m_timelimit(0.0),
+      m_wideningBase(1),
       m_wideningFactor(0.25f),
       m_guiFx()
 {
@@ -625,8 +626,8 @@ size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<DfpnData>&
         return childrenData.size();
 
     // this needs experimenting!
-    int childrenToLookAt = 1 + (int) ceil(numNonLosingChildren
-                                          * WideningFactor());
+    int childrenToLookAt = WideningBase() + (int) ceil(numNonLosingChildren
+                                                       * WideningFactor());
     // Must examine at least two children when have two or more live,
     // since otherwise delta2 will be set to infinity in SelectChild.
     HexAssert(childrenToLookAt >= 2);
