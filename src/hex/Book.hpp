@@ -9,7 +9,6 @@
 #include "Hex.hpp"
 #include "HexBoard.hpp"
 #include "HashDB.hpp"
-#include "HexException.hpp"
 #include "HexEval.hpp"
 #include "PositionDB.hpp"
 

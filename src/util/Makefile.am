@@ -9,6 +9,7 @@ Time.cpp
 
 noinst_HEADERS = \
 BenzeneBitset.hpp \
+BenzeneException.hpp \
 Benzene.hpp \
 Bitset.hpp \
 ChangeLog.hpp \
@@ -17,7 +18,6 @@ HashDB.hpp \
 Hash.hpp \
 HashMap.hpp \
 HashSet.hpp \
-HexException.hpp \
 Logger.hpp \
 lssolve.h \
 mat.hpp \

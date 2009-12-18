@@ -257,7 +257,7 @@ void DfsCommands::CmdDBOpen(HtpCommand& cmd)
     try {
         m_db.reset(new DfsDB(filename));
     }
-    catch (HexException& e) {
+    catch (BenzeneException& e) {
         m_db.reset(0);
         throw HtpFailure() << "Error opening db: '" << e.what() << "'\n";
     }

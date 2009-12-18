@@ -218,7 +218,7 @@ void VCPattern::CreatePatterns(int width, int height)
     LogFine() << "Loading pattern templates from: '" << file << "'\n";
     std::ifstream fin(file.c_str());
     if (!fin)
-        throw HexException("Could not open pattern file!\n");
+        throw BenzeneException("Could not open pattern file!\n");
 
     std::vector<VCPattern> out[BLACK_AND_WHITE];
     std::vector<BuilderPattern> start, end;
@@ -313,7 +313,7 @@ void VCPattern::CreatePatterns(int width, int height)
             complete.push_back(pat);
         } else if (type == "start") {
             if (endpoint == SOUTH)
-                throw HexException("Start pattern with no endpoint!");
+                throw BenzeneException("Start pattern with no endpoint!");
             start.push_back(BuilderPattern(black, empty, endpoint, 
                                            patternHeight));
         } else if (type == "end") {

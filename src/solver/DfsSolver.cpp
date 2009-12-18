@@ -86,7 +86,7 @@ DfsSolver::Result DfsSolver::run_solver(HexBoard& brd, HexColor tomove,
 {
     // DfsSolver currently cannot handle permanently inferior cells.
     if (brd.ICE().FindPermanentlyInferior())
-      throw HexException("Permanently Inferior not supported in DfsSolver!\n");
+  throw BenzeneException("Permanently Inferior not supported in DfsSolver!\n");
 
     // Check if move already exists in db/tt before doing anything
     DfsData state;

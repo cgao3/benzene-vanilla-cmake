@@ -7,7 +7,6 @@
 #include <boost/numeric/conversion/bounds.hpp>
 
 #include "BitsetIterator.hpp"
-#include "HexException.hpp"
 #include "Book.hpp"
 #include "Time.hpp"
 

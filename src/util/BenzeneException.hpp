@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexException.hpp
+/** @file BenzeneException.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -15,18 +15,18 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Base class for exceptions. */
-class HexException
+class BenzeneException
     : public std::exception
 {
 public:
     /** Constructs an exception with no message. */
-    HexException();
+    BenzeneException();
 
     /** Construct an exception with the given message. */
-    HexException(const std::string& message);
+    BenzeneException(const std::string& message);
     
     /** Destructor. */
-    virtual ~HexException() throw();
+    virtual ~BenzeneException() throw();
 
     /** Implementation of std::exception::what(). */
     const char* what() const throw();
@@ -35,18 +35,18 @@ private:
     std::string m_message;
 };
 
-inline HexException::HexException()
+inline BenzeneException::BenzeneException()
     : m_message("")
 { }
 
-inline HexException::HexException(const std::string& message)
+inline BenzeneException::BenzeneException(const std::string& message)
     : m_message(message)
 { }
 
-inline HexException::~HexException() throw()
+inline BenzeneException::~BenzeneException() throw()
 { }
 
-inline const char* HexException::what() const throw()
+inline const char* BenzeneException::what() const throw()
 {
     return m_message.c_str();
 }
@@ -55,4 +55,4 @@ inline const char* HexException::what() const throw()
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HEXEXCEPTION_H
+#endif // BENZENEEXCEPTION_H

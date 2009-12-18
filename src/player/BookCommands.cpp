@@ -60,7 +60,7 @@ void BookCommands::CmdBookOpen(HtpCommand& cmd)
     try {
         m_book.reset(new Book(fn));
     }
-    catch (HexException& e) {
+    catch (BenzeneException& e) {
         cmd << "Error opening book: '" << e.what() << "'\n";
     }
 }

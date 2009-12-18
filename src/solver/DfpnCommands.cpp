@@ -218,7 +218,7 @@ void DfpnCommands::CmdOpenDB(HtpCommand& cmd)
     try {
         m_db.reset(new DfpnDB(filename));
     }
-    catch (HexException& e) {
+    catch (BenzeneException& e) {
         m_db.reset(0);
         throw HtpFailure() << "Error opening db: '" << e.what() << "'\n";
     }

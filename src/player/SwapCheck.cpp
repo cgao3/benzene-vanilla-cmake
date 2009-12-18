@@ -37,7 +37,7 @@ void LoadSwapMoves(const std::string& name)
     s_swapMoves.clear();
     std::ifstream s(swap_file.c_str());
     if (!s)
-        throw HexException("SwapCheck: could not open list!\n");
+        throw BenzeneException("SwapCheck: could not open list!\n");
     std::string line;
     std::size_t lineNumber = 0;
     while (std::getline(s, line))

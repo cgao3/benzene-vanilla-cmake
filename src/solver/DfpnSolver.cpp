@@ -171,7 +171,7 @@ byte* DfpnData::Pack() const
     *reinterpret_cast<HexPoint*>(off) = INVALID_POINT;
     off += sizeof(HexPoint);
     if (off - data != PackedSize())
-        throw HexException("Bad size!");
+        throw BenzeneException("Bad size!");
     return data;
 }
 

@@ -14,7 +14,7 @@
 #include <bits/functexcept.h>   
 
 #include "Benzene.hpp"
-#include "HexException.hpp"
+#include "BenzeneException.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -479,7 +479,7 @@ struct _Base_bitset<0>
     _WordT&
     _M_getword(size_t) const
     { 
-	throw HexException("_Base_bitset::_M_getword");
+	throw BenzeneException("_Base_bitset::_M_getword");
 	return *new _WordT; 
     }
 
@@ -751,7 +751,7 @@ public:
 	: _Base()
     {
         if (__position > __s.size())
-	    throw HexException("benzene_bitset::bitset initial position "
+	    throw BenzeneException("benzene_bitset::bitset initial position "
 				     "not valid");
         _M_copy_from_string(__s, __position,
                             std::basic_string<_CharT, _Traits, _Alloc>::npos);
@@ -772,7 +772,7 @@ public:
 	: _Base()
     {
         if (__position > __s.size())
-	    throw HexException("benzene_bitset::bitset initial position "
+	    throw BenzeneException("benzene_bitset::bitset initial position "
 				     "not valid");
         _M_copy_from_string(__s, __position, __n);
     }
@@ -921,7 +921,7 @@ public:
     set(size_t __position, bool __val = true)
     {
 	if (__position >= _Nb)
-            throw HexException("benzene_bitset::set");
+            throw BenzeneException("benzene_bitset::set");
 	return _Unchecked_set(__position, __val);
     }
 
@@ -946,7 +946,7 @@ public:
     reset(size_t __position)
     {
 	if (__position >= _Nb)
-            throw HexException("benzene_bitset::reset");
+            throw BenzeneException("benzene_bitset::reset");
 	return _Unchecked_reset(__position);
     }
       
@@ -970,7 +970,7 @@ public:
     flip(size_t __position)
     {
 	if (__position >= _Nb)
-            throw HexException("benzene_bitset::flip");
+            throw BenzeneException("benzene_bitset::flip");
 	return _Unchecked_flip(__position);
     }
       
@@ -1085,7 +1085,7 @@ bool
 test(size_t __position) const
 {
     if (__position >= _Nb)
-        throw HexException("benzene_bitset::test");
+        throw BenzeneException("benzene_bitset::test");
     return _Unchecked_test(__position);
 }
 
@@ -1168,7 +1168,7 @@ _M_copy_from_string(const std::basic_string<_CharT, _Traits,
                     _Unchecked_set(__i - 1);
                     break;
                 default:
-                    throw HexException("benzene_bitset::_M_copy_from_string");
+                    throw BenzeneException("benzene_bitset::_M_copy_from_string");
                 }
         }
 }
