@@ -80,8 +80,9 @@ private:
         unsigned reads;
         unsigned hits;
         unsigned writes;
+        unsigned overwrites;
 
-        Statistics() : reads(0), hits(0), writes(0) { }
+        Statistics() : reads(0), hits(0), writes(0), overwrites(0) { }
     };
    
     // -----------------------------------------------------------------------
@@ -147,6 +148,8 @@ bool TransTable<T>::Put(hash_t hash, const T& data)
     if (m_data[slot].ReplaceWith(data)) 
     {
         m_stats.writes++;
+        if (m_hash[slot] && m_hash[slot] != hash)
+            m_stats.overwrites++;
         m_data[slot] = data;
         m_hash[slot] = hash;
     }
@@ -174,9 +177,10 @@ std::string TransTable<T>::Stats() const
     std::ostringstream os;
     os << '\n'
        << "TT statistics\n"
-       << "   reads: " << m_stats.reads << std::endl
-       << "    hits: " << m_stats.hits << std::endl
-       << "  writes: " << m_stats.writes << std::endl;
+       << "      reads: " << m_stats.reads << '\n'
+       << "       hits: " << m_stats.hits << '\n'
+       << "     writes: " << m_stats.writes << '\n'
+       << " overwrites: " << m_stats.overwrites << '\n';
     return os.str();
 }
 
