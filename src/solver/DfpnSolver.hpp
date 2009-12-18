@@ -410,6 +410,14 @@ public:
     /** See Timelimit() */
     void SetTimelimit(double timelimit);
 
+    /** Widening factor affects what fraction of the moves to consider
+        are looked at by the dfpn search (omitting losing moves).
+        Must be in the range (0, 1], where 1 ensures no pruning. */
+    float WideningFactor() const;
+
+    /** See WideningFactor() */
+    void SetWideningFactor(float wideningFactor);
+
     // @}
 
 private:
@@ -469,6 +477,9 @@ private:
     /** See TimeLimit() */
     double m_timelimit;
 
+    /** See WideningFactor() */
+    float m_wideningFactor;
+
     /** Number of calls to CheckAbort() before we check the timer.
         This is to avoid expensive calls to SgTime::Get(). Try to scale
         this so that it is checked twice a second. */
@@ -497,17 +508,19 @@ private:
     size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
-                     const std::vector<DfpnData>& childrenDfpnBounds) const;
+                     const std::vector<DfpnData>& childrenDfpnBounds,
+                     size_t maxChildIndex) const;
 
     void UpdateBounds(DfpnBounds& bounds, 
-                      const std::vector<DfpnData>& childBounds) const;
+                      const std::vector<DfpnData>& childBounds,
+                      size_t maxChildIndex) const;
 
     bool CheckAbort();
 
     void CheckBounds(const DfpnBounds& bounds) const;
 
     void LookupData(DfpnData& data, const DfpnChildren& children, 
-                    int childIndex, size_t delta);
+                    int childIndex);
 
     bool TTRead(const StoneBoard& brd, DfpnData& data);
 
@@ -522,6 +535,13 @@ private:
                    const std::vector<DfpnBounds>& childBounds) const;
 
     void PrintStatistics();
+
+    size_t ComputeMaxChildIndex(const std::vector<DfpnData>&
+                                childrenData) const;
+
+    void DeleteChildren(DfpnChildren& children,
+                        std::vector<DfpnData>& childrenData,
+                        bitset_t deleteChildren) const;
 
     void NotifyListeners(const DfpnHistory& history, const DfpnData& data);
 };
@@ -551,6 +571,16 @@ inline double DfpnSolver::Timelimit() const
 inline void DfpnSolver::SetTimelimit(double timelimit)
 {
     m_timelimit = timelimit;
+}
+
+inline float DfpnSolver::WideningFactor() const
+{
+    return m_wideningFactor;
+}
+
+inline void DfpnSolver::SetWideningFactor(float wideningFactor)
+{
+    m_wideningFactor = wideningFactor;
 }
 
 //----------------------------------------------------------------------------
