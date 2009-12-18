@@ -13,32 +13,69 @@ using namespace benzene;
 
 DfpnCommands::DfpnCommands(Game& game, HexEnvironment& env,
                            DfpnSolver& solver,
-                           boost::scoped_ptr<DfpnHashTable>& tt)
+                           boost::scoped_ptr<DfpnHashTable>& tt,
+                           boost::scoped_ptr<DfpnDB>& db,
+                           DfpnPositions& positions)
     : m_game(game), 
       m_env(env),
       m_solver(solver),
-      m_tt(tt)
+      m_tt(tt),
+      m_db(db),
+      m_positions(positions)
 {
 }
 
 void DfpnCommands::Register(GtpEngine& e)
 {
     Register(e, "param_dfpn", &DfpnCommands::CmdParam);
+    Register(e, "param_dfpn_db", &DfpnCommands::CmdParamSolverDB);
     Register(e, "dfpn-clear-tt", &DfpnCommands::CmdClearTT);
     Register(e, "dfpn-get-bounds", &DfpnCommands::CmdGetBounds);
     Register(e, "dfpn-get-state", &DfpnCommands::CmdGetState);    
     Register(e, "dfpn-get-work", &DfpnCommands::CmdGetWork);
     Register(e, "dfpn-solve-state", &DfpnCommands::CmdSolveState);
     Register(e, "dfpn-solver-find-winning", &DfpnCommands::CmdFindWinning);
+    Register(e, "dfpn-open-db", &DfpnCommands::CmdOpenDB);
+    Register(e, "dfpn-close-db", &DfpnCommands::CmdCloseDB);
 }
 
 void DfpnCommands::Register(GtpEngine& engine, const std::string& command,
-                              GtpCallback<DfpnCommands>::Method method)
+                            GtpCallback<DfpnCommands>::Method method)
 {
     engine.Register(command, new GtpCallback<DfpnCommands>(this, method));
 }
 
 //----------------------------------------------------------------------------
+
+void DfpnCommands::CmdParamSolverDB(HtpCommand& cmd)
+{
+    SolverDBParameters& param = m_positions.Parameters();
+    if (cmd.NuArg() == 0)
+    {
+        cmd << '\n'
+            << "[bool] use_flipped_states " << param.m_useFlippedStates << '\n'
+            << "[bool] use_proof_transpositions " 
+            << param.m_useProofTranspositions << '\n'
+            << "[string] max_stones " << param.m_maxStones << '\n'
+            << "[string] trans_stones " << param.m_transStones << '\n';
+    }
+    else if (cmd.NuArg() == 2)
+    {
+        std::string name = cmd.Arg(0);
+        if (name == "use_flipped_states")
+            param.m_useFlippedStates = cmd.BoolArg(1);
+        else if (name == "use_proof_transpositions")
+            param.m_useProofTranspositions = cmd.BoolArg(1);
+        else if (name == "max_stones")
+            param.m_maxStones = cmd.IntArg(1, 0);
+        else if (name == "trans_stones")
+            param.m_transStones = cmd.IntArg(1, 0);
+        else
+            throw HtpFailure() << "unknown parameter: " << name;
+    }
+    else 
+        throw HtpFailure("Expected 0 or 2 arguments");
+}
 
 void DfpnCommands::CmdParam(HtpCommand& cmd)
 {
@@ -70,7 +107,7 @@ void DfpnCommands::CmdSolveState(HtpCommand& cmd)
     cmd.CheckNuArg(0);
     PointSequence pv;
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    HexColor winner = m_solver.StartSearch(brd, *m_tt, pv);
+    HexColor winner = m_solver.StartSearch(brd, m_positions, pv);
     cmd << winner;
 }
 
@@ -95,7 +132,7 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
         HexBoard& brd = m_env.SyncBoard(board);
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
         PointSequence pv;
-        HexColor winner = m_solver.StartSearch(brd, *m_tt, pv);
+        HexColor winner = m_solver.StartSearch(brd, m_positions, pv);
         if (winner == colorToMove)
             winning.set(*p);
         LogInfo() << "****** " << winner << " wins ******\n";
@@ -117,7 +154,7 @@ void DfpnCommands::CmdGetState(HtpCommand& cmd)
 {
     cmd.CheckArgNone();
     DfpnData data;
-    if (m_tt->Get(m_game.Board().Hash(), data))
+    if (m_positions.Get(m_game.Board(), data))
         cmd << data << '\n';
 }
 
@@ -131,7 +168,7 @@ void DfpnCommands::CmdGetBounds(HtpCommand& cmd)
     {
         brd.PlayMove(brd.WhoseTurn(), *it);
         DfpnData data;
-        if (m_tt->Get(brd.Hash(), data))
+        if (m_positions.Get(brd, data))
         {
             cmd << ' ' << *it << ' ';
             if (data.m_bounds.IsWinning())
@@ -155,10 +192,35 @@ void DfpnCommands::CmdGetWork(HtpCommand& cmd)
     {
         brd.PlayMove(brd.WhoseTurn(), *it);
         DfpnData data;
-        if (m_tt->Get(brd.Hash(), data))
+        if (m_positions.Get(brd, data))
             cmd << ' ' << *it << ' ' << data.m_work;
         brd.UndoMove(*it);
     }
+}
+
+/** Opens a database. 
+    Usage: "db-open [filename]"
+*/
+void DfpnCommands::CmdOpenDB(HtpCommand& cmd)
+{
+    cmd.CheckNuArgLessEqual(3);
+    std::string filename = cmd.Arg(0);
+    try {
+        m_db.reset(new DfpnDB(filename));
+    }
+    catch (HexException& e) {
+        m_db.reset(0);
+        throw HtpFailure() << "Error opening db: '" << e.what() << "'\n";
+    }
+}
+
+/** Closes an open database. */
+void DfpnCommands::CmdCloseDB(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(0);
+    if (m_db.get() == 0)
+        throw HtpFailure("No open database!\n");
+    m_db.reset(0);
 }
 
 //----------------------------------------------------------------------------

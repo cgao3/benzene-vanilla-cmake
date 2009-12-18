@@ -28,7 +28,7 @@ class PlayAndSolve
 public:
     PlayAndSolve(HexBoard& playerBrd, HexBoard& solverBrd,
                  BenzenePlayer& player, DfpnSolver& solver,
-                 DfpnHashTable& hashTable, const Game& game);
+                 DfpnPositions& positions, const Game& game);
 
     HexPoint GenMove(HexColor color, double maxTime);
 
@@ -77,7 +77,7 @@ private:
 
     DfpnSolver& m_solver;
 
-    DfpnHashTable& m_hashTable;
+    DfpnPositions& m_positions;
 
     const Game& m_game;
 

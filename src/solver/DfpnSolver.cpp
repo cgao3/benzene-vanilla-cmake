@@ -16,11 +16,6 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-/** If true, uses PositionDB instead of TransTable. */
-#define USE_DB 0
-
-//----------------------------------------------------------------------------
-
 namespace {
 
 /** Returns the initial delta for a state that has not been visited
@@ -166,6 +161,7 @@ int DfpnData::PackedSize() const
     return sizeof(m_bounds)
         + sizeof(m_bestMove)
         + sizeof(m_work)
+        + sizeof(m_maxProofSet)
         + sizeof(HexPoint) * (m_children.Size() + 1);
 }
 
@@ -179,6 +175,8 @@ byte* DfpnData::Pack() const
     off += sizeof(m_bestMove);
     *reinterpret_cast<size_t*>(off) = m_work;
     off += sizeof(m_work);
+    *reinterpret_cast<bitset_t*>(off) = m_maxProofSet;
+    off += sizeof(m_maxProofSet);
     const std::vector<HexPoint>& moves = m_children.m_children;
     for (std::size_t i = 0; i < moves.size(); ++i)
     {
@@ -200,6 +198,8 @@ void DfpnData::Unpack(const byte* data)
     data += sizeof(m_bestMove);
     m_work = *reinterpret_cast<const size_t*>(data);
     data += sizeof(m_work);
+    m_maxProofSet = *reinterpret_cast<const bitset_t*>(data);
+    data += sizeof(m_maxProofSet);
     std::vector<HexPoint> moves;
     while (true)
     {
@@ -214,7 +214,9 @@ void DfpnData::Unpack(const byte* data)
 
 void DfpnData::Rotate(const ConstBoard& brd)
 {
-    m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
+    if (m_bestMove != INVALID_POINT)
+        m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
+    m_maxProofSet = BoardUtils::Rotate(brd, m_maxProofSet);
     std::vector<HexPoint>& moves = m_children.m_children;
     for (std::size_t i = 0; i < moves.size(); ++i)
         moves[i] = BoardUtils::Rotate(brd, moves[i]);
@@ -223,7 +225,7 @@ void DfpnData::Rotate(const ConstBoard& brd)
 //----------------------------------------------------------------------------
 
 DfpnSolver::DfpnSolver()
-    : m_hashTable(0),
+    : m_positions(0),
       m_useGuiFx(false),
       m_timelimit(0.0),
       m_guiFx()
@@ -293,18 +295,18 @@ void DfpnSolver::PrintStatistics()
     LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
     LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime()<<'\n';
     LogInfo() << "       VCs/sec: " << m_numVCbuilds / m_timer.GetTime()<<'\n';
-#if USE_DB
-    LogInfo() << m_db->GetStatistics().Write() << '\n';
-#else
-    LogInfo() << m_hashTable->Stats() << '\n';
-#endif
+
+    if (m_positions->Database())
+        LogInfo() << m_positions->Database()->GetStatistics().Write() << '\n';
+    if (m_positions->HashTable())    
+        LogInfo() << m_positions->HashTable()->Stats() << '\n';
 }
 
-HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
+HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnPositions& positions,
                                  PointSequence& pv)
 {
     m_aborted = false;
-    m_hashTable = &hashtable;
+    m_positions = &positions;
     m_numTerminal = 0;
     m_numMIDcalls = 0;
     m_numVCbuilds = 0;
@@ -317,13 +319,6 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnHashTable& hashtable,
     m_brd.reset(new StoneBoard(board.GetState()));
     m_workBoard = &board;
     m_checkTimerAbortCalls = 0;
-
-#if USE_DB
-    boost::scoped_ptr<DfpnDB> db(new DfpnDB("test.db"));
-    m_db = db.get();
-#else
-    m_db = 0;
-#endif
 
     bool performSearch = true;
     {
@@ -723,21 +718,13 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
 
 bool DfpnSolver::TTRead(const StoneBoard& brd, DfpnData& data)
 {
-#if USE_DB
-    return m_db->Get(brd, data);
-#else
-    return m_hashTable->Get(brd.Hash(), data);
-#endif
+    return m_positions->Get(brd, data);
 }
 
 void DfpnSolver::TTWrite(const StoneBoard& brd, const DfpnData& data)
 {
     CheckBounds(data.m_bounds);
-#if USE_DB
-    m_db->Put(brd, data);
-#else
-    m_hashTable->Put(brd.Hash(), data);
-#endif
+    m_positions->Put(brd, data);
 }
 
 #ifndef NDEBUG

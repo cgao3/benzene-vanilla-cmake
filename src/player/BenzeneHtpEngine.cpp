@@ -35,12 +35,19 @@ BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
       m_dfpnSolver(),
       m_dfsHashTable(new DfsHashTable(20)), // TT with 2^20 entries
       m_dfpnHashTable(new DfpnHashTable(20)), // TT with 2^20 entries
-      m_db(0),
+      m_dfsDB(0),
+      m_dfpnDB(0),
+      m_dfsParam(),
+      m_dfpnParam(),
+      m_dfsPositions(m_dfsHashTable, m_dfsDB, m_dfsParam),
+      m_dfpnPositions(m_dfpnHashTable, m_dfpnDB, m_dfpnParam),
       m_playerEnvCommands(m_pe),
       m_solverEnvCommands(m_se),
       m_vcCommands(m_game, m_pe),
-      m_dfsSolverCommands(m_game, m_se, m_dfsSolver, m_dfsHashTable, m_db),
-      m_dfpnSolverCommands(m_game, m_se, m_dfpnSolver, m_dfpnHashTable),
+      m_dfsSolverCommands(m_game, m_se, m_dfsSolver, m_dfsHashTable, m_dfsDB,
+                          m_dfsPositions),
+      m_dfpnSolverCommands(m_game, m_se, m_dfpnSolver, m_dfpnHashTable,
+                           m_dfpnDB, m_dfpnPositions),
       m_useParallelSolver(false)
 {
     RegisterCmd("benzene-license", &BenzeneHtpEngine::CmdLicense);
@@ -127,7 +134,7 @@ void BenzeneHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
             cmd << ' ' << *p;
 }
 
-//----------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 /** Pulls moves out of the game for given color and appends them to
     the given handbook file. Skips the first move (ie, the move from

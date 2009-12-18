@@ -88,7 +88,7 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
     if (m_useParallelSolver)
     {
         PlayAndSolve ps(*m_pe.brd, *m_se.brd, m_player, m_dfpnSolver, 
-                        *m_dfpnHashTable, m_game);
+                        m_dfpnPositions, m_game);
         return ps.GenMove(color, maxTime);
     }
     double score;

@@ -12,6 +12,7 @@
 #include "HexHtpEngine.hpp"
 #include "DfsSolver.hpp"
 #include "DfsCommands.hpp"
+#include "SolverDB.hpp"
 #include "VCCommands.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -96,7 +97,17 @@ protected:
 
     boost::scoped_ptr<DfpnHashTable> m_dfpnHashTable;
 
-    boost::scoped_ptr<DfsDB> m_db;
+    boost::scoped_ptr<DfsDB> m_dfsDB;
+
+    boost::scoped_ptr<DfpnDB> m_dfpnDB;
+
+    SolverDBParameters m_dfsParam;
+
+    SolverDBParameters m_dfpnParam;
+
+    SolverDB<DfsHashTable, DfsDB, DfsData> m_dfsPositions;
+
+    SolverDB<DfpnHashTable, DfpnDB, DfpnData> m_dfpnPositions;
 
     HexEnvironmentCommands m_playerEnvCommands;
 

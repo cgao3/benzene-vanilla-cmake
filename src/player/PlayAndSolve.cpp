@@ -11,12 +11,12 @@ using namespace benzene;
 
 PlayAndSolve::PlayAndSolve(HexBoard& playerBrd, HexBoard& solverBrd,
                            BenzenePlayer& player, DfpnSolver& solver,
-                           DfpnHashTable& hashTable, const Game& game)
+                           DfpnPositions& positions, const Game& game)
     : m_playerBrd(playerBrd),
       m_solverBrd(solverBrd),
       m_player(player),
       m_solver(solver),
-      m_hashTable(hashTable),
+      m_positions(positions),
       m_game(game)
 {
 }
@@ -67,7 +67,7 @@ void PlayAndSolve::SolverThread::operator()()
     brd.GetState().SetState(m_ps.m_game.Board());
     PointSequence pv;
     HexColor winner = m_ps.m_solver.StartSearch(m_ps.m_solverBrd, 
-                                                m_ps.m_hashTable, pv);
+                                                m_ps.m_positions, pv);
     
     if (winner != EMPTY)
     {

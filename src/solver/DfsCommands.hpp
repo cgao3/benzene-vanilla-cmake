@@ -21,8 +21,9 @@ class DfsCommands
 {
 public:
     DfsCommands(Game& game, HexEnvironment& env, DfsSolver& solver,
-                boost::scoped_ptr<DfsHashTable>& solverTT, 
-                boost::scoped_ptr<DfsDB>& solverDB);
+                boost::scoped_ptr<DfsHashTable>& tt, 
+                boost::scoped_ptr<DfsDB>& db, 
+                DfsPositions& positions);
 
     void Register(GtpEngine& engine);
 
@@ -34,13 +35,11 @@ private:
     DfsSolver& m_solver;
 
     boost::scoped_ptr<DfsHashTable>& m_tt;
-    
+
     boost::scoped_ptr<DfsDB>& m_db;
 
-    SolverDBParameters m_param;
+    DfsPositions& m_positions;
 
-    SolverDB<DfsHashTable, DfsDB, DfsData> m_solverDB;
-        
     void Register(GtpEngine& engine, const std::string& command,
                   GtpCallback<DfsCommands>::Method method);
 

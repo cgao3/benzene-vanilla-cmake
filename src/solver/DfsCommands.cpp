@@ -14,16 +14,16 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 DfsCommands::DfsCommands(Game& game, HexEnvironment& env,
-                         DfsSolver& solver,
-                         boost::scoped_ptr<DfsHashTable>& solverTT, 
-                         boost::scoped_ptr<DfsDB>& solverDB)
+                         DfsSolver& solver, 
+                         boost::scoped_ptr<DfsHashTable>& hashTable, 
+                         boost::scoped_ptr<DfsDB>& db, 
+                         DfsPositions& positions)
     : m_game(game), 
       m_env(env),
       m_solver(solver),
-      m_tt(solverTT),
-      m_db(solverDB),
-      m_param(),
-      m_solverDB(m_tt, m_db, m_param)
+      m_tt(hashTable),
+      m_db(db),
+      m_positions(positions)
 {
 }
 
@@ -50,7 +50,7 @@ void DfsCommands::Register(GtpEngine& engine, const std::string& command,
 
 void DfsCommands::CmdParamSolverDB(HtpCommand& cmd)
 {
-    SolverDBParameters& param = m_solverDB.Parameters();
+    SolverDBParameters& param = m_positions.Parameters();
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
@@ -77,7 +77,6 @@ void DfsCommands::CmdParamSolverDB(HtpCommand& cmd)
     else 
         throw HtpFailure("Expected 0 or 2 arguments");
 }
-
 
 void DfsCommands::CmdParamSolver(HtpCommand& cmd)
 {
@@ -150,7 +149,7 @@ void DfsCommands::CmdSolveState(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     DfsSolver::SolutionSet solution;
     DfsSolver::Result result = m_solver.Solve(brd, color, solution, 
-                                              m_solverDB);
+                                              m_positions);
     m_solver.DumpStats(solution);
     HexColor winner = EMPTY;
     if (result != DfsSolver::UNKNOWN) 
@@ -222,7 +221,7 @@ void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
         HexColor winner = EMPTY;
         DfsSolver::SolutionSet solution;
         DfsSolver::Result result = m_solver.Solve(brd, other, solution,
-                                                  m_solverDB);
+                                                  m_positions);
 
         m_solver.DumpStats(solution);
         LogInfo() << "Proof:" << brd.Write(solution.proof) << '\n';
@@ -280,7 +279,7 @@ void DfsCommands::CmdGetState(HtpCommand& cmd)
     StoneBoard brd(m_game.Board());
     HexColor toplay = brd.WhoseTurn();
     DfsData state;
-    if (!m_solverDB.Get(brd, state)) 
+    if (!m_positions.Get(brd, state)) 
     {
         cmd << "State not available.";
         return;
@@ -294,7 +293,7 @@ void DfsCommands::CmdGetState(HtpCommand& cmd)
     for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
     {
         brd.PlayMove(toplay, *p);
-        if (m_solverDB.Get(brd, state)) 
+        if (m_positions.Get(brd, state)) 
         {
             if (state.win)
                 losing.push_back(*p);

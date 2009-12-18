@@ -14,6 +14,7 @@
 #include "HexBoard.hpp"
 #include "TransTable.hpp"
 #include "PositionDB.hpp"
+#include "SolverDB.hpp"
 
 #include <limits>
 #include <boost/scoped_ptr.hpp>
@@ -272,12 +273,6 @@ inline std::ostream& operator<<(std::ostream& os, const DfpnData& data)
 }
 
 //----------------------------------------------------------------------------
-/** Hashtable used in dfpn search.  
-    @ingroup dfpn
-*/
-typedef TransTable<DfpnData> DfpnHashTable;
-
-//----------------------------------------------------------------------------
 
 /** History of moves played from root state to current state. 
     @ingroup dfpn
@@ -360,8 +355,21 @@ public:
 
 //----------------------------------------------------------------------------
 
-/** Database of solved positions. */
+/** Hashtable used in dfpn search.  
+    @ingroup dfpn
+*/
+typedef TransTable<DfpnData> DfpnHashTable;
+
+
+/** Database of solved positions. 
+    @ingroup dfpn
+*/
 typedef PositionDB<DfpnData> DfpnDB;
+
+/** Combines a hashtable with a position db.
+    @ingroup dfpn
+*/
+typedef SolverDB<DfpnHashTable, DfpnDB, DfpnData> DfpnPositions;
 
 //----------------------------------------------------------------------------
 
@@ -379,7 +387,7 @@ public:
     /** Solves the given state using the given hashtable. 
         Returns the color of the winning player (EMPTY if it could
         not determine a winner in time). */
-    HexColor StartSearch(HexBoard& brd, DfpnHashTable& hashtable,
+    HexColor StartSearch(HexBoard& brd, DfpnPositions& positions,
                          PointSequence& pv);
 
     void AddListener(DfpnListener& listener);
@@ -449,7 +457,7 @@ private:
 
     HexBoard* m_workBoard;
 
-    DfpnHashTable* m_hashTable;
+    DfpnPositions* m_positions;
 
     std::vector<DfpnListener*> m_listener;
 
@@ -486,8 +494,6 @@ private:
 
     size_t m_totalWastedWork;
 
-    DfpnDB* m_db;
-    
     size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 

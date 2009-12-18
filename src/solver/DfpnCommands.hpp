@@ -10,6 +10,7 @@
 #include "HexBoard.hpp"
 #include "HexHtpEngine.hpp"
 #include "HexEnvironment.hpp"
+#include "SolverDB.hpp"
 #include "DfpnSolver.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -21,7 +22,9 @@ class DfpnCommands
 {
 public:
     DfpnCommands(Game& game, HexEnvironment& env, DfpnSolver& solver,
-                 boost::scoped_ptr<DfpnHashTable>& hashTable);
+                 boost::scoped_ptr<DfpnHashTable>& hashTable,
+                 boost::scoped_ptr<DfpnDB>& db,
+                 DfpnPositions& positions);
 
     void Register(GtpEngine& engine);
 
@@ -33,17 +36,24 @@ private:
     DfpnSolver& m_solver;
 
     boost::scoped_ptr<DfpnHashTable>& m_tt;
+
+    boost::scoped_ptr<DfpnDB>& m_db;
     
+    DfpnPositions& m_positions;
+
     void Register(GtpEngine& engine, const std::string& command,
                   GtpCallback<DfpnCommands>::Method method);
 
     void CmdParam(HtpCommand& cmd);
+    void CmdParamSolverDB(HtpCommand& cmd);
     void CmdSolveState(HtpCommand& cmd);
     void CmdFindWinning(HtpCommand& cmd);
     void CmdClearTT(HtpCommand& cmd);
     void CmdGetState(HtpCommand& cmd);
     void CmdGetBounds(HtpCommand& cmd);
     void CmdGetWork(HtpCommand& cmd);
+    void CmdOpenDB(HtpCommand& cmd);
+    void CmdCloseDB(HtpCommand& cmd);
 };
 
 //----------------------------------------------------------------------------
