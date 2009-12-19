@@ -142,7 +142,7 @@ public:
 
     HexPoint FirstMove(int index) const;
 
-    void PlayMove(int index, StoneBoard& brd) const;
+    void PlayMove(int index, StoneBoard& brd, HexColor color) const;
 
     void UndoMove(int index, StoneBoard& brd) const;
 
@@ -388,7 +388,7 @@ public:
         Returns the color of the winning player (EMPTY if it could
         not determine a winner in time). */
     HexColor StartSearch(HexBoard& brd, DfpnPositions& positions,
-                         PointSequence& pv);
+                         PointSequence& pv, HexColor colorToMove);
 
     void AddListener(DfpnListener& listener);
     
@@ -409,6 +409,16 @@ public:
 
     /** See Timelimit() */
     void SetTimelimit(double timelimit);
+
+    /** Widening base affects what number of the moves to consider
+        are always looked at by the dfpn search (omitting losing moves),
+        regardless of branching factor. This amount is added to the
+        proportion computed by the WideningFactor (see below).
+        The base must be set to at least 1. */
+    int WideningBase() const;
+
+    /** See WideningBase() */
+    void SetWideningBase(int wideningBase);
 
     /** Widening factor affects what fraction of the moves to consider
         are looked at by the dfpn search (omitting losing moves).
@@ -477,6 +487,9 @@ private:
     /** See TimeLimit() */
     double m_timelimit;
 
+    /** See WideningBase() */
+    int m_wideningBase;
+
     /** See WideningFactor() */
     float m_wideningFactor;
 
@@ -505,7 +518,8 @@ private:
 
     size_t m_totalWastedWork;
 
-    size_t MID(const DfpnBounds& n, DfpnHistory& history);
+    size_t MID(const DfpnBounds& n, DfpnHistory& history,
+               HexColor colorToMove);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
                      const std::vector<DfpnData>& childrenDfpnBounds,
@@ -520,14 +534,15 @@ private:
     void CheckBounds(const DfpnBounds& bounds) const;
 
     void LookupData(DfpnData& data, const DfpnChildren& children, 
-                    int childIndex);
+                    int childIndex, HexColor colorToMove);
 
     bool TTRead(const StoneBoard& brd, DfpnData& data);
 
     void TTWrite(const StoneBoard& brd, const DfpnData& data);
 
     void GetVariation(const StoneBoard& state, 
-                      std::vector<HexPoint>& pv);
+                      std::vector<HexPoint>& pv,
+                      HexColor color);
 
     std::string PrintVariation(const std::vector<HexPoint>& pv) const;
 
@@ -571,6 +586,16 @@ inline double DfpnSolver::Timelimit() const
 inline void DfpnSolver::SetTimelimit(double timelimit)
 {
     m_timelimit = timelimit;
+}
+
+inline int DfpnSolver::WideningBase() const
+{
+    return m_wideningBase;
+}
+
+inline void DfpnSolver::SetWideningBase(int wideningBase)
+{
+    m_wideningBase = wideningBase;
 }
 
 inline float DfpnSolver::WideningFactor() const

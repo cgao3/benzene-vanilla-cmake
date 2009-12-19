@@ -27,9 +27,9 @@ void DfpnChildren::SetChildren(const std::vector<HexPoint>& children)
     m_children = children;
 }
 
-void DfpnChildren::PlayMove(int index, StoneBoard& brd) const
+void DfpnChildren::PlayMove(int index, StoneBoard& brd, HexColor color) const
 {
-    brd.PlayMove(brd.WhoseTurn(), m_children[index]);
+    brd.PlayMove(color, m_children[index]);
 }
 
 void DfpnChildren::UndoMove(int index, StoneBoard& brd) const
@@ -213,6 +213,7 @@ DfpnSolver::DfpnSolver()
     : m_positions(0),
       m_useGuiFx(false),
       m_timelimit(0.0),
+      m_wideningBase(1),
       m_wideningFactor(0.25f),
       m_guiFx()
 {
@@ -223,9 +224,11 @@ DfpnSolver::~DfpnSolver()
 }
 
 void DfpnSolver::GetVariation(const StoneBoard& state, 
-                              std::vector<HexPoint>& pv)
+                              std::vector<HexPoint>& pv,
+                              HexColor color)
 {
     StoneBoard brd(state);
+    HexColor colorToMove = color;
     while (true) 
     {
         DfpnData data;
@@ -234,7 +237,8 @@ void DfpnSolver::GetVariation(const StoneBoard& state,
         if (data.m_bestMove == INVALID_POINT)
             break;
         pv.push_back(data.m_bestMove);
-        brd.PlayMove(brd.WhoseTurn(), data.m_bestMove);
+        brd.PlayMove(colorToMove, data.m_bestMove);
+        colorToMove = !colorToMove;
     }
 }
 
@@ -289,7 +293,7 @@ void DfpnSolver::PrintStatistics()
 }
 
 HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnPositions& positions,
-                                 PointSequence& pv)
+                                 PointSequence& pv, HexColor colorToMove)
 {
     m_aborted = false;
     m_positions = &positions;
@@ -319,7 +323,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnPositions& positions,
         DfpnBounds root(INFTY, INFTY);
         m_timer.Start();
         DfpnHistory history;
-        MID(root, history);
+        MID(root, history, colorToMove);
         m_timer.Stop();
         PrintStatistics();
     }
@@ -330,13 +334,12 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnPositions& positions,
         TTRead(*m_brd, data);
         CheckBounds(data.m_bounds);
 
-        HexColor colorToMove = m_brd->WhoseTurn();
         HexColor winner = data.m_bounds.IsWinning() 
             ? colorToMove : !colorToMove;
         LogInfo() << winner << " wins!\n";
 
         pv.clear();
-        GetVariation(*m_brd, pv);
+        GetVariation(*m_brd, pv, colorToMove);
         LogInfo() << "PV: " << PrintVariation(pv) << '\n';
 
         return winner;
@@ -384,7 +387,8 @@ bool DfpnSolver::CheckAbort()
 }
 
 
-size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
+size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
+                       HexColor colorToMove)
 {
     CheckBounds(bounds);
     HexAssert(bounds.phi > 1);
@@ -394,8 +398,6 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
         return 0;
 
     int depth = history.Depth();
-    HexColor colorToMove = m_brd->WhoseTurn();
-
     size_t prevWork = 0;
     bitset_t maxProofSet;
     DfpnChildren children;
@@ -464,7 +466,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
     // Not thread safe: perhaps move into while loop below later...
     std::vector<DfpnData> childrenData(children.Size());
     for (size_t i = 0; i < children.Size(); ++i)
-        LookupData(childrenData[i], children, i);
+        LookupData(childrenData[i], children, i, colorToMove);
     // Index used for progressive widening
     size_t maxChildIndex = ComputeMaxChildIndex(childrenData);
 
@@ -507,9 +509,9 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
             m_guiFx.PlayMove(colorToMove, bestIndex);
 
         // Recurse on best child
-        children.PlayMove(bestIndex, *m_brd);
+        children.PlayMove(bestIndex, *m_brd, colorToMove);
         history.Push(bestMove, currentHash); // FIXME: handle sequences!
-        localWork += MID(child, history);
+        localWork += MID(child, history, !colorToMove);
         history.Pop();
         children.UndoMove(bestIndex, *m_brd);
 
@@ -517,7 +519,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history)
             m_guiFx.UndoMove();
 
         // Update bounds for best child
-        LookupData(childrenData[bestIndex], children, bestIndex);
+        LookupData(childrenData[bestIndex], children, bestIndex, colorToMove);
 
         // Compute some stats when find winning move
         if (childrenData[bestIndex].m_bounds.IsLosing())
@@ -625,8 +627,8 @@ size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<DfpnData>&
         return childrenData.size();
 
     // this needs experimenting!
-    int childrenToLookAt = 1 + (int) ceil(numNonLosingChildren
-                                          * WideningFactor());
+    int childrenToLookAt = WideningBase() + (int) ceil(numNonLosingChildren
+                                                       * WideningFactor());
     // Must examine at least two children when have two or more live,
     // since otherwise delta2 will be set to infinity in SelectChild.
     HexAssert(childrenToLookAt >= 2);
@@ -732,9 +734,9 @@ void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
 }
 
 void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children, 
-                            int childIndex)
+                            int childIndex, HexColor colorToMove)
 {
-    children.PlayMove(childIndex, *m_brd);
+    children.PlayMove(childIndex, *m_brd, colorToMove);
     if (!TTRead(*m_brd, data))
     {
         data.m_bounds.phi = 1;
