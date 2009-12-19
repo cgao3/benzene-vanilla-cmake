@@ -255,7 +255,7 @@ private:
     struct Histogram
     {
         /** Map of # of stones to a counter. */
-        typedef std::map<int, u64> StatsMap;
+        typedef std::map<int, std::size_t> StatsMap;
 
         /** Terminal states encountered at each depth. */
         StatsMap terminal;

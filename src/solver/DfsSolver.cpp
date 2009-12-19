@@ -464,7 +464,7 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
     //----------------------------------------------------------------------
     // Expand all moves in mustplay that were not leaf states.
     //----------------------------------------------------------------------
-    u64 states_under_losing = 0;
+    std::size_t states_under_losing = 0;
     bool made_it_through = false;
 
     for (unsigned index=0; 
