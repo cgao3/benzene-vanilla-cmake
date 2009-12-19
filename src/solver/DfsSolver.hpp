@@ -288,95 +288,11 @@ private:
 
     //------------------------------------------------------------------------
 
-    /** Plays the move; updates the board.  */
-    void PlayMove(HexBoard& brd, HexPoint cell, HexColor color);
-    
-    /** Takes back the move played. */
-    void UndoMove(HexBoard& brd, HexPoint cell);
-
-    //------------------------------------------------------------------------
-
-    /** Returns true if state is in DB or TT.  Checks DB first, then TT. 
-        If return is true, info is stored in state. */
-    bool CheckTransposition(DfsData& state) const;
-
-    /** Stores the solved state in the TT or DB. Sets the state's
-        bestmove parameter to the best move computed by solver. */
-    void StoreState(const DfsData& state, const bitset_t& proof);
-
-    bitset_t DefaultProofForWinner(const HexBoard& brd, HexColor winner) const;
-
-    //------------------------------------------------------------------------
-
-    /** Checks timelimit and SgUserAbort(). Sets m_aborted if
-        necessary, aborting the search. Returns true if search should
-        be aborted, false otherwise. */
-    bool CheckAbort();
-    
-    /** Returns true if current state is a terminal node (win/loss),
-        or a DB/TT hit. If so, info is stored in state. */
-    bool HandleLeafNode(const HexBoard& brd, HexColor color, 
-                        DfsData& state, bitset_t& proof) const;
-
-    /** Returns true if node is terminal. Fills in state if terminal. 
-        State's bestmove field is not specified here.
-     */
-    bool HandleTerminalNode(const HexBoard& brd, HexColor color, 
-                            DfsData& state, bitset_t& proof) const;
-
-    //------------------------------------------------------------------------
-
-    /** Orders the moves in mustplay using several heuristics. 
-        Aborts move ordering early if it finds a TT win: winning
-        move is put to the front. 
-
-        Will shrink the mustplay if it encounters TT losses: losing
-        moves are not added to the list of sorted moves.
-
-        Returns true if it found a TT win, false otherwise. 
-    */
-    bool OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay, 
-                    DfsSolutionSet& solution, 
-                    std::vector<HexMoveValue>& moves);
-
-    /** Plays the move and returns the opponent's mustplay
-        size. Stores whether there is a winning semi in
-        winning_semi_exists. */
-    int MustPlaySize(HexBoard& brd, HexColor color,  HexPoint cell,
-                     bool& state_in_db, 
-                     bool& winning_semi_exists) const;
-
-    //------------------------------------------------------------------------
-
-    /** Solves the current state in brd for the color to move. Handles
-        decompositions if option is turned on. */
-    bool solve_state(HexBoard& brd, HexColor tomove,
-                     PointSequence& variation, 
-                     DfsSolutionSet& solution);
-
-    /** Solves each side of the decompsosition; combines proofs if
-        necessary. */
-    bool solve_decomposition(HexBoard& brd, HexColor color, 
-                             PointSequence& variation,
-                             DfsSolutionSet& solution,
-                             HexPoint group);
-
-    /** Does the recursive mustplay search; calls solve_state() on
-        child states. */
-    bool solve_interior_state(HexBoard& brd, HexColor color, 
-                              PointSequence& variation,
-                              DfsSolutionSet& solution);
-
-    /** Shrinks/verifies proof; stores in tt/db. */
-    void handle_proof(const HexBoard& brd, HexColor color, 
-                      const PointSequence& variation,
-                      bool winning_state, DfsSolutionSet& solution);
-
-    //------------------------------------------------------------------------
-
     DfsPositions* m_positions;
 
-    double m_start_time, m_end_time;
+    double m_start_time;
+        
+    double m_end_time;
 
     std::vector<std::pair<int, int> > m_completed;
 
@@ -415,6 +331,45 @@ private:
     int m_depthLimit;
     
     double m_timeLimit;
+
+    //------------------------------------------------------------------------
+
+    void PlayMove(HexBoard& brd, HexPoint cell, HexColor color);
+    
+    void UndoMove(HexBoard& brd, HexPoint cell);
+
+    bool CheckTransposition(DfsData& state) const;
+
+    void StoreState(const DfsData& state, const bitset_t& proof);
+
+    bitset_t DefaultProofForWinner(const HexBoard& brd, HexColor winner) const;
+
+    bool CheckAbort();
+    
+    bool HandleLeafNode(const HexBoard& brd, HexColor color, 
+                        DfsData& state, bitset_t& proof) const;
+
+    bool HandleTerminalNode(const HexBoard& brd, HexColor color, 
+                            DfsData& state, bitset_t& proof) const;
+
+    bool OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay, 
+                    DfsSolutionSet& solution, 
+                    std::vector<HexMoveValue>& moves);
+
+    bool solve_state(HexBoard& brd, HexColor tomove, PointSequence& variation, 
+                     DfsSolutionSet& solution);
+
+    bool solve_decomposition(HexBoard& brd, HexColor color, 
+                             PointSequence& variation,
+                             DfsSolutionSet& solution, HexPoint group);
+
+    bool solve_interior_state(HexBoard& brd, HexColor color, 
+                              PointSequence& variation, 
+                              DfsSolutionSet& solution);
+
+    void handle_proof(const HexBoard& brd, HexColor color, 
+                      const PointSequence& variation,
+                      bool winning_state, DfsSolutionSet& solution);
 };
 
 //----------------------------------------------------------------------------

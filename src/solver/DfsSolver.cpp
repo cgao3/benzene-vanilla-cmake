@@ -137,6 +137,9 @@ void DfsSolver::StoreState(const DfsData& state, const bitset_t& proof)
 
 //----------------------------------------------------------------------------
 
+/** Checks timelimit and SgUserAbort(). Sets m_aborted if necessary,
+    aborting the search. Returns true if search should be aborted,
+    false otherwise. */
 bool DfsSolver::CheckAbort()
 {
     if (!m_aborted)
@@ -156,6 +159,9 @@ bool DfsSolver::CheckAbort()
     return m_aborted;
 }
 
+/** Returns true if node is terminal. Fills in state if terminal.
+    State's bestmove field is not specified here.
+*/
 bool DfsSolver::HandleTerminalNode(const HexBoard& brd, HexColor color,
                                    DfsData& state, bitset_t& proof) const
 {
@@ -179,6 +185,8 @@ bool DfsSolver::HandleTerminalNode(const HexBoard& brd, HexColor color,
     return false;
 }
 
+/** Returns true if current state is a terminal node (win/loss), or a
+    DB/TT hit. If so, info is stored in state. */
 bool DfsSolver::HandleLeafNode(const HexBoard& brd, HexColor color, 
                                DfsData& state, bitset_t& proof) const
 {
@@ -191,6 +199,8 @@ bool DfsSolver::HandleLeafNode(const HexBoard& brd, HexColor color,
 
 //----------------------------------------------------------------------------
 
+/** Solves the current state in brd for the color to move. Handles
+    decompositions if option is turned on. */
 bool DfsSolver::solve_state(HexBoard& brd, HexColor color, 
                             PointSequence& variation, DfsSolutionSet& solution)
 {
@@ -245,10 +255,12 @@ bool DfsSolver::solve_state(HexBoard& brd, HexColor color,
     return winning_state;
 }
 
+/** Solves each side of the decompsosition; combines proofs if
+    necessary. */
 bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color, 
-                                 PointSequence& variation,
-                                 DfsSolutionSet& solution,
-                                 HexPoint group)
+                                    PointSequence& variation,
+                                    DfsSolutionSet& solution,
+                                    HexPoint group)
 {
     solution.stats.decompositions++;
 
@@ -347,9 +359,8 @@ bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color,
     return false;
 }
 
-//--------------------------------------------------------------------------
-// Internal state
-//--------------------------------------------------------------------------
+/** Does the recursive mustplay search; calls solve_state() on child
+    states. */
 bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color, 
                                   PointSequence& variation,
                                   DfsSolutionSet& solution)
@@ -578,6 +589,7 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
     return winning_state;
 }
 
+/** Shrinks/verifies proof; stores in tt/db. */
 void DfsSolver::handle_proof(const HexBoard& brd, HexColor color, 
                              const PointSequence& variation,
                              bool winning_state, DfsSolutionSet& solution)
@@ -664,6 +676,7 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
 
 //----------------------------------------------------------------------------
 
+/** Plays the move; updates the board.  */
 void DfsSolver::PlayMove(HexBoard& brd, HexPoint cell, HexColor color) 
 {
     m_statistics.played++;
@@ -671,6 +684,7 @@ void DfsSolver::PlayMove(HexBoard& brd, HexPoint cell, HexColor color)
     brd.PlayMove(color, cell);
 }
 
+/** Takes back the move played. */
 void DfsSolver::UndoMove(HexBoard& brd, HexPoint cell)
 {
     m_stoneboard->UndoMove(cell);
@@ -679,9 +693,18 @@ void DfsSolver::UndoMove(HexBoard& brd, HexPoint cell)
 
 //----------------------------------------------------------------------------
 
+/** Orders the moves in mustplay using several heuristics.  Aborts
+    move ordering early if it finds a TT win: winning move is put to
+    the front.
+
+    Will shrink the mustplay if it encounters TT losses: losing moves
+    are not added to the list of sorted moves.
+
+    Returns true if it found a TT win, false otherwise.
+*/
 bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay, 
-                        DfsSolutionSet& solution,
-                        std::vector<HexMoveValue>& moves)
+                           DfsSolutionSet& solution,
+                           std::vector<HexMoveValue>& moves)
 {        
     LogFine() << "OrderMoves\n";
     HexColor other = !color;
