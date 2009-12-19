@@ -308,9 +308,6 @@ private:
     /** See UseDecompositions() */
     bool m_use_decompositions;
 
-    /** See ProgressDepth() */
-    int m_progress_depth;
-
     /** See UpdateDepth() */
     int m_update_depth;
 
@@ -382,16 +379,6 @@ inline bool DfsSolver::UseDecompositions() const
 inline void DfsSolver::SetUseDecompositions(bool enable)
 {
     m_use_decompositions = enable;
-}
-
-inline int DfsSolver::ProgressDepth() const
-{
-    return m_progress_depth;
-}
-
-inline void DfsSolver::SetProgressDepth(int depth)
-{
-    m_progress_depth = depth;
 }
 
 inline int DfsSolver::UpdateDepth() const

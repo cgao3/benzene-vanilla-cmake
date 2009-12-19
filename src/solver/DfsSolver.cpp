@@ -41,7 +41,6 @@ using namespace benzene;
 DfsSolver::DfsSolver()
     : m_positions(0),
       m_use_decompositions(true),
-      m_progress_depth(8),
       m_update_depth(4),
       m_shrink_proofs(true),
       m_backup_ice_info(true),
@@ -362,11 +361,10 @@ bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color,
 /** Does the recursive mustplay search; calls solve_state() on child
     states. */
 bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color, 
-                                  PointSequence& variation,
-                                  DfsSolutionSet& solution)
+                                     PointSequence& variation,
+                                     DfsSolutionSet& solution)
 {
     int depth = variation.size();
-    std::string space(2*depth, ' ');
     int numstones = m_stoneboard->NumStones();
 
     // Print some output for debugging/tracing purposes
@@ -387,42 +385,37 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
                                                        solution.proof);
     LogFine() << "mustplay: [" << HexPointUtil::ToString(mustplay) << " ]\n";
 
-    if (depth == m_update_depth) 
+    // output progress for the gui
+    if (depth == m_update_depth && m_use_guifx)
     {
-        LogInfo() << "Solving position:" << '\n' << *m_stoneboard << '\n';
-
-        // output progress for the gui
-        if (m_use_guifx)
+        std::ostringstream os;
+        os << "gogui-gfx:\n";
+        os << "solver\n";
+        os << "VAR";
+        HexColor toplay = (variation.size()&1) ? !color : color;
+        for (std::size_t i = 0; i < variation.size(); ++i) 
         {
-            std::ostringstream os;
-            os << "gogui-gfx:\n";
-            os << "solver\n";
-            os << "VAR";
-            HexColor toplay = (variation.size()&1) ? !color : color;
-            for (std::size_t i=0; i<variation.size(); ++i) 
-            {
-                os << " " << ((toplay == BLACK) ? "B" : "W");
-                os << " " << variation[i];
-                toplay = !toplay;
-            }
-            os << '\n';
-            os << "LABEL ";
-            const InferiorCells& inf = brd.GetInferiorCells();
-            os << inf.GuiOutput();
-            os << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), 
-                                                        mustplay, inf.All());
-            os << '\n';
-            os << "TEXT";
-            for (int i=0; i<depth; ++i) 
-            {
-                os << " " << m_completed[i].first 
-                   << "/" << m_completed[i].second;
-            }
-            os << '\n';
-            os << '\n';
-            std::cout << os.str();
-            std::cout.flush();
+            os << " " << ((toplay == BLACK) ? "B" : "W");
+            os << " " << variation[i];
+            toplay = !toplay;
         }
+        os << '\n';
+        os << "LABEL ";
+        const InferiorCells& inf = brd.GetInferiorCells();
+        os << inf.GuiOutput();
+        os << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), 
+                                                    mustplay, inf.All());
+        os << '\n';
+        os << "TEXT";
+        for (int i = 0; i < depth; ++i) 
+        {
+            os << " " << m_completed[i].first 
+               << "/" << m_completed[i].second;
+        }
+        os << '\n';
+        os << '\n';
+        std::cout << os.str();
+        std::cout.flush();
     } 
 
     // If mustplay is empty then this is a losing state.
@@ -473,21 +466,6 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
     {
         HexPoint cell = moves[index].point();
         
-        // Output a rough progress indicator as an 'info' level log message.
-        if (depth < m_progress_depth) 
-        {
-            LogInfo() << space
-		      << (index+1) << "/" << moves.size()
-		      << ": (" << color
-		      << ", " << cell << ")"
-		      << " " << m_statistics.played 
-		      << " " << Time::Formatted(Time::Get() - m_start_time);
-	    
-            if (!mustplay.test(cell))
-                LogInfo() << " " << "*pruned*";
-            LogInfo() << '\n';
-        }
-
         // note the level of completion
         m_completed[depth] = std::make_pair(index, moves.size());
 

@@ -93,8 +93,6 @@ void DfsCommands::CmdParamSolver(HtpCommand& cmd)
             << m_solver.UseGuiFx() << '\n'
             << "[string] move_ordering "
             << m_solver.MoveOrdering() << '\n' // FIXME: PRINT NICELY!!
-            << "[string] progress_depth "
-            << m_solver.ProgressDepth() << '\n'
             << "[string] tt_bits "  
             << m_tt->Bits() << '\n'
             << "[string] update_depth "  
@@ -113,8 +111,6 @@ void DfsCommands::CmdParamSolver(HtpCommand& cmd)
             m_solver.SetUseGuiFx(cmd.BoolArg(1));
         else if (name == "move_ordering")
             m_solver.SetMoveOrdering(cmd.IntArg(1,0,7));
-        else if (name == "progress_depth")
-            m_solver.SetProgressDepth(cmd.IntArg(1, 0));
 	else if (name == "tt_bits")
 	{
 	    int bits = cmd.IntArg(1, 0);
