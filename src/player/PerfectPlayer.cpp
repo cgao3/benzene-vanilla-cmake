@@ -34,7 +34,7 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& game_state,
     SG_UNUSED(score);
     HexAssert(game_state.Board().IsStandardPosition());
     PointSequence pv;
-    m_solver.StartSearch(brd, m_positions, pv);
+    m_solver.StartSearch(brd, color, m_positions, pv);
     HexAssert(!pv.empty());
     return pv[0];
 }

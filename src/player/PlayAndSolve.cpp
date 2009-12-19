@@ -67,9 +67,8 @@ void PlayAndSolve::SolverThread::operator()()
     brd.GetState().SetState(m_ps.m_game.Board());
     PointSequence pv;
     HexColor colorToMove = m_ps.m_game.Board().WhoseTurn();
-    HexColor winner = m_ps.m_solver.StartSearch(m_ps.m_solverBrd, 
-                                                m_ps.m_positions, pv,
-                                                colorToMove);
+    HexColor winner = m_ps.m_solver.StartSearch(m_ps.m_solverBrd, colorToMove,
+                                                m_ps.m_positions, pv);
     
     if (winner != EMPTY)
     {

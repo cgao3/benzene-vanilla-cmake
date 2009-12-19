@@ -128,7 +128,7 @@ void DfpnCommands::CmdSolveState(HtpCommand& cmd)
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
     PointSequence pv;
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    HexColor winner = m_solver.StartSearch(brd, m_positions, pv, colorToMove);
+    HexColor winner = m_solver.StartSearch(brd, colorToMove, m_positions, pv);
     cmd << winner;
 }
 
@@ -153,8 +153,8 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
         HexBoard& brd = m_env.SyncBoard(board);
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
         PointSequence pv;
-        HexColor winner = m_solver.StartSearch(brd, m_positions,
-                                               pv, !colorToMove);
+        HexColor winner = m_solver.StartSearch(brd,!colorToMove, 
+                                               m_positions, pv);
         if (winner == colorToMove)
             winning.set(*p);
         LogInfo() << "****** " << winner << " wins ******\n";

@@ -292,8 +292,8 @@ void DfpnSolver::PrintStatistics()
         LogInfo() << m_positions->HashTable()->Stats() << '\n';
 }
 
-HexColor DfpnSolver::StartSearch(HexBoard& board, DfpnPositions& positions,
-                                 PointSequence& pv, HexColor colorToMove)
+HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
+                                 DfpnPositions& positions, PointSequence& pv)
 {
     m_aborted = false;
     m_positions = &positions;

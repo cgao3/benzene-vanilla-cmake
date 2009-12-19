@@ -387,8 +387,8 @@ public:
     /** Solves the given state using the given hashtable. 
         Returns the color of the winning player (EMPTY if it could
         not determine a winner in time). */
-    HexColor StartSearch(HexBoard& brd, DfpnPositions& positions,
-                         PointSequence& pv, HexColor colorToMove);
+    HexColor StartSearch(HexBoard& brd, HexColor colorToMove,
+                         DfpnPositions& positions, PointSequence& pv);
 
     void AddListener(DfpnListener& listener);
     
