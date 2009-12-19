@@ -58,38 +58,27 @@ DfsSolver::~DfsSolver()
 
 //----------------------------------------------------------------------------
 
-void DfsSolver::Initialize(const HexBoard& brd)
-{
-    m_aborted = false;
-    m_last_histogram_dump = 0;
-    m_start_time = Time::Get();
-    m_histogram = Histogram();
-    m_statistics = GlobalStatistics();
-    m_stoneboard.reset(new StoneBoard(brd.GetState()));
-}
-
-DfsSolver::Result DfsSolver::Solve(HexBoard& brd, HexColor tomove, 
-                                   SolutionSet& solution,
-                                   DfsPositions& positions,
-                                   int depthLimit, double timeLimit)
+HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay, 
+                          SolutionSet& solution, DfsPositions& positions,
+                          int depthLimit, double timeLimit)
 {
     m_positions = &positions;
     m_settings.depthLimit = depthLimit;
     m_settings.timeLimit = timeLimit;
     
-    Initialize(brd);
-    return run_solver(brd, tomove, solution);
-}
+    m_aborted = false;
+    m_start_time = Time::Get();
+    m_histogram = Histogram();
+    m_last_histogram_dump = 0;
+    m_statistics = GlobalStatistics();
+    m_stoneboard.reset(new StoneBoard(brd.GetState()));
 
-DfsSolver::Result DfsSolver::run_solver(HexBoard& brd, HexColor tomove,
-                                        SolutionSet& solution)
-{
     // DfsSolver currently cannot handle permanently inferior cells.
     if (brd.ICE().FindPermanentlyInferior())
         throw BenzeneException("Permanently Inferior not supported "
                                "in DfsSolver!");
 
-    // Check if move already exists in db/tt before doing anything
+    // Check if move already is already solved
     DfsData state;
     bool win = false;
     if (CheckTransposition(state))
@@ -98,24 +87,23 @@ DfsSolver::Result DfsSolver::run_solver(HexBoard& brd, HexColor tomove,
         win = state.win;
         solution.moves_to_connection = state.nummoves;
         solution.pv.clear();
+        // TODO: get pv from DfsPositions
         solution.pv.push_back(state.bestmove);
         solution.proof = DefaultProofForWinner(brd, state.win ? 
-                                               tomove : !tomove);
+                                               toPlay : !toPlay);
     }
     else
     {
-        brd.ComputeAll(tomove);
+        brd.ComputeAll(toPlay);
         m_completed.resize(BITSETSIZE);
         PointSequence variation;
-        win = solve_state(brd, tomove, variation, solution);
+        win = solve_state(brd, toPlay, variation, solution);
     }
-    // AND the proof with empty cells on board since our working proof
-    // contains played stones.
     solution.proof &= brd.GetState().GetEmpty();
     m_end_time = Time::Get();
     if (m_aborted) 
-        return DfsSolver::UNKNOWN;
-    return win ? DfsSolver::WIN : DfsSolver::LOSS;
+        return EMPTY;
+    return win ? toPlay : !toPlay;
 }
 
 //----------------------------------------------------------------------------
@@ -169,7 +157,7 @@ bool DfsSolver::CheckAbort()
 }
 
 bool DfsSolver::HandleTerminalNode(const HexBoard& brd, HexColor color,
-                                DfsData& state, bitset_t& proof) const
+                                   DfsData& state, bitset_t& proof) const
 {
     int numstones = m_stoneboard->NumStones();
     if (DfsSolverUtil::isWinningState(brd, color, proof)) 
@@ -192,17 +180,10 @@ bool DfsSolver::HandleTerminalNode(const HexBoard& brd, HexColor color,
 }
 
 bool DfsSolver::HandleLeafNode(const HexBoard& brd, HexColor color, 
-                               DfsData& state, bool root_node,
-                               bitset_t& proof) const
+                               DfsData& state, bitset_t& proof) const
 {
     if (HandleTerminalNode(brd, color, state, proof))
         return true;
-
-    // Skip the transposition check if the flag is set and we are at
-    // the root.
-    if (root_node && m_settings.flags & SOLVE_ROOT_AGAIN)
-        return false;
-
     if (CheckTransposition(state))
         proof = DefaultProofForWinner(brd, state.win ? color : !color);
     return false;
@@ -211,7 +192,7 @@ bool DfsSolver::HandleLeafNode(const HexBoard& brd, HexColor color,
 //----------------------------------------------------------------------------
 
 bool DfsSolver::solve_state(HexBoard& brd, HexColor color, 
-                         PointSequence& variation, SolutionSet& solution)
+                            PointSequence& variation, SolutionSet& solution)
 {
     if (CheckAbort()) 
         return false;
@@ -220,7 +201,7 @@ bool DfsSolver::solve_state(HexBoard& brd, HexColor color,
     {
         DfsData state;
         bitset_t proof;
-        if (HandleLeafNode(brd, color, state, variation.empty(), proof)) 
+        if (HandleLeafNode(brd, color, state, proof)) 
         {
             solution.stats.explored_states = 1;
             solution.stats.minimal_explored = 1;

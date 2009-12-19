@@ -46,10 +46,6 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** Return type for solve(): player to move wins, player to move
-     loses, unknown result (timelimit or depth limit reached). */
-    typedef enum { WIN, LOSS, UNKNOWN } Result;
-
     /** Stats for a branch of the search tree. */
     struct BranchStatistics
     {
@@ -142,8 +138,6 @@ public:
 
     static const double NO_TIME_LIMIT  = -1.0;
     
-    static const int SOLVE_ROOT_AGAIN = 1;
-
     /** User controllable settings. 
         @todo Combine these with the parameters below.
     */
@@ -169,13 +163,13 @@ public:
     /** Solves state using the given database (pass in 0 for no
         database). Numstones sets the maximum number of stones allowed
         in a db state; transtones sets the maximum number of stones in
-        states stored with proof transpositions.  Returns WIN/LOSS if
-        color to play wins/loses; otherwise UNKNOWN.
+        states stored with proof transpositions. Returns color of
+        winner or EMPTY if aborted before state was solved.
     */
-    Result Solve(HexBoard& board, HexColor toplay, SolutionSet& solution,
-                 DfsPositions& positions,
-                 int depth_limit = NO_DEPTH_LIMIT, 
-                 double time_imit = NO_TIME_LIMIT);
+    HexColor Solve(HexBoard& board, HexColor toplay, SolutionSet& solution,
+                   DfsPositions& positions,
+                   int depth_limit = NO_DEPTH_LIMIT, 
+                   double time_imit = NO_TIME_LIMIT);
 
     //------------------------------------------------------------------------
 
@@ -313,8 +307,6 @@ private:
 
     //------------------------------------------------------------------------
 
-    void Initialize(const HexBoard&);
-
     /** Returns true if state is in DB or TT.  Checks DB first, then TT. 
         If return is true, info is stored in state. */
     bool CheckTransposition(DfsData& state) const;
@@ -333,12 +325,9 @@ private:
     bool CheckAbort();
     
     /** Returns true if current state is a terminal node (win/loss),
-        or a DB/TT hit.  If so, info is stored in state.  If root_node
-        is true and SOLVE_ROOT_AGAIN is set, then no transpositions
-        are checked. */
+        or a DB/TT hit. If so, info is stored in state. */
     bool HandleLeafNode(const HexBoard& brd, HexColor color, 
-                        DfsData& state, bool root_node,
-                        bitset_t& proof) const;
+                        DfsData& state, bitset_t& proof) const;
 
     /** Returns true if node is terminal. Fills in state if terminal. 
         State's bestmove field is not specified here.
@@ -369,9 +358,6 @@ private:
                      bool& winning_semi_exists) const;
 
     //------------------------------------------------------------------------
-
-    /** Helper for solve(). */
-    Result run_solver(HexBoard& brd, HexColor tomove, SolutionSet& solution);
 
     /** Solves the current state in brd for the color to move. Handles
         decompositions if option is turned on. */

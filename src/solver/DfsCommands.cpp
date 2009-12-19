@@ -137,26 +137,14 @@ void DfsCommands::CmdParamSolver(HtpCommand& cmd)
 */
 void DfsCommands::CmdSolveState(HtpCommand& cmd)
 {
-    cmd.CheckNuArgLessEqual(2);
+    cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-
-    boost::scoped_ptr<DfsDB> db(0);
-    if (cmd.NuArg() == 2) 
-    {
-        std::string filename = cmd.Arg(1);
-        db.reset(new DfsDB(filename));
-    }
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     DfsSolver::SolutionSet solution;
-    DfsSolver::Result result = m_solver.Solve(brd, color, solution, 
-                                              m_positions);
+    HexColor winner = m_solver.Solve(brd, color, solution, m_positions);
     m_solver.DumpStats(solution);
-    HexColor winner = EMPTY;
-    if (result != DfsSolver::UNKNOWN) 
-    {
-        winner = (result == DfsSolver::WIN) ? color : !color;
+    if (winner != EMPTY) 
         LogInfo() << winner << " wins!\n" << brd.Write(solution.proof) << '\n';
-    } 
     else 
         LogInfo() << "Search aborted!\n";
     cmd << winner;
@@ -175,30 +163,8 @@ void DfsCommands::CmdSolverClearTT(HtpCommand& cmd)
 */
 void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
 {
-    cmd.CheckNuArgLessEqual(4);
+    cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-    HexColor other = !color;
-
-    boost::scoped_ptr<DfsDB> db(0);
-    int maxStones = 5;
-    int transStones = maxStones;
-    if (cmd.NuArg() >= 2)
-    {
-        std::string filename = cmd.Arg(1);
-        db.reset(new DfsDB(filename));
-    }
-
-    if (cmd.NuArg() == 3)
-    {
-        maxStones = cmd.IntArg(2, 1);
-        transStones = maxStones;
-    }
-    else if (cmd.NuArg() == 4)
-    {
-        transStones = cmd.IntArg(2, -1);
-        maxStones = cmd.IntArg(3, 1);
-    }
-
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     bitset_t consider = (PlayerUtils::IsDeterminedState(brd, color) ?
@@ -206,31 +172,21 @@ void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
                          PlayerUtils::MovesToConsider(brd, color));
     bitset_t winning;
     SgTimer timer;
-
     for (BitsetIterator p(consider); p; ++p)
     {
-	if (!consider.test(*p)) continue;
-
+	if (!consider.test(*p))
+            continue;
         StoneBoard board(m_game.Board());
         board.PlayMove(color, *p);
-
         HexBoard& brd = m_env.SyncBoard(board);
-
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
-
-        HexColor winner = EMPTY;
         DfsSolver::SolutionSet solution;
-        DfsSolver::Result result = m_solver.Solve(brd, other, solution,
-                                                  m_positions);
-
+        HexColor winner = m_solver.Solve(brd, !color, solution, m_positions);
         m_solver.DumpStats(solution);
         LogInfo() << "Proof:" << brd.Write(solution.proof) << '\n';
 
-        if (result != DfsSolver::UNKNOWN) 
-        {
-            winner = (result == DfsSolver::WIN) ? !color : color;
+        if (winner != EMPTY) 
             LogInfo() << "****** " << winner << " wins ******\n";
-        } 
         else 
             LogInfo() << "****** unknown ******\n";
 
