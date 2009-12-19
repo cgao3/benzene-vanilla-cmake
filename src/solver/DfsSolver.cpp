@@ -59,12 +59,12 @@ DfsSolver::~DfsSolver()
 //----------------------------------------------------------------------------
 
 HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay, 
-                          SolutionSet& solution, DfsPositions& positions,
+                          DfsSolutionSet& solution, DfsPositions& positions,
                           int depthLimit, double timeLimit)
 {
     m_positions = &positions;
-    m_settings.depthLimit = depthLimit;
-    m_settings.timeLimit = timeLimit;
+    m_depthLimit = depthLimit;
+    m_timeLimit = timeLimit;
     
     m_aborted = false;
     m_start_time = Time::Get();
@@ -146,8 +146,8 @@ bool DfsSolver::CheckAbort()
             m_aborted = true;
             LogInfo() << "DfsSolver::CheckAbort(): Abort flag!\n";
         }
-        else if ((m_settings.timeLimit > 0) && 
-                 ((Time::Get() - m_start_time) > m_settings.timeLimit))
+        else if ((m_timeLimit > 0) && 
+                 ((Time::Get() - m_start_time) > m_timeLimit))
         {
             m_aborted = true;
             LogInfo() << "DfsSolver::CheckAbort(): Timelimit!\n";
@@ -192,7 +192,7 @@ bool DfsSolver::HandleLeafNode(const HexBoard& brd, HexColor color,
 //----------------------------------------------------------------------------
 
 bool DfsSolver::solve_state(HexBoard& brd, HexColor color, 
-                            PointSequence& variation, SolutionSet& solution)
+                            PointSequence& variation, DfsSolutionSet& solution)
 {
     if (CheckAbort()) 
         return false;
@@ -247,7 +247,7 @@ bool DfsSolver::solve_state(HexBoard& brd, HexColor color,
 
 bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color, 
                                  PointSequence& variation,
-                                 SolutionSet& solution,
+                                 DfsSolutionSet& solution,
                                  HexPoint group)
 {
     solution.stats.decompositions++;
@@ -274,7 +274,7 @@ bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color,
         
     // solve each side
     DfsData state;
-    SolutionSet dsolution[2];
+    DfsSolutionSet dsolution[2];
     for (int s = 0; s < 2; ++s) 
     {
         LogFine() << "----------- Side" << s << ":" 
@@ -352,7 +352,7 @@ bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color,
 //--------------------------------------------------------------------------
 bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color, 
                                   PointSequence& variation,
-                                  SolutionSet& solution)
+                                  DfsSolutionSet& solution)
 {
     int depth = variation.size();
     std::string space(2*depth, ' ');
@@ -488,7 +488,7 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
         }
 
 	made_it_through = true;
-        SolutionSet child_solution;
+        DfsSolutionSet child_solution;
         PlayMove(brd, cell, color);
         variation.push_back(cell);
 
@@ -580,7 +580,7 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
 
 void DfsSolver::handle_proof(const HexBoard& brd, HexColor color, 
                              const PointSequence& variation,
-                             bool winning_state, SolutionSet& solution)
+                             bool winning_state, DfsSolutionSet& solution)
 {
     if (m_aborted)
         return;
@@ -680,7 +680,7 @@ void DfsSolver::UndoMove(HexBoard& brd, HexPoint cell)
 //----------------------------------------------------------------------------
 
 bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay, 
-                        SolutionSet& solution,
+                        DfsSolutionSet& solution,
                         std::vector<HexMoveValue>& moves)
 {        
     LogFine() << "OrderMoves\n";
@@ -1010,7 +1010,7 @@ std::string DfsSolver::Histogram::Dump()
     return os.str();
 }
 
-void DfsSolver::DumpStats(const SolutionSet& solution) const
+void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
 {
     double total_time = m_end_time - m_start_time;
 

@@ -140,7 +140,7 @@ void DfsCommands::CmdSolveState(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    DfsSolver::SolutionSet solution;
+    DfsSolutionSet solution;
     HexColor winner = m_solver.Solve(brd, color, solution, m_positions);
     m_solver.DumpStats(solution);
     if (winner != EMPTY) 
@@ -180,7 +180,7 @@ void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
         board.PlayMove(color, *p);
         HexBoard& brd = m_env.SyncBoard(board);
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
-        DfsSolver::SolutionSet solution;
+        DfsSolutionSet solution;
         HexColor winner = m_solver.Solve(brd, !color, solution, m_positions);
         m_solver.DumpStats(solution);
         LogInfo() << "Proof:" << brd.Write(solution.proof) << '\n';

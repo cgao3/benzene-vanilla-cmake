@@ -19,7 +19,7 @@
 
 _BEGIN_BENZENE_NAMESPACE_
 
-//----------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 /** Transposition table for use in DfsSolver. */
 typedef TransTable<DfsData> DfsHashTable;
@@ -30,7 +30,111 @@ typedef PositionDB<DfsData> DfsDB;
 /** Solver database combining both of the above. */
 typedef SolverDB<DfsHashTable, DfsDB, DfsData> DfsPositions;
 
-//----------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+/** Stats for a branch of the search tree. */
+struct DfsBranchStatistics
+{
+    /** Total states in tree if no DB and no TT. */
+    unsigned total_states;
+
+    /** States actually visited; includes leafs, tt and db hits. */
+    unsigned explored_states;
+
+    /** Expanded nodes; non leaf, non tt and db hit states. */
+    unsigned expanded_states;
+
+    /** Number of expanded nodes assuming perfect move ordering 
+        (assuming the same set of winning moves). */
+    unsigned minimal_explored;
+        
+    /** Decompositions found; if black is to move, it must be a
+        decomposition for white. */
+    unsigned decompositions;
+
+    /** Decompositions where the player to move won. */
+    unsigned decompositions_won;
+    
+    /** Total number of moves to consider in expanded states. 
+        Includes moves that are later pruned (by mustplay or
+        from skipping due to finding a win). */
+    unsigned moves_to_consider;
+    
+    /** Number of expanded states that had winning moves. */
+    unsigned winning_expanded;
+    
+    /** Number of branches tried before win was found. */
+    unsigned branches_to_win;
+
+    /** States pruned by mustplay pruning. */
+    unsigned pruned;
+    
+    /** Number of proofs that were successfully shrunk. */
+    unsigned shrunk;
+    
+    /** Total number of cells removed in all successful proof
+        shrinkings. */
+    unsigned cells_removed;
+    
+    DfsBranchStatistics();
+
+    void operator+=(const DfsBranchStatistics& o);
+};
+
+inline DfsBranchStatistics::DfsBranchStatistics()
+    : total_states(0), 
+      explored_states(0), 
+      expanded_states(0), 
+      minimal_explored(0), 
+      decompositions(0), 
+      decompositions_won(0), 
+      moves_to_consider(0), 
+      winning_expanded(0), 
+      branches_to_win(0),
+      pruned(0), 
+      shrunk(0), 
+      cells_removed(0)
+{
+}
+
+inline void DfsBranchStatistics::operator+=(const DfsBranchStatistics& o)
+{
+    total_states += o.total_states;
+    explored_states += o.explored_states;
+    expanded_states += o.expanded_states;
+    minimal_explored += o.minimal_explored;
+    decompositions += o.decompositions;
+    decompositions_won += o.decompositions_won;
+    moves_to_consider += o.moves_to_consider;
+    winning_expanded += o.winning_expanded;
+    branches_to_win += o.branches_to_win;
+    pruned += o.pruned;
+    shrunk += o.shrunk;
+    cells_removed += o.cells_removed;
+}
+
+//----------------------------------------------------------------------------
+
+/** Contains all relevant data for a solution to a state. */
+struct DfsSolutionSet
+{
+    bitset_t proof;
+    
+    int moves_to_connection;
+    
+    PointSequence pv;
+    
+    DfsBranchStatistics stats;
+    
+    DfsSolutionSet();
+};
+
+inline DfsSolutionSet::DfsSolutionSet()
+    : moves_to_connection(0)
+{
+}
+
+//----------------------------------------------------------------------------
 
 /** Determines the winner of a gamestate.
     DfsSolver uses a mustplay driven depth-first search to determine the
@@ -46,130 +150,15 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** Stats for a branch of the search tree. */
-    struct BranchStatistics
-    {
-        /** Total states in tree if no DB and no TT. */
-        unsigned total_states;
-
-        /** States actually visited; includes leafs, tt and db hits. */
-        unsigned explored_states;
-
-        /** Expanded nodes; non leaf, non tt and db hit states. */
-        unsigned expanded_states;
-
-        /** Number of expanded nodes assuming perfect move ordering 
-            (assuming the same set of winning moves). */
-        unsigned minimal_explored;
-        
-        /** Decompositions found; if black is to move, it must be a
-            decomposition for white. */
-        unsigned decompositions;
-
-        /** Decompositions where the player to move won. */
-        unsigned decompositions_won;
-
-        /** Total number of moves to consider in expanded states. 
-            Includes moves that are later pruned (by mustplay or
-            from skipping due to finding a win). */
-        unsigned moves_to_consider;
-
-        /** Number of expanded states that had winning moves. */
-        unsigned winning_expanded;
-
-        /** Number of branches tried before win was found. */
-        unsigned branches_to_win;
-
-        /** States pruned by mustplay pruning. */
-        unsigned pruned;
-
-        /** Number of proofs that were successfully shrunk. */
-        unsigned shrunk;
-        
-        /** Total number of cells removed in all successful proof
-            shrinkings. */
-        unsigned cells_removed;
-
-        BranchStatistics() 
-            : total_states(0), explored_states(0), 
-              expanded_states(0), minimal_explored(0), 
-              decompositions(0), decompositions_won(0), 
-              moves_to_consider(0), winning_expanded(0), branches_to_win(0),
-              pruned(0), shrunk(0), cells_removed(0)
-        { }
-
-        void operator+=(const BranchStatistics& o)
-        {
-            total_states += o.total_states;
-            explored_states += o.explored_states;
-            expanded_states += o.expanded_states;
-            minimal_explored += o.minimal_explored;
-            decompositions += o.decompositions;
-            decompositions_won += o.decompositions_won;
-            moves_to_consider += o.moves_to_consider;
-            winning_expanded += o.winning_expanded;
-            branches_to_win += o.branches_to_win;
-            pruned += o.pruned;
-            shrunk += o.shrunk;
-            cells_removed += o.cells_removed;
-        }
-    };
-
-    //------------------------------------------------------------------------
-
-    /** Contains all relevant data for a solution to a state. */
-    struct SolutionSet
-    {
-        bitset_t proof;
-
-        int moves_to_connection;
-
-        PointSequence pv;
-
-        BranchStatistics stats;
-
-        SolutionSet()
-	  : moves_to_connection(0) {};
-    };
-    
-    //------------------------------------------------------------------------
-
-    static const int NO_DEPTH_LIMIT    = -1;
-
-    static const double NO_TIME_LIMIT  = -1.0;
-    
-    /** User controllable settings. 
-        @todo Combine these with the parameters below.
-    */
-    struct Settings
-    {
-        int flags;
-
-        int depthLimit;
-
-        double timeLimit;
-
-        Settings() : flags(0) { };
-    };
-
-    /** Sets the flags for the next solver run. */
-    void SetFlags(int flags);
-
-    /** Gets the current flags. */
-    int GetFlags() const;
-   
-    //------------------------------------------------------------------------
-
     /** Solves state using the given database (pass in 0 for no
         database). Numstones sets the maximum number of stones allowed
         in a db state; transtones sets the maximum number of stones in
         states stored with proof transpositions. Returns color of
         winner or EMPTY if aborted before state was solved.
     */
-    HexColor Solve(HexBoard& board, HexColor toplay, SolutionSet& solution,
-                   DfsPositions& positions,
-                   int depth_limit = NO_DEPTH_LIMIT, 
-                   double time_imit = NO_TIME_LIMIT);
+    HexColor Solve(HexBoard& board, HexColor toplay, DfsSolutionSet& solution,
+                   DfsPositions& positions, int depthLimit = -1, 
+                   double timeLimit = -1.0);
 
     //------------------------------------------------------------------------
 
@@ -243,7 +232,7 @@ public:
 
     /** Dumps the stats on # of states, branching factors, etc, for
         the last run. */
-    void DumpStats(const SolutionSet& solution) const;
+    void DumpStats(const DfsSolutionSet& solution) const;
 
 private:
 
@@ -347,7 +336,7 @@ private:
         Returns true if it found a TT win, false otherwise. 
     */
     bool OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay, 
-                    SolutionSet& solution, 
+                    DfsSolutionSet& solution, 
                     std::vector<HexMoveValue>& moves);
 
     /** Plays the move and returns the opponent's mustplay
@@ -363,25 +352,25 @@ private:
         decompositions if option is turned on. */
     bool solve_state(HexBoard& brd, HexColor tomove,
                      PointSequence& variation, 
-                     SolutionSet& solution);
+                     DfsSolutionSet& solution);
 
     /** Solves each side of the decompsosition; combines proofs if
         necessary. */
     bool solve_decomposition(HexBoard& brd, HexColor color, 
                              PointSequence& variation,
-                             SolutionSet& solution,
+                             DfsSolutionSet& solution,
                              HexPoint group);
 
     /** Does the recursive mustplay search; calls solve_state() on
         child states. */
     bool solve_interior_state(HexBoard& brd, HexColor color, 
                               PointSequence& variation,
-                              SolutionSet& solution);
+                              DfsSolutionSet& solution);
 
     /** Shrinks/verifies proof; stores in tt/db. */
     void handle_proof(const HexBoard& brd, HexColor color, 
                       const PointSequence& variation,
-                      bool winning_state, SolutionSet& solution);
+                      bool winning_state, DfsSolutionSet& solution);
 
     //------------------------------------------------------------------------
 
@@ -392,8 +381,6 @@ private:
     std::vector<std::pair<int, int> > m_completed;
 
     bool m_aborted;
-
-    Settings m_settings;
 
     mutable Histogram m_histogram;
 
@@ -424,19 +411,13 @@ private:
     int m_move_ordering;
 
     unsigned m_last_histogram_dump;
+
+    int m_depthLimit;
+    
+    double m_timeLimit;
 };
 
 //----------------------------------------------------------------------------
-
-inline void DfsSolver::SetFlags(int flags)
-{
-    m_settings.flags = flags;
-}
-
-inline int DfsSolver::GetFlags() const
-{
-    return m_settings.flags;
-}
 
 inline bool DfsSolver::UseDecompositions() const
 {
