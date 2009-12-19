@@ -66,8 +66,10 @@ void PlayAndSolve::SolverThread::operator()()
     HexBoard& brd = m_ps.m_solverBrd;
     brd.GetState().SetState(m_ps.m_game.Board());
     PointSequence pv;
+    HexColor colorToMove = m_ps.m_game.Board().WhoseTurn();
     HexColor winner = m_ps.m_solver.StartSearch(m_ps.m_solverBrd, 
-                                                m_ps.m_positions, pv);
+                                                m_ps.m_positions, pv,
+                                                colorToMove);
     
     if (winner != EMPTY)
     {
@@ -76,7 +78,7 @@ void PlayAndSolve::SolverThread::operator()()
             /// FIXME: do we really need the above checks?
             boost::mutex::scoped_lock lock(m_mutex);
             m_ps.m_parallelResult = pv[0];
-            if (winner == m_ps.m_game.Board().WhoseTurn())
+            if (winner == colorToMove)
             {
                 LogInfo() << "*** FOUND WIN!!! ***\n" 
                           << "PV:" << HexPointUtil::ToString(pv) << '\n';

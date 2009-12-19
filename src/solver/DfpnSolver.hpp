@@ -142,7 +142,7 @@ public:
 
     HexPoint FirstMove(int index) const;
 
-    void PlayMove(int index, StoneBoard& brd) const;
+    void PlayMove(int index, StoneBoard& brd, HexColor color) const;
 
     void UndoMove(int index, StoneBoard& brd) const;
 
@@ -388,7 +388,7 @@ public:
         Returns the color of the winning player (EMPTY if it could
         not determine a winner in time). */
     HexColor StartSearch(HexBoard& brd, DfpnPositions& positions,
-                         PointSequence& pv);
+                         PointSequence& pv, HexColor colorToMove);
 
     void AddListener(DfpnListener& listener);
     
@@ -518,7 +518,8 @@ private:
 
     size_t m_totalWastedWork;
 
-    size_t MID(const DfpnBounds& n, DfpnHistory& history);
+    size_t MID(const DfpnBounds& n, DfpnHistory& history,
+               HexColor colorToMove);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
                      const std::vector<DfpnData>& childrenDfpnBounds,
@@ -533,14 +534,15 @@ private:
     void CheckBounds(const DfpnBounds& bounds) const;
 
     void LookupData(DfpnData& data, const DfpnChildren& children, 
-                    int childIndex);
+                    int childIndex, HexColor colorToMove);
 
     bool TTRead(const StoneBoard& brd, DfpnData& data);
 
     void TTWrite(const StoneBoard& brd, const DfpnData& data);
 
     void GetVariation(const StoneBoard& state, 
-                      std::vector<HexPoint>& pv);
+                      std::vector<HexPoint>& pv,
+                      HexColor color);
 
     std::string PrintVariation(const std::vector<HexPoint>& pv) const;
 
