@@ -540,10 +540,6 @@ private:
 
     void TTWrite(const StoneBoard& brd, const DfpnData& data);
 
-    void GetVariation(const StoneBoard& state, 
-                      std::vector<HexPoint>& pv,
-                      HexColor color);
-
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;
 

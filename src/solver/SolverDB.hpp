@@ -77,6 +77,8 @@ private:
 
 };
 
+//----------------------------------------------------------------------------
+
 template<class HASH, class DB, class DATA>
 SolverDB<HASH, DB, DATA>::SolverDB(boost::scoped_ptr<HASH>& hashTable, 
                                    boost::scoped_ptr<DB>& database, 
@@ -152,6 +154,39 @@ void SolverDB<HASH, DB, DATA>::Put(const StoneBoard& brd, const DATA& data)
         m_database->Put(brd, data);
     else if (UseHashTable())
         m_hashTable->Put(brd.Hash(), data);
+}
+
+//----------------------------------------------------------------------------
+
+namespace SolverDBUtil
+{
+    /** Follows bestmove in DATA to create a variation. Variation ends
+        when it hits a best move of INVALID_POINT or the move is not
+        found in the database. */
+    template<class HASH, class DB, class DATA>
+    void GetVariation(const StoneBoard& state, HexColor color,
+                      SolverDB<HASH, DB, DATA>& positions, PointSequence& pv);
+    
+}
+
+template<class HASH, class DB, class DATA>
+void SolverDBUtil::GetVariation(const StoneBoard& state, HexColor color,
+                                SolverDB<HASH, DB, DATA>& positions, 
+                                PointSequence& pv)
+{
+    StoneBoard brd(state);
+    HexColor colorToMove = color;
+    while (true) 
+    {
+        DATA data;
+        if (!positions.Get(brd, data))
+            break;
+        if (data.m_bestMove == INVALID_POINT)
+            break;
+        pv.push_back(data.m_bestMove);
+        brd.PlayMove(colorToMove, data.m_bestMove);
+        colorToMove = !colorToMove;
+    }
 }
 
 //----------------------------------------------------------------------------
