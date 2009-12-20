@@ -1021,7 +1021,7 @@ void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
 	      << "Played/sec: " << (m_statistics.played/total_time) << '\n'
 	      << "Total Time: " << Time::Formatted(total_time) << '\n'
 	      << "VC in " << solution.moves_to_connection << " moves\n"
-	      << "PV:" << HexPointUtil::ToString(solution.pv) << '\n'
+	      << "PV: " << HexPointUtil::ToString(solution.pv) << '\n'
 	      << m_histogram.Dump() << '\n';
 }
 

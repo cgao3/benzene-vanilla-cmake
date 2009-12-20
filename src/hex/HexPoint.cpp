@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file HexPoint.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ std::string HexPointUtil::ToString(HexPoint p)
 HexPoint HexPointUtil::FromString(const std::string& name)
 {
     const char *str = name.c_str();
-    for (int p=0; p<FIRST_INVALID; ++p) 
+    for (int p = 0; p < FIRST_INVALID; ++p) 
         if (!strcasecmp(GetHexPointData().name[p].c_str(), str)) 
             return static_cast<HexPoint>(p);
     return INVALID_POINT;
@@ -101,7 +101,10 @@ std::string HexPointUtil::ToString(const PointSequence& lst)
 {
     std::ostringstream os;
     for (std::size_t i = 0; i < lst.size(); ++i)
-        os << " " << ToString(lst[i]);
+    {
+        if (i) os << ' ';
+        os << ToString(lst[i]);
+    }
     return os.str();
 }
 
@@ -110,7 +113,7 @@ std::string HexPointUtil::ToString(const bitset_t& b)
     std::ostringstream os;
     for (int i = 0; i < FIRST_INVALID; i++) 
         if (b.test(i)) 
-            os << " " << HexPointUtil::ToString(static_cast<HexPoint>(i));
+            os << ' ' << ToString(static_cast<HexPoint>(i));
     return os.str();
 }
 

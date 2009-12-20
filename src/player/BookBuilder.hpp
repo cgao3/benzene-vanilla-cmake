@@ -678,7 +678,7 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
     if (node.IsLeaf())
     {
         // Expand this leaf's children
-        LogInfo() << "Expanding:" << HexPointUtil::ToString(pv) << '\n';
+        LogInfo() << "Expanding: " << HexPointUtil::ToString(pv) << '\n';
         ExpandChildren(brd, m_expand_width);
     }
     else
@@ -688,7 +688,7 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
         {
             std::size_t width = (node.m_count / m_expand_threshold + 1)
                               * m_expand_width;
-            LogInfo() << "Widening[" << width << "]:" 
+            LogInfo() << "Widening[" << width << "]: " 
                       << HexPointUtil::ToString(pv) << '\n';
             ++m_num_widenings;
             ExpandChildren(brd, width);

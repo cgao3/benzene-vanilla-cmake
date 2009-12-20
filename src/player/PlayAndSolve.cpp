@@ -80,7 +80,7 @@ void PlayAndSolve::SolverThread::operator()()
             if (winner == colorToMove)
             {
                 LogInfo() << "*** FOUND WIN!!! ***\n" 
-                          << "PV:" << HexPointUtil::ToString(pv) << '\n';
+                          << "PV: " << HexPointUtil::ToString(pv) << '\n';
             }
             else
             {
