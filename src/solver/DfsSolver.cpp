@@ -27,17 +27,6 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-/** Performs various proof-checking diagnostics. */
-#define VERIFY_PROOF_INTEGRITY    1
-
-/** Output data each time we shrink a proof. */
-#define OUTPUT_PROOF_SHRINKINGS   1
-
-/** Output extra debugging info to log if true. */
-#define VERBOSE_LOG_MESSAGES      0
-
-//----------------------------------------------------------------------------
-
 DfsSolver::DfsSolver()
     : m_positions(0),
       m_use_decompositions(true),
@@ -623,7 +612,6 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
         }
     }
     
-#if VERIFY_PROOF_INTEGRITY
     // Verify proof touches both of winner's edges.
     if (!BoardUtils::ConnectedOnBitset(brd.Const(), solution.proof, 
                                        HexPointUtil::colorEdge1(winner),
@@ -637,7 +625,6 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
             << brd << '\n'
             << color << " to play.\n"
             << DfsSolverUtil::PrintVariation(variation) << '\n';
-#endif    
 
     /** @todo HANDLE BEST MOVES PROPERLY! 
         This can only happen if the mustplay goes empty in an internal
@@ -878,20 +865,19 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
             moves.push_back(HexMoveValue(*it, score));
     }
 
-    /** @note 'sort' is not stable, so multiple runs can produce
-        different move orders in the same state unless stable_sort is
+    /** @note sort() is not stable, so multiple runs can produce
+        different move orders in the same state unless stable_sort() is
         used. */
     stable_sort(moves.begin(), moves.end());
     HexAssert(!found_win || moves.size()==1);
 
-    // for a win: nothing to do
+    // For a win: nothing to do
     if (found_win)
-        LogFine() << "Found winning move; aborted ordering." << '\n';
-
-    // for a loss: recompute mustplay because backed-up ice info
-    // could shrink it.  Then prune with the intersection of all 
-    // losing proofs, and add in the union of all losing proofs
-    // to the current proof. 
+        LogFine() << "Found winning move; aborted ordering.\n";
+    // For a loss: recompute mustplay because backed-up ice info could
+    // shrink it. Then prune with the intersection of all losing
+    // proofs, and add in the union of all losing proofs to the
+    // current proof.
     else
     {
         if (m_backup_ice_info)
@@ -914,22 +900,10 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
         mustplay &= proof_intersection;
         solution.proof |= proof_union;
     }
-
-#if VERBOSE_LOG_MESSAGES
-    LogFine() << "Ordered list of moves:\n";
-    for (unsigned i=0; i<moves.size(); i++)
-    {
-        LogFine() << " [" << moves[i].point()
-		  << ", " << moves[i].value() << "]";
-    }
-    LogFine() << '\n';
-#endif
     return found_win;
 }
 
 //----------------------------------------------------------------------------
-
-// Stats output
 
 std::string DfsSolver::Histogram::Dump()
 {
@@ -1058,8 +1032,6 @@ void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
 
 //----------------------------------------------------------------------------
 
-// Debugging utilities
-
 std::string DfsSolverUtil::PrintVariation(const PointSequence& variation)
 {
     std::ostringstream os;
@@ -1070,8 +1042,6 @@ std::string DfsSolverUtil::PrintVariation(const PointSequence& variation)
     return os.str();
 }
  
-// Move ordering utilities
-
 int DfsSolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
 {
     // Odd boards are easy
@@ -1084,8 +1054,6 @@ int DfsSolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
     return brd.Distance(BoardUtils::CenterPointRight(brd), cell)
         +  brd.Distance(BoardUtils::CenterPointLeft(brd), cell);
 }
-
-// Misc. other utilities for playing moves, checking for lost states, etc. 
 
 bool DfsSolverUtil::isWinningState(const HexBoard& brd, HexColor color, 
                                    bitset_t& proof)
@@ -1148,8 +1116,6 @@ bool DfsSolverUtil::isLosingState(const HexBoard& brd, HexColor color,
     return false;
 }
 
-// Moves to consider calculation
-
 bitset_t DfsSolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
                                      bitset_t& proof)
 {
@@ -1196,8 +1162,6 @@ bitset_t DfsSolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
     return ret;
 }
 
-// Utilities on proofs
-
 bitset_t DfsSolverUtil::MustplayCarrier(const HexBoard& brd, HexColor color)
 {
     HexPoint edge1 = HexPointUtil::colorEdge1(!color);
@@ -1224,9 +1188,8 @@ bitset_t DfsSolverUtil::InitialProof(const HexBoard& brd, HexColor color)
     return proof;
 }
 
-void DfsSolverUtil::ShrinkProof(bitset_t& proof, 
-                                const StoneBoard& board, HexColor loser, 
-                                const ICEngine& ice)
+void DfsSolverUtil::ShrinkProof(bitset_t& proof, const StoneBoard& board, 
+                                HexColor loser, const ICEngine& ice)
 {
     StoneBoard brd(board.Width(), board.Height());
     PatternState pastate(brd);
@@ -1250,22 +1213,7 @@ void DfsSolverUtil::ShrinkProof(bitset_t& proof,
 
     bitset_t filled = inf.Dead() | inf.Captured(loser);
     bitset_t shrunk_proof = proof - filled;
-
-#if OUTPUT_PROOF_SHRINKINGS
-    if (shrunk_proof.count() < proof.count()) 
-    {
-        LogFine() << "**********************\n"
-		  << loser << " loses on: "
-		  << board << '\n'
-		  << "Original proof: "
-		  << board.Write(proof) << '\n'
-		  << "Shrunk (removed " 
-		  << (proof.count() - shrunk_proof.count()) << " cells):"
-		  << brd.Write(shrunk_proof) << '\n'
-		  << brd << '\n'
-		  << "**********************" << '\n';
-    }
-#endif
+    /// @todo Track number of proof shrinkings?
     proof = shrunk_proof;
 }
 
