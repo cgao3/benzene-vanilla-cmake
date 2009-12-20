@@ -46,7 +46,7 @@ struct DfsData
         states. That is, in winning states this move *must* be a
         winning move, in losing states this move is "most blocking",
         but the definition is fuzzy. */
-    HexPoint m_bestmove;
+    HexPoint m_bestMove;
 
     //--------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ inline DfsData::DfsData()
       m_flags(0), 
       m_numstates(0), 
       m_nummoves(0), 
-      m_bestmove(INVALID_POINT)
+      m_bestMove(INVALID_POINT)
 { 
 }
     
@@ -97,13 +97,13 @@ inline DfsData::DfsData(bool w, int nstates, int nmoves, HexPoint bmove)
       m_flags(0),
       m_numstates(nstates),
       m_nummoves(nmoves),
-      m_bestmove(bmove)
+      m_bestMove(bmove)
 { 
 }
 
 inline bool DfsData::Initialized() const
 {
-    return m_bestmove != INVALID_POINT;
+    return m_bestMove != INVALID_POINT;
 }
 
 inline bool DfsData::ReplaceWith(const DfsData& other) const

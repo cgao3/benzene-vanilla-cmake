@@ -17,7 +17,7 @@ int DfsData::PackedSize() const
             sizeof(m_flags) +
             sizeof(m_numstates) +
             sizeof(m_nummoves) +
-            sizeof(m_bestmove));
+            sizeof(m_bestMove));
 }
 
 /** @bug NOT THREADSAFE! */
@@ -39,7 +39,7 @@ byte* DfsData::Pack() const
     MiscUtil::WordToBytes(m_nummoves, &data[index]);
     index += 4;
 
-    MiscUtil::WordToBytes(m_bestmove, &data[index]);
+    MiscUtil::WordToBytes(m_bestMove, &data[index]);
     index += 4;
 
     return data;
@@ -61,12 +61,12 @@ void DfsData::Unpack(const byte* data)
     m_nummoves = MiscUtil::BytesToWord(&data[index]);
     index += 4;
 
-    m_bestmove = static_cast<HexPoint>(MiscUtil::BytesToWord(&data[index]));
+    m_bestMove = static_cast<HexPoint>(MiscUtil::BytesToWord(&data[index]));
 }
 
 void DfsData::Rotate(const ConstBoard& brd)
 {
-    m_bestmove = BoardUtils::Rotate(brd, m_bestmove);
+    m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
 }
 
 //----------------------------------------------------------------------------

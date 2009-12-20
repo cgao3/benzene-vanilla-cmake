@@ -200,7 +200,7 @@ int ProofUtil::StoreFlippedStates(DfsDB& db, const StoneBoard& brd,
         | DfsData::FLAG_MIRROR_TRANSPOSITION;
     ss.m_numstates = state.m_numstates;
     ss.m_nummoves = state.m_nummoves;
-    ss.m_bestmove = BoardUtils::Mirror(brd.Const(), state.m_bestmove);
+    ss.m_bestMove = BoardUtils::Mirror(brd.Const(), state.m_bestMove);
     //ss.proof = flippedProof;
     
     int count = 0;

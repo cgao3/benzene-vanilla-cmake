@@ -75,8 +75,8 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
         win = state.m_win;
         solution.moves_to_connection = state.m_nummoves;
         solution.pv.clear();
-        // TODO: get pv from DfsPositions
-        solution.pv.push_back(state.m_bestmove);
+        SolverDBUtil::GetVariation(*m_stoneboard, toPlay, positions,
+                                   solution.pv);
         solution.proof = DefaultProofForWinner(brd, state.m_win ? 
                                                toPlay : !toPlay);
     }
