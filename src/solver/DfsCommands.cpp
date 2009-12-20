@@ -239,7 +239,7 @@ void DfsCommands::CmdGetState(HtpCommand& cmd)
         return;
     }
     cmd << (state.m_win ? toplay : !toplay);
-    cmd << ' ' << state.m_nummoves;
+    cmd << ' ' << state.m_numMoves;
 
     std::vector<int> nummoves(BITSETSIZE);
     std::vector<int> flags(BITSETSIZE);
@@ -253,7 +253,7 @@ void DfsCommands::CmdGetState(HtpCommand& cmd)
                 losing.push_back(*p);
             else
                 winning.push_back(*p);
-            nummoves[*p] = state.m_nummoves;
+            nummoves[*p] = state.m_numMoves;
             flags[*p] = state.m_flags;
         }
         brd.UndoMove(*p);

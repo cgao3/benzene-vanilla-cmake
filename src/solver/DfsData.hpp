@@ -35,11 +35,11 @@ struct DfsData
     int m_flags;
     
     /** Number of states in proof-tree of this result. */
-    int m_numstates;
+    int m_numStates;
     
     /** Number of moves losing player can delay until winning
         player has a winning virtual connection. */
-    int m_nummoves;
+    int m_numMoves;
 
     /** Best move in this state. 
         Very important in winning states, not so important in losing
@@ -86,8 +86,8 @@ struct DfsData
 inline DfsData::DfsData()
     : m_win(false), 
       m_flags(0), 
-      m_numstates(0), 
-      m_nummoves(0), 
+      m_numStates(0), 
+      m_numMoves(0), 
       m_bestMove(INVALID_POINT)
 { 
 }
@@ -95,8 +95,8 @@ inline DfsData::DfsData()
 inline DfsData::DfsData(bool w, int nstates, int nmoves, HexPoint bmove)
     : m_win(w),
       m_flags(0),
-      m_numstates(nstates),
-      m_nummoves(nmoves),
+      m_numStates(nstates),
+      m_numMoves(nmoves),
       m_bestMove(bmove)
 { 
 }

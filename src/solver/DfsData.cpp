@@ -15,8 +15,8 @@ int DfsData::PackedSize() const
 {
     return (sizeof(m_win) + 
             sizeof(m_flags) +
-            sizeof(m_numstates) +
-            sizeof(m_nummoves) +
+            sizeof(m_numStates) +
+            sizeof(m_numMoves) +
             sizeof(m_bestMove));
 }
 
@@ -33,10 +33,10 @@ byte* DfsData::Pack() const
     MiscUtil::WordToBytes(m_flags, &data[index]);
     index += 4;
     
-    MiscUtil::WordToBytes(m_numstates, &data[index]);
+    MiscUtil::WordToBytes(m_numStates, &data[index]);
     index += 4;
 
-    MiscUtil::WordToBytes(m_nummoves, &data[index]);
+    MiscUtil::WordToBytes(m_numMoves, &data[index]);
     index += 4;
 
     MiscUtil::WordToBytes(m_bestMove, &data[index]);
@@ -55,10 +55,10 @@ void DfsData::Unpack(const byte* data)
     m_flags = MiscUtil::BytesToWord(&data[index]);
     index += 4;
     
-    m_numstates = MiscUtil::BytesToWord(&data[index]);
+    m_numStates = MiscUtil::BytesToWord(&data[index]);
     index += 4;
 
-    m_nummoves = MiscUtil::BytesToWord(&data[index]);
+    m_numMoves = MiscUtil::BytesToWord(&data[index]);
     index += 4;
 
     m_bestMove = static_cast<HexPoint>(MiscUtil::BytesToWord(&data[index]));

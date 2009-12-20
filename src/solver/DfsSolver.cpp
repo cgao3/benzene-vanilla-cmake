@@ -73,7 +73,7 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
     {
         LogInfo() << "DfsSolver: Found cached result!\n";
         win = state.m_win;
-        solution.moves_to_connection = state.m_nummoves;
+        solution.moves_to_connection = state.m_numMoves;
         solution.pv.clear();
         SolverDBUtil::GetVariation(*m_stoneboard, toPlay, positions,
                                    solution.pv);
@@ -157,16 +157,16 @@ bool DfsSolver::HandleTerminalNode(const HexBoard& brd, HexColor color,
     if (DfsSolverUtil::isWinningState(brd, color, proof)) 
     {
         state.m_win = true;
-        state.m_nummoves = 0;
-        state.m_numstates = 1;
+        state.m_numMoves = 0;
+        state.m_numStates = 1;
         m_histogram.terminal[numstones]++;
         return true;
     } 
     else if (DfsSolverUtil::isLosingState(brd, color, proof)) 
     {
         state.m_win = false;
-        state.m_nummoves = 0;
-        state.m_numstates = 1;
+        state.m_numMoves = 0;
+        state.m_numStates = 1;
         m_histogram.terminal[numstones]++;
         return true;
     } 
@@ -203,10 +203,10 @@ bool DfsSolver::solve_state(HexBoard& brd, HexColor color,
         {
             solution.stats.explored_states = 1;
             solution.stats.minimal_explored = 1;
-            solution.stats.total_states += state.m_numstates;
+            solution.stats.total_states += state.m_numStates;
             
             solution.pv.clear();
-            solution.moves_to_connection = state.m_nummoves;
+            solution.moves_to_connection = state.m_numMoves;
             solution.proof = proof;
             
             return state.m_win;
@@ -293,7 +293,7 @@ bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color,
             dsolution[s].stats.minimal_explored = 1;
             dsolution[s].stats.total_states = 1;
             dsolution[s].proof = proof;
-            dsolution[s].moves_to_connection = state.m_nummoves;
+            dsolution[s].moves_to_connection = state.m_numMoves;
             dsolution[s].pv.clear();
         } 
         else 
@@ -688,7 +688,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 	{
 	    solution.stats.explored_states += 1;
 	    solution.stats.minimal_explored++;
-	    solution.stats.total_states += state.m_numstates;
+	    solution.stats.total_states += state.m_numStates;
 
 	    if (!state.m_win)
 	    {
@@ -701,7 +701,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		solution.stats.minimal_explored = 2;
                 solution.proof = DefaultProofForWinner(brd, color);
 
-		solution.moves_to_connection = state.m_nummoves + 1;
+		solution.moves_to_connection = state.m_numMoves + 1;
 		solution.pv.clear();
 		solution.pv.push_back(*it);
 	    } 
@@ -709,9 +709,9 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 	    {
 		// prune this losing move from the mustplay
 		losingMoves.set(*it);
-		if (state.m_nummoves + 1 > solution.moves_to_connection) 
+		if (state.m_numMoves + 1 > solution.moves_to_connection) 
                 {
-		    solution.moves_to_connection = state.m_nummoves + 1;
+		    solution.moves_to_connection = state.m_numMoves + 1;
 		    solution.pv.clear();
 		    solution.pv.push_back(*it);
 		}
@@ -788,7 +788,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 
                     solution.stats.explored_states += 1;
                     solution.stats.minimal_explored++;
-                    solution.stats.total_states += state.m_numstates;
+                    solution.stats.total_states += state.m_numStates;
 
                     if (!state.m_win)
 		    {
@@ -799,16 +799,16 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
                         // (which is a leaf).
                         solution.stats.minimal_explored = 2;
                         solution.proof = proof;
-                        solution.moves_to_connection = state.m_nummoves + 1;
+                        solution.moves_to_connection = state.m_numMoves + 1;
                         solution.pv.clear();
                         solution.pv.push_back(*it);
                     }
 		    else
 		    {
                         skip_this_move = true;
-                        if (state.m_nummoves + 1 > solution.moves_to_connection)
+                        if (state.m_numMoves + 1 > solution.moves_to_connection)
 			{
-                            solution.moves_to_connection = state.m_nummoves + 1;
+                            solution.moves_to_connection = state.m_numMoves + 1;
                             solution.pv.clear();
                             solution.pv.push_back(*it);
                         }
