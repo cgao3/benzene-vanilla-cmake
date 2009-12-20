@@ -127,15 +127,15 @@ void DfsCommands::CmdParamSolver(HtpCommand& cmd)
 }
 
 /** Solves the given state.
-    Usage: "solve-state [color] { [db-file] { M | T M } }
-    (Where M is maximum number of stones in db and T is the maximum
-    number of stones for which transpositions are computed.)
+    Usage: "solve-state [color to play]
 */
 void DfsCommands::CmdSolveState(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
+    if (brd.ICE().FindPermanentlyInferior())
+        throw HtpFailure("Permanently inferior not supported in DfsSolver.");
     DfsSolutionSet solution;
     HexColor winner = m_solver.Solve(brd, color, solution, m_positions);
     m_solver.DumpStats(solution);
@@ -162,6 +162,8 @@ void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
+    if (brd.ICE().FindPermanentlyInferior())
+        throw HtpFailure("Permanently inferior not supported in DfsSolver");
     brd.ComputeAll(color);
     bitset_t consider = (PlayerUtils::IsDeterminedState(brd, color) ?
                          brd.GetState().GetEmpty() :
