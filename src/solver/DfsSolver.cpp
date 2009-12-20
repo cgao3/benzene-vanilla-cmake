@@ -356,9 +356,6 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
     int depth = variation.size();
     int numstones = m_stoneboard->NumStones();
 
-    // Print some output for debugging/tracing purposes
-    LogFine() << DfsSolverUtil::PrintVariation(variation) << '\n' 
-              << brd << '\n';
     // Set initial proof for this state to be the union of all
     // opponent winning semis.  We need to do this because we use the
     // semis to restrict the search (ie, the mustplay).
@@ -574,7 +571,7 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
             << "Losing stones hit proof:\n"
             << brd.Write(solution.proof) << '\n'
             << brd << '\n'
-            << DfsSolverUtil::PrintVariation(variation) << '\n';
+            << "PV: " << HexPointUtil::ToString(variation) << '\n';
     // Verify dead cells do not intersect proof
     if ((brd.GetDead() & solution.proof).any()) 
         throw BenzeneException()
@@ -584,7 +581,7 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
             << "Dead cells hit proof:\n"
             << brd.Write(solution.proof) << '\n'
             << brd << '\n'
-            << DfsSolverUtil::PrintVariation(variation) << '\n';
+            << "PV: " << HexPointUtil::ToString(variation) << '\n';
     // Shrink proof
     bitset_t old_proof = solution.proof;
     if (m_shrink_proofs) 
@@ -619,7 +616,7 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
             << brd.Write(old_proof) << '\n'
             << brd << '\n'
             << color << " to play.\n"
-            << DfsSolverUtil::PrintVariation(variation) << '\n';
+            << "PV: " << HexPointUtil::ToString(variation) << '\n';
 
     /** @todo HANDLE BEST MOVES PROPERLY! 
         This can only happen if the mustplay goes empty in an internal
@@ -1027,16 +1024,6 @@ void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
 
 //----------------------------------------------------------------------------
 
-std::string DfsSolverUtil::PrintVariation(const PointSequence& variation)
-{
-    std::ostringstream os;
-    os << "Variation: ";
-    for (unsigned i = 0; i < variation.size(); i++) 
-        os << " " << variation[i];
-    os << '\n';
-    return os.str();
-}
- 
 int DfsSolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
 {
     // Odd boards are easy

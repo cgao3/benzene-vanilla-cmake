@@ -438,9 +438,6 @@ inline void DfsSolver::SetMoveOrdering(int flags)
 /** @todo Refactor some of these out? */
 namespace DfsSolverUtil 
 {
-    /** Prints the variation; for debugging purposes. */
-    std::string PrintVariation(const PointSequence& variation);
-    
     /** Computes distance from the center of the board. */
     int DistanceFromCenter(const ConstBoard& brd, HexPoint p);
 
