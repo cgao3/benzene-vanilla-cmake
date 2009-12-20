@@ -486,7 +486,7 @@ loadsgf sgf/puzzles/7x7-henderson-61.sgf
 
 solver-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-62.sgf
-131 solver-find-winning white
+131 solver-find-winning black
 #? [f3]
 
 
