@@ -11,16 +11,19 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 BenzeneException::BenzeneException()
-    : m_stream("")
+    : std::exception(),
+      m_stream("")
 {
 }
 
 BenzeneException::BenzeneException(const std::string& message)
-    : m_stream(message)
+    : std::exception(),
+      m_stream(message)
 {
 }
 
 BenzeneException::BenzeneException(const BenzeneException& other)
+    : std::exception()
 {
     m_stream << other.Response();
     m_stream.copyfmt(other.m_stream);
