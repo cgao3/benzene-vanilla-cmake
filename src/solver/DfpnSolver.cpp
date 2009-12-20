@@ -242,17 +242,6 @@ void DfpnSolver::GetVariation(const StoneBoard& state,
     }
 }
 
-std::string DfpnSolver::PrintVariation(const std::vector<HexPoint>& pv) const
-{
-    std::ostringstream os;
-    for (std::size_t i = 0; i < pv.size(); ++i) 
-    {
-        if (i) os << ' ';
-        os << pv[i];
-    }
-    return os.str();
-}
-
 void DfpnSolver::PrintStatistics()
 {
     LogInfo() << "     MID calls: " << m_numMIDcalls << '\n';
@@ -340,7 +329,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
 
         pv.clear();
         GetVariation(*m_brd, pv, colorToMove);
-        LogInfo() << "PV: " << PrintVariation(pv) << '\n';
+        LogInfo() << "PV: " << HexPointUtil::ToString(pv) << '\n';
 
         return winner;
     }

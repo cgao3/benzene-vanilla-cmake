@@ -544,8 +544,6 @@ private:
                       std::vector<HexPoint>& pv,
                       HexColor color);
 
-    std::string PrintVariation(const std::vector<HexPoint>& pv) const;
-
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;
 
