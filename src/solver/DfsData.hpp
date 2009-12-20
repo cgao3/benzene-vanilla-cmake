@@ -29,24 +29,24 @@ struct DfsData
     //--------------------------------------------------------------------
 
     /** True if player to move wins. */
-    bool win;
+    bool m_win;
 
     /** Flags. */
-    int flags;
+    int m_flags;
     
     /** Number of states in proof-tree of this result. */
-    int numstates;
+    int m_numstates;
     
     /** Number of moves losing player can delay until winning
         player has a winning virtual connection. */
-    int nummoves;
+    int m_nummoves;
 
     /** Best move in this state. 
         Very important in winning states, not so important in losing
         states. That is, in winning states this move *must* be a
         winning move, in losing states this move is "most blocking",
         but the definition is fuzzy. */
-    HexPoint bestmove;
+    HexPoint m_bestmove;
 
     //--------------------------------------------------------------------
 
@@ -84,27 +84,26 @@ struct DfsData
 };
 
 inline DfsData::DfsData()
-    : win(false), 
-      flags(0), 
-      numstates(0), 
-      nummoves(0), 
-      bestmove(INVALID_POINT)
+    : m_win(false), 
+      m_flags(0), 
+      m_numstates(0), 
+      m_nummoves(0), 
+      m_bestmove(INVALID_POINT)
 { 
 }
     
-inline DfsData::DfsData(bool w, int nstates, int nmoves, 
-                                HexPoint bmove)
-    : win(w),
-      flags(0),
-      numstates(nstates),
-      nummoves(nmoves),
-      bestmove(bmove)
+inline DfsData::DfsData(bool w, int nstates, int nmoves, HexPoint bmove)
+    : m_win(w),
+      m_flags(0),
+      m_numstates(nstates),
+      m_nummoves(nmoves),
+      m_bestmove(bmove)
 { 
 }
 
 inline bool DfsData::Initialized() const
 {
-    return bestmove != INVALID_POINT;
+    return m_bestmove != INVALID_POINT;
 }
 
 inline bool DfsData::ReplaceWith(const DfsData& other) const

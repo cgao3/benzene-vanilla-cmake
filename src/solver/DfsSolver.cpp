@@ -72,12 +72,12 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
     if (CheckTransposition(state))
     {
         LogInfo() << "DfsSolver: Found cached result!\n";
-        win = state.win;
-        solution.moves_to_connection = state.nummoves;
+        win = state.m_win;
+        solution.moves_to_connection = state.m_nummoves;
         solution.pv.clear();
         // TODO: get pv from DfsPositions
-        solution.pv.push_back(state.bestmove);
-        solution.proof = DefaultProofForWinner(brd, state.win ? 
+        solution.pv.push_back(state.m_bestmove);
+        solution.proof = DefaultProofForWinner(brd, state.m_win ? 
                                                toPlay : !toPlay);
     }
     else
@@ -156,17 +156,17 @@ bool DfsSolver::HandleTerminalNode(const HexBoard& brd, HexColor color,
     int numstones = m_stoneboard->NumStones();
     if (DfsSolverUtil::isWinningState(brd, color, proof)) 
     {
-        state.win = true;
-        state.nummoves = 0;
-        state.numstates = 1;
+        state.m_win = true;
+        state.m_nummoves = 0;
+        state.m_numstates = 1;
         m_histogram.terminal[numstones]++;
         return true;
     } 
     else if (DfsSolverUtil::isLosingState(brd, color, proof)) 
     {
-        state.win = false;
-        state.nummoves = 0;
-        state.numstates = 1;
+        state.m_win = false;
+        state.m_nummoves = 0;
+        state.m_numstates = 1;
         m_histogram.terminal[numstones]++;
         return true;
     } 
@@ -181,7 +181,7 @@ bool DfsSolver::HandleLeafNode(const HexBoard& brd, HexColor color,
     if (HandleTerminalNode(brd, color, state, proof))
         return true;
     if (CheckTransposition(state))
-        proof = DefaultProofForWinner(brd, state.win ? color : !color);
+        proof = DefaultProofForWinner(brd, state.m_win ? color : !color);
     return false;
 }
 
@@ -203,13 +203,13 @@ bool DfsSolver::solve_state(HexBoard& brd, HexColor color,
         {
             solution.stats.explored_states = 1;
             solution.stats.minimal_explored = 1;
-            solution.stats.total_states += state.numstates;
+            solution.stats.total_states += state.m_numstates;
             
             solution.pv.clear();
-            solution.moves_to_connection = state.nummoves;
+            solution.moves_to_connection = state.m_nummoves;
             solution.proof = proof;
             
-            return state.win;
+            return state.m_win;
         }
     }
 
@@ -287,13 +287,13 @@ bool DfsSolver::solve_decomposition(HexBoard& brd, HexColor color,
         bitset_t proof;
         if (HandleTerminalNode(brd, color, state, proof)) 
         {
-            win = state.win;
+            win = state.m_win;
             dsolution[s].stats.expanded_states = 0;
             dsolution[s].stats.explored_states = 1;
             dsolution[s].stats.minimal_explored = 1;
             dsolution[s].stats.total_states = 1;
             dsolution[s].proof = proof;
-            dsolution[s].moves_to_connection = state.nummoves;
+            dsolution[s].moves_to_connection = state.m_nummoves;
             dsolution[s].pv.clear();
         } 
         else 
@@ -688,9 +688,9 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 	{
 	    solution.stats.explored_states += 1;
 	    solution.stats.minimal_explored++;
-	    solution.stats.total_states += state.numstates;
+	    solution.stats.total_states += state.m_numstates;
 
-	    if (!state.win)
+	    if (!state.m_win)
 	    {
 		found_win = true;
 		moves.clear();
@@ -701,7 +701,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		solution.stats.minimal_explored = 2;
                 solution.proof = DefaultProofForWinner(brd, color);
 
-		solution.moves_to_connection = state.nummoves+1;
+		solution.moves_to_connection = state.m_nummoves + 1;
 		solution.pv.clear();
 		solution.pv.push_back(*it);
 	    } 
@@ -709,9 +709,9 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 	    {
 		// prune this losing move from the mustplay
 		losingMoves.set(*it);
-		if (state.nummoves+1 > solution.moves_to_connection) 
+		if (state.m_nummoves + 1 > solution.moves_to_connection) 
                 {
-		    solution.moves_to_connection = state.nummoves+1;
+		    solution.moves_to_connection = state.m_nummoves + 1;
 		    solution.pv.clear();
 		    solution.pv.push_back(*it);
 		}
@@ -788,9 +788,9 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 
                     solution.stats.explored_states += 1;
                     solution.stats.minimal_explored++;
-                    solution.stats.total_states += state.numstates;
+                    solution.stats.total_states += state.m_numstates;
 
-                    if (!state.win)
+                    if (!state.m_win)
 		    {
                         found_win = true;
                         moves.clear();
@@ -799,16 +799,16 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
                         // (which is a leaf).
                         solution.stats.minimal_explored = 2;
                         solution.proof = proof;
-                        solution.moves_to_connection = state.nummoves+1;
+                        solution.moves_to_connection = state.m_nummoves + 1;
                         solution.pv.clear();
                         solution.pv.push_back(*it);
                     }
 		    else
 		    {
                         skip_this_move = true;
-                        if (state.nummoves+1 > solution.moves_to_connection)
+                        if (state.m_nummoves + 1 > solution.moves_to_connection)
 			{
-                            solution.moves_to_connection = state.nummoves+1;
+                            solution.moves_to_connection = state.m_nummoves + 1;
                             solution.pv.clear();
                             solution.pv.push_back(*it);
                         }

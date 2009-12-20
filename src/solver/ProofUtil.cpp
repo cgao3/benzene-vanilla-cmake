@@ -60,8 +60,8 @@ int ProofUtil::StoreTranspositions(DfsDB& db, const StoneBoard& brd,
     // Find color of losing/winning players
     HexColor toplay = brd.WhoseTurn();
     HexColor other = !toplay;
-    HexColor loser = (state.win) ? other : toplay;
-    HexColor winner = (state.win) ? toplay : other;
+    HexColor loser = (state.m_win) ? other : toplay;
+    HexColor winner = (state.m_win) ? toplay : other;
 
     // Loser can use his stones as well as all those outside the proof
     bitset_t outside = (~proof & brd.GetEmpty()) 
@@ -113,7 +113,7 @@ int ProofUtil::StoreTranspositions(DfsDB& db, const StoneBoard& brd,
             // the original.
             DfsData ss(state);
             if (board.Hash() != brd.Hash())
-                ss.flags |= DfsData::FLAG_TRANSPOSITION;
+                ss.m_flags |= DfsData::FLAG_TRANSPOSITION;
             
             // do the write; this handles replacing only larger
             // proofs, etc.
@@ -147,7 +147,7 @@ int ProofUtil::StoreFlippedStates(DfsDB& db, const StoneBoard& brd,
     // Find color of winning player in *flipped state*
     /** @todo Ensure position reachable in a normal game! */
     HexColor toPlay = brd.WhoseTurn();
-    HexColor flippedWinner = (state.win) ? !toPlay : toPlay;
+    HexColor flippedWinner = (state.m_win) ? !toPlay : toPlay;
 #if PRINT_OUTPUT
     LogInfo() << "Normal winner: "
 	     << (state.win ? toPlay : !toPlay) << '\n';
@@ -194,13 +194,13 @@ int ProofUtil::StoreFlippedStates(DfsDB& db, const StoneBoard& brd,
     // Now we can create and store the desired flipped states.
     // Note that numstates and nummoves are approximations.
     DfsData ss;
-    ss.win = state.win;
-    ss.flags = state.flags 
+    ss.m_win = state.m_win;
+    ss.m_flags = state.m_flags 
         | DfsData::FLAG_TRANSPOSITION 
         | DfsData::FLAG_MIRROR_TRANSPOSITION;
-    ss.numstates = state.numstates;
-    ss.nummoves = state.nummoves;
-    ss.bestmove = BoardUtils::Mirror(brd.Const(), state.bestmove);
+    ss.m_numstates = state.m_numstates;
+    ss.m_nummoves = state.m_nummoves;
+    ss.m_bestmove = BoardUtils::Mirror(brd.Const(), state.m_bestmove);
     //ss.proof = flippedProof;
     
     int count = 0;
