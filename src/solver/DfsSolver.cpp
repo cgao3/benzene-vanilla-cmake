@@ -45,9 +45,9 @@ DfsSolver::DfsSolver()
       m_shrink_proofs(true),
       m_backup_ice_info(true),
       m_use_guifx(false),
-      m_move_ordering(ORDER_WITH_MUSTPLAY 
-                      | ORDER_WITH_RESIST 
-                      | ORDER_FROM_CENTER)
+      m_move_ordering(DfsMoveOrderFlags::WITH_MUSTPLAY 
+                      | DfsMoveOrderFlags::WITH_RESIST 
+                      | DfsMoveOrderFlags::FROM_CENTER)
 {
 }
 
@@ -447,7 +447,7 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
     // we need to stop OrderMoves() from aborting on a win.
     //
     // @note OrderMoves() will handle VC/DB/TT hits, and remove them
-    // from consideration.  It is possible that there are no moves, in
+    // from consideration. It is possible that there are no moves, in
     // which case we fall through the loop below with no problem (the
     // state is a loss).
     solution.moves_to_connection = -1;
@@ -756,9 +756,9 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
     // We need to actually order moves now :)
     boost::scoped_ptr<Resistance> resist;
     bool with_ordering = m_move_ordering;
-    bool with_resist = m_move_ordering & ORDER_WITH_RESIST;
-    bool with_center = m_move_ordering & ORDER_FROM_CENTER;
-    bool with_mustplay = m_move_ordering & ORDER_WITH_MUSTPLAY;
+    bool with_resist = m_move_ordering & DfsMoveOrderFlags::WITH_RESIST;
+    bool with_center = m_move_ordering & DfsMoveOrderFlags::FROM_CENTER;
+    bool with_mustplay = m_move_ordering & DfsMoveOrderFlags::WITH_MUSTPLAY;
     
     if (with_resist && with_ordering)
     {

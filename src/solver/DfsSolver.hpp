@@ -136,10 +136,30 @@ inline DfsSolutionSet::DfsSolutionSet()
 
 //----------------------------------------------------------------------------
 
+namespace DfsMoveOrderFlags
+{
+    /** Each move is played and the size of the resulting mustplay is
+        stored. Moves are ordered in increasing order of mustplay.
+        This is a very expensive move ordering, since the vcs
+        and inferior cells must be updated for every possible move in
+        every possible state.  However, the move ordering is usually
+        very good. */
+    static const int WITH_MUSTPLAY = 1;    
+
+    /** Resistance score is used to break ties instead of distance
+        from the center of the board. */
+    static const int WITH_RESIST = 2;
+
+    /** Moves near center of board get higher priority than moves near
+        the edge of the board. */
+    static const int FROM_CENTER = 4;
+};
+
+//----------------------------------------------------------------------------
+
 /** Determines the winner of a gamestate.
     DfsSolver uses a mustplay driven depth-first search to determine the
-    winner in the given state.  A transposition table and a database
-    of solved positions are also used to reduce the amount of work.
+    winner in the given state.
 */
 class DfsSolver 
 {
@@ -150,11 +170,9 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** Solves state using the given database (pass in 0 for no
-        database). Numstones sets the maximum number of stones allowed
-        in a db state; transtones sets the maximum number of stones in
-        states stored with proof transpositions. Returns color of
-        winner or EMPTY if aborted before state was solved.
+    /** Solves state using the given previously solved positions.
+        Returns color of winner or EMPTY if aborted before state was
+        solved.
     */
     HexColor Solve(HexBoard& board, HexColor toplay, DfsSolutionSet& solution,
                    DfsPositions& positions, int depthLimit = -1, 
@@ -202,23 +220,6 @@ public:
 
     /** See UseGuiFx() */
     void SetUseGuiFx(bool enable);
-
-    /** Each move is played and the size of the resulting mustplay is
-        stored. Moves are ordered in increasing order of mustplay.
-        This is a very, very, expensive move ordering, since the vcs
-        and inferior cells must be updated for every possible move in
-        every possible state.  However, the move ordering is usually
-        very good. For example, it is not possible to solve 7x7
-        without using this heuristic. */
-    static const int ORDER_WITH_MUSTPLAY = 1;    
-
-    /** Resistance score is used to break ties instead of distance
-        from the center of the board. */
-    static const int ORDER_WITH_RESIST = 2;
-
-    /** Moves near center of board get higher priority than moves near
-        the edge of the board. */
-    static const int ORDER_FROM_CENTER = 4;
 
     /** Returns the move order flags. */
     int MoveOrdering() const;
