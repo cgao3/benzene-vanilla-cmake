@@ -556,17 +556,15 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
     return winning_state;
 }
 
-/** Shrinks/verifies proof; stores in tt/db. */
+/** Shrinks/verifies proof then stores it. */
 void DfsSolver::handle_proof(const HexBoard& brd, HexColor color, 
                              const PointSequence& variation,
                              bool winning_state, DfsSolutionSet& solution)
 {
     if (m_aborted)
         return;
-
     HexColor winner = (winning_state) ? color : !color;
     HexColor loser = !winner;
-
     // Verify loser's stones do not intersect proof
     if ((brd.GetState().GetColor(loser) & solution.proof).any()) 
         throw BenzeneException()
@@ -577,7 +575,6 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
             << brd.Write(solution.proof) << '\n'
             << brd << '\n'
             << DfsSolverUtil::PrintVariation(variation) << '\n';
-
     // Verify dead cells do not intersect proof
     if ((brd.GetDead() & solution.proof).any()) 
         throw BenzeneException()
@@ -588,13 +585,12 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
             << brd.Write(solution.proof) << '\n'
             << brd << '\n'
             << DfsSolverUtil::PrintVariation(variation) << '\n';
-
-    // Shrink proof.
+    // Shrink proof
     bitset_t old_proof = solution.proof;
     if (m_shrink_proofs) 
     {
-        DfsSolverUtil::ShrinkProof(solution.proof, *m_stoneboard, 
-                                loser, brd.ICE());
+        ProofUtil::ShrinkProof(solution.proof, *m_stoneboard, loser, 
+                               brd.ICE());
         bitset_t pruned;
         pruned  = BoardUtils::ReachableOnBitset(brd.Const(), solution.proof, 
                                  EMPTY_BITSET,
@@ -611,8 +607,7 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
                 += old_proof.count() - solution.proof.count();
         }
     }
-    
-    // Verify proof touches both of winner's edges.
+    // Verify proof touches both of winner's edges
     if (!BoardUtils::ConnectedOnBitset(brd.Const(), solution.proof, 
                                        HexPointUtil::colorEdge1(winner),
                                        HexPointUtil::colorEdge2(winner)))
@@ -1186,35 +1181,6 @@ bitset_t DfsSolverUtil::InitialProof(const HexBoard& brd, HexColor color)
         throw BenzeneException() << "Initial mustplay hits toPlay's stones!"
                                  << brd << '\n' << brd.Write(proof) << '\n';
     return proof;
-}
-
-void DfsSolverUtil::ShrinkProof(bitset_t& proof, const StoneBoard& board, 
-                                HexColor loser, const ICEngine& ice)
-{
-    StoneBoard brd(board.Width(), board.Height());
-    PatternState pastate(brd);
-    Groups groups;
-
-    // Give loser all cells outside proof
-    bitset_t cells_outside_proof = (~proof & brd.Const().GetCells());
-    brd.AddColor(loser, cells_outside_proof);
-
-    // Give winner only his stones inside proof; 
-    HexColor winner = !loser;
-    brd.AddColor(winner, board.GetPlayed(winner) & proof);
-    pastate.Update();
-    GroupBuilder::Build(brd, groups);
-
-    // Compute fillin and remove captured cells from the proof
-    InferiorCells inf;
-    ice.ComputeFillin(loser, groups, pastate, inf, 
-                      HexColorSetUtil::Only(loser));
-    HexAssert(inf.Captured(winner).none());
-
-    bitset_t filled = inf.Dead() | inf.Captured(loser);
-    bitset_t shrunk_proof = proof - filled;
-    /// @todo Track number of proof shrinkings?
-    proof = shrunk_proof;
 }
 
 //----------------------------------------------------------------------------

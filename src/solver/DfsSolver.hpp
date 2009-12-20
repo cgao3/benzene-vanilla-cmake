@@ -463,12 +463,6 @@ namespace DfsSolverUtil
     /** Returns the original losing proof for this state; ie, the
         union of the opponent's winning semi-connections. */
     bitset_t InitialProof(const HexBoard& brd, HexColor color);
-
-    /** Gives all cells outside of the proof to loser, computes fillin
-        using ice, removes any cell in proof that is filled-in. */
-    void ShrinkProof(bitset_t& proof, 
-                     const StoneBoard& board, HexColor loser, 
-                     const ICEngine& ice);
 }
 
 //----------------------------------------------------------------------------
