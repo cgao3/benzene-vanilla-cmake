@@ -9,6 +9,7 @@ DfsSolver.cpp \
 ProofUtil.cpp
 
 noinst_HEADERS = \
+BenzeneSolver.hpp \
 DfpnCommands.hpp \
 DfpnSolver.hpp \
 DfsCommands.hpp \

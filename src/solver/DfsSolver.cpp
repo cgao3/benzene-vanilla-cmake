@@ -108,18 +108,21 @@ bool DfsSolver::CheckTransposition(DfsData& state) const
     return m_positions->Get(*m_stoneboard, state);
 }
 
-void DfsSolver::StoreState(const DfsData& state, const bitset_t& proof)
+void DfsSolver::StoreState(HexColor toPlay, const DfsData& state, 
+                           const bitset_t& proof)
 {
     m_positions->Put(*m_stoneboard, state);
     const SolverDBParameters& param = m_positions->Parameters();
     if (m_stoneboard->NumStones() <= param.m_transStones)
     {
         if (param.m_useProofTranspositions)
-            ProofUtil::StoreTranspositions(*m_positions->Database(),
-                                           *m_stoneboard, state, proof);
+            ProofUtil::StoreTranspositions(*m_positions, state, 
+                                           *m_stoneboard, toPlay, proof, 
+                                           state.m_win ? toPlay : !toPlay);
         if (param.m_useFlippedStates)
-            ProofUtil::StoreFlippedStates(*m_positions->Database(), 
-                                          *m_stoneboard, state, proof);
+            ProofUtil::StoreFlippedStates(*m_positions, state,
+                                          *m_stoneboard, toPlay, proof,
+                                          state.m_win ? toPlay : !toPlay);
     }
 }
 
@@ -626,8 +629,8 @@ void DfsSolver::handle_proof(const HexBoard& brd, HexColor color,
     if (solution.pv.empty())
         solution.pv.push_back(INVALID_POINT);
 
-    StoreState(DfsData(winning_state, solution.stats.total_states, 
-                       solution.moves_to_connection, solution.pv[0]), 
+    StoreState(color, DfsData(winning_state, solution.stats.total_states, 
+                              solution.moves_to_connection, solution.pv[0]), 
                solution.proof);
 }
 

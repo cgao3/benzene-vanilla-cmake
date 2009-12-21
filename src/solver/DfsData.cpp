@@ -66,7 +66,13 @@ void DfsData::Unpack(const byte* data)
 
 void DfsData::Rotate(const ConstBoard& brd)
 {
-    m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
+    if (m_bestMove != INVALID_POINT)
+        m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
 }
 
+void DfsData::Mirror(const ConstBoard& brd)
+{
+    if (m_bestMove != INVALID_POINT)
+        m_bestMove = BoardUtils::Mirror(brd, m_bestMove);
+}
 //----------------------------------------------------------------------------

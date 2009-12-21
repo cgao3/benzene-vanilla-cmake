@@ -7,8 +7,11 @@
 #define PROOFUTIL_HPP
 
 #include "Hex.hpp"
+#include "BenzeneSolver.hpp"
 #include "StoneBoard.hpp"
 #include "ICEngine.hpp"
+#include "SolverDB.hpp"
+#include "SortedSequence.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -26,14 +29,166 @@ namespace ProofUtil
     /** Computes and stores in db the transpostions of this proof on
         the given boardstate. Returns number of db entries
         successfully added or updated. */
-    int StoreTranspositions(DfsDB& db, const StoneBoard& brd, 
-                            const DfsData& state, const bitset_t& proof);
+    template<class HASH, class DB, class DATA>
+    int StoreTranspositions(SolverDB<HASH,DB,DATA>& db, const DATA& data,
+                            const StoneBoard& brd, HexColor toPlay,  
+                            const bitset_t& proof, HexColor winner);
 
     /** Computes and stores in db the flipped transpostions of this
         proof on the given boardstate. Returns number of db entries
         successfully added or updated. */
-    int StoreFlippedStates(DfsDB& db, const StoneBoard& brd, 
-                           const DfsData& state, const bitset_t& proof);
+    template<class HASH, class DB, class DATA>
+    int StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
+                           const StoneBoard& brd, HexColor toPlay,  
+                           const bitset_t& proof, HexColor winner);
+}
+
+//----------------------------------------------------------------------------
+
+template<class HASH, class DB, class DATA>
+int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db, 
+                                   const DATA& data, 
+                                   const StoneBoard& brd, HexColor toPlay,  
+                                   const bitset_t& proof, HexColor winner)
+{
+    SG_UNUSED(toPlay);
+    boost::function_requires< HasFlagsConcept<DATA> >();
+
+    // Number of non-fillin game stones played
+    int numBlack = (brd.GetPlayed(BLACK) & brd.Const().GetCells()).count();
+    int numWhite = (brd.GetPlayed(WHITE) & brd.Const().GetCells()).count();
+    HexAssert(numBlack + numWhite == brd.NumStones());
+
+    // Loser can use all his stones as well as all those outside the proof
+    HexColor loser = !winner;
+    bitset_t outside = (~proof & brd.GetEmpty()) 
+        | (brd.GetColor(loser) & brd.Const().GetCells());
+
+    // Winner can use all of his stones
+    bitset_t winners = brd.GetColor(winner) & brd.Const().GetCells();
+
+    // Store the players' stones as lists of sorted indices  
+    std::vector<HexPoint> black, white;
+    std::vector<HexPoint>& lose_list = (loser == BLACK) ? black : white;
+    std::vector<HexPoint>& winn_list = (loser == BLACK) ? white : black;
+    BitsetUtil::BitsetToVector(outside, lose_list);
+    BitsetUtil::BitsetToVector(winners, winn_list);
+
+    HexAssert(black.size() >= (unsigned)numBlack);
+    HexAssert(white.size() >= (unsigned)numWhite);
+
+    // Write each transposition 
+    int count = 0;
+    StoneBoard board(brd.Width(), brd.Height());
+    SortedSequence bseq(black.size(), numBlack);
+    while (!bseq.finished()) 
+    {
+        SortedSequence wseq(white.size(), numWhite);
+        while (!wseq.finished()) 
+        {
+            // Convert the indices into cells
+            board.StartNewGame();
+            for (int i = 0; i < numBlack; ++i)
+                board.PlayMove(BLACK, black[bseq[i]]);
+            for (int i = 0; i < numWhite; ++i)
+                board.PlayMove(WHITE, white[wseq[i]]);
+
+            // Mark state as transposition if the current one is not
+            // the original.
+            DfsData ss(data);
+            if (board.Hash() != brd.Hash())
+                ss.m_flags |= SolverDataFlags::TRANSPOSITION;
+            db.Put(board, ss);
+            ++count;
+            
+            ++wseq;
+        }
+        ++bseq;
+    }
+    return count;
+}
+
+template<class HASH, class DB, class DATA>
+int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
+                                  const StoneBoard& brd, HexColor toPlay,  
+                                  const bitset_t& proof, HexColor winner)
+{
+    boost::function_requires< HasFlagsConcept<DATA> >();
+    boost::function_requires< HasMirrorConcept<DATA> >();
+
+    // Start by computing the flipped board position.
+    // This involves mirroring the stones and *flipping their colour*.
+    bitset_t flippedBlack = BoardUtils::Mirror(brd.Const(), 
+                    brd.GetPlayed(WHITE) & brd.Const().GetCells());
+    bitset_t flippedWhite = BoardUtils::Mirror(brd.Const(),
+                    brd.GetPlayed(BLACK) & brd.Const().GetCells());
+    StoneBoard flippedBrd(brd.Width(), brd.Height());
+    flippedBrd.AddColor(BLACK, flippedBlack);
+    flippedBrd.AddColor(WHITE, flippedWhite);
+    flippedBrd.SetPlayed(flippedBlack | flippedWhite);
+    
+    HexColor flippedWinner = !winner;
+    bitset_t flippedProof = BoardUtils::Mirror(brd.Const(), proof);
+    bitset_t flippedOutside = (~flippedProof & flippedBrd.GetEmpty());
+    
+    // Determine what stones we can add or remove.
+    bool canAddFlippedBlack = false;
+    bitset_t flippedBlackToAdd;
+    bool canRemoveFlippedWhite = false;
+    bitset_t flippedWhiteToRemove;
+    // To switch player to move (while keeping parity valid), we must
+    // either add one stone to flippedBlack or else delete 1 stone
+    // from flippedWhite. Note that we can always add winner stones or
+    // delete loser stones without changing the value, and we can add
+    // loser stones if the proof set does not cover all empty cells.
+    if (flippedWinner == BLACK) 
+    {
+	canAddFlippedBlack = true;
+	flippedBlackToAdd = flippedBrd.GetEmpty();
+	canRemoveFlippedWhite = true;
+	flippedWhiteToRemove = flippedWhite;
+    } 
+    else 
+    {
+	HexAssert(flippedWinner == WHITE);
+	canAddFlippedBlack = flippedOutside.any();
+	flippedBlackToAdd = flippedOutside;
+    }
+    HexAssert(canAddFlippedBlack != flippedBlackToAdd.none());
+    HexAssert(BitsetUtil::IsSubsetOf(flippedBlackToAdd,flippedBrd.GetEmpty()));
+    HexAssert(canRemoveFlippedWhite != flippedWhiteToRemove.none());
+    HexAssert(BitsetUtil::IsSubsetOf(flippedWhiteToRemove,flippedWhite));
+    
+    // Now we can create and store the desired flipped states.
+    DATA ss(data);
+    ss.Mirror(brd.Const());
+    ss.m_flags |= SolverDataFlags::TRANSPOSITION;
+    ss.m_flags |= SolverDataFlags::MIRROR_TRANSPOSITION;
+    
+    int count = 0;
+    if (canAddFlippedBlack) 
+    {
+	for (BitsetIterator i(flippedBlackToAdd); i; ++i) 
+        {
+	    flippedBrd.PlayMove(BLACK, *i);
+	    HexAssert(!toPlay == flippedBrd.WhoseTurn());
+	    db.Put(flippedBrd, ss);
+	    flippedBrd.UndoMove(*i);
+            ++count;
+	}
+    }
+    if (canRemoveFlippedWhite) 
+    {
+	for (BitsetIterator i(flippedWhiteToRemove); i; ++i) 
+        {
+	    flippedBrd.UndoMove(*i);
+	    HexAssert(!toPlay == flippedBrd.WhoseTurn());
+	    db.Put(flippedBrd, ss);
+	    flippedBrd.PlayMove(WHITE, *i);
+            ++count;
+	}
+    }
+    return count;
 }
 
 //----------------------------------------------------------------------------

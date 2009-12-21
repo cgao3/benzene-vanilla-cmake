@@ -263,9 +263,9 @@ void DfsCommands::CmdGetState(HtpCommand& cmd)
     {
         cmd << " " << winning[i];
         cmd << " " << nummoves[winning[i]];
-        if (flags[winning[i]] & DfsData::FLAG_MIRROR_TRANSPOSITION)
+        if (flags[winning[i]] & SolverDataFlags::MIRROR_TRANSPOSITION)
             cmd << "m";
-        else if (flags[winning[i]] & DfsData::FLAG_TRANSPOSITION)
+        else if (flags[winning[i]] & SolverDataFlags::TRANSPOSITION)
             cmd << "t";
     }
     cmd << " Losing";
@@ -273,9 +273,9 @@ void DfsCommands::CmdGetState(HtpCommand& cmd)
     {
         cmd << " " << losing[i];
         cmd << " " << nummoves[losing[i]];
-        if (flags[losing[i]] & DfsData::FLAG_MIRROR_TRANSPOSITION)
+        if (flags[losing[i]] & SolverDataFlags::MIRROR_TRANSPOSITION)
             cmd << "m";
-        else if (flags[losing[i]] & DfsData::FLAG_TRANSPOSITION)
+        else if (flags[losing[i]] & SolverDataFlags::TRANSPOSITION)
             cmd << "t";
     }
 }

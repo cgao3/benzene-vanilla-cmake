@@ -18,16 +18,6 @@ _BEGIN_BENZENE_NAMESPACE_
 */
 struct DfsData
 {
-    /** Marks the proof as that of a transposition of some other
-        state. */
-    static const int FLAG_TRANSPOSITION = 1;
-
-    /** Marks the proof as a mirror transposition of some other
-        state. */
-    static const int FLAG_MIRROR_TRANSPOSITION = 2;
-
-    //--------------------------------------------------------------------
-
     /** True if player to move wins. */
     bool m_win;
 
@@ -79,6 +69,8 @@ struct DfsData
     void Unpack(const byte* t);
 
     void Rotate(const ConstBoard& brd);
+
+    void Mirror(const ConstBoard& brd);
 
     // @}
 };

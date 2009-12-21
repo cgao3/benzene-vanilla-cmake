@@ -8,6 +8,8 @@
 
 #include "Hex.hpp"
 #include "StoneBoard.hpp"
+#include "BenzeneSolver.hpp"
+#include <boost/concept_check.hpp>
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -160,7 +162,7 @@ void SolverDB<HASH, DB, DATA>::Put(const StoneBoard& brd, const DATA& data)
 
 namespace SolverDBUtil
 {
-    /** Follows bestmove in DATA to create a variation. Variation ends
+    /** Follows best move in DATA to create a variation. Variation ends
         when it hits a best move of INVALID_POINT or the move is not
         found in the database. */
     template<class HASH, class DB, class DATA>
@@ -174,6 +176,7 @@ void SolverDBUtil::GetVariation(const StoneBoard& state, HexColor color,
                                 SolverDB<HASH, DB, DATA>& positions, 
                                 PointSequence& pv)
 {
+    boost::function_requires< HasBestMoveConcept<DATA> >();
     StoneBoard brd(state);
     HexColor colorToMove = color;
     while (true) 

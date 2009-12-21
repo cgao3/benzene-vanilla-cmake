@@ -338,7 +338,8 @@ private:
 
     bool CheckTransposition(DfsData& state) const;
 
-    void StoreState(const DfsData& state, const bitset_t& proof);
+    void StoreState(HexColor color, const DfsData& state, 
+                    const bitset_t& proof);
 
     bitset_t DefaultProofForWinner(const HexBoard& brd, HexColor winner) const;
 
