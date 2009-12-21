@@ -380,26 +380,23 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
         os << "gogui-gfx:\n";
         os << "solver\n";
         os << "VAR";
-        HexColor toplay = (variation.size()&1) ? !color : color;
+        HexColor toplay = (variation.size() & 1) ? !color : color;
         for (std::size_t i = 0; i < variation.size(); ++i) 
         {
-            os << " " << ((toplay == BLACK) ? "B" : "W");
-            os << " " << variation[i];
+            os << ' ' << (toplay == BLACK ? 'B' : 'W');
+            os << ' ' << variation[i];
             toplay = !toplay;
         }
         os << '\n';
         os << "LABEL ";
         const InferiorCells& inf = brd.GetInferiorCells();
         os << inf.GuiOutput();
-        os << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), 
-                                                    mustplay, inf.All());
+        os << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), mustplay, 
+                                                    inf.All());
         os << '\n';
         os << "TEXT";
         for (int i = 0; i < depth; ++i) 
-        {
-            os << " " << m_completed[i].first 
-               << "/" << m_completed[i].second;
-        }
+            os << ' ' << m_completed[i].first << '/' << m_completed[i].second;
         os << '\n';
         os << '\n';
         std::cout << os.str();
@@ -416,10 +413,10 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
 
     // Order moves in the mustplay.
     //
-    // @note If we want to find all winning moves then 
-    // we need to stop OrderMoves() from aborting on a win.
+    // NOTE: If we want to find all winning moves then we need to stop
+    // OrderMoves() from aborting on a win.
     //
-    // @note OrderMoves() will handle VC/DB/TT hits, and remove them
+    // NOTE: OrderMoves() will handle VC/DB/TT hits, and remove them
     // from consideration. It is possible that there are no moves, in
     // which case we fall through the loop below with no problem (the
     // state is a loss).
@@ -431,34 +428,25 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
     // Expand all moves in mustplay that were not leaf states.
     //----------------------------------------------------------------------
     std::size_t states_under_losing = 0;
-    bool made_it_through = false;
 
-    for (unsigned index=0; 
-         !winning_state && index<moves.size(); 
+    for (unsigned index = 0; 
+         !winning_state && index < moves.size(); 
          ++index) 
     {
         HexPoint cell = moves[index].point();
-        
-        // note the level of completion
         m_completed[depth] = std::make_pair(index, moves.size());
-
-        // skip moves that were pruned by the proofs of previous moves
         if (!mustplay.test(cell)) 
         {
             solution.stats.pruned++;
             continue;
         }
 
-	made_it_through = true;
         DfsSolutionSet child_solution;
         PlayMove(brd, cell, color);
         variation.push_back(cell);
-
         bool win = !solve_state(brd, !color, variation, child_solution);
-
         variation.pop_back();
         UndoMove(brd, cell);
-
         solution.stats += child_solution.stats;
 
         if (win) 
@@ -491,18 +479,12 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
             m_histogram.states_under_losing[numstones] += states_under_losing;
             m_histogram.mustplay[numstones] += original_mustplay.count();
 
-	    if (solution.moves_to_connection == -1) 
-            {
-		LogInfo() << "child_solution.moves_to_connection == " 
-			  << child_solution.moves_to_connection << '\n';
-	    }
 	    HexAssert(solution.moves_to_connection != -1);	    
         } 
         else 
         {
             // Loss: add returned proof to current proof. Prune
             // mustplay by proof.  Maintain PV to longest loss.
-
             mustplay &= child_solution.proof;
             solution.proof |= child_solution.proof;
             states_under_losing += child_solution.stats.explored_states;
@@ -522,19 +504,8 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
                                    child_solution.pv.begin(), 
                                    child_solution.pv.end());
             }
-	    if (solution.moves_to_connection == -1) 
-            {
-		LogInfo() << "child_solution.moves_to_connection == " 
-			  << child_solution.moves_to_connection << '\n';
-	    }
 	    HexAssert(solution.moves_to_connection != -1);
         }
-    }
-
-    if (solution.moves_to_connection == -1) 
-    {
-	LogInfo() << "moves_to_connection == -1 and "
-		  << "made_it_through = " << made_it_through << '\n';
     }
     HexAssert(solution.moves_to_connection != -1);
     return winning_state;
