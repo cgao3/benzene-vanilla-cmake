@@ -341,8 +341,6 @@ private:
     void StoreState(HexColor color, const DfsData& state, 
                     const bitset_t& proof);
 
-    bitset_t DefaultProofForWinner(const HexBoard& brd, HexColor winner) const;
-
     bool CheckAbort();
     
     bool HandleLeafNode(const HexBoard& brd, HexColor color, 

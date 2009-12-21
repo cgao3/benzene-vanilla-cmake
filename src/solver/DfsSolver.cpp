@@ -77,8 +77,8 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
         solution.pv.clear();
         SolverDBUtil::GetVariation(*m_stoneboard, toPlay, positions,
                                    solution.pv);
-        solution.proof = DefaultProofForWinner(brd, state.m_win ? 
-                                               toPlay : !toPlay);
+        solution.proof = ProofUtil::MaximumProofSet(brd, state.m_win ? 
+                                                    toPlay : !toPlay);
     }
     else
     {
@@ -95,13 +95,6 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
 }
 
 //----------------------------------------------------------------------------
-
-bitset_t 
-DfsSolver::DefaultProofForWinner(const HexBoard& brd, HexColor winner) const
-{
-    return (brd.GetState().GetColor(winner) | brd.GetState().GetEmpty()) 
-        - brd.GetDead();
-}
 
 bool DfsSolver::CheckTransposition(DfsData& state) const
 {
@@ -184,7 +177,7 @@ bool DfsSolver::HandleLeafNode(const HexBoard& brd, HexColor color,
     if (HandleTerminalNode(brd, color, state, proof))
         return true;
     if (CheckTransposition(state))
-        proof = DefaultProofForWinner(brd, state.m_win ? color : !color);
+        proof = ProofUtil::MaximumProofSet(brd, state.m_win ? color : !color);
     return false;
 }
 
@@ -702,7 +695,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		// this state plus the child winning state
 		// (which is a leaf).
 		solution.stats.minimal_explored = 2;
-                solution.proof = DefaultProofForWinner(brd, color);
+                solution.proof = ProofUtil::MaximumProofSet(brd, color);
 
 		solution.moves_to_connection = state.m_numMoves + 1;
 		solution.pv.clear();
@@ -719,7 +712,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		    solution.pv.push_back(*it);
 		}
 		// will prune the mustplay later on with the proof
-                bitset_t proof = DefaultProofForWinner(brd, !color);
+                bitset_t proof = ProofUtil::MaximumProofSet(brd, !color);
 		proof_intersection &= proof;
 		proof_union |= proof;
 	    }

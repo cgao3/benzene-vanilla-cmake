@@ -20,6 +20,9 @@ _BEGIN_BENZENE_NAMESPACE_
 /** Deduce equivalent states, etc. */
 namespace ProofUtil 
 {
+    /** Compute the maximum possible proof. */
+    bitset_t MaximumProofSet(const HexBoard& brd, HexColor toPlay);
+
     /** Gives all cells outside of the proof to loser, computes fillin
         using ice, removes any cell in proof that is filled-in. 
         Returns true if proof was shrunk. */

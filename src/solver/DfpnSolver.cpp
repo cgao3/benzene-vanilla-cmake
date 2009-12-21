@@ -8,6 +8,7 @@
 #include "DfpnSolver.hpp"
 #include "PatternState.hpp"
 #include "PlayerUtils.hpp"
+#include "ProofUtil.hpp"
 #include "Resistance.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -386,11 +387,10 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
             m_workBoard->GetState().SetState(*m_brd);
             m_workBoard->ComputeAll(colorToMove);
             ++m_numVCbuilds;
-            // Compute the maximum possible proof set if !colorToMove wins.
+
+            // Compute the maximum possible proof set if colorToMove wins.
             // This data is used to prune siblings of this state.
-            maxProofSet = m_workBoard->GetState().GetEmpty()
-                | m_workBoard->GetState().GetPlayed(colorToMove)
-                | m_workBoard->GetInferiorCells().DeductionSet(colorToMove);
+            maxProofSet = ProofUtil::MaximumProofSet(*m_workBoard, colorToMove);
 
             if (PlayerUtils::IsDeterminedState(*m_workBoard, colorToMove))
             {

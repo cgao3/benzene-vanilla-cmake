@@ -14,6 +14,13 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+bitset_t ProofUtil::MaximumProofSet(const HexBoard& brd, HexColor toPlay)
+{
+    return brd.GetState().GetEmpty()
+        | brd.GetState().GetPlayed(toPlay)
+        | brd.GetInferiorCells().DeductionSet(toPlay);
+}
+
 bool ProofUtil::ShrinkProof(bitset_t& proof, const StoneBoard& board, 
                             HexColor loser, const ICEngine& ice)
 {
