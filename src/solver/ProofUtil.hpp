@@ -95,7 +95,7 @@ int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db,
 
             // Mark state as transposition if the current one is not
             // the original.
-            DfsData ss(data);
+            DATA ss(data);
             if (board.Hash() != brd.Hash())
                 ss.m_flags |= SolverDataFlags::TRANSPOSITION;
             db.Put(board, ss);
