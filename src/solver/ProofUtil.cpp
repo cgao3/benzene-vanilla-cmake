@@ -21,6 +21,46 @@ bitset_t ProofUtil::MaximumProofSet(const HexBoard& brd, HexColor toPlay)
         | brd.GetInferiorCells().DeductionSet(toPlay);
 }
 
+bitset_t ProofUtil::InitialProofForOpponent(const HexBoard& brd, 
+                                            HexColor toPlay)
+{
+    // Add opponent played stones and deduction set.
+    const InferiorCells& inf = brd.GetInferiorCells();
+    bitset_t proof = brd.GetState().GetPlayed(!toPlay);
+    proof |= inf.DeductionSet(!toPlay);
+
+    // Add all semi-connections from the mustplay.
+    const VCList& lst = brd.Cons(!toPlay).GetList(VC::SEMI, 
+                                          HexPointUtil::colorEdge1(!toPlay),
+                                          HexPointUtil::colorEdge2(!toPlay));
+    const bool useGreedy = brd.Builder().Parameters().use_greedy_union;
+    proof |= useGreedy ? lst.getGreedyUnion() : lst.getUnion();
+
+    // Add reversable reversers. 
+    // The carriers do NOT need to be included in the proof, since
+    // they are captured by the (losing) player, not his opponent (for
+    // whom we are building the proof set).
+    // TODO: Currently, we just add the first reverser: we should see
+    // if any reverser is already in the proof, since then we wouldn't
+    // need to add one.
+    for (BitsetIterator p(inf.Reversible()); p; ++p) 
+    {
+        const std::set<HexPoint>& reversers = inf.Reversers(*p);
+        proof.set(*reversers.begin());
+    }
+    // Add vulnerable killers and their carriers.
+    // TODO: Currently, we just add the first killer: we should see if
+    // any killer is already in the proof, since then we wouldn't need
+    // to add one.
+    for (BitsetIterator p(inf.Vulnerable()); p; ++p) 
+    {
+        const std::set<VulnerableKiller>& killers = inf.Killers(*p);
+        proof.set((*killers.begin()).killer());
+        proof |= ((*killers.begin()).carrier());
+    }
+    return proof;
+}
+
 bool ProofUtil::ShrinkProof(bitset_t& proof, const StoneBoard& board, 
                             HexColor loser, const ICEngine& ice)
 {

@@ -349,9 +349,7 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
                                      PointSequence& variation,
                                      DfsSolutionSet& solution)
 {
-    int depth = variation.size();
     int numstones = m_stoneboard->NumStones();
-
     // Set initial proof for this state to be the union of all
     // opponent winning semis.  We need to do this because we use the
     // semis to restrict the search (ie, the mustplay).
@@ -360,15 +358,23 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
     // Basically, we are assuming the opponent will win from this state;
     // if we win instead, we use the proof generated from that state,
     // not this one. 
-    solution.proof = DfsSolverUtil::InitialProof(brd, color);
+    solution.proof = ProofUtil::InitialProofForOpponent(brd, color);
+    bitset_t mustplay = DfsSolverUtil::MovesToConsider(brd, color);
+    if (mustplay.none()) 
+    {
+        LogFine() << "Empty reduced mustplay.\n"
+		  << brd.Write(solution.proof) << '\n';
+        m_histogram.terminal[numstones]++;
+        solution.stats.total_states = 1;
+        solution.stats.explored_states = 1;
+        solution.stats.minimal_explored = 1;
+        solution.pv.clear();
+        solution.moves_to_connection = 0;
+        return false;  
+    }
 
-    // Get the moves to consider
-    bitset_t mustplay = DfsSolverUtil::MovesToConsider(brd, color, 
-                                                       solution.proof);
-    LogFine() << "mustplay: [" << HexPointUtil::ToString(mustplay) << " ]\n";
-
-    // output progress for the gui
-    if (depth == m_update_depth && m_use_guifx)
+    int depth = variation.size();
+    if (m_use_guifx && depth == m_update_depth)
     {
         std::ostringstream os;
         os << "gogui-gfx:\n";
@@ -400,22 +406,7 @@ bool DfsSolver::solve_interior_state(HexBoard& brd, HexColor color,
         std::cout.flush();
     } 
 
-    // If mustplay is empty then this is a losing state.
-    if (mustplay.none()) 
-    {
-        LogFine() << "Empty reduced mustplay.\n"
-		  << brd.Write(solution.proof) << '\n';
-        m_histogram.terminal[numstones]++;
-        solution.stats.total_states = 1;
-        solution.stats.explored_states = 1;
-        solution.stats.minimal_explored = 1;
-        solution.pv.clear();
-        solution.moves_to_connection = 0;
-        return false;  
-    }
-
     bitset_t original_mustplay = mustplay;
-
     solution.stats.total_states = 1;
     solution.stats.explored_states = 1;
     solution.stats.minimal_explored = 1;
@@ -871,9 +862,9 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
         if (m_backup_ice_info)
 	{
             bitset_t new_initial_proof 
-                = DfsSolverUtil::InitialProof(brd, color);
+                = ProofUtil::InitialProofForOpponent(brd, color);
             bitset_t new_mustplay = 
-                DfsSolverUtil::MovesToConsider(brd, color, new_initial_proof);
+                DfsSolverUtil::MovesToConsider(brd, color);
             HexAssert(BitsetUtil::IsSubsetOf(new_mustplay, mustplay));
             
             if (new_mustplay.count() < mustplay.count())
@@ -1094,13 +1085,12 @@ bool DfsSolverUtil::isLosingState(const HexBoard& brd, HexColor color,
     return false;
 }
 
-bitset_t DfsSolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
-                                     bitset_t& proof)
+bitset_t DfsSolverUtil::MovesToConsider(const HexBoard& brd, HexColor color)
 {
     bitset_t ret = VCUtils::GetMustplay(brd, color);
     if (ret.none()) 
-        throw BenzeneException()<< "DfsSolverUtil::MovesToConsider: "
-                                << "EMPTY MUSTPLAY!: " << brd << '\n';
+        throw BenzeneException() << "DfsSolverUtil::MovesToConsider: "
+                                 << "EMPTY MUSTPLAY!: " << brd << '\n';
     
     // Take out the dead, dominated, reversible, and vulnerable
     const InferiorCells& inf = brd.GetInferiorCells();
@@ -1109,61 +1099,7 @@ bitset_t DfsSolverUtil::MovesToConsider(const HexBoard& brd, HexColor color,
     ret = ret - inf.Reversible();
     ret = ret - inf.Vulnerable();
 
-    /** Must add reversable reversers to proof.
-
-        The carriers do NOT need to be included in the proof, since
-        they are captured by the (losing) player, not his opponent
-        (for whom we are building the proof set).
-        
-        @todo Currently, we just add the first reverser: we should see
-        if any reverser is already in the proof, since then we wouldn't
-        need to add one.
-    */
-    for (BitsetIterator p(inf.Reversible()); p; ++p) 
-    {
-        const std::set<HexPoint>& reversers = inf.Reversers(*p);
-        proof.set(*reversers.begin());
-    }
-    
-    /** Must add vulnerable killers (and their carriers) to proof.
-        
-        @todo Currently, we just add the first killer: we should see
-        if any killer is already in the proof, since then we wouldn't
-        need to add one.
-    */
-    for (BitsetIterator p(inf.Vulnerable()); p; ++p) 
-    {
-        const std::set<VulnerableKiller>& killers = inf.Killers(*p);
-        proof.set((*killers.begin()).killer());
-        proof |= ((*killers.begin()).carrier());
-    }
     return ret;
-}
-
-bitset_t DfsSolverUtil::MustplayCarrier(const HexBoard& brd, HexColor color)
-{
-    HexPoint edge1 = HexPointUtil::colorEdge1(!color);
-    HexPoint edge2 = HexPointUtil::colorEdge2(!color);
-    const VCList& lst = brd.Cons(!color).GetList(VC::SEMI, edge1, edge2);
-    return (brd.Builder().Parameters().use_greedy_union)
-        ? lst.getGreedyUnion()
-        : lst.getUnion();
-}
-
-bitset_t DfsSolverUtil::InitialProof(const HexBoard& brd, HexColor color)
-{
-    LogFine() << "mustplay-carrier:"
-	      << brd.Write(MustplayCarrier(brd, color)) << '\n';
-
-    bitset_t proof = 
-        (MustplayCarrier(brd, color) | brd.GetState().GetColor(!color)) 
-        - brd.GetDead();
-
-    LogFine() << "Initial mustplay-carrier:" << brd.Write(proof) << '\n';
-    if ((proof & brd.GetState().GetColor(color)).any())
-        throw BenzeneException() << "Initial mustplay hits toPlay's stones!"
-                                 << brd << '\n' << brd.Write(proof) << '\n';
-    return proof;
 }
 
 //----------------------------------------------------------------------------

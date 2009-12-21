@@ -23,6 +23,13 @@ namespace ProofUtil
     /** Compute the maximum possible proof. */
     bitset_t MaximumProofSet(const HexBoard& brd, HexColor toPlay);
 
+    /** The proof for a losing state is the union the proofs for each
+        move. This function returns the proof defined by all opponent
+        semi-connctions as well as any ice deductions. 
+        @note The proof is for the opponent of toPlay.
+        @todo Argh, document this better. */
+    bitset_t InitialProofForOpponent(const HexBoard& brd, HexColor toPlay);
+
     /** Gives all cells outside of the proof to loser, computes fillin
         using ice, removes any cell in proof that is filled-in. 
         Returns true if proof was shrunk. */

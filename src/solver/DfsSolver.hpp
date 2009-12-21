@@ -434,7 +434,6 @@ inline void DfsSolver::SetMoveOrdering(int flags)
 //----------------------------------------------------------------------------
 
 /** Methods in DfsSolver that do not need DfsSolver's private data. */
-/** @todo Refactor some of these out? */
 namespace DfsSolverUtil 
 {
     /** Computes distance from the center of the board. */
@@ -449,16 +448,10 @@ namespace DfsSolverUtil
         so, proof is set. */
     bool isLosingState(const HexBoard& brd, HexColor color, bitset_t& proof);
 
-    /** Computes the moves to consider for this state. */
-    bitset_t MovesToConsider(const HexBoard& brd, HexColor color,
-                             bitset_t& proof);
-
-    /** Computes the union of opponent winning semis. */
-    bitset_t MustplayCarrier(const HexBoard& brd, HexColor color);
-
-    /** Returns the original losing proof for this state; ie, the
-        union of the opponent's winning semi-connections. */
-    bitset_t InitialProof(const HexBoard& brd, HexColor color);
+    /** Computes the moves to consider for this state. 
+        @todo Switch to PlayerUtils::MovesToConsider()
+    */
+    bitset_t MovesToConsider(const HexBoard& brd, HexColor color);
 }
 
 //----------------------------------------------------------------------------
