@@ -150,7 +150,7 @@ bool DfsSolver::HandleTerminalNode(const HexBoard& brd, HexColor color,
                                    DfsData& state, bitset_t& proof) const
 {
     int numstones = m_stoneboard->NumStones();
-    if (DfsSolverUtil::isWinningState(brd, color, proof)) 
+    if (EndgameUtils::IsWonGame(brd, color, proof)) 
     {
         state.m_win = true;
         state.m_numMoves = 0;
@@ -158,7 +158,7 @@ bool DfsSolver::HandleTerminalNode(const HexBoard& brd, HexColor color,
         m_histogram.terminal[numstones]++;
         return true;
     } 
-    else if (DfsSolverUtil::isLosingState(brd, color, proof)) 
+    else if (EndgameUtils::IsLostGame(brd, color, proof)) 
     {
         state.m_win = false;
         state.m_numMoves = 0;
@@ -327,19 +327,8 @@ bool DfsSolver::SolveInteriorState(HexBoard& brd, HexColor color,
     // if we win instead, we use the proof generated from that state,
     // not this one. 
     solution.proof = ProofUtil::InitialProofForOpponent(brd, color);
-    bitset_t mustplay = DfsSolverUtil::MovesToConsider(brd, color);
-    if (mustplay.none()) 
-    {
-        LogFine() << "Empty reduced mustplay.\n"
-		  << brd.Write(solution.proof) << '\n';
-        m_histogram.terminal[numstones]++;
-        solution.stats.total_states = 1;
-        solution.stats.explored_states = 1;
-        solution.stats.minimal_explored = 1;
-        solution.pv.clear();
-        solution.m_numMoves = 0;
-        return false;  
-    }
+    bitset_t mustplay = EndgameUtils::MovesToConsider(brd, color);
+    HexAssert(mustplay.any());
 
     int depth = variation.size();
     if (m_use_guifx && depth == m_update_depth)
@@ -768,8 +757,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 	{
             bitset_t new_initial_proof 
                 = ProofUtil::InitialProofForOpponent(brd, color);
-            bitset_t new_mustplay = 
-                DfsSolverUtil::MovesToConsider(brd, color);
+            bitset_t new_mustplay = EndgameUtils::MovesToConsider(brd, color);
             HexAssert(BitsetUtil::IsSubsetOf(new_mustplay, mustplay));
             
             if (new_mustplay.count() < mustplay.count())
@@ -927,84 +915,6 @@ int DfsSolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
     // the two center cells on the main diagonal.
     return brd.Distance(BoardUtils::CenterPointRight(brd), cell)
         +  brd.Distance(BoardUtils::CenterPointLeft(brd), cell);
-}
-
-bool DfsSolverUtil::isWinningState(const HexBoard& brd, HexColor color, 
-                                   bitset_t& proof)
-{
-    if (brd.GetGroups().IsGameOver()) 
-    {
-        if (brd.GetGroups().GetWinner() == color) 
-        {
-            // Surprisingly, this situation *can* happen: opponent plays a
-            // move in the mustplay causing a sequence of presimplicial-pairs 
-            // and captures that result in a win. 
-            LogFine() << "#### Solid chain win ####\n";
-            proof = brd.GetState().GetColor(color) - brd.GetDead();
-            return true;
-        }
-    } 
-    else 
-    {
-        VC v;
-        if (brd.Cons(color).SmallestVC(HexPointUtil::colorEdge1(color), 
-                                       HexPointUtil::colorEdge2(color), 
-                                       VC::SEMI, v)) 
-        {
-            LogFine() << "VC win.\n";
-            proof = (v.carrier() | brd.GetState().GetColor(color)) 
-                - brd.GetDead();
-            return true;
-        } 
-    }
-    return false;
-}
-
-bool DfsSolverUtil::isLosingState(const HexBoard& brd, HexColor color, 
-                               bitset_t& proof)
-{
-    HexColor other = !color;
-    if (brd.GetGroups().IsGameOver()) 
-    {
-        if (brd.GetGroups().GetWinner() == other) 
-        {
-            // This occurs very rarely, but definetly cannot be ruled out.
-            LogFine() << "#### Solid chain loss ####\n";
-            proof = brd.GetState().GetColor(other) - brd.GetDead();
-            return true;
-        } 
-    } 
-    else 
-    {
-        VC vc;
-        HexPoint otheredge1 = HexPointUtil::colorEdge1(other);
-        HexPoint otheredge2 = HexPointUtil::colorEdge2(other);
-        if (brd.Cons(other).SmallestVC(otheredge1, otheredge2, VC::FULL, vc)) 
-        {
-            LogFine() << "VC loss.\n";
-            proof = (vc.carrier() | brd.GetState().GetColor(other)) 
-                - brd.GetDead();
-            return true;
-        } 
-    }
-    return false;
-}
-
-bitset_t DfsSolverUtil::MovesToConsider(const HexBoard& brd, HexColor color)
-{
-    bitset_t ret = VCUtils::GetMustplay(brd, color);
-    if (ret.none()) 
-        throw BenzeneException() << "DfsSolverUtil::MovesToConsider: "
-                                 << "EMPTY MUSTPLAY!: " << brd << '\n';
-    
-    // Take out the dead, dominated, reversible, and vulnerable
-    const InferiorCells& inf = brd.GetInferiorCells();
-    ret = ret - inf.Dead();
-    ret = ret - inf.Dominated();
-    ret = ret - inf.Reversible();
-    ret = ret - inf.Vulnerable();
-
-    return ret;
 }
 
 //----------------------------------------------------------------------------

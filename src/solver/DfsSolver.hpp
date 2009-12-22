@@ -455,20 +455,6 @@ namespace DfsSolverUtil
 {
     /** Computes distance from the center of the board. */
     int DistanceFromCenter(const ConstBoard& brd, HexPoint p);
-
-    /** Determines if this is a winning state. If so, proof is set to
-        the winning proof. */
-    bool isWinningState(const HexBoard& brd, HexColor color, 
-                        bitset_t& proof);
-
-    /** Determines if the given board state is losing for color. If
-        so, proof is set. */
-    bool isLosingState(const HexBoard& brd, HexColor color, bitset_t& proof);
-
-    /** Computes the moves to consider for this state. 
-        @todo Switch to PlayerUtils::MovesToConsider()
-    */
-    bitset_t MovesToConsider(const HexBoard& brd, HexColor color);
 }
 
 //----------------------------------------------------------------------------
