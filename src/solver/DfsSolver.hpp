@@ -120,7 +120,7 @@ struct DfsSolutionSet
 {
     bitset_t proof;
     
-    int moves_to_connection;
+    int m_numMoves;
     
     PointSequence pv;
     
@@ -130,7 +130,7 @@ struct DfsSolutionSet
 };
 
 inline DfsSolutionSet::DfsSolutionSet()
-    : moves_to_connection(0)
+    : m_numMoves(0)
 {
 }
 
@@ -353,20 +353,20 @@ private:
                     DfsSolutionSet& solution, 
                     std::vector<HexMoveValue>& moves);
 
-    bool solve_state(HexBoard& brd, HexColor tomove, PointSequence& variation, 
-                     DfsSolutionSet& solution);
+    bool SolveState(HexBoard& brd, HexColor tomove, PointSequence& variation, 
+                    DfsSolutionSet& solution);
 
-    bool solve_decomposition(HexBoard& brd, HexColor color, 
-                             PointSequence& variation,
-                             DfsSolutionSet& solution, HexPoint group);
+    bool SolveDecomposition(HexBoard& brd, HexColor color, 
+                            PointSequence& variation,
+                            DfsSolutionSet& solution, HexPoint group);
 
-    bool solve_interior_state(HexBoard& brd, HexColor color, 
-                              PointSequence& variation, 
-                              DfsSolutionSet& solution);
+    bool SolveInteriorState(HexBoard& brd, HexColor color, 
+                            PointSequence& variation, 
+                            DfsSolutionSet& solution);
 
-    void handle_proof(const HexBoard& brd, HexColor color, 
-                      const PointSequence& variation,
-                      bool winning_state, DfsSolutionSet& solution);
+    void HandleProof(const HexBoard& brd, HexColor color, 
+                     const PointSequence& variation,
+                     bool winning_state, DfsSolutionSet& solution);
 };
 
 //----------------------------------------------------------------------------
