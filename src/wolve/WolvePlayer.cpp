@@ -7,7 +7,7 @@
 #include "VCSet.hpp"
 #include "HexEval.hpp"
 #include "Misc.hpp"
-#include "PlayerUtils.hpp"
+#include "EndgameUtils.hpp"
 #include "SequenceHash.hpp"
 #include "WolvePlayer.hpp"
 
@@ -135,7 +135,7 @@ void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
     else 
     {
         LogFine() << "Computing our own consider set." << '\n';
-        consider = PlayerUtils::MovesToConsider(*m_brd, m_toplay);
+        consider = EndgameUtils::MovesToConsider(*m_brd, m_toplay);
     }
 
     m_consider.push_back(consider);
@@ -176,7 +176,7 @@ void WolveSearch::AfterStateSearched()
         // store new consider set in varTT
         bitset_t old_consider = m_consider[m_current_depth];
         bitset_t new_consider 
-            = PlayerUtils::MovesToConsider(*m_brd, m_toplay) & old_consider;
+            = EndgameUtils::MovesToConsider(*m_brd, m_toplay) & old_consider;
         hash_t hash = SequenceHash::Hash(m_sequence);
         m_varTT.Put(hash, VariationInfo(m_current_depth, new_consider));
     }

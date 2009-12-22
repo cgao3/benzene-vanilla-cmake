@@ -11,7 +11,7 @@
 #include "BitsetIterator.hpp"
 #include "HashDB.hpp"
 #include "Book.hpp"
-#include "PlayerUtils.hpp"
+#include "EndgameUtils.hpp"
 #include "PositionDB.hpp"
 #include "Resistance.hpp"
 #include "ThreadedWorker.hpp"
@@ -569,10 +569,10 @@ bool BookBuilder<PLAYER>::GenerateMoves(const StoneBoard& brd,
     m_brd->ComputeAll(toMove);
     m_brd->SetUseICE(useICE);
 
-    if (PlayerUtils::IsDeterminedState(*m_brd, toMove, value))
+    if (EndgameUtils::IsDeterminedState(*m_brd, toMove, value))
         return true;
 
-    bitset_t children = PlayerUtils::MovesToConsider(*m_brd, toMove);
+    bitset_t children = EndgameUtils::MovesToConsider(*m_brd, toMove);
     HexAssert(children.any());
     
     Resistance resist;

@@ -4,7 +4,7 @@
 //----------------------------------------------------------------------------
 
 #include "BoardUtils.hpp"
-#include "PlayerUtils.hpp"
+#include "EndgameUtils.hpp"
 #include "VCCommands.hpp"
 #include "VCUtils.hpp"
 
@@ -60,9 +60,9 @@ void VCCommands::CmdBuildStatic(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     cmd << brd.GetInferiorCells().GuiOutput();
-    if (!PlayerUtils::IsDeterminedState(brd, color))
+    if (!EndgameUtils::IsDeterminedState(brd, color))
     {
-        bitset_t consider = PlayerUtils::MovesToConsider(brd, color);
+        bitset_t consider = EndgameUtils::MovesToConsider(brd, color);
         cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), consider,
                                               brd.GetInferiorCells().All());
     }
@@ -81,9 +81,9 @@ void VCCommands::CmdBuildIncremental(HtpCommand& cmd)
     HexBoard& brd = *m_env.brd; // <-- NOTE: no call to SyncBoard()!
     brd.PlayMove(color, point);
     cmd << brd.GetInferiorCells().GuiOutput();
-    if (!PlayerUtils::IsDeterminedState(brd, color))
+    if (!EndgameUtils::IsDeterminedState(brd, color))
     {
-        bitset_t consider = PlayerUtils::MovesToConsider(brd, color);
+        bitset_t consider = EndgameUtils::MovesToConsider(brd, color);
         cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), consider,
                                            brd.GetInferiorCells().All());
     }
@@ -158,9 +158,9 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
     inf.ClearReversible();
     inf.ClearDominated();
     cmd << inf.GuiOutput();
-    if (!PlayerUtils::IsDeterminedState(*m_env.brd, color))
+    if (!EndgameUtils::IsDeterminedState(*m_env.brd, color))
     {
-        bitset_t consider = PlayerUtils::MovesToConsider(*m_env.brd, color);
+        bitset_t consider = EndgameUtils::MovesToConsider(*m_env.brd, color);
         cmd << BoardUtils::GuiDumpOutsideConsiderSet(m_env.brd->GetState(), 
                                                      consider,
                                                      inf.All());

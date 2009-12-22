@@ -5,7 +5,6 @@
 
 #include "BookBuilder.hpp"
 #include "BookCommands.hpp"
-#include "PlayerUtils.hpp"
 #include "VCUtils.hpp"
 
 using namespace benzene;

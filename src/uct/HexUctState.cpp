@@ -24,7 +24,7 @@
 #include "HexUctPolicy.hpp"
 #include "HexUctUtil.hpp"
 #include "PatternState.hpp"
-#include "PlayerUtils.hpp"
+#include "EndgameUtils.hpp"
 #include "SequenceHash.hpp"
 
 using namespace benzene;
@@ -330,11 +330,11 @@ bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
 
     // Consider set will be non-empty only if a non-determined state.
     bitset_t consider;
-    if (PlayerUtils::IsDeterminedState(*m_vc_brd, m_toPlay))
+    if (EndgameUtils::IsDeterminedState(*m_vc_brd, m_toPlay))
     {
         HexColor winner = m_toPlay;
         provenType = SG_PROVEN_WIN;
-        if (PlayerUtils::IsLostGame(*m_vc_brd, m_toPlay))
+        if (EndgameUtils::IsLostGame(*m_vc_brd, m_toPlay))
         {
             winner = !m_toPlay;
             provenType = SG_PROVEN_LOSS;
@@ -347,7 +347,7 @@ bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
     else
     {
         provenType = SG_NOT_PROVEN;
-        consider = PlayerUtils::MovesToConsider(*m_vc_brd, m_toPlay);
+        consider = EndgameUtils::MovesToConsider(*m_vc_brd, m_toPlay);
     }
 
     m_shared_data->stones.put(SequenceHash::Hash(m_game_sequence), 

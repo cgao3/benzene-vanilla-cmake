@@ -4,6 +4,7 @@ libhex_a_SOURCES = \
 BoardUtils.cpp \
 Book.cpp \
 ConstBoard.cpp \
+EndgameUtils.cpp \
 Game.cpp \
 GraphUtils.cpp \
 Groups.cpp \
@@ -23,7 +24,6 @@ IcePatternSet.cpp \
 InferiorCells.cpp \
 Pattern.cpp\
 PatternState.cpp\
-PlayerUtils.cpp \
 Resistance.cpp \
 RingGodel.cpp \
 SequenceHash.cpp \
@@ -44,6 +44,7 @@ BoardIterator.hpp \
 BoardUtils.hpp \
 Book.hpp \
 ConstBoard.hpp \
+EndgameUtils.hpp \
 Game.hpp \
 GraphUtils.hpp \
 Groups.hpp \
@@ -72,7 +73,6 @@ InferiorCells.hpp \
 Move.hpp \
 PatternState.hpp \
 Pattern.hpp \
-PlayerUtils.hpp \
 PositionDB.hpp \
 Resistance.hpp \
 RingGodel.hpp \

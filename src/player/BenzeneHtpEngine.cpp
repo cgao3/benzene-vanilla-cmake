@@ -14,7 +14,6 @@
 #include "HexProgram.hpp"
 #include "HexSgUtil.hpp"
 #include "BenzeneHtpEngine.hpp"
-#include "PlayerUtils.hpp"
 #include "Resistance.hpp"
 #include "DfsSolver.hpp"
 #include "SwapCheck.hpp"

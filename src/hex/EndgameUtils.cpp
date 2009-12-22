@@ -1,9 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file PlayerUtils.cpp
+/** @file EndgameUtils.cpp
  */
 //----------------------------------------------------------------------------
 
-#include "PlayerUtils.hpp"
+#include "EndgameUtils.hpp"
 #include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
 #include "VCSet.hpp"
@@ -164,7 +164,7 @@ HexPoint MostOverlappingMove(const std::vector<VC>& VClist,
 /** Returns best winning move. */
 HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
 {
-    HexAssert(PlayerUtils::IsWonGame(brd, color));
+    HexAssert(EndgameUtils::IsWonGame(brd, color));
 
     // If we have a winning SC, then play in the key of the smallest one
     VC winningVC;
@@ -196,7 +196,7 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
 /** Returns most blocking (ie, the "best") losing move. */
 HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
 {
-    HexAssert(PlayerUtils::IsLostGame(brd, color));
+    HexAssert(EndgameUtils::IsLostGame(brd, color));
 
     // Determine if color's opponent has guaranteed win
     HexColor other = !color;
@@ -220,7 +220,7 @@ HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
 
 //----------------------------------------------------------------------------
 
-bool PlayerUtils::IsWonGame(const HexBoard& brd, HexColor color, 
+bool EndgameUtils::IsWonGame(const HexBoard& brd, HexColor color, 
                             bitset_t& proof)
 {
     if (brd.GetGroups().GetWinner() == color)
@@ -244,7 +244,7 @@ bool PlayerUtils::IsWonGame(const HexBoard& brd, HexColor color,
     return false;
 }
 
-bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color, 
+bool EndgameUtils::IsLostGame(const HexBoard& brd, HexColor color, 
                              bitset_t& proof)
 {
     if (brd.GetGroups().GetWinner() == !color)
@@ -268,7 +268,7 @@ bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color,
     return false;
 }
 
-bool PlayerUtils::IsDeterminedState(const HexBoard& brd, HexColor color, 
+bool EndgameUtils::IsDeterminedState(const HexBoard& brd, HexColor color, 
                                     HexEval& score, bitset_t& proof)
 {
     score = 0;
@@ -285,7 +285,7 @@ bool PlayerUtils::IsDeterminedState(const HexBoard& brd, HexColor color,
     return false;
 }
 
-HexPoint PlayerUtils::PlayDeterminedState(const HexBoard& brd, HexColor color)
+HexPoint EndgameUtils::PlayDeterminedState(const HexBoard& brd, HexColor color)
                                           
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
@@ -299,7 +299,7 @@ HexPoint PlayerUtils::PlayDeterminedState(const HexBoard& brd, HexColor color)
     return PlayLostGame(brd, color);
 }
 
-bitset_t PlayerUtils::MovesToConsider(const HexBoard& brd, HexColor color)
+bitset_t EndgameUtils::MovesToConsider(const HexBoard& brd, HexColor color)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(!IsDeterminedState(brd, color));

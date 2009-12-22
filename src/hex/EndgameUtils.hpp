@@ -1,10 +1,10 @@
 //----------------------------------------------------------------------------
-/** @file PlayerUtils.hpp
+/** @file EndgameUtils.hpp
  */
 //----------------------------------------------------------------------------
 
-#ifndef PLAYERUTILS_HPP
-#define PLAYERUTILS_HPP
+#ifndef ENDGAMEUTILS_HPP
+#define ENDGAMEUTILS_HPP
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
@@ -14,8 +14,8 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Utilities used by UofAPlayers and their engines. */
-namespace PlayerUtils
+/** Utilities on endgames: detecting, playing, etc. */
+namespace EndgameUtils
 {
 
     /** Returns true if color wins in this state. This checks
@@ -57,6 +57,8 @@ namespace PlayerUtils
         guaranteed to be non-empty. This assumes IsDeterminedState()
         returns false.
 
+        @todo MOVE THIS OUT OF HERE!
+
         @see @ref computingmovestoconsider
     */
     bitset_t MovesToConsider(const HexBoard& brd, HexColor color);
@@ -64,7 +66,7 @@ namespace PlayerUtils
 
 //----------------------------------------------------------------------------
 
-inline bool PlayerUtils::IsDeterminedState(const HexBoard& brd, 
+inline bool EndgameUtils::IsDeterminedState(const HexBoard& brd, 
                                            HexColor color, HexEval& eval)
                                           
 {
@@ -72,20 +74,20 @@ inline bool PlayerUtils::IsDeterminedState(const HexBoard& brd,
     return IsDeterminedState(brd, color, eval, proof);
 }
 
-inline bool PlayerUtils::IsDeterminedState(const HexBoard& brd, HexColor color)
+inline bool EndgameUtils::IsDeterminedState(const HexBoard& brd, HexColor color)
 {
     HexEval eval;
     bitset_t proof;
     return IsDeterminedState(brd, color, eval, proof);
 }
 
-inline bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color)
+inline bool EndgameUtils::IsLostGame(const HexBoard& brd, HexColor color)
 {
     bitset_t proof;
     return IsLostGame(brd, color, proof);
 }
 
-inline bool PlayerUtils::IsWonGame(const HexBoard& brd, HexColor color)
+inline bool EndgameUtils::IsWonGame(const HexBoard& brd, HexColor color)
 {
     bitset_t proof;
     return IsWonGame(brd, color, proof);
@@ -95,4 +97,4 @@ inline bool PlayerUtils::IsWonGame(const HexBoard& brd, HexColor color)
 
 _END_BENZENE_NAMESPACE_
 
-#endif // PLAYERUTILS_HPP
+#endif // ENDGAMEUTILS_HPP

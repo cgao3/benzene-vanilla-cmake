@@ -16,7 +16,7 @@
 #include "VCUtils.hpp"
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
-#include "PlayerUtils.hpp"
+#include "EndgameUtils.hpp"
 #include "ProofUtil.hpp"
 
 #include <cmath>

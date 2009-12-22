@@ -9,7 +9,7 @@
 #include "Time.hpp"
 #include "HexAbSearch.hpp"
 #include "HexBoard.hpp"
-#include "PlayerUtils.hpp"
+#include "EndgameUtils.hpp"
 #include "SequenceHash.hpp"
 
 using namespace benzene;
@@ -168,10 +168,10 @@ HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
 
 HexEval HexAbSearch::CheckTerminalState()
 {
-    if (PlayerUtils::IsWonGame(*m_brd, m_toplay))
+    if (EndgameUtils::IsWonGame(*m_brd, m_toplay))
         return IMMEDIATE_WIN - m_current_depth;
     
-    if (PlayerUtils::IsLostGame(*m_brd, m_toplay))
+    if (EndgameUtils::IsLostGame(*m_brd, m_toplay))
         return IMMEDIATE_LOSS + m_current_depth;
 
     return 0;
