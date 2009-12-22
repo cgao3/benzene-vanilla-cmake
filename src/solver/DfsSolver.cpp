@@ -197,14 +197,12 @@ bool DfsSolver::SolveState(HexBoard& brd, HexColor color,
         bitset_t proof;
         if (HandleLeafNode(brd, color, state, proof)) 
         {
-            solution.stats.explored_states = 1;
-            solution.stats.minimal_explored = 1;
-            solution.stats.total_states += state.m_numStates;
-            
             solution.pv.clear();
             solution.m_numMoves = state.m_numMoves;
             solution.proof = proof;
-            
+            solution.stats.explored_states = 1;
+            solution.stats.minimal_explored = 1;
+            solution.stats.total_states += state.m_numStates;
             return state.m_win;
         }
     }
@@ -276,13 +274,13 @@ bool DfsSolver::SolveDecomposition(HexBoard& brd, HexColor color,
         if (HandleTerminalNode(brd, color, state, proof)) 
         {
             win = state.m_win;
+            dsolution[s].proof = proof;
+            dsolution[s].m_numMoves = state.m_numMoves;
+            dsolution[s].pv.clear();
             dsolution[s].stats.expanded_states = 0;
             dsolution[s].stats.explored_states = 1;
             dsolution[s].stats.minimal_explored = 1;
             dsolution[s].stats.total_states = 1;
-            dsolution[s].proof = proof;
-            dsolution[s].m_numMoves = state.m_numMoves;
-            dsolution[s].pv.clear();
         } 
         else 
             win = SolveInteriorState(brd, color, variation, dsolution[s]);
@@ -411,41 +409,29 @@ bool DfsSolver::SolveInteriorState(HexBoard& brd, HexColor color,
             continue;
         }
 
-        DfsSolutionSet child_solution;
+        DfsSolutionSet child;
         PlayMove(brd, cell, color);
         variation.push_back(cell);
-        bool win = !SolveState(brd, !color, variation, child_solution);
+        bool win = !SolveState(brd, !color, variation, child);
         variation.pop_back();
         UndoMove(brd, cell);
-        solution.stats += child_solution.stats;
+        solution.stats += child.stats;
 
         if (win) 
         {
             // Win: copy proof over, copy pv, abort!
             winning_state = true;
-            solution.proof = child_solution.proof;
-
-            solution.pv.clear();
-            solution.pv.push_back(cell);
-            solution.pv.insert(solution.pv.end(), child_solution.pv.begin(), 
-                               child_solution.pv.end());
-
-            solution.m_numMoves = 
-                child_solution.m_numMoves + 1;
-
-            // set minimal tree-size explicitly to be child's minimal size
-            // plus 1.
-            solution.stats.minimal_explored = 
-                child_solution.stats.minimal_explored + 1;
-
+            solution.proof = child.proof;
+            solution.SetPV(cell, child.pv);
+            solution.m_numMoves = child.m_numMoves + 1;
             solution.stats.winning_expanded++;
-            solution.stats.branches_to_win += index+1;
+            solution.stats.minimal_explored = child.stats.minimal_explored + 1;
+            solution.stats.branches_to_win += index + 1;
 
             m_histogram.winning[numstones]++;
             m_histogram.size_of_winning_states[numstones] 
-                += child_solution.stats.explored_states;
-
-            m_histogram.branches[numstones] += index+1;
+                += child.stats.explored_states;
+            m_histogram.branches[numstones] += index + 1;
             m_histogram.states_under_losing[numstones] += states_under_losing;
             m_histogram.mustplay[numstones] += original_mustplay.count();
 
@@ -455,24 +441,17 @@ bool DfsSolver::SolveInteriorState(HexBoard& brd, HexColor color,
         {
             // Loss: add returned proof to current proof. Prune
             // mustplay by proof.  Maintain PV to longest loss.
-            mustplay &= child_solution.proof;
-            solution.proof |= child_solution.proof;
-            states_under_losing += child_solution.stats.explored_states;
+            mustplay &= child.proof;
+            solution.proof |= child.proof;
+            states_under_losing += child.stats.explored_states;
 
             m_histogram.size_of_losing_states[numstones] 
-                += child_solution.stats.explored_states;
+                += child.stats.explored_states;
 
-            if (child_solution.m_numMoves + 1 > 
-                solution.m_numMoves) 
+            if (child.m_numMoves + 1 > solution.m_numMoves) 
             {
-                solution.m_numMoves = 
-                    child_solution.m_numMoves + 1;
-
-                solution.pv.clear();
-                solution.pv.push_back(cell);
-                solution.pv.insert(solution.pv.end(), 
-                                   child_solution.pv.begin(), 
-                                   child_solution.pv.end());
+                solution.m_numMoves = child.m_numMoves + 1;
+                solution.SetPV(cell, child.pv);
             }
 	    HexAssert(solution.m_numMoves != -1);
         }
@@ -605,7 +584,6 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
     */
     bool found_win = false;
     bitset_t losingMoves;
-    LogFine() << "STARTING!\n";
     for (BitsetIterator it(mustplay); !found_win && it; ++it)
     {
 	brd.GetState().PlayMove(color, *it);
@@ -624,26 +602,22 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		moves.clear();
 		moves.push_back(HexMoveValue(*it, 0));
 		
-		// this state plus the child winning state
-		// (which is a leaf).
+		// This state plus the child winning state (which is a leaf).
 		solution.stats.minimal_explored = 2;
                 solution.proof = ProofUtil::MaximumProofSet(brd, color);
-
 		solution.m_numMoves = state.m_numMoves + 1;
-		solution.pv.clear();
-		solution.pv.push_back(*it);
+                solution.SetPV(*it);
 	    } 
 	    else 
 	    {
-		// prune this losing move from the mustplay
+		// Prune this losing move from the mustplay
 		losingMoves.set(*it);
 		if (state.m_numMoves + 1 > solution.m_numMoves) 
                 {
 		    solution.m_numMoves = state.m_numMoves + 1;
-		    solution.pv.clear();
-		    solution.pv.push_back(*it);
+                    solution.SetPV(*it);
 		}
-		// will prune the mustplay later on with the proof
+		// Will prune the mustplay later on with the proof
                 bitset_t proof = ProofUtil::MaximumProofSet(brd, !color);
 		proof_intersection &= proof;
 		proof_union |= proof;
@@ -697,39 +671,30 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
             // then undoing the move. This gives pretty good move
             // ordering: 7x7 is much slower without this method and
 	    // 8x8 is no longer solvable. However, it is very expensive!
-            // 
-            // We try to reduce the number of PlayMove/UndoMove pairs
-            // we perform by checking the VC/DB/TT here, instead of in
-            // solve_state().  Any move leading to a VC/DB/TT hit is removed
-            // from the mustplay and handled as it would be in
-            // solve_state().
             if (with_mustplay)
 	    {
                 PlayMove(brd, *it, color);
 
                 DfsData state;
                 bitset_t proof;
-		// no need to check DB/TT since did this above
+		// No need to check DB/TT since did this above
 		if (HandleTerminalNode(brd, other, state, proof))
 		{
                     exact_score = true;
-
-                    solution.stats.explored_states += 1;
                     solution.stats.minimal_explored++;
+                    solution.stats.explored_states++;
                     solution.stats.total_states += state.m_numStates;
-
                     if (!state.m_win)
 		    {
                         found_win = true;
                         moves.clear();
                         
-                        // this state plus the child winning state
+                        // This state plus the child winning state
                         // (which is a leaf).
                         solution.stats.minimal_explored = 2;
                         solution.proof = proof;
                         solution.m_numMoves = state.m_numMoves + 1;
-                        solution.pv.clear();
-                        solution.pv.push_back(*it);
+                        solution.SetPV(*it);
                     }
 		    else
 		    {
@@ -737,10 +702,9 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
                         if (state.m_numMoves + 1 > solution.m_numMoves)
 			{
                             solution.m_numMoves = state.m_numMoves + 1;
-                            solution.pv.clear();
-                            solution.pv.push_back(*it);
+                            solution.SetPV(*it);
                         }
-                        // will prune the mustplay with the proof below
+                        // Will prune the mustplay with the proof below
                         proof_intersection &= proof;
                         proof_union |= proof;
                     }

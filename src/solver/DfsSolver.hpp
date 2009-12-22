@@ -127,11 +127,28 @@ struct DfsSolutionSet
     DfsBranchStatistics stats;
     
     DfsSolutionSet();
+
+    void SetPV(HexPoint cell);
+
+    void SetPV(HexPoint cell, const PointSequence& pv);
 };
 
 inline DfsSolutionSet::DfsSolutionSet()
     : m_numMoves(0)
 {
+}
+
+inline void DfsSolutionSet::SetPV(HexPoint cell)
+{
+    pv.clear();
+    pv.push_back(cell);
+}
+
+inline void DfsSolutionSet::SetPV(HexPoint cell, const PointSequence& old)
+{
+    pv.clear();
+    pv.push_back(cell);
+    pv.insert(pv.end(), old.begin(), old.end());
 }
 
 //----------------------------------------------------------------------------
