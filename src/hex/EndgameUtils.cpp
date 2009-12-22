@@ -53,7 +53,8 @@ bitset_t ComputeLossesViaStrategyStealingArgument(const StoneBoard& brd,
                                                   HexColor color)
 {
     bitset_t ret;
-    if (brd.GetPlayed(!color).count() - brd.GetPlayed(color).count() == 1)
+    if ((brd.Width() == brd.Height())
+        && (brd.GetPlayed(!color).count() - brd.GetPlayed(color).count() == 1))
     {
         bitset_t mirror1 
             = BoardUtils::Mirror(brd.Const(), brd.GetPlayed(!color))
