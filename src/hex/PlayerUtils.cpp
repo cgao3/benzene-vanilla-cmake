@@ -82,6 +82,12 @@ bitset_t ComputeConsiderSet(const HexBoard& brd, HexColor color)
     return consider;
 }
 
+bitset_t StonesInProof(const HexBoard& brd, HexColor color)
+{
+    return brd.GetState().GetPlayed(color) 
+        | brd.GetInferiorCells().DeductionSet(color);
+}
+
 /** Priority is given to eliminating the most easily-answered
     moves first (i.e. dead cells require no answer, answering
     vulnerable plays only requires knowledge of local adjacencies,
@@ -191,8 +197,8 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
 HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
 {
     HexAssert(PlayerUtils::IsLostGame(brd, color));
-    
-    // determine if color's opponent has guaranteed win
+
+    // Determine if color's opponent has guaranteed win
     HexColor other = !color;
     HexPoint otheredge1 = HexPointUtil::colorEdge1(other);
     HexPoint otheredge2 = HexPointUtil::colorEdge2(other);
@@ -214,60 +220,69 @@ HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
 
 //----------------------------------------------------------------------------
 
-bool PlayerUtils::IsWonGame(const HexBoard& brd, HexColor color)
+bool PlayerUtils::IsWonGame(const HexBoard& brd, HexColor color, 
+                            bitset_t& proof)
 {
-    if (brd.GetGroups().IsGameOver())
-        return (brd.GetGroups().GetWinner() == color);
-    if (brd.Cons(color).Exists(HexPointUtil::colorEdge1(color), 
-                               HexPointUtil::colorEdge2(color), 
-                               VC::SEMI)) 
+    if (brd.GetGroups().GetWinner() == color)
     {
+        proof = StonesInProof(brd, color);
+        return true;
+    }
+    VC vc;
+    const HexPoint edge1 = HexPointUtil::colorEdge1(color);
+    const HexPoint edge2 = HexPointUtil::colorEdge2(color);
+    if (brd.Cons(color).SmallestVC(edge1, edge2, VC::SEMI, vc))
+    {        
+        proof = vc.carrier() | StonesInProof(brd, color);
 	return true;
     }
-    if (brd.Cons(color).Exists(HexPointUtil::colorEdge1(color),
-                               HexPointUtil::colorEdge2(color),
-                               VC::FULL))
+    if (brd.Cons(color).SmallestVC(edge1, edge2, VC::FULL, vc))
     {
+        proof = vc.carrier() | StonesInProof(brd, color);
 	return true;
     }
     return false;
 }
 
-bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color)
+bool PlayerUtils::IsLostGame(const HexBoard& brd, HexColor color, 
+                             bitset_t& proof)
 {
-    if (brd.GetGroups().IsGameOver())
-        return (brd.GetGroups().GetWinner() != color);
-    if (brd.Cons(!color).Exists(HexPointUtil::colorEdge1(!color),
-                                HexPointUtil::colorEdge2(!color),
-                                VC::FULL))
+    if (brd.GetGroups().GetWinner() == !color)
     {
+        proof = StonesInProof(brd, !color);
+        return true;
+    }
+    VC vc;
+    if (brd.Cons(!color).SmallestVC(HexPointUtil::colorEdge1(!color),
+                                    HexPointUtil::colorEdge2(!color),
+                                    VC::FULL, vc))
+    {
+        proof = vc.carrier() | StonesInProof(brd, !color);
 	return true;
     }
-    bitset_t consider = ComputeConsiderSet(brd, color);
-    return consider.none();
+    if (ComputeConsiderSet(brd, color).none())
+    {
+        proof = brd.GetState().GetEmpty() | StonesInProof(brd, !color);
+        return true;
+    }
+    return false;
 }
 
 bool PlayerUtils::IsDeterminedState(const HexBoard& brd, HexColor color, 
-                                    HexEval& score)
+                                    HexEval& score, bitset_t& proof)
 {
     score = 0;
-    if (IsWonGame(brd, color)) 
+    if (IsWonGame(brd, color, proof))
     {
         score = IMMEDIATE_WIN;
         return true;
     }
-    if (IsLostGame(brd, color)) 
+    if (IsLostGame(brd, color, proof))
     {
         score = IMMEDIATE_LOSS;
         return true;
     }
     return false;
-}
-
-bool PlayerUtils::IsDeterminedState(const HexBoard& brd, HexColor color)
-{
-    HexEval eval;
-    return IsDeterminedState(brd, color, eval);
 }
 
 HexPoint PlayerUtils::PlayDeterminedState(const HexBoard& brd, HexColor color)
@@ -288,13 +303,9 @@ bitset_t PlayerUtils::MovesToConsider(const HexBoard& brd, HexColor color)
 {
     HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(!IsDeterminedState(brd, color));
-
     
     bitset_t consider = ComputeConsiderSet(brd, color);
     HexAssert(consider.any());
-
-    if (consider.count() == 1) 
-        LogFine() << "Mustplay is singleton.\n";
 
     LogFine() << "Moves to consider for " << color << ":" 
               << brd.Write(consider) << '\n';
