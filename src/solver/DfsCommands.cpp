@@ -36,7 +36,7 @@ void DfsCommands::Register(GtpEngine& e)
     Register(e, "dfs-solver-find-winning", 
              &DfsCommands::CmdSolverFindWinning);
     Register(e, "dfs-get-state", &DfsCommands::CmdGetState);
-    Register(e, "dfs-histogram", &DfsCommands::CmdHistogram);
+    Register(e, "dfs-get-histogram", &DfsCommands::CmdHistogram);
     Register(e, "dfs-open-db", &DfsCommands::CmdDBOpen);
     Register(e, "dfs-close-db", &DfsCommands::CmdDBClose);
 }
