@@ -52,6 +52,7 @@ private:
     void CmdGetState(HtpCommand& cmd);
     void CmdGetBounds(HtpCommand& cmd);
     void CmdGetWork(HtpCommand& cmd);
+    void CmdGetPV(HtpCommand& cmd);
     void CmdOpenDB(HtpCommand& cmd);
     void CmdCloseDB(HtpCommand& cmd);
 };

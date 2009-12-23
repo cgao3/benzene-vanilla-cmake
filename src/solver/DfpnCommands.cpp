@@ -33,6 +33,7 @@ void DfpnCommands::Register(GtpEngine& e)
     Register(e, "dfpn-get-bounds", &DfpnCommands::CmdGetBounds);
     Register(e, "dfpn-get-state", &DfpnCommands::CmdGetState);    
     Register(e, "dfpn-get-work", &DfpnCommands::CmdGetWork);
+    Register(e, "dfpn-get-pv", &DfpnCommands::CmdGetPV);
     Register(e, "dfpn-solve-state", &DfpnCommands::CmdSolveState);
     Register(e, "dfpn-solver-find-winning", &DfpnCommands::CmdFindWinning);
     Register(e, "dfpn-open-db", &DfpnCommands::CmdOpenDB);
@@ -220,6 +221,16 @@ void DfpnCommands::CmdGetWork(HtpCommand& cmd)
             cmd << ' ' << *it << ' ' << data.m_work;
         brd.UndoMove(*it);
     }
+}
+
+/** Displays PV from current position. */
+void DfpnCommands::CmdGetPV(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
+    PointSequence pv;
+    SolverDBUtil::GetVariation(m_game.Board(), colorToMove, m_positions, pv);
+    cmd << HexPointUtil::ToString(pv);
 }
 
 /** Opens a database. 
