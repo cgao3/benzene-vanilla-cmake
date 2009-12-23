@@ -51,6 +51,7 @@ private:
     void CmdDBOpen(HtpCommand& cmd);
     void CmdDBClose(HtpCommand& cmd);
     void CmdGetState(HtpCommand& cmd);
+    void CmdGetPV(HtpCommand& cmd);
     void CmdHistogram(HtpCommand& cmd);
 };
 

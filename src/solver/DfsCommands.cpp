@@ -37,6 +37,7 @@ void DfsCommands::Register(GtpEngine& e)
              &DfsCommands::CmdSolverFindWinning);
     Register(e, "dfs-get-state", &DfsCommands::CmdGetState);
     Register(e, "dfs-get-histogram", &DfsCommands::CmdHistogram);
+    Register(e, "dfs-get-pv", &DfsCommands::CmdGetPV);
     Register(e, "dfs-open-db", &DfsCommands::CmdDBOpen);
     Register(e, "dfs-close-db", &DfsCommands::CmdDBClose);
 }
@@ -281,10 +282,21 @@ void DfsCommands::CmdGetState(HtpCommand& cmd)
     }
 }
 
+/** Prints histogram of last search. */
 void DfsCommands::CmdHistogram(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
     cmd << m_solver.Histogram().Write();
+}
+
+/** Prints PV from the current state from the last search. */
+void DfsCommands::CmdGetPV(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
+    PointSequence pv;
+    SolverDBUtil::GetVariation(m_game.Board(), colorToMove, m_positions, pv);
+    cmd << HexPointUtil::ToString(pv);
 }
 
 //----------------------------------------------------------------------------
