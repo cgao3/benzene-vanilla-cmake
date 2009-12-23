@@ -224,43 +224,41 @@ DfpnSolver::~DfpnSolver()
 {
 }
 
-void DfpnSolver::PrintStatistics()
+void DfpnSolver::PrintStatistics(HexColor winner,
+                                 const PointSequence& pv) const
 {
-    LogInfo() << "     MID calls: " << m_numMIDcalls << '\n';
-    LogInfo() << "     VC builds: " << m_numVCbuilds << '\n';
-    LogInfo() << "Terminal nodes: " << m_numTerminal << '\n';
-    LogInfo() << " Cnt prune sib: " << m_prunedSiblingStats.Count() << '\n';
     std::ostringstream os;
-    os << " Avg prune sib: ";
+    os << '\n'
+       << "MID calls       " << m_numMIDcalls << '\n'
+       << "VC builds       " << m_numVCbuilds << '\n'
+       << "Terminal nodes  " << m_numTerminal << '\n'
+       << "Work            " << m_numMIDcalls + m_numTerminal << '\n'
+       << "Wasted Work     " << m_totalWastedWork
+       << " (" << (m_totalWastedWork * 100.0 
+                   / (m_numMIDcalls + m_numTerminal)) << "%)\n"
+       << "Elapsed Time    " << m_timer.GetTime() << '\n'
+       << "MIDs/sec        " << m_numMIDcalls / m_timer.GetTime() << '\n'
+       << "VCs/sec         " << m_numVCbuilds / m_timer.GetTime() << '\n'
+       << "Cnt prune sib   " << m_prunedSiblingStats.Count() << '\n'
+       << "Avg prune sib   ";
     m_prunedSiblingStats.Write(os);
-    os << '\n';
-    LogInfo() << os.str();
-    os.str("");
-    os << " Consider Size: ";
+    os << '\n'
+       << "Consider Size   ";
     m_considerSetSize.Write(os);
-    os << '\n';
-    LogInfo() << os.str();
-    os.str("");
-    os << "    Move Index: ";
+    os << '\n'
+       << "Move Index      ";
     m_moveOrderingIndex.Write(os);
     os << '\n';
-    LogInfo() << os.str();
-    os.str("");
-    os << "  Move Percent: ";
+    os << "Move Percent    ";
     m_moveOrderingPercent.Write(os);
-    os << '\n';
-    LogInfo() << os.str();
-    LogInfo() << "   Wasted Work: " << m_totalWastedWork
-              << " (" << (m_totalWastedWork * 100.0 
-                          / (m_numMIDcalls + m_numTerminal)) << "%)\n";
-    LogInfo() << "  Elapsed Time: " << m_timer.GetTime() << '\n';
-    LogInfo() << "      MIDs/sec: " << m_numMIDcalls / m_timer.GetTime()<<'\n';
-    LogInfo() << "       VCs/sec: " << m_numVCbuilds / m_timer.GetTime()<<'\n';
-
+    os << '\n'
+       << "Winner          " << winner << '\n'
+       << "PV              " << HexPointUtil::ToString(pv) << '\n';
     if (m_positions->Database())
-        LogInfo() << m_positions->Database()->GetStatistics().Write() << '\n';
+        os << '\n' << m_positions->Database()->GetStatistics().Write() << '\n';
     if (m_positions->HashTable())    
-        LogInfo() << m_positions->HashTable()->Stats() << '\n';
+        os << '\n' << m_positions->HashTable()->Stats() << '\n';
+    LogInfo() << os.str();
 }
 
 HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
@@ -281,42 +279,33 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
     m_workBoard = &board;
     m_checkTimerAbortCalls = 0;
 
-    bool performSearch = true;
+    // Skip search if already solved
+    DfpnData data;
+    if (TTRead(*m_brd, data) && data.m_bounds.IsSolved())
     {
-        // Skip search if already solved
-        DfpnData data;
-        if (TTRead(*m_brd, data) && data.m_bounds.IsSolved())
-            performSearch = false;
-    }
-
-    if (performSearch)
-    {
-        DfpnBounds root(INFTY, INFTY);
-        m_timer.Start();
-        DfpnHistory history;
-        MID(root, history, colorToMove);
-        m_timer.Stop();
-        PrintStatistics();
-    }
-
-    if (!m_aborted)
-    {
-        DfpnData data;
-        TTRead(*m_brd, data);
-        CheckBounds(data.m_bounds);
-
-        HexColor winner = data.m_bounds.IsWinning() 
-            ? colorToMove : !colorToMove;
-        LogInfo() << winner << " wins!\n";
-
-        pv.clear();
+        LogInfo() << "Already solved!\n";
+        HexColor w = data.m_bounds.IsWinning() ? colorToMove : !colorToMove;
         SolverDBUtil::GetVariation(*m_brd, colorToMove, *m_positions, pv);
+        LogInfo() << w << " wins!\n";
         LogInfo() << "PV: " << HexPointUtil::ToString(pv) << '\n';
-
-        return winner;
+        return w;
     }
-    LogInfo() << "Search aborted.\n";
-    return EMPTY;
+
+    DfpnBounds root(INFTY, INFTY);
+    m_timer.Start();
+    DfpnHistory history;
+    MID(root, history, colorToMove);
+    m_timer.Stop();
+
+    SolverDBUtil::GetVariation(*m_brd, colorToMove, *m_positions, pv);
+    HexColor winner = EMPTY;
+    if (TTRead(*m_brd, data) && data.m_bounds.IsSolved())
+        winner = data.m_bounds.IsWinning() ? colorToMove : !colorToMove;
+    PrintStatistics(winner, pv);
+
+    if (m_aborted)
+        LogInfo() << "Search aborted.\n";
+    return winner;
 }
 
 bool DfpnSolver::CheckAbort()
@@ -364,9 +353,6 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
     CheckBounds(bounds);
     HexAssert(bounds.phi > 1);
     HexAssert(bounds.delta > 1);
-
-    if (CheckAbort())
-        return 0;
 
     int depth = history.Depth();
     size_t prevWork = 0;
@@ -446,7 +432,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
     hash_t currentHash = m_brd->Hash();   
     HexPoint bestMove = INVALID_POINT;
     DfpnBounds currentBounds;
-    while (!m_aborted) 
+    do
     {
         UpdateBounds(currentBounds, childrenData, maxChildIndex);
 
@@ -538,7 +524,7 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
                     m_guiFx.SetChildren(children, childrenData);
             }
         }
-    }
+    } while (!CheckAbort());
 
     if (m_useGuiFx && depth == 0)
         m_guiFx.WriteForced();
@@ -575,14 +561,11 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
     }
     
     // Store search results and notify listeners
-    if (!m_aborted)
-    {
-        DfpnData data(currentBounds, children, bestMove,
-                      localWork + prevWork, maxProofSet);
-        TTWrite(*m_brd, data);
-        if (data.m_bounds.IsSolved())
-            NotifyListeners(history, data);
-    }
+    DfpnData data(currentBounds, children, bestMove, localWork + prevWork, 
+                  maxProofSet);
+    TTWrite(*m_brd, data);
+    if (data.m_bounds.IsSolved())
+        NotifyListeners(history, data);
     return localWork;
 }
 

@@ -543,7 +543,7 @@ private:
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;
 
-    void PrintStatistics();
+    void PrintStatistics(HexColor winner, const PointSequence& p) const;
 
     size_t ComputeMaxChildIndex(const std::vector<DfpnData>&
                                 childrenData) const;
