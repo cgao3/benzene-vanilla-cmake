@@ -56,7 +56,7 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
     
     m_aborted = false;
     m_start_time = Time::Get();
-    m_histogram = Histogram();
+    m_histogram = DfsHistogram();
     m_last_histogram_dump = 0;
     m_statistics = GlobalStatistics();
     m_stoneboard.reset(new StoneBoard(brd.GetState()));
@@ -231,7 +231,7 @@ bool DfsSolver::SolveState(HexBoard& brd, HexColor color,
     // Dump histogram every 1M moves
     if ((m_statistics.played / 1000000) > (m_last_histogram_dump)) 
     {
-        LogInfo() << m_histogram.Dump() << '\n';
+        LogInfo() << m_histogram.Write() << '\n';
         m_last_histogram_dump = m_statistics.played / 1000000;
     }
     return winning_state;
@@ -777,58 +777,48 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 
 //----------------------------------------------------------------------------
 
-std::string DfsSolver::Histogram::Dump()
+std::string DfsHistogram::Write()
 {
     std::ostringstream os;
-    os << std::endl;
-    os << "Histogram" << std::endl;
-    os << "                         States             ";
-    os << "                      Branch Info                    ";
-    os << "                                      TT/DB                ";
-    os << std::endl;
-    os << std::setw(3) << "#" << " "
+    os << '\n'
+       << "Histogram\n"
+       << "                         States             "
+       << "                      Branch Info                    "
+       << "                                      TT/DB                "
+       << '\n'
+       << std::setw(3) << "#" << " "
        << std::setw(12) << "Terminal"
        << std::setw(12) << "Internal"
        << std::setw(12) << "Int. Win"
        << std::setw(12) << "Win Pct"
-
        << std::setw(12) << "Sz Winning"
        << std::setw(12) << "Sz Losing"
-        
        << std::setw(12) << "To Win"
        << std::setw(12) << "Mustplay"
        << std::setw(12) << "U/Losing"
        << std::setw(12) << "Cost"
        << std::setw(12) << "Hits"
        << std::setw(12) << "Pct"
-       << std::endl;
+       << '\n';
 
-    for (int p=0; p<FIRST_INVALID; ++p) {
+    for (int p = 0; p < FIRST_INVALID; ++p) 
+    {
         if (!states[p] && !terminal[p]) 
             continue;
-
-        double moves_to_find_winning = winning[p] ?
-            (double)branches[p]/winning[p] : 0;
-        
-        double avg_states_under_losing = (branches[p]-winning[p])?
-            ((double)states_under_losing[p]/(branches[p]-winning[p])):0;
-
+        double moves_to_find_winning = winning[p] 
+            ? (double)branches[p] / winning[p] : 0;
+        double avg_states_under_losing = (branches[p] - winning[p])
+            ?((double)states_under_losing[p] / (branches[p] - winning[p])):0;
         os << std::setw(3) << p << ":"
-            
            << std::setw(12) << terminal[p] 
-
            << std::setw(12) << states[p]
-
            << std::setw(12) << winning[p]
-            
            << std::setw(12) << std::fixed << std::setprecision(3) 
            << ((states[p])?((double)winning[p]*100.0/states[p]):0)
-
            << std::setw(12) << std::fixed << std::setprecision(1) 
            << ((winning[p]) 
                ? ((double)size_of_winning_states[p] / winning[p])
                : 0)
-
            << std::setw(12) << std::fixed << std::setprecision(1) 
            << ((states[p] - winning[p]) 
                ? ((double)(size_of_losing_states[p] 
@@ -836,70 +826,52 @@ std::string DfsSolver::Histogram::Dump()
                :0)
            << std::setw(12) << std::fixed << std::setprecision(4)
            << moves_to_find_winning
-            
            << std::setw(12) << std::fixed << std::setprecision(2)
            << ((winning[p]) ? ((double)mustplay[p] / winning[p]) : 0)
-            
            << std::setw(12) << std::fixed << std::setprecision(1)
            << avg_states_under_losing
-
            << std::setw(12) << std::fixed << std::setprecision(1)
            << fabs((moves_to_find_winning - 1.0) 
                    * avg_states_under_losing * winning[p])
-
            << std::setw(12) << tthits[p]
-            
            << std::setw(12) << std::fixed << std::setprecision(3)
            << ((states[p]) ? ((double)tthits[p] * 100.0 / states[p]) : 0)
-            
-           << std::endl;
+           << '\n';
     }
     return os.str();
 }
 
 void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
 {
-    double total_time = m_end_time - m_start_time;
-
-    LogInfo() << '\n'
-	      << "########################################" << '\n'
-	      << "         Played: " << m_statistics.played << '\n'
-	      << "         Pruned: " << solution.stats.pruned << '\n'
-	      << "   Total States: " << solution.stats.total_states << '\n'
-	      << "Explored States: " << solution.stats.explored_states 
-	      << " (" << solution.stats.minimal_explored << ")" << '\n'
-	      << "Expanded States: " << solution.stats.expanded_states << '\n'
-	      << " Decompositions: " << solution.stats.decompositions << '\n'
-	      << "    Decomps won: " 
-	      << solution.stats.decompositions_won << '\n'
-	      << "  Shrunk Proofs: " << solution.stats.shrunk << '\n'
-	      << "    Avg. Shrink: " 
-	      << ((double)solution.stats.cells_removed 
-		  / solution.stats.shrunk) << '\n'
-	      << "  Branch Factor: " 
-	      << ((double)solution.stats.moves_to_consider
-		  / solution.stats.expanded_states) << '\n'
-	      << "    To Find Win: "
-	      << ((double)solution.stats.branches_to_win
-		  / solution.stats.winning_expanded) << '\n'
-	      << "########################################" << '\n';
-
+    const double total_time = m_end_time - m_start_time;
+    std::ostringstream os;
+    os << '\n'
+       << "Played          " << m_statistics.played << '\n'
+       << "Pruned          " << solution.stats.pruned << '\n'
+       << "Total States    " << solution.stats.total_states << '\n'
+       << "Explored States " << solution.stats.explored_states 
+       << " (" << solution.stats.minimal_explored << ")" << '\n'
+       << "Expanded States " << solution.stats.expanded_states << '\n'
+       << "Decompositions  " << solution.stats.decompositions << '\n'
+       << "Decomps won     " << solution.stats.decompositions_won << '\n'
+       << "Shrunk Proofs   " << solution.stats.shrunk << '\n'
+       << "Avg. Shrink     " << ((double)solution.stats.cells_removed 
+                                 / solution.stats.shrunk) << '\n'
+       << "Branch Factor   " << ((double)solution.stats.moves_to_consider
+                                 / solution.stats.expanded_states) << '\n'
+       << "To Find Win     " << ((double)solution.stats.branches_to_win
+                                  / solution.stats.winning_expanded) << '\n'
+       << "States/sec      " << (solution.stats.explored_states 
+                                 / total_time) << '\n'
+       << "Played/sec      " << (m_statistics.played/total_time) << '\n'
+       << "Total Time      " << Time::Formatted(total_time) << '\n'
+       << "Moves to W/L    " << solution.m_numMoves << " moves\n"
+       << "PV              " << HexPointUtil::ToString(solution.pv) << '\n';
     if (m_positions->Database()) 
-        LogInfo() << m_positions->Database()->GetStatistics().Write() << '\n';
-   
+        os << '\n' << m_positions->Database()->GetStatistics().Write() << '\n';
     if (m_positions->HashTable()) 
-    {
-        LogInfo() << m_positions->HashTable()->Stats()
-		  << "########################################" << '\n';
-    }
-    
-    LogInfo() << "States/sec: " 
-	      << (solution.stats.explored_states/total_time) << '\n'
-	      << "Played/sec: " << (m_statistics.played/total_time) << '\n'
-	      << "Total Time: " << Time::Formatted(total_time) << '\n'
-	      << "VC in " << solution.m_numMoves << " moves\n"
-	      << "PV: " << HexPointUtil::ToString(solution.pv) << '\n'
-	      << m_histogram.Dump() << '\n';
+        os << '\n' << m_positions->HashTable()->Stats();
+    LogInfo() << os.str();
 }
 
 //----------------------------------------------------------------------------

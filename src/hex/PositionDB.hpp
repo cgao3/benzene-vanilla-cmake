@@ -182,11 +182,11 @@ template<class T>
 std::string PositionDB<T>::Statistics::Write() const
 {
     std::ostringstream os;
-    os << "\nPositionDB statistics\n"
-       << "     Reads: " << m_gets << '\n'
-       << "      Hits: " << m_hits << '\n'
-       << "    Writes: " << m_puts << '\n'
-       << " Rotations: " << m_rotations;
+    os << "PositionDB statistics\n"
+       << "Reads      " << m_gets << '\n'
+       << "Hits       " << m_hits << '\n'
+       << "Writes     " << m_puts << '\n'
+       << "Rotations  " << m_rotations;
     return os.str();
 }
 

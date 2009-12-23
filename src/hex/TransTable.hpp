@@ -175,12 +175,11 @@ template<typename T>
 std::string TransTable<T>::Stats() const
 {  
     std::ostringstream os;
-    os << '\n'
-       << "TT statistics\n"
-       << "      reads: " << m_stats.reads << '\n'
-       << "       hits: " << m_stats.hits << '\n'
-       << "     writes: " << m_stats.writes << '\n'
-       << " overwrites: " << m_stats.overwrites << '\n';
+    os << "TT statistics\n"
+       << "Reads      " << m_stats.reads << '\n'
+       << "Hits       " << m_stats.hits << '\n'
+       << "Writes     " << m_stats.writes << '\n'
+       << "Overwrites " << m_stats.overwrites << '\n';
     return os.str();
 }
 

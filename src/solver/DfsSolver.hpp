@@ -115,6 +115,43 @@ inline void DfsBranchStatistics::operator+=(const DfsBranchStatistics& o)
 
 //----------------------------------------------------------------------------
 
+/** Stats for the entire search tree broken down by level. */
+struct DfsHistogram
+{
+    /** Map of # of stones to a counter. */
+    typedef std::map<int, std::size_t> StatsMap;
+
+    /** Terminal states encountered at each depth. */
+    StatsMap terminal;
+        
+    /** Internal states encountered at each depth. */
+    StatsMap states;
+    
+    /** Winning states encountered at each depth. */
+    StatsMap winning;
+    
+    StatsMap size_of_winning_states;
+    
+    StatsMap size_of_losing_states;
+    
+    /** Branches taken to find winning move at each depth. */
+    StatsMap branches;
+    
+    /** Size of original mustplay in winning states. */
+    StatsMap mustplay;
+    
+    /** States under losing moves before winning move. */
+    StatsMap states_under_losing;
+    
+    /** DB/TT hits at each depth. */
+    StatsMap tthits;
+    
+    /** Writes histogram in human-readable format to a string. */
+    std::string Write();
+};
+
+//----------------------------------------------------------------------------
+
 /** Contains all relevant data for a solution to a state. */
 struct DfsSolutionSet
 {
@@ -252,6 +289,9 @@ public:
         the last run. */
     void DumpStats(const DfsSolutionSet& solution) const;
 
+    /** Returns histogram of last search. */
+    DfsHistogram Histogram() const;
+
 private:
 
     //------------------------------------------------------------------------
@@ -269,43 +309,6 @@ private:
 
     //------------------------------------------------------------------------
 
-    /** Stats for the entire search tree broken down by level. */
-    struct Histogram
-    {
-        /** Map of # of stones to a counter. */
-        typedef std::map<int, std::size_t> StatsMap;
-
-        /** Terminal states encountered at each depth. */
-        StatsMap terminal;
-        
-        /** Internal states encountered at each depth. */
-        StatsMap states;
-
-        /** Winning states encountered at each depth. */
-        StatsMap winning;
-
-        StatsMap size_of_winning_states;
-        
-        StatsMap size_of_losing_states;
-
-        /** Branches taken to find winning move at each depth. */
-        StatsMap branches;
-
-        /** Size of original mustplay in winning states. */
-        StatsMap mustplay;
-
-        /** States under losing moves before winning move. */
-        StatsMap states_under_losing;
-
-        /** DB/TT hits at each depth. */
-        StatsMap tthits;
-
-        /** Dumps histogram to a string. */
-        std::string Dump();
-    };
-
-    //------------------------------------------------------------------------
-
     DfsPositions* m_positions;
 
     double m_start_time;
@@ -316,7 +319,7 @@ private:
 
     bool m_aborted;
 
-    mutable Histogram m_histogram;
+    mutable DfsHistogram m_histogram;
 
     mutable GlobalStatistics m_statistics;
     
@@ -446,6 +449,11 @@ inline int DfsSolver::MoveOrdering() const
 inline void DfsSolver::SetMoveOrdering(int flags)
 {
     m_move_ordering = flags;
+}
+
+inline DfsHistogram DfsSolver::Histogram() const
+{
+    return m_histogram;
 }
 
 //----------------------------------------------------------------------------

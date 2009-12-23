@@ -36,6 +36,7 @@ void DfsCommands::Register(GtpEngine& e)
     Register(e, "dfs-solver-find-winning", 
              &DfsCommands::CmdSolverFindWinning);
     Register(e, "dfs-get-state", &DfsCommands::CmdGetState);
+    Register(e, "dfs-histogram", &DfsCommands::CmdHistogram);
     Register(e, "dfs-open-db", &DfsCommands::CmdDBOpen);
     Register(e, "dfs-close-db", &DfsCommands::CmdDBClose);
 }
@@ -278,6 +279,12 @@ void DfsCommands::CmdGetState(HtpCommand& cmd)
         else if (flags[losing[i]] & SolverDataFlags::TRANSPOSITION)
             cmd << "t";
     }
+}
+
+void DfsCommands::CmdHistogram(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(0);
+    cmd << m_solver.Histogram().Write();
 }
 
 //----------------------------------------------------------------------------
