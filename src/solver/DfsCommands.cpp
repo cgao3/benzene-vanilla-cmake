@@ -96,7 +96,7 @@ void DfsCommands::CmdParamSolver(HtpCommand& cmd)
             << "[string] move_ordering "
             << m_solver.MoveOrdering() << '\n' // FIXME: PRINT NICELY!!
             << "[string] tt_bits "  
-            << m_tt->Bits() << '\n'
+            << ((m_tt.get() == 0) ? 0 : m_tt->Bits()) << '\n'
             << "[string] update_depth "  
             << m_solver.UpdateDepth() << '\n';
     }
