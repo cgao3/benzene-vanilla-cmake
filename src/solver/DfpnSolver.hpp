@@ -58,6 +58,11 @@ struct DfpnBounds
 
     DfpnBounds(std::size_t p, std::size_t d);
 
+
+    /** Returns true if phi is greater than other's phi and delta is
+        greater than other's delta. */
+    bool GreaterThan(const DfpnBounds& other) const;
+
     /** Returns true if bounds are winning (phi is 0). */
     bool IsWinning() const;
 
@@ -96,6 +101,11 @@ inline std::string DfpnBounds::Print() const
     std::ostringstream os;
     os << "[" << phi << ", " << delta << "]";
     return os.str();
+}
+
+inline bool DfpnBounds::GreaterThan(const DfpnBounds& other) const
+{
+    return (phi > other.phi) && (delta > other.delta);
 }
 
 inline bool DfpnBounds::IsWinning() const

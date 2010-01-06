@@ -386,8 +386,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
             children = data.m_children;
             maxProofSet = data.m_maxProofSet;
             prevWork = data.m_work;
-            HexAssert(maxBounds.phi > data.m_bounds.phi);
-            HexAssert(maxBounds.delta > data.m_bounds.delta);
+            HexAssert(maxBounds.GreaterThan(data.m_bounds));
         }
         else
         {
@@ -463,11 +462,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
             m_guiFx.Write();
         }
 
-        if (maxBounds.phi <= currentBounds.phi 
-            || maxBounds.delta <= currentBounds.delta)
-        {
+        if (!maxBounds.GreaterThan(currentBounds))
             break;
-        }
 
         // Select most proving child
         int bestIndex = -1;
@@ -481,8 +477,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
         childMaxBounds.phi = maxBounds.delta 
             - (currentBounds.delta - childBounds.phi);
         childMaxBounds.delta = std::min(maxBounds.phi, delta2 + 1);
-        HexAssert(childMaxBounds.phi > childBounds.phi);
-        HexAssert(childMaxBounds.delta > childBounds.delta);
+        HexAssert(childMaxBounds.GreaterThan(childBounds));
 
         // Recurse on best child
         if (m_useGuiFx && depth == 0)
