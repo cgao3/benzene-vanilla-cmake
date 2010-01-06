@@ -368,12 +368,12 @@ bool DfpnSolver::CheckAbort()
 }
 
 
-size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
+size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
                        HexColor colorToMove)
 {
-    bounds.CheckConsistency();
-    HexAssert(bounds.phi > 1);
-    HexAssert(bounds.delta > 1);
+    maxBounds.CheckConsistency();
+    HexAssert(maxBounds.phi > 1);
+    HexAssert(maxBounds.delta > 1);
 
     int depth = history.Depth();
     size_t prevWork = 0;
@@ -386,8 +386,8 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
             children = data.m_children;
             maxProofSet = data.m_maxProofSet;
             prevWork = data.m_work;
-            HexAssert(bounds.phi > data.m_bounds.phi);
-            HexAssert(bounds.delta > data.m_bounds.delta);
+            HexAssert(maxBounds.phi > data.m_bounds.phi);
+            HexAssert(maxBounds.delta > data.m_bounds.delta);
         }
         else
         {
@@ -463,8 +463,8 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
             m_guiFx.Write();
         }
 
-        if (bounds.phi <= currentBounds.phi 
-            || bounds.delta <= currentBounds.delta)
+        if (maxBounds.phi <= currentBounds.phi 
+            || maxBounds.delta <= currentBounds.delta)
         {
             break;
         }
@@ -473,22 +473,23 @@ size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
         int bestIndex = -1;
         std::size_t delta2 = INFTY;
         SelectChild(bestIndex, delta2, childrenData, maxChildIndex);
-        DfpnBounds child(childrenData[bestIndex].m_bounds);
         bestMove = children.FirstMove(bestIndex);
 
-        // Update thresholds
-        child.phi = bounds.delta - (currentBounds.delta - child.phi);
-        child.delta = std::min(bounds.phi, delta2 + 1);
-        HexAssert(child.phi > childrenData[bestIndex].m_bounds.phi);
-        HexAssert(child.delta > childrenData[bestIndex].m_bounds.delta);
-
-        if (m_useGuiFx && depth == 0)
-            m_guiFx.PlayMove(colorToMove, bestIndex);
+        // Compute maximum bound for child
+        const DfpnBounds childBounds(childrenData[bestIndex].m_bounds);
+        DfpnBounds childMaxBounds;
+        childMaxBounds.phi = maxBounds.delta 
+            - (currentBounds.delta - childBounds.phi);
+        childMaxBounds.delta = std::min(maxBounds.phi, delta2 + 1);
+        HexAssert(childMaxBounds.phi > childBounds.phi);
+        HexAssert(childMaxBounds.delta > childBounds.delta);
 
         // Recurse on best child
+        if (m_useGuiFx && depth == 0)
+            m_guiFx.PlayMove(colorToMove, bestIndex);
         children.PlayMove(bestIndex, *m_brd, colorToMove);
-        history.Push(bestMove, currentHash); // FIXME: handle sequences!
-        localWork += MID(child, history, !colorToMove);
+        history.Push(bestMove, currentHash);
+        localWork += MID(childMaxBounds, history, !colorToMove);
         history.Pop();
         children.UndoMove(bestIndex, *m_brd);
 
