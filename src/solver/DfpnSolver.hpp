@@ -46,22 +46,28 @@ static const std::size_t INFTY = 2000000000;
 */
 struct DfpnBounds
 {
+    /** Proof number.
+        Estimated amount of work to prove this state winning. */
     std::size_t phi;
 
+    /** Disproof number.
+        Estimated amount of work to prove this state losing. */
     std::size_t delta;
 
     DfpnBounds();
 
     DfpnBounds(std::size_t p, std::size_t d);
 
-    /** Returns true if bounds are winning, ie, phi is 0. */
+    /** Returns true if bounds are winning (phi is 0). */
     bool IsWinning() const;
 
-    /** Returns true if bounds are losing, ie delta is 0. */
+    /** Returns true if bounds are losing (delta is 0). */
     bool IsLosing() const;
     
     /** Returns true if IsWinning() or IsLosing() is true. */
     bool IsSolved() const;
+
+    void CheckConsistency() const;
 
     /** Print bounds in human readable format. */
     std::string Print() const;
@@ -530,8 +536,6 @@ private:
                       size_t maxChildIndex) const;
 
     bool CheckAbort();
-
-    void CheckBounds(const DfpnBounds& bounds) const;
 
     void LookupData(DfpnData& data, const DfpnChildren& children, 
                     int childIndex, HexColor colorToMove);

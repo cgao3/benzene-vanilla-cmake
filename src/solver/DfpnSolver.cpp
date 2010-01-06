@@ -19,6 +19,27 @@ using std::ceil;
 
 //----------------------------------------------------------------------------
 
+#ifndef NDEBUG
+void DfpnBounds::CheckConsistency() const
+{
+    // Check range
+    HexAssert(phi <= INFTY);
+    HexAssert(delta <= INFTY);
+    // If 0 then other must be infinity
+    HexAssert(0 != phi || INFTY == delta);
+    HexAssert(0 != delta || INFTY == phi);
+    // Special case for root: if infinity other must be 0 or infinity
+    HexAssert(INFTY != phi || 0 == delta || INFTY == delta);
+    HexAssert(INFTY != delta || 0 == phi || INFTY == phi);
+}
+#else
+void DfpnBounds::CheckConsistency() const
+{
+}
+#endif
+
+//----------------------------------------------------------------------------
+
 DfpnChildren::DfpnChildren()
 {
 }
@@ -350,7 +371,7 @@ bool DfpnSolver::CheckAbort()
 size_t DfpnSolver::MID(const DfpnBounds& bounds, DfpnHistory& history,
                        HexColor colorToMove)
 {
-    CheckBounds(bounds);
+    bounds.CheckConsistency();
     HexAssert(bounds.phi > 1);
     HexAssert(bounds.delta > 1);
 
@@ -642,7 +663,6 @@ void DfpnSolver::SelectChild(int& bestIndex, std::size_t& delta2,
     for (std::size_t i = 0; i < maxChildIndex; ++i)
     {
         const DfpnBounds& child = childrenData[i].m_bounds;
-        CheckBounds(child);
 
         // Store the child with smallest delta and record 2nd smallest delta
         if (child.delta < delta1)
@@ -706,25 +726,8 @@ bool DfpnSolver::TTRead(const StoneBoard& brd, DfpnData& data)
 
 void DfpnSolver::TTWrite(const StoneBoard& brd, const DfpnData& data)
 {
-    CheckBounds(data.m_bounds);
+    data.m_bounds.CheckConsistency();
     m_positions->Put(brd, data);
 }
-
-#ifndef NDEBUG
-void DfpnSolver::CheckBounds(const DfpnBounds& bounds) const
-{
-    HexAssert(bounds.phi <= INFTY);
-    HexAssert(bounds.delta <= INFTY);
-    HexAssert(0 != bounds.phi || INFTY == bounds.delta);
-    HexAssert(0 != bounds.delta || INFTY == bounds.phi);
-    HexAssert(INFTY!= bounds.phi || 0 == bounds.delta ||INFTY == bounds.delta);
-    HexAssert(INFTY!= bounds.delta || 0 == bounds.phi ||INFTY == bounds.phi);
-}
-#else
-void DfpnSolver::CheckBounds(const DfpnBounds& bounds) const
-{
-    SG_UNUSED(bounds);
-}
-#endif
 
 //----------------------------------------------------------------------------
