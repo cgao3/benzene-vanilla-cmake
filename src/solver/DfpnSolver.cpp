@@ -386,7 +386,13 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
             children = data.m_children;
             maxProofSet = data.m_maxProofSet;
             prevWork = data.m_work;
-            HexAssert(maxBounds.GreaterThan(data.m_bounds));
+            if (!maxBounds.GreaterThan(data.m_bounds))
+                // Estimated bounds are larger than we had
+                // anticipated. The calling state must have computed
+                // the max bounds with out of date information, so just
+                // return here without doing anything: the caller will
+                // now update to this new info and carry on.
+                return 0;
         }
         else
         {
