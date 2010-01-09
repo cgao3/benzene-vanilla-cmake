@@ -1,6 +1,7 @@
 noinst_LIBRARIES = libhex.a
 
 libhex_a_SOURCES = \
+BenzenePlayer.cpp \
 BoardUtils.cpp \
 Book.cpp \
 ConstBoard.cpp \
@@ -39,6 +40,7 @@ VCUtils.cpp \
 ZobristHash.cpp
 
 noinst_HEADERS = \
+BenzenePlayer.hpp \
 BitsetIterator.hpp \
 BoardIterator.hpp \
 BoardUtils.hpp \

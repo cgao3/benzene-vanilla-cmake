@@ -15,7 +15,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Abstract base class for all UofA players. */
+/** Abstract base class for all players using the Benzene systems. */
 class BenzenePlayer: public HexPlayer
 {
 public:

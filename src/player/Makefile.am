@@ -2,7 +2,6 @@ noinst_LIBRARIES = libplayer.a
 
 libplayer_a_SOURCES = \
 BenzeneHtpEngine.cpp \
-BenzenePlayer.cpp \
 BookCheck.cpp \
 BookCommands.cpp \
 HandicapPlayer.cpp \
@@ -13,7 +12,6 @@ VulPreCheck.cpp
 
 noinst_HEADERS = \
 BenzeneHtpEngine.hpp \
-BenzenePlayer.hpp \
 BookBuilder.hpp \
 BookBuilderCommands.hpp \
 BookCheck.hpp \
