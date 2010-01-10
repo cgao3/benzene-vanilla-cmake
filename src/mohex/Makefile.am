@@ -13,6 +13,7 @@ mohex_LDADD = \
 ../player/libplayer.a \
 ../solver/libsolver.a \
 ../uct/libuct.a \
+../book/libbook.a \
 ../hex/libhex.a \
 ../util/libutil.a \
 $(FUEGO_BUILD)/smartgame/libfuego_smartgame.a \
@@ -26,6 +27,7 @@ $(BOOST_THREAD_LIB)
 mohex_DEPENDENCIES = \
 ../util/libutil.a \
 ../hex/libhex.a \
+../book/libbook.a \
 ../solver/libsolver.a \
 ../player/libplayer.a \
 ../uct/libuct.a \
@@ -41,6 +43,7 @@ $(BOOST_CPPFLAGS) \
 -I@top_srcdir@/src/ \
 -I@top_srcdir@/src/util \
 -I@top_srcdir@/src/hex \
+-I@top_srcdir@/src/book \
 -I@top_srcdir@/src/uct \
 -I@top_srcdir@/src/solver \
 -I@top_srcdir@/src/player

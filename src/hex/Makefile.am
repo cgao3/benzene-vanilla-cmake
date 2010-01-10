@@ -3,7 +3,6 @@ noinst_LIBRARIES = libhex.a
 libhex_a_SOURCES = \
 BenzenePlayer.cpp \
 BoardUtils.cpp \
-Book.cpp \
 ConstBoard.cpp \
 EndgameUtils.cpp \
 Game.cpp \
@@ -44,7 +43,6 @@ BenzenePlayer.hpp \
 BitsetIterator.hpp \
 BoardIterator.hpp \
 BoardUtils.hpp \
-Book.hpp \
 ConstBoard.hpp \
 EndgameUtils.hpp \
 Game.hpp \

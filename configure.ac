@@ -118,6 +118,7 @@ tournament/Makefile
 src/Makefile 
 src/util/Makefile 
 src/hex/Makefile
+src/book/Makefile
 src/uct/Makefile 
 src/solver/Makefile 
 src/player/Makefile 

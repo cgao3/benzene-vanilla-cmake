@@ -2,8 +2,6 @@ noinst_LIBRARIES = libplayer.a
 
 libplayer_a_SOURCES = \
 BenzeneHtpEngine.cpp \
-BookCheck.cpp \
-BookCommands.cpp \
 HandicapPlayer.cpp \
 PerfectPlayer.cpp \
 PlayAndSolve.cpp \
@@ -12,10 +10,6 @@ VulPreCheck.cpp
 
 noinst_HEADERS = \
 BenzeneHtpEngine.hpp \
-BookBuilder.hpp \
-BookBuilderCommands.hpp \
-BookCheck.hpp \
-BookCommands.hpp \
 HandicapPlayer.hpp \
 PerfectPlayer.hpp \
 PlayAndSolve.hpp \
@@ -31,6 +25,7 @@ $(BOOST_CPPFLAGS) \
 -I@top_srcdir@/src/ \
 -I@top_srcdir@/src/util \
 -I@top_srcdir@/src/hex \
+-I@top_srcdir@/src/book \
 -I@top_srcdir@/src/uct \
 -I@top_srcdir@/src/solver
 

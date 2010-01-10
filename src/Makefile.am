@@ -4,6 +4,7 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = \
 util \
 hex \
+book \
 uct \
 solver \
 player \
