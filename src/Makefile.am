@@ -8,7 +8,7 @@ book \
 uct \
 solver \
 simpleplayers \
-player \
+commonengine \
 wolve \
 mohex \
 test

@@ -1,6 +1,6 @@
-noinst_LIBRARIES = libplayer.a
+noinst_LIBRARIES = libcommonengine.a
 
-libplayer_a_SOURCES = \
+libcommonengine_a_SOURCES = \
 BenzeneHtpEngine.cpp \
 PlayAndSolve.cpp \
 SwapCheck.cpp
@@ -10,7 +10,7 @@ BenzeneHtpEngine.hpp \
 PlayAndSolve.hpp \
 SwapCheck.hpp
 
-libplayer_a_CPPFLAGS = \
+libcommonengine_a_CPPFLAGS = \
 $(BOOST_CPPFLAGS) \
 -DABS_TOP_SRCDIR='"@abs_top_srcdir@"' \
 -DDATADIR='"$(pkgdatadir)"' \

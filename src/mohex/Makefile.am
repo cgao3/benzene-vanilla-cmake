@@ -10,7 +10,7 @@ MoHexEngine.hpp \
 MoHexPlayer.hpp
 
 mohex_LDADD = \
-../player/libplayer.a \
+../commonengine/libcommonengine.a \
 ../solver/libsolver.a \
 ../uct/libuct.a \
 ../book/libbook.a \
@@ -29,7 +29,7 @@ mohex_DEPENDENCIES = \
 ../hex/libhex.a \
 ../book/libbook.a \
 ../solver/libsolver.a \
-../player/libplayer.a \
+../commonengine/libcommonengine.a \
 ../uct/libuct.a \
 $(FUEGO_BUILD)/smartgame/libfuego_smartgame.a \
 $(FUEGO_BUILD)/gtpengine/libfuego_gtpengine.a
@@ -46,6 +46,6 @@ $(BOOST_CPPFLAGS) \
 -I@top_srcdir@/src/book \
 -I@top_srcdir@/src/uct \
 -I@top_srcdir@/src/solver \
--I@top_srcdir@/src/player
+-I@top_srcdir@/src/commonengine
 
 DISTCLEANFILES = *~

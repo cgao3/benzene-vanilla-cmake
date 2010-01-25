@@ -122,7 +122,7 @@ src/book/Makefile
 src/uct/Makefile 
 src/solver/Makefile 
 src/simpleplayers/Makefile
-src/player/Makefile 
+src/commonengine/Makefile 
 src/wolve/Makefile 
 src/mohex/Makefile
 src/test/Makefile
