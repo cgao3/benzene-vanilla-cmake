@@ -7,6 +7,7 @@ hex \
 book \
 uct \
 solver \
+simpleplayers \
 player \
 wolve \
 mohex \

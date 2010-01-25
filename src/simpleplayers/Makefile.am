@@ -1,16 +1,16 @@
-noinst_LIBRARIES = libplayer.a
+noinst_LIBRARIES = libsimpleplayers.a
 
-libplayer_a_SOURCES = \
-BenzeneHtpEngine.cpp \
-PlayAndSolve.cpp \
-SwapCheck.cpp
+libsimpleplayers_a_SOURCES = \
+HandicapPlayer.cpp \
+PerfectPlayer.cpp \
+VulPreCheck.cpp 
 
 noinst_HEADERS = \
-BenzeneHtpEngine.hpp \
-PlayAndSolve.hpp \
-SwapCheck.hpp
+HandicapPlayer.hpp \
+PerfectPlayer.hpp \
+VulPreCheck.hpp 
 
-libplayer_a_CPPFLAGS = \
+libsimpleplayers_a_CPPFLAGS = \
 $(BOOST_CPPFLAGS) \
 -DABS_TOP_SRCDIR='"@abs_top_srcdir@"' \
 -DDATADIR='"$(pkgdatadir)"' \
@@ -19,8 +19,6 @@ $(BOOST_CPPFLAGS) \
 -I@top_srcdir@/src/ \
 -I@top_srcdir@/src/util \
 -I@top_srcdir@/src/hex \
--I@top_srcdir@/src/book \
--I@top_srcdir@/src/uct \
 -I@top_srcdir@/src/solver
 
 DISTCLEANFILES = *~

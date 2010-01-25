@@ -121,6 +121,7 @@ src/hex/Makefile
 src/book/Makefile
 src/uct/Makefile 
 src/solver/Makefile 
+src/simpleplayers/Makefile
 src/player/Makefile 
 src/wolve/Makefile 
 src/mohex/Makefile
