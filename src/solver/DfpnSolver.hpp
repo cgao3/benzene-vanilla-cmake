@@ -532,6 +532,8 @@ private:
 
     SgStatisticsExt<float, std::size_t> m_considerSetSize;
 
+    SgStatisticsExt<float, std::size_t> m_deltaIncrease;
+
     size_t m_totalWastedWork;
 
     size_t MID(const DfpnBounds& n, DfpnHistory& history,

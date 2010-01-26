@@ -272,6 +272,9 @@ void DfpnSolver::PrintStatistics(HexColor winner,
     os << '\n';
     os << "Move Percent    ";
     m_moveOrderingPercent.Write(os);
+    os << '\n';
+    os << "Delta Increase  ";
+    m_deltaIncrease.Write(os);
     os << '\n'
        << "Winner          " << winner << '\n'
        << "PV              " << HexPointUtil::ToString(pv) << '\n';
@@ -295,6 +298,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
     m_moveOrderingPercent.Clear();
     m_moveOrderingIndex.Clear();
     m_considerSetSize.Clear();
+    m_deltaIncrease.Clear();
 
     m_brd.reset(new StoneBoard(board.GetState()));
     m_workBoard = &board;
@@ -484,6 +488,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
             - (currentBounds.delta - childBounds.phi);
         childMaxBounds.delta = std::min(maxBounds.phi, delta2 + 1);
         HexAssert(childMaxBounds.GreaterThan(childBounds));
+        if (delta2 != INFTY)
+            m_deltaIncrease.Add(childMaxBounds.delta - childBounds.delta);
 
         // Recurse on best child
         if (m_useGuiFx && depth == 0)
