@@ -406,6 +406,10 @@ public:
     HexColor StartSearch(HexBoard& brd, HexColor colorToMove,
                          DfpnPositions& positions, PointSequence& pv);
 
+    HexColor StartSearch(HexBoard& brd, HexColor colorToMove,
+                         DfpnPositions& positions, PointSequence& pv,
+                         const DfpnBounds& maxBounds);
+
     void AddListener(DfpnListener& listener);
     
     //------------------------------------------------------------------------

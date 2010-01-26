@@ -135,11 +135,21 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
 /** Solves the current state with dfpn using the current hashtable. */
 void DfpnCommands::CmdSolveState(HtpCommand& cmd)
 {
-    cmd.CheckNuArg(1);
-    HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
+    cmd.CheckNuArgLessEqual(3);
+    HexColor colorToMove = m_game.Board().WhoseTurn();
+    if (cmd.NuArg() >= 1)
+        colorToMove = HtpUtil::ColorArg(cmd, 0);
+    std::size_t maxPhi = INFTY;
+    std::size_t maxDelta = INFTY;
+    if (cmd.NuArg() >= 2)
+        maxPhi = cmd.IntArg(1, 0);
+    if (cmd.NuArg() >= 3)
+        maxDelta = cmd.IntArg(2, 0);
+    DfpnBounds maxBounds(maxPhi, maxDelta);
     PointSequence pv;
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    HexColor winner = m_solver.StartSearch(brd, colorToMove, m_positions, pv);
+    HexColor winner = m_solver.StartSearch(brd, colorToMove, m_positions, 
+                                           pv, maxBounds);
     cmd << winner;
 }
 

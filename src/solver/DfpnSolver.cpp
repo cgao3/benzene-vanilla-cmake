@@ -288,6 +288,14 @@ void DfpnSolver::PrintStatistics(HexColor winner,
 HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
                                  DfpnPositions& positions, PointSequence& pv)
 {
+    return StartSearch(board, colorToMove, positions, pv, 
+                       DfpnBounds(INFTY, INFTY));
+}
+
+HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
+                                 DfpnPositions& positions, PointSequence& pv,
+                                 const DfpnBounds& maxBounds)
+{
     m_aborted = false;
     m_positions = &positions;
     m_numTerminal = 0;
@@ -316,10 +324,9 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
         return w;
     }
 
-    DfpnBounds root(INFTY, INFTY);
     m_timer.Start();
     DfpnHistory history;
-    MID(root, history, colorToMove);
+    MID(maxBounds, history, colorToMove);
     m_timer.Stop();
 
     SolverDBUtil::GetVariation(*m_brd, colorToMove, *m_positions, pv);
