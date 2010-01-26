@@ -287,6 +287,24 @@ BOOST_AUTO_TEST_CASE(StoneBoard_RotateAndMirrorBoard)
     BOOST_CHECK(sb.IsPlayed(WEST));
 }
 
+BOOST_AUTO_TEST_CASE(StoneBoard_SelfRotation)
+{
+    StoneBoard brd(3, 3);
+    BOOST_CHECK(brd.IsSelfRotation());
+    brd.PlayMove(BLACK, HEX_CELL_A1);
+    BOOST_CHECK(!brd.IsSelfRotation());
+    brd.PlayMove(BLACK, HEX_CELL_C3);
+    BOOST_CHECK(brd.IsSelfRotation());
+    brd.PlayMove(WHITE, HEX_CELL_B2);
+    BOOST_CHECK(brd.IsSelfRotation());
+    brd.PlayMove(WHITE, HEX_CELL_A2);
+    BOOST_CHECK(!brd.IsSelfRotation());
+
+    brd = StoneBoard(9, 9);
+    brd.PlayMove(BLACK, HEX_CELL_E5);
+    BOOST_CHECK(brd.IsSelfRotation());
+}
+
 BOOST_AUTO_TEST_CASE(StoneBoard_Hash)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);

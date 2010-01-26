@@ -215,6 +215,15 @@ void StoneBoard::RotateBoard()
     MarkAsDirty();
 }
 
+bool StoneBoard::IsSelfRotation() const
+{
+    if (m_stones[BLACK] != BoardUtils::Rotate(Const(), m_stones[BLACK]))
+        return false;
+    if (m_stones[WHITE] != BoardUtils::Rotate(Const(), m_stones[WHITE]))
+        return false;
+    return true;
+}
+
 void StoneBoard::MirrorBoard()
 {
     m_played = BoardUtils::Mirror(Const(), m_played);

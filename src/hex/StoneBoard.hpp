@@ -215,6 +215,9 @@ public:
 
     /** Sets color of cells in bitset. Does not modify hash. */
     void SetColor(HexColor color, const bitset_t& bs);
+
+    /** Returns true if rotating the board returns the same board. */
+    bool IsSelfRotation() const;
     
     // @}
 
