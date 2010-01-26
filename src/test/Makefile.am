@@ -35,7 +35,6 @@ benzene_unittest_SOURCES = \
 ../test/TestMain.cpp
 
 benzene_unittest_LDADD = \
-../player/libplayer.a \
 ../solver/libsolver.a \
 ../hex/libhex.a \
 ../util/libutil.a \
@@ -52,7 +51,6 @@ benzene_unittest_DEPENDENCIES = \
 ../util/libutil.a \
 ../hex/libhex.a \
 ../solver/libsolver.a \
-../player/libplayer.a \
 $(FUEGO_BUILD)/smartgame/libfuego_smartgame.a \
 $(FUEGO_BUILD)/gtpengine/libfuego_gtpengine.a
 
@@ -66,7 +64,6 @@ $(BOOST_CPPFLAGS) \
 -I@top_srcdir@/src/util \
 -I@top_srcdir@/src/hex \
 -I@top_srcdir@/src/uct \
--I@top_srcdir@/src/solver \
--I@top_srcdir@/src/player
+-I@top_srcdir@/src/solver
 
 DISTCLEANFILES = *~
