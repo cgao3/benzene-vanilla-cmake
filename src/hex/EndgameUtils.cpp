@@ -38,10 +38,11 @@ using namespace benzene;
 
     The set of moves to consider is defined as the mustplay minus the
     inferior cells minus cells that create states that are mirrors of
-    themselves (these are losing via the strategy stealing
-    argument). This set can never be empty, because IsLostGame()
-    detects such states and reports them as losing (these states will
-    be handled by PlayDeterminedState()).
+    themselves (these are losing via the strategy stealing argument)
+    minus any cells that are rotations of other cells (if the state is
+    a rotation of itself). This set can never be empty, because
+    IsLostGame() detects such states and reports them as losing (these
+    states will be handled by PlayDeterminedState()).
 */
 
 //----------------------------------------------------------------------------
@@ -72,6 +73,18 @@ bitset_t ComputeLossesViaStrategyStealingArgument(const StoneBoard& brd,
     return ret;
 }
 
+bitset_t RemoveRotations(const StoneBoard& brd, const bitset_t& consider)
+{
+    bitset_t ret;
+    for (BitsetIterator it(consider); it; ++it)
+    {
+        HexPoint rotated = BoardUtils::Rotate(brd.Const(), *it);
+        if (!ret.test(rotated))
+            ret.set(*it);
+    }
+    return ret;
+}
+
 bitset_t ComputeConsiderSet(const HexBoard& brd, HexColor color)
 {
     bitset_t consider = VCUtils::GetMustplay(brd, color);
@@ -80,6 +93,8 @@ bitset_t ComputeConsiderSet(const HexBoard& brd, HexColor color)
                         - inf.Reversible()
                         - inf.Dominated()
           - ComputeLossesViaStrategyStealingArgument(brd.GetState(), color);
+    if (brd.GetState().IsSelfRotation())
+        consider = RemoveRotations(brd.GetState(), consider);
     return consider;
 }
 
