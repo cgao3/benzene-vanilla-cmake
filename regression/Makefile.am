@@ -4,6 +4,7 @@ dfpn-puzzle.tst \
 dfpn-solve-6x6.tst \
 dfpn-solve-7x7.tst \
 dfpn-solve-8x8.tst \
+dfpn-solve-8x8-db.tst \
 dfs-puzzle.tst \
 dfs-solve-6x6.tst \
 dfs-solve-6x7.tst \
