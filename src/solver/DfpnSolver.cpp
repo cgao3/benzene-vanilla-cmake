@@ -169,6 +169,7 @@ int DfpnData::PackedSize() const
         + sizeof(m_bestMove)
         + sizeof(m_work)
         + sizeof(m_maxProofSet)
+        + sizeof(m_evaluationScore)
         + sizeof(HexPoint) * (m_children.Size() + 1);
 }
 
@@ -184,6 +185,8 @@ byte* DfpnData::Pack() const
     off += sizeof(m_work);
     *reinterpret_cast<bitset_t*>(off) = m_maxProofSet;
     off += sizeof(m_maxProofSet);
+    *reinterpret_cast<float*>(off) = m_evaluationScore;
+    off += sizeof(m_evaluationScore);
     const std::vector<HexPoint>& moves = m_children.m_children;
     for (std::size_t i = 0; i < moves.size(); ++i)
     {
@@ -207,6 +210,8 @@ void DfpnData::Unpack(const byte* data)
     data += sizeof(m_work);
     m_maxProofSet = *reinterpret_cast<const bitset_t*>(data);
     data += sizeof(m_maxProofSet);
+    m_evaluationScore = *reinterpret_cast<const float*>(data);
+    data += sizeof(m_evaluationScore);
     std::vector<HexPoint> moves;
     while (true)
     {
