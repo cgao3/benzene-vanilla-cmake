@@ -38,6 +38,7 @@ void DfpnCommands::Register(GtpEngine& e)
     Register(e, "dfpn-solver-find-winning", &DfpnCommands::CmdFindWinning);
     Register(e, "dfpn-open-db", &DfpnCommands::CmdOpenDB);
     Register(e, "dfpn-close-db", &DfpnCommands::CmdCloseDB);
+    Register(e, "dfpn-evaluation-info", &DfpnCommands::CmdEvaluationInfo);
 }
 
 void DfpnCommands::Register(GtpEngine& engine, const std::string& command,
@@ -276,6 +277,12 @@ void DfpnCommands::CmdCloseDB(HtpCommand& cmd)
     if (m_db.get() == 0)
         throw HtpFailure("No open database!\n");
     m_db.reset(0);
+}
+
+void DfpnCommands::CmdEvaluationInfo(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(0);
+    cmd << m_solver.EvaluationInfo();
 }
 
 //----------------------------------------------------------------------------

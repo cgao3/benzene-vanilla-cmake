@@ -237,7 +237,11 @@ DfpnSolver::DfpnSolver()
       m_timelimit(0.0),
       m_wideningBase(1),
       m_wideningFactor(0.25f),
-      m_guiFx()
+      m_guiFx(),
+      m_allEvaluation(-2.5, 2.0, 45),
+      m_allSolvedEvaluation(-2.5, 2.0, 45),
+      m_winningEvaluation(-2.5, 2.0, 45),
+      m_losingEvaluation(-2.5, 2.0, 45)
 {
 }
 
@@ -285,6 +289,20 @@ void DfpnSolver::PrintStatistics(HexColor winner,
     LogInfo() << os.str();
 }
 
+std::string DfpnSolver::EvaluationInfo() const
+{
+    std::ostringstream os;
+    os << "All:\n";
+    m_allEvaluation.Write(os);
+    os << "All Solved:\n";
+    m_allSolvedEvaluation.Write(os);
+    os << "Winning:\n";
+    m_winningEvaluation.Write(os);
+    os << "Losing:\n";
+    m_losingEvaluation.Write(os);
+    return os.str();
+}
+
 HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
                                  DfpnPositions& positions, PointSequence& pv)
 {
@@ -307,6 +325,10 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
     m_moveOrderingIndex.Clear();
     m_considerSetSize.Clear();
     m_deltaIncrease.Clear();
+    m_losingEvaluation.Clear();
+    m_winningEvaluation.Clear();
+    m_allEvaluation.Clear();
+    m_allSolvedEvaluation.Clear();
 
     m_brd.reset(new StoneBoard(board.GetState()));
     m_workBoard = &board;
@@ -389,6 +411,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
     int depth = history.Depth();
     size_t prevWork = 0;
     bitset_t maxProofSet;
+    float evaluationScore;
     DfpnChildren children;
     {
         DfpnData data;
@@ -397,6 +420,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
             children = data.m_children;
             maxProofSet = data.m_maxProofSet;
             prevWork = data.m_work;
+            evaluationScore = data.m_evaluationScore;
             if (!maxBounds.GreaterThan(data.m_bounds))
                 // Estimated bounds are larger than we had
                 // anticipated. The calling state must have computed
@@ -430,7 +454,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
                     m_guiFx.Write();
                 }
                 TTWrite(*m_brd, DfpnData(terminal, DfpnChildren(), 
-                                         INVALID_POINT, 1, maxProofSet));
+                                         INVALID_POINT, 1, maxProofSet, 0.0));
                 return 1;
             }
             bitset_t childrenBitset 
@@ -439,6 +463,9 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
             m_considerSetSize.Add(childrenBitset.count());
             Resistance resist;
             resist.Evaluate(*m_workBoard);
+            evaluationScore = (colorToMove == BLACK) 
+                ? resist.Score() : -resist.Score();
+            m_allEvaluation.Add(evaluationScore);
             std::vector<std::pair<HexEval, HexPoint> > mvsc;
             for (BitsetIterator it(childrenBitset); it; ++it) 
             {
@@ -569,8 +596,10 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
     // winning move for winning states.
     if (currentBounds.IsSolved())
     {
+        m_allSolvedEvaluation.Add(evaluationScore);
         if (currentBounds.IsLosing())
         {
+            m_losingEvaluation.Add(evaluationScore);
             std::size_t maxWork = 0;
             for (std::size_t i = 0; i < children.Size(); ++i)
             {
@@ -583,6 +612,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
         }
         else
         {
+            m_winningEvaluation.Add(evaluationScore);
             std::size_t minWork = INFTY;
             for (std::size_t i = 0; i < children.Size(); ++i)
             {
@@ -598,7 +628,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
     
     // Store search results and notify listeners
     DfpnData data(currentBounds, children, bestMove, localWork + prevWork, 
-                  maxProofSet);
+                  maxProofSet, evaluationScore);
     TTWrite(*m_brd, data);
     if (data.m_bounds.IsSolved())
         NotifyListeners(history, data);

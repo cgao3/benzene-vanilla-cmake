@@ -55,6 +55,7 @@ private:
     void CmdGetPV(HtpCommand& cmd);
     void CmdOpenDB(HtpCommand& cmd);
     void CmdCloseDB(HtpCommand& cmd);
+    void CmdEvaluationInfo(HtpCommand& cmd);
 };
 
 //----------------------------------------------------------------------------

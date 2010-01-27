@@ -198,10 +198,13 @@ public:
 
     bitset_t m_maxProofSet;
 
+    float m_evaluationScore;
+
     DfpnData();
 
     DfpnData(const DfpnBounds& bounds, const DfpnChildren& children, 
-             HexPoint bestMove, size_t work, bitset_t maxProofSet);
+             HexPoint bestMove, size_t work, bitset_t maxProofSet,
+             float evaluationScore);
 
     ~DfpnData();
 
@@ -243,12 +246,13 @@ inline DfpnData::DfpnData()
 inline DfpnData::DfpnData(const DfpnBounds& bounds, 
                           const DfpnChildren& children, 
                           HexPoint bestMove, size_t work,
-                          bitset_t maxProofSet)
+                          bitset_t maxProofSet, float evaluationScore)
     : m_bounds(bounds),
       m_children(children),
       m_bestMove(bestMove),
       m_work(work),
       m_maxProofSet(maxProofSet),
+      m_evaluationScore(evaluationScore),
       m_initialized(true)
 { 
 }
@@ -266,6 +270,7 @@ inline std::string DfpnData::Print() const
        << "bestmove=" << m_bestMove << ' '
        << "work=" << m_work << ' '
        << "maxpfset=not printing"
+       << "evaluation=" << m_evaluationScore
        << ']';
     return os.str();
 }
@@ -411,7 +416,11 @@ public:
                          const DfpnBounds& maxBounds);
 
     void AddListener(DfpnListener& listener);
-    
+
+    /** Returns various histograms pertaining to the evaluation
+        function from the last search. */
+    std::string EvaluationInfo() const;
+
     //------------------------------------------------------------------------
 
     /** @name Parameters */
@@ -539,6 +548,14 @@ private:
     SgStatisticsExt<float, std::size_t> m_deltaIncrease;
 
     size_t m_totalWastedWork;
+
+    SgHistogram<float, std::size_t> m_allEvaluation;
+
+    SgHistogram<float, std::size_t> m_allSolvedEvaluation;
+
+    SgHistogram<float, std::size_t> m_winningEvaluation;
+
+    SgHistogram<float, std::size_t> m_losingEvaluation;
 
     size_t MID(const DfpnBounds& n, DfpnHistory& history,
                HexColor colorToMove);
