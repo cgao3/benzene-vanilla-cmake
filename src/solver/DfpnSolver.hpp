@@ -38,14 +38,17 @@ typedef SgStatisticsExt<float, std::size_t> DfpnStatistics;
 
 //----------------------------------------------------------------------------
 
-/** Maximum bound. */
-static const std::size_t INFTY = 2000000000;
-
 /** Bounds used in Dfpn search. 
     @ingroup dfpn
 */
 struct DfpnBounds
 {
+    /** Denotes a proven state. */
+    static const std::size_t INFTY = 2000000000;
+
+    /** Maximum amount of work. Must be less than INFTY. */ 
+    static const std::size_t MAX_WORK = INFTY / 2;
+
     /** Proof number.
         Estimated amount of work to prove this state winning. */
     std::size_t phi;

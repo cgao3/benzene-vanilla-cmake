@@ -25,12 +25,11 @@ void DfpnBounds::CheckConsistency() const
     // Check range
     HexAssert(phi <= INFTY);
     HexAssert(delta <= INFTY);
-    // If 0 then other must be infinity
+    // one is 0 iff the other is infinity
     HexAssert(0 != phi || INFTY == delta);
+    HexAssert(INFTY != phi || 0 == delta);
     HexAssert(0 != delta || INFTY == phi);
-    // Special case for root: if infinity other must be 0 or infinity
-    HexAssert(INFTY != phi || 0 == delta || INFTY == delta);
-    HexAssert(INFTY != delta || 0 == phi || INFTY == phi);
+    HexAssert(INFTY != delta || 0 == phi);
 }
 #else
 void DfpnBounds::CheckConsistency() const
@@ -312,7 +311,7 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
                                  DfpnPositions& positions, PointSequence& pv)
 {
     return StartSearch(board, colorToMove, positions, pv, 
-                       DfpnBounds(INFTY, INFTY));
+                       DfpnBounds(DfpnBounds::MAX_WORK, DfpnBounds::MAX_WORK));
 }
 
 HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
@@ -516,7 +515,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
 
         // Select most proving child
         int bestIndex = -1;
-        std::size_t delta2 = INFTY;
+        std::size_t delta2 = DfpnBounds::INFTY;
         SelectChild(bestIndex, delta2, childrenData, maxChildIndex);
         bestMove = children.FirstMove(bestIndex);
 
@@ -527,7 +526,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
             - (currentBounds.delta - childBounds.phi);
         childMaxBounds.delta = std::min(maxBounds.phi, delta2 + 1);
         HexAssert(childMaxBounds.GreaterThan(childBounds));
-        if (delta2 != INFTY)
+        if (delta2 != DfpnBounds::INFTY)
             m_deltaIncrease.Add(childMaxBounds.delta - childBounds.delta);
 
         // Recurse on best child
@@ -618,7 +617,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
         else
         {
             m_winningEvaluation.Add(evaluationScore);
-            std::size_t minWork = INFTY;
+            std::size_t minWork = DfpnBounds::INFTY;
             for (std::size_t i = 0; i < children.Size(); ++i)
             {
                 if (childrenData[i].m_bounds.IsLosing() 
@@ -707,7 +706,7 @@ void DfpnSolver::SelectChild(int& bestIndex, std::size_t& delta2,
                              const std::vector<DfpnData>& childrenData,
                              size_t maxChildIndex) const
 {
-    std::size_t delta1 = INFTY;
+    std::size_t delta1 = DfpnBounds::INFTY;
 
     HexAssert(1 <= maxChildIndex && maxChildIndex <= childrenData.size());
     for (std::size_t i = 0; i < maxChildIndex; ++i)
@@ -730,14 +729,14 @@ void DfpnSolver::SelectChild(int& bestIndex, std::size_t& delta2,
         if (child.IsLosing())
             break;
     }
-    HexAssert(delta1 < INFTY);
+    HexAssert(delta1 < DfpnBounds::INFTY);
 }
 
 void DfpnSolver::UpdateBounds(DfpnBounds& bounds, 
                               const std::vector<DfpnData>& childData,
                               size_t maxChildIndex) const
 {
-    DfpnBounds boundsAll(INFTY, 0);
+    DfpnBounds boundsAll(DfpnBounds::INFTY, 0);
     HexAssert(1 <= maxChildIndex && maxChildIndex <= childData.size());
     for (std::size_t i = 0; i < maxChildIndex; ++i)
     {
@@ -745,12 +744,11 @@ void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
         // Abort on losing child (a winning move)
         if (childBounds.IsLosing())
         {
-            HexAssert(INFTY == childBounds.phi);
             DfpnBounds::SetToWinning(bounds);
             return;
         }
         boundsAll.phi = std::min(boundsAll.phi, childBounds.delta);
-        HexAssert(childBounds.phi != INFTY);
+        HexAssert(childBounds.phi != DfpnBounds::INFTY);
         boundsAll.delta += childBounds.phi;
     }
     bounds = boundsAll;
