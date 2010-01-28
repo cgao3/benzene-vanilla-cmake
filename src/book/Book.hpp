@@ -49,7 +49,9 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** State in the Opening Book. 
+/** State in the Opening Book.
+    Do not forget to update BOOK_DB_VERSION if this class changes in a
+    way that invalidiates old books.
     @ingroup openingbook
  */
 class BookNode
@@ -203,7 +205,15 @@ inline std::ostream& operator<<(std::ostream& os, const BookNode& node)
 //----------------------------------------------------------------------------
 
 /** A book is just a database of BookNodes. */
-typedef PositionDB<BookNode> Book;
+class Book : public PositionDB<BookNode>
+{
+public:
+    static const std::string BOOK_DB_VERSION;
+
+    Book(const std::string& filename) 
+        : PositionDB<BookNode>(filename, BOOK_DB_VERSION)
+    { }
+};
 
 //----------------------------------------------------------------------------
 

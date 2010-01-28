@@ -185,6 +185,8 @@ inline HexPoint DfpnChildren::FirstMove(int index) const
 //----------------------------------------------------------------------------
 
 /** State in hashtable.
+    Do not forget to update DFPN_DB_VERSION if this class changes in a
+    way that invalidiates old databases.  
     @ingroup dfpn
  */
 class DfpnData
@@ -384,11 +386,18 @@ public:
 */
 typedef TransTable<DfpnData> DfpnHashTable;
 
-
 /** Database of solved positions. 
     @ingroup dfpn
 */
-typedef PositionDB<DfpnData> DfpnDB;
+class DfpnDB : public PositionDB<DfpnData>
+{
+public:
+    static const std::string DFPN_DB_VERSION;
+
+    DfpnDB(const std::string& filename)
+        : PositionDB<DfpnData>(filename, DFPN_DB_VERSION)
+    { }
+};
 
 /** Combines a hashtable with a position db.
     @ingroup dfpn

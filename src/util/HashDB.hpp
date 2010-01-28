@@ -9,6 +9,7 @@
 #include <boost/concept_check.hpp>
 
 #include <cstdio>
+#include <cstring>
 #include <string>
 
 #include <db.h>
@@ -60,7 +61,7 @@ class HashDB
 
 public:
     /** Opens database, creates it if it does not exist. */
-    HashDB(const std::string& filename);
+    HashDB(const std::string& filename, const std::string& type);
 
     /** Closes database. */    
     ~HashDB();
@@ -78,7 +79,7 @@ public:
     bool Put(void* k, int ksize, void* d, int dsize);
 
     /** Generic Get. */
-    bool Get(void* k, int ksize, void* d, int dsize);
+    bool Get(void* k, int ksize, void* d, int dsize) const;
 
     /** Flush the db to disk. */
     void Flush();
@@ -89,14 +90,46 @@ private:
 
     static const int CLOSE_FLAGS = 0;
 
+    struct Header
+    {
+        static const int MAX_LENGTH = 32;
+
+        char m_type[MAX_LENGTH];
+        
+        Header()
+        {
+            memset(m_type, 0, MAX_LENGTH);
+        }
+
+        Header(const std::string& type)
+        {
+            strncpy(m_type, type.c_str(), MAX_LENGTH - 1);
+            m_type[MAX_LENGTH - 1] = 0; // always null-terminated
+        }
+
+        bool operator==(const Header& other) const
+        {
+            return strcmp(m_type, other.m_type) == 0;
+        }
+
+        bool operator!=(const Header& other) const
+        {
+            return !operator==(other);
+        }
+    };
+
     DB* m_db;
 
     /** Name of database file. */
     std::string m_filename;
+
+    bool GetHeader(Header& header) const;
+    
+    void PutHeader(Header& header);
 };
 
 template<class T>
-HashDB<T>::HashDB(const std::string& filename)
+HashDB<T>::HashDB(const std::string& filename, const std::string& type)
     : m_db(0),
       m_filename(filename)
 {
@@ -112,6 +145,18 @@ HashDB<T>::HashDB(const std::string& filename)
         m_db->err(m_db, ret, "%s", m_filename.c_str());
         throw BenzeneException("HashDB: error opening db!");
     }
+    Header newHeader(type);
+    Header oldHeader;
+    if (GetHeader(oldHeader))
+    {
+        if (newHeader != oldHeader)
+            throw BenzeneException() 
+                << "HashDB: Conflicting database types. "
+                << "old: '" << oldHeader.m_type << "' "
+                << "new: '" << newHeader.m_type << "'\n";
+    }
+    else
+        PutHeader(newHeader);
 }
 
 template<class T>
@@ -124,6 +169,20 @@ HashDB<T>::~HashDB()
         throw BenzeneException("HashDB: error closing db!");
     }
     m_db = 0;
+}
+
+template<class T>
+bool HashDB<T>::GetHeader(Header& header) const
+{
+    static char key[32] = "dbtype";
+    return Get(key, sizeof(key), &header, sizeof(header));
+}
+
+template<class T>
+void HashDB<T>::PutHeader(Header& header)
+{
+    static char key[32] = "dbtype";
+    Put(key, sizeof(key), &header, sizeof(header));
 }
 
 template<class T>
@@ -179,7 +238,7 @@ bool HashDB<T>::Get(hash_t hash, T& d) const
 }
 
 template<class T>
-bool HashDB<T>::Get(void* k, int ksize, void* d, int dsize)
+bool HashDB<T>::Get(void* k, int ksize, void* d, int dsize) const
 {
     DBT key, data;
     memset(&key, 0, sizeof(key)); 

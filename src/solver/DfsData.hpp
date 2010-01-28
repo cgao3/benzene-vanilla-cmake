@@ -15,6 +15,8 @@ _BEGIN_BENZENE_NAMESPACE_
 
 /** A solved state. Stored in a TT or DB. Matches
     TransTableStateConcept.
+    Do not forget to update DFS_DB_VERSION if this class changes in a
+    way that invalidiates old databases.
 */
 struct DfsData
 {

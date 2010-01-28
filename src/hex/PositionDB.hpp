@@ -84,7 +84,7 @@ public:
     };
 
     /** Opens database, creates it if it does not exist. */
-    PositionDB(const std::string& filename);
+    PositionDB(const std::string& filename, const std::string& type);
 
     /** Closes database. */    
     ~PositionDB();
@@ -109,8 +109,9 @@ private:
 };
 
 template<class T>
-PositionDB<T>::PositionDB(const std::string& filename)
-    : m_db(filename),
+PositionDB<T>::PositionDB(const std::string& filename,
+                          const std::string& type)
+    : m_db(filename, type),
       m_stats()
 {
 }

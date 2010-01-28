@@ -19,6 +19,13 @@ using std::ceil;
 
 //----------------------------------------------------------------------------
 
+/** Current version of the dfpn database.
+    Update this if DfpnData changes to prevent old out-of-date
+    databases from being loaded. */
+const std::string DfpnDB::DFPN_DB_VERSION("BENZENE_DFPN_DB_VER_0001");
+
+//----------------------------------------------------------------------------
+
 #ifndef NDEBUG
 void DfpnBounds::CheckConsistency() const
 {

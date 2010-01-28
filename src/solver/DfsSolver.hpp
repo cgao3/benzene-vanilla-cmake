@@ -25,7 +25,15 @@ _BEGIN_BENZENE_NAMESPACE_
 typedef TransTable<DfsData> DfsHashTable;
 
 /** Database for use in DfsSolver. */
-typedef PositionDB<DfsData> DfsDB;
+class DfsDB : public PositionDB<DfsData>
+{
+public:
+    static const std::string DFS_DB_VERSION;
+
+    DfsDB(const std::string& filename)
+        : PositionDB<DfsData>(filename, DFS_DB_VERSION)
+    { }
+};
 
 /** Solver database combining both of the above. */
 typedef SolverDB<DfsHashTable, DfsDB, DfsData> DfsPositions;

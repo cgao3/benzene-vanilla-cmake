@@ -27,6 +27,13 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+/** Current version of dfs database. 
+    Update this if DfsData is changes to prevent old out-of-data
+    databases from being loaded. */
+const std::string DfsDB::DFS_DB_VERSION("BENZENE_DFS_DB_VER_0001");
+
+//----------------------------------------------------------------------------
+
 DfsSolver::DfsSolver()
     : m_positions(0),
       m_use_decompositions(true),

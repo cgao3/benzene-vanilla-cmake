@@ -19,6 +19,13 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+/** Current version for book databases. 
+    Update this if BookNode changes to prevent old out-of-date books
+    being loaded. */
+const std::string Book::BOOK_DB_VERSION = "BENZENE_BOOK_VER_0001";
+
+//----------------------------------------------------------------------------
+
 float BookNode::Value(const StoneBoard& brd) const
 {
     if (brd.IsLegal(SWAP_PIECES))
