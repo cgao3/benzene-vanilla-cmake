@@ -11,4 +11,5 @@ simpleplayers \
 commonengine \
 wolve \
 mohex \
+benzenetest \
 test

@@ -31,9 +31,12 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
     SG_UNUSED(consider);
     SG_UNUSED(score);
     HexAssert(gameState.Board().IsStandardPosition());
-    PointSequence pv;
+    LogInfo() << "PerfectPlayer::Search()\n";
+    double timeForMove = std::min(60.0, maxTime);
+    LogInfo() << "TimeForMove=" << timeForMove << '\n';
     double oldTimelimit = m_solver.Timelimit();
-    m_solver.SetTimelimit(maxTime);
+    m_solver.SetTimelimit(timeForMove);
+    PointSequence pv;
     HexColor winner = m_solver.StartSearch(brd, color, m_positions, pv);
     m_solver.SetTimelimit(oldTimelimit);
     // Return winning/best losing move.
@@ -49,7 +52,7 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
     std::size_t maxWork = 0;
     HexPoint bestMove = pv[0];
     StoneBoard myBrd(gameState.Board());
-    for (std::size_t i = 0; data.m_children.Size(); ++i)
+    for (std::size_t i = 0; i < data.m_children.Size(); ++i)
     {
         data.m_children.PlayMove(i, myBrd, color);
         DfpnData child;
