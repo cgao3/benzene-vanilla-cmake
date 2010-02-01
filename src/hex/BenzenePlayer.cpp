@@ -70,7 +70,7 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
     // If fillin causes win, remove and re-compute without ice.
     if (brd.GetGroups().IsGameOver()) 
     {
-        LogFine() << "Captured cells caused win! Removing...\n";
+        LogInfo() << "Captured cells caused win! Removing...\n";
         brd.GetState().SetState(original);
         bool oldUseIce = brd.UseICE();
         brd.SetUseICE(false);
