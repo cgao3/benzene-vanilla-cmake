@@ -49,16 +49,21 @@ public:
     /** See SetSearchSingleton() */
     void SetSearchSingleton(bool flag);
     
-
 protected:
+    bool m_fillinCausedWin;
+
+    HexColor m_fillinWinner;
+    
+    bool FillinCausedWin() const;
+
     /** Generates a move in the given gamestate. Derived players
         must implement this method. Score can be stored in score.
-        @param brd
+        @param brd Board to use for work.
         @param game_state
-        @param color
+        @param color Color to move in this state.
         @param consider Moves to consider in this state. 
-        @param max_time
-        @param score
+        @param max_time Max time available for move.
+        @param score Score of the move to play.
         @return The move to play.
     */
     virtual HexPoint Search(HexBoard& brd, const Game& game_state,
@@ -83,6 +88,11 @@ inline bool BenzenePlayer::SearchSingleton() const
 inline void BenzenePlayer::SetSearchSingleton(bool flag)
 {
     m_search_singleton = flag;
+}
+
+inline bool BenzenePlayer::FillinCausedWin() const
+{
+    return m_fillinCausedWin;
 }
 
 //----------------------------------------------------------------------------

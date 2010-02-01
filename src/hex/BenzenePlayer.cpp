@@ -43,14 +43,10 @@ HexPoint BenzenePlayer::GenMove(HexBoard& brd, const Game& game_state,
 }
 
 /** Finds inferior cells, builds vcs. Sets moves to consider to all
-    empty cells. If fillin causes terminal state, recomputes
-    fillin/vcs with ice temporarily turned off.
-    @param brd
-    @param color
-    @param consider
-    @param score
-    @return INVALID_POINT if a non-terminal state, otherwise the
-    move to play in the terminal state.
+    empty cells. If fillin causes terminal state, sets
+    m_fillinCausedWin to true and recomputes fillin/vcs with ice
+    temporarily turned off (so it can pass the players a non-empty
+    consider set).
 */
 HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color, 
                                    bitset_t& consider, double& score)
@@ -63,13 +59,15 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
         score = IMMEDIATE_LOSS;
         return RESIGN;
     }
-
     StoneBoard original(brd.GetState());
     brd.ComputeAll(color);
-
-    // If fillin causes win, remove and re-compute without ice.
+    m_fillinCausedWin = false;
+    m_fillinWinner = EMPTY;
     if (brd.GetGroups().IsGameOver()) 
     {
+        // Fillin caused win, remove and re-compute without ice.
+        m_fillinCausedWin = true;
+        m_fillinWinner = brd.GetGroups().GetWinner();
         LogInfo() << "Captured cells caused win! Removing...\n";
         brd.GetState().SetState(original);
         bool oldUseIce = brd.UseICE();
@@ -78,13 +76,10 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
         brd.SetUseICE(oldUseIce);
         HexAssert(!brd.GetGroups().IsGameOver());
     } 
-
     consider = brd.GetState().GetEmpty();
     score = 0;
-
     return INVALID_POINT;
 }
-
 
 HexPoint BenzenePlayer::CheckEndgame(HexBoard& brd, HexColor color, 
                                      bitset_t& consider, double& score)
@@ -96,7 +91,7 @@ HexPoint BenzenePlayer::CheckEndgame(HexBoard& brd, HexColor color,
         consider = EndgameUtils::MovesToConsider(brd, color);
         HexAssert(consider.any());
     }
-    
+
     score = 0;
     if (consider.count() == 1 && !m_search_singleton) 
     {
