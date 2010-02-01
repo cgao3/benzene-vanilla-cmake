@@ -40,8 +40,27 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
     HexColor winner = m_solver.StartSearch(brd, color, m_positions, pv);
     m_solver.SetTimelimit(oldTimelimit);
     // Return winning/best losing move.
-    if (winner != EMPTY)
+    if (winner != EMPTY && !pv.empty())
+        return pv[0];
+    // NOTE: This can happen if the current state is a terminal state
+    // under a rotation, but it is not detected as terminal here
+    // (there can be slight differences in vcs between rotated
+    // states). In this case, DFPN does not have a move stored and we
+    // are stuck if we continue to use the current set of stored
+    // positions. So we create a new empty DfpnPositions object with a
+    // small hashtable to use for this (hopefully really small) search
+    // to find the winning move.
+    if (winner != EMPTY && pv.empty())
     {
+        boost::scoped_ptr<DfpnHashTable> myTable(new DfpnHashTable(10));
+        boost::scoped_ptr<DfpnDB> myDB(0);
+        SolverDBParameters myParam;
+        DfpnPositions myPositions(myTable, myDB, myParam);
+        LogInfo() << "PerfectPlayer: Found win with empty pv at this state:\n";
+        LogInfo() << brd << '\n';
+        LogInfo() << "PerfectPlayer: Re-solving with temporary hash table.\n";
+        winner = m_solver.StartSearch(brd, color, myPositions, pv);
+        HexAssert(winner != EMPTY);
         HexAssert(!pv.empty());
         return pv[0];
     }
