@@ -32,6 +32,7 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
     SG_UNUSED(score);
     HexAssert(gameState.Board().IsStandardPosition());
     LogInfo() << "PerfectPlayer::Search()\n";
+    LogInfo() << gameState.Board() << '\n';
     double timeForMove = std::min(60.0, maxTime);
     LogInfo() << "TimeForMove=" << timeForMove << '\n';
     double oldTimelimit = m_solver.Timelimit();
@@ -87,6 +88,7 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
         }
         data.m_children.UndoMove(i, myBrd);
     }
+    LogInfo() << "bestMove= " << bestMove << " (" << maxWork << ")\n";
     return bestMove;
 }
 
