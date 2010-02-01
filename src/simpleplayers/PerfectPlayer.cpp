@@ -1,12 +1,35 @@
 //----------------------------------------------------------------------------
 /** @file PerfectPlayer.cpp
-    NOT TESTED!
  */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
+#include "SgRandom.h"
+#include "BitsetIterator.hpp"
 #include "PerfectPlayer.hpp"
 
 using namespace benzene;
+
+//----------------------------------------------------------------------------
+
+namespace 
+{
+
+HexPoint RandomBit(const bitset_t& bs, SgRandom& random)
+{
+    HexAssert(bs.any());
+    int index = random.Int(bs.count());
+    for (BitsetIterator it(bs); it; ++it)
+    {
+        if (index == 0)
+            return *it;
+        --index;
+    }
+    HexAssert(false);
+    return static_cast<HexPoint>(BitsetUtil::FirstSetBit(bs));
+}
+
+}
 
 //----------------------------------------------------------------------------
 
@@ -33,6 +56,25 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
     HexAssert(gameState.Board().IsStandardPosition());
     LogInfo() << "PerfectPlayer::Search()\n";
     LogInfo() << gameState.Board() << '\n';
+    if (FillinCausedWin())
+    {
+        LogInfo() << "PerfectPlayer: Fillin caused win!\n";
+        brd.GetState().SetState(gameState.Board());
+        brd.ComputeAll(color);
+        const InferiorCells& inf = brd.GetInferiorCells();
+        if (m_fillinWinner == color && inf.Captured(color).any())
+        {
+            LogInfo() << "PerfectPlayer: Playing into our fillin...\n";
+            return RandomBit(inf.Captured(color), SgRandom::Global());
+        }
+        else if (m_fillinWinner == !color && inf.Captured(!color).any())
+        {
+            LogInfo() << "PerfectPlayer: Playing into opponent fillin...\n";
+            return RandomBit(inf.Captured(color), SgRandom::Global());
+        }
+        LogInfo() << "PerfectPlayer: Playing random empty cell...\n";
+        return RandomBit(gameState.Board().GetEmpty(), SgRandom::Global());
+    }
     double timeForMove = std::min(60.0, maxTime);
     LogInfo() << "TimeForMove=" << timeForMove << '\n';
     double oldTimelimit = m_solver.Timelimit();
