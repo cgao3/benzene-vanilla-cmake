@@ -30,6 +30,8 @@ public:
     // The callback functions are documented in the cpp file
     void CmdSetPlayer(HtpCommand& cmd);
 
+    void CmdParamPlayer(HtpCommand& cmd);
+
     // @} // @name
 
 #if GTPENGINE_PONDER

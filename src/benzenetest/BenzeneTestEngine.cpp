@@ -20,6 +20,7 @@ BenzeneTestEngine::BenzeneTestEngine(GtpInputStream& in, GtpOutputStream& out,
       m_player(0)
 {
     RegisterCmd("set_player", &BenzeneTestEngine::CmdSetPlayer);
+    RegisterCmd("param_player", &BenzeneTestEngine::CmdParamPlayer);
 }
 
 BenzeneTestEngine::~BenzeneTestEngine()
@@ -65,6 +66,36 @@ void BenzeneTestEngine::CmdSetPlayer(HtpCommand& cmd)
         m_player.reset(0);
     else
         throw HtpFailure() << "Unknown player name!";
+}
+
+void BenzeneTestEngine::CmdParamPlayer(HtpCommand& cmd)
+{
+    if (m_player.get() == 0)
+        throw HtpFailure() << "No player specified!";
+    if (m_player->Name() == "perfect")
+    {
+        PerfectPlayer* player = dynamic_cast<PerfectPlayer*>(m_player.get());
+        if (!player)
+            throw HtpFailure() << "Not an instance of PerfectPlayer!";
+        if (cmd.NuArg() == 0) 
+        {
+            cmd << '\n'
+                << "[string] max_time "
+                << player->MaxTime() << '\n';
+        }
+        else if (cmd.NuArg() == 2)
+        {
+            std::string name = cmd.Arg(0);
+            if (name == "max_time")
+                player->SetMaxTime(cmd.FloatArg(1));
+            else
+                throw HtpFailure() << "Unknown parameter: " << name;
+        }
+        else
+            throw HtpFailure("Expected 0 or 2 arguments");
+    }
+    else
+        throw HtpFailure("No parameters for this player!");
 }
 
 //----------------------------------------------------------------------------

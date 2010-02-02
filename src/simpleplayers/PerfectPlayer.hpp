@@ -30,21 +30,39 @@ public:
     /** Returns "perfect". */
     std::string Name() const;
 
+    /** Maximum time to use per search. */
+    double MaxTime() const;
+
+    /** See MaxTime() */
+    void SetMaxTime(double time);
+
 private:
+    DfpnSolver& m_solver;
+
+    DfpnPositions& m_positions;
+
+    double m_maxTime;
 
     /** Generates a move in the given gamestate using DfpnSolver. */
     HexPoint Search(HexBoard& brd, const Game& game_state,
                     HexColor color, const bitset_t& consider,
                     double max_time, double& score);
 
-    DfpnSolver& m_solver;
-
-    DfpnPositions& m_positions;
 };
 
 inline std::string PerfectPlayer::Name() const
 {
     return "perfect";
+}
+
+inline double PerfectPlayer::MaxTime() const
+{
+    return m_maxTime;
+}
+
+inline void PerfectPlayer::SetMaxTime(double time)
+{
+    m_maxTime = time;
 }
 
 //----------------------------------------------------------------------------

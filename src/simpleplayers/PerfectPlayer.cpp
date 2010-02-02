@@ -36,7 +36,8 @@ HexPoint RandomBit(const bitset_t& bs, SgRandom& random)
 PerfectPlayer::PerfectPlayer(DfpnSolver& solver, DfpnPositions& positions)
     : BenzenePlayer(),
       m_solver(solver),
-      m_positions(positions)
+      m_positions(positions),
+      m_maxTime(60.0)
 {
 }
 
@@ -75,7 +76,7 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
         LogInfo() << "PerfectPlayer: Playing random empty cell...\n";
         return RandomBit(gameState.Board().GetEmpty(), SgRandom::Global());
     }
-    double timeForMove = std::min(60.0, maxTime);
+    double timeForMove = std::min(m_maxTime, maxTime);
     LogInfo() << "TimeForMove=" << timeForMove << '\n';
     double oldTimelimit = m_solver.Timelimit();
     m_solver.SetTimelimit(timeForMove);
@@ -130,7 +131,7 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
         }
         data.m_children.UndoMove(i, myBrd);
     }
-    LogInfo() << "bestMove= " << bestMove << " (" << maxWork << ")\n";
+    LogInfo() << "bestMove=" << bestMove << " (" << maxWork << ")\n";
     return bestMove;
 }
 
