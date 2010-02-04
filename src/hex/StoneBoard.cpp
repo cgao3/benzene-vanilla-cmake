@@ -285,6 +285,14 @@ void StoneBoard::SetState(const StoneBoard& brd)
     SetPlayed(brd.GetPlayed());
 }
 
+void StoneBoard::SetStateOnlyPlayed(const StoneBoard& brd)
+{
+    StartNewGame();
+    SetColor(BLACK, brd.GetBlack() & brd.GetPlayed());
+    SetColor(WHITE, brd.GetWhite() & brd.GetPlayed());
+    SetPlayed(brd.GetPlayed());
+}
+
 void StoneBoard::SetState(const BoardID& id)
 {
     std::size_t n = (Width() * Height() + 3) / 4 * 4;

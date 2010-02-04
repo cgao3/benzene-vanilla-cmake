@@ -121,6 +121,9 @@ public:
     /** Copies state of brd into this board. */
     void SetState(const StoneBoard& brd);
 
+    /** Copies only the played state of brd. */
+    void SetStateOnlyPlayed(const StoneBoard& brd);
+
     /** Sets state from string.
         String must contain wxh non space characters. Any spacing is
         allowed betwen such characters. A '.' is an empty cell, 'B'
