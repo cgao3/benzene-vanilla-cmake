@@ -342,6 +342,8 @@ HexColor DfpnSolver::StartSearch(HexBoard& board, HexColor colorToMove,
     m_allSolvedEvaluation.Clear();
 
     m_brd.reset(new StoneBoard(board.GetState()));
+    m_brd->SetStateOnlyPlayed(board.GetState());
+
     m_workBoard = &board;
     m_checkTimerAbortCalls = 0;
 
