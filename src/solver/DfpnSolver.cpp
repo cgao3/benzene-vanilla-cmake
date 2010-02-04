@@ -788,3 +788,30 @@ void DfpnSolver::TTWrite(const StoneBoard& brd, const DfpnData& data)
 }
 
 //----------------------------------------------------------------------------
+
+void DfpnSolver::PropagateBackwards(const Game& game, DfpnPositions& pos)
+{
+    StoneBoard brd(game.Board());
+    MoveSequence history(game.History());
+    if (history.empty())
+        return;
+    do
+    {
+        HexPoint cell = history.back().point();
+        HexColor colorToMove = history.back().color();
+        brd.UndoMove(cell);
+        history.pop_back();
+        DfpnData data;
+        if (!pos.Get(brd, data))
+            break;
+        std::vector<DfpnData> childrenData(data.m_children.Size());
+        for (size_t i = 0; i < data.m_children.Size(); ++i)
+            LookupData(childrenData[i], data.m_children, i, colorToMove);
+        size_t maxChildIndex = ComputeMaxChildIndex(childrenData);
+        UpdateBounds(data.m_bounds, childrenData, maxChildIndex);
+        pos.Put(brd, data);
+    } while(!history.empty());
+}
+
+//----------------------------------------------------------------------------
+

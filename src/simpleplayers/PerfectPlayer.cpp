@@ -37,7 +37,8 @@ PerfectPlayer::PerfectPlayer(DfpnSolver& solver, DfpnPositions& positions)
     : BenzenePlayer(),
       m_solver(solver),
       m_positions(positions),
-      m_maxTime(60.0)
+      m_maxTime(60.0),
+      m_propagateBackwards(true)
 {
 }
 
@@ -83,6 +84,8 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
     PointSequence pv;
     HexColor winner = m_solver.StartSearch(brd, color, m_positions, pv);
     m_solver.SetTimelimit(oldTimelimit);
+    if (m_propagateBackwards)
+        m_solver.PropagateBackwards(gameState, m_positions);
     // Return winning/best losing move.
     if (winner != EMPTY && !pv.empty())
         return pv[0];

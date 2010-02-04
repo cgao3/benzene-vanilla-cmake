@@ -12,6 +12,7 @@
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
+#include "Game.hpp"
 #include "TransTable.hpp"
 #include "PositionDB.hpp"
 #include "SolverDB.hpp"
@@ -432,6 +433,10 @@ public:
     /** Returns various histograms pertaining to the evaluation
         function from the last search. */
     std::string EvaluationInfo() const;
+
+    /** Updates bounds from this state to start of game or a state
+        is not in position set. */
+    void PropagateBackwards(const Game& game, DfpnPositions& pos);
 
     //------------------------------------------------------------------------
 

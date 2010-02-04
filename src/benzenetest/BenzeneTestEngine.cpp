@@ -80,6 +80,8 @@ void BenzeneTestEngine::CmdParamPlayer(HtpCommand& cmd)
         if (cmd.NuArg() == 0) 
         {
             cmd << '\n'
+                << "[bool] propagate_backwards "
+                << player->PropagateBackwards() << '\n'
                 << "[string] max_time "
                 << player->MaxTime() << '\n';
         }
@@ -88,6 +90,8 @@ void BenzeneTestEngine::CmdParamPlayer(HtpCommand& cmd)
             std::string name = cmd.Arg(0);
             if (name == "max_time")
                 player->SetMaxTime(cmd.FloatArg(1));
+            else if (name == "propagate_backwards")
+                player->SetPropagateBackwards(cmd.BoolArg(1));
             else
                 throw HtpFailure() << "Unknown parameter: " << name;
         }

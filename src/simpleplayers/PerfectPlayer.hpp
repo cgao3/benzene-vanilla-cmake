@@ -36,12 +36,20 @@ public:
     /** See MaxTime() */
     void SetMaxTime(double time);
 
+    /** See DfpnSolver::PropagateBackwards(). */
+    bool PropagateBackwards() const;
+
+    /** See PropagateBackwards() */
+    void SetPropagateBackwards(bool flag);
+
 private:
     DfpnSolver& m_solver;
 
     DfpnPositions& m_positions;
 
     double m_maxTime;
+
+    bool m_propagateBackwards;
 
     /** Generates a move in the given gamestate using DfpnSolver. */
     HexPoint Search(HexBoard& brd, const Game& game_state,
@@ -63,6 +71,16 @@ inline double PerfectPlayer::MaxTime() const
 inline void PerfectPlayer::SetMaxTime(double time)
 {
     m_maxTime = time;
+}
+
+inline bool PerfectPlayer::PropagateBackwards() const
+{
+    return m_propagateBackwards;
+}
+
+inline void PerfectPlayer::SetPropagateBackwards(bool flag)
+{
+    m_propagateBackwards = flag;
 }
 
 //----------------------------------------------------------------------------
