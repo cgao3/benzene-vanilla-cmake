@@ -651,6 +651,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
 size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<DfpnData>&
                                         childrenData) const
 {
+    HexAssert(!childrenData.empty());
+
     int numNonLosingChildren = 0;
     for (size_t i = 0; i < childrenData.size(); ++i)
         if (!childrenData[i].m_bounds.IsWinning())
@@ -803,6 +805,8 @@ void DfpnSolver::PropagateBackwards(const Game& game, DfpnPositions& pos)
         history.pop_back();
         DfpnData data;
         if (!pos.Get(brd, data))
+            break;
+        if (data.m_bounds.IsSolved())
             break;
         std::vector<DfpnData> childrenData(data.m_children.Size());
         for (size_t i = 0; i < data.m_children.Size(); ++i)
