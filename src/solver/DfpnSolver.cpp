@@ -499,7 +499,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
     // Not thread safe: perhaps move into while loop below later...
     std::vector<DfpnData> childrenData(children.Size());
     for (size_t i = 0; i < children.Size(); ++i)
-        LookupData(childrenData[i], children, i, colorToMove);
+        LookupData(childrenData[i], children, i, colorToMove, *m_brd);
     // Index used for progressive widening
     size_t maxChildIndex = ComputeMaxChildIndex(childrenData);
 
@@ -551,7 +551,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history,
             m_guiFx.UndoMove();
 
         // Update bounds for best child
-        LookupData(childrenData[bestIndex], children, bestIndex, colorToMove);
+        LookupData(childrenData[bestIndex], children, bestIndex, 
+                   colorToMove, *m_brd);
 
         // Compute some stats when find winning move
         if (childrenData[bestIndex].m_bounds.IsLosing())
@@ -766,16 +767,17 @@ void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
 }
 
 void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children, 
-                            int childIndex, HexColor colorToMove)
+                            int childIndex, HexColor colorToMove,
+                            StoneBoard& brd)
 {
-    children.PlayMove(childIndex, *m_brd, colorToMove);
-    if (!TTRead(*m_brd, data))
+    children.PlayMove(childIndex, brd, colorToMove);
+    if (!TTRead(brd, data))
     {
         data.m_bounds.phi = 1;
         data.m_bounds.delta = 1;
         data.m_work = 0;
     }
-    children.UndoMove(childIndex, *m_brd);
+    children.UndoMove(childIndex, brd);
 }
 
 bool DfpnSolver::TTRead(const StoneBoard& brd, DfpnData& data)
@@ -810,7 +812,7 @@ void DfpnSolver::PropagateBackwards(const Game& game, DfpnPositions& pos)
             break;
         std::vector<DfpnData> childrenData(data.m_children.Size());
         for (size_t i = 0; i < data.m_children.Size(); ++i)
-            LookupData(childrenData[i], data.m_children, i, colorToMove);
+            LookupData(childrenData[i], data.m_children, i, colorToMove, brd);
         size_t maxChildIndex = ComputeMaxChildIndex(childrenData);
         UpdateBounds(data.m_bounds, childrenData, maxChildIndex);
         pos.Put(brd, data);

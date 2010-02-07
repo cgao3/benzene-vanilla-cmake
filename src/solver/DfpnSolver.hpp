@@ -588,7 +588,7 @@ private:
     bool CheckAbort();
 
     void LookupData(DfpnData& data, const DfpnChildren& children, 
-                    int childIndex, HexColor colorToMove);
+                    int childIndex, HexColor colorToMove, StoneBoard& brd);
 
     bool TTRead(const StoneBoard& brd, DfpnData& data);
 
