@@ -22,5 +22,7 @@ openings/11x11-all-1ply \
 openings/11x11-book-1ply \
 openings/11x11-random-10ply \
 openings/11x11-swap-1ply \
+openings/10x10-all-1ply \
 openings/7x7-all-1ply \
+openings/8x8-all-1ply \
 openings/9x9-all-1ply
