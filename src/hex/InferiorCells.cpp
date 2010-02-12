@@ -191,19 +191,67 @@ void InferiorCells::AddVulnerable(HexPoint cell, const VulnerableKiller& killer)
     AssertPairwiseDisjoint();
 }
 
-void InferiorCells::AddReversible(HexPoint cell, HexPoint reverser)
+void InferiorCells::AddReversible(HexPoint cell, bitset_t carrier,
+                                  HexPoint reverser)
 {
-    m_reversible.set(cell);
-    m_reversers[cell].insert(reverser);
+    // Cell and carrier have equivalent roles, so just merge
+    bitset_t reversibleCandidates = carrier;
+    reversibleCandidates.set(cell);
+
+    // Cannot add any if not independent of previous reversible cells
+    if (m_allReversibleCarriers.test(reverser)) return;
+    if ((m_allReversers & reversibleCandidates).any()) return;
+    if (reversibleCandidates.test(reverser)) return;
+
+    // Independent, so mark all (non-vulnerable) candidates as reversible
+    bool noAdditions = true;
+    for (BitsetIterator it(reversibleCandidates); it; ++it)
+    {
+        if (m_vulnerable.test(*it)) continue;
+        noAdditions = false;
+        m_reversible.set(*it);
+        m_reversers[*it].insert(reverser);
+    }
+    if (noAdditions) return;
+    m_allReversibleCarriers |= reversibleCandidates;
+    m_allReversers.set(reverser);
+
     m_dominated_computed = false;
     AssertPairwiseDisjoint();
 }
 
-void InferiorCells::AddReversible(HexPoint cell, 
+void InferiorCells::AddReversible(HexPoint cell, bitset_t carrier,
                                   const std::set<HexPoint>& reversers)
 {
-    m_reversible.set(cell);
-    m_reversers[cell].insert(reversers.begin(), reversers.end());
+    // Cell and carrier have equivalent roles, so just merge
+    bitset_t reversibleCandidates = carrier;
+    reversibleCandidates.set(cell);
+    // Merge all reversers into one big pot (all or nothing :)
+    bitset_t reverserCandidates;
+    for (std::set<HexPoint>::iterator it = reversers.begin();
+         it != reversers.end(); ++it)
+    {
+        reverserCandidates.set(*it);
+    }
+
+    // Cannot add any if not independent of previous reversible cells
+    if ((m_allReversibleCarriers & reverserCandidates).any()) return;
+    if ((m_allReversers & reversibleCandidates).any()) return;
+    if ((reverserCandidates & reversibleCandidates).any()) return;
+
+    // Independent, so mark all (non-vulnerable) candidates as reversible
+    bool noAdditions = true;
+    for (BitsetIterator it(reversibleCandidates); it; ++it)
+    {
+        if (m_vulnerable.test(*it)) continue;
+        noAdditions = false;
+        m_reversible.set(*it);
+        m_reversers[*it].insert(reversers.begin(), reversers.end());
+    }
+    if (noAdditions) return;
+    m_allReversibleCarriers |= reversibleCandidates;
+    m_allReversers |= reverserCandidates;
+
     m_dominated_computed = false;
     AssertPairwiseDisjoint();
 }
@@ -230,8 +278,10 @@ void InferiorCells::AddVulnerableFrom(const InferiorCells& other)
 void InferiorCells::AddReversibleFrom(const InferiorCells& other)
 {
     for (BitsetIterator p(other.Reversible()); p; ++p) {
-        AddReversible(*p, other.m_reversers[*p]);
+        AddReversible(*p, EMPTY_BITSET, other.m_reversers[*p]);
     }
+    m_allReversibleCarriers |= other.AllReversibleCarriers();
+    m_allReversers |= other.AllReversers();
     AssertPairwiseDisjoint();
 }
 
@@ -281,6 +331,8 @@ void InferiorCells::ClearVulnerable()
 void InferiorCells::ClearReversible()
 {
     RemoveReversible(m_reversible);
+    m_allReversibleCarriers.reset();
+    m_allReversers.reset();
     m_dominated_computed = false;
 }
 
@@ -335,6 +387,8 @@ void InferiorCells::AssertPairwiseDisjoint() const
     HexAssert((m_dead & m_vulnerable).none());
     HexAssert((m_dead & m_reversible).none());
     HexAssert((m_reversible & m_vulnerable).none());
+    HexAssert((m_allReversibleCarriers & m_allReversers).none());
+    HexAssert((m_reversible & m_allReversibleCarriers) == m_reversible);
     HexAssert(!m_dominated_computed || (m_dead & m_dominated).none());
     HexAssert(!m_dominated_computed || (m_vulnerable & m_dominated).none());
     HexAssert(!m_dominated_computed || (m_reversible & m_dominated).none());

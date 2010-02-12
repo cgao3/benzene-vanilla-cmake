@@ -712,7 +712,10 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
     ComputeFillin(color, groups, pastate, out);
 
     {
-        bitset_t consider = groups.Board().GetEmpty() - out.Vulnerable();
+        // Note: We consider vulnerable cells when matching reversible patterns
+        //       since the captured pattern applies to the entire carrier, not
+        //       just the centre cell of the pattern.
+        bitset_t consider = groups.Board().GetEmpty();
         FindReversible(pastate, color, consider, out);
     }
 
@@ -897,12 +900,16 @@ void ICEngine::FindReversible(const PatternState& pastate, HexColor color,
             const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
             HexAssert(moves1.size() == 1);
             HexPoint reverser = moves1[0];
-            inf.AddReversible(*p, reverser);
 
-            // For now, no reversible patterns have carriers
-            // Note: this can change in the future if more complex ICE
-            // patterns are found
-            HexAssert(hits[*p][j].moves2().size() == 0);
+            // Carriers are mandatory for reversible patterns;
+            // otherwise cannot check for independence
+            HexAssert(hits[*p][j].moves2().size() != 0);
+            bitset_t carrier;
+            const std::vector<HexPoint>& moves2 = hits[*p][j].moves2();
+            for (unsigned i=0; i<moves2.size(); ++i) {
+                carrier.set(moves2[i]);
+            }
+            inf.AddReversible(*p, carrier, reverser);
         }
     }
 }

@@ -124,6 +124,8 @@ public:
     const std::set<VulnerableKiller>& Killers(HexPoint p) const;
 
     const std::set<HexPoint>& Reversers(HexPoint p) const;
+    bitset_t AllReversers() const;
+    bitset_t AllReversibleCarriers() const;
     
     //------------------------------------------------------------------------
 
@@ -172,8 +174,9 @@ public:
     void AddVulnerable(HexPoint cell, const VulnerableKiller& killer);
     void AddVulnerable(HexPoint cell, const std::set<VulnerableKiller>& dom);
 
-    void AddReversible(HexPoint cell, HexPoint reverser);
-    void AddReversible(HexPoint cell, const std::set<HexPoint>& reversers);
+    void AddReversible(HexPoint cell, bitset_t carrier, HexPoint reverser);
+    void AddReversible(HexPoint cell, bitset_t carrier,
+                       const std::set<HexPoint>& reversers);
 
     void AddDominatedFrom(const InferiorCells& other);
     void AddVulnerableFrom(const InferiorCells& other);
@@ -226,6 +229,9 @@ private:
     /** Reversible cells and their reversers. */
     bitset_t m_reversible;
     std::set<HexPoint> m_reversers[BITSETSIZE];
+    /** Data to test for independent captured-reversible sets. */
+    bitset_t m_allReversibleCarriers;
+    bitset_t m_allReversers;
 
     //------------------------------------------------------------------------
 
@@ -284,6 +290,16 @@ inline
 const std::set<HexPoint>& InferiorCells::Reversers(HexPoint p) const
 {
     return m_reversers[p];
+}
+
+inline bitset_t InferiorCells::AllReversers() const
+{
+    return m_allReversers;
+}
+
+inline bitset_t InferiorCells::AllReversibleCarriers() const
+{
+    return m_allReversibleCarriers;
 }
 
 //------------------------------------------------------------------------
