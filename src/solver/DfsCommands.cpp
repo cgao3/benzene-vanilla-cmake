@@ -295,7 +295,8 @@ void DfsCommands::CmdGetPV(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
     PointSequence pv;
-    SolverDBUtil::GetVariation(m_game.Board(), colorToMove, m_positions, pv);
+    SolverDBUtil::GetVariation(HexState(m_game.Board(), colorToMove), 
+                               m_positions, pv);
     cmd << HexPointUtil::ToString(pv);
 }
 

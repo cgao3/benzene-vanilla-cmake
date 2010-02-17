@@ -24,22 +24,23 @@ BenzenePlayer::~BenzenePlayer()
 //----------------------------------------------------------------------------
 
 /** @bug Subtract time spent to here from max_time after each step. */
-HexPoint BenzenePlayer::GenMove(HexBoard& brd, const Game& game_state, 
-                                HexColor color, double max_time, double& score)
+HexPoint BenzenePlayer::GenMove(const HexState& state, const Game& game, 
+                                HexBoard& brd, double maxTime, 
+                                double& score)
 {
     HexPoint move = INVALID_POINT;
     bitset_t consider;
 
-    move = InitSearch(brd, color, consider, score);
+    move = InitSearch(brd, state.ToPlay(), consider, score);
     if (move != INVALID_POINT)
         return move;
 
-    move = CheckEndgame(brd, color, consider, score);
+    move = CheckEndgame(brd, state.ToPlay(), consider, score);
     if (move != INVALID_POINT) 
         return move;
 
     LogInfo() << "Best move cannot be determined, must search state.\n";
-    return Search(brd, game_state, color, consider, max_time, score);
+    return Search(state, game, brd, consider, maxTime, score);
 }
 
 /** Finds inferior cells, builds vcs. Sets moves to consider to all

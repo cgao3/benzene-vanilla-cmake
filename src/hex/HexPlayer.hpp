@@ -8,6 +8,7 @@
 
 #include "Game.hpp"
 #include "HexBoard.hpp"
+#include "HexState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -28,24 +29,21 @@ public:
     /** Returns a unique identifier for this player. */
     virtual std::string Name() const = 0;
 
-    /** Generates a move from this game position with color to move
-        next.  If max_time is negative, then there is no
-        timelimit. Otherwise, max_time is the number of seconds the
-        player has to generate this move. If game is already over,
-        player should return RESIGN. The player can store a score for
-        the move it generated in score.
+    /** Generates a move from this game position. If maxTime is
+        negative, then there is no timelimit. Otherwise, maxTime is
+        the number of seconds the player has to generate this move. If
+        game is already over, player should return RESIGN. The player
+        can store a score for the move it generated in score.
 
-        @param brd HexBoard to do work on. Board position is set to
-               the board position as that of the game board. 
-        @param game_state Game history up to this position.
-        @param color Color to move in this position.
-        @param max_time Time in which to return the move. 
+        @param state Position and color to play.
+        @param game Game history up to this position.
+        @param brd HexBoard to do work on.
+        @param maxTime Time in which to return the move. 
         @param score Return score of move here. 
     */
-    virtual HexPoint GenMove(HexBoard& brd, const Game& game_state, 
-                             HexColor color, double max_time, 
+    virtual HexPoint GenMove(const HexState& state, const Game& game, 
+                             HexBoard& brd, double maxTime, 
                              double& score) = 0;
-
 };
 
 //----------------------------------------------------------------------------

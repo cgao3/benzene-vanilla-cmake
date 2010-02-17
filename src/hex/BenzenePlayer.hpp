@@ -32,16 +32,9 @@ public:
 
         If state is terminal (game over, vc/fill-in win/loss),
         returns "appropriate" move. Otherwise, calls Search().
-
-        @param brd HexBoard to do work on. Board position is set to
-               the board position as that of the game board. 
-        @param game_state Game history up to this position.
-        @param color Color to move in this position.
-        @param maxTime Time in minutes remaining in game.
-        @param score Score of returned move. 
     */
-    HexPoint GenMove(HexBoard& brd, const Game& game_state, HexColor color,
-                     double maxTime, double& score);
+    HexPoint GenMove(const HexState& state, const Game& game, 
+                     HexBoard& brd, double maxTime, double& score);
 
     /** Search states with only a single move? */
     bool SearchSingleton() const;
@@ -58,17 +51,17 @@ protected:
 
     /** Generates a move in the given gamestate. Derived players
         must implement this method. Score can be stored in score.
+        @param state Position and color to play.
+        @param game Game history up to this point.
         @param brd Board to use for work.
-        @param game_state
-        @param color Color to move in this state.
         @param consider Moves to consider in this state. 
-        @param max_time Max time available for move.
+        @param maxTime Max time available for move.
         @param score Score of the move to play.
         @return The move to play.
     */
-    virtual HexPoint Search(HexBoard& brd, const Game& game_state,
-			    HexColor color, const bitset_t& consider,
-                            double max_time, double& score) = 0;
+    virtual HexPoint Search(const HexState& state, const Game& game,
+                            HexBoard& brd, const bitset_t& consider,
+                            double maxTime, double& score) = 0;
     
 private:
     bool m_search_singleton;

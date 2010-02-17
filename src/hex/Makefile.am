@@ -67,6 +67,7 @@ HexPoints19x19.hpp \
 HexProgram.hpp \
 HexProp.hpp \
 HexSgUtil.hpp \
+HexState.hpp \
 ICEngine.hpp \
 IcePatternSet.hpp \
 InferiorCells.hpp \

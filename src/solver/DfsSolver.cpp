@@ -82,7 +82,7 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
         win = state.m_win;
         solution.m_numMoves = state.m_numMoves;
         solution.pv.clear();
-        SolverDBUtil::GetVariation(*m_stoneboard, toPlay, positions,
+        SolverDBUtil::GetVariation(HexState(*m_stoneboard, toPlay), positions,
                                    solution.pv);
         solution.proof = ProofUtil::MaximumProofSet(brd, state.m_win ? 
                                                     toPlay : !toPlay);

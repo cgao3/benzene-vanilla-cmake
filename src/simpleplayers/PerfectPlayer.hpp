@@ -52,10 +52,9 @@ private:
     bool m_propagateBackwards;
 
     /** Generates a move in the given gamestate using DfpnSolver. */
-    HexPoint Search(HexBoard& brd, const Game& game_state,
-                    HexColor color, const bitset_t& consider,
-                    double max_time, double& score);
-
+    HexPoint Search(const HexState& state, const Game& game,
+                    HexBoard& brd, const bitset_t& consider,
+                    double maxTime, double& score);
 };
 
 inline std::string PerfectPlayer::Name() const

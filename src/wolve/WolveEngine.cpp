@@ -85,15 +85,16 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
     if (bookMove != INVALID_POINT)
         return bookMove;
     double maxTime = TimeForMove(color);
+    HexState state(m_game.Board(), color);
     if (m_useParallelSolver)
     {
         PlayAndSolve ps(*m_pe.brd, *m_se.brd, m_player, m_dfpnSolver, 
                         m_dfpnPositions, m_game);
-        return ps.GenMove(color, maxTime);
+        return ps.GenMove(state, maxTime);
     }
     double score;
-    return m_player.GenMove(m_pe.SyncBoard(m_game.Board()), m_game, 
-                            color, maxTime, score);
+    return m_player.GenMove(state, m_game, m_pe.SyncBoard(m_game.Board()),
+                            maxTime, score);
 }
 
 void WolveEngine::WolveParam(HtpCommand& cmd)

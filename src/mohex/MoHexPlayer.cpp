@@ -85,19 +85,15 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
 
 //----------------------------------------------------------------------------
 
-HexPoint MoHexPlayer::Search(HexBoard& brd, 
-                             const Game& game_state,
-			     HexColor color,
-                             const bitset_t& given_to_consider,
-                             double max_time,
-                             double& score)
+HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
+                             HexBoard& brd, const bitset_t& given_to_consider,
+                             double maxTime, double& score)
 {
-   
-    HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(!brd.GetGroups().IsGameOver());
-
+    HexColor color = state.ToPlay();   
+   
     double start = Time::Get();
-    PrintParameters(color, max_time);
+    PrintParameters(color, maxTime);
 
     // Do presearch and abort if win found.
     SgTimer timer;
@@ -119,8 +115,8 @@ HexPoint MoHexPlayer::Search(HexBoard& brd,
     data.board_width = brd.Width();
     data.board_height = brd.Height();
     data.root_to_play = color;
-    data.game_sequence = game_state.History();
-    data.root_last_move_played = LastMoveFromHistory(game_state.History());
+    data.game_sequence = game.History();
+    data.root_last_move_played = LastMoveFromHistory(game.History());
     data.root_stones = HexUctStoneData(brd.GetState());
     data.root_consider = consider;
     
@@ -143,7 +139,7 @@ HexPoint MoHexPlayer::Search(HexBoard& brd,
     std::vector<SgMove> sequence;
     std::vector<SgMove> rootFilter;
     m_search.SetBoard(brd);
-    score = m_search.Search(m_max_games, max_time, sequence,
+    score = m_search.Search(m_max_games, maxTime, sequence,
                             rootFilter, initTree, 0);
 
     brd.GetPatternState().SetUpdateRadius(old_radius);

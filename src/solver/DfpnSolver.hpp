@@ -12,6 +12,7 @@
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
+#include "HexState.hpp"
 #include "Game.hpp"
 #include "TransTable.hpp"
 #include "PositionDB.hpp"
@@ -162,9 +163,9 @@ public:
 
     HexPoint FirstMove(int index) const;
 
-    void PlayMove(int index, StoneBoard& brd, HexColor color) const;
+    void PlayMove(int index, HexState& state) const;
 
-    void UndoMove(int index, StoneBoard& brd) const;
+    void UndoMove(int index, HexState& state) const;
 
 private:
     friend class DfpnData;
@@ -421,10 +422,10 @@ public:
     /** Solves the given state using the given hashtable. 
         Returns the color of the winning player (EMPTY if it could
         not determine a winner in time). */
-    HexColor StartSearch(HexBoard& brd, HexColor colorToMove,
+    HexColor StartSearch(const HexState& state, HexBoard& brd, 
                          DfpnPositions& positions, PointSequence& pv);
 
-    HexColor StartSearch(HexBoard& brd, HexColor colorToMove,
+    HexColor StartSearch(const HexState& state, HexBoard& brd, 
                          DfpnPositions& positions, PointSequence& pv,
                          const DfpnBounds& maxBounds);
 
@@ -517,7 +518,7 @@ private:
         void DoWrite();
     };
 
-    boost::scoped_ptr<StoneBoard> m_brd;
+    boost::scoped_ptr<HexState> m_state;
 
     HexBoard* m_workBoard;
 
@@ -574,8 +575,7 @@ private:
 
     SgHistogram<float, std::size_t> m_losingEvaluation;
 
-    size_t MID(const DfpnBounds& n, DfpnHistory& history,
-               HexColor colorToMove);
+    size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
                      const std::vector<DfpnData>& childrenDfpnBounds,
@@ -588,7 +588,7 @@ private:
     bool CheckAbort();
 
     void LookupData(DfpnData& data, const DfpnChildren& children, 
-                    int childIndex, HexColor colorToMove, StoneBoard& brd);
+                    int childIndex, HexState& state);
 
     bool TTRead(const StoneBoard& brd, DfpnData& data);
 

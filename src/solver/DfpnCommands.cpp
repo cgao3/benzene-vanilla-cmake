@@ -149,8 +149,9 @@ void DfpnCommands::CmdSolveState(HtpCommand& cmd)
     DfpnBounds maxBounds(maxPhi, maxDelta);
     PointSequence pv;
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    HexColor winner = m_solver.StartSearch(brd, colorToMove, m_positions, 
-                                           pv, maxBounds);
+    HexColor winner 
+        = m_solver.StartSearch(HexState(m_game.Board(), colorToMove), brd, 
+                               m_positions, pv, maxBounds);
     cmd << winner;
 }
 
@@ -168,18 +169,18 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
     bitset_t winning;
     SgTimer timer;
 
+    HexState state(m_game.Board(), colorToMove);
     for (BitsetIterator p(consider); p; ++p)
     {
-        StoneBoard board(m_game.Board());
-        board.PlayMove(colorToMove, *p);
-        HexBoard& brd = m_env.SyncBoard(board);
+        state.PlayMove(*p);
+        HexBoard& brd = m_env.SyncBoard(state.Position());
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
         PointSequence pv;
-        HexColor winner = m_solver.StartSearch(brd,!colorToMove, 
-                                               m_positions, pv);
+        HexColor winner = m_solver.StartSearch(state, brd, m_positions, pv);
         if (winner == colorToMove)
             winning.set(*p);
         LogInfo() << "****** " << winner << " wins ******\n";
+        state.UndoMove(*p);
     }
     LogInfo() << "Total Elapsed Time: " << timer.GetTime() << '\n';
     cmd << HexPointUtil::ToString(winning);
@@ -250,7 +251,8 @@ void DfpnCommands::CmdGetPV(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
     PointSequence pv;
-    SolverDBUtil::GetVariation(m_game.Board(), colorToMove, m_positions, pv);
+    SolverDBUtil::GetVariation(HexState(m_game.Board(), colorToMove), 
+                               m_positions, pv);
     cmd << HexPointUtil::ToString(pv);
 }
 
