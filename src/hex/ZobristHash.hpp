@@ -25,8 +25,11 @@ public:
     /** Constructs a ZobristHash object for the given boardsize. */
     ZobristHash(int width, int height);
 
-    /** Returns the current hash value. */
+    /** Returns the current hash value for the color to play. */
     hash_t Hash(HexColor toPlay) const;
+
+    /** Helper function: same as Hash(EMPTY). */
+    hash_t Hash() const;
     
     /** Reset hash to the base hash value. */
     void Reset();
@@ -79,6 +82,11 @@ private:
 inline hash_t ZobristHash::Hash(HexColor toPlay) const
 {
     return m_hash ^ *GetGlobalData().m_toPlay_hashes[toPlay];
+}
+
+inline hash_t ZobristHash::Hash() const
+{
+    return Hash(EMPTY);
 }
 
 inline void ZobristHash::Reset()
