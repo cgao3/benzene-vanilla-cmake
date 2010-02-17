@@ -26,7 +26,7 @@ public:
     ZobristHash(int width, int height);
 
     /** Returns the current hash value. */
-    hash_t Hash() const;
+    hash_t Hash(HexColor toPlay) const;
     
     /** Reset hash to the base hash value. */
     void Reset();
@@ -52,13 +52,21 @@ private:
     struct GlobalData
     {
         static const int NUM_HASHES = 4096;
+
         hash_t m_hashes[NUM_HASHES];
+
         hash_t* m_black_hashes;
+
         hash_t* m_white_hashes;
+
         hash_t* m_color_hashes[BLACK_AND_WHITE];
 
+        hash_t* m_toPlay_hashes[BLACK_WHITE_EMPTY];
+
         GlobalData();
+
         void SetPointers();
+
         void GetHashes();
     };
 
@@ -68,9 +76,9 @@ private:
     static GlobalData& GetGlobalData(); 
 };
 
-inline hash_t ZobristHash::Hash() const
+inline hash_t ZobristHash::Hash(HexColor toPlay) const
 {
-    return m_hash;
+    return m_hash ^ *GetGlobalData().m_toPlay_hashes[toPlay];
 }
 
 inline void ZobristHash::Reset()

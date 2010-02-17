@@ -63,13 +63,18 @@ public:
     /** Same as Const().height() */
     int Height() const;
 
-    /** Returns zobrist hash for the current board state, which
-        depends only on played cells; unplayed cells do not contribute
-        to the hash. Changing the color of an unplayed cell does not
-        change the hash for the state. Methods that change the color
-        of played cells internally will always compute a new hash
-        automatically. */
+    /** Returns zobrist hash for the current position, which depends
+        only on the played cells; unplayed cells do not contribute to
+        the hash. Changing the color of an unplayed cell does not
+        change the hash for the position. Methods that change the
+        color of played cells internally will always compute a new
+        hash automatically. */
     hash_t Hash() const;
+
+    /** Returns the hash of the position taking the color to play into
+        account. This will be different than the hash returned by
+        Hash(). */
+    hash_t Hash(HexColor toPlay) const;
 
     /** Returns BoardID for the current board state, looking only at
         the played cells. */
@@ -326,7 +331,12 @@ inline int StoneBoard::Height() const
 
 inline hash_t StoneBoard::Hash() const
 {
-    return m_hash.Hash();
+    return m_hash.Hash(EMPTY);
+}
+
+inline hash_t StoneBoard::Hash(HexColor toPlay) const
+{
+    return m_hash.Hash(toPlay);
 }
 
 inline bitset_t StoneBoard::GetBlack() const
