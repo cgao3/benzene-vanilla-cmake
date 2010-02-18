@@ -47,7 +47,7 @@ public:
     StoneBoard(unsigned width, unsigned height);
 
     /** Contructs a rectangular board with given state.
-        See SetState(std::string) */
+        See SetPosition(std::string) */
     StoneBoard(unsigned width, unsigned height, const std::string& str);
 
     ~StoneBoard();
@@ -117,17 +117,17 @@ public:
     /** Sets the board to the state encoded by id. 
         Note this state will have no unplayed stones, so the code:
         @code
-            brd.SetState(brd.GetBoardID());
+            brd.SetPosition(brd.GetBoardID());
         @endcode
         will remove all unplayed stones.
     */
-    void SetState(const BoardID& id);
+    void SetPosition(const BoardID& id);
 
     /** Copies state of brd into this board. */
-    void SetState(const StoneBoard& brd);
+    void SetPosition(const StoneBoard& brd);
 
     /** Copies only the played state of brd. */
-    void SetStateOnlyPlayed(const StoneBoard& brd);
+    void SetPositionOnlyPlayed(const StoneBoard& brd);
 
     /** Sets state from string.
         String must contain wxh non space characters. Any spacing is
@@ -135,7 +135,7 @@ public:
         and 'W' are played black and white stones, 'b' and 'w' are
         filled-in black and white stones. 
     */
-    void SetState(const std::string& str);
+    void SetPosition(const std::string& str);
 
     //-----------------------------------------------------------------------
 

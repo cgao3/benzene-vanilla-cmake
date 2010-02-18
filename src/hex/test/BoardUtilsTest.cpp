@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE(BoardUtil_Decompositions)
                         ". . W . . . ."
                          ". . W . . . ."
                           ". . . . . . .");
-    brd.GetPosition().SetState(str);
+    brd.GetPosition().SetPosition(str);
 
     // Find decomp between E1, B3, WEST, and NORTH. 
     brd.SetUseDecompositions(false);
@@ -258,7 +258,7 @@ BOOST_AUTO_TEST_CASE(BoardUtil_SplitDecompositions)
                       ". . W . . . ."
                        ". . W . . . ."
                         ". . . . . . .");
-    brd.GetPosition().SetState(s);
+    brd.GetPosition().SetPosition(s);
 
     // Find splitting decomp between NORTH, E3, SOUTH.
     brd.ComputeAll(WHITE);

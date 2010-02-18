@@ -40,7 +40,7 @@ void PlayAndSolve::PlayerThread::operator()()
 {
     LogInfo() << "*** PlayerThread ***\n";
     HexBoard& brd = m_ps.m_playerBrd;
-    brd.GetPosition().SetState(m_state.Position());
+    brd.GetPosition().SetPosition(m_state.Position());
     double score;
     HexPoint move = m_ps.m_player.GenMove(m_state, m_ps.m_game, brd,
                                           m_maxTime, score);
@@ -61,7 +61,7 @@ void PlayAndSolve::SolverThread::operator()()
 {
     LogInfo() << "*** SolverThread ***\n";
     HexBoard& brd = m_ps.m_solverBrd;
-    brd.GetPosition().SetState(m_state.Position());
+    brd.GetPosition().SetPosition(m_state.Position());
     PointSequence pv;
     HexColor winner = m_ps.m_solver.StartSearch(m_state, m_ps.m_solverBrd,
                                                 m_ps.m_positions, pv);

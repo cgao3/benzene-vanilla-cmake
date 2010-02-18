@@ -37,7 +37,7 @@ void HexEnvironment::NewGame(int width, int height)
 
 HexBoard& HexEnvironment::SyncBoard(const StoneBoard& board)
 {
-    brd->GetPosition().SetState(board);
+    brd->GetPosition().SetPosition(board);
     return *brd.get();
 }
 

@@ -34,7 +34,7 @@ StoneBoard::StoneBoard(unsigned width, unsigned height, const std::string& str)
     : m_const(&ConstBoard::Get(width, height)),
       m_hash(width, height)
 {
-    SetState(str);
+    SetPosition(str);
 }
 
 StoneBoard::~StoneBoard()
@@ -277,7 +277,7 @@ std::string StoneBoard::GetBoardIDString() const
     return idString;
 }
 
-void StoneBoard::SetState(const StoneBoard& brd)
+void StoneBoard::SetPosition(const StoneBoard& brd)
 {
     StartNewGame();
     SetColor(BLACK, brd.GetBlack());
@@ -285,7 +285,7 @@ void StoneBoard::SetState(const StoneBoard& brd)
     SetPlayed(brd.GetPlayed());
 }
 
-void StoneBoard::SetStateOnlyPlayed(const StoneBoard& brd)
+void StoneBoard::SetPositionOnlyPlayed(const StoneBoard& brd)
 {
     StartNewGame();
     SetColor(BLACK, brd.GetBlack() & brd.GetPlayed());
@@ -293,7 +293,7 @@ void StoneBoard::SetStateOnlyPlayed(const StoneBoard& brd)
     SetPlayed(brd.GetPlayed());
 }
 
-void StoneBoard::SetState(const BoardID& id)
+void StoneBoard::SetPosition(const BoardID& id)
 {
     std::size_t n = (Width() * Height() + 3) / 4 * 4;
     HexAssert(id.size() == n / 4);
@@ -323,7 +323,7 @@ void StoneBoard::SetState(const BoardID& id)
     MarkAsDirty();
 }
 
-void StoneBoard::SetState(const std::string& str)
+void StoneBoard::SetPosition(const std::string& str)
 {
     /** @note This depends on the order defined by Interior(). */
     StartNewGame();

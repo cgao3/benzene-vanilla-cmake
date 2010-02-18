@@ -439,7 +439,7 @@ BOOST_AUTO_TEST_CASE(StoneBoard_BoardID)
         BoardID id = b1.GetBoardID();
         BOOST_CHECK_EQUAL(id.size(), 1u);
     
-        b2.SetState(id);
+        b2.SetPosition(id);
         BOOST_CHECK(b1 == b2);
     }
 
@@ -452,7 +452,7 @@ BOOST_AUTO_TEST_CASE(StoneBoard_BoardID)
         StoneBoard b2(5, 3);
         BoardID id = b1.GetBoardID();
         BOOST_CHECK_EQUAL(id.size(), 4u);
-        b2.SetState(id);
+        b2.SetPosition(id);
         BOOST_CHECK(b1 == b2);
     }
 }

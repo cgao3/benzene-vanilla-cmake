@@ -304,7 +304,7 @@ void HexBoard::PopHistory()
     History hist = m_history.back();
     m_history.pop_back();
 
-    m_brd.SetState(hist.board);
+    m_brd.SetPosition(hist.board);
     if (m_backup_ice_info && hist.last_played != INVALID_POINT)
     {
         // Cells that were not marked as inferior in parent state

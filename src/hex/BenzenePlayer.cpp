@@ -70,7 +70,7 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
         m_fillinCausedWin = true;
         m_fillinWinner = brd.GetGroups().GetWinner();
         LogInfo() << "Captured cells caused win! Removing...\n";
-        brd.GetPosition().SetState(original);
+        brd.GetPosition().SetPosition(original);
         bool oldUseIce = brd.UseICE();
         brd.SetUseICE(false);
         brd.ComputeAll(color);

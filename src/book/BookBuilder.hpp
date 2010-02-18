@@ -513,7 +513,7 @@ HexEval BookBuilder<PLAYER>::Worker::operator()(const StoneBoard& position)
     Game game(blah);
 
     HexEval score;
-    m_brd->GetPosition().SetState(position);
+    m_brd->GetPosition().SetPosition(position);
     HexState state(position, position.WhoseTurn());
     m_player->GenMove(state, game, *m_brd, 99999, score);
     return score;
@@ -565,7 +565,7 @@ bool BookBuilder<PLAYER>::GenerateMoves(const StoneBoard& brd,
     HexColor toMove = brd.WhoseTurn();
     bool useICE = m_brd->UseICE();
     m_brd->SetUseICE(m_use_ice);
-    m_brd->GetPosition().SetState(brd);
+    m_brd->GetPosition().SetPosition(brd);
     m_brd->ComputeAll(toMove);
     m_brd->SetUseICE(useICE);
 
