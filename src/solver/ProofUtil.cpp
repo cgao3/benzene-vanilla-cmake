@@ -16,8 +16,8 @@ using namespace benzene;
 
 bitset_t ProofUtil::MaximumProofSet(const HexBoard& brd, HexColor toPlay)
 {
-    return brd.GetState().GetEmpty()
-        | brd.GetState().GetPlayed(toPlay)
+    return brd.GetPosition().GetEmpty()
+        | brd.GetPosition().GetPlayed(toPlay)
         | brd.GetInferiorCells().DeductionSet(toPlay);
 }
 
@@ -26,7 +26,7 @@ bitset_t ProofUtil::InitialProofForOpponent(const HexBoard& brd,
 {
     // Add opponent played stones and deduction set.
     const InferiorCells& inf = brd.GetInferiorCells();
-    bitset_t proof = brd.GetState().GetPlayed(!toPlay);
+    bitset_t proof = brd.GetPosition().GetPlayed(!toPlay);
     proof |= inf.DeductionSet(!toPlay);
 
     // Add all semi-connections from the mustplay.

@@ -168,7 +168,7 @@ void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
         throw HtpFailure("Permanently inferior not supported in DfsSolver");
     brd.ComputeAll(color);
     bitset_t consider = (EndgameUtils::IsDeterminedState(brd, color) ?
-                         brd.GetState().GetEmpty() :
+                         brd.GetPosition().GetEmpty() :
                          EndgameUtils::MovesToConsider(brd, color));
     bitset_t winning;
     SgTimer timer;

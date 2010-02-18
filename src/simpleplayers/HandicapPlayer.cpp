@@ -52,7 +52,7 @@ HexPoint HandicapPlayer::Search(HexBoard& brd,
 	move will suffice. */
     if (game_state.History().empty()) {
 	HexAssert(color == FIRST_TO_PLAY);
-	return BoardUtils::RandomEmptyCell(brd.GetState());
+	return BoardUtils::RandomEmptyCell(brd.GetPosition());
     }
     
     lastMove = game_state.History().back().point();
@@ -63,13 +63,13 @@ HexPoint HandicapPlayer::Search(HexBoard& brd,
 	edge...  Depends on whether the theory player will handle all
 	the edge cases.
     */
-    buildResponseMap(brd.GetState());
+    buildResponseMap(brd.GetPosition());
     response = m_responseMap[lastMove];
-    if (!brd.GetState().IsPlayed(response) && response != INVALID_POINT)
+    if (!brd.GetPosition().IsPlayed(response) && response != INVALID_POINT)
         return response;
 
     LogInfo() << "Playing random move" << '\n';
-    return BoardUtils::RandomEmptyCell(brd.GetState());
+    return BoardUtils::RandomEmptyCell(brd.GetPosition());
 }
 
 void HandicapPlayer::buildResponseMap(const StoneBoard& brd)

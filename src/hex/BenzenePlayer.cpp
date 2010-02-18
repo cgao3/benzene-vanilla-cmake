@@ -54,13 +54,13 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
 {
     // Resign if the game is already over
     Groups groups;
-    GroupBuilder::Build(brd.GetState(), groups);
+    GroupBuilder::Build(brd.GetPosition(), groups);
     if (groups.IsGameOver()) 
     {
         score = IMMEDIATE_LOSS;
         return RESIGN;
     }
-    StoneBoard original(brd.GetState());
+    StoneBoard original(brd.GetPosition());
     brd.ComputeAll(color);
     m_fillinCausedWin = false;
     m_fillinWinner = EMPTY;
@@ -70,14 +70,14 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
         m_fillinCausedWin = true;
         m_fillinWinner = brd.GetGroups().GetWinner();
         LogInfo() << "Captured cells caused win! Removing...\n";
-        brd.GetState().SetState(original);
+        brd.GetPosition().SetState(original);
         bool oldUseIce = brd.UseICE();
         brd.SetUseICE(false);
         brd.ComputeAll(color);
         brd.SetUseICE(oldUseIce);
         HexAssert(!brd.GetGroups().IsGameOver());
     } 
-    consider = brd.GetState().GetEmpty();
+    consider = brd.GetPosition().GetEmpty();
     score = 0;
     return INVALID_POINT;
 }

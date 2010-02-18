@@ -325,7 +325,7 @@ void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board,
 {
     m_book = &book;
     m_brd = const_cast<HexBoard*>(&board);
-    StoneBoard brd(board.GetState());
+    StoneBoard brd(board.GetPosition());
     double s = Time::Get();
     m_num_evals = 0;
     m_num_widenings = 0;
@@ -385,7 +385,7 @@ void BookBuilder<PLAYER>::Refresh(Book& book, HexBoard& board)
 {
     m_book = &book;
     m_brd = const_cast<HexBoard*>(&board);
-    StoneBoard brd(board.GetState());
+    StoneBoard brd(board.GetPosition());
     double s = Time::Get();
     m_num_evals = 0;
     m_num_widenings = 0;
@@ -432,7 +432,7 @@ void BookBuilder<PLAYER>::IncreaseWidth(Book& book, HexBoard& board)
 
     m_book = &book;
     m_brd = const_cast<HexBoard*>(&board);
-    StoneBoard brd(board.GetState());
+    StoneBoard brd(board.GetPosition());
     double s = Time::Get();
     m_num_evals = 0;
     m_num_widenings = 0;
@@ -513,7 +513,7 @@ HexEval BookBuilder<PLAYER>::Worker::operator()(const StoneBoard& position)
     Game game(blah);
 
     HexEval score;
-    m_brd->GetState().SetState(position);
+    m_brd->GetPosition().SetState(position);
     HexState state(position, position.WhoseTurn());
     m_player->GenMove(state, game, *m_brd, 99999, score);
     return score;
@@ -565,7 +565,7 @@ bool BookBuilder<PLAYER>::GenerateMoves(const StoneBoard& brd,
     HexColor toMove = brd.WhoseTurn();
     bool useICE = m_brd->UseICE();
     m_brd->SetUseICE(m_use_ice);
-    m_brd->GetState().SetState(brd);
+    m_brd->GetPosition().SetState(brd);
     m_brd->ComputeAll(toMove);
     m_brd->SetUseICE(useICE);
 

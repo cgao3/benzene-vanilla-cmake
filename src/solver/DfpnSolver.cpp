@@ -444,7 +444,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
         }
         else
         {
-            m_workBoard->GetState().SetState(m_state->Position());
+            m_workBoard->GetPosition().SetState(m_state->Position());
             m_workBoard->ComputeAll(colorToMove);
             ++m_numVCbuilds;
 

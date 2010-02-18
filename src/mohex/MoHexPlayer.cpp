@@ -117,7 +117,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     data.root_to_play = color;
     data.game_sequence = game.History();
     data.root_last_move_played = LastMoveFromHistory(game.History());
-    data.root_stones = HexUctStoneData(brd.GetState());
+    data.root_stones = HexUctStoneData(brd.GetPosition());
     data.root_consider = consider;
     
     // Reuse the old subtree
@@ -181,7 +181,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     // move.
     LogWarning() << "**** HexUctSearch returned empty sequence!" << '\n'
 		 << "**** Returning random move!" << '\n';
-    return BoardUtils::RandomEmptyCell(brd.GetState());
+    return BoardUtils::RandomEmptyCell(brd.GetPosition());
 }
 
 /** Returns INVALID_POINT if history is empty, otherwise last move

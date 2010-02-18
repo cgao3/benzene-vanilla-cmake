@@ -66,7 +66,7 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
     m_histogram = DfsHistogram();
     m_last_histogram_dump = 0;
     m_statistics = GlobalStatistics();
-    m_stoneboard.reset(new StoneBoard(brd.GetState()));
+    m_stoneboard.reset(new StoneBoard(brd.GetPosition()));
 
     // DfsSolver currently cannot handle permanently inferior cells.
     if (brd.ICE().FindPermanentlyInferior())
@@ -94,7 +94,7 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
         PointSequence variation;
         win = SolveState(brd, toPlay, variation, solution);
     }
-    solution.proof &= brd.GetState().GetEmpty();
+    solution.proof &= brd.GetPosition().GetEmpty();
     m_end_time = Time::Get();
     if (m_aborted) 
         return EMPTY;
@@ -313,7 +313,7 @@ bool DfsSolver::SolveDecomposition(HexBoard& brd, HexColor color,
     
     solution.proof = (dsolution[0].proof & carrier[0]) 
         | (dsolution[1].proof & carrier[1]) 
-        | brd.GetState().GetColor(!color);
+        | brd.GetPosition().GetColor(!color);
     solution.proof = solution.proof - brd.GetDead();
     return false;
 }
@@ -355,7 +355,7 @@ bool DfsSolver::SolveInteriorState(HexBoard& brd, HexColor color,
         os << "LABEL ";
         const InferiorCells& inf = brd.GetInferiorCells();
         os << inf.GuiOutput();
-        os << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), mustplay, 
+        os << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetPosition(), mustplay, 
                                                     inf.All());
         os << '\n';
         os << "TEXT";
@@ -466,7 +466,7 @@ void DfsSolver::HandleProof(const HexBoard& brd, HexColor color,
     HexColor winner = (winning_state) ? color : !color;
     HexColor loser = !winner;
     // Verify loser's stones do not intersect proof
-    if ((brd.GetState().GetColor(loser) & solution.proof).any()) 
+    if ((brd.GetPosition().GetColor(loser) & solution.proof).any()) 
         throw BenzeneException()
             << "DfsSolver::handle_proof:\n"
             << color << " to play.\n"
@@ -582,7 +582,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
     bitset_t losingMoves;
     for (BitsetIterator it(mustplay); !found_win && it; ++it)
     {
-	brd.GetState().PlayMove(color, *it);
+	brd.GetPosition().PlayMove(color, *it);
 	m_stoneboard->PlayMove(color, *it);
 
 	DfsData state;
@@ -619,7 +619,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay,
 		proof_union |= proof;
 	    }
 	}
-	brd.GetState().UndoMove(*it);
+	brd.GetPosition().UndoMove(*it);
 	m_stoneboard->UndoMove(*it);
     }
     

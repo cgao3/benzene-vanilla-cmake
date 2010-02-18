@@ -93,9 +93,9 @@ public:
 
     //-----------------------------------------------------------------------
 
-    StoneBoard& GetState();
+    StoneBoard& GetPosition();
 
-    const StoneBoard& GetState() const;
+    const StoneBoard& GetPosition() const;
 
     const ConstBoard& Const() const;
 
@@ -245,12 +245,12 @@ private:
     void PopHistory();
 };
 
-inline StoneBoard& HexBoard::GetState()
+inline StoneBoard& HexBoard::GetPosition()
 {
     return m_brd;
 }
 
-inline const StoneBoard& HexBoard::GetState() const
+inline const StoneBoard& HexBoard::GetPosition() const
 {
     return m_brd;
 }

@@ -60,7 +60,7 @@ HexPoint PerfectPlayer::Search(const HexState& state, const Game& game,
     {
         LogInfo() << "PerfectPlayer: Fillin caused win!\n";
         HexColor color = state.ToPlay();
-        brd.GetState().SetState(state.Position());
+        brd.GetPosition().SetState(state.Position());
         brd.ComputeAll(color);
         const InferiorCells& inf = brd.GetInferiorCells();
         if (m_fillinWinner == color && inf.Captured(color).any())

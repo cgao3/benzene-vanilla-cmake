@@ -164,7 +164,7 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(colorToMove);
     bitset_t consider = (EndgameUtils::IsDeterminedState(brd, colorToMove) ?
-                         brd.GetState().GetEmpty() :
+                         brd.GetPosition().GetEmpty() :
                          EndgameUtils::MovesToConsider(brd, colorToMove));
     bitset_t winning;
     SgTimer timer;
