@@ -8,7 +8,7 @@
 
 #include <boost/concept_check.hpp>
 #include "HashDB.hpp"
-#include "StoneBoard.hpp"
+#include "HexState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -16,19 +16,19 @@ _BEGIN_BENZENE_NAMESPACE_
 
 namespace {
 
-hash_t GetHash(const StoneBoard& pos)
+hash_t GetHash(const HexState& state)
 {
-    hash_t hash1 = pos.Hash();
-    StoneBoard rotatedBrd(pos);
-    rotatedBrd.RotateBoard();
-    hash_t hash2 = rotatedBrd.Hash();
+    hash_t hash1 = state.Hash();
+    HexState rotatedState(state);
+    rotatedState.Position().RotateBoard();
+    hash_t hash2 = rotatedState.Hash();
     return std::min(hash1, hash2);
 }
 
-/** Data must be stored for the boardstate of the minimum hash. */
-inline bool NeedToRotate(const StoneBoard& pos, hash_t minHash)
+/** Data must be stored for the state of the minimum hash. */
+inline bool NeedToRotate(const HexState& state, hash_t minHash)
 {
-    return pos.Hash() != minHash;
+    return state.Hash() != minHash;
 }
 
 }
@@ -90,13 +90,13 @@ public:
     ~PositionDB();
 
     /** Returns true if position exists in database. */
-    bool Exists(const StoneBoard& pos) const;
+    bool Exists(const HexState& pos) const;
 
     /** Returns true if get is successful. */
-    bool Get(const StoneBoard& pos, T& data) const;
+    bool Get(const HexState& pos, T& data) const;
 
     /** Returns true if put is successful. */
-    bool Put(const StoneBoard& brd, const T& data);
+    bool Put(const HexState& brd, const T& data);
 
     void Flush();
 
@@ -122,37 +122,37 @@ PositionDB<T>::~PositionDB()
 }
 
 template<class T>
-bool PositionDB<T>::Exists(const StoneBoard& brd) const
+bool PositionDB<T>::Exists(const HexState& state) const
 {
-    return m_db.Exists(GetHash(brd));
+    return m_db.Exists(GetHash(state));
 }
 
 template<class T>
-bool PositionDB<T>::Get(const StoneBoard& brd, T& data) const
+bool PositionDB<T>::Get(const HexState& state, T& data) const
 {
     m_stats.m_gets++;
-    hash_t hash = GetHash(brd);
+    hash_t hash = GetHash(state);
     if (!m_db.Get(hash, data))
         return false;
     m_stats.m_hits++;
-    if (NeedToRotate(brd, hash))
+    if (NeedToRotate(state, hash))
     {
         m_stats.m_rotations++;
-        data.Rotate(brd.Const());
+        data.Rotate(state.Position().Const());
     }
     return true;
 }
 
 template<class T>
-bool PositionDB<T>::Put(const StoneBoard& brd, const T& data)
+bool PositionDB<T>::Put(const HexState& state, const T& data)
 {
     m_stats.m_puts++;
-    hash_t hash = GetHash(brd);
+    hash_t hash = GetHash(state);
     T myData(data);
-    if (NeedToRotate(brd, hash))
+    if (NeedToRotate(state, hash))
     {
         m_stats.m_rotations++;
-        myData.Rotate(brd.Const());
+        myData.Rotate(state.Position().Const());
     }
     return m_db.Put(hash, myData);
 }
@@ -201,9 +201,9 @@ public:
 
     ~PositionSet();
 
-    void Insert(const StoneBoard& brd);
+    void Insert(const HexState& state);
 
-    bool Exists(const StoneBoard& brd) const;
+    bool Exists(const HexState& state) const;
 
     std::size_t Size() const;
 
@@ -219,14 +219,14 @@ inline PositionSet::~PositionSet()
 {
 }
 
-inline void PositionSet::Insert(const StoneBoard& brd)
+inline void PositionSet::Insert(const HexState& state)
 {
-    m_set.insert(GetHash(brd));
+    m_set.insert(GetHash(state));
 }
 
-inline bool PositionSet::Exists(const StoneBoard& brd) const
+inline bool PositionSet::Exists(const HexState& state) const
 {
-    return m_set.count(GetHash(brd)) > 0;
+    return m_set.count(GetHash(state)) > 0;
 }
 
 inline std::size_t PositionSet::Size() const
@@ -245,9 +245,9 @@ public:
 
     ~PositionMap();
 
-    bool Exists(const StoneBoard& pos) const;
+    bool Exists(const HexState& state) const;
 
-    T& operator[](const StoneBoard& pos);
+    T& operator[](const HexState& state);
 
 private:
     std::map<hash_t, T> m_map;
@@ -264,15 +264,15 @@ inline PositionMap<T>::~PositionMap()
 }
 
 template<class T>
-bool PositionMap<T>::Exists(const StoneBoard& pos) const
+bool PositionMap<T>::Exists(const HexState& state) const
 {
-    return m_map.find(GetHash(pos)) != m_map.end();
+    return m_map.find(GetHash(state)) != m_map.end();
 }
 
 template<class T>
-inline T& PositionMap<T>::operator[](const StoneBoard& pos)
+inline T& PositionMap<T>::operator[](const HexState& state)
 {
-    return m_map[GetHash(pos)];
+    return m_map[GetHash(state)];
 }
 
 //----------------------------------------------------------------------------

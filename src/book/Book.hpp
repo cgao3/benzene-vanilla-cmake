@@ -94,14 +94,14 @@ public:
     //------------------------------------------------------------------------
 
     /** Returns value of board, taking into account swap moves. */ 
-    float Value(const StoneBoard& brd) const;
+    float Value(const HexState& brd) const;
 
     /** Returns score for this node, taking into account the amount of
         information in the subtree. Use to select moves when using
         book. Note the score is from the pov of the player moving into
         this position, not for the player to move in this position.
     */
-    float Score(const StoneBoard& brd, float countWeight) const;
+    float Score(const HexState& brd, float countWeight) const;
 
     //------------------------------------------------------------------------
 
@@ -226,34 +226,34 @@ namespace BookUtil
     float InverseEval(float eval);
 
     /** Returns number of child states existing in this book. */
-    unsigned NumChildren(const Book& book, const StoneBoard& brd);
+    unsigned NumChildren(const Book& book, const HexState& brd);
 
     /** Returns the priority of expanding the child node. */
-    float ComputePriority(const StoneBoard& brd, const BookNode& parent,
+    float ComputePriority(const HexState& brd, const BookNode& parent,
                           const BookNode& child, double alpha);
     
     /** Re-computes node's value by checking all children. Does
         nothing if node has no children. */
-    void UpdateValue(const Book& book, BookNode& node, StoneBoard& brd);
+    void UpdateValue(const Book& book, BookNode& node, HexState& brd);
 
     /** Re-computes node's priority and returns the best child to
         expand. Requires that UpdateValue() has been called on this
         node. Returns INVALID_POINT if node has no children. */
     HexPoint UpdatePriority(const Book& book, BookNode& node, 
-                            StoneBoard& brd, float alpha);
+                            HexState& brd, float alpha);
 
     /** Finds best response in book.
         @todo Does not consider SWAP_PIECES if it is available.
         Returns INVALID_POINT if not in book or if node's count is 
         less than minCount. */
-    HexPoint BestMove(const Book& book, const StoneBoard& pos,
+    HexPoint BestMove(const Book& book, const HexState& pos,
                       unsigned minCount, float countWeight);
 
     //-----------------------------------------------------------------------
 
     /** Writes a (score, depth) pair to output stream for each leaf in
         the book. Can be visualized with GnuPlot. */
-    void DumpVisualizationData(const Book& book, StoneBoard& brd, 
+    void DumpVisualizationData(const Book& book, HexState& brd, 
                                int depth, std::ostream& out);
 
     //-----------------------------------------------------------------------
@@ -261,7 +261,7 @@ namespace BookUtil
     /** Writes variations leading to non-terminal leafs whose values
         differ from 0.5 by at least polarization. The given pv must be
         the variation leading to the current state of the board. */
-    void DumpPolarizedLeafs(const Book& book, StoneBoard& brd,
+    void DumpPolarizedLeafs(const Book& book, HexState& brd,
                             float polarization, PointSequence& pv, 
                             std::ostream& out, const PositionSet& ignoreSet);
 
@@ -273,11 +273,11 @@ namespace BookUtil
     //-----------------------------------------------------------------------
 
     /** Returns the depth of the mainline from the given position. */
-    int GetMainLineDepth(const Book& book, const StoneBoard& pos);
+    int GetMainLineDepth(const Book& book, const HexState& pos);
 
     /** Returns the number of nodes in the tree rooted at the current
         position. */
-    std::size_t GetTreeSize(const Book& book, const StoneBoard& brd);
+    std::size_t GetTreeSize(const Book& book, const HexState& brd);
 }
 
 //----------------------------------------------------------------------------

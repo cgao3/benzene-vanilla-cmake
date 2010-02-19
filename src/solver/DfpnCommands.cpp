@@ -197,9 +197,11 @@ void DfpnCommands::CmdClearTT(HtpCommand& cmd)
     hashtable. */
 void DfpnCommands::CmdGetState(HtpCommand& cmd)
 {
-    cmd.CheckArgNone();
+    cmd.CheckNuArg(1);
+    HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);    
+    HexState state(m_game.Board(), colorToMove);
     DfpnData data;
-    if (m_positions.Get(m_game.Board(), data))
+    if (m_positions.Get(state, data))
         cmd << data << '\n';
 }
 
@@ -209,12 +211,12 @@ void DfpnCommands::CmdGetBounds(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
-    StoneBoard brd(m_game.Board());
-    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+    HexState state(m_game.Board(), colorToMove);
+    for (BitsetIterator it(state.Position().GetEmpty()); it; ++it)
     {
-        brd.PlayMove(colorToMove, *it);
+        state.PlayMove(*it);
         DfpnData data;
-        if (m_positions.Get(brd, data))
+        if (m_positions.Get(state, data))
         {
             cmd << ' ' << *it << ' ';
             if (data.m_bounds.IsWinning())
@@ -224,7 +226,7 @@ void DfpnCommands::CmdGetBounds(HtpCommand& cmd)
             else 
                 cmd << data.m_bounds.phi << ':' << data.m_bounds.delta;
         }
-        brd.UndoMove(*it);
+        state.UndoMove(*it);
     }
 }
 
@@ -234,14 +236,14 @@ void DfpnCommands::CmdGetWork(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
-    StoneBoard brd(m_game.Board());
-    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+    HexState state(m_game.Board(), colorToMove);
+    for (BitsetIterator it(state.Position().GetEmpty()); it; ++it)
     {
-        brd.PlayMove(colorToMove, *it);
+        state.PlayMove(*it);
         DfpnData data;
-        if (m_positions.Get(brd, data))
+        if (m_positions.Get(state, data))
             cmd << ' ' << *it << ' ' << data.m_work;
-        brd.UndoMove(*it);
+        state.UndoMove(*it);
     }
 }
 

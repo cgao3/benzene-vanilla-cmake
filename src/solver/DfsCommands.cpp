@@ -232,33 +232,33 @@ void DfsCommands::CmdDBClose(HtpCommand& cmd)
 void DfsCommands::CmdGetState(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
-    StoneBoard brd(m_game.Board());
-    HexColor toplay = brd.WhoseTurn();
-    DfsData state;
-    if (!m_positions.Get(brd, state)) 
+    HexColor toPlay = m_game.Board().WhoseTurn();
+    HexState state(m_game.Board(), toPlay);
+    DfsData data;
+    if (!m_positions.Get(state, data)) 
     {
         cmd << "State not available.";
         return;
     }
-    cmd << (state.m_win ? toplay : !toplay);
-    cmd << ' ' << state.m_numMoves;
+    cmd << (data.m_win ? toPlay : !toPlay);
+    cmd << ' ' << data.m_numMoves;
 
     std::vector<int> nummoves(BITSETSIZE);
     std::vector<int> flags(BITSETSIZE);
     std::vector<HexPoint> winning, losing;
-    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
+    for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
-        brd.PlayMove(toplay, *p);
-        if (m_positions.Get(brd, state)) 
+        state.PlayMove(*p);
+        if (m_positions.Get(state, data)) 
         {
-            if (state.m_win)
+            if (data.m_win)
                 losing.push_back(*p);
             else
                 winning.push_back(*p);
-            nummoves[*p] = state.m_numMoves;
-            flags[*p] = state.m_flags;
+            nummoves[*p] = data.m_numMoves;
+            flags[*p] = data.m_flags;
         }
-        brd.UndoMove(*p);
+        state.UndoMove(*p);
     }
     cmd << " Winning";
     for (unsigned i = 0; i < winning.size(); ++i) 

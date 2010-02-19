@@ -20,15 +20,19 @@ BOOST_AUTO_TEST_CASE(PositionDB_PositionSet)
     StoneBoard rb1(b1);
     rb1.RotateBoard();
 
-    PositionSet set;
-    BOOST_CHECK(!set.Exists(b1));
+    HexState sb1(b1, BLACK);
+    HexState srb1(rb1, BLACK);
 
-    set.Insert(b1);
-    BOOST_CHECK(set.Exists(b1));
-    BOOST_CHECK(set.Exists(rb1));
+    PositionSet set;
+    BOOST_CHECK(!set.Exists(sb1));
+
+    set.Insert(sb1);
+    BOOST_CHECK(set.Exists(sb1));
+    BOOST_CHECK(set.Exists(srb1));
     
     StoneBoard b2(3, 3);
-    BOOST_CHECK(!set.Exists(b2));
+    HexState sb2(b2, BLACK);
+    BOOST_CHECK(!set.Exists(sb2));
 }
 
 BOOST_AUTO_TEST_CASE(PositionDB_PositionMap)
@@ -46,24 +50,29 @@ BOOST_AUTO_TEST_CASE(PositionDB_PositionMap)
     StoneBoard rb2(b2);
     rb2.RotateBoard();
 
-    PositionMap<int> map;
-    BOOST_CHECK(!map.Exists(b1));
-    
-    map[b1] = 5;
-    BOOST_CHECK(map.Exists(b1));
-    BOOST_CHECK(map.Exists(rb1));
-    BOOST_CHECK(!map.Exists(b2));
-    BOOST_CHECK(!map.Exists(rb2));    
-    BOOST_CHECK_EQUAL(map[b1], 5);
-    BOOST_CHECK_EQUAL(map[rb1], 5);
+    HexState sb1(b1, BLACK);
+    HexState sb2(b2, BLACK);
+    HexState srb1(rb1, BLACK);
+    HexState srb2(rb2, BLACK);
 
-    map[rb2] = 1;
-    BOOST_CHECK(map.Exists(b2));
-    BOOST_CHECK(map.Exists(rb2));
-    BOOST_CHECK_EQUAL(map[b1], 5);
-    BOOST_CHECK_EQUAL(map[rb1], 5);
-    BOOST_CHECK_EQUAL(map[b2], 1);
-    BOOST_CHECK_EQUAL(map[rb2], 1);
+    PositionMap<int> map;
+    BOOST_CHECK(!map.Exists(sb1));
+    
+    map[sb1] = 5;
+    BOOST_CHECK(map.Exists(sb1));
+    BOOST_CHECK(map.Exists(srb1));
+    BOOST_CHECK(!map.Exists(sb2));
+    BOOST_CHECK(!map.Exists(srb2));    
+    BOOST_CHECK_EQUAL(map[sb1], 5);
+    BOOST_CHECK_EQUAL(map[srb1], 5);
+
+    map[srb2] = 1;
+    BOOST_CHECK(map.Exists(sb2));
+    BOOST_CHECK(map.Exists(srb2));
+    BOOST_CHECK_EQUAL(map[sb1], 5);
+    BOOST_CHECK_EQUAL(map[srb1], 5);
+    BOOST_CHECK_EQUAL(map[sb2], 1);
+    BOOST_CHECK_EQUAL(map[srb2], 1);
 }
 
 }

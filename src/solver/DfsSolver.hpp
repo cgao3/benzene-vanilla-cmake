@@ -331,8 +331,7 @@ private:
 
     mutable GlobalStatistics m_statistics;
     
-    /** Board with no fillin. */
-    boost::scoped_ptr<StoneBoard> m_stoneboard;
+    boost::scoped_ptr<HexState> m_state;
 
     /** See UseDecompositions() */
     bool m_use_decompositions;
@@ -360,40 +359,36 @@ private:
 
     //------------------------------------------------------------------------
 
-    void PlayMove(HexBoard& brd, HexPoint cell, HexColor color);
+    void PlayMove(HexBoard& brd, HexPoint cell);
     
     void UndoMove(HexBoard& brd, HexPoint cell);
 
     bool CheckTransposition(DfsData& state) const;
 
-    void StoreState(HexColor color, const DfsData& state, 
-                    const bitset_t& proof);
+    void StoreState(const DfsData& state, const bitset_t& proof);
 
     bool CheckAbort();
     
-    bool HandleLeafNode(const HexBoard& brd, HexColor color, 
-                        DfsData& state, bitset_t& proof) const;
+    bool HandleLeafNode(const HexBoard& brd, DfsData& state, 
+                        bitset_t& proof) const;
 
-    bool HandleTerminalNode(const HexBoard& brd, HexColor color, 
-                            DfsData& state, bitset_t& proof) const;
+    bool HandleTerminalNode(const HexBoard& brd, DfsData& state, 
+                            bitset_t& proof) const;
 
-    bool OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay, 
+    bool OrderMoves(HexBoard& brd, bitset_t& mustplay, 
                     DfsSolutionSet& solution, 
                     std::vector<HexMoveValue>& moves);
 
-    bool SolveState(HexBoard& brd, HexColor tomove, PointSequence& variation, 
+    bool SolveState(HexBoard& brd, PointSequence& variation, 
                     DfsSolutionSet& solution);
 
-    bool SolveDecomposition(HexBoard& brd, HexColor color, 
-                            PointSequence& variation,
+    bool SolveDecomposition(HexBoard& brd, PointSequence& variation,
                             DfsSolutionSet& solution, HexPoint group);
 
-    bool SolveInteriorState(HexBoard& brd, HexColor color, 
-                            PointSequence& variation, 
+    bool SolveInteriorState(HexBoard& brd, PointSequence& variation, 
                             DfsSolutionSet& solution);
 
-    void HandleProof(const HexBoard& brd, HexColor color, 
-                     const PointSequence& variation,
+    void HandleProof(const HexBoard& brd, const PointSequence& variation,
                      bool winning_state, DfsSolutionSet& solution);
 };
 

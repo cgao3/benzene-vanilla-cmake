@@ -112,7 +112,7 @@ HexPoint PerfectPlayer::Search(const HexState& state, const Game& game,
     }
     // Didn't prove it, find non-losing move with most work.
     DfpnData data;
-    if (!m_positions.Get(state.Position(), data))
+    if (!m_positions.Get(state, data))
         throw BenzeneException("Root node not in database!?!");
     std::size_t maxWork = 0;
     HexPoint bestMove = pv[0];
@@ -121,7 +121,7 @@ HexPoint PerfectPlayer::Search(const HexState& state, const Game& game,
     {
         data.m_children.PlayMove(i, myState);
         DfpnData child;
-        if (m_positions.Get(myState.Position(), child))
+        if (m_positions.Get(myState, child))
         {
             // We're assuming no children are losing (ie, no move is winning),
             // so we just need to avoid losing moves (winning children).

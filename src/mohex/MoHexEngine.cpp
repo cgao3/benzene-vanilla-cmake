@@ -56,7 +56,7 @@ HexPoint MoHexEngine::GenMove(HexColor color, bool useGameClock)
     SG_UNUSED(useGameClock);
     if (SwapCheck::PlaySwap(m_game, color))
         return SWAP_PIECES;
-    HexPoint bookMove = m_bookCheck.BestMove(m_game.Board(), color);
+    HexPoint bookMove = m_bookCheck.BestMove(HexState(m_game.Board(), color));
     if (bookMove != INVALID_POINT)
         return bookMove;
     double maxTime = TimeForMove(color);

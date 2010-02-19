@@ -128,7 +128,7 @@ private:
     public:
         Worker(std::size_t id, BenzenePlayer& player, HexBoard& brd); 
 
-        HexEval operator()(const StoneBoard& position);
+        HexEval operator()(const HexState& state);
 
     private:
 
@@ -139,24 +139,24 @@ private:
         BenzenePlayer* m_player;
     };
 
-    bool GetNode(const StoneBoard& brd, BookNode& node) const;
+    bool GetNode(const HexState& brd, BookNode& node) const;
 
-    void WriteNode(const StoneBoard& brd, const BookNode& node);
+    void WriteNode(const HexState& brd, const BookNode& node);
 
-    void EnsureRootExists(const StoneBoard& brd);
+    void EnsureRootExists(const HexState& brd);
 
-    bool GenerateMoves(const StoneBoard& brd, std::vector<HexPoint>& moves,
+    bool GenerateMoves(const HexState& brd, std::vector<HexPoint>& moves,
                        HexEval& value);
 
-    bool ExpandChildren(StoneBoard& brd, std::size_t count);
+    bool ExpandChildren(HexState& brd, std::size_t count);
 
-    void UpdateValue(BookNode& node, StoneBoard& brd);
+    void UpdateValue(BookNode& node, HexState& brd);
 
-    void DoExpansion(StoneBoard& brd, PointSequence& pv);
+    void DoExpansion(HexState& brd, PointSequence& pv);
 
-    bool Refresh(StoneBoard& brd, PositionSet& seen, bool root);
+    bool Refresh(HexState& brd, PositionSet& seen, bool root);
 
-    void IncreaseWidth(StoneBoard& brd, PositionSet& seen, bool root);
+    void IncreaseWidth(HexState& brd, PositionSet& seen, bool root);
 
     void CreateWorkers();
 
@@ -218,7 +218,7 @@ private:
 
     std::vector<Worker> m_workers;
 
-    ThreadedWorker<StoneBoard,HexEval,Worker>* m_threadedWorker;
+    ThreadedWorker<HexState,HexEval,Worker>* m_threadedWorker;
 };
 
 //----------------------------------------------------------------------------
@@ -325,14 +325,14 @@ void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board,
 {
     m_book = &book;
     m_brd = const_cast<HexBoard*>(&board);
-    StoneBoard brd(board.GetPosition());
+    HexState state(board.GetPosition(), board.GetPosition().WhoseTurn());
     double s = Time::Get();
     m_num_evals = 0;
     m_num_widenings = 0;
 
     CreateWorkers();
     
-    EnsureRootExists(brd);
+    EnsureRootExists(state);
 
     int num = 0;
     for (; num < numExpansions; ++num) 
@@ -350,7 +350,7 @@ void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board,
 	// no point in continuing to expand the opening book.
         {
             BookNode root;
-            GetNode(brd, root);
+            GetNode(state, root);
             if (root.IsTerminal()) 
             {
                 LogInfo() << "Position solved!" << '\n';
@@ -359,7 +359,7 @@ void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board,
         }
 	
         PointSequence pv;
-        DoExpansion(brd, pv);
+        DoExpansion(state, pv);
     }
 
     LogInfo() << "Flushing DB..." << '\n';
@@ -385,7 +385,7 @@ void BookBuilder<PLAYER>::Refresh(Book& book, HexBoard& board)
 {
     m_book = &book;
     m_brd = const_cast<HexBoard*>(&board);
-    StoneBoard brd(board.GetPosition());
+    HexState state(board.GetPosition(), board.GetPosition().WhoseTurn());
     double s = Time::Get();
     m_num_evals = 0;
     m_num_widenings = 0;
@@ -399,7 +399,7 @@ void BookBuilder<PLAYER>::Refresh(Book& book, HexBoard& board)
 
     LogInfo() << "Refreshing DB..." << '\n';
     PositionSet seen;
-    Refresh(brd, seen, true);
+    Refresh(state, seen, true);
 
     LogInfo() << "Flushing DB..." << '\n';
     m_book->Flush();
@@ -432,7 +432,7 @@ void BookBuilder<PLAYER>::IncreaseWidth(Book& book, HexBoard& board)
 
     m_book = &book;
     m_brd = const_cast<HexBoard*>(&board);
-    StoneBoard brd(board.GetPosition());
+    HexState state(board.GetPosition(), board.GetPosition().WhoseTurn());
     double s = Time::Get();
     m_num_evals = 0;
     m_num_widenings = 0;
@@ -441,7 +441,7 @@ void BookBuilder<PLAYER>::IncreaseWidth(Book& book, HexBoard& board)
 
     LogInfo() << "Increasing DB's width..." << '\n';
     PositionSet seen;
-    IncreaseWidth(brd, seen, true);
+    IncreaseWidth(state, seen, true);
 
     LogInfo() << "Flushing DB..." << '\n';
     m_book->Flush();
@@ -474,7 +474,7 @@ void BookBuilder<PLAYER>::CreateWorkers()
         m_workers.push_back(Worker(i, *m_players[i], *m_boards[i]));
     }
     m_threadedWorker 
-        = new ThreadedWorker<StoneBoard,HexEval,Worker>(m_workers);
+        = new ThreadedWorker<HexState,HexEval,Worker>(m_workers);
 }
 
 /** Destroys copied players, boards, and threads. */
@@ -506,15 +506,16 @@ BookBuilder<PLAYER>::Worker::Worker(std::size_t id, BenzenePlayer& player,
 }
 
 template<class PLAYER>
-HexEval BookBuilder<PLAYER>::Worker::operator()(const StoneBoard& position)
+HexEval BookBuilder<PLAYER>::Worker::operator()(const HexState& origState)
 {
+    HexState state(origState);
+
     // stupid crap to meet interface of player
-    StoneBoard blah(position);
+    StoneBoard blah(state.Position());
     Game game(blah);
 
     HexEval score;
-    m_brd->GetPosition().SetPosition(position);
-    HexState state(position, position.WhoseTurn());
+    m_brd->GetPosition().SetPosition(state.Position());
     m_player->GenMove(state, game, *m_brd, 99999, score);
     return score;
 }
@@ -524,29 +525,29 @@ HexEval BookBuilder<PLAYER>::Worker::operator()(const StoneBoard& position)
 /** Reads node for given board state. Returns false if state does not
     exist in the book. */
 template<class PLAYER>
-bool BookBuilder<PLAYER>::GetNode(const StoneBoard& brd, BookNode& node) const
+bool BookBuilder<PLAYER>::GetNode(const HexState& state, BookNode& node) const
 {
-    return m_book->Get(brd, node);
+    return m_book->Get(state, node);
 }
 
 /** Writes node to book's db. */
 template<class PLAYER>
-void BookBuilder<PLAYER>::WriteNode(const StoneBoard& brd, 
+void BookBuilder<PLAYER>::WriteNode(const HexState& state, 
                                     const BookNode& node)
 {
-    m_book->Put(brd, node);
+    m_book->Put(state, node);
 }
 
 /** Creates root node if necessary. */
 template<class PLAYER>
-void BookBuilder<PLAYER>::EnsureRootExists(const StoneBoard& brd)
+void BookBuilder<PLAYER>::EnsureRootExists(const HexState& state)
 {
     BookNode root;
-    if (!GetNode(brd, root))
+    if (!GetNode(state, root))
     {
         LogInfo() << "Creating root node. " << '\n';
-        HexEval value = m_workers[0](brd);
-        WriteNode(brd, BookNode(value));
+        HexEval value = m_workers[0](state);
+        WriteNode(state, BookNode(value));
     }
 }
 
@@ -555,17 +556,17 @@ void BookBuilder<PLAYER>::EnsureRootExists(const StoneBoard& brd)
     untouched. Returns false otherwise, in which case moves will
     contain the sorted moves and value will be untouched. */
 template<class PLAYER>
-bool BookBuilder<PLAYER>::GenerateMoves(const StoneBoard& brd, 
+bool BookBuilder<PLAYER>::GenerateMoves(const HexState& state, 
                                         std::vector<HexPoint>& moves,
                                         HexEval& value)
 {
     // Turn off ICE (controlled by method UseICE()): compute the moves
     // to consider without using any ice, so that we do not leave the
     // book if opponent plays an inferior move.
-    HexColor toMove = brd.WhoseTurn();
+    HexColor toMove = state.ToPlay();
     bool useICE = m_brd->UseICE();
     m_brd->SetUseICE(m_use_ice);
-    m_brd->GetPosition().SetPosition(brd);
+    m_brd->GetPosition().SetPosition(state.Position());
     m_brd->ComputeAll(toMove);
     m_brd->SetUseICE(useICE);
 
@@ -591,7 +592,7 @@ bool BookBuilder<PLAYER>::GenerateMoves(const StoneBoard& brd,
     have not been created yet. Returns true if at least one new node
     was created, false otherwise. */
 template<class PLAYER>
-bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
+bool BookBuilder<PLAYER>::ExpandChildren(HexState& state, std::size_t count)
 {
     // It is possible the state is determined, even though it was
     // already evaluated. This is not very likey if the evaluation
@@ -600,32 +601,32 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
     // from being created.
     HexEval value = 0;
     std::vector<HexPoint> children;
-    if (GenerateMoves(brd, children, value))
+    if (GenerateMoves(state, children, value))
     {
         LogInfo() << "ExpandChildren: State is determined!" << '\n';
-        WriteNode(brd, BookNode(value));
+        WriteNode(state, BookNode(value));
         return false;
     }
 
     std::size_t limit = std::min(count, children.size());
-    std::vector<StoneBoard> workToDo;
+    std::vector<HexState> workToDo;
     bitset_t childrenToDo;
     for (std::size_t i = 0; i < limit; ++i)
     {
-        brd.PlayMove(brd.WhoseTurn(), children[i]);
+        state.PlayMove(children[i]);
         BookNode child;
-        if (!GetNode(brd, child))
+        if (!GetNode(state, child))
         {
-            workToDo.push_back(brd);
+            workToDo.push_back(state);
             childrenToDo.set(children[i]);
         }
-        brd.UndoMove(children[i]);
+        state.UndoMove(children[i]);
     }
     if (!workToDo.empty())
     {
         LogInfo() << "Will evaluate these children: " 
-                  << brd.Write(childrenToDo) << '\n';
-        std::vector<std::pair<StoneBoard, HexEval> > scores;
+                  << state.Position().Write(childrenToDo) << '\n';
+        std::vector<std::pair<HexState, HexEval> > scores;
         m_threadedWorker->DoWork(workToDo, scores);
         for (std::size_t i = 0; i < scores.size(); ++i)
             WriteNode(scores[i].first, scores[i].second);
@@ -642,23 +643,23 @@ bool BookBuilder<PLAYER>::ExpandChildren(StoneBoard& brd, std::size_t count)
     is added or no new children are added. The node is then set with
     the proper value. */
 template<class PLAYER>
-void BookBuilder<PLAYER>::UpdateValue(BookNode& node, StoneBoard& brd)
+void BookBuilder<PLAYER>::UpdateValue(BookNode& node, HexState& state)
 {
     while (true)
     {
-        BookUtil::UpdateValue(*m_book, node, brd);
-        if (!HexEvalUtil::IsLoss(node.Value(brd)))
+        BookUtil::UpdateValue(*m_book, node, state);
+        if (!HexEvalUtil::IsLoss(node.Value(state)))
             break;
 
         // Round up to next nearest multiple of m_expand_width that is
         // larger than the current number of children.
-        unsigned numChildren = BookUtil::NumChildren(*m_book, brd);
+        unsigned numChildren = BookUtil::NumChildren(*m_book, state);
         std::size_t width = (numChildren / m_expand_width + 1) 
             * m_expand_width;
 
         LogInfo() << "Forced Widening[" << numChildren << "->" 
-                  << width << "]" << '\n' << brd << '\n';
-        if (!ExpandChildren(brd, width))
+                  << width << "]" << '\n' << state.Position() << '\n';
+        if (!ExpandChildren(state, width))
             break;
 
         ++m_num_widenings;
@@ -666,10 +667,10 @@ void BookBuilder<PLAYER>::UpdateValue(BookNode& node, StoneBoard& brd)
 }
 
 template<class PLAYER>
-void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
+void BookBuilder<PLAYER>::DoExpansion(HexState& state, PointSequence& pv)
 {
     BookNode node;
-    if (!GetNode(brd, node))
+    if (!GetNode(state, node))
         HexAssert(false);
 
     if (node.IsTerminal())
@@ -679,7 +680,7 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
     {
         // Expand this leaf's children
         LogInfo() << "Expanding: " << HexPointUtil::ToString(pv) << '\n';
-        ExpandChildren(brd, m_expand_width);
+        ExpandChildren(state, m_expand_width);
     }
     else
     {
@@ -691,33 +692,33 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
             LogInfo() << "Widening[" << width << "]: " 
                       << HexPointUtil::ToString(pv) << '\n';
             ++m_num_widenings;
-            ExpandChildren(brd, width);
+            ExpandChildren(state, width);
         }
 
         // Compute value and priority. It's possible this node is newly
         // terminal if one of its new children is a winning move.
-        GetNode(brd, node);
-        UpdateValue(node, brd);
+        GetNode(state, node);
+        UpdateValue(node, state);
         HexPoint mostUrgent 
-            = BookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
-        WriteNode(brd, node);
+            = BookUtil::UpdatePriority(*m_book, node, state, m_alpha);
+        WriteNode(state, node);
 
         // Recurse on most urgent child only if non-terminal.
         if (!node.IsTerminal())
         {
-            brd.PlayMove(brd.WhoseTurn(), mostUrgent);
+            state.PlayMove(mostUrgent);
             pv.push_back(mostUrgent);
-            DoExpansion(brd, pv);
+            DoExpansion(state, pv);
             pv.pop_back();
-            brd.UndoMove(mostUrgent);
+            state.UndoMove(mostUrgent);
         }
     }
 
-    GetNode(brd, node);
-    UpdateValue(node, brd);
-    BookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
+    GetNode(state, node);
+    UpdateValue(node, state);
+    BookUtil::UpdatePriority(*m_book, node, state, m_alpha);
     node.IncrementCount();
-    WriteNode(brd, node);
+    WriteNode(state, node);
 }
 
 //----------------------------------------------------------------------------
@@ -728,13 +729,13 @@ void BookBuilder<PLAYER>::DoExpansion(StoneBoard& brd, PointSequence& pv)
     @ref bookrefresh
 */
 template<class PLAYER>
-bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, PositionSet& seen,
+bool BookBuilder<PLAYER>::Refresh(HexState& state, PositionSet& seen,
                                   bool root)
 {
-    if (seen.Exists(brd))
+    if (seen.Exists(state))
         return true;
     BookNode node;
-    if (!GetNode(brd, node))
+    if (!GetNode(state, node))
         return false;
     if (node.IsLeaf())
     {
@@ -743,24 +744,24 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, PositionSet& seen,
             m_terminal_nodes++;
         return true;
     }
-    double oldValue = node.Value(brd);
+    double oldValue = node.Value(state);
     double oldPriority = node.m_priority;
-    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+    for (BitsetIterator it(state.Position().GetEmpty()); it; ++it)
     {
-        brd.PlayMove(brd.WhoseTurn(), *it);
-        Refresh(brd, seen, false);
+        state.PlayMove(*it);
+        Refresh(state, seen, false);
         if (root)
             LogInfo() << "Finished " << *it << '\n';
-        brd.UndoMove(*it);
+        state.UndoMove(*it);
     }
-    UpdateValue(node, brd);
-    BookUtil::UpdatePriority(*m_book, node, brd, m_alpha);
-    if (fabs(oldValue - node.Value(brd)) > 0.0001)
+    UpdateValue(node, state);
+    BookUtil::UpdatePriority(*m_book, node, state, m_alpha);
+    if (fabs(oldValue - node.Value(state)) > 0.0001)
         m_value_updates++;
     if (fabs(oldPriority - node.m_priority) > 0.0001)
         m_priority_updates++;
-    WriteNode(brd, node);
-    seen.Insert(brd);
+    WriteNode(state, node);
+    seen.Insert(state);
     if (node.IsTerminal())
         m_terminal_nodes++;
     else
@@ -771,29 +772,29 @@ bool BookBuilder<PLAYER>::Refresh(StoneBoard& brd, PositionSet& seen,
 //----------------------------------------------------------------------------
 
 template<class PLAYER>
-void BookBuilder<PLAYER>::IncreaseWidth(StoneBoard& brd, PositionSet& seen,
+void BookBuilder<PLAYER>::IncreaseWidth(HexState& state, PositionSet& seen,
                                         bool root)
 {
-    if (seen.Exists(brd))
+    if (seen.Exists(state))
         return;
     BookNode node;
-    if (!GetNode(brd, node))
+    if (!GetNode(state, node))
         return;
     if (node.IsTerminal() || node.IsLeaf())
         return;
-    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+    for (BitsetIterator it(state.Position().GetEmpty()); it; ++it)
     {
-        brd.PlayMove(brd.WhoseTurn(), *it);
-        IncreaseWidth(brd, seen, false);
+        state.PlayMove(*it);
+        IncreaseWidth(state, seen, false);
         if (root)
             LogInfo() << "Finished " << *it << '\n';
-        brd.UndoMove(*it);
+        state.UndoMove(*it);
     }
     std::size_t width = (node.m_count / m_expand_threshold + 1)
         * m_expand_width;
-    if (ExpandChildren(brd, width))
+    if (ExpandChildren(state, width))
         ++m_num_widenings;
-    seen.Insert(brd);
+    seen.Insert(state);
     if ((seen.Size() % 500) == 0)
     {
         m_book->Flush();

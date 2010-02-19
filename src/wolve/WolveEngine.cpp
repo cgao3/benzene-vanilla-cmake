@@ -81,11 +81,11 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
     SG_UNUSED(useGameClock);
     if (SwapCheck::PlaySwap(m_game, color))
         return SWAP_PIECES;
-    HexPoint bookMove = m_bookCheck.BestMove(m_game.Board(), color);
+    HexState state(m_game.Board(), color);
+    HexPoint bookMove = m_bookCheck.BestMove(state);
     if (bookMove != INVALID_POINT)
         return bookMove;
     double maxTime = TimeForMove(color);
-    HexState state(m_game.Board(), color);
     if (m_useParallelSolver)
     {
         PlayAndSolve ps(*m_pe.brd, *m_se.brd, m_player, m_dfpnSolver, 

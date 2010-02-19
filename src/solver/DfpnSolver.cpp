@@ -347,7 +347,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
 
     // Skip search if already solved
     DfpnData data;
-    if (TTRead(m_state->Position(), data) && data.m_bounds.IsSolved())
+    if (TTRead(*m_state, data) && data.m_bounds.IsSolved())
     {
         LogInfo() << "Already solved!\n";
         HexColor w = data.m_bounds.IsWinning() 
@@ -365,7 +365,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
 
     SolverDBUtil::GetVariation(*m_state, *m_positions, pv);
     HexColor winner = EMPTY;
-    if (TTRead(m_state->Position(), data) && data.m_bounds.IsSolved())
+    if (TTRead(*m_state, data) && data.m_bounds.IsSolved())
         winner = data.m_bounds.IsWinning() 
             ? m_state->ToPlay() : !m_state->ToPlay();
     PrintStatistics(winner, pv);
@@ -428,7 +428,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
     DfpnChildren children;
     {
         DfpnData data;
-        if (TTRead(m_state->Position(), data)) 
+        if (TTRead(*m_state, data)) 
         {
             children = data.m_children;
             maxProofSet = data.m_maxProofSet;
@@ -466,9 +466,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
                     m_guiFx.UpdateCurrentBounds(terminal);
                     m_guiFx.Write();
                 }
-                TTWrite(m_state->Position(), 
-                        DfpnData(terminal, DfpnChildren(), 
-                                 INVALID_POINT, 1, maxProofSet, 0.0));
+                TTWrite(*m_state, DfpnData(terminal, DfpnChildren(), 
+                                  INVALID_POINT, 1, maxProofSet, 0.0));
                 return 1;
             }
             bitset_t childrenBitset 
@@ -643,7 +642,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
     // Store search results and notify listeners
     DfpnData data(currentBounds, children, bestMove, localWork + prevWork, 
                   maxProofSet, evaluationScore);
-    TTWrite(m_state->Position(), data);
+    TTWrite(*m_state, data);
     if (data.m_bounds.IsSolved())
         NotifyListeners(history, data);
     return localWork;
@@ -770,7 +769,7 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
                             int childIndex, HexState& state)
 {
     children.PlayMove(childIndex, state);
-    if (!TTRead(state.Position(), data))
+    if (!TTRead(state, data))
     {
         data.m_bounds.phi = 1;
         data.m_bounds.delta = 1;
@@ -779,15 +778,15 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
     children.UndoMove(childIndex, state);
 }
 
-bool DfpnSolver::TTRead(const StoneBoard& brd, DfpnData& data)
+bool DfpnSolver::TTRead(const HexState& state, DfpnData& data)
 {
-    return m_positions->Get(brd, data);
+    return m_positions->Get(state, data);
 }
 
-void DfpnSolver::TTWrite(const StoneBoard& brd, const DfpnData& data)
+void DfpnSolver::TTWrite(const HexState& state, const DfpnData& data)
 {
     data.m_bounds.CheckConsistency();
-    m_positions->Put(brd, data);
+    m_positions->Put(state, data);
 }
 
 //----------------------------------------------------------------------------
@@ -805,7 +804,7 @@ void DfpnSolver::PropagateBackwards(const Game& game, DfpnPositions& pos)
         state.SetToPlay(history.back().color());
         history.pop_back();
         DfpnData data;
-        if (!pos.Get(state.Position(), data))
+        if (!pos.Get(state, data))
             break;
         if (data.m_bounds.IsSolved())
             break;
@@ -814,7 +813,7 @@ void DfpnSolver::PropagateBackwards(const Game& game, DfpnPositions& pos)
             LookupData(childrenData[i], data.m_children, i, state);
         size_t maxChildIndex = ComputeMaxChildIndex(childrenData);
         UpdateBounds(data.m_bounds, childrenData, maxChildIndex);
-        pos.Put(state.Position(), data);
+        pos.Put(state, data);
     } while(!history.empty());
 }
 

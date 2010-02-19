@@ -590,9 +590,9 @@ private:
     void LookupData(DfpnData& data, const DfpnChildren& children, 
                     int childIndex, HexState& state);
 
-    bool TTRead(const StoneBoard& brd, DfpnData& data);
+    bool TTRead(const HexState& state, DfpnData& data);
 
-    void TTWrite(const StoneBoard& brd, const DfpnData& data);
+    void TTWrite(const HexState& state, const DfpnData& data);
 
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;

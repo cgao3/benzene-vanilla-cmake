@@ -165,19 +165,18 @@ void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
 {
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
-    StoneBoard brd(m_game.Board());
-    HexColor color = brd.WhoseTurn();
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     BookNode parent;
-    if (!m_book->Get(brd, parent))
+    if (!m_book->Get(state, parent))
         return;
-    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
+    for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
-        brd.PlayMove(color, *p);
+        state.PlayMove(*p);
         BookNode succ;
-        if (m_book->Get(brd, succ))
+        if (m_book->Get(state, succ))
         {
             cmd << " " << *p;
-            float priority = BookUtil::ComputePriority(brd, parent, 
+            float priority = BookUtil::ComputePriority(state, parent, 
                                                succ, m_bookBuilder.Alpha());
             float value = BookUtil::InverseEval(succ.m_value);
             if (HexEvalUtil::IsWin(value))
@@ -187,7 +186,7 @@ void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
             else
                 cmd << " " << std::fixed << std::setprecision(1) << priority;
         }
-        brd.UndoMove(*p);
+        state.UndoMove(*p);
     }
 }
 

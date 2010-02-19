@@ -41,28 +41,27 @@ namespace ProofUtil
         successfully added or updated. */
     template<class HASH, class DB, class DATA>
     int StoreTranspositions(SolverDB<HASH,DB,DATA>& db, const DATA& data,
-                            const StoneBoard& brd, HexColor toPlay,  
-                            const bitset_t& proof, HexColor winner);
+                            const HexState& state, const bitset_t& proof, 
+                            HexColor winner);
 
     /** Computes and stores in db the flipped transpostions of this
         proof on the given boardstate. Returns number of db entries
         successfully added or updated. */
     template<class HASH, class DB, class DATA>
     int StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
-                           const StoneBoard& brd, HexColor toPlay,  
-                           const bitset_t& proof, HexColor winner);
+                           const HexState& state, const bitset_t& proof, 
+                           HexColor winner);
 }
 
 //----------------------------------------------------------------------------
 
 template<class HASH, class DB, class DATA>
 int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db, 
-                                   const DATA& data, 
-                                   const StoneBoard& brd, HexColor toPlay,  
+                                   const DATA& data, const HexState& state,
                                    const bitset_t& proof, HexColor winner)
 {
-    SG_UNUSED(toPlay);
     boost::function_requires< HasFlagsConcept<DATA> >();
+    const StoneBoard& brd = state.Position();
 
     // Number of non-fillin game stones played
     int numBlack = (brd.GetPlayed(BLACK) & brd.Const().GetCells()).count();
@@ -89,7 +88,8 @@ int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db,
 
     // Write each transposition 
     int count = 0;
-    StoneBoard board(brd.Width(), brd.Height());
+    HexState myState(state);
+    StoneBoard& board = myState.Position();
     SortedSequence bseq(black.size(), numBlack);
     while (!bseq.finished()) 
     {
@@ -108,7 +108,7 @@ int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db,
             DATA ss(data);
             if (board.Hash() != brd.Hash())
                 ss.m_flags |= SolverDataFlags::TRANSPOSITION;
-            db.Put(board, ss);
+            db.Put(myState, ss);
             ++count;
             
             ++wseq;
@@ -120,11 +120,12 @@ int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db,
 
 template<class HASH, class DB, class DATA>
 int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
-                                  const StoneBoard& brd, HexColor toPlay,  
-                                  const bitset_t& proof, HexColor winner)
+                                  const HexState& state, const bitset_t& proof,
+                                  HexColor winner)
 {
     boost::function_requires< HasFlagsConcept<DATA> >();
     boost::function_requires< HasMirrorConcept<DATA> >();
+    const StoneBoard& brd = state.Position();
 
     // Start by computing the flipped board position.
     // This involves mirroring the stones and *flipping their colour*.
@@ -136,6 +137,7 @@ int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
     flippedBrd.AddColor(BLACK, flippedBlack);
     flippedBrd.AddColor(WHITE, flippedWhite);
     flippedBrd.SetPlayed(flippedBlack | flippedWhite);
+
     
     HexColor flippedWinner = !winner;
     bitset_t flippedProof = BoardUtils::Mirror(brd.Const(), proof);
@@ -181,8 +183,8 @@ int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
 	for (BitsetIterator i(flippedBlackToAdd); i; ++i) 
         {
 	    flippedBrd.PlayMove(BLACK, *i);
-	    HexAssert(!toPlay == flippedBrd.WhoseTurn());
-	    db.Put(flippedBrd, ss);
+	    HexAssert(!state.ToPlay() == flippedBrd.WhoseTurn());
+	    db.Put(HexState(flippedBrd, WHITE), ss);
 	    flippedBrd.UndoMove(*i);
             ++count;
 	}
@@ -192,8 +194,8 @@ int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
 	for (BitsetIterator i(flippedWhiteToRemove); i; ++i) 
         {
 	    flippedBrd.UndoMove(*i);
-	    HexAssert(!toPlay == flippedBrd.WhoseTurn());
-	    db.Put(flippedBrd, ss);
+	    HexAssert(!state.ToPlay() == flippedBrd.WhoseTurn());
+	    db.Put(HexState(flippedBrd, WHITE), ss);
 	    flippedBrd.PlayMove(WHITE, *i);
             ++count;
 	}
