@@ -74,11 +74,11 @@ InferiorCells.hpp \
 Move.hpp \
 PatternState.hpp \
 Pattern.hpp \
-PositionDB.hpp \
 Resistance.hpp \
 RingGodel.hpp \
 SearchedState.hpp \
 SequenceHash.hpp \
+StateDB.hpp \
 StoneBoard.hpp \
 TransTable.hpp \
 TwoDistance.hpp \

@@ -14,7 +14,7 @@
 #include "TransTable.hpp"
 #include "DfsData.hpp"
 #include "SolverDB.hpp"
-#include "PositionDB.hpp"
+#include "StateDB.hpp"
 #include "HexEval.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -25,18 +25,18 @@ _BEGIN_BENZENE_NAMESPACE_
 typedef TransTable<DfsData> DfsHashTable;
 
 /** Database for use in DfsSolver. */
-class DfsDB : public PositionDB<DfsData>
+class DfsDB : public StateDB<DfsData>
 {
 public:
     static const std::string DFS_DB_VERSION;
 
     DfsDB(const std::string& filename)
-        : PositionDB<DfsData>(filename, DFS_DB_VERSION)
+        : StateDB<DfsData>(filename, DFS_DB_VERSION)
     { }
 };
 
 /** Solver database combining both of the above. */
-typedef SolverDB<DfsHashTable, DfsDB, DfsData> DfsPositions;
+typedef SolverDB<DfsHashTable, DfsDB, DfsData> DfsStates;
 
 //----------------------------------------------------------------------------
 
@@ -237,7 +237,7 @@ public:
         solved.
     */
     HexColor Solve(HexBoard& board, HexColor toplay, DfsSolutionSet& solution,
-                   DfsPositions& positions, int depthLimit = -1, 
+                   DfsStates& positions, int depthLimit = -1, 
                    double timeLimit = -1.0);
 
     //------------------------------------------------------------------------
@@ -317,7 +317,7 @@ private:
 
     //------------------------------------------------------------------------
 
-    DfsPositions* m_positions;
+    DfsStates* m_positions;
 
     double m_start_time;
         

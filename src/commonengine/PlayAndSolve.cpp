@@ -11,7 +11,7 @@ using namespace benzene;
 
 PlayAndSolve::PlayAndSolve(HexBoard& playerBrd, HexBoard& solverBrd,
                            BenzenePlayer& player, DfpnSolver& solver,
-                           DfpnPositions& positions, const Game& game)
+                           DfpnStates& positions, const Game& game)
     : m_playerBrd(playerBrd),
       m_solverBrd(solverBrd),
       m_player(player),

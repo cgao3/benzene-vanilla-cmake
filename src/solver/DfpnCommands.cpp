@@ -15,7 +15,7 @@ DfpnCommands::DfpnCommands(Game& game, HexEnvironment& env,
                            DfpnSolver& solver,
                            boost::scoped_ptr<DfpnHashTable>& tt,
                            boost::scoped_ptr<DfpnDB>& db,
-                           DfpnPositions& positions)
+                           DfpnStates& positions)
     : m_game(game), 
       m_env(env),
       m_solver(solver),

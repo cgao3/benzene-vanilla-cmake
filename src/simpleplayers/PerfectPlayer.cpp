@@ -33,7 +33,7 @@ HexPoint RandomBit(const bitset_t& bs, SgRandom& random)
 
 //----------------------------------------------------------------------------
 
-PerfectPlayer::PerfectPlayer(DfpnSolver& solver, DfpnPositions& positions)
+PerfectPlayer::PerfectPlayer(DfpnSolver& solver, DfpnStates& positions)
     : BenzenePlayer(),
       m_solver(solver),
       m_positions(positions),
@@ -101,11 +101,11 @@ HexPoint PerfectPlayer::Search(const HexState& state, const Game& game,
         boost::scoped_ptr<DfpnHashTable> myTable(new DfpnHashTable(10));
         boost::scoped_ptr<DfpnDB> myDB(0);
         SolverDBParameters myParam;
-        DfpnPositions myPositions(myTable, myDB, myParam);
+        DfpnStates myStates(myTable, myDB, myParam);
         LogInfo() << "PerfectPlayer: Found win with empty pv at this state:\n";
         LogInfo() << brd << '\n';
         LogInfo() << "PerfectPlayer: Re-solving with temporary hash table.\n";
-        winner = m_solver.StartSearch(state, brd, myPositions, pv);
+        winner = m_solver.StartSearch(state, brd, myStates, pv);
         HexAssert(winner != EMPTY);
         HexAssert(!pv.empty());
         return pv[0];

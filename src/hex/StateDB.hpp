@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file PositionDB.hpp
+/** @file StateDB.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ struct RotatableConcept
 
 /** Concept of a state in a HashDB. */
 template<class T>
-struct PositionDBStateConcept
+struct StateDBStateConcept
 {
     void constraints() 
     {
@@ -62,9 +62,9 @@ struct PositionDBStateConcept
 
 /** Database of hex positions handling rotations. */
 template<class T>
-class PositionDB
+class StateDB
 {
-    BOOST_CLASS_REQUIRE(T, benzene, PositionDBStateConcept);
+    BOOST_CLASS_REQUIRE(T, benzene, StateDBStateConcept);
 
 public:
 
@@ -84,10 +84,10 @@ public:
     };
 
     /** Opens database, creates it if it does not exist. */
-    PositionDB(const std::string& filename, const std::string& type);
+    StateDB(const std::string& filename, const std::string& type);
 
     /** Closes database. */    
-    ~PositionDB();
+    ~StateDB();
 
     /** Returns true if position exists in database. */
     bool Exists(const HexState& pos) const;
@@ -109,7 +109,7 @@ private:
 };
 
 template<class T>
-PositionDB<T>::PositionDB(const std::string& filename,
+StateDB<T>::StateDB(const std::string& filename,
                           const std::string& type)
     : m_db(filename, type),
       m_stats()
@@ -117,18 +117,18 @@ PositionDB<T>::PositionDB(const std::string& filename,
 }
 
 template<class T>
-PositionDB<T>::~PositionDB()
+StateDB<T>::~StateDB()
 {
 }
 
 template<class T>
-bool PositionDB<T>::Exists(const HexState& state) const
+bool StateDB<T>::Exists(const HexState& state) const
 {
     return m_db.Exists(GetHash(state));
 }
 
 template<class T>
-bool PositionDB<T>::Get(const HexState& state, T& data) const
+bool StateDB<T>::Get(const HexState& state, T& data) const
 {
     m_stats.m_gets++;
     hash_t hash = GetHash(state);
@@ -144,7 +144,7 @@ bool PositionDB<T>::Get(const HexState& state, T& data) const
 }
 
 template<class T>
-bool PositionDB<T>::Put(const HexState& state, const T& data)
+bool StateDB<T>::Put(const HexState& state, const T& data)
 {
     m_stats.m_puts++;
     hash_t hash = GetHash(state);
@@ -158,20 +158,20 @@ bool PositionDB<T>::Put(const HexState& state, const T& data)
 }
 
 template<class T>
-void PositionDB<T>::Flush()
+void StateDB<T>::Flush()
 {
     m_db.Flush();
 }
 
 template<class T>
-typename PositionDB<T>::Statistics 
-PositionDB<T>::GetStatistics() const
+typename StateDB<T>::Statistics 
+StateDB<T>::GetStatistics() const
 {
     return m_stats;
 }
 
 template<class T>
-PositionDB<T>::Statistics::Statistics()
+StateDB<T>::Statistics::Statistics()
     : m_gets(0), 
       m_hits(0), 
       m_puts(0), 
@@ -180,10 +180,10 @@ PositionDB<T>::Statistics::Statistics()
 }
 
 template<class T>
-std::string PositionDB<T>::Statistics::Write() const
+std::string StateDB<T>::Statistics::Write() const
 {
     std::ostringstream os;
-    os << "PositionDB statistics\n"
+    os << "StateDB statistics\n"
        << "Reads      " << m_gets << '\n'
        << "Hits       " << m_hits << '\n'
        << "Writes     " << m_puts << '\n'
@@ -194,12 +194,12 @@ std::string PositionDB<T>::Statistics::Write() const
 //----------------------------------------------------------------------------
 
 /** Set of positions; handles rotations. */
-class PositionSet
+class StateSet
 {
 public:
-    PositionSet();
+    StateSet();
 
-    ~PositionSet();
+    ~StateSet();
 
     void Insert(const HexState& state);
 
@@ -211,25 +211,25 @@ private:
     std::set<hash_t> m_set;
 };
 
-inline PositionSet::PositionSet()
+inline StateSet::StateSet()
 {
 }
 
-inline PositionSet::~PositionSet()
+inline StateSet::~StateSet()
 {
 }
 
-inline void PositionSet::Insert(const HexState& state)
+inline void StateSet::Insert(const HexState& state)
 {
     m_set.insert(GetHash(state));
 }
 
-inline bool PositionSet::Exists(const HexState& state) const
+inline bool StateSet::Exists(const HexState& state) const
 {
     return m_set.count(GetHash(state)) > 0;
 }
 
-inline std::size_t PositionSet::Size() const
+inline std::size_t StateSet::Size() const
 {
     return m_set.size();
 }
@@ -238,12 +238,12 @@ inline std::size_t PositionSet::Size() const
 
 /** Map of positions; handles rotations. */
 template<class T>
-class PositionMap
+class StateMap
 {
 public:
-    PositionMap();
+    StateMap();
 
-    ~PositionMap();
+    ~StateMap();
 
     bool Exists(const HexState& state) const;
 
@@ -254,23 +254,23 @@ private:
 };
 
 template<class T>
-inline PositionMap<T>::PositionMap()
+inline StateMap<T>::StateMap()
 {
 }
 
 template<class T>
-inline PositionMap<T>::~PositionMap()
+inline StateMap<T>::~StateMap()
 {
 }
 
 template<class T>
-bool PositionMap<T>::Exists(const HexState& state) const
+bool StateMap<T>::Exists(const HexState& state) const
 {
     return m_map.find(GetHash(state)) != m_map.end();
 }
 
 template<class T>
-inline T& PositionMap<T>::operator[](const HexState& state)
+inline T& StateMap<T>::operator[](const HexState& state)
 {
     return m_map[GetHash(state)];
 }

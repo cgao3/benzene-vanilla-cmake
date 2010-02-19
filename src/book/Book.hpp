@@ -10,7 +10,7 @@
 #include "HexBoard.hpp"
 #include "HashDB.hpp"
 #include "HexEval.hpp"
-#include "PositionDB.hpp"
+#include "StateDB.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -205,13 +205,13 @@ inline std::ostream& operator<<(std::ostream& os, const BookNode& node)
 //----------------------------------------------------------------------------
 
 /** A book is just a database of BookNodes. */
-class Book : public PositionDB<BookNode>
+class Book : public StateDB<BookNode>
 {
 public:
     static const std::string BOOK_DB_VERSION;
 
     Book(const std::string& filename) 
-        : PositionDB<BookNode>(filename, BOOK_DB_VERSION)
+        : StateDB<BookNode>(filename, BOOK_DB_VERSION)
     { }
 };
 
@@ -263,7 +263,7 @@ namespace BookUtil
         the variation leading to the current state of the board. */
     void DumpPolarizedLeafs(const Book& book, HexState& brd,
                             float polarization, PointSequence& pv, 
-                            std::ostream& out, const PositionSet& ignoreSet);
+                            std::ostream& out, const StateSet& ignoreSet);
 
     /** Reads solved leaf positions from a file and adds them to the
         given book. Overwrites value of any existing states. */

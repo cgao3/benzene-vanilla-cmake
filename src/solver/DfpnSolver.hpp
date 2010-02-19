@@ -15,7 +15,7 @@
 #include "HexState.hpp"
 #include "Game.hpp"
 #include "TransTable.hpp"
-#include "PositionDB.hpp"
+#include "StateDB.hpp"
 #include "SolverDB.hpp"
 
 #include <limits>
@@ -391,20 +391,20 @@ typedef TransTable<DfpnData> DfpnHashTable;
 /** Database of solved positions. 
     @ingroup dfpn
 */
-class DfpnDB : public PositionDB<DfpnData>
+class DfpnDB : public StateDB<DfpnData>
 {
 public:
     static const std::string DFPN_DB_VERSION;
 
     DfpnDB(const std::string& filename)
-        : PositionDB<DfpnData>(filename, DFPN_DB_VERSION)
+        : StateDB<DfpnData>(filename, DFPN_DB_VERSION)
     { }
 };
 
 /** Combines a hashtable with a position db.
     @ingroup dfpn
 */
-typedef SolverDB<DfpnHashTable, DfpnDB, DfpnData> DfpnPositions;
+typedef SolverDB<DfpnHashTable, DfpnDB, DfpnData> DfpnStates;
 
 //----------------------------------------------------------------------------
 
@@ -423,10 +423,10 @@ public:
         Returns the color of the winning player (EMPTY if it could
         not determine a winner in time). */
     HexColor StartSearch(const HexState& state, HexBoard& brd, 
-                         DfpnPositions& positions, PointSequence& pv);
+                         DfpnStates& positions, PointSequence& pv);
 
     HexColor StartSearch(const HexState& state, HexBoard& brd, 
-                         DfpnPositions& positions, PointSequence& pv,
+                         DfpnStates& positions, PointSequence& pv,
                          const DfpnBounds& maxBounds);
 
     void AddListener(DfpnListener& listener);
@@ -437,7 +437,7 @@ public:
 
     /** Updates bounds from this state to start of game or a state
         is not in position set. */
-    void PropagateBackwards(const Game& game, DfpnPositions& pos);
+    void PropagateBackwards(const Game& game, DfpnStates& pos);
 
     //------------------------------------------------------------------------
 
@@ -522,7 +522,7 @@ private:
 
     HexBoard* m_workBoard;
 
-    DfpnPositions* m_positions;
+    DfpnStates* m_positions;
 
     std::vector<DfpnListener*> m_listener;
 

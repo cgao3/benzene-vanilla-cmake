@@ -315,14 +315,14 @@ std::string DfpnSolver::EvaluationInfo() const
 }
 
 HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
-                                 DfpnPositions& positions, PointSequence& pv)
+                                 DfpnStates& positions, PointSequence& pv)
 {
     return StartSearch(state, board, positions, pv, 
                        DfpnBounds(DfpnBounds::MAX_WORK, DfpnBounds::MAX_WORK));
 }
 
 HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
-                                 DfpnPositions& positions, PointSequence& pv,
+                                 DfpnStates& positions, PointSequence& pv,
                                  const DfpnBounds& maxBounds)
 {
     m_aborted = false;
@@ -791,7 +791,7 @@ void DfpnSolver::TTWrite(const HexState& state, const DfpnData& data)
 
 //----------------------------------------------------------------------------
 
-void DfpnSolver::PropagateBackwards(const Game& game, DfpnPositions& pos)
+void DfpnSolver::PropagateBackwards(const Game& game, DfpnStates& pos)
 {
     HexState state(game.Board(), BLACK);
     MoveSequence history(game.History());

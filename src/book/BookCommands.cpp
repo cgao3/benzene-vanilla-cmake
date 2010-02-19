@@ -169,7 +169,7 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
     cmd.CheckNuArgLessEqual(3);
     float polarization = cmd.FloatArg(0);
     std::string filename = cmd.Arg(1);
-    PositionSet ignoreSet;
+    StateSet ignoreSet;
     if (cmd.NuArg() == 3u)
     {
         std::string ignoreFile = cmd.Arg(2);

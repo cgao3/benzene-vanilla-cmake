@@ -29,7 +29,7 @@ class PlayAndSolve
 public:
     PlayAndSolve(HexBoard& playerBrd, HexBoard& solverBrd,
                  BenzenePlayer& player, DfpnSolver& solver,
-                 DfpnPositions& positions, const Game& game);
+                 DfpnStates& positions, const Game& game);
 
     HexPoint GenMove(const HexState& state, double maxTime);
 
@@ -78,7 +78,7 @@ private:
 
     DfpnSolver& m_solver;
 
-    DfpnPositions& m_positions;
+    DfpnStates& m_positions;
 
     const Game& m_game;
 

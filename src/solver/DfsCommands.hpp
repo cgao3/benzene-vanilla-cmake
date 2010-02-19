@@ -23,7 +23,7 @@ public:
     DfsCommands(Game& game, HexEnvironment& env, DfsSolver& solver,
                 boost::scoped_ptr<DfsHashTable>& tt, 
                 boost::scoped_ptr<DfsDB>& db, 
-                DfsPositions& positions);
+                DfsStates& positions);
 
     void Register(GtpEngine& engine);
 
@@ -38,7 +38,7 @@ private:
 
     boost::scoped_ptr<DfsDB>& m_db;
 
-    DfsPositions& m_positions;
+    DfsStates& m_positions;
 
     void Register(GtpEngine& engine, const std::string& command,
                   GtpCallback<DfsCommands>::Method method);

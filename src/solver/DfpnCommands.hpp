@@ -24,7 +24,7 @@ public:
     DfpnCommands(Game& game, HexEnvironment& env, DfpnSolver& solver,
                  boost::scoped_ptr<DfpnHashTable>& hashTable,
                  boost::scoped_ptr<DfpnDB>& db,
-                 DfpnPositions& positions);
+                 DfpnStates& positions);
 
     void Register(GtpEngine& engine);
 
@@ -39,7 +39,7 @@ private:
 
     boost::scoped_ptr<DfpnDB>& m_db;
     
-    DfpnPositions& m_positions;
+    DfpnStates& m_positions;
 
     void Register(GtpEngine& engine, const std::string& command,
                   GtpCallback<DfpnCommands>::Method method);

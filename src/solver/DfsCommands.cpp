@@ -17,7 +17,7 @@ DfsCommands::DfsCommands(Game& game, HexEnvironment& env,
                          DfsSolver& solver, 
                          boost::scoped_ptr<DfsHashTable>& hashTable, 
                          boost::scoped_ptr<DfsDB>& db, 
-                         DfsPositions& positions)
+                         DfsStates& positions)
     : m_game(game), 
       m_env(env),
       m_solver(solver),

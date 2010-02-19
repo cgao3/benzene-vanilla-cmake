@@ -1,10 +1,10 @@
 //---------------------------------------------------------------------------
-/** @file PositionDBTest.cpp
+/** @file StateDBTest.cpp
  */
 //---------------------------------------------------------------------------
 #include <boost/test/auto_unit_test.hpp>
 
-#include "PositionDB.hpp"
+#include "StateDB.hpp"
 
 using namespace benzene;
 
@@ -12,7 +12,7 @@ using namespace benzene;
 
 namespace {
 
-BOOST_AUTO_TEST_CASE(PositionDB_PositionSet)
+BOOST_AUTO_TEST_CASE(StateDB_StateSet)
 {
     StoneBoard b1(3, 3, "Bbw"
                         ".Ww"
@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(PositionDB_PositionSet)
     HexState sb1(b1, BLACK);
     HexState srb1(rb1, BLACK);
 
-    PositionSet set;
+    StateSet set;
     BOOST_CHECK(!set.Exists(sb1));
 
     set.Insert(sb1);
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(PositionDB_PositionSet)
     BOOST_CHECK(!set.Exists(sb2));
 }
 
-BOOST_AUTO_TEST_CASE(PositionDB_PositionMap)
+BOOST_AUTO_TEST_CASE(StateDB_StateMap)
 {
     StoneBoard b1(3, 3, "Bbw"
                         ".Ww"
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(PositionDB_PositionMap)
     HexState srb1(rb1, BLACK);
     HexState srb2(rb2, BLACK);
 
-    PositionMap<int> map;
+    StateMap<int> map;
     BOOST_CHECK(!map.Exists(sb1));
     
     map[sb1] = 5;

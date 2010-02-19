@@ -56,7 +56,7 @@ DfsSolver::~DfsSolver()
 //----------------------------------------------------------------------------
 
 HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay, 
-                          DfsSolutionSet& solution, DfsPositions& positions,
+                          DfsSolutionSet& solution, DfsStates& positions,
                           int depthLimit, double timeLimit)
 {
     m_positions = &positions;

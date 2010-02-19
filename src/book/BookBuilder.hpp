@@ -12,7 +12,7 @@
 #include "HashDB.hpp"
 #include "Book.hpp"
 #include "EndgameUtils.hpp"
-#include "PositionDB.hpp"
+#include "StateDB.hpp"
 #include "Resistance.hpp"
 #include "ThreadedWorker.hpp"
 #include "Time.hpp"
@@ -154,9 +154,9 @@ private:
 
     void DoExpansion(HexState& brd, PointSequence& pv);
 
-    bool Refresh(HexState& brd, PositionSet& seen, bool root);
+    bool Refresh(HexState& brd, StateSet& seen, bool root);
 
-    void IncreaseWidth(HexState& brd, PositionSet& seen, bool root);
+    void IncreaseWidth(HexState& brd, StateSet& seen, bool root);
 
     void CreateWorkers();
 
@@ -353,7 +353,7 @@ void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board,
             GetNode(state, root);
             if (root.IsTerminal()) 
             {
-                LogInfo() << "Position solved!" << '\n';
+                LogInfo() << "State solved!" << '\n';
                 break;
             }
         }
@@ -398,7 +398,7 @@ void BookBuilder<PLAYER>::Refresh(Book& book, HexBoard& board)
     CreateWorkers();
 
     LogInfo() << "Refreshing DB..." << '\n';
-    PositionSet seen;
+    StateSet seen;
     Refresh(state, seen, true);
 
     LogInfo() << "Flushing DB..." << '\n';
@@ -440,7 +440,7 @@ void BookBuilder<PLAYER>::IncreaseWidth(Book& book, HexBoard& board)
     CreateWorkers();
 
     LogInfo() << "Increasing DB's width..." << '\n';
-    PositionSet seen;
+    StateSet seen;
     IncreaseWidth(state, seen, true);
 
     LogInfo() << "Flushing DB..." << '\n';
@@ -729,7 +729,7 @@ void BookBuilder<PLAYER>::DoExpansion(HexState& state, PointSequence& pv)
     @ref bookrefresh
 */
 template<class PLAYER>
-bool BookBuilder<PLAYER>::Refresh(HexState& state, PositionSet& seen,
+bool BookBuilder<PLAYER>::Refresh(HexState& state, StateSet& seen,
                                   bool root)
 {
     if (seen.Exists(state))
@@ -772,7 +772,7 @@ bool BookBuilder<PLAYER>::Refresh(HexState& state, PositionSet& seen,
 //----------------------------------------------------------------------------
 
 template<class PLAYER>
-void BookBuilder<PLAYER>::IncreaseWidth(HexState& state, PositionSet& seen,
+void BookBuilder<PLAYER>::IncreaseWidth(HexState& state, StateSet& seen,
                                         bool root)
 {
     if (seen.Exists(state))

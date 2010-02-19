@@ -23,7 +23,7 @@ class PerfectPlayer : public BenzenePlayer
 {
 public:
 
-    explicit PerfectPlayer(DfpnSolver& solver, DfpnPositions& positions);
+    explicit PerfectPlayer(DfpnSolver& solver, DfpnStates& positions);
 
     virtual ~PerfectPlayer();
     
@@ -45,7 +45,7 @@ public:
 private:
     DfpnSolver& m_solver;
 
-    DfpnPositions& m_positions;
+    DfpnStates& m_positions;
 
     double m_maxTime;
 

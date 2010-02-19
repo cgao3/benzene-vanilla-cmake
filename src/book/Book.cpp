@@ -115,7 +115,7 @@ namespace
 {
 
 std::size_t TreeSize(const Book& book, HexState& state, 
-                     PositionMap<std::size_t>& solved)
+                     StateMap<std::size_t>& solved)
 {
     if (solved.Exists(state))
         return solved[state];
@@ -137,7 +137,7 @@ std::size_t TreeSize(const Book& book, HexState& state,
 
 std::size_t BookUtil::GetTreeSize(const Book& book, const HexState& origState)
 {
-    PositionMap<std::size_t> solved;
+    StateMap<std::size_t> solved;
     HexState state(origState);
     return TreeSize(book, state, solved);
 }
@@ -282,9 +282,9 @@ void BookUtil::DumpVisualizationData(const Book& book, HexState& state,
 namespace {
 
 void DumpPolarizedLeafs(const Book& book, HexState& state,
-                        float polarization, PositionSet& seen,
+                        float polarization, StateSet& seen,
                         PointSequence& pv, std::ostream& out,
-                        const PositionSet& ignoreSet)
+                        const StateSet& ignoreSet)
 {
     if (seen.Exists(state))
         return;
@@ -320,9 +320,9 @@ void DumpPolarizedLeafs(const Book& book, HexState& state,
 void BookUtil::DumpPolarizedLeafs(const Book& book, HexState& state,
                                   float polarization, PointSequence& pv, 
                                   std::ostream& out, 
-                                  const PositionSet& ignoreSet)
+                                  const StateSet& ignoreSet)
 {
-    PositionSet seen;
+    StateSet seen;
     ::DumpPolarizedLeafs(book, state, polarization, seen, pv, out, ignoreSet);
 }
 
