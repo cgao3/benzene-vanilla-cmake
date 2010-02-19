@@ -73,7 +73,8 @@ std::string DumpPV(HexEval value, const std::vector<HexPoint>& pv)
 
 HexAbSearch::HexAbSearch()
     : m_brd(0),
-      m_tt(0)
+      m_tt(0),
+      m_use_guifx(false)
 {
 }
 
