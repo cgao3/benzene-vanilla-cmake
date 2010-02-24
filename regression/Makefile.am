@@ -293,6 +293,7 @@ sgf/puzzles/9x9-henderson-65.sgf \
 sgf/puzzles/9x9-henderson-67.sgf \
 sgf/puzzles/9x9-henderson-68.sgf \
 sgf/puzzles/9x9-henderson-69.sgf \
+sgf/puzzles/9x9-henderson-70.sgf \
 sgf/vc/b10-is-key2.sgf \
 sgf/vc/b10-is-key.sgf \
 sgf/vc/black-has-winning-SC-with-f7-key.sgf \
