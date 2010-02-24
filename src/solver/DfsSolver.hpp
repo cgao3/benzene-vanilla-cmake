@@ -236,7 +236,8 @@ public:
         Returns color of winner or EMPTY if aborted before state was
         solved.
     */
-    HexColor Solve(HexBoard& board, HexColor toplay, DfsSolutionSet& solution,
+    HexColor Solve(const HexState& state, HexBoard& board, 
+                   DfsSolutionSet& solution,
                    DfsStates& positions, int depthLimit = -1, 
                    double timeLimit = -1.0);
 

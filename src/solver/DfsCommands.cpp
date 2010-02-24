@@ -138,8 +138,9 @@ void DfsCommands::CmdSolveState(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     if (brd.ICE().FindPermanentlyInferior())
         throw HtpFailure("Permanently inferior not supported in DfsSolver.");
+    HexState state(m_game.Board(), color);
     DfsSolutionSet solution;
-    HexColor winner = m_solver.Solve(brd, color, solution, m_positions);
+    HexColor winner = m_solver.Solve(state, brd, solution, m_positions);
     m_solver.DumpStats(solution);
     if (winner != EMPTY) 
         LogInfo() << winner << " wins!\n" << brd.Write(solution.proof) << '\n';
@@ -172,18 +173,19 @@ void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
                          EndgameUtils::MovesToConsider(brd, color));
     bitset_t winning;
     SgTimer timer;
+    HexState state(m_game.Board(), color);
     for (BitsetIterator p(consider); p; ++p)
     {
 	if (!consider.test(*p))
             continue;
-        StoneBoard board(m_game.Board());
-        board.PlayMove(color, *p);
-        HexBoard& brd = m_env.SyncBoard(board);
+        state.PlayMove(*p);
+        HexBoard& brd = m_env.SyncBoard(state.Position());
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
         DfsSolutionSet solution;
-        HexColor winner = m_solver.Solve(brd, !color, solution, m_positions);
+        HexColor winner = m_solver.Solve(state, brd, solution, m_positions);
         m_solver.DumpStats(solution);
         LogInfo() << "Proof:" << brd.Write(solution.proof) << '\n';
+        state.UndoMove(*p);
 
         if (winner != EMPTY) 
             LogInfo() << "****** " << winner << " wins ******\n";

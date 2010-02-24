@@ -55,7 +55,7 @@ DfsSolver::~DfsSolver()
 
 //----------------------------------------------------------------------------
 
-HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay, 
+HexColor DfsSolver::Solve(const HexState& state, HexBoard& brd,
                           DfsSolutionSet& solution, DfsStates& positions,
                           int depthLimit, double timeLimit)
 {
@@ -68,16 +68,16 @@ HexColor DfsSolver::Solve(HexBoard& brd, HexColor toPlay,
     m_histogram = DfsHistogram();
     m_last_histogram_dump = 0;
     m_statistics = GlobalStatistics();
-    m_state.reset(new HexState(brd.GetPosition(), toPlay));
+    m_state.reset(new HexState(state));
 
     // DfsSolver currently cannot handle permanently inferior cells.
     if (brd.ICE().FindPermanentlyInferior())
         throw BenzeneException("Permanently Inferior not supported "
                                "in DfsSolver!");
-
-    // Check if move already is already solved
+    // Check if state is already solved
     DfsData data;
     bool win = false;
+    HexColor toPlay = state.ToPlay();
     if (CheckTransposition(data))
     {
         LogInfo() << "DfsSolver: Found cached result!\n";
