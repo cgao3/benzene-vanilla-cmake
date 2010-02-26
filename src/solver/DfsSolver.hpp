@@ -320,6 +320,8 @@ private:
 
     DfsStates* m_positions;
 
+    HexBoard* m_workBrd;
+
     double m_start_time;
         
     double m_end_time;
@@ -360,9 +362,9 @@ private:
 
     //------------------------------------------------------------------------
 
-    void PlayMove(HexBoard& brd, HexPoint cell);
+    void PlayMove(HexPoint cell);
     
-    void UndoMove(HexBoard& brd, HexPoint cell);
+    void UndoMove(HexPoint cell);
 
     bool CheckTransposition(DfsData& state) const;
 
@@ -370,26 +372,22 @@ private:
 
     bool CheckAbort();
     
-    bool HandleLeafNode(const HexBoard& brd, DfsData& state, 
-                        bitset_t& proof) const;
+    bool HandleLeafNode(DfsData& state, bitset_t& proof) const;
 
-    bool HandleTerminalNode(const HexBoard& brd, DfsData& state, 
-                            bitset_t& proof) const;
+    bool HandleTerminalNode(DfsData& state, bitset_t& proof) const;
 
-    bool OrderMoves(HexBoard& brd, bitset_t& mustplay, 
-                    DfsSolutionSet& solution, 
+    bool OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution, 
                     std::vector<HexMoveValue>& moves);
 
-    bool SolveState(HexBoard& brd, PointSequence& variation, 
-                    DfsSolutionSet& solution);
+    bool SolveState(PointSequence& variation, DfsSolutionSet& solution);
 
-    bool SolveDecomposition(HexBoard& brd, PointSequence& variation,
+    bool SolveDecomposition(PointSequence& variation,
                             DfsSolutionSet& solution, HexPoint group);
 
-    bool SolveInteriorState(HexBoard& brd, PointSequence& variation, 
+    bool SolveInteriorState(PointSequence& variation, 
                             DfsSolutionSet& solution);
 
-    void HandleProof(const HexBoard& brd, const PointSequence& variation,
+    void HandleProof(const PointSequence& variation,
                      bool winning_state, DfsSolutionSet& solution);
 };
 

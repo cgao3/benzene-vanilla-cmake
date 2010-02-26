@@ -69,9 +69,10 @@ HexColor DfsSolver::Solve(const HexState& state, HexBoard& brd,
     m_last_histogram_dump = 0;
     m_statistics = GlobalStatistics();
     m_state.reset(new HexState(state));
+    m_workBrd = &brd;
 
     // DfsSolver currently cannot handle permanently inferior cells.
-    if (brd.ICE().FindPermanentlyInferior())
+    if (m_workBrd->ICE().FindPermanentlyInferior())
         throw BenzeneException("Permanently Inferior not supported "
                                "in DfsSolver!");
     // Check if state is already solved
@@ -90,12 +91,12 @@ HexColor DfsSolver::Solve(const HexState& state, HexBoard& brd,
     }
     else
     {
-        brd.ComputeAll(toPlay);
+        m_workBrd->ComputeAll(toPlay);
         m_completed.resize(BITSETSIZE);
         PointSequence variation;
-        win = SolveState(brd, variation, solution);
+        win = SolveState(variation, solution);
     }
-    solution.proof &= brd.GetPosition().GetEmpty();
+    solution.proof &= m_state->Position().GetEmpty();
     m_end_time = Time::Get();
     if (m_aborted) 
         return EMPTY;
@@ -154,11 +155,10 @@ bool DfsSolver::CheckAbort()
 /** Returns true if node is terminal. Fills in data if terminal.
     Data's bestmove field is not specified here.
 */
-bool DfsSolver::HandleTerminalNode(const HexBoard& brd, DfsData& data, 
-                                   bitset_t& proof) const
+bool DfsSolver::HandleTerminalNode(DfsData& data, bitset_t& proof) const
 {
     int numstones = m_state->Position().NumStones();
-    if (EndgameUtils::IsWonGame(brd, m_state->ToPlay(), proof)) 
+    if (EndgameUtils::IsWonGame(*m_workBrd, m_state->ToPlay(), proof)) 
     {
         data.m_win = true;
         data.m_numMoves = 0;
@@ -166,7 +166,7 @@ bool DfsSolver::HandleTerminalNode(const HexBoard& brd, DfsData& data,
         m_histogram.terminal[numstones]++;
         return true;
     } 
-    else if (EndgameUtils::IsLostGame(brd, m_state->ToPlay(), proof)) 
+    else if (EndgameUtils::IsLostGame(*m_workBrd, m_state->ToPlay(), proof)) 
     {
         data.m_win = false;
         data.m_numMoves = 0;
@@ -179,15 +179,15 @@ bool DfsSolver::HandleTerminalNode(const HexBoard& brd, DfsData& data,
 
 /** Returns true if current data is a terminal node (win/loss), or a
     DB/TT hit. If so, info is stored in data. */
-bool DfsSolver::HandleLeafNode(const HexBoard& brd, DfsData& data, 
-                               bitset_t& proof) const
+bool DfsSolver::HandleLeafNode(DfsData& data, bitset_t& proof) const
 {
-    if (HandleTerminalNode(brd, data, proof))
+    if (HandleTerminalNode(data, proof))
         return true;
     if (CheckTransposition(data))
     {
         HexColor color = m_state->ToPlay();
-        proof = ProofUtil::MaximumProofSet(brd, data.m_win ? color : !color);
+        proof = ProofUtil::MaximumProofSet(*m_workBrd, 
+                                           data.m_win ? color : !color);
     }
     return false;
 }
@@ -196,8 +196,7 @@ bool DfsSolver::HandleLeafNode(const HexBoard& brd, DfsData& data,
 
 /** Solves the current state. Handles decompositions if option is
     turned on. */
-bool DfsSolver::SolveState(HexBoard& brd, PointSequence& variation, 
-                           DfsSolutionSet& solution)
+bool DfsSolver::SolveState(PointSequence& variation, DfsSolutionSet& solution)
 {
     if (CheckAbort()) 
         return false;
@@ -206,7 +205,7 @@ bool DfsSolver::SolveState(HexBoard& brd, PointSequence& variation,
     {
         DfsData data;
         bitset_t proof;
-        if (HandleLeafNode(brd, data, proof)) 
+        if (HandleLeafNode(data, proof)) 
         {
             solution.pv.clear();
             solution.m_numMoves = data.m_numMoves;
@@ -225,19 +224,18 @@ bool DfsSolver::SolveState(HexBoard& brd, PointSequence& variation,
         HexColor color = m_state->ToPlay();
         HexPoint group;
         if (m_use_decompositions
-            && BoardUtils::FindSplittingDecomposition(brd, !color, group))
+            && BoardUtils::FindSplittingDecomposition(*m_workBrd, !color, group))
         {
-            winning_state = SolveDecomposition(brd, variation, 
-                                               solution, group);
+            winning_state = SolveDecomposition(variation, solution, group);
         } 
         else 
         {
-            winning_state = SolveInteriorState(brd, variation, solution);
+            winning_state = SolveInteriorState(variation, solution);
         }
     }
 
     // Shrink, verify, and store proof in DB/TT.
-    HandleProof(brd, variation, winning_state, solution);
+    HandleProof(variation, winning_state, solution);
 
     // Dump histogram every 1M moves
     if ((m_statistics.played / 1000000) > (m_last_histogram_dump)) 
@@ -250,16 +248,15 @@ bool DfsSolver::SolveState(HexBoard& brd, PointSequence& variation,
 
 /** Solves each side of the decompsosition; combines proofs if
     necessary. */
-bool DfsSolver::SolveDecomposition(HexBoard& brd, PointSequence& variation,
-                                   DfsSolutionSet& solution,
-                                   HexPoint group)
+bool DfsSolver::SolveDecomposition(PointSequence& variation,
+                                   DfsSolutionSet& solution, HexPoint group)
 {
     HexColor color = m_state->ToPlay();
     solution.stats.decompositions++;
 
     // Compute the carriers for each side 
     PointToBitset nbs;
-    GraphUtils::ComputeDigraph(brd.GetGroups(), !color, nbs);
+    GraphUtils::ComputeDigraph(m_workBrd->GetGroups(), !color, nbs);
     bitset_t stopset = nbs[group];
 
     bitset_t carrier[2];
@@ -270,19 +267,21 @@ bool DfsSolver::SolveDecomposition(HexBoard& brd, PointSequence& variation,
 
     if ((carrier[0] & carrier[1]).any())
         throw BenzeneException()
-            << "DfsSolver::solve_decomposition:\n"
-            << "Side0:" << brd.Write(carrier[0]) << '\n'
-            << "Side1:" << brd.Write(carrier[1]) << '\n';
+            << "DfsSolver::SolveDecomposition:\n"
+            << "Side0:" << m_workBrd->Write(carrier[0]) << '\n'
+            << "Side1:" << m_workBrd->Write(carrier[1]) << '\n';
         
     DfsData data;
     DfsSolutionSet dsolution[2];
     for (int s = 0; s < 2; ++s) 
     {
         bool win = false;
-        brd.PlayStones(!color, carrier[s^1] & brd.Const().GetCells(), color);
+        m_workBrd->PlayStones(!color, 
+                              carrier[s^1] & m_workBrd->Const().GetCells(), 
+                              color);
 
         bitset_t proof;
-        if (HandleTerminalNode(brd, data, proof)) 
+        if (HandleTerminalNode(data, proof)) 
         {
             win = data.m_win;
             dsolution[s].proof = proof;
@@ -294,9 +293,9 @@ bool DfsSolver::SolveDecomposition(HexBoard& brd, PointSequence& variation,
             dsolution[s].stats.total_states = 1;
         } 
         else 
-            win = SolveInteriorState(brd, variation, dsolution[s]);
+            win = SolveInteriorState(variation, dsolution[s]);
 
-        brd.UndoMove();
+        m_workBrd->UndoMove();
 
         if (win) 
         {
@@ -317,13 +316,13 @@ bool DfsSolver::SolveDecomposition(HexBoard& brd, PointSequence& variation,
     
     solution.proof = (dsolution[0].proof & carrier[0]) 
         | (dsolution[1].proof & carrier[1]) 
-        | brd.GetPosition().GetColor(!color);
-    solution.proof = solution.proof - brd.GetDead();
+        | m_workBrd->GetPosition().GetColor(!color);
+    solution.proof = solution.proof - m_workBrd->GetDead();
     return false;
 }
 
 /** Does the recursive mustplay search. */
-bool DfsSolver::SolveInteriorState(HexBoard& brd, PointSequence& variation,
+bool DfsSolver::SolveInteriorState(PointSequence& variation,
                                    DfsSolutionSet& solution)
 {
     HexColor color = m_state->ToPlay();
@@ -336,8 +335,8 @@ bool DfsSolver::SolveInteriorState(HexBoard& brd, PointSequence& variation,
     // Basically, we are assuming the opponent will win from this state;
     // if we win instead, we use the proof generated from that state,
     // not this one. 
-    solution.proof = ProofUtil::InitialProofForOpponent(brd, color);
-    bitset_t mustplay = EndgameUtils::MovesToConsider(brd, color);
+    solution.proof = ProofUtil::InitialProofForOpponent(*m_workBrd, color);
+    bitset_t mustplay = EndgameUtils::MovesToConsider(*m_workBrd, color);
     HexAssert(mustplay.any());
 
     int depth = variation.size();
@@ -356,10 +355,10 @@ bool DfsSolver::SolveInteriorState(HexBoard& brd, PointSequence& variation,
         }
         os << '\n';
         os << "LABEL ";
-        const InferiorCells& inf = brd.GetInferiorCells();
+        const InferiorCells& inf = m_workBrd->GetInferiorCells();
         os << inf.GuiOutput();
-        os << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetPosition(), mustplay, 
-                                                    inf.All());
+        os << BoardUtils::GuiDumpOutsideConsiderSet(m_workBrd->GetPosition(), 
+                                                    mustplay, inf.All());
         os << '\n';
         os << "TEXT";
         for (int i = 0; i < depth; ++i) 
@@ -389,7 +388,7 @@ bool DfsSolver::SolveInteriorState(HexBoard& brd, PointSequence& variation,
     // state is a loss).
     solution.m_numMoves = -1;
     std::vector<HexMoveValue> moves;
-    bool winning_state = OrderMoves(brd, mustplay, solution, moves);
+    bool winning_state = OrderMoves(mustplay, solution, moves);
 
     //----------------------------------------------------------------------
     // Expand all moves in mustplay that were not leaf states.
@@ -409,11 +408,11 @@ bool DfsSolver::SolveInteriorState(HexBoard& brd, PointSequence& variation,
         }
 
         DfsSolutionSet child;
-        PlayMove(brd, cell);
+        PlayMove(cell);
         variation.push_back(cell);
-        bool win = !SolveState(brd, variation, child);
+        bool win = !SolveState(variation, child);
         variation.pop_back();
-        UndoMove(brd, cell);
+        UndoMove(cell);
         solution.stats += child.stats;
 
         if (win) 
@@ -460,8 +459,7 @@ bool DfsSolver::SolveInteriorState(HexBoard& brd, PointSequence& variation,
 }
 
 /** Shrinks/verifies proof then stores it. */
-void DfsSolver::HandleProof(const HexBoard& brd, 
-                            const PointSequence& variation,
+void DfsSolver::HandleProof(const PointSequence& variation,
                             bool winning_state, DfsSolutionSet& solution)
 {
     if (m_aborted)
@@ -470,37 +468,39 @@ void DfsSolver::HandleProof(const HexBoard& brd,
     HexColor winner = (winning_state) ? color : !color;
     HexColor loser = !winner;
     // Verify loser's stones do not intersect proof
-    if ((brd.GetPosition().GetColor(loser) & solution.proof).any()) 
+    if ((m_workBrd->GetPosition().GetColor(loser) & solution.proof).any()) 
         throw BenzeneException()
-            << "DfsSolver::handle_proof:\n"
+            << "DfsSolver::HandleProof:\n"
             << color << " to play.\n"
             << loser << " loses.\n"
             << "Losing stones hit proof:\n"
-            << brd.Write(solution.proof) << '\n'
-            << brd << '\n'
+            << m_workBrd->Write(solution.proof) << '\n'
+            << *m_workBrd << '\n'
             << "PV: " << HexPointUtil::ToString(variation) << '\n';
     // Verify dead cells do not intersect proof
-    if ((brd.GetDead() & solution.proof).any()) 
+    if ((m_workBrd->GetDead() & solution.proof).any()) 
         throw BenzeneException()
-            << "DfsSolver::handle_proof:\n"
+            << "DfsSolver::HandleProof:\n"
             << color << " to play.\n"
             << loser << " loses.\n"
             << "Dead cells hit proof:\n"
-            << brd.Write(solution.proof) << '\n'
-            << brd << '\n'
+            << m_workBrd->Write(solution.proof) << '\n'
+            << *m_workBrd << '\n'
             << "PV: " << HexPointUtil::ToString(variation) << '\n';
     // Shrink proof
     bitset_t old_proof = solution.proof;
     if (m_shrink_proofs) 
     {
         ProofUtil::ShrinkProof(solution.proof, m_state->Position(), loser, 
-                               brd.ICE());
+                               m_workBrd->ICE());
         bitset_t pruned;
-        pruned  = BoardUtils::ReachableOnBitset(brd.Const(), solution.proof, 
-                                 EMPTY_BITSET,
+        pruned  = BoardUtils::ReachableOnBitset(m_workBrd->Const(), 
+                                                solution.proof, 
+                                                EMPTY_BITSET,
                                  HexPointUtil::colorEdge1(winner));
-        pruned &= BoardUtils::ReachableOnBitset(brd.Const(), solution.proof, 
-                                 EMPTY_BITSET,
+        pruned &= BoardUtils::ReachableOnBitset(m_workBrd->Const(), 
+                                                solution.proof, 
+                                                EMPTY_BITSET,
                                  HexPointUtil::colorEdge2(winner));
         solution.proof = pruned;
 
@@ -512,16 +512,16 @@ void DfsSolver::HandleProof(const HexBoard& brd,
         }
     }
     // Verify proof touches both of winner's edges
-    if (!BoardUtils::ConnectedOnBitset(brd.Const(), solution.proof, 
+    if (!BoardUtils::ConnectedOnBitset(m_workBrd->Const(), solution.proof, 
                                        HexPointUtil::colorEdge1(winner),
                                        HexPointUtil::colorEdge2(winner)))
         throw BenzeneException()
-            << "DfsSolver::handle_proof:\n"
+            << "DfsSolver::HandleProof:\n"
             << "Proof does not touch both edges!\n"
-            << brd.Write(solution.proof) << '\n'
+            << m_workBrd->Write(solution.proof) << '\n'
             << "Original proof:\n"
-            << brd.Write(old_proof) << '\n'
-            << brd << '\n'
+            << m_workBrd->Write(old_proof) << '\n'
+            << *m_workBrd << '\n'
             << color << " to play.\n"
             << "PV: " << HexPointUtil::ToString(variation) << '\n';
 
@@ -541,19 +541,19 @@ void DfsSolver::HandleProof(const HexBoard& brd,
 //----------------------------------------------------------------------------
 
 /** Plays the move; updates the board.  */
-void DfsSolver::PlayMove(HexBoard& brd, HexPoint cell) 
+void DfsSolver::PlayMove(HexPoint cell) 
 {
     m_statistics.played++;
-    brd.PlayMove(m_state->ToPlay(), cell);
+    m_workBrd->PlayMove(m_state->ToPlay(), cell);
     m_state->PlayMove(cell);
 
 }
 
 /** Takes back the move played. */
-void DfsSolver::UndoMove(HexBoard& brd, HexPoint cell)
+void DfsSolver::UndoMove(HexPoint cell)
 {
     m_state->UndoMove(cell);
-    brd.UndoMove();
+    m_workBrd->UndoMove();
 }
 
 //----------------------------------------------------------------------------
@@ -567,8 +567,7 @@ void DfsSolver::UndoMove(HexBoard& brd, HexPoint cell)
 
     Returns true if it found a TT win, false otherwise.
 */
-bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay, 
-                           DfsSolutionSet& solution,
+bool DfsSolver::OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution,
                            std::vector<HexMoveValue>& moves)
 {        
     LogFine() << "OrderMoves\n";
@@ -588,7 +587,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay,
     bitset_t losingMoves;
     for (BitsetIterator it(mustplay); !found_win && it; ++it)
     {
-	brd.GetPosition().PlayMove(color, *it);
+	m_workBrd->GetPosition().PlayMove(color, *it);
 	m_state->PlayMove(*it);
 
 	DfsData data;
@@ -606,7 +605,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay,
 		
 		// This state plus the child winning state (which is a leaf).
 		solution.stats.minimal_explored = 2;
-                solution.proof = ProofUtil::MaximumProofSet(brd, color);
+                solution.proof = ProofUtil::MaximumProofSet(*m_workBrd, color);
 		solution.m_numMoves = data.m_numMoves + 1;
                 solution.SetPV(*it);
 	    } 
@@ -620,12 +619,12 @@ bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay,
                     solution.SetPV(*it);
 		}
 		// Will prune the mustplay later on with the proof
-                bitset_t proof = ProofUtil::MaximumProofSet(brd, !color);
+                bitset_t proof = ProofUtil::MaximumProofSet(*m_workBrd, !color);
 		proof_intersection &= proof;
 		proof_union |= proof;
 	    }
 	}
-	brd.GetPosition().UndoMove(*it);
+	m_workBrd->GetPosition().UndoMove(*it);
 	m_state->UndoMove(*it);
     }
     
@@ -646,7 +645,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay,
     if (with_resist && with_ordering)
     {
         resist.reset(new Resistance());
-        resist->Evaluate(brd);
+        resist->Evaluate(*m_workBrd);
     }
     
     moves.clear();
@@ -675,12 +674,12 @@ bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay,
 	    // 8x8 is no longer solvable. However, it is very expensive!
             if (with_mustplay)
 	    {
-                PlayMove(brd, *it);
+                PlayMove(*it);
                 
                 DfsData data;
                 bitset_t proof;
 		// No need to check DB/TT since did this above
-		if (HandleTerminalNode(brd, data, proof))
+		if (HandleTerminalNode(data, proof))
 		{
                     exact_score = true;
                     solution.stats.minimal_explored++;
@@ -717,13 +716,13 @@ bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay,
                     // Do we force a mustplay on our opponent?
                     HexPoint edge1 = HexPointUtil::colorEdge1(color);
                     HexPoint edge2 = HexPointUtil::colorEdge2(color);
-                    if (brd.Cons(color).Exists(edge1, edge2, VC::SEMI))
+                    if (m_workBrd->Cons(color).Exists(edge1, edge2, VC::SEMI))
                         winning_semi_exists = true;
-                    bitset_t mp = VCUtils::GetMustplay(brd, other);
+                    bitset_t mp = VCUtils::GetMustplay(*m_workBrd, other);
                     mustplay_size = mp.count();
                 } 
                 
-                UndoMove(brd, *it);
+                UndoMove(*it);
             } // end of mustplay move ordering
 
             // Perform move ordering 
@@ -732,7 +731,7 @@ bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay,
                 if (with_center)
 		{
                     fromcenter 
-                        += DfsSolverUtil::DistanceFromCenter(brd.Const(), *it);
+                        += DfsSolverUtil::DistanceFromCenter(m_workBrd->Const(), *it);
                 }
                 if (with_resist)
 		{
@@ -742,9 +741,9 @@ bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay,
                 tiebreaker = (with_resist) ? 100.0 - rscore : fromcenter;
                 
                 if (winning_semi_exists)
-                    score = 1000.0*mustplay_size + tiebreaker;
+                    score = 1000.0 * mustplay_size + tiebreaker;
                 else
-                    score = 1000000.0*tiebreaker;
+                    score = 1000000.0 * tiebreaker;
             }
         }
         if (!skip_this_move) 
@@ -768,15 +767,16 @@ bool DfsSolver::OrderMoves(HexBoard& brd, bitset_t& mustplay,
         if (m_backup_ice_info)
 	{
             bitset_t new_initial_proof 
-                = ProofUtil::InitialProofForOpponent(brd, color);
-            bitset_t new_mustplay = EndgameUtils::MovesToConsider(brd, color);
+                = ProofUtil::InitialProofForOpponent(*m_workBrd, color);
+            bitset_t new_mustplay 
+                = EndgameUtils::MovesToConsider(*m_workBrd, color);
             HexAssert(BitsetUtil::IsSubsetOf(new_mustplay, mustplay));
             
             if (new_mustplay.count() < mustplay.count())
 	    {
                 LogFine() << "Pruned mustplay with backing-up info."
-			  << brd.Write(mustplay)
-			  << brd.Write(new_mustplay) << '\n';
+			  << m_workBrd->Write(mustplay)
+			  << m_workBrd->Write(new_mustplay) << '\n';
                 mustplay = new_mustplay;
                 solution.proof = new_initial_proof;
             }
