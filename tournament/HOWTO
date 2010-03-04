@@ -2,9 +2,6 @@ How to run a tournament:
 
 1) Run a tournament with one of the run-prog-vs-prog.sh scripts.
 
-   Note: these scripts do not work in cshell, so use "bash run-etc" if
-   you're using an ancient shell.
-
    Programs alternate playing each opening in the set of openings
    provided.  Each round corresponds to each program playing black once
    for each opening.
@@ -45,10 +42,10 @@ seed value to their random number generator).
 
 At any time, you may run
 
-   ./summary --file [results file] [--random] [--count n]
+   ./summary --file [results file] [--showTable] [--count n]
 
 to obtain a compact summary of the tournament results so far.  The
-results will be broken down by opening. Use the "--random" command if
+results will be broken down by opening. Use the "--showTable" command if
 you want to games down by opening and show which were split and
 non-split. Use the "--count" option if you want the summary only for
 the first n games (where n is a positive integer; e.g. "--count 242"
