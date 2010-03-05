@@ -14,11 +14,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** General union/find implementation. 
-    
-    @todo instead of storing the group size, store the max depth of any
-    element of the group, as per CLRS?
-*/
+/** General union/find implementation. */
 template<int S>
 class UnionFind
 {
@@ -28,16 +24,16 @@ public:
     UnionFind();
 
     /** Sets all elements to be isolated. */
-    void clear();
+    void Clear();
 
     /** Returns true if x is the captain of a group. */
-    bool isRoot(int x) const;
+    bool IsRoot(int x) const;
 
     /** Gets the captain of x's group. */
-    int getRoot(int x) const;
+    int GetRoot(int x) const;
 
     /** Unions two sets of elements. */
-    int unionGroups(int x, int y);
+    int UnionGroups(int x, int y);
 
 private:
     /** Flag denoting that the element is its own group. */
@@ -50,47 +46,41 @@ template<int S>
 inline UnionFind<S>::UnionFind()
     : m_sets(S)
 {
-    clear();
+    Clear();
 }
 
 template<int S>
-inline void UnionFind<S>::clear()
+inline void UnionFind<S>::Clear()
 {
-    for (int i=0; i<S; i++) 
+    for (int i = 0; i < S; i++) 
         m_sets[i] = ISOLATED;
 }
 
 template<int S> 
-inline bool UnionFind<S>::isRoot(int x) const
+inline bool UnionFind<S>::IsRoot(int x) const
 {
-    return (m_sets[x] < 0);
+    return m_sets[x] < 0;
 }
 
 template<int S>
-inline int UnionFind<S>::getRoot(int x) const
+inline int UnionFind<S>::GetRoot(int x) const
 {
     assert(0 <= x && x < S);
     if (m_sets[x] < 0) 
         return x;
-    return (m_sets[x] = getRoot(m_sets[x]));
+    return (m_sets[x] = GetRoot(m_sets[x]));
 }
 
 template<int S>
-inline int UnionFind<S>::unionGroups(int a, int b) 
+inline int UnionFind<S>::UnionGroups(int a, int b) 
 {
-    assert(0 <= a && a < S);
-    assert(0 <= b && b < S);
-    
-    int ra = getRoot(a);
-    int rb = getRoot(b);
-
-    if (ra == rb) return ra;
-
-    // force the smaller guy to become captain
-    int cap = std::min(ra,rb);
-    int non = std::max(ra,rb);
-    assert(cap != non);
-
+    int ra = GetRoot(a);
+    int rb = GetRoot(b);
+    if (ra == rb) 
+        return ra;
+    // Force the smaller guy to become captain
+    int cap = std::min(ra, rb);
+    int non = std::max(ra, rb);
     m_sets[cap] += m_sets[non];
     m_sets[non] = cap; 
     return cap;
