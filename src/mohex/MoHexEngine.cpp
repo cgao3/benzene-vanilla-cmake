@@ -128,6 +128,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.LockFree() << '\n'
             << "[bool] keep_games "
             << search.KeepGames() << '\n'
+            << "[bool] perform_pre_search " 
+            << m_player.PerformPreSearch() << '\n'
             << "[bool] ponder "
             << m_player.Ponder() << '\n'
             << "[bool] reuse_subtree " 
@@ -180,6 +182,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetLockFree(cmd.BoolArg(1));
         else if (name == "keep_games")
             search.SetKeepGames(cmd.BoolArg(1));
+        else if (name == "perform_pre_search")
+            m_player.SetPerformPreSearch(cmd.BoolArg(1));
         else if (name == "ponder")
             m_player.SetPonder(cmd.BoolArg(1));
         else if (name == "use_livegfx")
