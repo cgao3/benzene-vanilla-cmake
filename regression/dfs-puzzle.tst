@@ -484,52 +484,58 @@ loadsgf sgf/puzzles/7x7-henderson-61.sgf
 130 dfs-solver-find-winning white
 #? [e4]
 
-solver-clear-tt
+dfs-clear-tt
 loadsgf sgf/puzzles/7x7-henderson-62.sgf
 131 dfs-solver-find-winning black
 #? [f3]
 
 # Takes ??? seconds to solve
-solver-clear-tt
+dfs-clear-tt
 loadsgf sgf/puzzles/11x11-henderson-63.sgf
 132 dfs-solver-find-winning black
 #? [i7]
 
 # Takes ??? seconds to solve
-solver-clear-tt
+dfs-clear-tt
 loadsgf sgf/puzzles/9x9-henderson-64.sgf
 133 dfs-solver-find-winning black
 #? [b6]
 
 # Takes ??? seconds to solve
-solver-clear-tt
+dfs-clear-tt
 loadsgf sgf/puzzles/9x9-henderson-65.sgf
 134 dfs-solver-find-winning white
 #? [f7]
 
 # Takes ??? seconds to solve
-solver-clear-tt
+dfs-clear-tt
 loadsgf sgf/puzzles/8x8-henderson-66.sgf
 135 dfs-solver-find-winning white
 #? [d5]
 
 # Takes ??? seconds to solve
-solver-clear-tt
+dfs-clear-tt
 loadsgf sgf/puzzles/9x9-henderson-67.sgf
 136 dfs-solver-find-winning white
 #? [d8]
 
 # Takes ??? seconds to solve
-solver-clear-tt
+dfs-clear-tt
 loadsgf sgf/puzzles/9x9-henderson-68.sgf
 137 dfs-solver-find-winning black
 #? [g7]
 
 # Takes ??? seconds to solve
-solver-clear-tt
+dfs-clear-tt
 loadsgf sgf/puzzles/9x9-henderson-69.sgf
 138 dfs-solver-find-winning black
 #? [h5]
+
+# Takes ??? seconds to solve
+dfs-clear-tt
+loadsgf sgf/puzzles/9x9-henderson-70.sgf
+139 dfs-solver-find-winning white
+#? [f4]
 
 
 # Little Golem puzzles

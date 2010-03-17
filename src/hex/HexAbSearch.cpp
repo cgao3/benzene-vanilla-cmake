@@ -73,7 +73,8 @@ std::string DumpPV(HexEval value, const std::vector<HexPoint>& pv)
 
 HexAbSearch::HexAbSearch()
     : m_brd(0),
-      m_tt(0)
+      m_tt(0),
+      m_use_guifx(false)
 {
 }
 
@@ -241,7 +242,7 @@ HexEval HexAbSearch::SearchState(const std::vector<int>& plywidth,
     if (m_tt) 
     {
         SearchedState state;
-        if (m_tt->Get(m_brd->GetState().Hash(), state)) 
+        if (m_tt->Get(m_brd->GetPosition().Hash(), state)) 
         {
             m_tt_info_available = true;
             m_tt_bestmove = state.move;
@@ -365,9 +366,9 @@ HexEval HexAbSearch::SearchState(const std::vector<int>& plywidth,
         SearchedState::Bound bound = SearchedState::ACCURATE;
         if (bestvalue <= old_alpha) bound = SearchedState::UPPER_BOUND;
         if (bestvalue >= old_beta) bound = SearchedState::LOWER_BOUND;
-        SearchedState ss(m_brd->GetState().Hash(), depth, bound, 
+        SearchedState ss(m_brd->GetPosition().Hash(), depth, bound, 
                          bestvalue, bestmove);
-        m_tt->Put(m_brd->GetState().Hash(), ss);
+        m_tt->Put(m_brd->GetPosition().Hash(), ss);
     }
 
     AfterStateSearched();

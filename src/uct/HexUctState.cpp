@@ -322,10 +322,10 @@ bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
     /** @todo Use a more complicated scheme to update the connections?
         For example, if state is close to last one, use incremental
         builds to transition from old to current. */
-    m_vc_brd->GetState().StartNewGame();
-    m_vc_brd->GetState().SetColor(BLACK, m_bd->GetPlayed(BLACK));
-    m_vc_brd->GetState().SetColor(WHITE, m_bd->GetPlayed(WHITE));
-    m_vc_brd->GetState().SetPlayed(m_bd->GetPlayed());
+    m_vc_brd->GetPosition().StartNewGame();
+    m_vc_brd->GetPosition().SetColor(BLACK, m_bd->GetPlayed(BLACK));
+    m_vc_brd->GetPosition().SetColor(WHITE, m_bd->GetPlayed(WHITE));
+    m_vc_brd->GetPosition().SetPlayed(m_bd->GetPlayed());
     m_vc_brd->ComputeAll(m_toPlay);
 
     // Consider set will be non-empty only if a non-determined state.
@@ -351,7 +351,7 @@ bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
     }
 
     m_shared_data->stones.put(SequenceHash::Hash(m_game_sequence), 
-                              HexUctStoneData(m_vc_brd->GetState()));
+                              HexUctStoneData(m_vc_brd->GetPosition()));
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================" << '\n'
                   << "Recomputed state:" << '\n' << *m_bd << '\n'

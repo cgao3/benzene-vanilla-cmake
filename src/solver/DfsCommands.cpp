@@ -17,7 +17,7 @@ DfsCommands::DfsCommands(Game& game, HexEnvironment& env,
                          DfsSolver& solver, 
                          boost::scoped_ptr<DfsHashTable>& hashTable, 
                          boost::scoped_ptr<DfsDB>& db, 
-                         DfsPositions& positions)
+                         DfsStates& positions)
     : m_game(game), 
       m_env(env),
       m_solver(solver),
@@ -138,8 +138,9 @@ void DfsCommands::CmdSolveState(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     if (brd.ICE().FindPermanentlyInferior())
         throw HtpFailure("Permanently inferior not supported in DfsSolver.");
+    HexState state(m_game.Board(), color);
     DfsSolutionSet solution;
-    HexColor winner = m_solver.Solve(brd, color, solution, m_positions);
+    HexColor winner = m_solver.Solve(state, brd, solution, m_positions);
     m_solver.DumpStats(solution);
     if (winner != EMPTY) 
         LogInfo() << winner << " wins!\n" << brd.Write(solution.proof) << '\n';
@@ -168,22 +169,23 @@ void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
         throw HtpFailure("Permanently inferior not supported in DfsSolver");
     brd.ComputeAll(color);
     bitset_t consider = (EndgameUtils::IsDeterminedState(brd, color) ?
-                         brd.GetState().GetEmpty() :
+                         brd.GetPosition().GetEmpty() :
                          EndgameUtils::MovesToConsider(brd, color));
     bitset_t winning;
     SgTimer timer;
+    HexState state(m_game.Board(), color);
     for (BitsetIterator p(consider); p; ++p)
     {
 	if (!consider.test(*p))
             continue;
-        StoneBoard board(m_game.Board());
-        board.PlayMove(color, *p);
-        HexBoard& brd = m_env.SyncBoard(board);
+        state.PlayMove(*p);
+        HexBoard& brd = m_env.SyncBoard(state.Position());
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
         DfsSolutionSet solution;
-        HexColor winner = m_solver.Solve(brd, !color, solution, m_positions);
+        HexColor winner = m_solver.Solve(state, brd, solution, m_positions);
         m_solver.DumpStats(solution);
         LogInfo() << "Proof:" << brd.Write(solution.proof) << '\n';
+        state.UndoMove(*p);
 
         if (winner != EMPTY) 
             LogInfo() << "****** " << winner << " wins ******\n";
@@ -232,33 +234,33 @@ void DfsCommands::CmdDBClose(HtpCommand& cmd)
 void DfsCommands::CmdGetState(HtpCommand& cmd)
 {
     cmd.CheckNuArg(0);
-    StoneBoard brd(m_game.Board());
-    HexColor toplay = brd.WhoseTurn();
-    DfsData state;
-    if (!m_positions.Get(brd, state)) 
+    HexColor toPlay = m_game.Board().WhoseTurn();
+    HexState state(m_game.Board(), toPlay);
+    DfsData data;
+    if (!m_positions.Get(state, data)) 
     {
         cmd << "State not available.";
         return;
     }
-    cmd << (state.m_win ? toplay : !toplay);
-    cmd << ' ' << state.m_numMoves;
+    cmd << (data.m_win ? toPlay : !toPlay);
+    cmd << ' ' << data.m_numMoves;
 
     std::vector<int> nummoves(BITSETSIZE);
     std::vector<int> flags(BITSETSIZE);
     std::vector<HexPoint> winning, losing;
-    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
+    for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
-        brd.PlayMove(toplay, *p);
-        if (m_positions.Get(brd, state)) 
+        state.PlayMove(*p);
+        if (m_positions.Get(state, data)) 
         {
-            if (state.m_win)
+            if (data.m_win)
                 losing.push_back(*p);
             else
                 winning.push_back(*p);
-            nummoves[*p] = state.m_numMoves;
-            flags[*p] = state.m_flags;
+            nummoves[*p] = data.m_numMoves;
+            flags[*p] = data.m_flags;
         }
-        brd.UndoMove(*p);
+        state.UndoMove(*p);
     }
     cmd << " Winning";
     for (unsigned i = 0; i < winning.size(); ++i) 
@@ -295,7 +297,8 @@ void DfsCommands::CmdGetPV(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
     PointSequence pv;
-    SolverDBUtil::GetVariation(m_game.Board(), colorToMove, m_positions, pv);
+    SolverDBUtil::GetVariation(HexState(m_game.Board(), colorToMove), 
+                               m_positions, pv);
     cmd << HexPointUtil::ToString(pv);
 }
 

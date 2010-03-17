@@ -7,8 +7,8 @@
 #define SolverDB_HPP
 
 #include "Hex.hpp"
-#include "StoneBoard.hpp"
 #include "BenzeneSolver.hpp"
+#include "HexState.hpp"
 #include <boost/concept_check.hpp>
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -52,9 +52,9 @@ public:
 
     ~SolverDB();
 
-    bool Get(const StoneBoard& brd, DATA& data);
+    bool Get(const HexState& state, DATA& data);
 
-    void Put(const StoneBoard& brd, const DATA& data);
+    void Put(const HexState& state, const DATA& data);
 
     HASH* HashTable();
 
@@ -140,22 +140,22 @@ bool SolverDB<HASH, DB, DATA>::UseHashTable() const
 }
 
 template<class HASH, class DB, class DATA>
-bool SolverDB<HASH, DB, DATA>::Get(const StoneBoard& brd, DATA& data)
+bool SolverDB<HASH, DB, DATA>::Get(const HexState& state, DATA& data)
 {
-    if (UseDatabase() && brd.NumStones() <= m_param.m_maxStones)
-        return m_database->Get(brd, data);
+    if (UseDatabase() && state.Position().NumStones() <= m_param.m_maxStones)
+        return m_database->Get(state, data);
     if (UseHashTable())
-        return m_hashTable->Get(brd.Hash(), data);
+        return m_hashTable->Get(state.Hash(), data);
     return false;
 }
 
 template<class HASH, class DB, class DATA>
-void SolverDB<HASH, DB, DATA>::Put(const StoneBoard& brd, const DATA& data)
+void SolverDB<HASH, DB, DATA>::Put(const HexState& state, const DATA& data)
 {
-    if (UseDatabase() && brd.NumStones() <= m_param.m_maxStones)
-        m_database->Put(brd, data);
+    if (UseDatabase() && state.Position().NumStones() <= m_param.m_maxStones)
+        m_database->Put(state, data);
     else if (UseHashTable())
-        m_hashTable->Put(brd.Hash(), data);
+        m_hashTable->Put(state.Hash(), data);
 }
 
 //----------------------------------------------------------------------------
@@ -166,29 +166,27 @@ namespace SolverDBUtil
         when it hits a best move of INVALID_POINT or the move is not
         found in the database. */
     template<class HASH, class DB, class DATA>
-    void GetVariation(const StoneBoard& state, HexColor color,
+    void GetVariation(const HexState& state, 
                       SolverDB<HASH, DB, DATA>& positions, PointSequence& pv);
     
 }
 
 template<class HASH, class DB, class DATA>
-void SolverDBUtil::GetVariation(const StoneBoard& state, HexColor color,
+void SolverDBUtil::GetVariation(const HexState& origState,
                                 SolverDB<HASH, DB, DATA>& positions, 
                                 PointSequence& pv)
 {
     boost::function_requires< HasBestMoveConcept<DATA> >();
-    StoneBoard brd(state);
-    HexColor colorToMove = color;
+    HexState state(origState);
     while (true) 
     {
         DATA data;
-        if (!positions.Get(brd, data))
+        if (!positions.Get(state, data))
             break;
         if (data.m_bestMove == INVALID_POINT)
             break;
         pv.push_back(data.m_bestMove);
-        brd.PlayMove(colorToMove, data.m_bestMove);
-        colorToMove = !colorToMove;
+        state.PlayMove(data.m_bestMove);
     }
 }
 

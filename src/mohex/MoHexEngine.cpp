@@ -90,7 +90,7 @@ HexPoint MoHexEngine::GenMove(HexColor color, bool useGameClock)
     SG_UNUSED(useGameClock);
     if (SwapCheck::PlaySwap(m_game, color))
         return SWAP_PIECES;
-    HexPoint bookMove = m_bookCheck.BestMove(m_game.Board(), color);
+    HexPoint bookMove = m_bookCheck.BestMove(HexState(m_game.Board(), color));
     if (bookMove != INVALID_POINT)
         return bookMove;
     double maxTime = TimeForMove(color);
@@ -99,17 +99,18 @@ HexPoint MoHexEngine::GenMove(HexColor color, bool useGameClock)
 
 HexPoint MoHexEngine::DoSearch(HexColor color, double maxTime)
 {
+    HexState state(m_game.Board(), color);
     if (m_useParallelSolver)
     {
         PlayAndSolve ps(*m_pe.brd, *m_se.brd, m_player, m_dfpnSolver, 
                         m_dfpnPositions, m_game);
-        return ps.GenMove(color, maxTime);
+        return ps.GenMove(state, maxTime);
     }
     else
     {
         double score;
-        return m_player.GenMove(m_pe.SyncBoard(m_game.Board()), m_game, 
-                                color, maxTime, score);
+        return m_player.GenMove(state, m_game, m_pe.SyncBoard(m_game.Board()),
+                                maxTime, score);
     }
 }
 
@@ -161,6 +162,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.LockFree() << '\n'
             << "[bool] keep_games "
             << search.KeepGames() << '\n'
+            << "[bool] perform_pre_search " 
+            << m_player.PerformPreSearch() << '\n'
             << "[bool] ponder "
             << m_player.Ponder() << '\n'
             << "[bool] reuse_subtree " 
@@ -213,6 +216,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetLockFree(cmd.BoolArg(1));
         else if (name == "keep_games")
             search.SetKeepGames(cmd.BoolArg(1));
+        else if (name == "perform_pre_search")
+            m_player.SetPerformPreSearch(cmd.BoolArg(1));
         else if (name == "ponder")
             m_player.SetPonder(cmd.BoolArg(1));
         else if (name == "use_livegfx")

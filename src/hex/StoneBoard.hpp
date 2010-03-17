@@ -47,7 +47,7 @@ public:
     StoneBoard(unsigned width, unsigned height);
 
     /** Contructs a rectangular board with given state.
-        See SetState(std::string) */
+        See SetPosition(std::string) */
     StoneBoard(unsigned width, unsigned height, const std::string& str);
 
     ~StoneBoard();
@@ -63,13 +63,18 @@ public:
     /** Same as Const().height() */
     int Height() const;
 
-    /** Returns zobrist hash for the current board state, which
-        depends only on played cells; unplayed cells do not contribute
-        to the hash. Changing the color of an unplayed cell does not
-        change the hash for the state. Methods that change the color
-        of played cells internally will always compute a new hash
-        automatically. */
+    /** Returns zobrist hash for the current position, which depends
+        only on the played cells; unplayed cells do not contribute to
+        the hash. Changing the color of an unplayed cell does not
+        change the hash for the position. Methods that change the
+        color of played cells internally will always compute a new
+        hash automatically. */
     hash_t Hash() const;
+
+    /** Returns the hash of the position taking the color to play into
+        account. This will be different than the hash returned by
+        Hash(). */
+    hash_t Hash(HexColor toPlay) const;
 
     /** Returns BoardID for the current board state, looking only at
         the played cells. */
@@ -112,17 +117,17 @@ public:
     /** Sets the board to the state encoded by id. 
         Note this state will have no unplayed stones, so the code:
         @code
-            brd.SetState(brd.GetBoardID());
+            brd.SetPosition(brd.GetBoardID());
         @endcode
         will remove all unplayed stones.
     */
-    void SetState(const BoardID& id);
+    void SetPosition(const BoardID& id);
 
     /** Copies state of brd into this board. */
-    void SetState(const StoneBoard& brd);
+    void SetPosition(const StoneBoard& brd);
 
     /** Copies only the played state of brd. */
-    void SetStateOnlyPlayed(const StoneBoard& brd);
+    void SetPositionOnlyPlayed(const StoneBoard& brd);
 
     /** Sets state from string.
         String must contain wxh non space characters. Any spacing is
@@ -130,7 +135,7 @@ public:
         and 'W' are played black and white stones, 'b' and 'w' are
         filled-in black and white stones. 
     */
-    void SetState(const std::string& str);
+    void SetPosition(const std::string& str);
 
     //-----------------------------------------------------------------------
 
@@ -326,7 +331,12 @@ inline int StoneBoard::Height() const
 
 inline hash_t StoneBoard::Hash() const
 {
-    return m_hash.Hash();
+    return m_hash.Hash(EMPTY);
+}
+
+inline hash_t StoneBoard::Hash(HexColor toPlay) const
+{
+    return m_hash.Hash(toPlay);
 }
 
 inline bitset_t StoneBoard::GetBlack() const

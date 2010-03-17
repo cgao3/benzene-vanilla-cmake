@@ -14,6 +14,7 @@
 #include "DfpnCommands.hpp"
 #include "HexEnvironment.hpp"
 #include "HexHtpEngine.hpp"
+#include "HexState.hpp"
 #include "DfsSolver.hpp"
 #include "DfsCommands.hpp"
 #include "VCCommands.hpp"
@@ -28,25 +29,26 @@ class PlayAndSolve
 public:
     PlayAndSolve(HexBoard& playerBrd, HexBoard& solverBrd,
                  BenzenePlayer& player, DfpnSolver& solver,
-                 DfpnPositions& positions, const Game& game);
+                 DfpnStates& positions, const Game& game);
 
-    HexPoint GenMove(HexColor color, double maxTime);
+    HexPoint GenMove(const HexState& state, double maxTime);
 
 private:    
     class PlayerThread
     {
     public:
         PlayerThread(PlayAndSolve& ps, boost::mutex& mutex, 
-                     boost::barrier& barrier, HexColor color, double maxTime)
+                     boost::barrier& barrier, const HexState& state, 
+                     double maxTime)
             : m_ps(ps), m_mutex(mutex), m_barrier(barrier),
-              m_color(color), m_maxTime(maxTime) {};
+              m_state(state), m_maxTime(maxTime) {};
 
         void operator()();
     private:
         PlayAndSolve& m_ps;
         boost::mutex& m_mutex;
         boost::barrier& m_barrier;
-        HexColor m_color;
+        const HexState& m_state;
         double m_maxTime;
     };
 
@@ -56,17 +58,16 @@ private:
     {
     public:
         SolverThread(PlayAndSolve& ps, boost::mutex& mutex, 
-                     boost::barrier& barrier,
-                     HexColor color)
+                     boost::barrier& barrier, const HexState& state)
             : m_ps(ps), m_mutex(mutex), m_barrier(barrier),
-              m_color(color) {};
+              m_state(state) {};
 
         void operator()();
     private:
         PlayAndSolve& m_ps;
         boost::mutex& m_mutex;
         boost::barrier& m_barrier;
-        HexColor m_color;
+        const HexState& m_state;
     };
 
     HexBoard& m_playerBrd;
@@ -77,7 +78,7 @@ private:
 
     DfpnSolver& m_solver;
 
-    DfpnPositions& m_positions;
+    DfpnStates& m_positions;
 
     const Game& m_game;
 

@@ -1,3 +1,4 @@
+#!/bin/bash
 # Runs a tournament between two hex programs.
 source common.sh
 

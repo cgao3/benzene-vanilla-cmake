@@ -1,3 +1,4 @@
+#!/bin/bash
 # Runs a tournament between wolve and six.
 
 me=$0

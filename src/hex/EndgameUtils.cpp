@@ -92,15 +92,15 @@ bitset_t ComputeConsiderSet(const HexBoard& brd, HexColor color)
     consider = consider - inf.Vulnerable()
                         - inf.Reversible()
                         - inf.Dominated()
-          - ComputeLossesViaStrategyStealingArgument(brd.GetState(), color);
-    if (brd.GetState().IsSelfRotation())
-        consider = RemoveRotations(brd.GetState(), consider);
+          - ComputeLossesViaStrategyStealingArgument(brd.GetPosition(), color);
+    if (brd.GetPosition().IsSelfRotation())
+        consider = RemoveRotations(brd.GetPosition(), consider);
     return consider;
 }
 
 bitset_t StonesInProof(const HexBoard& brd, HexColor color)
 {
-    return brd.GetState().GetPlayed(color) 
+    return brd.GetPosition().GetPlayed(color) 
         | brd.GetInferiorCells().DeductionSet(color);
 }
 
@@ -278,7 +278,7 @@ bool EndgameUtils::IsLostGame(const HexBoard& brd, HexColor color,
     }
     if (ComputeConsiderSet(brd, color).none())
     {
-        proof = brd.GetState().GetEmpty() | StonesInProof(brd, !color);
+        proof = brd.GetPosition().GetEmpty() | StonesInProof(brd, !color);
         return true;
     }
     return false;

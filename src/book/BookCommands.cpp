@@ -77,12 +77,12 @@ void BookCommands::CmdBookMainLineDepth(HtpCommand& cmd)
 {
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
-    StoneBoard brd(m_game.Board());
-    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
-        brd.PlayMove(brd.WhoseTurn(), *p);
-        cmd << " " << *p << " " << BookUtil::GetMainLineDepth(*m_book, brd);
-        brd.UndoMove(*p);
+        state.PlayMove(*p);
+        cmd << " " << *p << " " << BookUtil::GetMainLineDepth(*m_book, state);
+        state.UndoMove(*p);
     }
 }
 
@@ -90,15 +90,14 @@ void BookCommands::CmdBookCounts(HtpCommand& cmd)
 {
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
-    StoneBoard& brd(m_game.Board());
-    HexColor color = brd.WhoseTurn();
-    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
-        brd.PlayMove(color, *p);
+        state.PlayMove(*p);
         BookNode node;
-        if (m_book->Get(brd, node))
+        if (m_book->Get(state, node))
             cmd << " " << *p << " " << node.m_count;
-        brd.UndoMove(*p);
+        state.UndoMove(*p);
     }
 }
 
@@ -107,24 +106,23 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     float countWeight = m_bookCheck.CountWeight();
-    StoneBoard brd(m_game.Board());
-    HexColor color = brd.WhoseTurn();
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
 
     std::map<HexPoint, HexEval> values;
     std::map<HexPoint, unsigned> counts;
     std::vector<std::pair<float, HexPoint> > scores;
-    for (BitsetIterator p(brd.GetEmpty()); p; ++p) 
+    for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
-        brd.PlayMove(color, *p);
+        state.PlayMove(*p);
         BookNode node;
-        if (m_book->Get(brd, node))
+        if (m_book->Get(state, node))
         {
             counts[*p] = node.m_count;
-            values[*p] = BookUtil::InverseEval(node.Value(brd));
+            values[*p] = BookUtil::InverseEval(node.Value(state));
             scores.push_back(std::make_pair
-                             (-node.Score(brd, countWeight), *p));
+                             (-node.Score(state, countWeight), *p));
         }
-        brd.UndoMove(*p);
+        state.UndoMove(*p);
     }
     std::stable_sort(scores.begin(), scores.end());
     std::vector<std::pair<float, HexPoint> >::const_iterator it 
@@ -150,11 +148,11 @@ void BookCommands::CmdBookVisualize(HtpCommand& cmd)
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
-    StoneBoard brd(m_game.Board());
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     std::ofstream f(filename.c_str());
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
-    BookUtil::DumpVisualizationData(*m_book, brd, 0, f);
+    BookUtil::DumpVisualizationData(*m_book, state, 0, f);
     f.close();
 }
 
@@ -171,11 +169,11 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
     cmd.CheckNuArgLessEqual(3);
     float polarization = cmd.FloatArg(0);
     std::string filename = cmd.Arg(1);
-    PositionSet ignoreSet;
+    StateSet ignoreSet;
     if (cmd.NuArg() == 3u)
     {
         std::string ignoreFile = cmd.Arg(2);
-        StoneBoard brd(m_game.Board());
+        HexState state(m_game.Board(), m_game.Board().WhoseTurn());
         std::ifstream ifs(ignoreFile.c_str()); 
         if (!ifs)
             throw HtpFailure() << "Could not open ignore file for reading.";
@@ -186,21 +184,23 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
             HexPointUtil::FromString(line, seq);
             if (!seq.empty())
             {
-                brd.StartNewGame();
+                state.Position().StartNewGame();
+                state.SetToPlay(FIRST_TO_PLAY);
                 for (std::size_t i = 0; i < seq.size(); ++i)
-                    brd.PlayMove(brd.WhoseTurn(), seq[i]);
-                ignoreSet.Insert(brd);
+                    state.PlayMove(seq[i]);
+                ignoreSet.Insert(state);
             }
         }
         LogInfo() << "Read " << ignoreSet.Size() << " positions to ignore.\n";
     }
-    StoneBoard brd(m_game.Board());
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     PointSequence pv;
     GameUtil::HistoryToSequence(m_game.History(), pv);
     std::ofstream f(filename.c_str());
     if (!f)
         throw HtpFailure() << "Could not open file for output.";
-    BookUtil::DumpPolarizedLeafs(*m_book, brd, polarization, pv, f, ignoreSet);
+    BookUtil::DumpPolarizedLeafs(*m_book, state, polarization, pv, f, 
+                                 ignoreSet);
     f.close();
 }
 
@@ -227,7 +227,6 @@ void BookCommands::CmdBookSetValue(HtpCommand& cmd)
 {
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
-    cmd.CheckNuArg(1);
     float value = 0.5;
     std::string vstr = cmd.ArgToLower(0);
     if (vstr == "w")
@@ -237,12 +236,13 @@ void BookCommands::CmdBookSetValue(HtpCommand& cmd)
     else
         value = cmd.FloatArg(0);
     BookNode node;
-    if (!m_book->Get(m_game.Board(), node))
-        m_book->Put(m_game.Board(), BookNode(value));
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    if (!m_book->Get(state, node))
+        m_book->Put(state, BookNode(value));
     else
     {
         node.m_value = value;
-        m_book->Put(m_game.Board(), node);
+        m_book->Put(state, node);
     }
     m_book->Flush();
 }

@@ -136,14 +136,14 @@ void HexUctSearch::OnStartSearch()
     {
         m_root = new SgNode();
         SgNode* position = m_root->NewRightMostSon();
-        HexSgUtil::SetPositionInNode(position, m_brd->GetState(),
+        HexSgUtil::SetPositionInNode(position, m_brd->GetPosition(),
                                      m_shared_data.root_to_play);
     }
     // Limit to avoid very long games (no need in Hex)
     int size = m_brd->Width() * m_brd->Height();
     int maxGameLength = size+10;
     SetMaxGameLength(maxGameLength);
-    m_lastPositionSearched = m_brd->GetState();
+    m_lastPositionSearched = m_brd->GetPosition();
 }
 
 void HexUctSearch::SaveGames(const std::string& filename) const

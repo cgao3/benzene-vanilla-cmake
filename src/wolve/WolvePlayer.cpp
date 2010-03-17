@@ -42,18 +42,16 @@ WolvePlayer::~WolvePlayer()
 
 //----------------------------------------------------------------------------
 
-HexPoint WolvePlayer::Search(HexBoard& brd, 
-                             const Game& game_state,
-			     HexColor color, 
-                             const bitset_t& consider,
-                             double max_time,
-                             double& score)
+
+HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
+                             HexBoard& brd, const bitset_t& consider,
+                             double maxTime, double& score)
 {
-    UNUSED(game_state);
+    UNUSED(game);
     std::vector<int> search_depths = m_search_depths;
 
     // If low on time, set a maximum search depth of 2.
-    if (max_time < m_panic_time)
+    if (maxTime < m_panic_time)
     {
 	std::vector<int> new_search_depths;
 	for (std::size_t i = 0; i < search_depths.size(); ++i)
@@ -69,7 +67,8 @@ HexPoint WolvePlayer::Search(HexBoard& brd,
 	      << "Depths: " << MiscUtil::PrintVector(m_search_depths) << '\n';
 
     std::vector<HexPoint> PV;
-    score = m_search.Search(brd, color, m_plywidth, search_depths, -1, PV);
+    score = m_search.Search(brd, state.ToPlay(), m_plywidth, 
+                            search_depths, -1, PV);
 
     LogInfo() << m_search.DumpStats() << '\n';
 
@@ -192,7 +191,7 @@ void WolveSearch::OnSearchComplete()
 void WolveSearch::ComputeResistance(Resistance& resist)
 {
     StoneBoard plain(m_brd->Width(), m_brd->Height());
-    StoneBoard& state = m_brd->GetState();
+    StoneBoard& state = m_brd->GetPosition();
     plain.AddColor(BLACK, state.GetPlayed(BLACK));
     plain.AddColor(WHITE, state.GetPlayed(WHITE));
     plain.SetPlayed(state.GetPlayed());

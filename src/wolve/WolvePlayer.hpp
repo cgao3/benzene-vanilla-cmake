@@ -231,9 +231,9 @@ private:
     double m_panic_time;
 
     /** Generates a move in the given gamestate using alphabeta. */
-    virtual HexPoint Search(HexBoard& brd, const Game& game_state,
-			    HexColor color, const bitset_t& consider, 
-                            double max_time, double& score);
+    virtual HexPoint Search(const HexState& state, const Game& game,
+                            HexBoard& brd, const bitset_t& consider,
+                            double maxTime, double& score);
 };
 
 inline std::string WolvePlayer::Name() const

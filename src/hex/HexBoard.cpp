@@ -208,7 +208,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 {
     LogFine() << "Playing (" << color << ","
               << HexPointUtil::ToString(played) << ")\n";
-    HexAssert(BitsetUtil::IsSubsetOf(played, GetState().GetEmpty()));
+    HexAssert(BitsetUtil::IsSubsetOf(played, GetPosition().GetEmpty()));
 
     double s = Time::Get();
     PushHistory(color, INVALID_POINT);
@@ -246,7 +246,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 void HexBoard::AddStones(HexColor color, const bitset_t& played,
                          HexColor color_to_move, bool use_changelog)
 {
-    HexAssert(BitsetUtil::IsSubsetOf(played, GetState().GetEmpty()));
+    HexAssert(BitsetUtil::IsSubsetOf(played, GetPosition().GetEmpty()));
     LogFine() << "Adding (" << color << ", "
               << HexPointUtil::ToString(played) << ")\n";
 
@@ -304,7 +304,7 @@ void HexBoard::PopHistory()
     History hist = m_history.back();
     m_history.pop_back();
 
-    m_brd.SetState(hist.board);
+    m_brd.SetPosition(hist.board);
     if (m_backup_ice_info && hist.last_played != INVALID_POINT)
     {
         // Cells that were not marked as inferior in parent state

@@ -63,7 +63,8 @@ void VCCommands::CmdBuildStatic(HtpCommand& cmd)
     if (!EndgameUtils::IsDeterminedState(brd, color))
     {
         bitset_t consider = EndgameUtils::MovesToConsider(brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), consider,
+        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetPosition(), 
+                                                     consider,
                                               brd.GetInferiorCells().All());
     }
     cmd << '\n';
@@ -84,7 +85,7 @@ void VCCommands::CmdBuildIncremental(HtpCommand& cmd)
     if (!EndgameUtils::IsDeterminedState(brd, color))
     {
         bitset_t consider = EndgameUtils::MovesToConsider(brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetState(), consider,
+        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetPosition(), consider,
                                            brd.GetInferiorCells().All());
     }
     cmd << '\n';
@@ -161,7 +162,7 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
     if (!EndgameUtils::IsDeterminedState(*m_env.brd, color))
     {
         bitset_t consider = EndgameUtils::MovesToConsider(*m_env.brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(m_env.brd->GetState(), 
+        cmd << BoardUtils::GuiDumpOutsideConsiderSet(m_env.brd->GetPosition(), 
                                                      consider,
                                                      inf.All());
     }

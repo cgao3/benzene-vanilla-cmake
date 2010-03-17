@@ -33,7 +33,7 @@ HexPoint RandomBit(const bitset_t& bs, SgRandom& random)
 
 //----------------------------------------------------------------------------
 
-PerfectPlayer::PerfectPlayer(DfpnSolver& solver, DfpnPositions& positions)
+PerfectPlayer::PerfectPlayer(DfpnSolver& solver, DfpnStates& positions)
     : BenzenePlayer(),
       m_solver(solver),
       m_positions(positions),
@@ -48,20 +48,19 @@ PerfectPlayer::~PerfectPlayer()
 
 //----------------------------------------------------------------------------
 
-HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
-			       HexColor color, const bitset_t& consider,
+HexPoint PerfectPlayer::Search(const HexState& state, const Game& game,
+                               HexBoard& brd, const bitset_t& consider, 
                                double maxTime, double& score)
 {
-    SG_UNUSED(gameState);
     SG_UNUSED(consider);
     SG_UNUSED(score);
-    HexAssert(gameState.Board().IsStandardPosition());
     LogInfo() << "PerfectPlayer::Search()\n";
-    LogInfo() << gameState.Board() << '\n';
+    LogInfo() << state.Position() << '\n';
     if (FillinCausedWin())
     {
         LogInfo() << "PerfectPlayer: Fillin caused win!\n";
-        brd.GetState().SetState(gameState.Board());
+        HexColor color = state.ToPlay();
+        brd.GetPosition().SetPosition(state.Position());
         brd.ComputeAll(color);
         const InferiorCells& inf = brd.GetInferiorCells();
         if (m_fillinWinner == color && inf.Captured(color).any())
@@ -75,17 +74,17 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
             return RandomBit(inf.Captured(color), SgRandom::Global());
         }
         LogInfo() << "PerfectPlayer: Playing random empty cell...\n";
-        return RandomBit(gameState.Board().GetEmpty(), SgRandom::Global());
+        return RandomBit(state.Position().GetEmpty(), SgRandom::Global());
     }
     double timeForMove = std::min(m_maxTime, maxTime);
     LogInfo() << "TimeForMove=" << timeForMove << '\n';
     double oldTimelimit = m_solver.Timelimit();
     m_solver.SetTimelimit(timeForMove);
     PointSequence pv;
-    HexColor winner = m_solver.StartSearch(brd, color, m_positions, pv);
+    HexColor winner = m_solver.StartSearch(state, brd, m_positions, pv);
     m_solver.SetTimelimit(oldTimelimit);
     if (m_propagateBackwards)
-        m_solver.PropagateBackwards(gameState, m_positions);
+        m_solver.PropagateBackwards(game, m_positions);
     // Return winning/best losing move.
     if (winner != EMPTY && !pv.empty())
         return pv[0];
@@ -102,27 +101,27 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
         boost::scoped_ptr<DfpnHashTable> myTable(new DfpnHashTable(10));
         boost::scoped_ptr<DfpnDB> myDB(0);
         SolverDBParameters myParam;
-        DfpnPositions myPositions(myTable, myDB, myParam);
+        DfpnStates myStates(myTable, myDB, myParam);
         LogInfo() << "PerfectPlayer: Found win with empty pv at this state:\n";
         LogInfo() << brd << '\n';
         LogInfo() << "PerfectPlayer: Re-solving with temporary hash table.\n";
-        winner = m_solver.StartSearch(brd, color, myPositions, pv);
+        winner = m_solver.StartSearch(state, brd, myStates, pv);
         HexAssert(winner != EMPTY);
         HexAssert(!pv.empty());
         return pv[0];
     }
     // Didn't prove it, find non-losing move with most work.
     DfpnData data;
-    if (!m_positions.Get(gameState.Board(), data))
+    if (!m_positions.Get(state, data))
         throw BenzeneException("Root node not in database!?!");
     std::size_t maxWork = 0;
     HexPoint bestMove = pv[0];
-    StoneBoard myBrd(gameState.Board());
+    HexState myState(state);
     for (std::size_t i = 0; i < data.m_children.Size(); ++i)
     {
-        data.m_children.PlayMove(i, myBrd, color);
+        data.m_children.PlayMove(i, myState);
         DfpnData child;
-        if (m_positions.Get(myBrd, child))
+        if (m_positions.Get(myState, child))
         {
             // We're assuming no children are losing (ie, no move is winning),
             // so we just need to avoid losing moves (winning children).
@@ -132,7 +131,7 @@ HexPoint PerfectPlayer::Search(HexBoard& brd, const Game& gameState,
                 maxWork = child.m_work;
             }
         }
-        data.m_children.UndoMove(i, myBrd);
+        data.m_children.UndoMove(i, myState);
     }
     LogInfo() << "bestMove=" << bestMove << " (" << maxWork << ")\n";
     return bestMove;

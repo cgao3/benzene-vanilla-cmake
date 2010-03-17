@@ -23,7 +23,7 @@ public:
 
     /** Returns best move from the book. Returns INVALID_POINT of no
         book or position not found in book. */
-    HexPoint BestMove(const StoneBoard& position, HexColor toPlay);
+    HexPoint BestMove(const HexState& state);
     
     /** Ignore nodes with counts below this. */
     unsigned MinCount() const;

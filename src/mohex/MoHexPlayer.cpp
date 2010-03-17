@@ -51,7 +51,8 @@ MoHexPlayer::MoHexPlayer()
       m_max_games(99999999),
       m_max_time(10),
       m_reuse_subtree(false),
-      m_ponder(false)
+      m_ponder(false),
+      m_performPreSearch(true)
 {
     LogFine() << "--- MoHexPlayer" << '\n';
 }
@@ -85,25 +86,22 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
 
 //----------------------------------------------------------------------------
 
-HexPoint MoHexPlayer::Search(HexBoard& brd, 
-                             const Game& game_state,
-			     HexColor color,
-                             const bitset_t& given_to_consider,
-                             double max_time,
-                             double& score)
+HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
+                             HexBoard& brd, const bitset_t& given_to_consider,
+                             double maxTime, double& score)
 {
-   
-    HexAssert(HexColorUtil::isBlackWhite(color));
     HexAssert(!brd.GetGroups().IsGameOver());
-
+    HexColor color = state.ToPlay();   
+   
     double start = Time::Get();
-    PrintParameters(color, max_time);
+    PrintParameters(color, maxTime);
 
     // Do presearch and abort if win found.
     SgTimer timer;
     bitset_t consider = given_to_consider;
     PointSequence winningSequence;
-    if (PerformPreSearch(brd, color, consider, winningSequence))
+    if (m_performPreSearch 
+        && PerformPreSearch(brd, color, consider, winningSequence))
     {
 	LogInfo() << "Winning sequence found before UCT search!" << '\n'
 		  << "Sequence: " << winningSequence[0] << '\n';
@@ -119,9 +117,9 @@ HexPoint MoHexPlayer::Search(HexBoard& brd,
     data.board_width = brd.Width();
     data.board_height = brd.Height();
     data.root_to_play = color;
-    data.game_sequence = game_state.History();
-    data.root_last_move_played = LastMoveFromHistory(game_state.History());
-    data.root_stones = HexUctStoneData(brd.GetState());
+    data.game_sequence = game.History();
+    data.root_last_move_played = LastMoveFromHistory(game.History());
+    data.root_stones = HexUctStoneData(brd.GetPosition());
     data.root_consider = consider;
     
     // Reuse the old subtree
@@ -143,7 +141,7 @@ HexPoint MoHexPlayer::Search(HexBoard& brd,
     std::vector<SgMove> sequence;
     std::vector<SgMove> rootFilter;
     m_search.SetBoard(brd);
-    score = m_search.Search(m_max_games, max_time, sequence,
+    score = m_search.Search(m_max_games, maxTime, sequence,
                             rootFilter, initTree, 0);
 
     brd.GetPatternState().SetUpdateRadius(old_radius);
@@ -185,7 +183,7 @@ HexPoint MoHexPlayer::Search(HexBoard& brd,
     // move.
     LogWarning() << "**** HexUctSearch returned empty sequence!" << '\n'
 		 << "**** Returning random move!" << '\n';
-    return BoardUtils::RandomEmptyCell(brd.GetState());
+    return BoardUtils::RandomEmptyCell(brd.GetPosition());
 }
 
 /** Returns INVALID_POINT if history is empty, otherwise last move

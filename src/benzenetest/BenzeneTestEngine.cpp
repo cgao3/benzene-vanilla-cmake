@@ -52,8 +52,8 @@ HexPoint BenzeneTestEngine::GenMove(HexColor color, bool useGameClock)
         return SWAP_PIECES;
     HexEval score;
     double maxTime = TimeForMove(color);
-    return m_player->GenMove(m_pe.SyncBoard(m_game.Board()), m_game, 
-                             color, maxTime, score);
+    return m_player->GenMove(HexState(m_game.Board(), color), m_game, 
+                             m_pe.SyncBoard(m_game.Board()), maxTime, score);
 }
 
 void BenzeneTestEngine::CmdSetPlayer(HtpCommand& cmd)

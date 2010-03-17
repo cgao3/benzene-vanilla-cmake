@@ -77,6 +77,12 @@ public:
     /** See Ponder() */
     void SetPonder(bool flag);
 
+    /** Searches 1ply for easy wins before the search. */
+    bool PerformPreSearch() const;
+
+    /** See PerformPreSearch() */
+    void SetPerformPreSearch(bool flag);
+
     // @}
 
 protected:
@@ -98,12 +104,13 @@ protected:
 
     /** See Ponder() */
     bool m_ponder;
+
+    bool m_performPreSearch;
     
     /** Generates a move in the given gamestate using uct. */
-    virtual HexPoint Search(HexBoard& brd, const Game& game_state,
-			    HexColor color, const bitset_t& consider,
-                            double max_time, double& score);
-
+    HexPoint Search(const HexState& state, const Game& game,
+                    HexBoard& brd, const bitset_t& consider,
+                    double maxTime, double& score);
 
     HexPoint LastMoveFromHistory(const MoveSequence& history);
 
@@ -194,6 +201,16 @@ inline bool MoHexPlayer::Ponder() const
 inline void MoHexPlayer::SetPonder(bool flag)
 {
     m_ponder = flag;
+}
+
+inline bool MoHexPlayer::PerformPreSearch() const
+{
+    return m_performPreSearch;
+}
+
+inline void MoHexPlayer::SetPerformPreSearch(bool flag)
+{
+    m_performPreSearch = flag;
 }
 
 //----------------------------------------------------------------------------

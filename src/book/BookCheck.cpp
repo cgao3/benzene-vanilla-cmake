@@ -20,12 +20,11 @@ BookCheck::~BookCheck()
 {
 }
 
-HexPoint BookCheck::BestMove(const StoneBoard& brd, HexColor toPlay)
+HexPoint BookCheck::BestMove(const HexState& state)
 {
-    SG_UNUSED(toPlay);
     if (m_book.get() == 0)
         return INVALID_POINT;
-    HexPoint bookMove = BookUtil::BestMove(*m_book, brd, m_minCount, 
+    HexPoint bookMove = BookUtil::BestMove(*m_book, state, m_minCount, 
                                            m_countWeight);
     if (bookMove != INVALID_POINT)
         LogInfo() << "BookCheck: playing move " << bookMove << '\n';

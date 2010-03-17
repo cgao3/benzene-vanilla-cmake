@@ -12,9 +12,10 @@
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
+#include "HexState.hpp"
 #include "Game.hpp"
 #include "TransTable.hpp"
-#include "PositionDB.hpp"
+#include "StateDB.hpp"
 #include "SolverDB.hpp"
 
 #include <limits>
@@ -162,9 +163,9 @@ public:
 
     HexPoint FirstMove(int index) const;
 
-    void PlayMove(int index, StoneBoard& brd, HexColor color) const;
+    void PlayMove(int index, HexState& state) const;
 
-    void UndoMove(int index, StoneBoard& brd) const;
+    void UndoMove(int index, HexState& state) const;
 
 private:
     friend class DfpnData;
@@ -390,20 +391,20 @@ typedef TransTable<DfpnData> DfpnHashTable;
 /** Database of solved positions. 
     @ingroup dfpn
 */
-class DfpnDB : public PositionDB<DfpnData>
+class DfpnDB : public StateDB<DfpnData>
 {
 public:
     static const std::string DFPN_DB_VERSION;
 
     DfpnDB(const std::string& filename)
-        : PositionDB<DfpnData>(filename, DFPN_DB_VERSION)
+        : StateDB<DfpnData>(filename, DFPN_DB_VERSION)
     { }
 };
 
 /** Combines a hashtable with a position db.
     @ingroup dfpn
 */
-typedef SolverDB<DfpnHashTable, DfpnDB, DfpnData> DfpnPositions;
+typedef SolverDB<DfpnHashTable, DfpnDB, DfpnData> DfpnStates;
 
 //----------------------------------------------------------------------------
 
@@ -421,11 +422,11 @@ public:
     /** Solves the given state using the given hashtable. 
         Returns the color of the winning player (EMPTY if it could
         not determine a winner in time). */
-    HexColor StartSearch(HexBoard& brd, HexColor colorToMove,
-                         DfpnPositions& positions, PointSequence& pv);
+    HexColor StartSearch(const HexState& state, HexBoard& brd, 
+                         DfpnStates& positions, PointSequence& pv);
 
-    HexColor StartSearch(HexBoard& brd, HexColor colorToMove,
-                         DfpnPositions& positions, PointSequence& pv,
+    HexColor StartSearch(const HexState& state, HexBoard& brd, 
+                         DfpnStates& positions, PointSequence& pv,
                          const DfpnBounds& maxBounds);
 
     void AddListener(DfpnListener& listener);
@@ -436,7 +437,7 @@ public:
 
     /** Updates bounds from this state to start of game or a state
         is not in position set. */
-    void PropagateBackwards(const Game& game, DfpnPositions& pos);
+    void PropagateBackwards(const Game& game, DfpnStates& pos);
 
     //------------------------------------------------------------------------
 
@@ -517,11 +518,11 @@ private:
         void DoWrite();
     };
 
-    boost::scoped_ptr<StoneBoard> m_brd;
+    boost::scoped_ptr<HexState> m_state;
 
     HexBoard* m_workBoard;
 
-    DfpnPositions* m_positions;
+    DfpnStates* m_positions;
 
     std::vector<DfpnListener*> m_listener;
 
@@ -574,8 +575,7 @@ private:
 
     SgHistogram<float, std::size_t> m_losingEvaluation;
 
-    size_t MID(const DfpnBounds& n, DfpnHistory& history,
-               HexColor colorToMove);
+    size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
     void SelectChild(int& bestMove, std::size_t& delta2, 
                      const std::vector<DfpnData>& childrenDfpnBounds,
@@ -588,11 +588,11 @@ private:
     bool CheckAbort();
 
     void LookupData(DfpnData& data, const DfpnChildren& children, 
-                    int childIndex, HexColor colorToMove, StoneBoard& brd);
+                    int childIndex, HexState& state);
 
-    bool TTRead(const StoneBoard& brd, DfpnData& data);
+    bool TTRead(const HexState& state, DfpnData& data);
 
-    void TTWrite(const StoneBoard& brd, const DfpnData& data);
+    void TTWrite(const HexState& state, const DfpnData& data);
 
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;

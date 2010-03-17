@@ -14,7 +14,7 @@
 #include "TransTable.hpp"
 #include "DfsData.hpp"
 #include "SolverDB.hpp"
-#include "PositionDB.hpp"
+#include "StateDB.hpp"
 #include "HexEval.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -25,18 +25,18 @@ _BEGIN_BENZENE_NAMESPACE_
 typedef TransTable<DfsData> DfsHashTable;
 
 /** Database for use in DfsSolver. */
-class DfsDB : public PositionDB<DfsData>
+class DfsDB : public StateDB<DfsData>
 {
 public:
     static const std::string DFS_DB_VERSION;
 
     DfsDB(const std::string& filename)
-        : PositionDB<DfsData>(filename, DFS_DB_VERSION)
+        : StateDB<DfsData>(filename, DFS_DB_VERSION)
     { }
 };
 
 /** Solver database combining both of the above. */
-typedef SolverDB<DfsHashTable, DfsDB, DfsData> DfsPositions;
+typedef SolverDB<DfsHashTable, DfsDB, DfsData> DfsStates;
 
 //----------------------------------------------------------------------------
 
@@ -236,8 +236,9 @@ public:
         Returns color of winner or EMPTY if aborted before state was
         solved.
     */
-    HexColor Solve(HexBoard& board, HexColor toplay, DfsSolutionSet& solution,
-                   DfsPositions& positions, int depthLimit = -1, 
+    HexColor Solve(const HexState& state, HexBoard& board, 
+                   DfsSolutionSet& solution,
+                   DfsStates& positions, int depthLimit = -1, 
                    double timeLimit = -1.0);
 
     //------------------------------------------------------------------------
@@ -317,7 +318,9 @@ private:
 
     //------------------------------------------------------------------------
 
-    DfsPositions* m_positions;
+    DfsStates* m_positions;
+
+    HexBoard* m_workBrd;
 
     double m_start_time;
         
@@ -331,8 +334,7 @@ private:
 
     mutable GlobalStatistics m_statistics;
     
-    /** Board with no fillin. */
-    boost::scoped_ptr<StoneBoard> m_stoneboard;
+    boost::scoped_ptr<HexState> m_state;
 
     /** See UseDecompositions() */
     bool m_use_decompositions;
@@ -360,40 +362,32 @@ private:
 
     //------------------------------------------------------------------------
 
-    void PlayMove(HexBoard& brd, HexPoint cell, HexColor color);
+    void PlayMove(HexPoint cell);
     
-    void UndoMove(HexBoard& brd, HexPoint cell);
+    void UndoMove(HexPoint cell);
 
     bool CheckTransposition(DfsData& state) const;
 
-    void StoreState(HexColor color, const DfsData& state, 
-                    const bitset_t& proof);
+    void StoreState(const DfsData& state, const bitset_t& proof);
 
     bool CheckAbort();
     
-    bool HandleLeafNode(const HexBoard& brd, HexColor color, 
-                        DfsData& state, bitset_t& proof) const;
+    bool HandleLeafNode(DfsData& state, bitset_t& proof) const;
 
-    bool HandleTerminalNode(const HexBoard& brd, HexColor color, 
-                            DfsData& state, bitset_t& proof) const;
+    bool HandleTerminalNode(DfsData& state, bitset_t& proof) const;
 
-    bool OrderMoves(HexBoard& brd, HexColor color, bitset_t& mustplay, 
-                    DfsSolutionSet& solution, 
+    bool OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution, 
                     std::vector<HexMoveValue>& moves);
 
-    bool SolveState(HexBoard& brd, HexColor tomove, PointSequence& variation, 
-                    DfsSolutionSet& solution);
+    bool SolveState(PointSequence& variation, DfsSolutionSet& solution);
 
-    bool SolveDecomposition(HexBoard& brd, HexColor color, 
-                            PointSequence& variation,
+    bool SolveDecomposition(PointSequence& variation,
                             DfsSolutionSet& solution, HexPoint group);
 
-    bool SolveInteriorState(HexBoard& brd, HexColor color, 
-                            PointSequence& variation, 
+    bool SolveInteriorState(PointSequence& variation, 
                             DfsSolutionSet& solution);
 
-    void HandleProof(const HexBoard& brd, HexColor color, 
-                     const PointSequence& variation,
+    void HandleProof(const PointSequence& variation,
                      bool winning_state, DfsSolutionSet& solution);
 };
 

@@ -15,7 +15,7 @@ DfpnCommands::DfpnCommands(Game& game, HexEnvironment& env,
                            DfpnSolver& solver,
                            boost::scoped_ptr<DfpnHashTable>& tt,
                            boost::scoped_ptr<DfpnDB>& db,
-                           DfpnPositions& positions)
+                           DfpnStates& positions)
     : m_game(game), 
       m_env(env),
       m_solver(solver),
@@ -149,8 +149,9 @@ void DfpnCommands::CmdSolveState(HtpCommand& cmd)
     DfpnBounds maxBounds(maxPhi, maxDelta);
     PointSequence pv;
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    HexColor winner = m_solver.StartSearch(brd, colorToMove, m_positions, 
-                                           pv, maxBounds);
+    HexColor winner 
+        = m_solver.StartSearch(HexState(m_game.Board(), colorToMove), brd, 
+                               m_positions, pv, maxBounds);
     cmd << winner;
 }
 
@@ -163,23 +164,23 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(colorToMove);
     bitset_t consider = (EndgameUtils::IsDeterminedState(brd, colorToMove) ?
-                         brd.GetState().GetEmpty() :
+                         brd.GetPosition().GetEmpty() :
                          EndgameUtils::MovesToConsider(brd, colorToMove));
     bitset_t winning;
     SgTimer timer;
 
+    HexState state(m_game.Board(), colorToMove);
     for (BitsetIterator p(consider); p; ++p)
     {
-        StoneBoard board(m_game.Board());
-        board.PlayMove(colorToMove, *p);
-        HexBoard& brd = m_env.SyncBoard(board);
+        state.PlayMove(*p);
+        HexBoard& brd = m_env.SyncBoard(state.Position());
         LogInfo() << "****** Trying " << *p << " ******\n" << brd << '\n';
         PointSequence pv;
-        HexColor winner = m_solver.StartSearch(brd,!colorToMove, 
-                                               m_positions, pv);
+        HexColor winner = m_solver.StartSearch(state, brd, m_positions, pv);
         if (winner == colorToMove)
             winning.set(*p);
         LogInfo() << "****** " << winner << " wins ******\n";
+        state.UndoMove(*p);
     }
     LogInfo() << "Total Elapsed Time: " << timer.GetTime() << '\n';
     cmd << HexPointUtil::ToString(winning);
@@ -196,9 +197,11 @@ void DfpnCommands::CmdClearTT(HtpCommand& cmd)
     hashtable. */
 void DfpnCommands::CmdGetState(HtpCommand& cmd)
 {
-    cmd.CheckArgNone();
+    cmd.CheckNuArg(1);
+    HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);    
+    HexState state(m_game.Board(), colorToMove);
     DfpnData data;
-    if (m_positions.Get(m_game.Board(), data))
+    if (m_positions.Get(state, data))
         cmd << data << '\n';
 }
 
@@ -208,12 +211,12 @@ void DfpnCommands::CmdGetBounds(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
-    StoneBoard brd(m_game.Board());
-    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+    HexState state(m_game.Board(), colorToMove);
+    for (BitsetIterator it(state.Position().GetEmpty()); it; ++it)
     {
-        brd.PlayMove(colorToMove, *it);
+        state.PlayMove(*it);
         DfpnData data;
-        if (m_positions.Get(brd, data))
+        if (m_positions.Get(state, data))
         {
             cmd << ' ' << *it << ' ';
             if (data.m_bounds.IsWinning())
@@ -223,7 +226,7 @@ void DfpnCommands::CmdGetBounds(HtpCommand& cmd)
             else 
                 cmd << data.m_bounds.phi << ':' << data.m_bounds.delta;
         }
-        brd.UndoMove(*it);
+        state.UndoMove(*it);
     }
 }
 
@@ -233,14 +236,14 @@ void DfpnCommands::CmdGetWork(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
-    StoneBoard brd(m_game.Board());
-    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+    HexState state(m_game.Board(), colorToMove);
+    for (BitsetIterator it(state.Position().GetEmpty()); it; ++it)
     {
-        brd.PlayMove(colorToMove, *it);
+        state.PlayMove(*it);
         DfpnData data;
-        if (m_positions.Get(brd, data))
+        if (m_positions.Get(state, data))
             cmd << ' ' << *it << ' ' << data.m_work;
-        brd.UndoMove(*it);
+        state.UndoMove(*it);
     }
 }
 
@@ -250,7 +253,8 @@ void DfpnCommands::CmdGetPV(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
     PointSequence pv;
-    SolverDBUtil::GetVariation(m_game.Board(), colorToMove, m_positions, pv);
+    SolverDBUtil::GetVariation(HexState(m_game.Board(), colorToMove), 
+                               m_positions, pv);
     cmd << HexPointUtil::ToString(pv);
 }
 

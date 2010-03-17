@@ -31,6 +31,9 @@ void ZobristHash::GlobalData::SetPointers()
     m_white_hashes = &m_hashes[2048];
     m_color_hashes[BLACK] = m_black_hashes;
     m_color_hashes[WHITE] = m_white_hashes;
+    m_toPlay_hashes[BLACK] = &m_hashes[3072];
+    m_toPlay_hashes[WHITE] = &m_hashes[3073];
+    m_toPlay_hashes[EMPTY] = &m_hashes[3074];
 }
 
 #if USE_PREDEFINED_HASHES

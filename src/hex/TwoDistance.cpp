@@ -41,7 +41,7 @@ void TwoDistance::ComputeScores(HexColor color, HexEval* out)
 
     for (BoardIterator it(m_brd->Const().Interior()); it; ++it) 
     {
-        if (m_brd->GetState().IsOccupied(*it))
+        if (m_brd->GetPosition().IsOccupied(*it))
             out[*it] = 0;
         else 
             out[*it] = TwoDistUtil::AddDistance(dist[0][*it], dist[1][*it]);
@@ -55,7 +55,7 @@ void TwoDistance::FindBest(HexEval* po, HexPoint& who, int& count)
     who = INVALID_POINT;
     count = 1;
 
-    for (BitsetIterator it(m_brd->GetState().GetEmpty()); it; ++it) 
+    for (BitsetIterator it(m_brd->GetPosition().GetEmpty()); it; ++it) 
     {
         if (po[*it] < best) 
         {
@@ -117,7 +117,7 @@ void TwoDistance::ComputeDistanceToEdge(HexColor color,
     std::set<HexPoint> once;
 
     // add immediate neighbours of edge
-    for (BitsetIterator it(m_brd->GetState().GetEmpty()); it; ++it) 
+    for (BitsetIterator it(m_brd->GetPosition().GetEmpty()); it; ++it) 
     {
         if (IsAdjacent(color, *it, edge)) 
         {
@@ -134,7 +134,7 @@ void TwoDistance::ComputeDistanceToEdge(HexColor color,
         int dist = -pp.first;        
         HexPoint p = pp.second;
                   
-        for (BitsetIterator it(m_brd->GetState().GetEmpty()); it; ++it) 
+        for (BitsetIterator it(m_brd->GetPosition().GetEmpty()); it; ++it) 
         {
             if (IsAdjacent(color, *it, p)) 
             {

@@ -23,7 +23,7 @@ class PerfectPlayer : public BenzenePlayer
 {
 public:
 
-    explicit PerfectPlayer(DfpnSolver& solver, DfpnPositions& positions);
+    explicit PerfectPlayer(DfpnSolver& solver, DfpnStates& positions);
 
     virtual ~PerfectPlayer();
     
@@ -45,17 +45,16 @@ public:
 private:
     DfpnSolver& m_solver;
 
-    DfpnPositions& m_positions;
+    DfpnStates& m_positions;
 
     double m_maxTime;
 
     bool m_propagateBackwards;
 
     /** Generates a move in the given gamestate using DfpnSolver. */
-    HexPoint Search(HexBoard& brd, const Game& game_state,
-                    HexColor color, const bitset_t& consider,
-                    double max_time, double& score);
-
+    HexPoint Search(const HexState& state, const Game& game,
+                    HexBoard& brd, const bitset_t& consider,
+                    double maxTime, double& score);
 };
 
 inline std::string PerfectPlayer::Name() const

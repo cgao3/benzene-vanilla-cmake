@@ -1,3 +1,4 @@
+#!/bin/bash
 # Runs a tournament between two instances of mohex.
 
 source common.sh
