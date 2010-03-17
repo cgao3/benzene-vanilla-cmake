@@ -60,7 +60,11 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
 {
     SetBiasTermConstant(0.0);
     SetExpandThreshold(1);
-    SetKnowledgeThreshold(400);
+    {
+        std::vector<std::size_t> thresholds;
+        thresholds.push_back(400);
+        SetKnowledgeThreshold(thresholds);
+    }
     SetLockFree(true);    
     SetMaxNodes(15000000);
     SetMoveSelect(SG_UCTMOVESELECT_COUNT);

@@ -15,6 +15,40 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+namespace {
+
+std::string KnowledgeThresholdToString(const std::vector<std::size_t>& t)
+{
+    if (t.empty())
+        return "0";
+    std::ostringstream os;
+    os << '\"';
+    for (std::size_t i = 0; i < t.size(); ++i)
+    {
+        if (i > 0) 
+            os << ' ';
+        os << t[i];
+    }
+    os << '\"';
+    return os.str();
+}
+
+std::vector<std::size_t> KnowledgeThresholdFromString(const std::string& val)
+{
+    std::vector<std::size_t> v;
+    std::istringstream is(val);
+    std::size_t t;
+    while (is >> t)
+        v.push_back(t);
+    if (v.size() == 1 && v[0] == 0)
+        v.clear();
+    return v;
+}
+
+}
+
+//----------------------------------------------------------------------------
+
 MoHexEngine::MoHexEngine(GtpInputStream& in, GtpOutputStream& out, 
                          int boardsize, MoHexPlayer& player)
     : BenzeneHtpEngine(in, out, boardsize),
@@ -146,7 +180,7 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << "[string] expand_threshold "
             << search.ExpandThreshold() << '\n'
             << "[string] knowledge_threshold "
-            << search.KnowledgeThreshold() << '\n'
+            << KnowledgeThresholdToString(search.KnowledgeThreshold()) << '\n'
             << "[string] livegfx_interval "
             << search.LiveGfxInterval() << '\n'
             << "[string] max_games "
@@ -194,7 +228,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         else if (name == "expand_threshold")
             search.SetExpandThreshold(cmd.IntArg(1, 0));
         else if (name == "knowledge_threshold")
-            search.SetKnowledgeThreshold(cmd.SizeTypeArg(1, 0));
+            search.SetKnowledgeThreshold
+                (KnowledgeThresholdFromString(cmd.Arg(1)));
         else if (name == "livegfx_interval")
             search.SetLiveGfxInterval(cmd.IntArg(1, 0));
         else if (name == "max_games")

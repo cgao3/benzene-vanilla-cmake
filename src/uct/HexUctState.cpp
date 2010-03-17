@@ -29,7 +29,7 @@
 
 using namespace benzene;
 
-/** Prints output during knowledge is computation. */
+/** Prints output during knowledge computation. */
 static const bool DEBUG_KNOWLEDGE = false;
 
 /** Prints hash sequence before computing knowledge. 

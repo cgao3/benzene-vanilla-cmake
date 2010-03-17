@@ -311,7 +311,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
 {
     // Must have knowledge on to reuse subtrees, since root has fillin
     // knowledge which affects the tree below.
-    if (!m_search.KnowledgeThreshold())
+    if (m_search.KnowledgeThreshold().empty())
     {
         LogInfo() << "ReuseSubtree: knowledge is off." << '\n';
         return 0;
