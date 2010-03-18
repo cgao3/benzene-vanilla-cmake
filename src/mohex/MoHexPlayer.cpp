@@ -51,7 +51,8 @@ MoHexPlayer::MoHexPlayer()
       m_max_games(99999999),
       m_max_time(10),
       m_reuse_subtree(false),
-      m_ponder(false)
+      m_ponder(false),
+      m_performPreSearch(true)
 {
     LogFine() << "--- MoHexPlayer" << '\n';
 }
@@ -99,7 +100,8 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     SgTimer timer;
     bitset_t consider = given_to_consider;
     PointSequence winningSequence;
-    if (PerformPreSearch(brd, color, consider, winningSequence))
+    if (m_performPreSearch 
+        && PerformPreSearch(brd, color, consider, winningSequence))
     {
 	LogInfo() << "Winning sequence found before UCT search!" << '\n'
 		  << "Sequence: " << winningSequence[0] << '\n';
@@ -307,7 +309,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
 {
     // Must have knowledge on to reuse subtrees, since root has fillin
     // knowledge which affects the tree below.
-    if (!m_search.KnowledgeThreshold())
+    if (m_search.KnowledgeThreshold().empty())
     {
         LogInfo() << "ReuseSubtree: knowledge is off." << '\n';
         return 0;

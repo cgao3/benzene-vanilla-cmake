@@ -77,6 +77,12 @@ public:
     /** See Ponder() */
     void SetPonder(bool flag);
 
+    /** Searches 1ply for easy wins before the search. */
+    bool PerformPreSearch() const;
+
+    /** See PerformPreSearch() */
+    void SetPerformPreSearch(bool flag);
+
     // @}
 
 protected:
@@ -98,6 +104,8 @@ protected:
 
     /** See Ponder() */
     bool m_ponder;
+
+    bool m_performPreSearch;
     
     /** Generates a move in the given gamestate using uct. */
     HexPoint Search(const HexState& state, const Game& game,
@@ -193,6 +201,16 @@ inline bool MoHexPlayer::Ponder() const
 inline void MoHexPlayer::SetPonder(bool flag)
 {
     m_ponder = flag;
+}
+
+inline bool MoHexPlayer::PerformPreSearch() const
+{
+    return m_performPreSearch;
+}
+
+inline void MoHexPlayer::SetPerformPreSearch(bool flag)
+{
+    m_performPreSearch = flag;
 }
 
 //----------------------------------------------------------------------------
