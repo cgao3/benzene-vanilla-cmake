@@ -525,7 +525,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
 
         // Select most proving child
         int bestIndex = -1;
-        std::size_t delta2 = DfpnBounds::INFTY;
+        DfpnBoundType delta2 = DfpnBounds::INFTY;
         SelectChild(bestIndex, delta2, childrenData, maxChildIndex);
         bestMove = children.FirstMove(bestIndex);
 
@@ -714,11 +714,11 @@ void DfpnSolver::NotifyListeners(const DfpnHistory& history,
         m_listener[i]->StateSolved(history, data);
 }
 
-void DfpnSolver::SelectChild(int& bestIndex, std::size_t& delta2,
+void DfpnSolver::SelectChild(int& bestIndex, DfpnBoundType& delta2,
                              const std::vector<DfpnData>& childrenData,
                              size_t maxChildIndex) const
 {
-    std::size_t delta1 = DfpnBounds::INFTY;
+    DfpnBoundType delta1 = DfpnBounds::INFTY;
 
     HexAssert(1 <= maxChildIndex && maxChildIndex <= childrenData.size());
     for (std::size_t i = 0; i < maxChildIndex; ++i)
