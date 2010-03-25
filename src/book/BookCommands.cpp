@@ -29,6 +29,7 @@ void BookCommands::Register(GtpEngine& e)
 {
     Register(e, "book-open", &BookCommands::CmdBookOpen);
     Register(e, "book-close", &BookCommands::CmdBookClose);
+    Register(e, "book-stat", &BookCommands::CmdBookStat);
     Register(e, "book-depths", &BookCommands::CmdBookMainLineDepth);
     Register(e, "book-counts", &BookCommands::CmdBookCounts);
     Register(e, "book-scores", &BookCommands::CmdBookScores);
@@ -71,6 +72,14 @@ void BookCommands::CmdBookClose(HtpCommand& cmd)
     if (m_book.get() == 0)
         throw HtpFailure() << "No open book.";        
     m_book.reset(0);
+}
+
+void BookCommands::CmdBookStat(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(0);
+    if (m_book.get() == 0)
+        throw HtpFailure("No open book!\n");
+    cmd << m_book->BDBStatistics();
 }
 
 void BookCommands::CmdBookMainLineDepth(HtpCommand& cmd)

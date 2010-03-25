@@ -102,6 +102,8 @@ public:
 
     Statistics GetStatistics() const;
 
+    std::string BDBStatistics();
+
 private:
     HashDB<T> m_db;
 
@@ -189,6 +191,12 @@ std::string StateDB<T>::Statistics::Write() const
        << "Writes     " << m_puts << '\n'
        << "Rotations  " << m_rotations;
     return os.str();
+}
+
+template<class T>
+std::string StateDB<T>::BDBStatistics()
+{
+    return m_db.BDBStatistics();
 }
 
 //----------------------------------------------------------------------------

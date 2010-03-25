@@ -40,6 +40,7 @@ void DfsCommands::Register(GtpEngine& e)
     Register(e, "dfs-get-pv", &DfsCommands::CmdGetPV);
     Register(e, "dfs-open-db", &DfsCommands::CmdDBOpen);
     Register(e, "dfs-close-db", &DfsCommands::CmdDBClose);
+    Register(e, "dfs-db-stat", &DfsCommands::CmdDBStat);
 }
 
 void DfsCommands::Register(GtpEngine& engine, const std::string& command,
@@ -282,6 +283,15 @@ void DfsCommands::CmdGetState(HtpCommand& cmd)
         else if (flags[losing[i]] & SolverDataFlags::TRANSPOSITION)
             cmd << "t";
     }
+}
+
+/** Prints database statistics. */
+void DfsCommands::CmdDBStat(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(0);
+    if (m_db.get() == 0)
+        throw HtpFailure("No open database!\n");
+    cmd << m_db->BDBStatistics();
 }
 
 /** Prints histogram of last search. */
