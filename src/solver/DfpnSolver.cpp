@@ -176,7 +176,7 @@ int DfpnData::PackedSize() const
         + sizeof(m_work)
         + sizeof(m_maxProofSet)
         + sizeof(m_evaluationScore)
-        + sizeof(HexPoint) * (m_children.Size() + 1);
+        + sizeof(short) * (m_children.Size() + 1);
 }
 
 byte* DfpnData::Pack() const
@@ -196,11 +196,11 @@ byte* DfpnData::Pack() const
     const std::vector<HexPoint>& moves = m_children.m_children;
     for (std::size_t i = 0; i < moves.size(); ++i)
     {
-        *reinterpret_cast<HexPoint*>(off) = moves[i];
-        off += sizeof(HexPoint);
+        *reinterpret_cast<short*>(off) = static_cast<short>(moves[i]);
+        off += sizeof(short);
     }
-    *reinterpret_cast<HexPoint*>(off) = INVALID_POINT;
-    off += sizeof(HexPoint);
+    *reinterpret_cast<short*>(off) = static_cast<short>(INVALID_POINT);
+    off += sizeof(short);
     if (off - data != PackedSize())
         throw BenzeneException("Bad size!");
     return data;
@@ -221,8 +221,9 @@ void DfpnData::Unpack(const byte* data)
     std::vector<HexPoint> moves;
     while (true)
     {
-        HexPoint p = *reinterpret_cast<const HexPoint*>(data);
-        data += sizeof(HexPoint);
+        short s = *reinterpret_cast<const short*>(data);
+        data += sizeof(short);
+        HexPoint p = static_cast<HexPoint>(s);
         if (p == INVALID_POINT)
             break;
         moves.push_back(p);
