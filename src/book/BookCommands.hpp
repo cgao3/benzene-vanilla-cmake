@@ -43,6 +43,7 @@ private:
 
     void CmdBookOpen(HtpCommand& cmd);
     void CmdBookClose(HtpCommand& cmd);
+    void CmdBookStat(HtpCommand& cmd);
     void CmdBookMainLineDepth(HtpCommand& cmd);
     void CmdBookCounts(HtpCommand& cmd);
     void CmdBookScores(HtpCommand& cmd);

@@ -40,28 +40,33 @@ typedef SgStatisticsExt<float, std::size_t> DfpnStatistics;
 
 //----------------------------------------------------------------------------
 
+/** Type used for bounds. 
+    @ingroup dfpn
+*/
+typedef unsigned DfpnBoundType;
+
 /** Bounds used in Dfpn search. 
     @ingroup dfpn
 */
 struct DfpnBounds
 {
     /** Denotes a proven state. */
-    static const std::size_t INFTY = 2000000000;
+    static const DfpnBoundType INFTY = 2000000000;
 
     /** Maximum amount of work. Must be less than INFTY. */ 
-    static const std::size_t MAX_WORK = INFTY / 2;
+    static const DfpnBoundType MAX_WORK = INFTY / 2;
 
     /** Proof number.
         Estimated amount of work to prove this state winning. */
-    std::size_t phi;
+    DfpnBoundType phi;
 
     /** Disproof number.
         Estimated amount of work to prove this state losing. */
-    std::size_t delta;
+    DfpnBoundType delta;
 
     DfpnBounds();
 
-    DfpnBounds(std::size_t p, std::size_t d);
+    DfpnBounds(DfpnBoundType p, DfpnBoundType d);
 
 
     /** Returns true if phi is greater than other's phi and delta is
@@ -95,7 +100,7 @@ inline DfpnBounds::DfpnBounds()
 {
 }
 
-inline DfpnBounds::DfpnBounds(std::size_t p, std::size_t d)
+inline DfpnBounds::DfpnBounds(DfpnBoundType p, DfpnBoundType d)
     : phi(p), 
       delta(d)
 {
@@ -577,7 +582,7 @@ private:
 
     size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
-    void SelectChild(int& bestMove, std::size_t& delta2, 
+    void SelectChild(int& bestMove, DfpnBoundType& delta2, 
                      const std::vector<DfpnData>& childrenDfpnBounds,
                      size_t maxChildIndex) const;
 

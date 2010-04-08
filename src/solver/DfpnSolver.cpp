@@ -22,7 +22,7 @@ using std::ceil;
 /** Current version of the dfpn database.
     Update this if DfpnData changes to prevent old out-of-date
     databases from being loaded. */
-const std::string DfpnDB::DFPN_DB_VERSION("BENZENE_DFPN_DB_VER_0001");
+const std::string DfpnDB::DFPN_DB_VERSION("BENZENE_DFPN_DB_VER_0002");
 
 //----------------------------------------------------------------------------
 
@@ -176,7 +176,7 @@ int DfpnData::PackedSize() const
         + sizeof(m_work)
         + sizeof(m_maxProofSet)
         + sizeof(m_evaluationScore)
-        + sizeof(HexPoint) * (m_children.Size() + 1);
+        + sizeof(short) * (m_children.Size() + 1);
 }
 
 byte* DfpnData::Pack() const
@@ -196,11 +196,11 @@ byte* DfpnData::Pack() const
     const std::vector<HexPoint>& moves = m_children.m_children;
     for (std::size_t i = 0; i < moves.size(); ++i)
     {
-        *reinterpret_cast<HexPoint*>(off) = moves[i];
-        off += sizeof(HexPoint);
+        *reinterpret_cast<short*>(off) = static_cast<short>(moves[i]);
+        off += sizeof(short);
     }
-    *reinterpret_cast<HexPoint*>(off) = INVALID_POINT;
-    off += sizeof(HexPoint);
+    *reinterpret_cast<short*>(off) = static_cast<short>(INVALID_POINT);
+    off += sizeof(short);
     if (off - data != PackedSize())
         throw BenzeneException("Bad size!");
     return data;
@@ -221,8 +221,9 @@ void DfpnData::Unpack(const byte* data)
     std::vector<HexPoint> moves;
     while (true)
     {
-        HexPoint p = *reinterpret_cast<const HexPoint*>(data);
-        data += sizeof(HexPoint);
+        short s = *reinterpret_cast<const short*>(data);
+        data += sizeof(short);
+        HexPoint p = static_cast<HexPoint>(s);
         if (p == INVALID_POINT)
             break;
         moves.push_back(p);
@@ -524,7 +525,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
 
         // Select most proving child
         int bestIndex = -1;
-        std::size_t delta2 = DfpnBounds::INFTY;
+        DfpnBoundType delta2 = DfpnBounds::INFTY;
         SelectChild(bestIndex, delta2, childrenData, maxChildIndex);
         bestMove = children.FirstMove(bestIndex);
 
@@ -713,11 +714,11 @@ void DfpnSolver::NotifyListeners(const DfpnHistory& history,
         m_listener[i]->StateSolved(history, data);
 }
 
-void DfpnSolver::SelectChild(int& bestIndex, std::size_t& delta2,
+void DfpnSolver::SelectChild(int& bestIndex, DfpnBoundType& delta2,
                              const std::vector<DfpnData>& childrenData,
                              size_t maxChildIndex) const
 {
-    std::size_t delta1 = DfpnBounds::INFTY;
+    DfpnBoundType delta1 = DfpnBounds::INFTY;
 
     HexAssert(1 <= maxChildIndex && maxChildIndex <= childrenData.size());
     for (std::size_t i = 0; i < maxChildIndex; ++i)

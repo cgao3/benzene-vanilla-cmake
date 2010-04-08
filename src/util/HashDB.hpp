@@ -84,6 +84,9 @@ public:
     /** Flush the db to disk. */
     void Flush();
 
+    /** Returns statistics of the berkeley db. */
+    std::string BDBStatistics();
+
 private:
 
     static const int PERMISSION_FLAGS = 0664;
@@ -312,6 +315,38 @@ template<class T>
 void HashDB<T>::Flush()
 {
     m_db->sync(m_db, 0);
+}
+
+template<class T>
+std::string HashDB<T>::BDBStatistics()
+{
+    DB_HASH_STAT* stats_ptr;
+    int ret;
+    if ((ret = m_db->stat(m_db, NULL, &stats_ptr, 0)) != 0) {
+        m_db->err(m_db, ret, "%s", m_filename.c_str());
+        return "Error; no stats returned.";
+    }
+    DB_HASH_STAT& stats = *stats_ptr;
+    std::ostringstream os;
+    os << "[\n";
+    os << "magic=" << stats.hash_magic << '\n';
+    os << "version=" << stats.hash_version << '\n';
+    os << "metaflags=" << stats.hash_metaflags << '\n';
+    os << "nkeys=" << stats.hash_nkeys << '\n';
+    os << "ndata=" << stats.hash_ndata << '\n';
+    os << "pagesize=" << stats.hash_pagesize << '\n';
+    os << "fillfactor=" << stats.hash_ffactor << '\n';
+    os << "buckets=" << stats.hash_buckets << '\n';
+    os << "freepages=" << stats.hash_free << '\n';
+    os << "bytesfree=" << stats.hash_bfree << '\n';
+    os << "bigpages=" << stats.hash_bigpages << '\n';
+    os << "bytesbfree=" << stats.hash_big_bfree << '\n';
+    os << "overflowpages=" << stats.hash_overflows << '\n';
+    os << "ovfl_free=" << stats.hash_ovfl_free << '\n';
+    os << "dup_pages=" << stats.hash_dup << '\n';
+    os << "dup_free=" << stats.hash_dup_free << '\n';
+    os << ']';
+    return os.str();
 }
 
 //----------------------------------------------------------------------------
