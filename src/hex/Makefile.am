@@ -58,6 +58,7 @@ HexColor.hpp \
 HexEnvironment.hpp \
 HexEval.hpp \
 HexHtpEngine.hpp \
+HexModState.hpp \
 HexPlayer.hpp \
 HexPoint.hpp \
 HexPoints11x11.hpp \
@@ -68,6 +69,7 @@ HexProgram.hpp \
 HexProp.hpp \
 HexSgUtil.hpp \
 HexState.hpp \
+HexStateAssertRestored.hpp \
 ICEngine.hpp \
 IcePatternSet.hpp \
 InferiorCells.hpp \
