@@ -26,21 +26,6 @@ const std::string Book::BOOK_DB_VERSION = "BENZENE_BOOK_VER_0001";
 
 //----------------------------------------------------------------------------
 
-float BookNode::Value(const HexState& state) const
-{
-    if (state.Position().IsLegal(SWAP_PIECES))
-        return std::max(m_value, BookUtil::InverseEval(m_value));
-    return m_value;
-}
-
-float BookNode::Score(const HexState& state, float countWeight) const
-{
-    float score = BookUtil::InverseEval(Value(state));
-    if (!IsTerminal())
-        score += log(m_count + 1) * countWeight;
-    return score;	
-}
-
 bool BookNode::IsTerminal() const
 {
     if (HexEvalUtil::IsWinOrLoss(m_value))
@@ -64,6 +49,22 @@ std::string BookNode::toString() const
 }
 
 //----------------------------------------------------------------------------
+
+float BookUtil::Value(const BookNode& node, const HexState& state)
+{
+    if (state.Position().IsLegal(SWAP_PIECES))
+        return std::max(node.m_value, BookUtil::InverseEval(node.m_value));
+    return node.m_value;
+}
+
+float BookUtil::Score(const BookNode& node, const HexState& state, 
+                      float countWeight)
+{
+    float score = BookUtil::InverseEval(Value(node, state));
+    if (!node.IsTerminal())
+        score += log(node.m_count + 1) * countWeight;
+    return score;	
+}
 
 float BookUtil::InverseEval(float eval)
 {
@@ -94,7 +95,7 @@ int BookUtil::GetMainLineDepth(const Book& book, const HexState& origState)
             BookNode child;
             if (book.Get(state, child))
             {
-                float curValue = InverseEval(child.Value(state));
+                float curValue = InverseEval(BookUtil::Value(child, state));
                 if (curValue > value)
                 {
                     value = curValue;
@@ -170,7 +171,7 @@ void BookUtil::UpdateValue(const Book& book, BookNode& node, HexState& state)
         if (book.Get(state, child))
         {
             hasChild = true;
-            float value = BookUtil::InverseEval(child.Value(state));
+            float value = BookUtil::InverseEval(BookUtil::Value(child, state));
             if (value > bestValue)
 		bestValue = value;
 	    
@@ -192,7 +193,8 @@ float BookUtil::ComputePriority(const HexState& state,
     // Must adjust child value for swap, but not the parent because we
     // are comparing with the best child's value, ie, the minmax
     // value.
-    float delta = parent.m_value - BookUtil::InverseEval(child.Value(state));
+    float delta = parent.m_value 
+        - BookUtil::InverseEval(BookUtil::Value(child, state));
     HexAssert(delta >= 0.0);
     HexAssert(child.m_priority >= BookNode::LEAF_PRIORITY);
     HexAssert(child.m_priority < BookNode::DUMMY_PRIORITY);
@@ -245,7 +247,7 @@ HexPoint BookUtil::BestMove(const Book& book, const HexState& origState,
         BookNode child;
         if (book.Get(state, child))
         {
-            float score = child.Score(state, countWeight);
+            float score = BookUtil::Score(child, state, countWeight);
             if (score > bestScore)
             {
                 bestScore = score;
@@ -268,7 +270,7 @@ void BookUtil::DumpVisualizationData(const Book& book, HexState& state,
         return;
     if (node.IsLeaf())
     {
-        out << node.Value(state) << " " << depth << '\n';
+        out << BookUtil::Value(node, state) << " " << depth << '\n';
         return;
     }
     for (BitsetIterator i(state.Position().GetEmpty()); i; ++i) 
@@ -291,7 +293,7 @@ void DumpPolarizedLeafs(const Book& book, HexState& state,
     BookNode node;
     if (!book.Get(state, node))
         return;
-    if (fabs(node.Value(state) - 0.5) >= polarization 
+    if (fabs(BookUtil::Value(node, state) - 0.5) >= polarization 
         && node.IsLeaf() && !node.IsTerminal()
         && ignoreSet.Exists(state))
     {

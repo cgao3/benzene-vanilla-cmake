@@ -127,9 +127,9 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
         if (m_book->Get(state, node))
         {
             counts[*p] = node.m_count;
-            values[*p] = BookUtil::InverseEval(node.Value(state));
+            values[*p] = BookUtil::InverseEval(BookUtil::Value(node, state));
             scores.push_back(std::make_pair
-                             (-node.Score(state, countWeight), *p));
+                             (-BookUtil::Score(node, state, countWeight), *p));
         }
         state.UndoMove(*p);
     }

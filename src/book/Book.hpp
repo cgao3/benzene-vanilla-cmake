@@ -93,18 +93,6 @@ public:
     
     //------------------------------------------------------------------------
 
-    /** Returns value of board, taking into account swap moves. */ 
-    float Value(const HexState& brd) const;
-
-    /** Returns score for this node, taking into account the amount of
-        information in the subtree. Use to select moves when using
-        book. Note the score is from the pov of the player moving into
-        this position, not for the player to move in this position.
-    */
-    float Score(const HexState& brd, float countWeight) const;
-
-    //------------------------------------------------------------------------
-
     /** @name Additional properties */
     // @{
 
@@ -128,8 +116,7 @@ public:
 
     //------------------------------------------------------------------------
 
-    /** @name Methods for PositionDBStateConcept (so it can be stored
-        in a PositionDB) */
+    /** @name Methods for StateDBConcept (so it can be stored in a StateDB) */
     // @{
 
     int PackedSize() const;
@@ -222,8 +209,21 @@ public:
 */
 namespace BookUtil
 {
+    /** Returns value of board, taking into account swap moves. */ 
+    float Value(const BookNode& node, const HexState& brd);
+
+    /** Returns score for this node, taking into account the amount of
+        information in the subtree. Use to select moves when using
+        book. Note the score is from the pov of the player moving into
+        this position, not for the player to move in this position.
+    */
+    float Score(const BookNode& node, const HexState& brd, 
+                float countWeight);
+
     /** Evaluation for other player. */
     float InverseEval(float eval);
+
+    //------------------------------------------------------------------------
 
     /** Returns number of child states existing in this book. */
     unsigned NumChildren(const Book& book, const HexState& brd);

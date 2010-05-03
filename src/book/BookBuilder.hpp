@@ -648,7 +648,7 @@ void BookBuilder<PLAYER>::UpdateValue(BookNode& node, HexState& state)
     while (true)
     {
         BookUtil::UpdateValue(*m_book, node, state);
-        if (!HexEvalUtil::IsLoss(node.Value(state)))
+        if (!HexEvalUtil::IsLoss(BookUtil::Value(node, state)))
             break;
 
         // Round up to next nearest multiple of m_expand_width that is
@@ -744,7 +744,7 @@ bool BookBuilder<PLAYER>::Refresh(HexState& state, StateSet& seen,
             m_terminal_nodes++;
         return true;
     }
-    double oldValue = node.Value(state);
+    double oldValue = BookUtil::Value(node, state);
     double oldPriority = node.m_priority;
     for (BitsetIterator it(state.Position().GetEmpty()); it; ++it)
     {
@@ -756,7 +756,7 @@ bool BookBuilder<PLAYER>::Refresh(HexState& state, StateSet& seen,
     }
     UpdateValue(node, state);
     BookUtil::UpdatePriority(*m_book, node, state, m_alpha);
-    if (fabs(oldValue - node.Value(state)) > 0.0001)
+    if (fabs(oldValue - BookUtil::Value(node, state)) > 0.0001)
         m_value_updates++;
     if (fabs(oldPriority - node.m_priority) > 0.0001)
         m_priority_updates++;
