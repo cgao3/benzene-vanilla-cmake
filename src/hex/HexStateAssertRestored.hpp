@@ -93,7 +93,7 @@ inline void HexStateAssertRestored::Init(const HexState& state)
 {
     SG_DEBUG_ONLY(state);
 #ifndef NDEBUG
-    m_state = &state;
+    m_state = const_cast<HexState*>(&state);
     m_origState = state;
 #endif
 }

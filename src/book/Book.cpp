@@ -8,6 +8,7 @@
 
 #include "BitsetIterator.hpp"
 #include "Book.hpp"
+#include "HexModState.hpp"
 #include "Time.hpp"
 
 using namespace benzene;
@@ -160,10 +161,13 @@ unsigned BookUtil::NumChildren(const Book& book, const HexState& origState)
     return num;
 }
 
-void BookUtil::UpdateValue(const Book& book, BookNode& node, HexState& state)
+void BookUtil::UpdateValue(const Book& book, BookNode& node, 
+                           const HexState& origState)
 {
     bool hasChild = false;
     float bestValue = boost::numeric::bounds<float>::lowest();
+    HexModState modState(origState);
+    HexState state = modState.State();
     for (BitsetIterator i(state.Position().GetEmpty()); i; ++i) 
     {
 	state.PlayMove(*i);
@@ -202,11 +206,13 @@ float BookUtil::ComputePriority(const HexState& state,
 }
 
 HexPoint BookUtil::UpdatePriority(const Book& book, BookNode& node, 
-                                  HexState& state, float alpha)
+                                  const HexState& origState, float alpha)
 {
     bool hasChild = false;
     float bestPriority = boost::numeric::bounds<float>::highest();
     HexPoint bestChild = INVALID_POINT;
+    HexModState modState(origState);
+    HexState state = modState.State();
     for (BitsetIterator i(state.Position().GetEmpty()); i; ++i) 
     {
 	state.PlayMove(*i);
@@ -262,17 +268,20 @@ HexPoint BookUtil::BestMove(const Book& book, const HexState& origState,
 
 //----------------------------------------------------------------------------
 
-void BookUtil::DumpVisualizationData(const Book& book, HexState& state, 
-                                     int depth, std::ostream& out)
+void BookUtil::DumpVisualizationData(const Book& book,
+                                     const HexState& origState, int depth, 
+                                     std::ostream& out)
 {
     BookNode node;
-    if (!book.Get(state, node))
+    if (!book.Get(origState, node))
         return;
     if (node.IsLeaf())
     {
-        out << BookUtil::Value(node, state) << " " << depth << '\n';
+        out << BookUtil::Value(node, origState) << " " << depth << '\n';
         return;
     }
+    HexModState modState(origState);
+    HexState state = modState.State();
     for (BitsetIterator i(state.Position().GetEmpty()); i; ++i) 
     {
 	state.PlayMove( *i);
@@ -319,12 +328,14 @@ void DumpPolarizedLeafs(const Book& book, HexState& state,
 
 }
 
-void BookUtil::DumpPolarizedLeafs(const Book& book, HexState& state,
+void BookUtil::DumpPolarizedLeafs(const Book& book, const HexState& origState,
                                   float polarization, PointSequence& pv, 
                                   std::ostream& out, 
                                   const StateSet& ignoreSet)
 {
     StateSet seen;
+    HexModState modState(origState);
+    HexState state = modState.State();
     ::DumpPolarizedLeafs(book, state, polarization, seen, pv, out, ignoreSet);
 }
 

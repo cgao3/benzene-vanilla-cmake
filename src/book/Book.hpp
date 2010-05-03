@@ -226,34 +226,34 @@ namespace BookUtil
     //------------------------------------------------------------------------
 
     /** Returns number of child states existing in this book. */
-    unsigned NumChildren(const Book& book, const HexState& brd);
+    unsigned NumChildren(const Book& book, const HexState& state);
 
     /** Returns the priority of expanding the child node. */
-    float ComputePriority(const HexState& brd, const BookNode& parent,
+    float ComputePriority(const HexState& state, const BookNode& parent,
                           const BookNode& child, double alpha);
     
     /** Re-computes node's value by checking all children. Does
         nothing if node has no children. */
-    void UpdateValue(const Book& book, BookNode& node, HexState& brd);
+    void UpdateValue(const Book& book, BookNode& node, const HexState& state);
 
     /** Re-computes node's priority and returns the best child to
         expand. Requires that UpdateValue() has been called on this
         node. Returns INVALID_POINT if node has no children. */
     HexPoint UpdatePriority(const Book& book, BookNode& node, 
-                            HexState& brd, float alpha);
+                            const HexState& state, float alpha);
 
     /** Finds best response in book.
         @todo Does not consider SWAP_PIECES if it is available.
         Returns INVALID_POINT if not in book or if node's count is 
         less than minCount. */
-    HexPoint BestMove(const Book& book, const HexState& pos,
+    HexPoint BestMove(const Book& book, const HexState& state,
                       unsigned minCount, float countWeight);
 
     //-----------------------------------------------------------------------
 
     /** Writes a (score, depth) pair to output stream for each leaf in
         the book. Can be visualized with GnuPlot. */
-    void DumpVisualizationData(const Book& book, HexState& brd, 
+    void DumpVisualizationData(const Book& book, const HexState& state, 
                                int depth, std::ostream& out);
 
     //-----------------------------------------------------------------------
@@ -261,7 +261,7 @@ namespace BookUtil
     /** Writes variations leading to non-terminal leafs whose values
         differ from 0.5 by at least polarization. The given pv must be
         the variation leading to the current state of the board. */
-    void DumpPolarizedLeafs(const Book& book, HexState& brd,
+    void DumpPolarizedLeafs(const Book& book, const HexState& state,
                             float polarization, PointSequence& pv, 
                             std::ostream& out, const StateSet& ignoreSet);
 
@@ -272,12 +272,12 @@ namespace BookUtil
     
     //-----------------------------------------------------------------------
 
-    /** Returns the depth of the mainline from the given position. */
-    int GetMainLineDepth(const Book& book, const HexState& pos);
+    /** Returns the depth of the mainline from the given state. */
+    int GetMainLineDepth(const Book& book, const HexState& state);
 
     /** Returns the number of nodes in the tree rooted at the current
-        position. */
-    std::size_t GetTreeSize(const Book& book, const HexState& brd);
+        state. */
+    std::size_t GetTreeSize(const Book& book, const HexState& state);
 }
 
 //----------------------------------------------------------------------------

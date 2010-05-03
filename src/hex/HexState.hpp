@@ -17,6 +17,8 @@ _BEGIN_BENZENE_NAMESPACE_
 class HexState
 {
 public:
+    HexState();
+
     HexState(const StoneBoard& brd, HexColor toPlay);
 
     StoneBoard& Position();
@@ -40,6 +42,10 @@ private:
 
     void FlipColorToPlay();
 };
+
+inline HexState::HexState()
+{
+}
 
 inline HexState::HexState(const StoneBoard& brd, HexColor toPlay)
     : m_brd(brd),
