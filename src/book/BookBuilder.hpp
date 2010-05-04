@@ -337,12 +337,12 @@ void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board,
     int num = 0;
     for (; num < numExpansions; ++num) 
     {
-	LogInfo() << "\n--Iteration " << num << "--" << '\n';
+	LogInfo() << "\n--Iteration " << num << "--\n";
 	
         // Flush the db if we've performed enough iterations
         if (num && (num % m_flush_iterations) == 0) 
         {
-            LogInfo() << "Flushing DB..." << '\n';
+            LogInfo() << "Flushing DB...\n";
             m_book->Flush();
         }
         
@@ -353,7 +353,7 @@ void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board,
             GetNode(state, root);
             if (root.IsTerminal()) 
             {
-                LogInfo() << "State solved!" << '\n';
+                LogInfo() << "State solved!\n";
                 break;
             }
         }
@@ -362,7 +362,7 @@ void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board,
         DoExpansion(state, pv);
     }
 
-    LogInfo() << "Flushing DB..." << '\n';
+    LogInfo() << "Flushing DB...\n";
     m_book->Flush();
 
     double e = Time::Get();
@@ -373,10 +373,10 @@ void BookBuilder<PLAYER>::Expand(Book& book, const HexBoard& board,
               << "  Total Time: " << Time::Formatted(e - s) << '\n'
               << "  Expansions: " << num 
               << std::fixed << std::setprecision(2) 
-              << " (" << (num / (e - s)) << "/s)" << '\n'
+              << " (" << (num / (e - s)) << "/s)\n"
               << " Evaluations: " << m_num_evals 
               << std::fixed << std::setprecision(2)
-              << " (" << (m_num_evals / (e - s)) << "/s)" << '\n'
+              << " (" << (m_num_evals / (e - s)) << "/s)\n"
               << "   Widenings: " << m_num_widenings << '\n';
 }
 
@@ -397,11 +397,11 @@ void BookBuilder<PLAYER>::Refresh(Book& book, HexBoard& board)
 
     CreateWorkers();
 
-    LogInfo() << "Refreshing DB..." << '\n';
+    LogInfo() << "Refreshing DB...\n";
     StateSet seen;
     Refresh(state, seen, true);
 
-    LogInfo() << "Flushing DB..." << '\n';
+    LogInfo() << "Flushing DB...\n";
     m_book->Flush();
 
     double e = Time::Get();
@@ -417,7 +417,7 @@ void BookBuilder<PLAYER>::Refresh(Book& book, HexBoard& board)
               << "      Leaf Nodes: " << m_leaf_nodes << '\n'
               << "     Evaluations: " << m_num_evals 
               << std::fixed << std::setprecision(2)
-              << " (" << (m_num_evals / (e - s)) << "/s)" << '\n'
+              << " (" << (m_num_evals / (e - s)) << "/s)\n"
               << "       Widenings: " << m_num_widenings << '\n';
 }
 
@@ -426,7 +426,7 @@ void BookBuilder<PLAYER>::IncreaseWidth(Book& book, HexBoard& board)
 {
     if (!m_use_widening)
     {
-        LogInfo() << "Widening not enabled!" << '\n';
+        LogInfo() << "Widening not enabled!\n";
         return;
     }
 
@@ -439,11 +439,11 @@ void BookBuilder<PLAYER>::IncreaseWidth(Book& book, HexBoard& board)
 
     CreateWorkers();
 
-    LogInfo() << "Increasing DB's width..." << '\n';
+    LogInfo() << "Increasing DB's width...\n";
     StateSet seen;
     IncreaseWidth(state, seen, true);
 
-    LogInfo() << "Flushing DB..." << '\n';
+    LogInfo() << "Flushing DB...\n";
     m_book->Flush();
 
     double e = Time::Get();
@@ -455,14 +455,14 @@ void BookBuilder<PLAYER>::IncreaseWidth(Book& book, HexBoard& board)
               << "       Widenings: " << m_num_widenings << '\n'
               << "     Evaluations: " << m_num_evals 
               << std::fixed << std::setprecision(2)
-              << " (" << (m_num_evals / (e - s)) << "/s)" << '\n';
+              << " (" << (m_num_evals / (e - s)) << "/s)\n";
 }
 
 /** Copies the player and board and creates the threads. */
 template<class PLAYER>
 void BookBuilder<PLAYER>::CreateWorkers()
 {
-    LogInfo() << "BookBuilder::CreateWorkers()" << '\n';
+    LogInfo() << "BookBuilder::CreateWorkers()\n";
     for (std::size_t i = 0; i < m_num_threads; ++i)
     {
         PLAYER* newPlayer = new PLAYER();
@@ -481,7 +481,7 @@ void BookBuilder<PLAYER>::CreateWorkers()
 template<class PLAYER>
 void BookBuilder<PLAYER>::DestroyWorkers()
 {
-    LogInfo() << "BookBuilder::DestroyWorkers()" << '\n';
+    LogInfo() << "BookBuilder::DestroyWorkers()\n";
     for (std::size_t i = 0; i < m_num_threads; ++i)
     {
         delete m_boards[i];
@@ -545,7 +545,7 @@ void BookBuilder<PLAYER>::EnsureRootExists(const HexState& state)
     BookNode root;
     if (!GetNode(state, root))
     {
-        LogInfo() << "Creating root node. " << '\n';
+        LogInfo() << "Creating root node.\n";
         HexEval value = m_workers[0](state);
         WriteNode(state, BookNode(value));
     }
@@ -603,7 +603,7 @@ bool BookBuilder<PLAYER>::ExpandChildren(HexState& state, std::size_t count)
     std::vector<HexPoint> children;
     if (GenerateMoves(state, children, value))
     {
-        LogInfo() << "ExpandChildren: State is determined!" << '\n';
+        LogInfo() << "ExpandChildren: State is determined!\n";
         WriteNode(state, BookNode(value));
         return false;
     }
@@ -634,7 +634,7 @@ bool BookBuilder<PLAYER>::ExpandChildren(HexState& state, std::size_t count)
         return true;
     }
     else
-        LogInfo() << "Children already evaluated." << '\n';
+        LogInfo() << "Children already evaluated.\n";
     return false;
 }
 
@@ -798,7 +798,7 @@ void BookBuilder<PLAYER>::IncreaseWidth(HexState& state, StateSet& seen,
     if ((seen.Size() % 500) == 0)
     {
         m_book->Flush();
-        LogInfo() << "Flushed book." << '\n';
+        LogInfo() << "Flushed book.\n";
     }
 }
 
