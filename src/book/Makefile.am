@@ -3,14 +3,16 @@ noinst_LIBRARIES = libbook.a
 libbook_a_SOURCES = \
 Book.cpp \
 BookCheck.cpp \
-BookCommands.cpp
+BookCommands.cpp \
+SgBookBuilder.cpp
 
 noinst_HEADERS = \
 Book.hpp \
 BookBuilder.hpp \
 BookBuilderCommands.hpp \
 BookCheck.hpp \
-BookCommands.hpp
+BookCommands.hpp \
+SgBookBuilder.h
 
 libbook_a_CPPFLAGS = \
 $(BOOST_CPPFLAGS) \

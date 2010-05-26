@@ -225,23 +225,6 @@ namespace BookUtil
 
     //------------------------------------------------------------------------
 
-    /** Returns number of child states existing in this book. */
-    unsigned NumChildren(const Book& book, const HexState& state);
-
-    /** Returns the priority of expanding the child node. */
-    float ComputePriority(const HexState& state, const BookNode& parent,
-                          const BookNode& child, double alpha);
-    
-    /** Re-computes node's value by checking all children. Does
-        nothing if node has no children. */
-    void UpdateValue(const Book& book, BookNode& node, const HexState& state);
-
-    /** Re-computes node's priority and returns the best child to
-        expand. Requires that UpdateValue() has been called on this
-        node. Returns INVALID_POINT if node has no children. */
-    HexPoint UpdatePriority(const Book& book, BookNode& node, 
-                            const HexState& state, float alpha);
-
     /** Finds best response in book.
         @todo Does not consider SWAP_PIECES if it is available.
         Returns INVALID_POINT if not in book or if node's count is 
