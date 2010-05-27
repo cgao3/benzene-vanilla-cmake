@@ -11,8 +11,7 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 SgBookBuilder::SgBookBuilder()
-    : m_book(0),
-      m_alpha(50),
+    : m_alpha(50),
       m_use_widening(true),
       m_expand_width(16),
       m_expand_threshold(1000),
@@ -36,9 +35,8 @@ void SgBookBuilder::AfterEvaluateChildren()
     // DEFAULT IMPLEMENTATION DOES NOTHING
 }
 
-void SgBookBuilder::Expand(Book& book, int numExpansions)
+void SgBookBuilder::Expand(int numExpansions)
 {
-    m_book = &book;
     m_num_evals = 0;
     m_num_widenings = 0;
 
@@ -51,10 +49,7 @@ void SgBookBuilder::Expand(Book& book, int numExpansions)
 	LogInfo() << "\n--Iteration " << num << "--\n";
         // Flush the db if we've performed enough iterations
         if (num && (num % m_flush_iterations) == 0) 
-        {
-            LogInfo() << "Flushing DB...\n";
-            m_book->Flush();
-        }
+            FlushBook();
 	// If root position becomes a known win or loss, then there's
 	// no point in continuing to expand the opening book.
         {
@@ -69,8 +64,7 @@ void SgBookBuilder::Expand(Book& book, int numExpansions)
         std::vector<SgMove> pv;
         DoExpansion(pv);
     }
-    LogInfo() << "Flushing DB...\n";
-    m_book->Flush();
+    FlushBook();
     Fini();
     double e = Time::Get();
 
@@ -85,9 +79,8 @@ void SgBookBuilder::Expand(Book& book, int numExpansions)
               << "   Widenings: " << m_num_widenings << '\n';
 }
 
-void SgBookBuilder::Refresh(Book& book)
+void SgBookBuilder::Refresh()
 {
-    m_book = &book;
     m_num_evals = 0;
     m_num_widenings = 0;
     m_value_updates = 0;
@@ -98,10 +91,8 @@ void SgBookBuilder::Refresh(Book& book)
 
     double s = Time::Get();
     Init();
-    LogInfo() << "Refreshing DB...\n";
     Refresh(true);
-    LogInfo() << "Flushing DB...\n";
-    m_book->Flush();
+    FlushBook();
     Fini();
     double e = Time::Get();
 
@@ -118,7 +109,7 @@ void SgBookBuilder::Refresh(Book& book)
               << "       Widenings: " << m_num_widenings << '\n';
 }
 
-void SgBookBuilder::IncreaseWidth(Book& book)
+void SgBookBuilder::IncreaseWidth()
 {
     if (!m_use_widening)
     {
@@ -126,16 +117,13 @@ void SgBookBuilder::IncreaseWidth(Book& book)
         return;
     }
 
-    m_book = &book;
     m_num_evals = 0;
     m_num_widenings = 0;
 
     double s = Time::Get();
     Init();
-    LogInfo() << "Increasing DB's width...\n";
     IncreaseWidth(true);
-    LogInfo() << "Flushing DB...\n";
-    m_book->Flush();
+    FlushBook();
     Fini();
     double e = Time::Get();
 

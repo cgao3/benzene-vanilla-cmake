@@ -60,7 +60,7 @@ public:
     //---------------------------------------------------------------------
 
     /** Sets the state to start work from. */
-    void SetState(const HexState& state);
+    void SetState(Book& book, const HexState& state);
 
     /** Sets the board the book builder can use to perform work. */
     void SetWorkBoard(HexBoard& brd);
@@ -96,6 +96,8 @@ protected:
     float Value(const BookNode& node) const;
 
     void WriteNode(const BookNode& node);
+
+    void FlushBook();
 
     void EnsureRootExists();
 
@@ -136,6 +138,9 @@ private:
         HexState m_state;
     };
 
+    /** Book this builder is expanding */
+    Book* m_book;
+   
     /** Player passed to constructor. */
     PLAYER& m_orig_player;
 
@@ -183,6 +188,7 @@ private:
 template<class PLAYER>
 BookBuilder<PLAYER>::BookBuilder(PLAYER& player)
     : SgBookBuilder(), 
+      m_book(0),
       m_orig_player(player),
       m_brd(0),
       m_use_ice(false),
@@ -310,8 +316,9 @@ HexEval BookBuilder<PLAYER>::Worker::operator()(const SgMove& move)
 //----------------------------------------------------------------------------
 
 template<class PLAYER>
-inline void BookBuilder<PLAYER>::SetState(const HexState& state)
+inline void BookBuilder<PLAYER>::SetState(Book& book, const HexState& state)
 {
+    m_book = &book;
     m_state = state;
 }
 
@@ -355,6 +362,13 @@ template<class PLAYER>
 void BookBuilder<PLAYER>::WriteNode(const BookNode& node)
 {
     m_book->Put(m_state, node);
+}
+
+template<class PLAYER>
+void BookBuilder<PLAYER>::FlushBook()
+{
+    LogInfo() << "Flushing DB...\n";
+    m_book->Flush();
 }
 
 template<class PLAYER>

@@ -135,9 +135,9 @@ void BookBuilderCommands<PLAYER>::CmdBookExpand(HtpCommand& cmd)
     int iterations = cmd.IntArg(0, 1);
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    m_bookBuilder.SetState(state);
+    m_bookBuilder.SetState(*m_book, state);
     m_bookBuilder.SetWorkBoard(brd);
-    m_bookBuilder.Expand(*m_book, iterations);
+    m_bookBuilder.Expand(iterations);
 }
 
 /** Refreshes the current book. See BookBuilder::Refresh(). */
@@ -149,9 +149,9 @@ void BookBuilderCommands<PLAYER>::CmdBookRefresh(HtpCommand& cmd)
         throw HtpFailure() << "No open book.";
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    m_bookBuilder.SetState(state);
+    m_bookBuilder.SetState(*m_book, state);
     m_bookBuilder.SetWorkBoard(brd);
-    m_bookBuilder.Refresh(*m_book);
+    m_bookBuilder.Refresh();
 }
 
 /** Increases the width of all internal nodes that need to be
@@ -164,9 +164,9 @@ void BookBuilderCommands<PLAYER>::CmdBookIncreaseWidth(HtpCommand& cmd)
         throw HtpFailure() << "No open book.";
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    m_bookBuilder.SetState(state);
+    m_bookBuilder.SetState(*m_book, state);
     m_bookBuilder.SetWorkBoard(brd);
-    m_bookBuilder.IncreaseWidth(*m_book);
+    m_bookBuilder.IncreaseWidth();
 }
 
 template<class PLAYER>

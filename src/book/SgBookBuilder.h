@@ -52,11 +52,11 @@ public:
     //---------------------------------------------------------------------
 
     /** Expands the book by expanding numExpansions leaves. */
-    void Expand(Book& book, int numExpansions);
+    void Expand(int numExpansions);
 
     /** Propagates leaf values up through the entire tree.  
         @ref bookrefresh. */
-    void Refresh(Book& book);
+    void Refresh();
 
     /** Performs widening on all internal nodes that require it. Use
         this after increasing ExpandWidth() or decreasing
@@ -66,7 +66,7 @@ public:
         
         Does not propagate values up tree, run Refresh() afterwards to
         do so. */
-    void IncreaseWidth(Book& book);
+    void IncreaseWidth();
 
     //---------------------------------------------------------------------    
 
@@ -105,9 +105,6 @@ public:
 
 protected:
 
-    /** Book this builder is expanding */
-    Book* m_book;
-   
     /** See Alpha() */
     float m_alpha;
 
@@ -143,6 +140,8 @@ protected:
 
     /** Writes node. */
     virtual void WriteNode(const BookNode& node) = 0;
+
+    virtual void FlushBook() = 0;
 
     /** If current state does not exist, evaluate it and store in the
         book. */
