@@ -122,6 +122,8 @@ protected:
 
     //------------------------------------------------------------------------
 
+    virtual void PrintMessage(std::string msg) = 0;
+
     /** Returns the evaluation from other player's perspective. */
     virtual float InverseEval(float eval) const = 0;
 
@@ -159,15 +161,25 @@ protected:
     virtual void EvaluateChildren(const std::vector<SgMove>& childrenToDo,
                     std::vector<std::pair<SgMove, HexEval> >& scores) = 0;
 
-    /** Hook function: called before any work is done. */
-    virtual void Init() = 0;
+    /** Hook function: called before any work is done. 
+        Default implementation does nothing. */
+    virtual void Init();
+
+    /** Hook function: called after all work is complete. 
+        Default implementation does nothing. */
+    virtual void Fini();
+
+    /** Hook function: called at start of iteration.
+        Default implementation does nothing. */
+    virtual void StartIteration(int interation);
+    
+    /** Hook function: called at end of iteration. 
+        Default implementation does nothing. */
+    virtual void EndIteration();
 
     virtual void BeforeEvaluateChildren();
 
     virtual void AfterEvaluateChildren();
-
-    /** Hook function: called after all work is complete. */
-    virtual void Fini() = 0;
 
 private:
 

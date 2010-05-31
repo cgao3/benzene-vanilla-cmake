@@ -83,6 +83,8 @@ public:
 
 protected:
 
+    void PrintMessage(std::string msg);
+
     float InverseEval(float eval) const;
 
     bool IsLoss(float eval) const;
@@ -108,6 +110,10 @@ protected:
     void EvaluateChildren(const std::vector<SgMove>& childrenToDo,
                           std::vector<std::pair<SgMove, HexEval> >& scores);
     void Init();
+
+    void StartIteration(int iteration);
+
+    void EndIteration();
 
     void BeforeEvaluateChildren();
 
@@ -329,6 +335,12 @@ inline void BookBuilder<PLAYER>::SetWorkBoard(HexBoard& workBoard)
 }
 
 template<class PLAYER>
+void BookBuilder<PLAYER>::PrintMessage(std::string msg)
+{
+    LogInfo() << msg;
+}
+
+template<class PLAYER>
 inline float BookBuilder<PLAYER>::InverseEval(float eval) const
 {
     return BookUtil::InverseEval(eval);
@@ -451,6 +463,18 @@ void BookBuilder<PLAYER>
 template<class PLAYER>
 void BookBuilder<PLAYER>::AfterEvaluateChildren()
 {
+}
+
+template<class PLAYER>
+void BookBuilder<PLAYER>::StartIteration(int iteration)
+{
+    LogInfo() << "\n--Iteration " << iteration << "--\n";
+}
+
+template<class PLAYER>
+void BookBuilder<PLAYER>::EndIteration()
+{
+    // DO NOTHING FOR NOW
 }
 
 //----------------------------------------------------------------------------

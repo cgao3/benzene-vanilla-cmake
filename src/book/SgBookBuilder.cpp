@@ -25,12 +25,33 @@ SgBookBuilder::~SgBookBuilder()
 
 //----------------------------------------------------------------------------
 
+void SgBookBuilder::StartIteration(int iteration)
+{
+    SG_UNUSED(iteration);
+    // DEFAULT IMPLEMENTATION DOES NOTHING
+}
+
+void SgBookBuilder::EndIteration()
+{
+    // DEFAULT IMPLEMENTATION DOES NOTHING
+}
+
 void SgBookBuilder::BeforeEvaluateChildren()
 {
     // DEFAULT IMPLEMENTATION DOES NOTHING
 }
 
 void SgBookBuilder::AfterEvaluateChildren()
+{
+    // DEFAULT IMPLEMENTATION DOES NOTHING
+}
+
+void SgBookBuilder::Init()
+{
+    // DEFAULT IMPLEMENTATION DOES NOTHING
+}
+
+void SgBookBuilder::Fini()
 {
     // DEFAULT IMPLEMENTATION DOES NOTHING
 }
@@ -46,10 +67,7 @@ void SgBookBuilder::Expand(int numExpansions)
     int num = 0;
     for (; num < numExpansions; ++num) 
     {
-	LogInfo() << "\n--Iteration " << num << "--\n";
-        // Flush the db if we've performed enough iterations
-        if (num && (num % m_flush_iterations) == 0) 
-            FlushBook();
+        StartIteration(num);
 	// If root position becomes a known win or loss, then there's
 	// no point in continuing to expand the opening book.
         {
@@ -57,26 +75,32 @@ void SgBookBuilder::Expand(int numExpansions)
             GetNode(root);
             if (root.IsTerminal()) 
             {
-                LogInfo() << "State solved!\n";
+                PrintMessage("Root is terminal!\n");
                 break;
             }
         }
         std::vector<SgMove> pv;
         DoExpansion(pv);
+        EndIteration();
+        // Flush the db if we've performed enough iterations
+        if (num && (num % m_flush_iterations) == 0) 
+            FlushBook();
     }
     FlushBook();
     Fini();
     double e = Time::Get();
 
-    LogInfo() << '\n'
-              << "  Total Time: " << Time::Formatted(e - s) << '\n'
-              << "  Expansions: " << num 
-              << std::fixed << std::setprecision(2) 
-              << " (" << (num / (e - s)) << "/s)\n"
-              << " Evaluations: " << m_num_evals 
-              << std::fixed << std::setprecision(2)
-              << " (" << (m_num_evals / (e - s)) << "/s)\n"
-              << "   Widenings: " << m_num_widenings << '\n';
+    std::ostringstream os;
+    os << '\n'
+       << "  Total Time: " << Time::Formatted(e - s) << '\n'
+       << "  Expansions: " << num 
+       << std::fixed << std::setprecision(2) 
+       << " (" << (num / (e - s)) << "/s)\n"
+       << " Evaluations: " << m_num_evals 
+       << std::fixed << std::setprecision(2)
+       << " (" << (m_num_evals / (e - s)) << "/s)\n"
+       << "   Widenings: " << m_num_widenings << '\n';
+    PrintMessage(os.str());
 }
 
 void SgBookBuilder::Refresh()
@@ -96,24 +120,26 @@ void SgBookBuilder::Refresh()
     Fini();
     double e = Time::Get();
 
-    LogInfo() << '\n'
-              << "      Total Time: " << Time::Formatted(e - s) << '\n'
-              << "   Value Updates: " << m_value_updates << '\n'
-              << "Priority Updates: " << m_priority_updates << '\n'
-              << "  Internal Nodes: " << m_internal_nodes << '\n'
-              << "  Terminal Nodes: " << m_terminal_nodes << '\n'
-              << "      Leaf Nodes: " << m_leaf_nodes << '\n'
-              << "     Evaluations: " << m_num_evals 
-              << std::fixed << std::setprecision(2)
-              << " (" << (m_num_evals / (e - s)) << "/s)\n"
-              << "       Widenings: " << m_num_widenings << '\n';
+    std::ostringstream os;
+    os << '\n'
+       << "      Total Time: " << Time::Formatted(e - s) << '\n'
+       << "   Value Updates: " << m_value_updates << '\n'
+       << "Priority Updates: " << m_priority_updates << '\n'
+       << "  Internal Nodes: " << m_internal_nodes << '\n'
+       << "  Terminal Nodes: " << m_terminal_nodes << '\n'
+       << "      Leaf Nodes: " << m_leaf_nodes << '\n'
+       << "     Evaluations: " << m_num_evals 
+       << std::fixed << std::setprecision(2)
+       << " (" << (m_num_evals / (e - s)) << "/s)\n"
+       << "       Widenings: " << m_num_widenings << '\n';
+    PrintMessage(os.str());
 }
 
 void SgBookBuilder::IncreaseWidth()
 {
     if (!m_use_widening)
     {
-        LogInfo() << "Widening not enabled!\n";
+        PrintMessage("Widening not enabled!\n");
         return;
     }
 
@@ -127,12 +153,14 @@ void SgBookBuilder::IncreaseWidth()
     Fini();
     double e = Time::Get();
 
-    LogInfo() << '\n'
-              << "      Total Time: " << Time::Formatted(e - s) << '\n'
-              << "       Widenings: " << m_num_widenings << '\n'
-              << "     Evaluations: " << m_num_evals 
-              << std::fixed << std::setprecision(2)
-              << " (" << (m_num_evals / (e - s)) << "/s)\n";
+    std::ostringstream os;
+    os << '\n'
+       << "      Total Time: " << Time::Formatted(e - s) << '\n'
+       << "       Widenings: " << m_num_widenings << '\n'
+       << "     Evaluations: " << m_num_evals 
+       << std::fixed << std::setprecision(2)
+       << " (" << (m_num_evals / (e - s)) << "/s)\n";
+    PrintMessage(os.str());
 }
 
 //----------------------------------------------------------------------------
@@ -151,7 +179,7 @@ bool SgBookBuilder::ExpandChildren(std::size_t count)
     std::vector<SgMove> children;
     if (GenerateMoves(children, value))
     {
-        LogInfo() << "ExpandChildren: State is determined!\n";
+        PrintMessage("ExpandChildren: State is determined!\n");
         WriteNode(BookNode(value));
         return false;
     }
@@ -181,7 +209,7 @@ bool SgBookBuilder::ExpandChildren(std::size_t count)
         return true;
     }
     else
-        LogInfo() << "Children already evaluated.\n";
+        PrintMessage("Children already evaluated.\n");
     return false;
 }
 
@@ -234,18 +262,18 @@ void SgBookBuilder::UpdateValue(BookNode& node)
         UpdateValue(node, legal);
         if (!IsLoss(Value(node)))
             break;
-        
         // Round up to next nearest multiple of m_expand_width that is
         // larger than the current number of children.
-        unsigned numChildren = NumChildren(legal);
+        std::size_t numChildren = NumChildren(legal);
         std::size_t width = (numChildren / m_expand_width + 1) 
             * m_expand_width;
-
-        LogInfo() << "Forced Widening[" << numChildren << "->" 
-                  << width << "]\n";
+        {
+            std::ostringstream os;
+            os << "Forced Widening[" << numChildren << "->" << width << "]\n";
+            PrintMessage(os.str());
+        }
         if (!ExpandChildren(width))
             break;
-
         ++m_num_widenings;
     }
 }
@@ -306,8 +334,6 @@ void SgBookBuilder::DoExpansion(std::vector<SgMove>& pv)
         return;
     if (node.IsLeaf())
     {
-        // Expand this leaf's children
-        //LogInfo() << "Expanding: " << ToString(pv) << '\n';
         ExpandChildren(m_expand_width);
     }
     else
@@ -317,12 +343,9 @@ void SgBookBuilder::DoExpansion(std::vector<SgMove>& pv)
         {
             std::size_t width = (node.m_count / m_expand_threshold + 1)
                               * m_expand_width;
-            // LogInfo() << "Widening[" << width << "]: " 
-//                       << ToString(pv) << '\n';
             ++m_num_widenings;
             ExpandChildren(width);
         }
-
         // Compute value and priority. It's possible this node is newly
         // terminal if one of its new children is a winning move.
         GetNode(node);
@@ -340,8 +363,7 @@ void SgBookBuilder::DoExpansion(std::vector<SgMove>& pv)
             UndoMove(mostUrgent);
         }
     }
-
-    GetNode( node);
+    GetNode(node);
     UpdateValue(node);
     UpdatePriority(node);
     node.IncrementCount();
@@ -357,6 +379,7 @@ void SgBookBuilder::DoExpansion(std::vector<SgMove>& pv)
 */
 bool SgBookBuilder::Refresh(bool root)
 {
+    SG_UNUSED(root);
     BookNode node;
     if (!GetNode(node))
         return false;
@@ -375,8 +398,6 @@ bool SgBookBuilder::Refresh(bool root)
     {
         PlayMove(legal[i]);
         Refresh(false);
-        if (root)
-            LogInfo() << "Finished " << legal[i] << '\n';
         UndoMove(legal[i]);
     }
     UpdateValue(node);
@@ -397,6 +418,7 @@ bool SgBookBuilder::Refresh(bool root)
 
 void SgBookBuilder::IncreaseWidth(bool root)
 {
+    SG_UNUSED(root);
     BookNode node;
     if (!GetNode(node))
         return;
@@ -408,8 +430,6 @@ void SgBookBuilder::IncreaseWidth(bool root)
     {
         PlayMove(legal[i]);
         IncreaseWidth(false);
-        if (root)
-            LogInfo() << "Finished " << legal[i] << '\n';
         UndoMove(legal[i]);
     }
     std::size_t width = (node.m_count / m_expand_threshold + 1)
