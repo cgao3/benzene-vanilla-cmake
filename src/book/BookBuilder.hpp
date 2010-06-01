@@ -31,7 +31,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
     BookBuilder::Refresh() computes the correct propagation value for
     all internal nodes given the current set of leaf nodes. A node in
-    which BookNode::IsLeaf() is true is treated as a leaf even
+    which SgBookNode::IsLeaf() is true is treated as a leaf even
     if it has children in the book (ie, children from transpositions)
 */
 
@@ -93,22 +93,22 @@ protected:
 
     void UndoMove(SgMove move);
 
-    bool GetNode(BookNode& node) const;
+    bool GetNode(SgBookNode& node) const;
 
-    float Value(const BookNode& node) const;
+    float Value(const SgBookNode& node) const;
 
-    void WriteNode(const BookNode& node);
+    void WriteNode(const SgBookNode& node);
 
     void FlushBook();
 
     void EnsureRootExists();
 
-    bool GenerateMoves(std::vector<SgMove>& moves, HexEval& value);
+    bool GenerateMoves(std::vector<SgMove>& moves, float& value);
 
     void GetAllLegalMoves(std::vector<SgMove>& moves);
 
     void EvaluateChildren(const std::vector<SgMove>& childrenToDo,
-                          std::vector<std::pair<SgMove, HexEval> >& scores);
+                          std::vector<std::pair<SgMove, float> >& scores);
     void Init();
 
     void StartIteration(int iteration);
@@ -131,7 +131,7 @@ private:
 
         void SetState(const HexState& state);
 
-        HexEval operator()(const SgMove& move);
+        float operator()(const SgMove& move);
 
     private:
 
@@ -182,7 +182,7 @@ private:
 
     std::vector<Worker> m_workers;
 
-    ThreadedWorker<SgMove,HexEval,Worker>* m_threadedWorker;
+    ThreadedWorker<SgMove,float,Worker>* m_threadedWorker;
 
     void CreateWorkers();
 
@@ -251,7 +251,7 @@ void BookBuilder<PLAYER>::CreateWorkers()
         m_workers.push_back(Worker(i, *m_players[i], *m_boards[i]));
     }
     m_threadedWorker 
-        = new ThreadedWorker<SgMove,HexEval,Worker>(m_workers);
+        = new ThreadedWorker<SgMove,float,Worker>(m_workers);
 }
 
 /** Destroys copied players, boards, and threads. */
@@ -301,7 +301,7 @@ void BookBuilder<PLAYER>::Worker::SetState(const HexState& state)
 }
 
 template<class PLAYER>
-HexEval BookBuilder<PLAYER>::Worker::operator()(const SgMove& move)
+float BookBuilder<PLAYER>::Worker::operator()(const SgMove& move)
 {
     HexState state(m_state);
     if (move >= 0)
@@ -365,15 +365,22 @@ void BookBuilder<PLAYER>::UndoMove(SgMove move)
 }
 
 template<class PLAYER>
-bool BookBuilder<PLAYER>::GetNode(BookNode& node) const
+bool BookBuilder<PLAYER>::GetNode(SgBookNode& node) const
 {
-    return m_book->Get(m_state, node);
+    HexBookNode hexNode;
+    if (m_book->Get(m_state, hexNode))
+    {
+        node = hexNode;
+        return true;
+    }
+    return false;
 }
 
 template<class PLAYER>
-void BookBuilder<PLAYER>::WriteNode(const BookNode& node)
+void BookBuilder<PLAYER>::WriteNode(const SgBookNode& node)
 {
-    m_book->Put(m_state, node);
+    HexBookNode hexNode(node);
+    m_book->Put(m_state, hexNode);
 }
 
 template<class PLAYER>
@@ -384,7 +391,7 @@ void BookBuilder<PLAYER>::FlushBook()
 }
 
 template<class PLAYER>
-float BookBuilder<PLAYER>::Value(const BookNode& node) const
+float BookBuilder<PLAYER>::Value(const SgBookNode& node) const
 {
     return BookUtil::Value(node, m_state);
 }
@@ -400,12 +407,12 @@ void BookBuilder<PLAYER>::GetAllLegalMoves(std::vector<SgMove>& moves)
 template<class PLAYER>
 void BookBuilder<PLAYER>::EnsureRootExists()
 {
-    BookNode root;
+    SgBookNode root;
     if (!GetNode(root))
     {
         m_workers[0].SetState(m_state);
-        HexEval value = m_workers[0](SG_NULLMOVE);
-        WriteNode(BookNode(value));
+        float value = m_workers[0](SG_NULLMOVE);
+        WriteNode(SgBookNode(value));
     }
 }
 
@@ -415,7 +422,7 @@ void BookBuilder<PLAYER>::EnsureRootExists()
     contain the sorted moves and value will be untouched. */
 template<class PLAYER>
 bool BookBuilder<PLAYER>::GenerateMoves(std::vector<SgMove>& moves,
-                                        HexEval& value)
+                                        float& value)
 {
     // Turn off ICE (controlled by method UseICE()): compute the moves
     // to consider without using any ice, so that we do not leave the
@@ -427,8 +434,14 @@ bool BookBuilder<PLAYER>::GenerateMoves(std::vector<SgMove>& moves,
     m_brd->ComputeAll(toMove);
     m_brd->SetUseICE(useICE);
 
-    if (EndgameUtils::IsDeterminedState(*m_brd, toMove, value))
-        return true;
+    {
+        HexEval hexValue;
+        if (EndgameUtils::IsDeterminedState(*m_brd, toMove, hexValue))
+        {
+            value = hexValue;
+            return true;
+        }
+    }
 
     bitset_t children = EndgameUtils::MovesToConsider(*m_brd, toMove);
     HexAssert(children.any());
@@ -455,7 +468,7 @@ void BookBuilder<PLAYER>::BeforeEvaluateChildren()
 template<class PLAYER>
 void BookBuilder<PLAYER>
 ::EvaluateChildren(const std::vector<SgMove>& childrenToDo,
-                   std::vector<std::pair<SgMove, HexEval> >& scores)
+                   std::vector<std::pair<SgMove, float> >& scores)
 {
     m_threadedWorker->DoWork(childrenToDo, scores);
 }

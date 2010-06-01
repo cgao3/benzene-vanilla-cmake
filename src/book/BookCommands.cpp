@@ -103,7 +103,7 @@ void BookCommands::CmdBookCounts(HtpCommand& cmd)
     for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
         state.PlayMove(*p);
-        BookNode node;
+        HexBookNode node;
         if (m_book->Get(state, node))
             cmd << " " << *p << " " << node.m_count;
         state.UndoMove(*p);
@@ -123,7 +123,7 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
     for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
         state.PlayMove(*p);
-        BookNode node;
+        HexBookNode node;
         if (m_book->Get(state, node))
         {
             counts[*p] = node.m_count;
@@ -244,10 +244,10 @@ void BookCommands::CmdBookSetValue(HtpCommand& cmd)
         value = IMMEDIATE_LOSS;
     else
         value = cmd.FloatArg(0);
-    BookNode node;
+    HexBookNode node;
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     if (!m_book->Get(state, node))
-        m_book->Put(state, BookNode(value));
+        m_book->Put(state, HexBookNode(value));
     else
     {
         node.m_value = value;

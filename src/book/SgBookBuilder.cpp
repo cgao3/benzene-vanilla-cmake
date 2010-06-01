@@ -5,9 +5,34 @@
 
 #include "SgBookBuilder.h"
 #include "Time.hpp"
+#include <sstream>
 #include <boost/numeric/conversion/bounds.hpp>
 
 using namespace benzene;
+
+//----------------------------------------------------------------------------
+
+bool SgBookNode::IsTerminal() const
+{
+    if (m_value < -1000 || m_value > 1000)
+        return true;
+    return false;
+}
+
+bool SgBookNode::IsLeaf() const
+{
+    return m_count == 0;
+}
+
+std::string SgBookNode::ToString() const
+{
+    std::ostringstream os;
+    os << std::showpos << std::fixed << std::setprecision(3);
+    os << "Prop=" << m_value;
+    os << std::noshowpos << ", ExpP=" << m_priority;
+    os << std::showpos << ", Heur=" << m_heurValue << ", Cnt=" << m_count;
+    return os.str();
+}
 
 //----------------------------------------------------------------------------
 
@@ -72,7 +97,7 @@ void SgBookBuilder::Expand(int numExpansions)
 	// If root position becomes a known win or loss, then there's
 	// no point in continuing to expand the opening book.
         {
-            BookNode root;
+            SgBookNode root;
             GetNode(root);
             if (root.IsTerminal()) 
             {
@@ -176,12 +201,12 @@ bool SgBookBuilder::ExpandChildren(std::size_t count)
     // function is reasonably heavyweight, but if just using fillin
     // and vcs, it is possible that the fillin prevents a winning vc
     // from being created.
-    HexEval value = 0;
+    float value = 0;
     std::vector<SgMove> children;
     if (GenerateMoves(children, value))
     {
         PrintMessage("ExpandChildren: State is determined!\n");
-        WriteNode(BookNode(value));
+        WriteNode(SgBookNode(value));
         return false;
     }
     std::size_t limit = std::min(count, children.size());
@@ -189,7 +214,7 @@ bool SgBookBuilder::ExpandChildren(std::size_t count)
     for (std::size_t i = 0; i < limit; ++i)
     {
         PlayMove(children[i]);
-        BookNode child;
+        SgBookNode child;
         if (!GetNode(child))
             childrenToDo.push_back(children[i]);
         UndoMove(children[i]);
@@ -197,7 +222,7 @@ bool SgBookBuilder::ExpandChildren(std::size_t count)
     if (!childrenToDo.empty())
     {
         BeforeEvaluateChildren();
-        std::vector<std::pair<SgMove, HexEval> > scores;
+        std::vector<std::pair<SgMove, float> > scores;
         EvaluateChildren(childrenToDo, scores);
         AfterEvaluateChildren();
         for (std::size_t i = 0; i < scores.size(); ++i)
@@ -220,7 +245,7 @@ std::size_t SgBookBuilder::NumChildren(const std::vector<SgMove>& legal)
     for (size_t i = 0; i < legal.size(); ++i) 
     {
 	PlayMove(legal[i]);
-	BookNode child;
+	SgBookNode child;
         if (GetNode(child))
             ++num;
         UndoMove(legal[i]);
@@ -228,7 +253,7 @@ std::size_t SgBookBuilder::NumChildren(const std::vector<SgMove>& legal)
     return num;
 }
 
-void SgBookBuilder::UpdateValue(BookNode& node, 
+void SgBookBuilder::UpdateValue(SgBookNode& node, 
                                 const std::vector<SgMove>& legal)
 {
     bool hasChild = false;
@@ -236,11 +261,11 @@ void SgBookBuilder::UpdateValue(BookNode& node,
     for (std::size_t i = 0; i < legal.size(); ++i)
     {
 	PlayMove(legal[i]);
-	BookNode child;
+	SgBookNode child;
         if (GetNode(child))
         {
             hasChild = true;
-            float value = BookUtil::InverseEval(Value(child));
+            float value = InverseEval(Value(child));
             if (value > bestValue)
 		bestValue = value;
         }
@@ -254,7 +279,7 @@ void SgBookBuilder::UpdateValue(BookNode& node,
     loss. In this case, widenings are performed until a non-loss child
     is added or no new children are added. The node is then set with
     the proper value. */
-void SgBookBuilder::UpdateValue(BookNode& node)
+void SgBookBuilder::UpdateValue(SgBookNode& node)
 {
     while (true)
     {
@@ -279,7 +304,7 @@ void SgBookBuilder::UpdateValue(BookNode& node)
     }
 }
 
-float SgBookBuilder::ComputePriority(const BookNode& parent,
+float SgBookBuilder::ComputePriority(const SgBookNode& parent,
                                      const float childValue,
                                      const float childPriority) const
 {
@@ -291,7 +316,7 @@ float SgBookBuilder::ComputePriority(const BookNode& parent,
 /** Re-computes node's priority and returns the best child to
     expand. Requires that UpdateValue() has been called on this
     node. Returns SG_NULLMOVE if node has no children. */
-SgMove SgBookBuilder::UpdatePriority(BookNode& node)
+SgMove SgBookBuilder::UpdatePriority(SgBookNode& node)
 {
     bool hasChild = false;
     float bestPriority = boost::numeric::bounds<float>::highest();
@@ -301,7 +326,7 @@ SgMove SgBookBuilder::UpdatePriority(BookNode& node)
     for (std::size_t i = 0; i < legal.size(); ++i)
     {
 	PlayMove(legal[i]);
-	BookNode child;
+	SgBookNode child;
         if (GetNode(child))
         {
             hasChild = true;
@@ -326,7 +351,7 @@ SgMove SgBookBuilder::UpdatePriority(BookNode& node)
 
 void SgBookBuilder::DoExpansion(std::vector<SgMove>& pv)
 {
-    BookNode node;
+    SgBookNode node;
     if (!GetNode(node))
         SG_ASSERT(false);
     if (node.IsTerminal())
@@ -379,7 +404,7 @@ void SgBookBuilder::DoExpansion(std::vector<SgMove>& pv)
 bool SgBookBuilder::Refresh(bool root)
 {
     SG_UNUSED(root);
-    BookNode node;
+    SgBookNode node;
     if (!GetNode(node))
         return false;
     if (node.IsLeaf())
@@ -418,7 +443,7 @@ bool SgBookBuilder::Refresh(bool root)
 void SgBookBuilder::IncreaseWidth(bool root)
 {
     SG_UNUSED(root);
-    BookNode node;
+    SgBookNode node;
     if (!GetNode(node))
         return;
     if (node.IsTerminal() || node.IsLeaf())

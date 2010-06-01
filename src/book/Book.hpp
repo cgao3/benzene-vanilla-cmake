@@ -11,74 +11,21 @@
 #include "HashDB.hpp"
 #include "HexEval.hpp"
 #include "StateDB.hpp"
+#include "SgBookBuilder.h"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** State in the Opening Book.
-    Do not forget to update BOOK_DB_VERSION if this class changes in a
-    way that invalidiates old books.
-    @ingroup openingbook
- */
-class BookNode
+/** Class for writing SgBookNodes to the database. */
+class HexBookNode : public SgBookNode
 {
 public:
+    HexBookNode();
 
-    //------------------------------------------------------------------------
+    HexBookNode(float heurValue);
 
-    /** Priority of newly created leaves. */
-    static const float LEAF_PRIORITY = 0.0;
-
-    //------------------------------------------------------------------------
-
-    /** Heuristic value of this state. */
-    float m_heurValue;
-
-    /** Minmax value of this state. */
-    float m_value;
-
-    /** Expansion priority. */
-    float m_priority;
-
-    /** Number of times this node was explored. */
-    unsigned m_count;
-    
-    //------------------------------------------------------------------------
-
-    /** Constructors. */
-    // @{
-
-    BookNode();
-
-    BookNode(float heuristicValue);
-
-    // @}
-    
-    //------------------------------------------------------------------------
-
-    /** @name Additional properties */
-    // @{
-
-    /** Returns true iff this node is a leaf in the opening book. */
-    bool IsLeaf() const;
-
-    /** Returns true if node's propagated value is a win or a loss. */
-    bool IsTerminal() const;
-
-    // @}
-
-    //------------------------------------------------------------------------
-
-    /** @name Update methods */
-    // @{
-
-    /** Increment the nodes counter. */
-    void IncrementCount();
-
-    // @}
-
-    //------------------------------------------------------------------------
+    HexBookNode(const SgBookNode& node);
 
     /** @name Methods for StateDBConcept (so it can be stored in a StateDB) */
     // @{
@@ -93,48 +40,40 @@ public:
 
     // @}
 
-    //------------------------------------------------------------------------
-
-    /** Outputs node in string form. */
-    std::string toString() const;
-
 private:
-
 };
 
-inline BookNode::BookNode()
+inline HexBookNode::HexBookNode()
+    : SgBookNode()
 {
 }
 
-inline BookNode::BookNode(float heuristicValue)
-    : m_heurValue(heuristicValue),
-      m_value(heuristicValue),
-      m_priority(LEAF_PRIORITY),
-      m_count(0)
+inline HexBookNode::HexBookNode(float heurValue)
+    : SgBookNode(heurValue)
 {
 }
 
-inline void BookNode::IncrementCount()
+inline HexBookNode::HexBookNode(const SgBookNode& node)
+    : SgBookNode(node)
 {
-    m_count++;
 }
 
-inline int BookNode::PackedSize() const
+inline int HexBookNode::PackedSize() const
 {
-    return sizeof(BookNode);
+    return sizeof(HexBookNode);
 }
 
-inline byte* BookNode::Pack() const
+inline byte* HexBookNode::Pack() const
 {
     return (byte*)this;
 }
 
-inline void BookNode::Unpack(const byte* t)
+inline void HexBookNode::Unpack(const byte* t)
 {
-    *this = *(const BookNode*)t;
+    *this = *(const HexBookNode*)t;
 }
 
-inline void BookNode::Rotate(const ConstBoard& brd)
+inline void HexBookNode::Rotate(const ConstBoard& brd)
 {
     SG_UNUSED(brd);
     // No rotation-dependant data
@@ -142,23 +81,14 @@ inline void BookNode::Rotate(const ConstBoard& brd)
 
 //----------------------------------------------------------------------------
 
-/** Extends standard stream output operator for BookNodes. */
-inline std::ostream& operator<<(std::ostream& os, const BookNode& node)
-{
-    os << node.toString();
-    return os;
-}
-
-//----------------------------------------------------------------------------
-
 /** A book is just a database of BookNodes. */
-class Book : public StateDB<BookNode>
+class Book : public StateDB<HexBookNode>
 {
 public:
     static const std::string BOOK_DB_VERSION;
 
     Book(const std::string& filename) 
-        : StateDB<BookNode>(filename, BOOK_DB_VERSION)
+        : StateDB<HexBookNode>(filename, BOOK_DB_VERSION)
     { }
 };
 
@@ -170,14 +100,14 @@ public:
 namespace BookUtil
 {
     /** Returns value of board, taking into account swap moves. */ 
-    float Value(const BookNode& node, const HexState& brd);
+    float Value(const SgBookNode& node, const HexState& brd);
 
     /** Returns score for this node, taking into account the amount of
         information in the subtree. Use to select moves when using
         book. Note the score is from the pov of the player moving into
         this position, not for the player to move in this position.
     */
-    float Score(const BookNode& node, const HexState& brd, 
+    float Score(const SgBookNode& node, const HexState& brd, 
                 float countWeight);
 
     /** Evaluation for other player. */

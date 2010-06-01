@@ -6,10 +6,13 @@
 #ifndef SG_BOOKBUILDER_HPP
 #define SG_BOOKBUILDER_HPP
 
+#include "SgSystem.h"
+#include "SgMove.h"
 #include <cmath>
-#include "Book.hpp"
+#include <iostream>
+#include <iomanip>
+#include <vector>
 
-_BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
@@ -40,6 +43,81 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
+/** State in the Opening Book.
+    @ingroup openingbook
+ */
+class SgBookNode
+{
+public:
+
+    //------------------------------------------------------------------------
+
+    /** Priority of newly created leaves. */
+    static const float LEAF_PRIORITY = 0.0;
+
+    //------------------------------------------------------------------------
+
+    /** Heuristic value of this state. */
+    float m_heurValue;
+
+    /** Minmax value of this state. */
+    float m_value;
+
+    /** Expansion priority. */
+    float m_priority;
+
+    /** Number of times this node was explored. */
+    unsigned m_count;
+    
+    //------------------------------------------------------------------------
+
+    /** Constructors. */
+    // @{
+
+    SgBookNode();
+
+    SgBookNode(float heuristicValue);
+
+    /** Returns true iff this node is a leaf in the opening book. */
+    bool IsLeaf() const;
+
+    /** Returns true if node's propagated value is a win or a loss. */
+    bool IsTerminal() const;
+
+    /** Increment the nodes counter. */
+    void IncrementCount();
+
+    /** Outputs node in string form. */
+    std::string ToString() const;
+private:
+};
+
+inline SgBookNode::SgBookNode()
+{
+}
+
+inline SgBookNode::SgBookNode(float heuristicValue)
+    : m_heurValue(heuristicValue),
+      m_value(heuristicValue),
+      m_priority(LEAF_PRIORITY),
+      m_count(0)
+{
+}
+
+inline void SgBookNode::IncrementCount()
+{
+    m_count++;
+}
+
+/** Extends standard stream output operator for SgBookNodes. */
+inline std::ostream& operator<<(std::ostream& os, const SgBookNode& node)
+{
+    os << node.ToString();
+    return os;
+}
+
+//----------------------------------------------------------------------------
+
 /** @page bookrefresh Book Refresh
     @ingroup openingbook
 
@@ -50,7 +128,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
     SgBookBuilder::Refresh() computes the correct propagation value for
     all internal nodes given the current set of leaf nodes. A node in
-    which BookNode::IsLeaf() is true is treated as a leaf even
+    which SgBookNode::IsLeaf() is true is treated as a leaf even
     if it has children in the book (ie, children from transpositions)
 */
 
@@ -90,7 +168,7 @@ public:
 
     //---------------------------------------------------------------------    
 
-    float ComputePriority(const BookNode& parent, const float childValue,
+    float ComputePriority(const SgBookNode& parent, const float childValue,
                           const float childPriority) const;
 
     //---------------------------------------------------------------------    
@@ -155,13 +233,13 @@ protected:
 
     /** Returns the value of the state according this node.
         Ie, takes into account swap moves, etc. */
-    virtual float Value(const BookNode& node) const = 0;
+    virtual float Value(const SgBookNode& node) const = 0;
 
     /** Reads node. Returns false if node does not exist. */
-    virtual bool GetNode(BookNode& node) const = 0;
+    virtual bool GetNode(SgBookNode& node) const = 0;
 
     /** Writes node. */
-    virtual void WriteNode(const BookNode& node) = 0;
+    virtual void WriteNode(const SgBookNode& node) = 0;
 
     virtual void FlushBook() = 0;
 
@@ -170,7 +248,7 @@ protected:
     virtual void EnsureRootExists() = 0;
 
     /** Generates the set of moves to use in the book for this state. */
-    virtual bool GenerateMoves(std::vector<SgMove>& moves, HexEval& value) = 0;
+    virtual bool GenerateMoves(std::vector<SgMove>& moves, float& value) = 0;
 
     /** Returns all legal moves; should be a superset of those moves 
         returned by GenerateMoves() */
@@ -179,7 +257,7 @@ protected:
     /** Evaluate the children of the current state, return the values
         in a vector of pairs. */
     virtual void EvaluateChildren(const std::vector<SgMove>& childrenToDo,
-                    std::vector<std::pair<SgMove, HexEval> >& scores) = 0;
+                    std::vector<std::pair<SgMove, float> >& scores) = 0;
 
     /** Hook function: called before any work is done. 
         Default implementation does nothing. */
@@ -221,11 +299,11 @@ private:
 
     std::size_t NumChildren(const std::vector<SgMove>& legal);
 
-    void UpdateValue(BookNode& node, const std::vector<SgMove>& legal);
+    void UpdateValue(SgBookNode& node, const std::vector<SgMove>& legal);
 
-    void UpdateValue(BookNode& node);
+    void UpdateValue(SgBookNode& node);
 
-    SgMove UpdatePriority(BookNode& node);
+    SgMove UpdatePriority(SgBookNode& node);
 
     void DoExpansion(std::vector<SgMove>& pv);
 
@@ -279,7 +357,5 @@ inline void SgBookBuilder::SetExpandThreshold(std::size_t threshold)
 }
 
 //----------------------------------------------------------------------------
-
-_END_BENZENE_NAMESPACE_
 
 #endif // SG_BOOKBUILDER_HPP

@@ -27,38 +27,14 @@ const std::string Book::BOOK_DB_VERSION = "BENZENE_BOOK_VER_0001";
 
 //----------------------------------------------------------------------------
 
-bool BookNode::IsTerminal() const
-{
-    if (HexEvalUtil::IsWinOrLoss(m_value))
-        return true;
-    return false;
-}
-
-bool BookNode::IsLeaf() const
-{
-    return m_count == 0;
-}
-
-std::string BookNode::toString() const
-{
-    std::ostringstream os;
-    os << std::showpos << std::fixed << std::setprecision(3);
-    os << "Prop=" << m_value;
-    os << std::noshowpos << ", ExpP=" << m_priority;
-    os << std::showpos << ", Heur=" << m_heurValue << ", Cnt=" << m_count;
-    return os.str();
-}
-
-//----------------------------------------------------------------------------
-
-float BookUtil::Value(const BookNode& node, const HexState& state)
+float BookUtil::Value(const SgBookNode& node, const HexState& state)
 {
     if (state.Position().IsLegal(SWAP_PIECES))
         return std::max(node.m_value, BookUtil::InverseEval(node.m_value));
     return node.m_value;
 }
 
-float BookUtil::Score(const BookNode& node, const HexState& state, 
+float BookUtil::Score(const SgBookNode& node, const HexState& state, 
                       float countWeight)
 {
     float score = BookUtil::InverseEval(Value(node, state));
@@ -85,7 +61,7 @@ int BookUtil::GetMainLineDepth(const Book& book, const HexState& origState)
     HexState state(origState);
     for (;;) 
     {
-        BookNode node;
+        HexBookNode node;
         if (!book.Get(state, node))
             break;
         HexPoint move = INVALID_POINT;
@@ -93,7 +69,7 @@ int BookUtil::GetMainLineDepth(const Book& book, const HexState& origState)
         for (BitsetIterator p(state.Position().GetEmpty()); p; ++p)
         {
             state.PlayMove(*p);
-            BookNode child;
+            HexBookNode child;
             if (book.Get(state, child))
             {
                 float curValue = InverseEval(BookUtil::Value(child, state));
@@ -121,7 +97,7 @@ std::size_t TreeSize(const Book& book, HexState& state,
 {
     if (solved.Exists(state))
         return solved[state];
-    BookNode node;
+    HexBookNode node;
     if (!book.Get(state, node))
         return 0;
     std::size_t ret = 1;
@@ -149,7 +125,7 @@ std::size_t BookUtil::GetTreeSize(const Book& book, const HexState& origState)
 HexPoint BookUtil::BestMove(const Book& book, const HexState& origState,
                             unsigned minCount, float countWeight)
 {
-    BookNode node;
+    HexBookNode node;
     if (!book.Get(origState, node) || node.m_count < minCount)
         return INVALID_POINT;
 
@@ -159,7 +135,7 @@ HexPoint BookUtil::BestMove(const Book& book, const HexState& origState,
     for (BitsetIterator p(state.Position().GetEmpty()); p; ++p)
     {
         state.PlayMove(*p);
-        BookNode child;
+        HexBookNode child;
         if (book.Get(state, child))
         {
             float score = BookUtil::Score(child, state, countWeight);
@@ -181,7 +157,7 @@ void BookUtil::DumpVisualizationData(const Book& book,
                                      const HexState& origState, int depth, 
                                      std::ostream& out)
 {
-    BookNode node;
+    HexBookNode node;
     if (!book.Get(origState, node))
         return;
     if (node.IsLeaf())
@@ -208,7 +184,7 @@ void DumpPolarizedLeafs(const Book& book, HexState& state,
 {
     if (seen.Exists(state))
         return;
-    BookNode node;
+    HexBookNode node;
     if (!book.Get(state, node))
         return;
     if (fabs(BookUtil::Value(node, state) - 0.5) >= polarization 
@@ -303,7 +279,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
             state.PlayMove(points[i]);
         HexEval ourValue = (state.ToPlay() == winner) 
             ? IMMEDIATE_WIN : IMMEDIATE_LOSS;
-        BookNode node;
+        HexBookNode node;
         if (book.Get(state, node))
         {
             HexAssert(node.IsLeaf());
@@ -313,7 +289,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
         }
         else 
         {
-            node = BookNode(ourValue);
+            node = HexBookNode(ourValue);
             ++numNew;
         }
         book.Put(state, node);

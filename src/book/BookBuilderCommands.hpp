@@ -175,13 +175,13 @@ void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
-    BookNode parent;
+    HexBookNode parent;
     if (!m_book->Get(state, parent))
         return;
     for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
         state.PlayMove(*p);
-        BookNode succ;
+        HexBookNode succ;
         if (m_book->Get(state, succ))
         {
             cmd << " " << *p;
