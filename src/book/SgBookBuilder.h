@@ -8,9 +8,35 @@
 
 #include <cmath>
 #include "Book.hpp"
-#include "Time.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
+
+//----------------------------------------------------------------------------
+
+/** @defgroup openingbook Automatic Opening Book Construction
+    Hex-specific opening book construction.
+
+    Code is based on Thomas R. Lincke's paper "Strategies for the
+    Automatic Construction of Opening Books" published in 2001.
+    
+    We make the following adjustments:
+    - Neither side is assumed to be the book player, so the expansion
+      formula is identical for all nodes (see page 80 of the paper). In other
+      words, both sides can play sub-optimal moves.
+    - We do not include the swap rule as a move, since this would lead to
+      redundant evaluation computations (such as a2-f6 and a2-swap-f6). 
+      We do handle swap implicitly, however. States in which swap is a valid 
+      move are scored taking it into account. 
+    - A single node for each state is stored, such that transpositions
+      are not re-computed. Hence the book forms a DAG of states, not a tree.
+    - Progressive widening is used on internal nodes to restrict the 
+      search initially. 
+
+    We also think there is a typo with respect to the formula of epo_i on
+    page 80. Namely, since p_i is the negamax of p_{s_j}s, then we should
+    sum the values to find the distance from optimal, not subtract. That is,
+    we use epo_i = 1 + min(s_j) (epb_{s_j} + alpha*(p_i + p_{s_j}) instead.
+*/
 
 //----------------------------------------------------------------------------
 
@@ -30,8 +56,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Expands a Book using the given player to evaluate
-    game positions positions. 
+/** Base class for automated book building.
 
     Supports multithreaded evaluation of states -- NOT CURRENTLY!
 
@@ -40,13 +65,8 @@ _BEGIN_BENZENE_NAMESPACE_
 class SgBookBuilder
 {
 public:
-
-    /** Constructor. Takes a reference to the player that will
-        evaluate states, which must be a reference to a
-        BenzenePlayer. */
     SgBookBuilder();
-    
-    /** Destructor. */
+
     virtual ~SgBookBuilder();
 
     //---------------------------------------------------------------------

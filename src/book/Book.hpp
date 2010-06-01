@@ -16,39 +16,6 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** @defgroup openingbook Automatic Opening Book Construction
-    Hex-specific opening book construction.
-
-    Code is based on Thomas R. Lincke's paper "Strategies for the
-    Automatic Construction of Opening Books" published in 2001.
-    
-    We make the following adjustments:
-    - Neither side is assumed to be the book player, so the expansion
-      formula is identical for all nodes (see page 80 of the paper). In other
-      words, both sides can play sub-optimal moves.
-    - We do not include the swap rule as a move, since this would lead to
-      redundant evaluation computations (such as a2-f6 and a2-swap-f6). 
-      We do handle swap implicitly, however. States in which swap is a valid 
-      move are scored taking it into account. 
-    - A single node for each state is stored, such that transpositions
-      are not re-computed. Hence the book forms a DAG of states, not a tree.
-    - Progressive widening is used on internal nodes to restrict the 
-      search initially. 
-
-    We also think there is a typo with respect to the formula of epo_i on
-    page 80. Namely, since p_i is the negamax of p_{s_j}s, then we should
-    sum the values to find the distance from optimal, not subtract. That is,
-    we use epo_i = 1 + min(s_j) (epb_{s_j} + alpha*(p_i + p_{s_j}) instead.
-
-    @todo
-    - Book expansion using game records (in addition to Lincke's formula)
-    - Function for child/move selection, based on level of information
-      and propagated value. 
-    - Make game independent.
-*/
-
-//----------------------------------------------------------------------------
-
 /** State in the Opening Book.
     Do not forget to update BOOK_DB_VERSION if this class changes in a
     way that invalidiates old books.
@@ -60,11 +27,8 @@ public:
 
     //------------------------------------------------------------------------
 
-    static const int DUMMY_VALUE = -9999999;
-    static const int DUMMY_PRIORITY = 9999999;
-    static const int LEAF_PRIORITY = 0;
-    static const HexPoint DUMMY_SUCC = INVALID_POINT;
-    static const HexPoint LEAF_SUCC = INVALID_POINT;
+    /** Priority of newly created leaves. */
+    static const float LEAF_PRIORITY = 0.0;
 
     //------------------------------------------------------------------------
 
@@ -82,7 +46,7 @@ public:
     
     //------------------------------------------------------------------------
 
-    /** Constructors. Note that we should only construct leaves. */
+    /** Constructors. */
     // @{
 
     BookNode();
@@ -139,10 +103,6 @@ private:
 };
 
 inline BookNode::BookNode()
-    : m_heurValue(DUMMY_VALUE),
-      m_value(DUMMY_VALUE),
-      m_priority(DUMMY_PRIORITY),
-      m_count(0)
 {
 }
 

@@ -4,6 +4,7 @@
 //----------------------------------------------------------------------------
 
 #include "SgBookBuilder.h"
+#include "Time.hpp"
 #include <boost/numeric/conversion/bounds.hpp>
 
 using namespace benzene;
@@ -283,9 +284,7 @@ float SgBookBuilder::ComputePriority(const BookNode& parent,
                                      const float childPriority) const
 {
     float delta = parent.m_value - InverseEval(childValue);
-    HexAssert(delta >= 0.0);
-    HexAssert(childPriority >= BookNode::LEAF_PRIORITY);
-    HexAssert(childPriority < BookNode::DUMMY_PRIORITY);
+    SG_ASSERT(delta >= 0.0);
     return m_alpha * delta + childPriority + 1;
 }
 
