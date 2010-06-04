@@ -4,11 +4,9 @@
 //----------------------------------------------------------------------------
 
 #include "SgBookBuilder.h"
-#include "Time.hpp"
+#include "SgTimer.h"
 #include <sstream>
 #include <boost/numeric/conversion/bounds.hpp>
-
-using namespace benzene;
 
 //----------------------------------------------------------------------------
 
@@ -87,7 +85,7 @@ void SgBookBuilder::Expand(int numExpansions)
     m_num_evals = 0;
     m_num_widenings = 0;
 
-    double s = Time::Get();
+    SgTimer timer;
     Init();
     EnsureRootExists();
     int num = 0;
@@ -114,17 +112,17 @@ void SgBookBuilder::Expand(int numExpansions)
     }
     FlushBook();
     Fini();
-    double e = Time::Get();
-
+    timer.Stop();
+    double elapsed = timer.GetTime();
     std::ostringstream os;
     os << '\n'
-       << "  Total Time: " << Time::Formatted(e - s) << '\n'
+       << "  Total Time: " << elapsed << '\n'
        << "  Expansions: " << num 
        << std::fixed << std::setprecision(2) 
-       << " (" << (num / (e - s)) << "/s)\n"
+       << " (" << (num / elapsed) << "/s)\n"
        << " Evaluations: " << m_num_evals 
        << std::fixed << std::setprecision(2)
-       << " (" << (m_num_evals / (e - s)) << "/s)\n"
+       << " (" << (m_num_evals / elapsed) << "/s)\n"
        << "   Widenings: " << m_num_widenings << '\n';
     PrintMessage(os.str());
 }
@@ -139,16 +137,17 @@ void SgBookBuilder::Refresh()
     m_leaf_nodes = 0;
     m_terminal_nodes = 0;
 
-    double s = Time::Get();
+    SgTimer timer;
     Init();
     Refresh(true);
     FlushBook();
     Fini();
-    double e = Time::Get();
+    timer.Stop();
 
+    double elapsed = timer.GetTime();
     std::ostringstream os;
     os << '\n'
-       << "      Total Time: " << Time::Formatted(e - s) << '\n'
+       << "      Total Time: " << elapsed << '\n'
        << "   Value Updates: " << m_value_updates << '\n'
        << "Priority Updates: " << m_priority_updates << '\n'
        << "  Internal Nodes: " << m_internal_nodes << '\n'
@@ -156,7 +155,7 @@ void SgBookBuilder::Refresh()
        << "      Leaf Nodes: " << m_leaf_nodes << '\n'
        << "     Evaluations: " << m_num_evals 
        << std::fixed << std::setprecision(2)
-       << " (" << (m_num_evals / (e - s)) << "/s)\n"
+       << " (" << (m_num_evals / elapsed) << "/s)\n"
        << "       Widenings: " << m_num_widenings << '\n';
     PrintMessage(os.str());
 }
@@ -172,20 +171,21 @@ void SgBookBuilder::IncreaseWidth()
     m_num_evals = 0;
     m_num_widenings = 0;
 
-    double s = Time::Get();
+    SgTimer timer;
     Init();
     IncreaseWidth(true);
     FlushBook();
     Fini();
-    double e = Time::Get();
+    timer.Stop();
+    double elapsed = timer.GetTime();
 
     std::ostringstream os;
     os << '\n'
-       << "      Total Time: " << Time::Formatted(e - s) << '\n'
+       << "      Total Time: " << elapsed << '\n'
        << "       Widenings: " << m_num_widenings << '\n'
        << "     Evaluations: " << m_num_evals 
        << std::fixed << std::setprecision(2)
-       << " (" << (m_num_evals / (e - s)) << "/s)\n";
+       << " (" << (m_num_evals / elapsed) << "/s)\n";
     PrintMessage(os.str());
 }
 
