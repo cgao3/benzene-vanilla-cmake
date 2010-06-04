@@ -42,6 +42,11 @@ _BEGIN_BENZENE_NAMESPACE_
 
     Supports multithreaded evaluation of states.
 
+    We do not include the swap rule as a move, since this would lead
+    to redundant evaluation computations (such as a2-f6 and
+    a2-swap-f6).  We do handle swap implicitly, however. States in
+    which swap is a valid move are scored taking it into account.
+
     @ingroup openingbook
 */
 template<class PLAYER>

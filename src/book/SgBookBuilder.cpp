@@ -200,10 +200,10 @@ void SgBookBuilder::IncreaseWidth()
 bool SgBookBuilder::ExpandChildren(std::size_t count)
 {
     // It is possible the state is determined, even though it was
-    // already evaluated. This is not very likey if the evaluation
-    // function is reasonably heavyweight, but if just using fillin
-    // and vcs, it is possible that the fillin prevents a winning vc
-    // from being created.
+    // already evaluated. This can happen in Hex: it is not very likey
+    // if the evaluation function is reasonably heavyweight, but if
+    // just using fillin and vcs, it is possible that the fillin
+    // prevents a winning vc from being created.
     float value = 0;
     std::vector<SgMove> children;
     if (GenerateMoves(children, value))
