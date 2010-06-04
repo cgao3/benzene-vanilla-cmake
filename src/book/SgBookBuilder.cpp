@@ -116,14 +116,15 @@ void SgBookBuilder::Expand(int numExpansions)
     double elapsed = timer.GetTime();
     std::ostringstream os;
     os << '\n'
-       << "  Total Time: " << elapsed << '\n'
-       << "  Expansions: " << num 
+       << "Statistics\n"
+       << "Total Time     " << elapsed << '\n'
+       << "Expansions     " << num 
        << std::fixed << std::setprecision(2) 
        << " (" << (num / elapsed) << "/s)\n"
-       << " Evaluations: " << m_num_evals 
+       << "Evaluations    " << m_num_evals 
        << std::fixed << std::setprecision(2)
        << " (" << (m_num_evals / elapsed) << "/s)\n"
-       << "   Widenings: " << m_num_widenings << '\n';
+       << "Widenings      " << m_num_widenings << '\n';
     PrintMessage(os.str());
 }
 
@@ -147,16 +148,17 @@ void SgBookBuilder::Refresh()
     double elapsed = timer.GetTime();
     std::ostringstream os;
     os << '\n'
-       << "      Total Time: " << elapsed << '\n'
-       << "   Value Updates: " << m_value_updates << '\n'
-       << "Priority Updates: " << m_priority_updates << '\n'
-       << "  Internal Nodes: " << m_internal_nodes << '\n'
-       << "  Terminal Nodes: " << m_terminal_nodes << '\n'
-       << "      Leaf Nodes: " << m_leaf_nodes << '\n'
-       << "     Evaluations: " << m_num_evals 
+       << "Statistics\n"
+       << "Total Time       " << elapsed << '\n'
+       << "Value Updates    " << m_value_updates << '\n'
+       << "Priority Updates " << m_priority_updates << '\n'
+       << "Internal Nodes   " << m_internal_nodes << '\n'
+       << "Terminal Nodes   " << m_terminal_nodes << '\n'
+       << "Leaf Nodes       " << m_leaf_nodes << '\n'
+       << "Evaluations      " << m_num_evals 
        << std::fixed << std::setprecision(2)
        << " (" << (m_num_evals / elapsed) << "/s)\n"
-       << "       Widenings: " << m_num_widenings << '\n';
+       << "Widenings        " << m_num_widenings << '\n';
     PrintMessage(os.str());
 }
 
@@ -181,9 +183,10 @@ void SgBookBuilder::IncreaseWidth()
 
     std::ostringstream os;
     os << '\n'
-       << "      Total Time: " << elapsed << '\n'
-       << "       Widenings: " << m_num_widenings << '\n'
-       << "     Evaluations: " << m_num_evals 
+       << "Statistics\n"
+       << "Total Time     " << elapsed << '\n'
+       << "Widenings      " << m_num_widenings << '\n'
+       << "Evaluations    " << m_num_evals 
        << std::fixed << std::setprecision(2)
        << " (" << (m_num_evals / elapsed) << "/s)\n";
     PrintMessage(os.str());
