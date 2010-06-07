@@ -14,7 +14,7 @@
 #include "EndgameUtils.hpp"
 #include "StateDB.hpp"
 #include "Resistance.hpp"
-#include "ThreadedWorker.hpp"
+#include "SgThreadedWorker.h"
 #include "SgBookBuilder.h"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -187,7 +187,7 @@ private:
 
     std::vector<Worker> m_workers;
 
-    ThreadedWorker<SgMove,float,Worker>* m_threadedWorker;
+    SgThreadedWorker<SgMove,float,Worker>* m_threadedWorker;
 
     void CreateWorkers();
 
@@ -256,7 +256,7 @@ void BookBuilder<PLAYER>::CreateWorkers()
         m_workers.push_back(Worker(i, *m_players[i], *m_boards[i]));
     }
     m_threadedWorker 
-        = new ThreadedWorker<SgMove,float,Worker>(m_workers);
+        = new SgThreadedWorker<SgMove,float,Worker>(m_workers);
 }
 
 /** Destroys copied players, boards, and threads. */
