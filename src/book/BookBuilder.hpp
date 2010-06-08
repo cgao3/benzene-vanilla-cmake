@@ -21,22 +21,6 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** @page bookrefresh Book Refresh
-    @ingroup openingbook
-
-    Due to transpositions, it is possible that a node's value changes,
-    but because the node has not been revisited yet the information is
-    not passed to its parent. Refreshing the book forces these
-    propagations.
-
-    BookBuilder::Refresh() computes the correct propagation value for
-    all internal nodes given the current set of leaf nodes. A node in
-    which SgBookNode::IsLeaf() is true is treated as a leaf even
-    if it has children in the book (ie, children from transpositions)
-*/
-
-//----------------------------------------------------------------------------
-
 /** Expands a Book using the given player to evaluate
     game positions positions. 
 
@@ -125,7 +109,13 @@ protected:
     void AfterEvaluateChildren();
 
     void Fini();
-        
+
+    void ClearAllVisited();
+    
+    void MarkAsVisited();
+    
+    bool HasBeenVisited();
+
 private:
 
     /** Copyable worker. */
@@ -158,6 +148,8 @@ private:
     HexBoard* m_brd;
 
     HexState m_state;
+
+    std::set<hash_t> m_visited;
 
     /** See UseICE() */
     bool m_use_ice;
@@ -493,6 +485,24 @@ template<class PLAYER>
 void BookBuilder<PLAYER>::EndIteration()
 {
     // DO NOTHING FOR NOW
+}
+
+template<class PLAYER>
+void BookBuilder<PLAYER>::ClearAllVisited()
+{
+    m_visited.clear();
+}
+    
+template<class PLAYER>
+void BookBuilder<PLAYER>::MarkAsVisited()
+{
+    m_visited.insert(m_state.Hash());
+}
+    
+template<class PLAYER>
+bool BookBuilder<PLAYER>::HasBeenVisited()
+{
+    return m_visited.count(m_state.Hash()) == 1;
 }
 
 //----------------------------------------------------------------------------
