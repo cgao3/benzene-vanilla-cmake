@@ -211,6 +211,12 @@ sgf/puzzles/11x11-browne-03.sgf \
 sgf/puzzles/11x11-hein-01.sgf \
 sgf/puzzles/11x11-henderson-03.sgf \
 sgf/puzzles/11x11-henderson-63.sgf \
+sgf/puzzles/11x11-henderson-71.sgf \
+sgf/puzzles/11x11-henderson-83.sgf \
+sgf/puzzles/11x11-henderson-84.sgf \
+sgf/puzzles/11x11-henderson-85.sgf \
+sgf/puzzles/11x11-henderson-86.sgf \
+sgf/puzzles/11x11-henderson-87.sgf \
 sgf/puzzles/3x3-hein-02.sgf \
 sgf/puzzles/4x4-hein-04.sgf \
 sgf/puzzles/4x4-hein-05.sgf \
@@ -235,6 +241,7 @@ sgf/puzzles/6x6-henderson-19.sgf \
 sgf/puzzles/6x6-henderson-20.sgf \
 sgf/puzzles/6x6-henderson-21.sgf \
 sgf/puzzles/6x6-henderson-22.sgf \
+sgf/puzzles/6x6-henderson-82.sgf \
 sgf/puzzles/7x7-enderton-01.sgf \
 sgf/puzzles/7x7-enderton-02.sgf \
 sgf/puzzles/7x7-enderton-03.sgf \
@@ -282,6 +289,14 @@ sgf/puzzles/7x7-henderson-59.sgf \
 sgf/puzzles/7x7-henderson-60.sgf \
 sgf/puzzles/7x7-henderson-61.sgf \
 sgf/puzzles/7x7-henderson-62.sgf \
+sgf/puzzles/7x7-henderson-74.sgf \
+sgf/puzzles/7x7-henderson-75.sgf \
+sgf/puzzles/7x7-henderson-76.sgf \
+sgf/puzzles/7x7-henderson-77.sgf \
+sgf/puzzles/7x7-henderson-78.sgf \
+sgf/puzzles/7x7-henderson-79.sgf \
+sgf/puzzles/7x7-henderson-80.sgf \
+sgf/puzzles/7x7-henderson-81.sgf \
 sgf/puzzles/7x7-LG-01.sgf \
 sgf/puzzles/8x8-henderson-56.sgf \
 sgf/puzzles/8x8-henderson-66.sgf \
@@ -294,6 +309,8 @@ sgf/puzzles/9x9-henderson-67.sgf \
 sgf/puzzles/9x9-henderson-68.sgf \
 sgf/puzzles/9x9-henderson-69.sgf \
 sgf/puzzles/9x9-henderson-70.sgf \
+sgf/puzzles/9x9-henderson-72.sgf \
+sgf/puzzles/9x9-henderson-73.sgf \
 sgf/vc/b10-is-key2.sgf \
 sgf/vc/b10-is-key.sgf \
 sgf/vc/black-has-winning-SC-with-f7-key.sgf \
