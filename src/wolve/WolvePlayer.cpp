@@ -51,7 +51,7 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     std::vector<int> search_depths = m_search_depths;
 
     // If low on time, set a maximum search depth of 2.
-    if (maxTime < m_panic_time)
+    if (m_panic_time > 1.0 && maxTime < m_panic_time)
     {
 	std::vector<int> new_search_depths;
 	for (std::size_t i = 0; i < search_depths.size(); ++i)
