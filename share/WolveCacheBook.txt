@@ -40,20 +40,20 @@
 11 a3 f5 h5 h4 j3 j2 i3 i4 j4 | i5
 11 a3 f5 h5 h4 j3 j2 i3 i4 j4 i5 j5 | i2
 11 a3 f5 h5 h4 j3 j2 i3 i4 j4 i5 j5 i2 h3 | h2
-11 a4 f6 | d7
-11 a4 f6 d7 e5 | c6
-11 a4 f6 d7 e5 c6 c7 | d6
-11 a4 f6 d7 e5 c6 c7 d6 d8 | e7
-11 a4 f6 d7 e5 c6 c7 d6 d8 e7 e8 | f7
-11 a4 f6 d7 e5 c6 c7 d6 d8 e7 e8 f7 f8 | h7
-11 a4 f6 d7 e5 c6 c7 d6 d8 e7 e8 f7 f8 h7 g7 | h6
-11 a4 | f5
-11 a4 f5 h5 | h4
-11 a4 f5 h5 h4 j3 | j2
-11 a4 f5 h5 h4 j3 j2 i3 | i4
-11 a4 f5 h5 h4 j3 j2 i3 i4 j4 | i5
-11 a4 f5 h5 h4 j3 j2 i3 i4 j4 i5 j5 | i2
-11 a4 f5 h5 h4 j3 j2 i3 i4 j4 i5 j5 i2 h3 | h2
+#11 a4 f6 | d7
+#11 a4 f6 d7 e5 | c6
+#11 a4 f6 d7 e5 c6 c7 | d6
+#11 a4 f6 d7 e5 c6 c7 d6 d8 | e7
+#11 a4 f6 d7 e5 c6 c7 d6 d8 e7 e8 | f7
+#11 a4 f6 d7 e5 c6 c7 d6 d8 e7 e8 f7 f8 | h7
+#11 a4 f6 d7 e5 c6 c7 d6 d8 e7 e8 f7 f8 h7 g7 | h6
+#11 a4 | f5
+#11 a4 f5 h5 | h4
+#11 a4 f5 h5 h4 j3 | j2
+#11 a4 f5 h5 h4 j3 j2 i3 | i4
+#11 a4 f5 h5 h4 j3 j2 i3 i4 j4 | i5
+#11 a4 f5 h5 h4 j3 j2 i3 i4 j4 i5 j5 | i2
+#11 a4 f5 h5 h4 j3 j2 i3 i4 j4 i5 j5 i2 h3 | h2
 11 a5 e7 | h6
 11 a5 e7 h6 h5 | j4
 11 a5 e7 h6 h5 j4 i5 | j5
@@ -75,13 +75,13 @@
 11 a6 e7 c8 d9 b10 b9 c9 c7 d7 e5 | f5
 11 a6 e7 c8 d9 b10 b9 c9 c7 d7 e5 f5 e6 | g6
 11 a6 e7 c8 d9 b10 b9 c9 c7 d7 e5 f5 e6 g6 g3 | h3
-11 a6 | e7
-11 a6 e7 g6 | g7
-11 a6 e7 g6 g7 f7 | e9
-11 a6 e7 g6 g7 f7 e9 c9 | b8
-11 a6 e7 g6 g7 f7 e9 c9 b8 f8 | f9
-11 a6 e7 g6 g7 f7 e9 c9 b8 f8 f9 g8 | g9
-11 a6 e7 g6 g7 f7 e9 c9 b8 f8 f9 g8 g9 i8 | h8
+#11 a6 | e7
+#11 a6 e7 g6 | g7
+#11 a6 e7 g6 g7 f7 | e9
+#11 a6 e7 g6 g7 f7 e9 c9 | b8
+#11 a6 e7 g6 g7 f7 e9 c9 b8 f8 | f9
+#11 a6 e7 g6 g7 f7 e9 c9 b8 f8 f9 g8 | g9
+#11 a6 e7 g6 g7 f7 e9 c9 b8 f8 f9 g8 g9 i8 | h8
 11 a7 e7 | b8
 11 a7 e7 b8 b9 | d8
 11 a7 e7 b8 b9 d8 d7 | c8
