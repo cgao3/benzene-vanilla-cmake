@@ -111,8 +111,7 @@ private:
 };
 
 template<class T>
-StateDB<T>::StateDB(const std::string& filename,
-                          const std::string& type)
+StateDB<T>::StateDB(const std::string& filename, const std::string& type)
     : m_db(filename, type),
       m_stats()
 {
@@ -257,6 +256,8 @@ public:
 
     T& operator[](const HexState& state);
 
+    std::size_t Size() const;
+
 private:
     std::map<hash_t, T> m_map;
 };
@@ -281,6 +282,12 @@ template<class T>
 inline T& StateMap<T>::operator[](const HexState& state)
 {
     return m_map[GetHash(state)];
+}
+
+template<class T>
+inline std::size_t StateMap<T>::Size() const
+{
+    return m_map.size();
 }
 
 //----------------------------------------------------------------------------
