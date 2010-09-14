@@ -9,6 +9,7 @@
 #include "BenzeneHtpEngine.hpp"
 #include "BookCheck.hpp"
 #include "BookCommands.hpp"
+#include "CacheBook.hpp"
 #include "WolvePlayer.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -48,6 +49,8 @@ private:
     BookCheck m_bookCheck;
 
     BookCommands m_bookCommands;
+
+    CacheBook m_cacheBook;
 
     double TimeForMove(HexColor color);
 
