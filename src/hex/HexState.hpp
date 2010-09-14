@@ -19,6 +19,8 @@ class HexState
 public:
     HexState();
 
+    HexState(unsigned size);
+
     HexState(const StoneBoard& brd, HexColor toPlay);
 
     StoneBoard& Position();
@@ -44,6 +46,12 @@ private:
 };
 
 inline HexState::HexState()
+{
+}
+
+inline HexState::HexState(unsigned size)
+    : m_brd(size),
+      m_toPlay(m_brd.WhoseTurn())
 {
 }
 
