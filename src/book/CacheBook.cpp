@@ -34,16 +34,27 @@ void CacheBook::ParseFile(std::ifstream& inFile)
 {
     int size;
     std::string line;
-    while (!inFile.eof()) {
+    while (true) {
+        // Read line, and quit once end of file
         getline(inFile, line);
-        if (line.size() < 9)
+        if (inFile.eof())
             break;
+
+        // Commented lines are ignored
+        if (0 < line.size() && '#' == line[0])
+            continue;
+
+        // Parse line
         std::istringstream in(line);
         in >> size;
         std::vector<HexPoint> variation = ReadPoints(in);
         std::vector<HexPoint> moves = ReadPoints(in);
+        if (0 == variation.size() || 1 != moves.size()) {
+            LogWarning() << "Error parsing cache book: '" << line << "'\n";
+            continue;
+        }
         
-        // add entry
+        // Add corresponding entry (if not redundant)
         HexState hs(size);
         for (size_t i = 0; i < variation.size(); ++i)
             hs.PlayMove(variation[i]);
@@ -62,8 +73,11 @@ std::vector<HexPoint> CacheBook::ReadPoints(std::istringstream& in) const
         if (!in || s == "|")
             break;
         HexPoint p = HexPointUtil::FromString(s);
-        if (INVALID_POINT != p)
-            result.push_back(p);
+        if (INVALID_POINT == p) {
+            result.clear();
+            return result;
+        }
+        result.push_back(p);
     }
     return result;
 }
