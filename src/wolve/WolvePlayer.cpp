@@ -49,25 +49,30 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
 {
     UNUSED(game);
     std::vector<int> search_depths = m_search_depths;
+    std::vector<int> plywidth = m_plywidth;
 
-    // If low on time, set a maximum search depth of 2.
-    if (m_panic_time > 1.0 && maxTime < m_panic_time)
+    // If low on time, set a maximum search depth of 4.
+    if (m_panic_time >= 0.01 && maxTime < m_panic_time)
     {
 	std::vector<int> new_search_depths;
 	for (std::size_t i = 0; i < search_depths.size(); ++i)
-	    if (search_depths[i] <= 2)
+	    if (search_depths[i] <= 4)
 		new_search_depths.push_back(search_depths[i]);
 	search_depths = new_search_depths;
+
+        // We also ensure plywidth is at least 15
+        for (std::size_t i = 0; i < plywidth.size(); ++i)
+            plywidth[i] = std::max(plywidth[i], 15);
 	LogWarning() << "############# PANIC MODE #############" << '\n';
     }
 
     m_search.SetRootMovesToConsider(consider);
     LogInfo() << "Using consider set:" << brd.Write(consider) << '\n'
-	      << "Plywidths: " << MiscUtil::PrintVector(m_plywidth) << '\n'
-	      << "Depths: " << MiscUtil::PrintVector(m_search_depths) << '\n';
+	      << "Plywidths: " << MiscUtil::PrintVector(plywidth) << '\n'
+	      << "Depths: " << MiscUtil::PrintVector(search_depths) << '\n';
 
     std::vector<HexPoint> PV;
-    score = m_search.Search(brd, state.ToPlay(), m_plywidth, 
+    score = m_search.Search(brd, state.ToPlay(), plywidth, 
                             search_depths, -1, PV);
 
     LogInfo() << m_search.DumpStats() << '\n';
