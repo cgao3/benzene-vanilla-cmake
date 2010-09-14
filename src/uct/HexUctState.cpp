@@ -221,6 +221,7 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
         for (BitsetIterator it(moveset); it; ++it)
             moves.push_back(SgMoveInfo(*it));
     }
+    SG_ASSERT(!moves.empty());
     return truncateChildTrees;
 }
 
@@ -313,22 +314,22 @@ void HexUctState::EndPlayout()
 {
 }
 
-/** Computes moves to consider and stores fillin in the shared data. 
-
-    @todo Do not delete children of proven nodes -- not needed anymore.	
-*/
+/** Computes moves to consider and stores fillin in the shared
+    data. */
 bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
 {
-    /** @todo Use a more complicated scheme to update the connections?
-        For example, if state is close to last one, use incremental
-        builds to transition from old to current. */
     m_vc_brd->GetPosition().StartNewGame();
     m_vc_brd->GetPosition().SetColor(BLACK, m_bd->GetPlayed(BLACK));
     m_vc_brd->GetPosition().SetColor(WHITE, m_bd->GetPlayed(WHITE));
     m_vc_brd->GetPosition().SetPlayed(m_bd->GetPlayed());
     m_vc_brd->ComputeAll(m_toPlay);
 
-    // Consider set will be non-empty only if a non-determined state.
+    // Consider set will be all empty cells if state is a determined
+    // state (can't compute consider set in this case and we cannot
+    // delete the children as this will cause a race condition in the
+    // parent class).
+    //
+    // Consider set is the set of moves to consider otherwise.
     bitset_t consider;
     if (EndgameUtils::IsDeterminedState(*m_vc_brd, m_toPlay))
     {
@@ -342,7 +343,7 @@ bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
         if (DEBUG_KNOWLEDGE)
             LogInfo() << "Found win for " << winner << ": " << '\n' 
                       << *m_vc_brd << '\n';
-        return EMPTY_BITSET;
+        return m_bd->GetEmpty();
     }
     else
     {
