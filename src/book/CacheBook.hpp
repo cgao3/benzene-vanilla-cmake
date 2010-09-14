@@ -7,7 +7,7 @@
 #define CACHEBOOK_HPP
 
 #include "Hex.hpp"
-#include "StateDB.hpp"
+#include "HexState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -17,16 +17,39 @@ _BEGIN_BENZENE_NAMESPACE_
     to prevent re-computing them.
 
     A cache book is just a map of state hashes to HexPoints.
+
+    Not using StateMap since may not want same behaviour in rotated positions.
 */
 
-class CacheBook : public StateMap<HexPoint>
+class CacheBook
 {
 public:
     CacheBook();
+    bool Exists(const HexState& state) const;
+    HexPoint& operator[](const HexState& state);
+    std::size_t Size() const;
+
 private:
+    std::map<hash_t, HexPoint> m_map;
+
     void ParseFile(std::ifstream& inFile);
     std::vector<HexPoint> ReadPoints(std::istringstream& in) const;
 };
+
+inline bool CacheBook::Exists(const HexState& state) const
+{
+    return m_map.find(state.Hash()) != m_map.end();
+}
+
+inline HexPoint& CacheBook::operator[](const HexState& state)
+{
+    return m_map[state.Hash()];
+}
+
+inline std::size_t CacheBook::Size() const
+{
+    return m_map.size();
+}
 
 //----------------------------------------------------------------------------
 
