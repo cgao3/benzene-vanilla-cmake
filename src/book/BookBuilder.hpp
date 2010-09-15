@@ -451,6 +451,13 @@ bool BookBuilder<PLAYER>::GenerateMoves(std::vector<SgMove>& moves,
     Resistance resist;
     resist.Evaluate(*m_brd);
     std::vector<HexMoveValue> ordered;
+    
+    // BUG: This does NOT take swap into account. This means the
+    // ordered set of moves returned in the root state is not ordered
+    // according to the swap rule. No real way to fix this while using
+    // resistance values, but it is possible to fix if we used mohex
+    // evaluations to sort the moves.
+
     for (BitsetIterator it(children); it; ++it)
         // use negative so higher values go to front
         ordered.push_back(HexMoveValue(*it, -resist.Score(*it)));
