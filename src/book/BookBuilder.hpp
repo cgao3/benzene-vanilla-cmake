@@ -16,13 +16,14 @@
 #include "Resistance.hpp"
 #include "SgThreadedWorker.h"
 #include "SgBookBuilder.h"
+#include "SgUctSearch.h"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
 /** Expands a Book using the given player to evaluate
-    game positions positions. 
+    game positions. 
 
     Supports multithreaded evaluation of states.
 
@@ -243,6 +244,10 @@ void BookBuilder<PLAYER>::CreateWorkers()
         /** @todo Use concept checking to verify this method exists. */
         newPlayer->CopySettingsFrom(m_orig_player);
         newPlayer->SetSearchSingleton(true);
+        // Set select to something not SG_UCTMOVESELECT_COUNT to
+        // force it to perform the required number of playouts.
+        newPlayer->Search().SetMoveSelect(SG_UCTMOVESELECT_BOUND);
+
         m_players.push_back(newPlayer);
         m_boards.push_back(new HexBoard(*m_brd));
         m_workers.push_back(Worker(i, *m_players[i], *m_boards[i]));
