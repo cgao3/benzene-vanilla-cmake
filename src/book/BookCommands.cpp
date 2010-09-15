@@ -273,6 +273,8 @@ void BookCommands::CmdBookParam(HtpCommand& cmd)
             m_bookCheck.SetMinCount(cmd.SizeTypeArg(1, 0));
         else if (name == "book_count_weight")
             m_bookCheck.SetCountWeight(cmd.FloatArg(1));
+        else 
+            throw HtpFailure() << "Unknown parameter: " << name;
     }
     else 
         throw HtpFailure("Expected 0 ore 2 arguments");
