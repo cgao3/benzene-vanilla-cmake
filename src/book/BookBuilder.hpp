@@ -16,13 +16,14 @@
 #include "Resistance.hpp"
 #include "SgThreadedWorker.h"
 #include "SgBookBuilder.h"
+#include "SgUctSearch.h"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
 /** Expands a Book using the given player to evaluate
-    game positions positions. 
+    game positions. 
 
     Supports multithreaded evaluation of states.
 
@@ -243,6 +244,10 @@ void BookBuilder<PLAYER>::CreateWorkers()
         /** @todo Use concept checking to verify this method exists. */
         newPlayer->CopySettingsFrom(m_orig_player);
         newPlayer->SetSearchSingleton(true);
+        // Set select to something not SG_UCTMOVESELECT_COUNT to
+        // force it to perform the required number of playouts.
+        newPlayer->Search().SetMoveSelect(SG_UCTMOVESELECT_BOUND);
+
         m_players.push_back(newPlayer);
         m_boards.push_back(new HexBoard(*m_brd));
         m_workers.push_back(Worker(i, *m_players[i], *m_boards[i]));
@@ -446,6 +451,13 @@ bool BookBuilder<PLAYER>::GenerateMoves(std::vector<SgMove>& moves,
     Resistance resist;
     resist.Evaluate(*m_brd);
     std::vector<HexMoveValue> ordered;
+    
+    // BUG: This does NOT take swap into account. This means the
+    // ordered set of moves returned in the root state is not ordered
+    // according to the swap rule. No real way to fix this while using
+    // resistance values, but it is possible to fix if we used mohex
+    // evaluations to sort the moves.
+
     for (BitsetIterator it(children); it; ++it)
         // use negative so higher values go to front
         ordered.push_back(HexMoveValue(*it, -resist.Score(*it)));

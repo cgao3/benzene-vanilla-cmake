@@ -121,6 +121,8 @@ void BookBuilderCommands<PLAYER>::CmdParamBookBuilder(HtpCommand& cmd)
         else
             throw HtpFailure() << "unknown parameter: " << name;
     }
+    else
+        throw HtpFailure("Expected 0 or 2 arguments.");
 }
 
 /** Expands the current node in the current opening book.
