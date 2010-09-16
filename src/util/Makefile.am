@@ -26,7 +26,6 @@ mat.hpp \
 Misc.hpp \
 SafeBool.hpp \
 SortedSequence.hpp \
-ThreadedWorker.hpp \
 Time.hpp \
 Types.hpp \
 UnionFind.hpp \

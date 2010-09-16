@@ -9,7 +9,7 @@ gameplayer.py \
 program.py \
 run-mohex-vs-mohex.sh \
 run-mohex-vs-six.sh \
-run-mohex-vs-wolve.sh \
+run-prog-vs-prog.sh \
 run-wolve-vs-six.sh \
 run-wolve-vs-wolve.sh \
 statistics.py \

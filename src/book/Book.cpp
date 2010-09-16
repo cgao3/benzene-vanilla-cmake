@@ -8,6 +8,7 @@
 
 #include "BitsetIterator.hpp"
 #include "Book.hpp"
+#include "HexModState.hpp"
 #include "Time.hpp"
 
 using namespace benzene;
@@ -26,44 +27,21 @@ const std::string Book::BOOK_DB_VERSION = "BENZENE_BOOK_VER_0001";
 
 //----------------------------------------------------------------------------
 
-float BookNode::Value(const HexState& state) const
+float BookUtil::Value(const SgBookNode& node, const HexState& state)
 {
     if (state.Position().IsLegal(SWAP_PIECES))
-        return std::max(m_value, BookUtil::InverseEval(m_value));
-    return m_value;
+        return std::max(node.m_value, BookUtil::InverseEval(node.m_value));
+    return node.m_value;
 }
 
-float BookNode::Score(const HexState& state, float countWeight) const
+float BookUtil::Score(const SgBookNode& node, const HexState& state, 
+                      float countWeight)
 {
-    float score = BookUtil::InverseEval(Value(state));
-    if (!IsTerminal())
-        score += log(m_count + 1) * countWeight;
+    float score = BookUtil::InverseEval(Value(node, state));
+    if (!node.IsTerminal())
+        score += log(node.m_count + 1) * countWeight;
     return score;	
 }
-
-bool BookNode::IsTerminal() const
-{
-    if (HexEvalUtil::IsWinOrLoss(m_value))
-        return true;
-    return false;
-}
-
-bool BookNode::IsLeaf() const
-{
-    return m_count == 0;
-}
-
-std::string BookNode::toString() const
-{
-    std::ostringstream os;
-    os << std::showpos << std::fixed << std::setprecision(3);
-    os << "Prop=" << m_value;
-    os << std::noshowpos << ", ExpP=" << m_priority;
-    os << std::showpos << ", Heur=" << m_heurValue << ", Cnt=" << m_count;
-    return os.str();
-}
-
-//----------------------------------------------------------------------------
 
 float BookUtil::InverseEval(float eval)
 {
@@ -83,7 +61,7 @@ int BookUtil::GetMainLineDepth(const Book& book, const HexState& origState)
     HexState state(origState);
     for (;;) 
     {
-        BookNode node;
+        HexBookNode node;
         if (!book.Get(state, node))
             break;
         HexPoint move = INVALID_POINT;
@@ -91,10 +69,10 @@ int BookUtil::GetMainLineDepth(const Book& book, const HexState& origState)
         for (BitsetIterator p(state.Position().GetEmpty()); p; ++p)
         {
             state.PlayMove(*p);
-            BookNode child;
+            HexBookNode child;
             if (book.Get(state, child))
             {
-                float curValue = InverseEval(child.Value(state));
+                float curValue = InverseEval(BookUtil::Value(child, state));
                 if (curValue > value)
                 {
                     value = curValue;
@@ -119,7 +97,7 @@ std::size_t TreeSize(const Book& book, HexState& state,
 {
     if (solved.Exists(state))
         return solved[state];
-    BookNode node;
+    HexBookNode node;
     if (!book.Get(state, node))
         return 0;
     std::size_t ret = 1;
@@ -144,95 +122,10 @@ std::size_t BookUtil::GetTreeSize(const Book& book, const HexState& origState)
 
 //----------------------------------------------------------------------------
 
-unsigned BookUtil::NumChildren(const Book& book, const HexState& origState)
-{
-    unsigned num = 0;
-    HexState state(origState);
-    for (BitsetIterator i(state.Position().GetEmpty()); i; ++i) 
-    {
-	state.PlayMove(*i);
-	BookNode child;
-        if (book.Get(state, child))
-            ++num;
-        state.UndoMove(*i);
-    }
-    return num;
-}
-
-void BookUtil::UpdateValue(const Book& book, BookNode& node, HexState& state)
-{
-    bool hasChild = false;
-    float bestValue = boost::numeric::bounds<float>::lowest();
-    for (BitsetIterator i(state.Position().GetEmpty()); i; ++i) 
-    {
-	state.PlayMove(*i);
-	BookNode child;
-        if (book.Get(state, child))
-        {
-            hasChild = true;
-            float value = BookUtil::InverseEval(child.Value(state));
-            if (value > bestValue)
-		bestValue = value;
-	    
-        }
-        state.UndoMove(*i);
-    }
-    if (hasChild)
-        node.m_value = bestValue;
-}
-
-/** @todo Maybe switch this to take a bestChildValue instead of of a
-    parent node. This would require flipping the parent in the caller
-    function and reverse the order of the subtraction. */
-float BookUtil::ComputePriority(const HexState& state, 
-                                const BookNode& parent,
-                                const BookNode& child,
-                                double alpha)
-{
-    // Must adjust child value for swap, but not the parent because we
-    // are comparing with the best child's value, ie, the minmax
-    // value.
-    float delta = parent.m_value - BookUtil::InverseEval(child.Value(state));
-    HexAssert(delta >= 0.0);
-    HexAssert(child.m_priority >= BookNode::LEAF_PRIORITY);
-    HexAssert(child.m_priority < BookNode::DUMMY_PRIORITY);
-    return alpha * delta + child.m_priority + 1;
-}
-
-HexPoint BookUtil::UpdatePriority(const Book& book, BookNode& node, 
-                                  HexState& state, float alpha)
-{
-    bool hasChild = false;
-    float bestPriority = boost::numeric::bounds<float>::highest();
-    HexPoint bestChild = INVALID_POINT;
-    for (BitsetIterator i(state.Position().GetEmpty()); i; ++i) 
-    {
-	state.PlayMove(*i);
-	BookNode child;
-        if (book.Get(state, child))
-        {
-            hasChild = true;
-            float priority 
-                = BookUtil::ComputePriority(state, node, child, alpha);
-            if (priority < bestPriority)
-            {
-                bestPriority = priority;
-                bestChild = *i;
-            }
-        }
-        state.UndoMove(*i);
-    }
-    if (hasChild)
-        node.m_priority = bestPriority;
-    return bestChild;
-}
-
-//----------------------------------------------------------------------------
-
 HexPoint BookUtil::BestMove(const Book& book, const HexState& origState,
                             unsigned minCount, float countWeight)
 {
-    BookNode node;
+    HexBookNode node;
     if (!book.Get(origState, node) || node.m_count < minCount)
         return INVALID_POINT;
 
@@ -242,10 +135,10 @@ HexPoint BookUtil::BestMove(const Book& book, const HexState& origState,
     for (BitsetIterator p(state.Position().GetEmpty()); p; ++p)
     {
         state.PlayMove(*p);
-        BookNode child;
+        HexBookNode child;
         if (book.Get(state, child))
         {
-            float score = child.Score(state, countWeight);
+            float score = BookUtil::Score(child, state, countWeight);
             if (score > bestScore)
             {
                 bestScore = score;
@@ -260,17 +153,20 @@ HexPoint BookUtil::BestMove(const Book& book, const HexState& origState,
 
 //----------------------------------------------------------------------------
 
-void BookUtil::DumpVisualizationData(const Book& book, HexState& state, 
-                                     int depth, std::ostream& out)
+void BookUtil::DumpVisualizationData(const Book& book,
+                                     const HexState& origState, int depth, 
+                                     std::ostream& out)
 {
-    BookNode node;
-    if (!book.Get(state, node))
+    HexBookNode node;
+    if (!book.Get(origState, node))
         return;
     if (node.IsLeaf())
     {
-        out << node.Value(state) << " " << depth << '\n';
+        out << BookUtil::Value(node, origState) << " " << depth << '\n';
         return;
     }
+    HexModState modState(origState);
+    HexState state = modState.State();
     for (BitsetIterator i(state.Position().GetEmpty()); i; ++i) 
     {
 	state.PlayMove( *i);
@@ -288,10 +184,10 @@ void DumpPolarizedLeafs(const Book& book, HexState& state,
 {
     if (seen.Exists(state))
         return;
-    BookNode node;
+    HexBookNode node;
     if (!book.Get(state, node))
         return;
-    if (fabs(node.Value(state) - 0.5) >= polarization 
+    if (fabs(BookUtil::Value(node, state) - 0.5) >= polarization 
         && node.IsLeaf() && !node.IsTerminal()
         && ignoreSet.Exists(state))
     {
@@ -317,12 +213,14 @@ void DumpPolarizedLeafs(const Book& book, HexState& state,
 
 }
 
-void BookUtil::DumpPolarizedLeafs(const Book& book, HexState& state,
+void BookUtil::DumpPolarizedLeafs(const Book& book, const HexState& origState,
                                   float polarization, PointSequence& pv, 
                                   std::ostream& out, 
                                   const StateSet& ignoreSet)
 {
     StateSet seen;
+    HexModState modState(origState);
+    HexState state = modState.State();
     ::DumpPolarizedLeafs(book, state, polarization, seen, pv, out, ignoreSet);
 }
 
@@ -381,7 +279,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
             state.PlayMove(points[i]);
         HexEval ourValue = (state.ToPlay() == winner) 
             ? IMMEDIATE_WIN : IMMEDIATE_LOSS;
-        BookNode node;
+        HexBookNode node;
         if (book.Get(state, node))
         {
             HexAssert(node.IsLeaf());
@@ -391,7 +289,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
         }
         else 
         {
-            node = BookNode(ourValue);
+            node = HexBookNode(ourValue);
             ++numNew;
         }
         book.Put(state, node);

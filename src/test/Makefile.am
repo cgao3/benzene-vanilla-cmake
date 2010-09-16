@@ -1,4 +1,5 @@
-check_PROGRAMS = benzene_unittest
+TESTS = benzene_unittest
+check_PROGRAMS = $(TESTS)
 
 benzene_unittest_SOURCES = \
 ../util/test/BitsetTest.cpp \

@@ -8,12 +8,17 @@ Benzene 0.9 (current development version)
   * export leafs over a certain depth threshold
   * solve leafs with multiple concurrent dfpn threads
   * import solved leafs back into book
+* New 'benzenetest' executable, which a DFPN-player.
+* Remove rotationally equivalent moves from set of considered moves
 * Reversible moves
 * Now hosted on sourceforge
 * Code cleanup/bug fixes
   * HexBoard no longer derives from StoneBoard
   * No more GroupBoard and PatternBoard that derive off of StoneBoard
   * Different base hash for each boardsize
+  * HexStates incorporating color to move are used instead of 
+    (board, color) pairs
+  * Book stuff in its own directory
   * More documentation
 
 Benzene 0.8 (released 09/05/04)

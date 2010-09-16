@@ -38,6 +38,7 @@ void DfpnCommands::Register(GtpEngine& e)
     Register(e, "dfpn-solver-find-winning", &DfpnCommands::CmdFindWinning);
     Register(e, "dfpn-open-db", &DfpnCommands::CmdOpenDB);
     Register(e, "dfpn-close-db", &DfpnCommands::CmdCloseDB);
+    Register(e, "dfpn-db-stat", &DfpnCommands::CmdDBStat);
     Register(e, "dfpn-evaluation-info", &DfpnCommands::CmdEvaluationInfo);
 }
 
@@ -281,6 +282,15 @@ void DfpnCommands::CmdCloseDB(HtpCommand& cmd)
     if (m_db.get() == 0)
         throw HtpFailure("No open database!\n");
     m_db.reset(0);
+}
+
+/** Prints database statistics. */
+void DfpnCommands::CmdDBStat(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(0);
+    if (m_db.get() == 0)
+        throw HtpFailure("No open database!\n");
+    cmd << m_db->BDBStatistics();
 }
 
 void DfpnCommands::CmdEvaluationInfo(HtpCommand& cmd)

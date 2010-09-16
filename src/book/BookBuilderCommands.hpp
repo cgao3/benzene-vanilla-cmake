@@ -121,6 +121,8 @@ void BookBuilderCommands<PLAYER>::CmdParamBookBuilder(HtpCommand& cmd)
         else
             throw HtpFailure() << "unknown parameter: " << name;
     }
+    else
+        throw HtpFailure("Expected 0 or 2 arguments.");
 }
 
 /** Expands the current node in the current opening book.
@@ -133,8 +135,11 @@ void BookBuilderCommands<PLAYER>::CmdBookExpand(HtpCommand& cmd)
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
     int iterations = cmd.IntArg(0, 1);
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    m_bookBuilder.Expand(*m_book, brd, iterations);
+    m_bookBuilder.SetState(*m_book, state);
+    m_bookBuilder.SetWorkBoard(brd);
+    m_bookBuilder.Expand(iterations);
 }
 
 /** Refreshes the current book. See BookBuilder::Refresh(). */
@@ -144,8 +149,11 @@ void BookBuilderCommands<PLAYER>::CmdBookRefresh(HtpCommand& cmd)
     UNUSED(cmd);
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    m_bookBuilder.Refresh(*m_book, brd);
+    m_bookBuilder.SetState(*m_book, state);
+    m_bookBuilder.SetWorkBoard(brd);
+    m_bookBuilder.Refresh();
 }
 
 /** Increases the width of all internal nodes that need to be
@@ -156,8 +164,11 @@ void BookBuilderCommands<PLAYER>::CmdBookIncreaseWidth(HtpCommand& cmd)
     UNUSED(cmd);
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    m_bookBuilder.IncreaseWidth(*m_book, brd);
+    m_bookBuilder.SetState(*m_book, state);
+    m_bookBuilder.SetWorkBoard(brd);
+    m_bookBuilder.IncreaseWidth();
 }
 
 template<class PLAYER>
@@ -166,18 +177,19 @@ void BookBuilderCommands<PLAYER>::CmdBookPriorities(HtpCommand& cmd)
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
-    BookNode parent;
+    HexBookNode parent;
     if (!m_book->Get(state, parent))
         return;
     for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
         state.PlayMove(*p);
-        BookNode succ;
+        HexBookNode succ;
         if (m_book->Get(state, succ))
         {
             cmd << " " << *p;
-            float priority = BookUtil::ComputePriority(state, parent, 
-                                               succ, m_bookBuilder.Alpha());
+            float priority = m_bookBuilder.ComputePriority(parent, 
+                                                           succ.m_value,
+                                                           succ.m_priority);
             float value = BookUtil::InverseEval(succ.m_value);
             if (HexEvalUtil::IsWin(value))
                 cmd << " W";

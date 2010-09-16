@@ -29,6 +29,7 @@ void BookCommands::Register(GtpEngine& e)
 {
     Register(e, "book-open", &BookCommands::CmdBookOpen);
     Register(e, "book-close", &BookCommands::CmdBookClose);
+    Register(e, "book-stat", &BookCommands::CmdBookStat);
     Register(e, "book-depths", &BookCommands::CmdBookMainLineDepth);
     Register(e, "book-counts", &BookCommands::CmdBookCounts);
     Register(e, "book-scores", &BookCommands::CmdBookScores);
@@ -73,6 +74,14 @@ void BookCommands::CmdBookClose(HtpCommand& cmd)
     m_book.reset(0);
 }
 
+void BookCommands::CmdBookStat(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(0);
+    if (m_book.get() == 0)
+        throw HtpFailure("No open book!\n");
+    cmd << m_book->BDBStatistics();
+}
+
 void BookCommands::CmdBookMainLineDepth(HtpCommand& cmd)
 {
     if (m_book.get() == 0) 
@@ -94,7 +103,7 @@ void BookCommands::CmdBookCounts(HtpCommand& cmd)
     for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
         state.PlayMove(*p);
-        BookNode node;
+        HexBookNode node;
         if (m_book->Get(state, node))
             cmd << " " << *p << " " << node.m_count;
         state.UndoMove(*p);
@@ -114,13 +123,13 @@ void BookCommands::CmdBookScores(HtpCommand& cmd)
     for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
     {
         state.PlayMove(*p);
-        BookNode node;
+        HexBookNode node;
         if (m_book->Get(state, node))
         {
             counts[*p] = node.m_count;
-            values[*p] = BookUtil::InverseEval(node.Value(state));
+            values[*p] = BookUtil::InverseEval(BookUtil::Value(node, state));
             scores.push_back(std::make_pair
-                             (-node.Score(state, countWeight), *p));
+                             (-BookUtil::Score(node, state, countWeight), *p));
         }
         state.UndoMove(*p);
     }
@@ -235,10 +244,10 @@ void BookCommands::CmdBookSetValue(HtpCommand& cmd)
         value = IMMEDIATE_LOSS;
     else
         value = cmd.FloatArg(0);
-    BookNode node;
+    HexBookNode node;
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     if (!m_book->Get(state, node))
-        m_book->Put(state, BookNode(value));
+        m_book->Put(state, HexBookNode(value));
     else
     {
         node.m_value = value;
@@ -264,6 +273,8 @@ void BookCommands::CmdBookParam(HtpCommand& cmd)
             m_bookCheck.SetMinCount(cmd.SizeTypeArg(1, 0));
         else if (name == "book_count_weight")
             m_bookCheck.SetCountWeight(cmd.FloatArg(1));
+        else 
+            throw HtpFailure() << "Unknown parameter: " << name;
     }
     else 
         throw HtpFailure("Expected 0 ore 2 arguments");

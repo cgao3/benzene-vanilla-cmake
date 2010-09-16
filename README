@@ -97,7 +97,6 @@ respectively.
 To build and run the unit tests, do:
 
 % make check
-% src/test/benzene_unittests
 
 -------------
  Development

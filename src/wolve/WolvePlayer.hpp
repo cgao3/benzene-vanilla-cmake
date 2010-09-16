@@ -207,7 +207,7 @@ public:
     void SetSearchDepths(const std::vector<int>& depths);
 
     /** When time remaining is less than this, max search depth is set
-	to 2. */
+	to 4. A value of zero turns this option off. */
     double PanicTime() const;
     
     /** See PanicTime() */
