@@ -221,7 +221,6 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
         for (BitsetIterator it(moveset); it; ++it)
             moves.push_back(SgMoveInfo(*it));
     }
-    SG_ASSERT(!moves.empty());
     return truncateChildTrees;
 }
 
