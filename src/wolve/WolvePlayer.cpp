@@ -129,26 +129,26 @@ void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
     VariationInfo varInfo;
     if (m_varTT.Get(SequenceHash::Hash(m_sequence), varInfo))
     {
-        LogFine() << "Using consider set from TT." << '\n'
+        LogFine() << "Using consider set from TT.\n"
 		  << HexPointUtil::ToString(m_sequence) << '\n'
 		  << m_brd << '\n';
         consider = varInfo.consider;
     } 
     else if (m_current_depth == 0)
     {
-        LogFine() << "Using root consider set." << '\n';
+        LogFine() << "Using root consider set.\n";
         consider = m_rootMTC;
     }
     else 
     {
-        LogFine() << "Computing our own consider set." << '\n';
+        LogFine() << "Computing our own consider set.\n";
         consider = EndgameUtils::MovesToConsider(*m_brd, m_toplay);
     }
 
     m_consider.push_back(consider);
     HexAssert((int)m_consider.size() == m_current_depth+1);
 
-    // order the moves
+    // Order the moves
     moves.clear();
     std::vector<std::pair<HexEval, HexPoint> > mvsc;
     for (BitsetIterator it(consider); it; ++it) 
@@ -159,7 +159,7 @@ void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
             : resist.Score(*it);
         mvsc.push_back(std::make_pair(-score, *it));
     }
-    /** @note to ensure we are deterministic, we must use stable_sort. */
+    // NOTE: To ensure we are deterministic, we must use stable_sort.
     stable_sort(mvsc.begin(), mvsc.end());
     for (std::size_t i = 0; i < mvsc.size(); ++i)
         moves.push_back(mvsc[i].second);
@@ -180,7 +180,7 @@ void WolveSearch::AfterStateSearched()
 {
     if (m_backup_ice_info) 
     {
-        // store new consider set in varTT
+        // Store new consider set in varTT
         bitset_t old_consider = m_consider[m_current_depth];
         bitset_t new_consider 
             = EndgameUtils::MovesToConsider(*m_brd, m_toplay) & old_consider;
@@ -193,8 +193,6 @@ void WolveSearch::AfterStateSearched()
 void WolveSearch::OnSearchComplete()
 {
 }
-
-//----------------------------------------------------------------------------
 
 void WolveSearch::ComputeResistance(Resistance& resist)
 {
