@@ -22,17 +22,13 @@ WolvePlayer::WolvePlayer()
       m_search_depths(),
       m_panic_time(240)
 {
-    LogFine() << "--- WolvePlayer" << '\n';
-
     m_plywidth.push_back(20);
     m_plywidth.push_back(20);
     m_plywidth.push_back(20);
     m_plywidth.push_back(20);
-
     m_search_depths.push_back(1);
     m_search_depths.push_back(2);
     m_search_depths.push_back(4);
-
     m_search.SetTT(&m_tt);
 }
 
@@ -42,7 +38,27 @@ WolvePlayer::~WolvePlayer()
 
 //----------------------------------------------------------------------------
 
+/** Reduce search strength if running out of time. */
+void WolvePlayer::CheckPanicMode(double timeRemaining,
+                                 std::vector<int>& search_depths,
+                                 std::vector<int>& plywidth)
+{
+    // If low on time, set a maximum search depth of 4.
+    if (m_panic_time >= 0.01 && timeRemaining < m_panic_time)
+    {
+	std::vector<int> new_search_depths;
+	for (std::size_t i = 0; i < search_depths.size(); ++i)
+	    if (search_depths[i] <= 4)
+		new_search_depths.push_back(search_depths[i]);
+	search_depths = new_search_depths;
+        // We also ensure plywidth is at least 15
+        for (std::size_t i = 0; i < plywidth.size(); ++i)
+            plywidth[i] = std::max(plywidth[i], 15);
+	LogWarning() << "############# PANIC MODE #############\n";
+    }
+}
 
+/** Generates a move in the given gamestate using alphabeta. */
 HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
                              HexBoard& brd, const bitset_t& consider,
                              double maxTime, double& score)
@@ -51,20 +67,7 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     std::vector<int> search_depths = m_search_depths;
     std::vector<int> plywidth = m_plywidth;
 
-    // If low on time, set a maximum search depth of 4.
-    if (m_panic_time >= 0.01 && maxTime < m_panic_time)
-    {
-	std::vector<int> new_search_depths;
-	for (std::size_t i = 0; i < search_depths.size(); ++i)
-	    if (search_depths[i] <= 4)
-		new_search_depths.push_back(search_depths[i]);
-	search_depths = new_search_depths;
-
-        // We also ensure plywidth is at least 15
-        for (std::size_t i = 0; i < plywidth.size(); ++i)
-            plywidth[i] = std::max(plywidth[i], 15);
-	LogWarning() << "############# PANIC MODE #############" << '\n';
-    }
+    CheckPanicMode(maxTime, search_depths, plywidth);
 
     m_search.SetRootMovesToConsider(consider);
     LogInfo() << "Using consider set:" << brd.Write(consider) << '\n'

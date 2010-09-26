@@ -230,7 +230,9 @@ private:
     /** See PanicTime() */
     double m_panic_time;
 
-    /** Generates a move in the given gamestate using alphabeta. */
+    void CheckPanicMode(double timeRemaining, std::vector<int>& search_depths, 
+                        std::vector<int>& plywidth);
+
     virtual HexPoint Search(const HexState& state, const Game& game,
                             HexBoard& brd, const bitset_t& consider,
                             double maxTime, double& score);
