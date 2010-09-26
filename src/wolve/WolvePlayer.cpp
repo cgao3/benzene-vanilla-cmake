@@ -194,13 +194,12 @@ void WolveSearch::OnSearchComplete()
 {
 }
 
+/** Computes resistance on game board using vcs from filled-in
+    board. */
 void WolveSearch::ComputeResistance(Resistance& resist)
 {
     StoneBoard plain(m_brd->Width(), m_brd->Height());
-    StoneBoard& state = m_brd->GetPosition();
-    plain.AddColor(BLACK, state.GetPlayed(BLACK));
-    plain.AddColor(WHITE, state.GetPlayed(WHITE));
-    plain.SetPlayed(state.GetPlayed());
+    plain.SetPosition(m_brd->GetPosition());
     Groups groups;
     GroupBuilder::Build(plain, groups);
     AdjacencyGraph graphs[BLACK_AND_WHITE];
