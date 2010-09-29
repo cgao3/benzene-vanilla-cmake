@@ -81,8 +81,9 @@ void MoHexEngine::RegisterCmd(const std::string& name,
 
 double MoHexEngine::TimeForMove(HexColor color)
 {
-    /** @todo Use a proper time control mechanism! */
-    return std::min(m_game.TimeRemaining(color), m_player.MaxTime());
+    if (m_player.UseTimeManagement())
+        return m_game.TimeRemaining(color) * 0.08;
+    return m_player.MaxTime();
 }
 
 HexPoint MoHexEngine::GenMove(HexColor color, bool useGameClock)
@@ -176,6 +177,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << m_useParallelSolver << '\n'
             << "[bool] use_rave "
             << search.Rave() << '\n'
+            << "[bool] use_time_management "
+            << m_player.UseTimeManagement() << '\n'
             << "[bool] weight_rave_updates "
             << search.WeightRaveUpdates() << '\n'
             << "[string] bias_term "
@@ -261,6 +264,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             m_player.SetSearchSingleton(cmd.BoolArg(1));
         else if (name == "use_parallel_solver")
             m_useParallelSolver = cmd.BoolArg(1);
+        else if (name == "use_time_management")
+            m_player.SetUseTimeManagement(cmd.BoolArg(1));
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

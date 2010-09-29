@@ -50,6 +50,7 @@ MoHexPlayer::MoHexPlayer()
       m_backup_ice_info(true),
       m_max_games(99999999),
       m_max_time(10),
+      m_useTimeManagement(false),
       m_reuse_subtree(false),
       m_ponder(false),
       m_performPreSearch(true)
@@ -284,16 +285,15 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
     return false;
 }
 
-void MoHexPlayer::PrintParameters(HexColor color, double remaining)
+void MoHexPlayer::PrintParameters(HexColor color, double timeForMove)
 {
     LogInfo() << "--- MoHexPlayer::Search() ---\n"
 	      << "Color: " << color << '\n'
 	      << "MaxGames: " << m_max_games << '\n'
-	      << "MaxTime: " << m_max_time << '\n'
 	      << "NumberThreads: " << m_search.NumberThreads() << '\n'
 	      << "MaxNodes: " << m_search.MaxNodes()
 	      << " (" << sizeof(SgUctNode)*m_search.MaxNodes() << " bytes)\n" 
-	      << "TimeRemaining: " << remaining << '\n';
+	      << "TimeForMove: " << timeForMove << '\n';
 }
 
 /** Extracts relevant portion of old tree for use in upcoming search.
