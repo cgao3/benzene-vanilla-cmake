@@ -72,6 +72,8 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     Search().SetLiveGfxInterval(other.Search().LiveGfxInterval());
     SetMaxGames(other.MaxGames());
     SetMaxTime(other.MaxTime());
+    SetPerformPreSearch(other.PerformPreSearch());
+    SetUseTimeManagement(other.UseTimeManagement());
     Search().SetMaxNodes(other.Search().MaxNodes());
     Search().SetNumberThreads(other.Search().NumberThreads());
     Search().SetPlayoutUpdateRadius(other.Search().PlayoutUpdateRadius());
