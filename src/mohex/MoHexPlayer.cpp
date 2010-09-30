@@ -17,6 +17,7 @@
 #include "HexUctPolicy.hpp"
 #include "MoHexPlayer.hpp"
 #include "EndgameUtils.hpp"
+#include "Resistance.hpp"
 #include "SequenceHash.hpp"
 #include "Time.hpp"
 #include "VCUtils.hpp"
@@ -37,6 +38,19 @@ bool IsPrefixOf(const MoveSequence& a, const MoveSequence& b)
     }
     return true;
 }
+
+
+void SortConsiderSet(const bitset_t& consider, const Resistance& resist,
+                     std::vector<HexPoint>& moves)
+{
+    std::vector<std::pair<HexEval, HexPoint> > mvsc;
+    for (BitsetIterator it(consider); it; ++it) 
+        mvsc.push_back(std::make_pair(-resist.Score(*it), *it));
+    stable_sort(mvsc.begin(), mvsc.end());
+    moves.clear();
+    for (std::size_t i = 0; i < mvsc.size(); ++i)
+        moves.push_back(mvsc[i].second);
+}                             
 
 }
 
@@ -98,12 +112,13 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     SgTimer totalElapsed;
     PrintParameters(color, maxTime);
 
-    // Do presearch and abort if win found.
+    // Do presearch and abort if win found. Allow it to take 20% of
+    // total time.
     SgTimer timer;
     bitset_t consider = given_to_consider;
     PointSequence winningSequence;
-    if (m_performPreSearch 
-        && PerformPreSearch(brd, color, consider, winningSequence))
+    if (m_performPreSearch && PerformPreSearch(brd, color, consider, 
+                                               maxTime * 0.2, winningSequence))
     {
 	LogInfo() << "Winning sequence found before UCT search!\n"
 		  << "Sequence: " << winningSequence[0] << '\n';
@@ -220,7 +235,7 @@ HexPoint MoHexPlayer::LastMoveFromHistory(const MoveSequence& history)
     possible?
 */
 bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color, 
-                                   bitset_t& consider, 
+                                   bitset_t& consider, float maxTime, 
                                    PointSequence& winningSequence)
 {
    
@@ -228,20 +243,29 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
     HexColor other = !color;
     PointSequence seq;
     bool foundWin = false;
-    for (BitsetIterator p(consider); p && !foundWin; ++p) 
-    {
-        brd.PlayMove(color, *p);
-        seq.push_back(*p);
 
-        // Found a winning move!
-        if (EndgameUtils::IsLostGame(brd, other))
+    SgTimer elapsed;
+    Resistance resist;
+    resist.Evaluate(brd);
+    std::vector<HexPoint> moves;
+    SortConsiderSet(consider, resist, moves);
+    for (std::size_t i = 0; i < moves.size() && !foundWin; ++i) 
+    {
+        if (elapsed.GetTime() > maxTime)
+        {
+            LogInfo() << "PreSearch: max time reached "
+                      << '(' << i << '/' << moves.size() << ").\n";
+            break;
+        }
+        brd.PlayMove(color, moves[i]);
+        seq.push_back(moves[i]);
+        if (EndgameUtils::IsLostGame(brd, other)) // Check for winning move
         {
             winningSequence = seq;
             foundWin = true;
         }	
         else if (EndgameUtils::IsWonGame(brd, other))
-            losing.set(*p);
-
+            losing.set(moves[i]);
         seq.pop_back();
         brd.UndoMove();
     }
