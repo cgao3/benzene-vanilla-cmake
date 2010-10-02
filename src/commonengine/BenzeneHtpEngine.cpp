@@ -111,8 +111,13 @@ void BenzeneHtpEngine::CmdLicense(HtpCommand& cmd)
         HexProgram::Get().getName() << " " <<
         HexProgram::Get().getVersion() << " " <<
         HexProgram::Get().getDate() << "\n"
-        "Copyright (C) 2009 by the authors of the Benzene project.\n"
-        "This version is for private use only. DO NOT DISTRIBUTE.\n\n";
+        "Copyright (C) 2010 by the authors of the Benzene project.\n"
+        "See http://benzene.sourceforge.net for information about benzene.\n"
+        "Benzene comes with NO WARRANTY to the extent permitted by law.\n"
+        "This program is free software; you can redistribute it and/or\n"
+        "modify it under the terms of the GNU Lesser General Public License\n"
+        "as published by the Free Software Foundation - version 3. For more\n"
+"information about these matters, see the files COPYING and COPYING.LESSER.\n";
 }
 
 /** Returns the set of stones this stone is part of. */
