@@ -37,9 +37,6 @@ If you will not be doing development or testing, or would prefer
 maximum speed and performance, then you can safely exclude the
 "--enable-assert" option.
 
-By default fuego is not built with optmizations on. Use "--enable-optimize"
-for O3 level optimization. Not doing this results in very slow code.
-
 % make
 
 Change back to the benzene directory. 
@@ -117,7 +114,5 @@ makefiles with 'config.status':
  Installing
 ------------
 
-If you just want to run benzene, you should do a 'make install'
-after 'make'. See the file INSTALL. 
-
+There is no need to install benzene. Installing it probably won't work.
 
