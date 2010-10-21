@@ -5,7 +5,6 @@ SUBDIRS = \
 util \
 hex \
 book \
-uct \
 solver \
 simpleplayers \
 commonengine \
