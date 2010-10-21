@@ -1,5 +1,7 @@
 Benzene 1.0 (current development version)
 -----------------------------------------
+* Small code changes:
+  * moved code in src/uct/ to src/mohex/
 
 Benzene 0.9 (released 10/10/02)
 -----------------------------------------
