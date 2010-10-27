@@ -97,6 +97,8 @@ public:
     */
     void SaveGames(const std::string& fileName) const;
 
+    void AppendGame(const std::vector<SgMove>& sequence);
+
     /** @see HexUctUtil::SaveTree() */
     void SaveTree(std::ostream& out, int maxDepth) const;
 
@@ -184,14 +186,14 @@ protected:
         Should be non-null only if KeepGames() is true.
     */
     SgNode* m_root;
+
+private:
     
     /** Not implemented */
     HexUctSearch(const HexUctSearch& search);
 
     /** Not implemented */
     HexUctSearch& operator=(const HexUctSearch& search);
-
-    void AppendGame(const std::vector<SgMove>& sequence);
 };
 
 inline void HexUctSearch::SetBoard(HexBoard& board)
