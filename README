@@ -22,12 +22,12 @@ benzene directory:
 % autoreconf -i
 % ./configure --enable-assert --enable-optimize 
 
-(NOTE: This current build of Benzene is tested with revision 1002
-(circa November 2009). It is possible that in the future the trunk
+(NOTE: This current build of Benzene is tested with revision 1163
+(circa September 2010). It is possible that in the future the trunk
 version of fuego can differ drastically from this version. It may be
 necessary to checkout a branch in the fuego repository created near
-revision 1002 to get the compile to work, or to checkout revision 1002
-itself with the "-r 1002" option to "svn co".)
+revision 1163 to get the compile to work, or to checkout revision 1163
+itself with the "-r 1163" option to "svn co".)
 
 Include the "--enable-assert" if you will be doing development on
 Benzene. The compilation will fail if you want to use assertions in 
@@ -36,9 +36,6 @@ Benzene but not in Fuego.
 If you will not be doing development or testing, or would prefer
 maximum speed and performance, then you can safely exclude the
 "--enable-assert" option.
-
-By default fuego is not built with optmizations on. Use "--enable-optimize"
-for O3 level optimization. Not doing this results in very slow code.
 
 % make
 
@@ -117,7 +114,5 @@ makefiles with 'config.status':
  Installing
 ------------
 
-If you just want to run benzene, you should do a 'make install'
-after 'make'. See the file INSTALL. 
-
+There is no need to install benzene. Installing it probably won't work.
 

@@ -23,13 +23,6 @@ using namespace benzene;
     iterative deepening alpha-beta search with an electric ciruit
     evaluation function.
 
-    Because of how fillin added to the board by ICEngine affects the
-    resistance-based evaluation function, Wolve actually uses two
-    copies of the board, one with fillin to detect wins/losses, and
-    the other without for use with the evaluation function.  It is
-    possible to use multi-threading to reduce the overhead caused by
-    this if multiple processors are available.
-
     @section search Search
     - WolveEngine
     - WolvePlayer

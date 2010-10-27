@@ -1,0 +1,4 @@
+param_game allow_swap 1
+param_wolve panic_time 0
+param_wolve ply_width "15 15 15 15"
+param_wolve use_parallel_solver 1

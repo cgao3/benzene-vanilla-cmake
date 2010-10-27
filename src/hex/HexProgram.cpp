@@ -58,8 +58,9 @@ void HexProgram::PrintStartupMessage()
     std::cerr <<
         m_name << " " << m_version << " " << m_date << "\n"
         "Copyright (C) 2010 by the authors of the Benzene project.\n"
-        "This version is for private use only. DO NOT DISTRIBUTE!\n"
-        "Type 'benzene-license' for more details.\n\n";
+        "This program comes with ABSOLUTELY NO WARRANTY. This is\n"
+        "free software and you are welcome to redistribute it under\n"
+        "certain conditions. Type `benzene-license' for details.\n\n";
 }
 
 //----------------------------------------------------------------------------

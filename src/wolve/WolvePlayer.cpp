@@ -22,17 +22,13 @@ WolvePlayer::WolvePlayer()
       m_search_depths(),
       m_panic_time(240)
 {
-    LogFine() << "--- WolvePlayer" << '\n';
-
     m_plywidth.push_back(20);
     m_plywidth.push_back(20);
     m_plywidth.push_back(20);
     m_plywidth.push_back(20);
-
     m_search_depths.push_back(1);
     m_search_depths.push_back(2);
     m_search_depths.push_back(4);
-
     m_search.SetTT(&m_tt);
 }
 
@@ -42,7 +38,27 @@ WolvePlayer::~WolvePlayer()
 
 //----------------------------------------------------------------------------
 
+/** Reduce search strength if running out of time. */
+void WolvePlayer::CheckPanicMode(double timeRemaining,
+                                 std::vector<int>& search_depths,
+                                 std::vector<int>& plywidth)
+{
+    // If low on time, set a maximum search depth of 4.
+    if (m_panic_time >= 0.01 && timeRemaining < m_panic_time)
+    {
+	std::vector<int> new_search_depths;
+	for (std::size_t i = 0; i < search_depths.size(); ++i)
+	    if (search_depths[i] <= 4)
+		new_search_depths.push_back(search_depths[i]);
+	search_depths = new_search_depths;
+        // We also ensure plywidth is at least 15
+        for (std::size_t i = 0; i < plywidth.size(); ++i)
+            plywidth[i] = std::max(plywidth[i], 15);
+	LogWarning() << "############# PANIC MODE #############\n";
+    }
+}
 
+/** Generates a move in the given gamestate using alphabeta. */
 HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
                              HexBoard& brd, const bitset_t& consider,
                              double maxTime, double& score)
@@ -51,20 +67,7 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     std::vector<int> search_depths = m_search_depths;
     std::vector<int> plywidth = m_plywidth;
 
-    // If low on time, set a maximum search depth of 4.
-    if (m_panic_time >= 0.01 && maxTime < m_panic_time)
-    {
-	std::vector<int> new_search_depths;
-	for (std::size_t i = 0; i < search_depths.size(); ++i)
-	    if (search_depths[i] <= 4)
-		new_search_depths.push_back(search_depths[i]);
-	search_depths = new_search_depths;
-
-        // We also ensure plywidth is at least 15
-        for (std::size_t i = 0; i < plywidth.size(); ++i)
-            plywidth[i] = std::max(plywidth[i], 15);
-	LogWarning() << "############# PANIC MODE #############" << '\n';
-    }
+    CheckPanicMode(maxTime, search_depths, plywidth);
 
     m_search.SetRootMovesToConsider(consider);
     LogInfo() << "Using consider set:" << brd.Write(consider) << '\n'
@@ -126,26 +129,26 @@ void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
     VariationInfo varInfo;
     if (m_varTT.Get(SequenceHash::Hash(m_sequence), varInfo))
     {
-        LogFine() << "Using consider set from TT." << '\n'
+        LogFine() << "Using consider set from TT.\n"
 		  << HexPointUtil::ToString(m_sequence) << '\n'
 		  << m_brd << '\n';
         consider = varInfo.consider;
     } 
     else if (m_current_depth == 0)
     {
-        LogFine() << "Using root consider set." << '\n';
+        LogFine() << "Using root consider set.\n";
         consider = m_rootMTC;
     }
     else 
     {
-        LogFine() << "Computing our own consider set." << '\n';
+        LogFine() << "Computing our own consider set.\n";
         consider = EndgameUtils::MovesToConsider(*m_brd, m_toplay);
     }
 
     m_consider.push_back(consider);
     HexAssert((int)m_consider.size() == m_current_depth+1);
 
-    // order the moves
+    // Order the moves
     moves.clear();
     std::vector<std::pair<HexEval, HexPoint> > mvsc;
     for (BitsetIterator it(consider); it; ++it) 
@@ -156,7 +159,7 @@ void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
             : resist.Score(*it);
         mvsc.push_back(std::make_pair(-score, *it));
     }
-    /** @note to ensure we are deterministic, we must use stable_sort. */
+    // NOTE: To ensure we are deterministic, we must use stable_sort.
     stable_sort(mvsc.begin(), mvsc.end());
     for (std::size_t i = 0; i < mvsc.size(); ++i)
         moves.push_back(mvsc[i].second);
@@ -177,7 +180,7 @@ void WolveSearch::AfterStateSearched()
 {
     if (m_backup_ice_info) 
     {
-        // store new consider set in varTT
+        // Store new consider set in varTT
         bitset_t old_consider = m_consider[m_current_depth];
         bitset_t new_consider 
             = EndgameUtils::MovesToConsider(*m_brd, m_toplay) & old_consider;
@@ -191,15 +194,12 @@ void WolveSearch::OnSearchComplete()
 {
 }
 
-//----------------------------------------------------------------------------
-
+/** Computes resistance on game board using vcs from filled-in
+    board. */
 void WolveSearch::ComputeResistance(Resistance& resist)
 {
     StoneBoard plain(m_brd->Width(), m_brd->Height());
-    StoneBoard& state = m_brd->GetPosition();
-    plain.AddColor(BLACK, state.GetPlayed(BLACK));
-    plain.AddColor(WHITE, state.GetPlayed(WHITE));
-    plain.SetPlayed(state.GetPlayed());
+    plain.SetPosition(m_brd->GetPosition());
     Groups groups;
     GroupBuilder::Build(plain, groups);
     AdjacencyGraph graphs[BLACK_AND_WHITE];

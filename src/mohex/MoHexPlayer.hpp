@@ -64,6 +64,12 @@ public:
     /** See MaxTime() */
     void SetMaxTime(double time);
 
+    /** Use time control to determine how much time to use per move. */
+    bool UseTimeManagement() const;
+
+    /** See UseTimeManagement() */
+    void SetUseTimeManagement(bool flag);
+
     /** Search is initialized using the subttree of the last search
         tree rooted at the current position. */
     bool ReuseSubtree() const;
@@ -99,6 +105,9 @@ protected:
     /** See MaxTime() */
     double m_max_time;
 
+    /** See UseTimeManagement() */
+    bool m_useTimeManagement;
+
     /** See ReuseSubtree() */
     bool m_reuse_subtree;
 
@@ -115,7 +124,7 @@ protected:
     HexPoint LastMoveFromHistory(const MoveSequence& history);
 
     bool PerformPreSearch(HexBoard& brd, HexColor color, bitset_t& consider, 
-                          PointSequence& winningSequence);
+                          float maxTime, PointSequence& winningSequence);
 
     void PrintParameters(HexColor color, double remaining);
     
@@ -181,6 +190,16 @@ inline double MoHexPlayer::MaxTime() const
 inline void MoHexPlayer::SetMaxTime(double time)
 {
     m_max_time = time;
+}
+
+inline bool MoHexPlayer::UseTimeManagement() const
+{
+    return m_useTimeManagement;
+}
+
+inline void MoHexPlayer::SetUseTimeManagement(bool flag)
+{
+    m_useTimeManagement = flag;
 }
 
 inline bool MoHexPlayer::ReuseSubtree() const

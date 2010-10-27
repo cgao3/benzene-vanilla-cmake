@@ -17,6 +17,7 @@
 #include "HexUctPolicy.hpp"
 #include "MoHexPlayer.hpp"
 #include "EndgameUtils.hpp"
+#include "Resistance.hpp"
 #include "SequenceHash.hpp"
 #include "Time.hpp"
 #include "VCUtils.hpp"
@@ -38,6 +39,19 @@ bool IsPrefixOf(const MoveSequence& a, const MoveSequence& b)
     return true;
 }
 
+
+void SortConsiderSet(const bitset_t& consider, const Resistance& resist,
+                     std::vector<HexPoint>& moves)
+{
+    std::vector<std::pair<HexEval, HexPoint> > mvsc;
+    for (BitsetIterator it(consider); it; ++it) 
+        mvsc.push_back(std::make_pair(-resist.Score(*it), *it));
+    stable_sort(mvsc.begin(), mvsc.end());
+    moves.clear();
+    for (std::size_t i = 0; i < mvsc.size(); ++i)
+        moves.push_back(mvsc[i].second);
+}                             
+
 }
 
 //----------------------------------------------------------------------------
@@ -50,11 +64,11 @@ MoHexPlayer::MoHexPlayer()
       m_backup_ice_info(true),
       m_max_games(99999999),
       m_max_time(10),
+      m_useTimeManagement(false),
       m_reuse_subtree(false),
       m_ponder(false),
       m_performPreSearch(true)
 {
-    LogFine() << "--- MoHexPlayer" << '\n';
 }
 
 MoHexPlayer::~MoHexPlayer()
@@ -72,6 +86,8 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     Search().SetLiveGfxInterval(other.Search().LiveGfxInterval());
     SetMaxGames(other.MaxGames());
     SetMaxTime(other.MaxTime());
+    SetPerformPreSearch(other.PerformPreSearch());
+    SetUseTimeManagement(other.UseTimeManagement());
     Search().SetMaxNodes(other.Search().MaxNodes());
     Search().SetNumberThreads(other.Search().NumberThreads());
     Search().SetPlayoutUpdateRadius(other.Search().PlayoutUpdateRadius());
@@ -93,25 +109,29 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     HexAssert(!brd.GetGroups().IsGameOver());
     HexColor color = state.ToPlay();   
    
-    double start = Time::Get();
+    SgTimer totalElapsed;
     PrintParameters(color, maxTime);
 
-    // Do presearch and abort if win found.
+    // Do presearch and abort if win found. Allow it to take 20% of
+    // total time.
     SgTimer timer;
     bitset_t consider = given_to_consider;
     PointSequence winningSequence;
-    if (m_performPreSearch 
-        && PerformPreSearch(brd, color, consider, winningSequence))
+    if (m_performPreSearch && PerformPreSearch(brd, color, consider, 
+                                               maxTime * 0.2, winningSequence))
     {
-	LogInfo() << "Winning sequence found before UCT search!" << '\n'
+	LogInfo() << "Winning sequence found before UCT search!\n"
 		  << "Sequence: " << winningSequence[0] << '\n';
         score = IMMEDIATE_WIN;
 	return winningSequence[0];
     }
     timer.Stop();
-    double elapsed = timer.GetTime();
-    LogInfo() << "Time for PreSearch: " << Time::Formatted(elapsed) << '\n';
+    LogInfo() << "Time for PreSearch: " 
+              << Time::Formatted(timer.GetTime()) << '\n';
 
+    maxTime -= timer.GetTime();
+    maxTime = std::max(1.0, maxTime);
+        
     // Create the initial state data
     HexUctSharedData data;
     data.board_width = brd.Width();
@@ -129,7 +149,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
         HexUctSharedData oldData = m_search.SharedData();        
         initTree = TryReuseSubtree(oldData, data);
         if (!initTree)
-            LogInfo() << "No subtree to reuse." << '\n';
+            LogInfo() << "No subtree to reuse.\n";
     }
     m_search.SetSharedData(data);
 
@@ -146,8 +166,6 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
 
     brd.GetPatternState().SetUpdateRadius(old_radius);
 
-    double end = Time::Get();
-
     // Output stats
     std::ostringstream os;
     os << '\n';
@@ -155,21 +173,22 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     os << m_shared_policy.DumpStatistics() << '\n';
     os << brd.DumpPatternCheckStats() << '\n';
 #endif
-    os << "Elapsed Time   " << Time::Formatted(end - start) << '\n';
+    os << "Elapsed Time   " << Time::Formatted(totalElapsed.GetTime()) << '\n';
     m_search.WriteStatistics(os);
     os << "Score          " << std::setprecision(2) << score << "\n"
        << "Sequence      ";
-    for (int i=0; i<(int)sequence.size(); i++) 
+    for (std::size_t i = 0; i < sequence.size(); i++)
         os << " " << HexUctUtil::MoveString(sequence[i]);
     os << '\n';
     
     LogInfo() << os.str() << '\n';
 
 #if 0
-    if (m_save_games) {
+    if (m_save_games) 
+    {
         std::string filename = "uct-games.sgf";
         uct.SaveGames(filename);
-        LogInfo() << "Games saved in '" << filename << "'." << '\n';
+        LogInfo() << "Games saved in '" << filename << "'.\n";
     }
 #endif
 
@@ -177,18 +196,17 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     if (sequence.size() > 0) 
         return static_cast<HexPoint>(sequence[0]);
 
-    // It is possible that HexUctSearch only did 1 rollout (probably
+    // It is possible that HexUctSearch did only 1 simulation (probably
     // because it ran out of time to do more); in this case, the move
     // sequence is empty and so we give a warning and return a random
     // move.
-    LogWarning() << "**** HexUctSearch returned empty sequence!" << '\n'
-		 << "**** Returning random move!" << '\n';
+    LogWarning() << "**** HexUctSearch returned empty sequence!\n"
+		 << "**** Returning random move!\n";
     return BoardUtils::RandomEmptyCell(brd.GetPosition());
 }
 
 /** Returns INVALID_POINT if history is empty, otherwise last move
-    played to the board, ie, skips swap move.
-*/
+    played to the board, ie, skips swap move. */
 HexPoint MoHexPlayer::LastMoveFromHistory(const MoveSequence& history)
 {
     HexPoint lastMove = INVALID_POINT;
@@ -217,7 +235,7 @@ HexPoint MoHexPlayer::LastMoveFromHistory(const MoveSequence& history)
     possible?
 */
 bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color, 
-                                   bitset_t& consider, 
+                                   bitset_t& consider, float maxTime, 
                                    PointSequence& winningSequence)
 {
    
@@ -225,20 +243,29 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
     HexColor other = !color;
     PointSequence seq;
     bool foundWin = false;
-    for (BitsetIterator p(consider); p && !foundWin; ++p) 
-    {
-        brd.PlayMove(color, *p);
-        seq.push_back(*p);
 
-        // Found a winning move!
-        if (EndgameUtils::IsLostGame(brd, other))
+    SgTimer elapsed;
+    Resistance resist;
+    resist.Evaluate(brd);
+    std::vector<HexPoint> moves;
+    SortConsiderSet(consider, resist, moves);
+    for (std::size_t i = 0; i < moves.size() && !foundWin; ++i) 
+    {
+        if (elapsed.GetTime() > maxTime)
+        {
+            LogInfo() << "PreSearch: max time reached "
+                      << '(' << i << '/' << moves.size() << ").\n";
+            break;
+        }
+        brd.PlayMove(color, moves[i]);
+        seq.push_back(moves[i]);
+        if (EndgameUtils::IsLostGame(brd, other)) // Check for winning move
         {
             winningSequence = seq;
             foundWin = true;
         }	
         else if (EndgameUtils::IsWonGame(brd, other))
-            losing.set(*p);
-
+            losing.set(moves[i]);
         seq.pop_back();
         brd.UndoMove();
     }
@@ -270,40 +297,33 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
     if (losing.any()) 
     {
 	if (BitsetUtil::IsSubsetOf(consider, losing)) 
-        {
-	    LogInfo() << "************************************" << '\n'
-                      << " All UCT root children are losing!!" << '\n'
-                      << "************************************" << '\n';
-	} 
+	    LogInfo() << "************************************\n"
+                      << " All UCT root children are losing!!\n"
+                      << "************************************\n";
         else 
         {
-            LogFine() << "Removed losing moves: " 
-		      << brd.Write(losing) << '\n';
+            LogFine() << "Removed losing moves: " << brd.Write(losing) << '\n';
 	    consider = consider - losing;
 	}
     }
     HexAssert(consider.any());
-    LogInfo()<< "Moves to consider:" << '\n' 
-             << brd.Write(consider) << '\n';
+    LogInfo()<< "Moves to consider:\n" << brd.Write(consider) << '\n';
     return false;
 }
 
-void MoHexPlayer::PrintParameters(HexColor color, double remaining)
+void MoHexPlayer::PrintParameters(HexColor color, double timeForMove)
 {
-    LogInfo() << "--- MoHexPlayer::Search() ---" << '\n'
+    LogInfo() << "--- MoHexPlayer::Search() ---\n"
 	      << "Color: " << color << '\n'
 	      << "MaxGames: " << m_max_games << '\n'
-	      << "MaxTime: " << m_max_time << '\n'
 	      << "NumberThreads: " << m_search.NumberThreads() << '\n'
 	      << "MaxNodes: " << m_search.MaxNodes()
-	      << " (" << sizeof(SgUctNode)*m_search.MaxNodes() << " bytes)" 
-	      << '\n'
-	      << "TimeRemaining: " << remaining << '\n';
+	      << " (" << sizeof(SgUctNode)*m_search.MaxNodes() << " bytes)\n" 
+	      << "TimeForMove: " << timeForMove << '\n';
 }
 
 /** Extracts relevant portion of old tree for use in upcoming search.
-    Returns valid pointer to new tree on success, 0 on failure.
- */
+    Returns valid pointer to new tree on success, 0 on failure. */
 SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
                                         HexUctSharedData& newData)
 {
@@ -311,7 +331,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
     // knowledge which affects the tree below.
     if (m_search.KnowledgeThreshold().empty())
     {
-        LogInfo() << "ReuseSubtree: knowledge is off." << '\n';
+        LogInfo() << "ReuseSubtree: knowledge is off.\n";
         return 0;
     }
 
@@ -329,12 +349,12 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
 
     if (oldSequence.size() > newSequence.size())
     {
-        LogInfo() << "ReuseSubtree: Backtracked to an earlier state." << '\n';
+        LogInfo() << "ReuseSubtree: Backtracked to an earlier state.\n";
         return 0;
     }
     if (!IsPrefixOf(oldSequence, newSequence))
     {
-        LogInfo() << "ReuseSubtree: Not a continuation." << '\n';
+        LogInfo() << "ReuseSubtree: Not a continuation.\n";
         return 0;
     }
 
@@ -344,7 +364,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
                          && oldData.root_stones == newData.root_stones);
 
     if (samePosition)
-        LogInfo() << "ReuseSubtree: in same position as last time!" << '\n';
+        LogInfo() << "ReuseSubtree: in same position as last time!\n";
 
     // If no old knowledge for the new root in the old tree, then we
     // cannot reuse the tree (since the root is given its knowledge
@@ -356,8 +376,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         hash_t hash = SequenceHash::Hash(newSequence);
         if (!oldData.stones.get(hash, oldStateData))
         {
-            LogInfo() << "ReuseSubtree: No knowledge for state in old tree."
-                      << '\n';
+            LogInfo() << "ReuseSubtree: No knowledge for state in old tree.\n";
             return 0;
         }
 
@@ -369,7 +388,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
             brd.SetColor(BLACK, oldStateData.black);
             brd.SetColor(WHITE, oldStateData.white);
             brd.SetPlayed(oldStateData.played);
-            LogWarning() << "FILLIN DOES NOT MATCH" << '\n';
+            LogWarning() << "FILLIN DOES NOT MATCH\n";
             LogWarning() << brd << '\n';
             brd.StartNewGame();
             brd.SetColor(BLACK, newData.root_stones.black);
@@ -387,7 +406,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
     {
         if (i && newSequence[i-1].color() == newSequence[i].color())
         {
-            LogInfo() << "ReuseSubtree: Colors do not alternate." << '\n';
+            LogInfo() << "ReuseSubtree: Colors do not alternate.\n";
             return 0;
         }
         suffix.push_back(newSequence[i]);
@@ -413,7 +432,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         float reuse = static_cast<float>(newTreeNodes) / oldTreeNodes;
         int reusePercent = static_cast<int>(100 * reuse);
         LogInfo() << "MoHexPlayer: Reusing " << newTreeNodes
-                  << " nodes (" << reusePercent << "%)" << '\n';
+                  << " nodes (" << reusePercent << "%)\n";
 
         MoveSequence moveSequence = newSequence;
         CopyKnowledgeData(tree, tree.Root(), newData.root_to_play,
@@ -423,7 +442,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         int kReusePercent = static_cast<int>(100 * kReuse);
         LogInfo() << "MoHexPlayer: Reusing " 
                   << newData.stones.count() << " knowledge states ("
-                  << kReusePercent << "%)" << '\n';
+                  << kReusePercent << "%)\n";
         return &tree;
     }
     return 0;

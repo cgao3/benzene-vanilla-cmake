@@ -26,8 +26,7 @@
     - @ref mohexmainpage
 
     @section tools Tools
-    - @ref openingbook 
     - @ref dfpn
-    - Traditional DFS Solver
+    - Traditional DFSSolver
 */
 

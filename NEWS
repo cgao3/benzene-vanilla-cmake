@@ -1,14 +1,19 @@
-Benzene 0.9 (current development version)
+Benzene 1.0 (current development version)
+-----------------------------------------
+* Small code changes:
+  * moved code in src/uct/ to src/mohex/
+
+Benzene 0.9 (released 10/10/02)
 -----------------------------------------
 * New DFPN solver
 * Six no longer packaged with Benzene
 * Wolve uses only a single board
-* Non-edge vc templates
+* Non-edge vc templates (results in much better set of connections)
 * Book commands/scripts to:
   * export leafs over a certain depth threshold
   * solve leafs with multiple concurrent dfpn threads
   * import solved leafs back into book
-* New 'benzenetest' executable, which a DFPN-player.
+* New 'benzenetest' executable, with a DFPN-player.
 * Remove rotationally equivalent moves from set of considered moves
 * Reversible moves
 * Now hosted on sourceforge
