@@ -181,6 +181,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << m_player.UseTimeManagement() << '\n'
             << "[bool] weight_rave_updates "
             << search.WeightRaveUpdates() << '\n'
+            << "[bool] virtual_loss "
+            << search.VirtualLoss() << '\n'
             << "[string] bias_term "
             << search.BiasTermConstant() << '\n'
             << "[string] expand_threshold "
@@ -266,6 +268,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             m_useParallelSolver = cmd.BoolArg(1);
         else if (name == "use_time_management")
             m_player.SetUseTimeManagement(cmd.BoolArg(1));
+        else if (name == "virtual_loss")
+            search.SetVirtualLoss(cmd.BoolArg(1));
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }
