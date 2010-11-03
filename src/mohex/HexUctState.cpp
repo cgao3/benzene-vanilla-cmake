@@ -57,6 +57,18 @@ HexColor GetWinner(const StoneBoard& brd)
     return WHITE;
 }
 
+/** Returns winner if there is one. Returns EMPTY if no winner. */
+HexColor CheckIfWinner(const StoneBoard& brd)
+{
+    if (BoardUtils::ConnectedOnBitset(brd.Const(), brd.GetColor(BLACK), 
+                                      NORTH, SOUTH))
+        return BLACK;
+    if (BoardUtils::ConnectedOnBitset(brd.Const(), brd.GetColor(WHITE),
+                                      EAST, WEST))
+        return WHITE;
+    return EMPTY;
+}
+
 } // namespace
 
 //----------------------------------------------------------------------------
@@ -202,7 +214,15 @@ bool HexUctState::GenerateAllMoves(std::size_t count,
     bool truncateChildTrees = false;
     if (count == 0)
     {
-        // First time at node: use empty cells and prior knowledge
+        {
+            HexColor winner = CheckIfWinner(*m_bd);
+            if (winner != EMPTY)
+            {
+                provenType = (winner == m_toPlay) 
+                    ? SG_PROVEN_WIN : SG_PROVEN_LOSS;
+                return false;
+            }
+        }
         for (BitsetIterator it(m_bd->GetEmpty()); it; ++it)
             moves.push_back(SgMoveInfo(*it));
         m_knowledge.ProcessPosition(moves);
