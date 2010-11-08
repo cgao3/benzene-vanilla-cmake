@@ -22,15 +22,6 @@ BOOST_AUTO_TEST_CASE(Time_Constants)
 
 BOOST_AUTO_TEST_CASE(Time_GetTime)
 {
-    // not much we can test - time goes forwards :)
-    double d1 = 0.0, d2 = 0.0;
-    d1 = Time::Get();
-    BOOST_CHECK(d1 != 0.0);
-    d2 = Time::Get();
-    BOOST_CHECK(d2 != 0.0);
-    BOOST_CHECK(d1 < d2);
-    d1 = Time::Get();
-    BOOST_CHECK(d2 < d1);
 }
 
 BOOST_AUTO_TEST_CASE(Time_FormattedString)
