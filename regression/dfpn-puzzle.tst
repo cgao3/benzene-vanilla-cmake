@@ -2,7 +2,7 @@
 # Tests dfpn solver with various Hex puzzles.
 #
 #
-# Note 1: This test takes 6h30m to complete (commit 368c88e23521d7dad4c4) on
+# Note 1: This test takes 7h32m to complete (commit 738eedf707706ffb78) on
 #         thorhild (Intel Core 2 Quad CPU Q9450 @ 2.66GHz).
 #
 # Note 2: Times listed are rounded to the nearest second, and are omitted
@@ -642,27 +642,117 @@ loadsgf sgf/puzzles/11x11-henderson-87.sgf
 156 dfpn-solver-find-winning white
 #? [h6 f8]
 
+# Takes 194 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-88.sgf
+157 dfpn-solver-find-winning black
+#? [g6 a7]
+
+# Takes 229 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-89.sgf
+158 dfpn-solver-find-winning white
+#? [c3]
+
+# Takes 800 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-90.sgf
+159 dfpn-solver-find-winning black
+#? [a4 b4]
+
+# Takes 2126 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-91.sgf
+160 dfpn-solver-find-winning white
+#? [d2 b3]
+
+# Takes 8 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-92.sgf
+161 dfpn-solver-find-winning black
+#? [c4]
+
+# Takes 2 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-93.sgf
+162 dfpn-solver-find-winning white
+#? [e6]
+
+# Takes 9 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-94.sgf
+163 dfpn-solver-find-winning white
+#? [f3]
+
+# Takes 12 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-95.sgf
+164 dfpn-solver-find-winning white
+#? [d7]
+
+# Takes 104 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-96.sgf
+165 dfpn-solver-find-winning white
+#? [e1]
+
+# Takes 13 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-97.sgf
+166 dfpn-solver-find-winning white
+#? []
+
+# Takes 1 second to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-98.sgf
+167 dfpn-solver-find-winning white
+#? [e3]
+
+# Takes 11 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/8x8-henderson-99.sgf
+168 dfpn-solver-find-winning black
+#? [a7]
+
+# Takes 5 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/9x9-henderson-100.sgf
+169 dfpn-solver-find-winning white
+#? [e2]
+
+# Takes 103 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/9x9-henderson-101.sgf
+170 dfpn-solver-find-winning white
+#? [g7]
+
+# Takes 113 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/9x9-henderson-102.sgf
+171 dfpn-solver-find-winning black
+#? [h5]
+
 
 # Little Golem puzzles
 
 # Takes 2 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/7x7-LG-01.sgf
-170 dfpn-solver-find-winning white
+180 dfpn-solver-find-winning white
 #? [b6]
 
 # Takes 1049 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/10x10-LG-01.sgf
-171 dfpn-solve-state white
+181 dfpn-solve-state white
 #? [white]
 # Takes ??? to solve.
 # dfpn-clear-tt
-# 171 dfpn-solver-find-winning white
+# 181 dfpn-solver-find-winning white
 # #? [c4 c7]
 
 # Takes 890 seconds to solve.
 dfpn-clear-tt
 loadsgf sgf/puzzles/10x10-LG-01sol.sgf
-172 dfpn-solve-state black
+182 dfpn-solve-state black
 #? [white]
