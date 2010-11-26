@@ -490,6 +490,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
 ICEngine::ICEngine()
     : m_find_presimplicial_pairs(true),
       m_find_permanently_inferior(true),
+      m_find_mutual_fillin(true),
       m_find_all_pattern_killers(true),
       m_find_all_pattern_reversers(false),
       m_find_all_pattern_dominators(false),
@@ -612,6 +613,39 @@ int ICEngine::FillinPermanentlyInferior(Groups& groups, PatternState& pastate,
     return perm.count();
 }
 
+int ICEngine::FillInMutualFillin(Groups& groups, PatternState& pastate,
+                                 HexColor color, InferiorCells& out, 
+                                 HexColorSet colors_to_capture) const
+{
+    if (!m_find_mutual_fillin)
+        return 0;
+    /** Can only use mutual fillin when both colours can be captured. */
+    if (!HexColorSetUtil::InSet(BLACK, colors_to_capture) ||
+        !HexColorSetUtil::InSet(WHITE, colors_to_capture))
+        return 0;
+
+    StoneBoard& brd = groups.Board();
+    bitset_t carrier;
+    bitset_t mut[BLACK_AND_WHITE];
+    FindMutualFillin(pastate, color, brd.GetEmpty(), carrier, mut);
+    if (mut[BLACK].any())
+    {
+        HexAssert(mut[WHITE].any());
+        HexAssert((mut[BLACK] & mut[WHITE]).none());
+        /** Note: mutual fillin carrier is same for both colors (* cells). */
+        out.AddMutualFillin(BLACK, mut[BLACK], carrier);
+        brd.AddColor(BLACK, mut[BLACK]);
+        pastate.Update(mut[BLACK]);
+        out.AddMutualFillin(WHITE, mut[WHITE], carrier);
+        brd.AddColor(WHITE, mut[WHITE]);
+        pastate.Update(mut[WHITE]);
+        GroupBuilder::Build(brd, groups);
+    }
+    else
+        HexAssert(mut[WHITE].none());
+    return (mut[BLACK] | mut[WHITE]).count();
+}
+
 int ICEngine::FillInVulnerable(HexColor color, Groups& groups, 
                                PatternState& pastate, InferiorCells& inf, 
                                HexColorSet colors_to_capture) const
@@ -681,6 +715,10 @@ void ICEngine::ComputeFillin(HexColor color, Groups& groups,
                                                colors_to_capture);
             count += FillinPermanentlyInferior(groups, pastate, !color, out, 
                                                colors_to_capture);
+            count += FillInMutualFillin(groups, pastate, color, out, 
+                                        colors_to_capture);
+            count += FillInMutualFillin(groups, pastate, !color, out, 
+                                        colors_to_capture);
             count += FillInVulnerable(!color, groups, pastate, out, 
                                       colors_to_capture);
             count += FillInVulnerable(color, groups, pastate, out, 
@@ -845,6 +883,46 @@ bitset_t ICEngine::FindPermanentlyInferior(const PatternState& pastate,
             carrier.set(moves[i]);
     }
     return ret;
+}
+
+void ICEngine::FindMutualFillin(const PatternState& pastate, 
+                                HexColor color, 
+                                const bitset_t& consider,
+                                bitset_t& carrier,
+                                bitset_t *mut) const
+{
+    bitset_t altered;
+    for (BitsetIterator p(consider); p; ++p) 
+    {
+        PatternHits hits;
+        pastate.MatchOnCell(m_patterns.HashedMutualFillin(color), *p,
+                            PatternState::STOP_AT_FIRST_HIT, hits);
+        if (hits.empty())
+            continue;
+
+        /** Ensure this mutual fillin pattern does not interfere with
+            any other already-added mutual fillin.
+         */
+        HexAssert(hits.size() == 1);
+        bitset_t willAlter;
+        willAlter.set(*p);
+        const std::vector<HexPoint>& moves1 = hits[0].moves1();
+        for (unsigned i = 0; i < moves1.size(); ++i)
+                willAlter.set(moves1[i]);
+        const std::vector<HexPoint>& moves2 = hits[0].moves2();
+        for (unsigned i = 0; i < moves2.size(); ++i)
+                willAlter.set(moves2[i]);
+        if ((willAlter & altered).any())
+            continue;
+
+        /** The mutual fillin can be added. */
+        altered |= willAlter;
+        carrier.set(*p);
+        for (unsigned i = 0; i < moves1.size(); ++i)
+            mut[color].set(moves1[i]);
+        for (unsigned i = 0; i < moves2.size(); ++i)
+            mut[!color].set(moves2[i]);
+    }
 }
 
 void ICEngine::FindVulnerable(const PatternState& pastate, HexColor color,
@@ -1013,6 +1091,7 @@ void IceUtil::Update(InferiorCells& out, const InferiorCells& in)
     {
         out.AddCaptured(*c, in.Captured(*c));
         out.AddPermInfFrom(*c, in);
+        out.AddMutualFillinFrom(*c, in);
     }
 
     // Add the new dead cells.

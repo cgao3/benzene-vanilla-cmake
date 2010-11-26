@@ -56,12 +56,13 @@ bitset_t InferiorCells::All() const
     return Dead()
         | Vulnerable() | Reversible() | Dominated()
         | Captured(BLACK) | Captured(WHITE) 
-        | PermInf(BLACK) | PermInf(WHITE);
+        | PermInf(BLACK) | PermInf(WHITE)
+        | MutualFillin(BLACK) | MutualFillin(WHITE);
 }
 
 bitset_t InferiorCells::Fillin(HexColor color) const
 {
-    bitset_t ret = Captured(color) | PermInf(color);
+    bitset_t ret = Captured(color) | PermInf(color) | MutualFillin(color);
     if (color == DEAD_COLOR) ret |= Dead();
     return ret;
 }
@@ -124,6 +125,28 @@ void InferiorCells::AddPermInf(HexColor color, HexPoint cell,
     bitset_t b;
     b.set(cell);
     AddPermInf(color, b, carrier);
+}
+
+void InferiorCells::AddMutualFillin(HexColor color, 
+                                    const bitset_t& cells, 
+                                    const bitset_t& carrier)
+{
+    m_mutual_fillin[color] |= cells;
+    m_mutual_fillin_carrier[color] |= carrier;
+
+    RemoveVulnerable(cells);
+    RemoveReversible(cells);
+    RemoveDominated(cells);
+
+    AssertPairwiseDisjoint();
+}
+
+void InferiorCells::AddMutualFillin(HexColor color, HexPoint cell, 
+                                    const bitset_t& carrier)
+{
+    bitset_t b;
+    b.set(cell);
+    AddMutualFillin(color, b, carrier);
 }
 
 void InferiorCells::AddDominated(HexPoint cell, const std::set<HexPoint>& dom)
@@ -292,6 +315,14 @@ void InferiorCells::AddPermInfFrom(HexColor color, const InferiorCells& other)
     AssertPairwiseDisjoint();
 }
 
+void InferiorCells::AddMutualFillinFrom(HexColor color,
+                                        const InferiorCells& other)
+{
+    m_mutual_fillin[color] |= other.m_mutual_fillin[color];
+    m_mutual_fillin_carrier[color] |= other.m_mutual_fillin_carrier[color];
+    AssertPairwiseDisjoint();
+}
+
 //----------------------------------------------------------------------------
 
 void InferiorCells::Clear()
@@ -302,6 +333,7 @@ void InferiorCells::Clear()
     for (BWIterator c; c; ++c) {
         ClearCaptured(*c);
         ClearPermInf(*c);
+        ClearMutualFillin(*c);
     }
     ClearDominated();
 }
@@ -320,6 +352,12 @@ void InferiorCells::ClearPermInf(HexColor color)
 {
     m_perm_inf[color].reset();
     m_perm_inf_carrier[color].reset();
+}
+
+void InferiorCells::ClearMutualFillin(HexColor color)
+{
+    m_mutual_fillin[color].reset();
+    m_mutual_fillin_carrier[color].reset();
 }
 
 void InferiorCells::ClearVulnerable()
@@ -409,6 +447,17 @@ void InferiorCells::AssertPairwiseDisjoint() const
 
         HexAssert((m_captured[*c] & m_perm_inf[*c]).none());
         HexAssert((m_captured[*c] & m_perm_inf[!*c]).none());
+
+        HexAssert((m_mutual_fillin[*c] & m_dead).none());
+        HexAssert(!m_dominated_computed
+                  || (m_mutual_fillin[*c] & m_dominated).none());
+        HexAssert((m_mutual_fillin[*c] & m_vulnerable).none());
+        HexAssert((m_mutual_fillin[*c] & m_reversible).none());
+
+        HexAssert((m_mutual_fillin[*c] & m_captured[*c]).none());
+        HexAssert((m_mutual_fillin[*c] & m_captured[!*c]).none());
+        HexAssert((m_mutual_fillin[*c] & m_perm_inf[*c]).none());
+        HexAssert((m_mutual_fillin[*c] & m_perm_inf[!*c]).none());
     }
 }
 
@@ -467,6 +516,8 @@ bitset_t InferiorCells::DeductionSet(HexColor color) const
     deductionSet = Captured(color);
     deductionSet |= PermInf(color);
     deductionSet |= PermInfCarrier(color);
+    deductionSet |= MutualFillin(color);
+    deductionSet |= MutualFillinCarrier(color);
     return deductionSet;
 }
 
@@ -495,6 +546,10 @@ std::string InferiorCells::GuiOutput() const
             os << "fpb";
         else if (PermInf(WHITE).test(i))
             os << "fpw";
+        else if (MutualFillin(BLACK).test(i))
+            os << "fub";
+        else if (MutualFillin(WHITE).test(i))
+            os << "fuw";
         else if (Vulnerable().test(i)) 
         {
             os << "iv[";

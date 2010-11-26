@@ -53,6 +53,13 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
             m_permanently_inferior[BLACK].push_back(p);
             break;
 
+        case Pattern::MUTUAL_FILLIN:
+            // BLACK is first; should maybe be WHITE to match other fillin?
+            m_mutual_fillin[BLACK].push_back(p);
+            p.flipColors();
+            m_mutual_fillin[WHITE].push_back(p);
+            break;
+
         case Pattern::VULNERABLE:
             m_vulnerable[BLACK].push_back(p);
             p.flipColors();
@@ -82,6 +89,7 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
     {
         m_hashed_captured[*it].hash(m_captured[*it]);
         m_hashed_permanently_inferior[*it].hash(m_permanently_inferior[*it]);
+        m_hashed_mutual_fillin[*it].hash(m_mutual_fillin[*it]);
         m_hashed_vulnerable[*it].hash(m_vulnerable[*it]);
         m_hashed_reversible[*it].hash(m_reversible[*it]);
         m_hashed_dominated[*it].hash(m_dominated[*it]);

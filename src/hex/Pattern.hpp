@@ -131,6 +131,10 @@ public:
         carrier. */
     static const char PERMANENTLY_INFERIOR = 'p';
 
+    /** Mutual fillin. MARKED1 is fillin for one player, MARKED2 is
+        fillin for other, and cell itself can be assigned to either. */
+    static const char MUTUAL_FILLIN = 'u';
+
     /** Marks a vulnerable cell. MARKED1 holds its killer, and MARKED2
         holds its carrier. */
     static const char VULNERABLE = 'v';

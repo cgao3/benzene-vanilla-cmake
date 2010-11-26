@@ -94,6 +94,8 @@ public:
     bitset_t Captured(HexColor color) const;
     bitset_t PermInf(HexColor color) const;
     bitset_t PermInfCarrier(HexColor color) const;
+    bitset_t MutualFillin(HexColor color) const;
+    bitset_t MutualFillinCarrier(HexColor color) const;
 
     /** Returns the set of vulnerable cells. */
     bitset_t Vulnerable() const;
@@ -132,7 +134,7 @@ public:
     /** Returns a string representation of its internal state.
         The format is as follows:
         1)  First character is either f (for fill-in) or i (for ignorable)
-        2a) If fill-in, 2nd character is c/d/p (captured/dead/perm inf)
+        2a) If fill-in, 2nd character is c/d/p/u (captured/dead/perminf/mutual)
             and 3rd character is b/w (black/white fill-in colour)
         2b) If ignorable, 2nd character is v/r/d (vulnerable/reversible/domin)
             and 3rd entry is list of killers/reversers/dominators
@@ -165,6 +167,11 @@ public:
     void AddPermInf(HexColor color, const bitset_t& cells, 
                     const bitset_t& carrier);
     void AddPermInf(HexColor color, HexPoint cell, const bitset_t& carrier);
+    
+    void AddMutualFillin(HexColor color, const bitset_t& cells, 
+                         const bitset_t& carrier);
+    void AddMutualFillin(HexColor color, HexPoint cell,
+                         const bitset_t& carrier);
 
     void AddDominated(HexPoint cell, HexPoint dominator);
     void AddDominated(HexPoint cell, const std::set<HexPoint>& dom);
@@ -182,6 +189,7 @@ public:
     void AddVulnerableFrom(const InferiorCells& other);
     void AddReversibleFrom(const InferiorCells& other);
     void AddPermInfFrom(HexColor color, const InferiorCells& other);
+    void AddMutualFillinFrom(HexColor color, const InferiorCells& other);
 
     //------------------------------------------------------------------------
 
@@ -193,6 +201,7 @@ public:
     void ClearDominated();
     void ClearCaptured(HexColor color);
     void ClearPermInf(HexColor color);
+    void ClearMutualFillin(HexColor color);
 
     void RemoveDead(const bitset_t& dead);
     void RemoveCaptured(HexColor color, const bitset_t& captured);
@@ -201,6 +210,7 @@ public:
     void RemoveReversible(const bitset_t& reversible);
     void RemoveReversible(HexPoint reversible);
     void RemovePermInf(HexColor color, const bitset_t& perminf);
+    void RemoveMutualFillin(HexColor color, const bitset_t& mutual);
     
 private:
 
@@ -216,6 +226,9 @@ private:
 
     bitset_t m_perm_inf[BLACK_AND_WHITE];
     bitset_t m_perm_inf_carrier[BLACK_AND_WHITE];
+
+    bitset_t m_mutual_fillin[BLACK_AND_WHITE];
+    bitset_t m_mutual_fillin_carrier[BLACK_AND_WHITE];
 
     //------------------------------------------------------------------------
 
@@ -278,6 +291,16 @@ inline bitset_t InferiorCells::PermInf(HexColor color) const
 inline bitset_t InferiorCells::PermInfCarrier(HexColor color) const
 {
     return m_perm_inf_carrier[color];
+}
+
+inline bitset_t InferiorCells::MutualFillin(HexColor color) const
+{
+    return m_mutual_fillin[color];
+}
+
+inline bitset_t InferiorCells::MutualFillinCarrier(HexColor color) const
+{
+    return m_mutual_fillin_carrier[color];
 }
 
 inline 

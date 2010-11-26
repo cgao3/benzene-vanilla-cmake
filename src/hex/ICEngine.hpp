@@ -111,6 +111,14 @@ public:
                                      const bitset_t& consider,
                                      bitset_t& carrier) const;
 
+    /** Finds the mutual fillin cells for color among consider
+        set using local patterns. */
+    void FindMutualFillin(const PatternState& board, 
+                          HexColor color, 
+                          const bitset_t& consider,
+                          bitset_t& carrier,
+                          bitset_t *mut) const;
+
     // @} // @name
     
     //------------------------------------------------------------------------
@@ -129,6 +137,12 @@ public:
 
     /** @see FindPermanentlyInferior() */
     void SetFindPermanentlyInferior(bool enable);
+
+    /** @todo Document mutual fillin. */
+    bool FindMutualFillin() const;
+
+    /** @see FindMutualFillin() */
+    void SetFindMutualFillin(bool enable);
 
     /** Find all killers for each cell if true, stop at first if false. */
     bool FindAllPatternKillers() const;
@@ -196,7 +210,15 @@ private:
     int FillinPermanentlyInferior(Groups& groups, 
                                   PatternState& board, HexColor color,
                                   InferiorCells& out, 
-                                  HexColorSet colors_to_capture) const; 
+                                  HexColorSet colors_to_capture) const;
+
+    /** Calls FindMutualFillin() and adds any found to the
+        board and the set of inferior cells. 
+    */
+    int FillInMutualFillin(Groups& groups, 
+                           PatternState& board, HexColor color,
+                           InferiorCells& out, 
+                           HexColorSet colors_to_capture) const;
 
     /** Calls ComputeDeadRegions() and FindThreeSetCliques() and adds
         fill-in to board and set of inferior cells.
@@ -240,6 +262,9 @@ private:
 
     /** @see FindPermanentlyInferior() */
     bool m_find_permanently_inferior;
+
+    /** @see FindMutualFillin() */
+    bool m_find_mutual_fillin;
 
     /** @see FindAllPatternKillers() */
     bool m_find_all_pattern_killers;
@@ -287,6 +312,16 @@ inline bool ICEngine::FindPermanentlyInferior() const
 inline void ICEngine::SetFindPermanentlyInferior(bool enable)
 {
     m_find_permanently_inferior = enable;
+}
+
+inline bool ICEngine::FindMutualFillin() const
+{
+    return m_find_mutual_fillin;
+}
+
+inline void ICEngine::SetFindMutualFillin(bool enable)
+{
+    m_find_mutual_fillin = enable;
 }
 
 inline bool ICEngine::FindAllPatternKillers() const

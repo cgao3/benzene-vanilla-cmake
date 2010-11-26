@@ -250,6 +250,7 @@ void Pattern::LoadPatternsFromStream(std::istream& f,
         if (line[0] == Pattern::DEAD ||
             line[0] == Pattern::CAPTURED || 
             line[0] == Pattern::PERMANENTLY_INFERIOR || 
+            line[0] == Pattern::MUTUAL_FILLIN || 
             line[0] == Pattern::VULNERABLE || 
             line[0] == Pattern::REVERSIBLE || 
             line[0] == Pattern::DOMINATED ||
