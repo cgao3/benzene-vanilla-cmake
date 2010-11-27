@@ -490,7 +490,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
 ICEngine::ICEngine()
     : m_find_presimplicial_pairs(true),
       m_find_permanently_inferior(true),
-      m_find_mutual_fillin(true),
+      m_find_mutual_fillin(false),
       m_find_all_pattern_killers(true),
       m_find_all_pattern_reversers(false),
       m_find_all_pattern_dominators(false),
