@@ -1,0 +1,5 @@
+(;AP[HexGui:0.9.0]FF[4]GM[11]SZ[11];B[b11];W[swap-pieces];W[f6];B[e6];W[d8];B[g7];W[g4]
+;B[e7];W[e8];B[c8];W[e5];B[f5];W[f4];B[h4];W[i2];B[j2];W[f10];B[c9];
+W[d7];B[c7];W[d6];B[f9];W[g8];B[f8];W[g6];B[i5];W[h6];B[i6];W[h7];B[b6];
+W[c6];B[b7];W[c4];B[i7];W[h9];B[h8];W[g9];B[k8];W[i9];B[a5];W[b3];B[a4];
+W[a3];B[c3];W[b4];B[resign])
