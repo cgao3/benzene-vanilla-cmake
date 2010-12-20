@@ -732,6 +732,24 @@ loadsgf sgf/puzzles/9x9-henderson-102.sgf
 171 dfpn-solver-find-winning black
 #? [h5]
 
+# Takes 82 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/11x11-henderson-103.sgf
+172 dfpn-solver-find-winning black
+#? [e7]
+
+# Takes 107 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/9x9-henderson-104.sgf
+173 dfpn-solver-find-winning white
+#? [f7]
+
+# Takes 16 seconds to solve
+dfpn-clear-tt
+loadsgf sgf/puzzles/9x9-henderson-105.sgf
+174 dfpn-solver-find-winning black
+#? [h4]
+
 
 # Little Golem puzzles
 

@@ -217,6 +217,7 @@ sgf/puzzles/11x11-henderson-84.sgf \
 sgf/puzzles/11x11-henderson-85.sgf \
 sgf/puzzles/11x11-henderson-86.sgf \
 sgf/puzzles/11x11-henderson-87.sgf \
+sgf/puzzles/11x11-henderson-103.sgf \
 sgf/puzzles/3x3-hein-02.sgf \
 sgf/puzzles/4x4-hein-04.sgf \
 sgf/puzzles/4x4-hein-05.sgf \
@@ -326,6 +327,8 @@ sgf/puzzles/9x9-henderson-73.sgf \
 sgf/puzzles/9x9-henderson-100.sgf \
 sgf/puzzles/9x9-henderson-101.sgf \
 sgf/puzzles/9x9-henderson-102.sgf \
+sgf/puzzles/9x9-henderson-104.sgf \
+sgf/puzzles/9x9-henderson-105.sgf \
 sgf/vc/b10-is-key2.sgf \
 sgf/vc/b10-is-key.sgf \
 sgf/vc/black-has-winning-SC-with-f7-key.sgf \
