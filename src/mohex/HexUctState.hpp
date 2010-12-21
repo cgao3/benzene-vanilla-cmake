@@ -109,7 +109,6 @@ inline HexUctSharedData::HexUctSharedData()
 class HexUctSearchPolicy
 {
 public:
-
     virtual ~HexUctSearchPolicy() { };
 
     /** Generate a move in the random play-out phase of
@@ -128,7 +127,6 @@ public:
 class HexUctState : public SgUctThreadState
 {
 public: 
-
     /** Constructor.
         @param threadId The number of the thread. Needed for passing to
         constructor of SgUctThreadState.
@@ -136,10 +134,8 @@ public:
         @param treeUpdateRadius Pattern matching radius in tree.
         @param playoutUpdateRadius Pattern matching radius in playouts.
     */
-    HexUctState(std::size_t threadId,
-		HexUctSearch& sch,
-                int treeUpdateRadius,
-                int playoutUpdateRadius);
+    HexUctState(const unsigned int threadId, HexUctSearch& sch,
+                int treeUpdateRadius, int playoutUpdateRadius);
 
     virtual ~HexUctState();
 

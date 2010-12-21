@@ -85,7 +85,7 @@ void HexUctState::AssertionHandler::Run()
 
 //----------------------------------------------------------------------------
 
-HexUctState::HexUctState(std::size_t threadId,
+HexUctState::HexUctState(const unsigned int threadId,
 			 HexUctSearch& sch,
                          int treeUpdateRadius,
                          int playoutUpdateRadius)

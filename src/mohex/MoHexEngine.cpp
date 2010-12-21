@@ -37,7 +37,7 @@ std::vector<SgUctValue> KnowledgeThresholdFromString(const std::string& val)
 {
     std::vector<SgUctValue> v;
     std::istringstream is(val);
-    std::size_t t;
+    SgUctValue t;
     while (is >> t)
         v.push_back(t);
     if (v.size() == 1 && v[0] == 0)
