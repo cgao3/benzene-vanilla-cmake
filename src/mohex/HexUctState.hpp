@@ -148,13 +148,13 @@ public:
     /** @name Pure virtual functions of SgUctThreadState */
     // @{
 
-    float Evaluate();
+    SgUctValue Evaluate();
     
     void Execute(SgMove move);
 
     void ExecutePlayout(SgMove move);
    
-    bool GenerateAllMoves(std::size_t count, std::vector<SgMoveInfo>& moves,
+    bool GenerateAllMoves(SgUctValue count, std::vector<SgMoveInfo>& moves,
                           SgProvenNodeType& provenType);
 
     SgMove GeneratePlayoutMove(bool& skipRaveUpdate);

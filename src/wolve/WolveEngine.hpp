@@ -20,9 +20,7 @@ _BEGIN_BENZENE_NAMESPACE_
 class WolveEngine : public BenzeneHtpEngine
 {
 public:
-
-    WolveEngine(GtpInputStream& in, GtpOutputStream& out, 
-                int boardsize, WolvePlayer& player);
+    WolveEngine(int boardsize, WolvePlayer& player);
     
     ~WolveEngine();
 

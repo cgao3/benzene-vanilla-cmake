@@ -68,9 +68,7 @@ namespace HexSgUtil
 
     /** Write the given tree to a sgf file. Returns true on success,
         false otherwise. */
-    bool WriteSgf(SgNode* tree, const std::string& application, 
-                  const char* filename, int boardsize);
-
+    bool WriteSgf(SgNode* tree, const char* filename, int boardsize);
 }
 
 //----------------------------------------------------------------------------

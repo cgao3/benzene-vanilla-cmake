@@ -18,9 +18,7 @@ _BEGIN_BENZENE_NAMESPACE_
 class BenzeneTestEngine : public BenzeneHtpEngine
 {
 public:
-
-    BenzeneTestEngine(GtpInputStream& in, GtpOutputStream& out, 
-                      int boardsize);
+    BenzeneTestEngine(int boardsize);
     
     ~BenzeneTestEngine();
 
@@ -41,7 +39,6 @@ public:
 #endif
 
 private:
-
     boost::scoped_ptr<HexPlayer> m_player;
 
     double TimeForMove(HexColor color);

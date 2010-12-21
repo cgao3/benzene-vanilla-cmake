@@ -123,10 +123,10 @@ std::string HexUctState::Dump() const
     return os.str();
 }
 
-float HexUctState::Evaluate()
+SgUctValue HexUctState::Evaluate()
 {
     SG_ASSERT(GameOver(*m_bd));
-    float score = (GetWinner(*m_bd) == m_toPlay) ? 1.0 : 0.0;
+    SgUctValue score = (GetWinner(*m_bd) == m_toPlay) ? 1.0 : 0.0;
     return score;
 }
 
@@ -195,7 +195,7 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
     m_new_game = false;
 }
 
-bool HexUctState::GenerateAllMoves(std::size_t count, 
+bool HexUctState::GenerateAllMoves(SgUctValue count, 
                                    std::vector<SgMoveInfo>& moves,
                                    SgProvenNodeType& provenType)
 {

@@ -57,15 +57,13 @@ int main(int argc, char** argv)
     MoHexPlayer player;
     try
     {
-        GtpInputStream gin(std::cin);
-        GtpOutputStream gout(std::cout);
-        MoHexEngine gh(gin, gout, program.BoardSize(), player);
-    
-        std::string config = program.ConfigFileToExecute();
+        MoHexEngine gh(program.BoardSize(), player);
+            std::string config = program.ConfigFileToExecute();
         if (config != "")
             gh.ExecuteFile(config);
-        gh.MainLoop();
-    
+        GtpInputStream gin(std::cin);
+        GtpOutputStream gout(std::cout);
+        gh.MainLoop(gin, gout);
         program.Shutdown();
     }
     catch (const GtpFailure& f)

@@ -25,9 +25,8 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-BenzeneHtpEngine::BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out,
-                                   int boardsize)
-    : HexHtpEngine(in, out, boardsize),
+BenzeneHtpEngine::BenzeneHtpEngine(int boardsize)
+    : HexHtpEngine(boardsize),
       m_pe(m_board.Width(), m_board.Height()),
       m_se(m_board.Width(), m_board.Height()),
       m_dfsSolver(),

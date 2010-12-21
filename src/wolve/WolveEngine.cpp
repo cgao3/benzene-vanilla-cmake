@@ -44,9 +44,8 @@ void ParseDashSeparatedString(const std::string& str, std::vector<TYPE>& out)
 
 //----------------------------------------------------------------------------
 
-WolveEngine::WolveEngine(GtpInputStream& in, GtpOutputStream& out,
-                         int boardsize, WolvePlayer& player)
-    : BenzeneHtpEngine(in, out, boardsize),
+WolveEngine::WolveEngine(int boardsize, WolvePlayer& player)
+    : BenzeneHtpEngine(boardsize),
       m_player(player),
       m_book(0),
       m_bookCheck(m_book),

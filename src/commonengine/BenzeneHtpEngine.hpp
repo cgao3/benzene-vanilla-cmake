@@ -24,8 +24,7 @@ _BEGIN_BENZENE_NAMESPACE_
 class BenzeneHtpEngine: public HexHtpEngine
 {
 public:
-
-    BenzeneHtpEngine(GtpInputStream& in, GtpOutputStream& out, int boardsize); 
+    BenzeneHtpEngine(int boardsize); 
     
     ~BenzeneHtpEngine();
 

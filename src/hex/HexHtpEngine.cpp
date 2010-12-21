@@ -29,9 +29,8 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-HexHtpEngine::HexHtpEngine(GtpInputStream& in, GtpOutputStream& out,
-                           int boardsize)
-    : GtpEngine(in, out),
+HexHtpEngine::HexHtpEngine(int boardsize)
+    : GtpEngine(),
       m_board(boardsize, boardsize),
       m_game(m_board)
 {

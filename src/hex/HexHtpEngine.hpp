@@ -26,8 +26,7 @@ typedef GtpFailure HtpFailure;
 class HexHtpEngine: public GtpEngine
 {
 public:
-
-    HexHtpEngine(GtpInputStream& in, GtpOutputStream& out, int boardsize);
+    HexHtpEngine(int boardsize);
     
     ~HexHtpEngine();
 

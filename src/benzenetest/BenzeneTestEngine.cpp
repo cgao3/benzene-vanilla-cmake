@@ -14,9 +14,8 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-BenzeneTestEngine::BenzeneTestEngine(GtpInputStream& in, GtpOutputStream& out,
-                                     int boardsize)
-    : BenzeneHtpEngine(in, out, boardsize),
+BenzeneTestEngine::BenzeneTestEngine(int boardsize)
+    : BenzeneHtpEngine(boardsize),
       m_player(0)
 {
     RegisterCmd("set_player", &BenzeneTestEngine::CmdSetPlayer);

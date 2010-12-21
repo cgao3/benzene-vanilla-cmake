@@ -17,7 +17,7 @@ using namespace benzene;
 
 namespace {
 
-std::string KnowledgeThresholdToString(const std::vector<std::size_t>& t)
+std::string KnowledgeThresholdToString(const std::vector<SgUctValue>& t)
 {
     if (t.empty())
         return "0";
@@ -33,9 +33,9 @@ std::string KnowledgeThresholdToString(const std::vector<std::size_t>& t)
     return os.str();
 }
 
-std::vector<std::size_t> KnowledgeThresholdFromString(const std::string& val)
+std::vector<SgUctValue> KnowledgeThresholdFromString(const std::string& val)
 {
-    std::vector<std::size_t> v;
+    std::vector<SgUctValue> v;
     std::istringstream is(val);
     std::size_t t;
     while (is >> t)
@@ -49,9 +49,8 @@ std::vector<std::size_t> KnowledgeThresholdFromString(const std::string& val)
 
 //----------------------------------------------------------------------------
 
-MoHexEngine::MoHexEngine(GtpInputStream& in, GtpOutputStream& out, 
-                         int boardsize, MoHexPlayer& player)
-    : BenzeneHtpEngine(in, out, boardsize),
+MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
+    : BenzeneHtpEngine(boardsize),
       m_player(player), 
       m_book(0),
       m_bookCheck(m_book),

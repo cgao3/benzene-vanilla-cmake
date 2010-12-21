@@ -33,7 +33,7 @@ HexThreadStateFactory::~HexThreadStateFactory()
 }
 
 SgUctThreadState* 
-HexThreadStateFactory::Create(std::size_t threadId, const SgUctSearch& search)
+HexThreadStateFactory::Create(unsigned int threadId, const SgUctSearch& search)
 {
     SgUctSearch& srch = const_cast<SgUctSearch&>(search);
     HexUctSearch& hexSearch = dynamic_cast<HexUctSearch&>(srch);
@@ -61,7 +61,7 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
     SetBiasTermConstant(0.0);
     SetExpandThreshold(1);
     {
-        std::vector<std::size_t> thresholds;
+        std::vector<SgUctValue> thresholds;
         thresholds.push_back(400);
         SetKnowledgeThreshold(thresholds);
     }
@@ -150,7 +150,7 @@ void HexUctSearch::SaveGames(const std::string& filename) const
 {
     if (m_root == 0)
         throw SgException("No games to save");
-    HexSgUtil::WriteSgf(m_root, "MoHex", filename.c_str(), m_brd->Height()); 
+    HexSgUtil::WriteSgf(m_root, filename.c_str(), m_brd->Height()); 
 }
 
 void HexUctSearch::SaveTree(std::ostream& out, int maxDepth) const
@@ -185,14 +185,14 @@ void HexUctSearch::OnSearchIteration(std::size_t gameNumber, int threadId,
     }
 }
 
-float HexUctSearch::UnknownEval() const
+SgUctValue HexUctSearch::UnknownEval() const
 {
     // Note: 0.5 is not a possible value for a Bernoulli variable, better
     // use 0?
     return 0.5;
 }
 
-float HexUctSearch::InverseEval(float eval) const
+SgUctValue HexUctSearch::InverseEval(SgUctValue eval) const
 {
     return (1 - eval);
 }

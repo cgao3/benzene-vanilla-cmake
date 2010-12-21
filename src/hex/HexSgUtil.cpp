@@ -144,8 +144,7 @@ void HexSgUtil::SetPositionInBoard(const SgNode* node, StoneBoard& brd)
 }
 
 
-bool HexSgUtil::WriteSgf(SgNode* tree, const std::string& application,
-                         const char* filename, int boardsize)
+bool HexSgUtil::WriteSgf(SgNode* tree, const char* filename, int boardsize)
 {
     // Set the boardsize property
     tree->Add(new SgPropInt(SG_PROP_SIZE, boardsize));
@@ -155,7 +154,7 @@ bool HexSgUtil::WriteSgf(SgNode* tree, const std::string& application,
     if (f) 
     {
         SgGameWriter sgwriter(f);
-        sgwriter.WriteGame(*tree, true, 0, application, 11, boardsize);
+        sgwriter.WriteGame(*tree, true, 0, 11, boardsize);
         f.close();
     } 
     else 

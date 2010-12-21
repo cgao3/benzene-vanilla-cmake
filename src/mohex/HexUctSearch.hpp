@@ -28,7 +28,7 @@ public:
 
     ~HexThreadStateFactory();
 
-    SgUctThreadState* Create(std::size_t threadId, const SgUctSearch& search);
+    SgUctThreadState* Create(unsigned int threadId, const SgUctSearch& search);
 private:
 
     HexUctSharedPolicy* m_shared_policy;
@@ -56,9 +56,9 @@ public:
 
     std::string MoveString(SgMove move) const;
 
-    float UnknownEval() const;
+    SgUctValue UnknownEval() const;
 
-    float InverseEval(float eval) const;
+    SgUctValue InverseEval(SgUctValue eval) const;
 
     // @}
 

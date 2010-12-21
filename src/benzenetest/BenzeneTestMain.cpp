@@ -39,15 +39,13 @@ int main(int argc, char** argv)
     program.Initialize(argc, argv);
     try
     {
-        GtpInputStream gin(std::cin);
-        GtpOutputStream gout(std::cout);
-        BenzeneTestEngine gh(gin, gout, program.BoardSize());
-    
+        BenzeneTestEngine gh(program.BoardSize());
         std::string config = program.ConfigFileToExecute();
         if (config != "")
             gh.ExecuteFile(config);
-        gh.MainLoop();
-    
+        GtpInputStream gin(std::cin);
+        GtpOutputStream gout(std::cout);
+        gh.MainLoop(gin, gout);
         program.Shutdown();
     }
     catch (const GtpFailure& f)
