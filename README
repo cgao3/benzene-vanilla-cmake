@@ -20,7 +20,7 @@ benzene directory:
 % svn co https://fuego.svn.sourceforge.net/svnroot/fuego/trunk fuego
 % cd fuego
 % autoreconf -i
-% ./configure --enable-assert --enable-optimize 
+% ./configure --enable-assert 
 
 (NOTE: This current build of Benzene is tested with revision 1279
 (circa December 2010). It is possible that in the future the trunk
