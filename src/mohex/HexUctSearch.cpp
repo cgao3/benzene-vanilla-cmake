@@ -144,6 +144,7 @@ void HexUctSearch::OnStartSearch()
     int maxGameLength = size+10;
     SetMaxGameLength(maxGameLength);
     m_lastPositionSearched = m_brd->GetPosition();
+    m_nextLiveGfx = m_liveGfxInterval;
 }
 
 void HexUctSearch::SaveGames(const std::string& filename) const
@@ -159,13 +160,14 @@ void HexUctSearch::SaveTree(std::ostream& out, int maxDepth) const
                          m_shared_data.root_to_play, out, maxDepth);
 }
 
-void HexUctSearch::OnSearchIteration(std::size_t gameNumber, int threadId,
+void HexUctSearch::OnSearchIteration(SgUctValue gameNumber, 
+                                     const unsigned int threadId,
                                      const SgUctGameInfo& info)
 {
-    UNUSED(threadId);
-    UNUSED(info);
-    if (m_liveGfx && gameNumber % m_liveGfxInterval == 0)
+    SgUctSearch::OnSearchIteration(gameNumber, threadId, info);
+    if (m_liveGfx && threadId == 0 && gameNumber > m_nextLiveGfx)
     {
+        m_nextLiveGfx = gameNumber + m_liveGfxInterval;
         std::ostringstream os;
         os << "gogui-gfx:\n";
         os << "uct\n";

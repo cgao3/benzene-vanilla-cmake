@@ -67,7 +67,7 @@ public:
     /** @name Virtual functions of SgUctSearch */
     // @{
 
-    void OnSearchIteration(std::size_t gameNumber, int threadId,
+    void OnSearchIteration(SgUctValue gameNumber, const unsigned int threadId,
                            const SgUctGameInfo& info);
 
     void OnStartSearch();
@@ -186,6 +186,8 @@ protected:
         Should be non-null only if KeepGames() is true.
     */
     SgNode* m_root;
+
+    SgUctValue m_nextLiveGfx;
 
 private:
     
