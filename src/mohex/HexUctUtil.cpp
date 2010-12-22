@@ -66,25 +66,17 @@ void HexUctUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
     }
     out << '\n'
         << "LABEL";
-    int numChildren = 0, numZeroExploration = 0, numSmallExploration = 0;
+    int numChildren = 0;
     for (SgUctChildIterator it(tree, root); it; ++it)
     {
         const SgUctNode& child = *it;
         size_t count = static_cast<size_t>(child.MoveCount());
 	numChildren++;
-	if (count < 10)
-	    numSmallExploration++;
-        if (count == 0)
-	    numZeroExploration++;
 	out << ' ' << HexUctUtil::MoveString(child.Move())
 	    << ' ' << count;
     }
     out << '\n';
     GoGuiGfxStatus(search, out);
-
-    out << numSmallExploration << " root children minimally explored with "
-	<< numZeroExploration << " zeroes of " << numChildren << " total."
-        << '\n';
 }
 
 int HexUctUtil::ComputeMaxNumMoves()
