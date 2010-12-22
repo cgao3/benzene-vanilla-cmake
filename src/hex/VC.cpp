@@ -94,12 +94,6 @@ std::string VC::toString() const
 }
 
 //----------------------------------------------------------------------------
-// Static methods
-
-VC VC::Translate(HexPoint x, HexPoint y, const VC& vc)
-{
-    return VC(x, y, vc.key(), vc.carrier(), vc.stones(), vc.rule());
-}
 
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
               const bitset_t& stones)

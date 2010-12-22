@@ -179,9 +179,6 @@ public:
     /** @name Static methods */
     // @{
 
-    /** Returns a copy of vc with endpoints x and y. */
-    static VC Translate(HexPoint x, HexPoint y, const VC& vc);
-
     /** Returns a new full VC by unioning v1 and v2. */
     static VC AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
                      const bitset_t& stones);
