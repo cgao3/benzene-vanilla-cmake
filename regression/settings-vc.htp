@@ -1,7 +1,0 @@
-param_player_vc and_over_edge 0
-param_player_vc use_crossing_rule 0
-param_player_vc use_patterns 1
-param_player_vc use_non_edge_patterns 1
-param_player_vc max_ors 4
-param_player_vc softlimit_full 25
-param_player_vc softlimit_semi 50

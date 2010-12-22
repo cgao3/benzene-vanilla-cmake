@@ -133,8 +133,6 @@ void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
             << param.use_patterns << '\n'
             << "[bool] use_non_edge_patterns "
             << param.use_non_edge_patterns << '\n'
-            << "[bool] use_crossing_rule "
-            << param.use_crossing_rule << '\n'
             << "[string] max_ors "
             << param.max_ors << '\n'
             << "[string] softlimit_full "
@@ -155,8 +153,6 @@ void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
             param.use_patterns = cmd.BoolArg(1);
         else if (name == "use_non_edge_patterns")
             param.use_non_edge_patterns = cmd.BoolArg(1);
-        else if (name == "use_crossing_rule")
-            param.use_crossing_rule = cmd.BoolArg(1);
         else if (name == "max_ors")
             param.max_ors = cmd.IntArg(1);
         else if (name == "softlimit_full")

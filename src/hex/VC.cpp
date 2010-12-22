@@ -43,26 +43,12 @@ VC::VC(HexPoint x, HexPoint y, const bitset_t& carrier, VcCombineRule rule)
 {
 }
 
-VC::VC(HexPoint x, HexPoint y, 
-       const bitset_t& carrier, const bitset_t& stones, VcCombineRule rule)
-    : m_x(std::min(x,y)),
-      m_y(std::max(x,y)),
-      m_key(VC::NO_KEY),
-      m_carrier(carrier),
-      m_stones(stones),
-      m_rule(rule),
-      m_processed(false),
-      m_count(carrier.count())
-{
-}
-
 VC::VC(HexPoint x, HexPoint y, HexPoint key, const bitset_t& carrier, 
-       const bitset_t& stones, VcCombineRule rule)
+       VcCombineRule rule)
     : m_x(std::min(x,y)),
       m_y(std::max(x,y)),
       m_key(key),
       m_carrier(carrier),
-      m_stones(stones),
       m_rule(rule),
       m_processed(false),
       m_count(carrier.count())
@@ -83,8 +69,7 @@ std::string VC::toString() const
     os << HexPointUtil::ToString(this->carrier());
     os << " ]";
 
-    os << " [";
-    os << HexPointUtil::ToString(this->stones());
+    os << " ["; // Removed stones: leave this so the gui doesn't break
     os << " ]";
 
     if (this->type() == VC::SEMI)
@@ -95,36 +80,24 @@ std::string VC::toString() const
 
 //----------------------------------------------------------------------------
 
-VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
-              const bitset_t& stones)
+VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2)
 {
     HexAssert((v1.carrier() & v2.carrier()).none());
-
-    return VC(x, y, 
-              v1.carrier() | v2.carrier(), 
-              v1.stones() | v2.stones() | stones,
-              VC_RULE_AND);
+    return VC(x, y, v1.carrier() | v2.carrier(), VC_RULE_AND);
 }
 
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
-              const bitset_t& capturedSet, const bitset_t& stones)
+              const bitset_t& capturedSet)
 {
     HexAssert(BitsetUtil::IsSubsetOf(v1.carrier() & v2.carrier(),
                                      capturedSet));
-
-    return VC(x, y, 
-              v1.carrier() | v2.carrier() | capturedSet, 
-              v1.stones() | v2.stones() | stones,
-              VC_RULE_AND);
+    return VC(x, y, v1.carrier() | v2.carrier() | capturedSet, VC_RULE_AND);
 }
 
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2, HexPoint key)
 {
     HexAssert((v1.carrier() & v2.carrier()).none());
-    return VC(x, y, key, 
-              (v1.carrier() | v2.carrier()).set(key), 
-              v1.stones() | v2.stones(), 
-              VC_RULE_AND);
+    return VC(x, y, key, (v1.carrier() | v2.carrier()).set(key), VC_RULE_AND);
 }
 
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2, 
@@ -132,10 +105,7 @@ VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
 {
     HexAssert(BitsetUtil::IsSubsetOf(v1.carrier() & v2.carrier(),
                                      capturedSet));
-
-    return VC(x, y, key, 
-              (v1.carrier() | v2.carrier() | capturedSet).set(key), 
-              v1.stones() | v2.stones(), 
+    return VC(x, y, key, (v1.carrier() | v2.carrier() | capturedSet).set(key), 
               VC_RULE_AND);
 }
 
@@ -144,40 +114,24 @@ VC VC::UpgradeSemi(const VC& v1, const bitset_t& takeout,
 {
     HexAssert(v1.key() != NO_KEY);
     HexAssert(takeout.test(v1.key()));
-
-    // new mustplay is old plus the key
-    bitset_t stones = v1.stones();
-    stones.set(v1.key());
-
-    return VC(outx, outy, 
-              v1.carrier() - takeout, 
-              stones,      
-              VC_RULE_AND);
+    return VC(outx, outy, v1.carrier() - takeout, VC_RULE_AND);
 }
 
 VC VC::ShrinkFull(const VC& v1, const bitset_t& takeout,
-                   HexPoint outx, HexPoint outy)
+                  HexPoint outx, HexPoint outy)
 {
     HexAssert(v1.key() == NO_KEY);
     HexAssert((v1.carrier() & takeout).any());
-
-    return VC(outx, outy, 
-              v1.carrier() - takeout, 
-              v1.stones(),  // Old must-use set is still valid. 
-              v1.rule());
+    return VC(outx, outy, v1.carrier() - takeout, v1.rule());
 }
 
 VC VC::ShrinkSemi(const VC& v1, const bitset_t& takeout,
-                   HexPoint outx, HexPoint outy)
+                  HexPoint outx, HexPoint outy)
 {
     HexAssert(v1.key() != NO_KEY);
     HexAssert(!takeout.test(v1.key()));
     HexAssert((v1.carrier() & takeout).any());
-
-    return VC(outx, outy, v1.key(), 
-              v1.carrier() - takeout, 
-              v1.stones(), // old must-use is still valid.
-              v1.rule());
+    return VC(outx, outy, v1.key(), v1.carrier() - takeout, v1.rule());
 }
 
 //----------------------------------------------------------------------------
@@ -190,15 +144,17 @@ bool VCTypeUtil::IsValidType(VC::Type type)
 std::string VCTypeUtil::toString(VC::Type type)
 {
     HexAssert(IsValidType(type));
-    if (type == VC::FULL) return "full";
+    if (type == VC::FULL)
+        return "full";
     return "semi";
 }
 
 VC::Type VCTypeUtil::fromString(std::string name)
 {
-    if (name == "full") return VC::FULL;
-    if (name == "semi") return VC::SEMI;
-
+    if (name == "full") 
+        return VC::FULL;
+    if (name == "semi") 
+        return VC::SEMI;
     std::istringstream is(name);    
     int num = 0;
 #ifdef NDEBUG
@@ -206,9 +162,9 @@ VC::Type VCTypeUtil::fromString(std::string name)
 #else
     HexAssert(is >> num);
 #endif
-
     HexAssert(num == 0 || num == 1);
-    if (num == 0) return VC::FULL;
+    if (num == 0) 
+        return VC::FULL;
     return VC::SEMI;
 }
 

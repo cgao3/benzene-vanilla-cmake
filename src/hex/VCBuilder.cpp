@@ -24,7 +24,6 @@ VCBuilderParam::VCBuilderParam()
       and_over_edge(false),
       use_patterns(true),
       use_non_edge_patterns(true),
-      use_crossing_rule(false),
       use_greedy_union(true),
       abort_on_winning_connection(false)
 {
@@ -418,9 +417,6 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     {
         if (!cur->processed()) 
         {
-            if (m_param.use_crossing_rule)
-                doCrossingRule(*cur, &semis);
-
             m_statistics->doOrs++;
             if (m_orRule(*cur, &semis, &fulls, added, m_param.max_ors, 
                          m_log, *m_statistics))
@@ -442,8 +438,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
             ? semis.getGreedyUnion() 
             : semis.getUnion();
 
-        fulls.add(VC(xc, yc, carrier | capturedSet, EMPTY_BITSET, VC_RULE_ALL),
-                  m_log);
+        fulls.add(VC(xc, yc, carrier | capturedSet, VC_RULE_ALL), m_log);
         // @note No need to remove supersets of v from the semi
         // list since there can be none!
     } 
@@ -566,9 +561,6 @@ void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
     if (old->empty())
         return;
 
-    bitset_t stones;
-    stones.set(m_groups->CaptainOf(over));
-
     int soft = old->softlimit();
     VCList::const_iterator i = old->begin();
     VCList::const_iterator end = old->end();
@@ -584,7 +576,7 @@ void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
             if (rule == CREATE_FULL)
             {
                 m_statistics->and_full_attempts++;
-                if (AddNewFull(VC::AndVCs(from, to, *i, vc, stones)))
+                if (AddNewFull(VC::AndVCs(from, to, *i, vc)))
                     m_statistics->and_full_successes++;
             }
             else if (rule == CREATE_SEMI)
@@ -599,15 +591,13 @@ void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
             if (rule == CREATE_FULL)
             {
                 m_statistics->and_full_attempts++;
-                if (AddNewFull(VC::AndVCs(from, to, *i, vc, 
-                                          capturedSet, stones)))
+                if (AddNewFull(VC::AndVCs(from, to, *i, vc, capturedSet)))
                     m_statistics->and_full_successes++;
             }
             else if (rule == CREATE_SEMI)
             {
                 m_statistics->and_semi_attempts++;
-                if (AddNewSemi(VC::AndVCs(from, to, *i, vc,
-                                          capturedSet, over)))
+                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, over)))
                     m_statistics->and_semi_successes++;
             }
         }
@@ -707,8 +697,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
                 list to the queue. Both of these operations are not
                 needed here.
             */
-            VC v(full_list->getX(), full_list->getY(), ors[d], 
-                 EMPTY_BITSET, VC_RULE_OR);
+            VC v(full_list->getX(), full_list->getY(), ors[d], VC_RULE_OR);
 
             stats.or_attempts++;
             if (full_list->add(v, log) != VCList::ADD_FAILED) 
@@ -731,8 +720,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
             if ((ands[d] & m_builder.m_capturedSet[semi_list->getY()]).any())
                 carrier |= m_builder.m_capturedSet[semi_list->getY()];
 
-            VC v(full_list->getX(), full_list->getY(), carrier,
-                 EMPTY_BITSET, VC_RULE_OR);
+            VC v(full_list->getX(), full_list->getY(), carrier, VC_RULE_OR);
 
             stats.or_attempts++;
             if (full_list->add(v, log) != VCList::ADD_FAILED) 
@@ -761,273 +749,6 @@ int VCBuilder::OrRule::operator()(const VC& vc,
         }
     }
     return count;
-}
-
-/** Performs Crossing-rule.
-
-    The crossing rule requires exactly 3 pairwise disjoint SCs between
-    two empty cells x and y such that at least two of the SCs have
-    mustuse (also called stepping stones). The crossing rule then
-    concludes that there exists an SC between one mustuse in an SC and
-    one mustuse in the other SC. This conclusion holds for any pair of
-    mustuse, so long as they are in different SCs.
-    
-    The key of this SC could be either x or y. As long as we discard
-    superset SCs produced by the crossing rule (i.e. SCs joining the
-    same two points but with a carrier that is a superset of a known
-    SC) and the AND-rule of H-search is in effect, then for all
-    crossing rule SCs that are kept, either x or y can be set as the
-    key (i.e. both will work).
-    
-    Lastly, there is a special case when either x or y forms a bridge
-    with an edge (i.e. where the carrier will be captured). WLOG say x
-    forms a bridge. Then if we set x to be the key of the SCs we are
-    trying to produce, then it is allowable for the 3 SCs to not be
-    pairwise disjoint; they can overlap on this bridge carrier since
-    it will be captured. This helps find more important ladder-type
-    connections near the edge. In this case, the bridge carrier must
-    be included in the carrier of the output SC.
-    
-    A couple more notes:
-    1) Since the crossing rule requires two SCs with mustuse, it
-    almost always finds connections near an edge. Thus, do not use
-    this rule unless you are also using the option and_over_edge.
-    2) Because of mustuse this rule is as efficient (or more so) than
-    the AND/OR-rules of H-search. However, it does not find many
-    connections, and produces minimal strength gains in our
-    AIs. Hopefully it can be extended or inspire a more productive
-    rule in the future.
-    3) For more details, see our publication (submitted to ACG 2009;
-    the usual trio of Phil, Broderick, and Ryan).
-
-    TODO: Reuse std::vectors to reduce dynamic allocations?
-*/
-void VCBuilder::doCrossingRule(const VC& vc, const VCList* semi_list)
-{
-    if (m_brd->GetColor(vc.x()) != EMPTY || m_brd->GetColor(vc.y()) != EMPTY)
-        return;
-    
-    // copy processed semis
-    std::vector<VC> semi;
-    int soft = semi_list->softlimit();
-    VCList::const_iterator it = semi_list->begin();
-    VCList::const_iterator end = semi_list->end();
-    for (int count=0; count<soft && it!=end; ++count, ++it) {
-        if (it->processed())
-            semi.push_back(*it);
-    }
-    if (semi.empty()) 
-        return;
-
-    // the endpoints will be the keys to any semi-connections we create
-    std::vector<HexPoint> keys;
-    keys.push_back(vc.x());
-    keys.push_back(vc.y());
-    
-    // track if an SC has empty mustuse and get captains for vc's mustuse
-    bitset_t mu[3];
-    bool has_empty_mustuse0 = vc.stones().none();
-    mu[0] = m_groups->CaptainizeBitset(vc.stones());
-
-    for (std::size_t i=0; i<semi.size(); ++i) {
-        const VC& vi = semi[i];
-
-        bool has_empty_mustuse1 = has_empty_mustuse0;
-        
-        bool has_miai1 = false;
-        HexPoint miai_endpoint = INVALID_POINT;
-        HexPoint miai_edge = INVALID_POINT;
-
-        {
-            bitset_t I = vi.carrier() & vc.carrier();
-            if (I.none()) 
-            {
-                // good!
-            } 
-            else if (I.count() == 2)
-            {
-                HexPoint k,e;
-                if (VCUtils::ValidEdgeBridge(*m_brd, I, k, e) 
-                    && (k==keys[0] || k==keys[1]))
-                {
-                    has_miai1 = true;
-                    miai_endpoint = k;
-                    miai_edge = e;
-                }
-                else
-                {
-                    continue;
-                }
-            }
-            else 
-            {
-                continue;
-            }
-        }        
-        
-        if (vi.stones().none()) {
-            if (has_empty_mustuse1) continue;
-            has_empty_mustuse1 = true;
-        }
-                
-        // get captains for vi's mustuse and check for intersection
-        // with mu[0].
-	mu[1] = m_groups->CaptainizeBitset(vi.stones());
-        if ((mu[0] & mu[1]).any()) continue;
-	
-
-        //////////////////////////////////////////////////////////////
-        for (std::size_t j=i+1; j<semi.size(); ++j) {
-            const VC& vj = semi[j];
-
-            bool has_empty_mustuse2 = has_empty_mustuse1;
-
-            bool has_miai = has_miai1;
-
-            {
-                bitset_t I = vj.carrier() & vc.carrier();
-                if (I.none()) 
-                {
-                    // good!
-                } 
-                else if (I.count() == 2 && !has_miai)
-                {
-                    HexPoint k,e;
-                    if (VCUtils::ValidEdgeBridge(*m_brd, I, k, e) 
-                        && (k==keys[0] || k==keys[1]))
-                    {
-                        has_miai = true;
-                        miai_endpoint = k;
-                        miai_edge = e;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
-                else 
-                {
-                    continue;
-                }
-            }
-
-            {
-                bitset_t I = vj.carrier() & vi.carrier();
-                if (I.none()) 
-                {
-                    // good!
-                } 
-                else if (I.count() == 2 && !has_miai)
-                {
-                    HexPoint k,e;
-                    if (VCUtils::ValidEdgeBridge(*m_brd, I, k, e) 
-                        && (k==keys[0] || k==keys[1]))
-                    {
-                        has_miai = true;
-                        miai_endpoint = k;
-                        miai_edge = e;
-                    }
-                    else 
-                    {
-                        continue;
-                    }
-                }    
-                else
-                {
-                    continue;
-                }
-            }
-
-            if (vj.stones().none()) {
-                if (has_empty_mustuse2) continue;
-                has_empty_mustuse2 = true;
-            }
-	    
-            // get captains for vj's mustuse and check for intersection
-            // with mu[0] and mu[1].
-	    mu[2] = m_groups->CaptainizeBitset(vj.stones());
-	    if ((mu[2] & (mu[0] | mu[1])).any()) continue;
-            
-            // (vc, vi, vj) are pairwise disjoint and only one of the
-            // three potentially has an empty mustuse set, and their
-            // mustuses are all disjoint.
-            bitset_t carrier = vi.carrier() | vj.carrier() | vc.carrier();
-	    HexAssert(!carrier.test(vc.x()));
-	    HexAssert(!carrier.test(vc.y()));
-            carrier.set(vc.x());
-            carrier.set(vc.y());
-
-            // add a new full-connection between endpoints and
-            // used stones
-            for (BitsetIterator p(mu[0] | mu[1] | mu[2]); p; ++p)
-            {
-                for (size_t k=0; k<keys.size(); ++k) 
-                {
-                    bitset_t our_carrier = carrier;
-                    our_carrier.reset(keys[k]);
-
-                    AddNewFull(VC(keys[k], *p, our_carrier, 
-                                  EMPTY_BITSET, VC_RULE_CROSSING));
-                }
-            }
-
-            // find all valid endpoints for the new semi-connections
-            std::set<HexPointPair> ends;
-            for (int a=0; a<2; ++a) {
-                for (int b=a+1; b<3; ++b) {
-                    for (BitsetIterator p1(mu[a]); p1; ++p1) {
-                        for (BitsetIterator p2(mu[b]); p2; ++p2) {
-			    HexAssert(*p1 != *p2);
-
-                            // if using miai, must use the miai edge
-                            if (has_miai 
-                                && *p1 != miai_edge
-                                && *p2 != miai_edge)
-                                continue;
-
-                            ends.insert(std::make_pair(std::min(*p1, *p2),
-                                                       std::max(*p1, *p2)));
-
-                        }                        
-                    }                    
-                }
-            }
-
-            for (std::size_t k=0; k<keys.size(); ++k) 
-            {
-                HexPoint key = keys[k];
-
-                // if we have a miai, the only valid key is the miai endpoint
-                if (has_miai && key != miai_endpoint)
-                    continue;
-
-                // add semi to all unique pairs found
-                std::set<HexPointPair>::iterator it;
-                for (it = ends.begin(); it != ends.end(); ++it) 
-                {
-                    HexPoint p1 = it->first;
-                    HexPoint p2 = it->second;
-
-                    bitset_t empty;
-		    // no mustuse when generated from crossing rule
-                    VC new_semi(p1, p2, key, carrier, empty, VC_RULE_CROSSING);
-
-                    m_statistics->crossing_attempts++;
-                    if (AddNewSemi(new_semi))
-                    {
-                        m_statistics->crossing_successes++;
-#if 0
-                        LogInfo() << "Crossing Rule: "
-                                 << new_semi << "\n"
-                                 << vc << "\n"
-                                 << vi << "\n"
-                                 << vj << '\n';
-#endif
-                    }
-                }
-            }
-        }
-    }
 }
 
 /** Tries to add a new full-connection to list between (vc.x(), vc.y()).
@@ -1096,7 +817,7 @@ bool VCBuilder::AddNewSemi(const VC& vc)
                         : out_semi->getUnion();
                     
                     VC v(out_full->getX(), out_full->getY(), 
-                         carrier, EMPTY_BITSET, VC_RULE_ALL);
+                         carrier, VC_RULE_ALL);
 
                     out_full->add(v, m_log);
                 }
@@ -1117,8 +838,6 @@ std::string VCBuilderStatistics::ToString() const
        << "pat=" << pattern_successes << "/" << pattern_attempts << '\n'
        << "and-f=" << and_full_successes << "/" << and_full_attempts << '\n'
        << "and-s=" << and_semi_successes << "/" << and_semi_attempts << '\n'
-       << "crossing-s=" << crossing_successes << "/"
-                        << crossing_attempts << '\n'
        << "or=" << or_successes << "/" << or_attempts << '\n'
        << "doOr()=" << goodOrs << "/" << doOrs << '\n'
        << "s0/s1/u1=" << shrunk0 << "/" << shrunk1 << "/"<< upgraded << '\n'

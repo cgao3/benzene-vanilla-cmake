@@ -35,12 +35,6 @@ struct VCBuilderParam
         connections. */
     bool use_non_edge_patterns;
 
-    /** Whether to use the crossing rule.
-        Note that the crossing rule requires the use of stepping stones/
-        mustuse to be useful, so this rule is near-useless unless the
-        and_over_edge option is being used as well. */
-    bool use_crossing_rule;
-
     /** Whether to use the greedy union or not. 
         @todo DOCUMENT GREEDY UNION! */
     bool use_greedy_union;
@@ -88,12 +82,6 @@ struct VCBuilderStatistics
     /** Full-connections successfully added by or-rule. */
     int or_successes;
 
-    /** Semi-connections built by crossing-rule. */
-    int crossing_attempts;
-    
-    /** Semi-connections successfully added by crossing-rule. */
-    int crossing_successes;
-    
     /** Calls to or-rule. */
     int doOrs;
 
@@ -236,8 +224,6 @@ private:
     OrRule m_orRule;
 
     void andClosure(const VC& vc);
-
-    void doCrossingRule(const VC& vc, const VCList* semi_list);
 
     void DoSearch();
 

@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file VCList.cpp
  */
 //----------------------------------------------------------------------------
 
@@ -146,8 +146,7 @@ int VCList::add(const VCList& other, ChangeLog<VC>* log)
     int count = 0;
     for (const_iterator it = other.begin(); it != other.end(); ++it) 
     {
-        VC v(getX(), getY(), it->key(), it->carrier(), 
-             it->stones(), it->rule());
+        VC v(getX(), getY(), it->key(), it->carrier(), it->rule());
         v.setProcessed(false);
         if (this->add(v, log))
             count++;
