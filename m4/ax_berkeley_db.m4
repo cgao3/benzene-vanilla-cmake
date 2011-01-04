@@ -1,22 +1,36 @@
-dnl @synopsis AX_BERKELEY_DB([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-dnl
-dnl This macro tries to find Berkeley DB. It honors MINIMUM-VERSION if
-dnl given.
-dnl
-dnl If libdb is found, DB_HEADER and DB_LIBS variables are set and
-dnl ACTION-IF-FOUND shell code is executed if specified. DB_HEADER is
-dnl set to location of db.h header in quotes (e.g. "db3/db.h") and
-dnl AC_DEFINE_UNQUOTED is called on it, so that you can type
-dnl
-dnl      #include DB_HEADER
-dnl
-dnl in your C/C++ code. DB_LIBS is set to linker flags needed to link
-dnl against the library (e.g. -ldb3.1) and AC_SUBST is called on it.
-dnl
-dnl @category InstalledPackages
-dnl @author Vaclav Slavik <vaclav.slavik@matfyz.cz>
-dnl @version 2005-01-21
-dnl @license GPLWithACException
+# ===========================================================================
+#      http://www.gnu.org/software/autoconf-archive/ax_berkeley_db.html
+# ===========================================================================
+#
+# SYNOPSIS
+#
+#   AX_BERKELEY_DB([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+#
+# DESCRIPTION
+#
+#   This macro tries to find Berkeley DB. It honors MINIMUM-VERSION if
+#   given.
+#
+#   If libdb is found, DB_HEADER and DB_LIBS variables are set and
+#   ACTION-IF-FOUND shell code is executed if specified. DB_HEADER is set to
+#   location of db.h header in quotes (e.g. "db3/db.h") and
+#   AC_DEFINE_UNQUOTED is called on it, so that you can type
+#
+#     #include DB_HEADER
+#
+#   in your C/C++ code. DB_LIBS is set to linker flags needed to link
+#   against the library (e.g. -ldb3.1) and AC_SUBST is called on it.
+#
+# LICENSE
+#
+#   Copyright (c) 2008 Vaclav Slavik <vaclav.slavik@matfyz.cz>
+#
+#   Copying and distribution of this file, with or without modification, are
+#   permitted in any medium without royalty provided the copyright notice
+#   and this notice are preserved. This file is offered as-is, without any
+#   warranty.
+
+#serial 6
 
 AC_DEFUN([AX_BERKELEY_DB],
 [
@@ -90,7 +104,7 @@ AC_DEFUN([AX_BERKELEY_DB],
     AC_MSG_RESULT([not found])
     ifelse([$3], , :, [$3])
   else
-    AC_DEFINE_UNQUOTED(DB_HEADER, ["$DB_HEADER"], [define if berkeley db is available])
+    AC_DEFINE_UNQUOTED(DB_HEADER, ["$DB_HEADER"], ["Berkeley DB Header File"])
     AC_SUBST(DB_LIBS)
     ifelse([$2], , :, [$2])
   fi
