@@ -72,6 +72,7 @@ public:
     void SetNumThreads(std::size_t num);
 
 protected:
+    std::string MoveString(SgMove move) const;
 
     void PrintMessage(std::string msg);
 
@@ -334,6 +335,12 @@ template<class PLAYER>
 inline void BookBuilder<PLAYER>::SetWorkBoard(HexBoard& workBoard)
 {
     m_brd = &workBoard;
+}
+
+template<class PLAYER>
+std::string BookBuilder<PLAYER>::MoveString(SgMove move) const
+{
+    return HexPointUtil::ToString(static_cast<HexPoint>(move));
 }
 
 template<class PLAYER>
