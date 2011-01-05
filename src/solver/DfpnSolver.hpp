@@ -359,7 +359,8 @@ inline void DfpnHistory::Pop()
 
 inline int DfpnHistory::Depth() const
 {
-    return m_move.size() - 1;
+    HexAssert(!m_move.empty());
+    return static_cast<int>(m_move.size() - 1);
 }
 
 inline hash_t DfpnHistory::LastHash() const

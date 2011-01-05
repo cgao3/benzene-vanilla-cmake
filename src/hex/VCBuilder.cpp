@@ -644,7 +644,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     if (m_tail.size() < N)
         m_tail.resize(N);
     m_tail[N-1] = m_semi[N-1].carrier();
-    for (int i=N-2; i>=0; --i)
+    for (int i = static_cast<int>(N - 2); i >= 0; --i)
         m_tail[i] = m_semi[i].carrier() & m_tail[i+1];
 
     max_ors--;

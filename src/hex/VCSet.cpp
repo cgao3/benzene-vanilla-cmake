@@ -267,7 +267,7 @@ std::string VCSetStatistics::Write() const
 VCSetStatistics VCSetUtil::ComputeStatistics(const VCSet& con, 
                                              const Groups& groups,
                                              std::size_t maxConnections,
-                                             std::size_t numBins)
+                                             int numBins)
 
 {
     VCSetStatistics stats;

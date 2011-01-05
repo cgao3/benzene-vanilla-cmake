@@ -211,8 +211,8 @@ void VCCommands::CmdSetInfo(HtpCommand& cmd)
 {
     if (cmd.NuArg() == 0)
         throw HtpFailure("Need at least the color!");
-    std::size_t maxConnections = 50;
-    std::size_t numBins = 10;
+    int maxConnections = 50;
+    int numBins = 10;
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     if (cmd.NuArg() == 3)
     {

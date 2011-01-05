@@ -39,7 +39,7 @@ VC::VC(HexPoint x, HexPoint y, const bitset_t& carrier, VcCombineRule rule)
       m_carrier(carrier),
       m_rule(rule),
       m_processed(false),
-      m_count(carrier.count())
+      m_count(static_cast<byte>(carrier.count()))
 {
 }
 
@@ -51,7 +51,7 @@ VC::VC(HexPoint x, HexPoint y, HexPoint key, const bitset_t& carrier,
       m_carrier(carrier),
       m_rule(rule),
       m_processed(false),
-      m_count(carrier.count())
+      m_count(static_cast<byte>(carrier.count()))
 {
     if (type() == VC::SEMI)
         HexAssert(m_carrier.test(key));

@@ -28,7 +28,8 @@ namespace
 template<typename T>
 void ShuffleVector(std::vector<T>& v, SgRandom& random)
 {
-    for (int i=v.size()-1; i>0; --i) {
+    for (int i = static_cast<int>(v.size() - 1); i > 0; --i) 
+    {
         int j = random.Int(i+1);
         std::swap(v[i], v[j]);
     }
@@ -37,7 +38,8 @@ void ShuffleVector(std::vector<T>& v, SgRandom& random)
 /** Returns true 'percent' of the time. */
 bool PercentChance(int percent, SgRandom& random)
 {
-    if (percent >= 100) return true;
+    if (percent >= 100) 
+        return true;
     unsigned int threshold = random.PercentageThreshold(percent);
     return random.RandomEvent(threshold);
 }
@@ -60,7 +62,7 @@ HexUctPolicyConfig::HexUctPolicyConfig()
 HexUctSharedPolicy::HexUctSharedPolicy()
     : m_config()
 {
-    LogFine() << "--- HexUctSharedPolicy" << '\n';
+    LogFine() << "--- HexUctSharedPolicy\n";
     LoadPatterns();
 }
 
@@ -81,7 +83,7 @@ void HexUctSharedPolicy::LoadPlayPatterns(const std::string& filename)
     std::vector<Pattern> patterns;
     Pattern::LoadPatternsFromFile(filename.c_str(), patterns);
     LogInfo() << "HexUctSharedPolicy: Read " << patterns.size()
-	      << " patterns from '" << filename << "'." << '\n';
+	      << " patterns from '" << filename << "'.\n";
 
     // can only load patterns once!
     HexAssert(m_patterns[BLACK].empty());

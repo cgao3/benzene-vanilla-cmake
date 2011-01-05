@@ -128,7 +128,6 @@ private:
         @todo use actual boardsize instead of BITSETSIZE? 
     */
     VCList* m_vc[VC::NUM_TYPES][BITSETSIZE][BITSETSIZE];
-
 };
 
 inline HexColor VCSet::Color() const
@@ -214,7 +213,7 @@ namespace VCSetUtil
     /** Obtain info on connections. */
     VCSetStatistics ComputeStatistics(const VCSet& con, const Groups& groups,
                                       std::size_t maxConnections,
-                                      std::size_t numBins);
+                                      int numBins);
 }
 
 //----------------------------------------------------------------------------

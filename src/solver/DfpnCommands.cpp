@@ -141,8 +141,8 @@ void DfpnCommands::CmdSolveState(HtpCommand& cmd)
     HexColor colorToMove = m_game.Board().WhoseTurn();
     if (cmd.NuArg() >= 1)
         colorToMove = HtpUtil::ColorArg(cmd, 0);
-    std::size_t maxPhi = DfpnBounds::MAX_WORK;
-    std::size_t maxDelta = DfpnBounds::MAX_WORK;
+    DfpnBoundType maxPhi = DfpnBounds::MAX_WORK;
+    DfpnBoundType maxDelta = DfpnBounds::MAX_WORK;
     if (cmd.NuArg() >= 2)
         maxPhi = cmd.IntArg(1, 0);
     if (cmd.NuArg() >= 3)

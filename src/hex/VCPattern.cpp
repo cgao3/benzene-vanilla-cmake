@@ -271,7 +271,7 @@ void VCPattern::CreatePatterns(int width, int height)
         HexPoint endpoint = SOUTH;
         bitset_t black, empty;
         bool patternFits = true;
-        for (int i=carrier.size()-1; i>=0; --i) {
+        for (int i = static_cast<int>(carrier.size() - 1); i >= 0; --i) {
             is.clear();
             is.str(carrier[i]);
 

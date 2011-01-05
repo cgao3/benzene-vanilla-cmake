@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file PatternState.cpp
- */
+/** @file PatternState.cpp */
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
@@ -415,17 +414,17 @@ std::string PatternState::DumpPatternCheckStats() const
 {
     std::ostringstream os;
     os << std::endl;
-    os << "    Patterns Checked: " << m_statistics.pattern_checks << std::endl;
-    os << " Ring Godels Checked: " << m_statistics.ring_checks << std::endl;
-    os << "      Slices Checked: " << m_statistics.slice_checks << std::endl;
+    os << "    Patterns Checked: " << m_statistics.pattern_checks << '\n';
+    os << " Ring Godels Checked: " << m_statistics.ring_checks << '\n';
+    os << "      Slices Checked: " << m_statistics.slice_checks << '\n';
     os << " Avg Rings Per Check: " 
        << std::setprecision(4) 
-       << (double)m_statistics.ring_checks/m_statistics.pattern_checks
-       << std::endl;
+       << static_cast<double>(m_statistics.ring_checks) 
+        / static_cast<double>(m_statistics.pattern_checks) << '\n';
     os << "Avg Slices Per Check: " 
        << std::setprecision(4) 
-       << (double)m_statistics.slice_checks/m_statistics.pattern_checks
-       << std::endl;
+       << static_cast<double>(m_statistics.slice_checks)
+        / static_cast<double>(m_statistics.pattern_checks) << '\n';
     return os.str();
 }
 

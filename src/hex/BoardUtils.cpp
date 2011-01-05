@@ -178,7 +178,7 @@ HexPoint BoardUtils::CenterPointLeft(const ConstBoard& brd)
 HexPoint BoardUtils::RandomEmptyCell(const StoneBoard& brd)
 {
     bitset_t moves = brd.GetEmpty() & brd.Const().GetCells();
-    int count = moves.count();
+    int count = static_cast<int>(moves.count());
     if (count == 0) 
         return INVALID_POINT;
     

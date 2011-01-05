@@ -20,7 +20,7 @@ void BitsetUtil::BitsetToBytes(const bitset_t& b, byte* out, int numbits)
         int c = 0;
         for (int j=0; j<8; j++) 
             c += (b.test(i+j)) ? (1<<j) : 0;
-        out[i/8] = c;
+        out[i/8] = static_cast<byte>(c);
     }
 }
 

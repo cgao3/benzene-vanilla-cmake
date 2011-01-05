@@ -112,6 +112,7 @@ dnl but it doesn't always work
 AX_CXXFLAGS_GCC_OPTION(-pedantic)
 AX_CXXFLAGS_GCC_OPTION(-ansi)
 AX_CXXFLAGS_GCC_OPTION(-Wextra)
+AX_CXXFLAGS_GCC_OPTION(-Wconversion)
 
 AC_OUTPUT([
 Makefile 

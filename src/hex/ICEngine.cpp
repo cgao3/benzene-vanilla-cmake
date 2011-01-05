@@ -509,32 +509,34 @@ ICEngine::~ICEngine()
 
 //----------------------------------------------------------------------------
 
+/** Creates the set of hand-coded patterns. */
 void ICEngine::LoadHandCodedPatterns()
 {
     HandCodedPattern::CreatePatterns(m_hand_coded);
     LogFine() << "ICEngine: " << m_hand_coded.size()
-              << " hand coded patterns." << '\n';
+              << " hand coded patterns.\n";
 }
 
+/** Loads local patterns from "ice-pattern-file". */
 void ICEngine::LoadPatterns()
 {
 #ifdef ABS_TOP_SRCDIR
     m_patterns.LoadPatterns(boost::filesystem::path(ABS_TOP_SRCDIR) 
                             / "share" / "ice-patterns.txt");
 #else
-    LogWarning() << "**** NO ICE PATTERNS LOADED ***" << '\n';
+    LogWarning() << "**** NO ICE PATTERNS LOADED ***\n";
 #endif
 }    
 
 //----------------------------------------------------------------------------
 
-int ICEngine::ComputeDeadCaptured(Groups& groups, PatternState& pastate,
-                                  InferiorCells& inf, 
-                                  HexColorSet colors_to_capture) const
+std::size_t ICEngine::ComputeDeadCaptured(Groups& groups, PatternState& pastate,
+                                          InferiorCells& inf, 
+                                          HexColorSet colors_to_capture) const
 {
     StoneBoard& brd = groups.Board();
     // find dead and captured cells and fill them in. 
-    int count = 0;
+    std::size_t count = 0;
     while (true) 
     {
         // search for dead; if some are found, fill them in
@@ -590,15 +592,17 @@ int ICEngine::ComputeDeadCaptured(Groups& groups, PatternState& pastate,
     return count;
 }
 
-int ICEngine::FillinPermanentlyInferior(Groups& groups, PatternState& pastate,
-                                        HexColor color, InferiorCells& out, 
-                                        HexColorSet colors_to_capture) const
+/** Calls FindPermanentlyInferior() and adds any found to the board
+    and the set of inferior cells.x */
+std::size_t ICEngine::FillinPermanentlyInferior(Groups& groups, 
+                                         PatternState& pastate,
+                                         HexColor color, InferiorCells& out, 
+                                         HexColorSet colors_to_capture) const
 {
     if (!m_find_permanently_inferior) 
         return 0;
     if (!HexColorSetUtil::InSet(color, colors_to_capture)) 
         return 0;
-
     StoneBoard& brd = groups.Board();
     bitset_t carrier;
     bitset_t perm = FindPermanentlyInferior(pastate, color, brd.GetEmpty(), 
@@ -613,9 +617,11 @@ int ICEngine::FillinPermanentlyInferior(Groups& groups, PatternState& pastate,
     return perm.count();
 }
 
-int ICEngine::FillInMutualFillin(Groups& groups, PatternState& pastate,
-                                 HexColor color, InferiorCells& out, 
-                                 HexColorSet colors_to_capture) const
+/** Calls FindMutualFillin() and adds any found to the board and the
+    set of inferior cells.x */
+std::size_t ICEngine::FillInMutualFillin(Groups& groups, PatternState& pastate,
+                                         HexColor color, InferiorCells& out, 
+                                         HexColorSet colors_to_capture) const
 {
     if (!m_find_mutual_fillin)
         return 0;
@@ -623,7 +629,6 @@ int ICEngine::FillInMutualFillin(Groups& groups, PatternState& pastate,
     if (!HexColorSetUtil::InSet(BLACK, colors_to_capture) ||
         !HexColorSetUtil::InSet(WHITE, colors_to_capture))
         return 0;
-
     StoneBoard& brd = groups.Board();
     bitset_t carrier;
     bitset_t mut[BLACK_AND_WHITE];
@@ -646,11 +651,14 @@ int ICEngine::FillInMutualFillin(Groups& groups, PatternState& pastate,
     return (mut[BLACK] | mut[WHITE]).count();
 }
 
-int ICEngine::FillInVulnerable(HexColor color, Groups& groups, 
+/** Finds vulnerable cells for color and finds presimplicial pairs
+    and fills them in for the other color.  Simplicial stones will
+    be added as dead and played to the board as DEAD_COLOR. */
+std::size_t ICEngine::FillInVulnerable(HexColor color, Groups& groups, 
                                PatternState& pastate, InferiorCells& inf, 
                                HexColorSet colors_to_capture) const
 {
-    int count = 0;
+    std::size_t count = 0;
     inf.ClearVulnerable();
 
     UseGraphTheoryToFindDeadVulnerable(color, groups, pastate, inf);
@@ -678,14 +686,14 @@ int ICEngine::FillInVulnerable(HexColor color, Groups& groups,
     return count;
 }
 
-int ICEngine::CliqueCutsetDead(Groups& groups, PatternState& pastate,
-                               InferiorCells& out) const
+/** Calls ComputeDeadRegions() and FindThreeSetCliques() and adds
+    fill-in to board and set of inferior cells. */
+std::size_t ICEngine::CliqueCutsetDead(Groups& groups, PatternState& pastate,
+                                       InferiorCells& out) const
 {
     bitset_t notReachable = ComputeDeadRegions(groups);
-
     if (m_find_three_sided_dead_regions)
         notReachable |= FindThreeSetCliques(groups);
-    
     if (notReachable.any()) 
     {
         out.AddDead(notReachable);
@@ -704,7 +712,7 @@ void ICEngine::ComputeFillin(HexColor color, Groups& groups,
     bool considerCliqueCutset = true;
     while(true)
     {
-        int count;
+        std::size_t count;
         int iterations = 0;
         for (;; ++iterations)
         {
@@ -783,9 +791,19 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
 #endif
 }
 
-int ICEngine::BackupOpponentDead(HexColor color, const StoneBoard& board,
-                                 PatternState& pastate,
-                                 InferiorCells& out) const
+/** For each empty cell on the board, the move is played with the
+    opponent's stone (ie, !color) and the fill-in is computed.  Any
+    dead cells in this state are backed-up as vulnerable cells in the
+    original state, with the set of captured stones as the
+    vulnerable-carrier.  This can be moderately expensive.
+        
+    @todo Link to the "ice-backup-opp-dead" option, or link it's
+    documentation here.  
+*/
+std::size_t ICEngine::BackupOpponentDead(HexColor color, 
+                                         const StoneBoard& board,
+                                         PatternState& pastate,
+                                         InferiorCells& out) const
 {
     StoneBoard brd(board);
     PatternState ps(brd);
@@ -794,7 +812,7 @@ int ICEngine::BackupOpponentDead(HexColor color, const StoneBoard& board,
     bitset_t reversible = out.Reversible();
     bitset_t dominated = out.Dominated();
 
-    int found = 0;
+    std::size_t found = 0;
     for (BitsetIterator p(board.GetEmpty()); p; ++p) 
     {
         brd.StartNewGame();
@@ -1050,6 +1068,8 @@ void ICEngine::FindHandCodedDominated(const StoneBoard& board,
                                 consider, inf);
 }
 
+/** Handles color flipping/rotations for this hand-coded pattern.  If
+    pattern matches, dominators are added to inf. */
 void ICEngine::CheckHandCodedDominates(const StoneBoard& brd,
                                        HexColor color,
                                        const HandCodedPattern& pattern, 

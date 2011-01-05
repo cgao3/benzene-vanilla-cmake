@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
+/** @file VCList.hpp
  */
 //----------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ public:
     void clear();
 
     /** Returns the number of VCs in this list. */
-    int size() const;
+    std::size_t size() const;
 
     /** Returns true if the list is empty. */
     bool empty() const;
@@ -276,7 +276,7 @@ inline void VCList::setSoftLimit(int limit)
 
 // FIXME: size() is might be O(n) for lists:
 // keep track of size on our own?
-inline int VCList::size() const
+inline std::size_t VCList::size() const
 {
     return m_vcs.size();
 }

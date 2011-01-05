@@ -92,7 +92,7 @@ public:
             num bits = (GetOccupied() & GetPlayed() & GetCells()).count();
         @endcode
     */
-    int NumStones() const;
+    std::size_t NumStones() const;
 
     /** Computes whose turn it is on the given board;
         IsStandardPosition() must be true to use this method. */
@@ -414,7 +414,7 @@ inline bool StoneBoard::IsPlayed(HexPoint cell) const
     return m_played.test(cell);
 }
 
-inline int StoneBoard::NumStones() const
+inline std::size_t StoneBoard::NumStones() const
 {
     return (GetOccupied() & GetPlayed() & Const().GetCells()).count();
 }
@@ -436,14 +436,14 @@ inline HexColor StoneBoard::WhoseTurn() const
 {
     HexAssert(IsStandardPosition());
     bitset_t mask = GetPlayed() & Const().GetCells();
-    int first = (GetColor(FIRST_TO_PLAY) & mask).count();
-    int second = (GetColor(!FIRST_TO_PLAY) & mask).count();
+    std::size_t first = (GetColor(FIRST_TO_PLAY) & mask).count();
+    std::size_t second = (GetColor(!FIRST_TO_PLAY) & mask).count();
     return (first > second) ? !FIRST_TO_PLAY : FIRST_TO_PLAY;
 }
 
 inline bool StoneBoard::IsStandardPosition() const
 {
-    int diff = GetPlayed(BLACK).count() - GetPlayed(WHITE).count();
+    std::size_t diff = GetPlayed(BLACK).count() - GetPlayed(WHITE).count();
     return (diff == 1) || (diff == 0);
 }
 

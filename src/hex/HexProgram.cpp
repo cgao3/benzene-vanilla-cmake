@@ -119,7 +119,7 @@ void HexProgram::InitRandom()
 {
     LogConfig()<< "HexProgram::InitRandom()" << '\n';
     if (m_random_seed == -1) {
-        m_random_seed = time(NULL);
+        m_random_seed = static_cast<int>(time(NULL));
     }
     LogConfig() << "Seed = " << m_random_seed << '\n';
     SgRandom::SetSeed(m_random_seed);

@@ -72,7 +72,7 @@ private:
     /** Indices of neighbouring groups in parent Groups's list of
         groups. We don't use pointers because then it would be
         difficult to copy a Groups object. */
-    std::vector<int> m_nbs_index;
+    std::vector<std::size_t> m_nbs_index;
 
     /** True if the colorset neighbours have been computed yet. */
     mutable bool m_colorsets_computed;
@@ -231,7 +231,7 @@ private:
 
     std::vector<Group> m_groups;
 
-    std::vector<int> m_group_index; // HexPoint -> index of m_groups
+    std::vector<std::size_t> m_group_index; // HexPoint -> index of m_groups
 };
 
 inline Groups::Groups()

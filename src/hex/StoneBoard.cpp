@@ -256,10 +256,10 @@ BoardID StoneBoard::GetBoardID() const
 
     BoardID id;
     for (i = 0; i < n; i += 4)
-        id.push_back(val[i] 
-                     + (val[i+1] << 2)
-                     + (val[i+2] << 4)
-                     + (val[i+3] << 6));
+        id.push_back(static_cast<byte>(val[i] 
+                                       + (val[i+1] << 2)
+                                       + (val[i+2] << 4)
+                                       + (val[i+3] << 6)));
     return id;
 }
 
@@ -327,8 +327,9 @@ void StoneBoard::SetPosition(const std::string& str)
 {
     /** @note This depends on the order defined by Interior(). */
     StartNewGame();
-    for (std::size_t i = 0, cell = 0; 
-         i < str.size() && (int)cell < Width()*Height();
+    int cell = 0;
+    for (std::size_t i = 0;
+         i < str.size() && cell < Width() * Height();
          ++i)
     {
         int x = cell % Width();

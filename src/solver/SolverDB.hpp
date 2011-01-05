@@ -19,10 +19,10 @@ struct SolverDBParameters
 {
     /** States with fewer stones go into the database, otherwise the
         hashtable.*/
-    int m_maxStones;
+    std::size_t m_maxStones;
     
     /** States with fewer stones get transpositions/flipped states. */
-    int m_transStones;
+    std::size_t m_transStones;
 
     bool m_useProofTranspositions;
 
