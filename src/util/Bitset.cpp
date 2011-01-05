@@ -59,7 +59,7 @@ bitset_t BitsetUtil::HexToBitset(const std::string& str)
 {
     bitset_t out;
     for (unsigned i=0; i<str.size(); i++) {
-        int c;
+        unsigned c;
         char buff[4];
         buff[0] = str[i];
         buff[1] = 0;

@@ -70,7 +70,7 @@ namespace LogLevelUtil
 
     /** Converts a string to a LogLevel. */
     LogLevel fromString(std::string);
-};
+}
 
 //----------------------------------------------------------------------------
 

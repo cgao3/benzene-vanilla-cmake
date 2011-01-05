@@ -215,7 +215,7 @@ namespace DfsMoveOrderFlags
     /** Moves near center of board get higher priority than moves near
         the edge of the board. */
     static const int FROM_CENTER = 4;
-};
+}
 
 //----------------------------------------------------------------------------
 

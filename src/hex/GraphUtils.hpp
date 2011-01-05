@@ -40,7 +40,7 @@ namespace GraphUtils
     bitset_t BFS(HexPoint p, PointToBitset& group_nbs, bitset_t stopSet,
 		 int* distFromEdge=NULL, int* numShortestPathsThrough=NULL);
 
-};
+}
 
 //----------------------------------------------------------------------------
 

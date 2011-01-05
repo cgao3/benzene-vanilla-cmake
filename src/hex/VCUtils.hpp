@@ -30,7 +30,7 @@ namespace VCUtils
                          const bitset_t& carrier, 
                          HexPoint& endpoint,
                          HexPoint& edge);
-};
+}
 
 //----------------------------------------------------------------------------
 

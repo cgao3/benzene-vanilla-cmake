@@ -33,7 +33,7 @@ namespace MiscUtil
     /** Prints a vector with a space between elements. */
     template<typename TYPE>
     std::string PrintVector(const std::vector<TYPE>& v);
-};
+}
 
 /** Prints a vector with a space between elements. */
 template<typename TYPE>

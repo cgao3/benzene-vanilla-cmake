@@ -317,7 +317,7 @@ namespace VCTypeUtil
     std::string toString(VC::Type type);
 
     VC::Type fromString(std::string name);
-};
+}
 
 //----------------------------------------------------------------------------
 
