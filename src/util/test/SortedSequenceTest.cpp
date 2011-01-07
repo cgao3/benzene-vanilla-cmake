@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file SortedSequenceTest.cpp */
 //----------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
@@ -47,23 +46,11 @@ BOOST_AUTO_TEST_CASE(SortedSequence_one)
 
     ++seq;
     BOOST_CHECK(seq.finished());
-
-    // now set it to something explicit
-    seq[0] = 2;
-    BOOST_CHECK(!seq.finished());
-    BOOST_CHECK_EQUAL(seq[0], 2);
-
-    ++seq;
-    BOOST_CHECK(!seq.finished());
-    BOOST_CHECK_EQUAL(seq[0], 3);
-
-    ++seq;
-    BOOST_CHECK(seq.finished());
 }
 
 BOOST_AUTO_TEST_CASE(SortedSequence_two)
 {
-    std::vector<int> v(2);
+    std::vector<std::size_t> v(2);
     v[0] = 1;
     v[1] = 3;
     SortedSequence seq(5, v);

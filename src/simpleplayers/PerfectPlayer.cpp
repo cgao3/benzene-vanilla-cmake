@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file PerfectPlayer.cpp
- */
+/** @file PerfectPlayer.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -18,7 +17,7 @@ namespace
 HexPoint RandomBit(const bitset_t& bs, SgRandom& random)
 {
     HexAssert(bs.any());
-    int index = random.Int(bs.count());
+    int index = random.Int(static_cast<int>(bs.count()));
     for (BitsetIterator it(bs); it; ++it)
     {
         if (index == 0)

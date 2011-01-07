@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file SortedSequence.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef SORTEDSEQUENCE_H
@@ -14,9 +13,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** 
-    
-*/
+/** Iterates over valid sorted sequences. */
 class SortedSequence
 {
 public:
@@ -24,81 +21,74 @@ public:
     /** Creates an empty sorted sequence. */
     SortedSequence();
 
-    /** Creates a seq with max values max, and num indices. */
-    SortedSequence(int max, int num);
+    /** Creates a seq with max values max and num indices. */
+    SortedSequence(std::size_t max, std::size_t num);
 
     /** Creates a sequence with max value max and current indices seq; 
         seq must be strictly increasing. */
-    SortedSequence(int max, const std::vector<int>& seq);
+    SortedSequence(std::size_t max, const std::vector<std::size_t>& seq);
 
     /** Returns true if no more valid sequences. */
     bool finished() const;
 
-    /** Returns a reference to the nth index. 
-        If these value is changed to make the sequence not strictly
-        increasing, further output is undefined. */
-    int& operator[](int n);
+    /** Returns the nth index. */
+    const std::size_t& operator[](std::size_t n) const;
 
     /** Updates indices to next valid sorted sequence. */
     void operator++();
 
-    /** Returns the indices as a vector of integers. */
-    std::vector<int>& indices();
-
 private:
-    int m_max;
-    std::vector<int> m_seq;
+    std::size_t m_max;
+
+    std::vector<std::size_t> m_seq;
 };
 
 
 inline SortedSequence::SortedSequence()
-    : m_max(0),
+    : m_max(1),
       m_seq(1, 1)
 { }
 
-inline SortedSequence::SortedSequence(int max, int num)
+inline SortedSequence::SortedSequence(std::size_t max, std::size_t num)
     : m_max(max),
       m_seq(num, 0)
 {
     // handle the case where num == 0 explicitly
-    if (num == 0) {
+    if (num == 0) 
+    {
         m_max = 1;
-        m_seq = std::vector<int>(1, 0);
+        m_seq = std::vector<std::size_t>(1, 0);
     }
-    
-    for (int i=0; i<(int)m_seq.size(); ++i) 
+    for (std::size_t i = 0; i < m_seq.size(); ++i) 
         m_seq[i] = i;
 }
 
-inline SortedSequence::SortedSequence(int max, const std::vector<int>& seq)
+inline SortedSequence::SortedSequence(std::size_t max, 
+                                      const std::vector<std::size_t>& seq)
     : m_max(max),
       m_seq(seq)
 { }
 
 inline bool SortedSequence::finished() const
 {
-    return (m_seq[0] > m_max-(int)m_seq.size());
+    return m_seq[0] > m_max - m_seq.size();
 }
 
-inline int& SortedSequence::operator[](int n)
+inline const std::size_t& SortedSequence::operator[](std::size_t n) const
 {
-    assert(0 <= n && n < (int)m_seq.size());
+    assert(0 <= n && n < m_seq.size());
     return m_seq[n];
-}
-
-inline std::vector<int>& SortedSequence::indices()
-{
-    return m_seq;
 }
 
 inline void SortedSequence::operator++()
 {
-    unsigned i = m_seq.size()-1;
-    int off = 0;
-    while (true) {
+    std::size_t i = m_seq.size() - 1;
+    std::size_t off = 0;
+    while (true) 
+    {
         m_seq[i]++;
 
-        if (m_seq[i] < m_max-off)
+        if (m_seq[i] < m_max - off)
             break;
 
         if (i == 0) 
@@ -108,8 +98,8 @@ inline void SortedSequence::operator++()
         off++;
     }
 
-    for (; i<m_seq.size()-1; ++i)
-        m_seq[i+1] = m_seq[i]+1;
+    for (; i < m_seq.size() - 1; ++i)
+        m_seq[i + 1] = m_seq[i] + 1;
 }
 
 //----------------------------------------------------------------------------

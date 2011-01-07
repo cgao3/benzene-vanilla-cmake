@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file Digraph.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef DIGRAPH_H
@@ -39,7 +38,7 @@ public:
     //------------------------------------------------------------------------
 
     /** Returns number of vertices in graph. */
-    int NumVertices() const;
+    std::size_t NumVertices() const;
 
     /** Returns the vertex set. */
     const std::set<T>& Vertices() const;
@@ -57,10 +56,10 @@ public:
     std::set<T> Sinks() const;
 
     /** Returns the number of edges entering target. */
-    int InDegree(const T& target) const;
+    std::size_t InDegree(const T& target) const;
 
     /** Returns the number of edges leaving source. */
-    int OutDegree(const T& source) const;
+    std::size_t OutDegree(const T& source) const;
     
     /** Returns true if there is an edge (x->y). */
     bool IsEdge(const T& x, const T& y) const;
@@ -156,7 +155,7 @@ Digraph<T>::~Digraph()
 //----------------------------------------------------------------------------
 
 template<typename T>
-int Digraph<T>::NumVertices() const
+std::size_t Digraph<T>::NumVertices() const
 {
     return m_vertices.size();
 }
@@ -190,7 +189,7 @@ std::set<T> Digraph<T>::Sinks() const
 }
 
 template<typename T>
-int Digraph<T>::InDegree(const T& target) const
+std::size_t Digraph<T>::InDegree(const T& target) const
 {
     assert(VertexExists(target));
     return m_in[target].size();
@@ -203,7 +202,7 @@ bool Digraph<T>::IsIsolated(const T& vertex) const
 }
 
 template<typename T>
-int Digraph<T>::OutDegree(const T& source) const
+std::size_t Digraph<T>::OutDegree(const T& source) const
 {
     assert(VertexExists(source));
     return m_out[source].size();

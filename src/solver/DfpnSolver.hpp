@@ -166,11 +166,11 @@ public:
     
     std::size_t Size() const;
 
-    HexPoint FirstMove(int index) const;
+    HexPoint FirstMove(std::size_t index) const;
 
-    void PlayMove(int index, HexState& state) const;
+    void PlayMove(std::size_t index, HexState& state) const;
 
-    void UndoMove(int index, HexState& state) const;
+    void UndoMove(std::size_t index, HexState& state) const;
 
 private:
     friend class DfpnData;
@@ -184,7 +184,7 @@ inline std::size_t DfpnChildren::Size() const
     return m_children.size();
 }
 
-inline HexPoint DfpnChildren::FirstMove(int index) const
+inline HexPoint DfpnChildren::FirstMove(std::size_t index) const
 {
     return m_children[index];
 }

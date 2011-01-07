@@ -55,12 +55,12 @@ void DfpnChildren::SetChildren(const std::vector<HexPoint>& children)
     m_children = children;
 }
 
-void DfpnChildren::PlayMove(int index, HexState& state) const
+void DfpnChildren::PlayMove(std::size_t index, HexState& state) const
 {
     state.PlayMove(m_children[index]);
 }
 
-void DfpnChildren::UndoMove(int index, HexState& state) const
+void DfpnChildren::UndoMove(std::size_t index, HexState& state) const
 {
     state.UndoMove(m_children[index]);
 }

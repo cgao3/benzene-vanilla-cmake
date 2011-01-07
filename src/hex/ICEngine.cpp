@@ -3,7 +3,9 @@
  */
 //----------------------------------------------------------------------------
 
-#include "Time.hpp"
+#include "SgSystem.h"
+#include "SgTimer.h"
+
 #include "BitsetIterator.hpp"
 #include "ICEngine.hpp"
 #include "BoardUtils.hpp"
@@ -753,7 +755,7 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
     HexAssert(groups.Board() == pastate.Board());
     StoneBoard oldBoard(groups.Board());
 #endif
-    double startTime = Time::Get();
+    SgTimer timer;
 
     ComputeFillin(color, groups, pastate, out);
 
@@ -772,10 +774,10 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
         FindDominated(pastate, color, consider, out);
     }
 
-    // Play opponent in all empty cells, any dead they created
-    // are actually vulnerable to the move played. 
     if (m_backup_opponent_dead) 
     {
+        // Play opponent in all empty cells, any dead they created
+        // are actually vulnerable to the move played. 
         int found = BackupOpponentDead(color, groups.Board(), pastate, out);
         if (found) {
             LogFine() << "Found " << found 
@@ -783,9 +785,8 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
         }
     }
     
-    double endTime = Time::Get();
-    LogFine() << "  " << (endTime - startTime) 
-              << "s to find inferior cells.\n";
+    LogFine() << "  " << timer.GetTime() << "s to find inferior cells.\n";
+
 #ifndef NDEBUG
     HexAssert(groups.Board().Hash() == oldBoard.Hash());
 #endif

@@ -1,7 +1,8 @@
 //----------------------------------------------------------------------------
-/** @file HexBoard.cpp
- */
+/** @file HexBoard.cpp */
 //----------------------------------------------------------------------------
+#include "SgSystem.h"
+#include "SgTimer.h"
 
 #include "Time.hpp"
 #include "BoardUtils.hpp"
@@ -153,7 +154,7 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move, bool use_changelog)
 
 void HexBoard::ComputeAll(HexColor color_to_move)
 {
-    double s = Time::Get();
+    SgTimer timer;
 
     m_patterns.Update();
     GroupBuilder::Build(m_brd, m_groups);
@@ -167,16 +168,14 @@ void HexBoard::ComputeAll(HexColor color_to_move)
         BuildVCs();
         HandleVCDecomposition(color_to_move, false);
     }
-
-    double e = Time::Get();
-    LogFine() << (e-s) << "s to compute all.\n";
+    LogFine() << timer.GetTime() << "s to compute all.\n";
 }
 
 void HexBoard::PlayMove(HexColor color, HexPoint cell)
 {
     LogFine() << "Playing (" << color << ", " << cell << ")\n";
 
-    double s = Time::Get();
+    SgTimer timer;
     PushHistory(color, cell);
     bitset_t old_black = m_brd.GetColor(BLACK);
     bitset_t old_white = m_brd.GetColor(WHITE);
@@ -199,8 +198,7 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
         BuildVCs(oldGroups, added, true);
         HandleVCDecomposition(!color, true);
     }
-    double e = Time::Get();
-    LogFine() << (e-s) << "s to play stones.\n";
+    LogFine() << timer.GetTime() << "s to play stones.\n";
 }
 
 void HexBoard::PlayStones(HexColor color, const bitset_t& played,
@@ -210,7 +208,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
               << HexPointUtil::ToString(played) << ")\n";
     HexAssert(BitsetUtil::IsSubsetOf(played, GetPosition().GetEmpty()));
 
-    double s = Time::Get();
+    SgTimer timer;
     PushHistory(color, INVALID_POINT);
     bitset_t old_black = m_brd.GetColor(BLACK);
     bitset_t old_white = m_brd.GetColor(WHITE);
@@ -234,8 +232,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
         HandleVCDecomposition(color_to_move, true);
     }
 
-    double e = Time::Get();
-    LogFine() << (e-s) << "s to play stones.\n";
+    LogFine() << timer.GetTime() << "s to play stones.\n";
 }
 
 /** Adds stones for color to board with color_to_move about to
@@ -250,7 +247,7 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     LogFine() << "Adding (" << color << ", "
               << HexPointUtil::ToString(played) << ")\n";
 
-    double s = Time::Get();
+    SgTimer timer;
     bitset_t old_black = m_brd.GetColor(BLACK);
     bitset_t old_white = m_brd.GetColor(WHITE);
 
@@ -268,19 +265,15 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     if (m_use_vcs)
         BuildVCs(oldGroups, added, use_changelog); 
 
-    double e = Time::Get();
-    LogFine() << (e-s) << "s to add stones.\n";
+    LogFine() << timer.GetTime() << "s to add stones.\n";
 }
 
 void HexBoard::UndoMove()
 {
-    double s = Time::Get();
-
+    SgTimer timer;
     PopHistory();
     m_patterns.Update();
-
-    double e = Time::Get();
-    LogFine() << (e-s) << "s to undo move.\n";
+    LogFine() << timer.GetTime() << "s to undo move.\n";
 }
 
 //----------------------------------------------------------------------------

@@ -64,7 +64,7 @@ HexColor DfsSolver::Solve(const HexState& state, HexBoard& brd,
     m_timeLimit = timeLimit;
     
     m_aborted = false;
-    m_start_time = Time::Get();
+    m_timer.Start();
     m_histogram = DfsHistogram();
     m_last_histogram_dump = 0;
     m_statistics = GlobalStatistics();
@@ -97,7 +97,7 @@ HexColor DfsSolver::Solve(const HexState& state, HexBoard& brd,
         win = SolveState(variation, solution);
     }
     solution.proof &= m_state->Position().GetEmpty();
-    m_end_time = Time::Get();
+    m_timer.Stop();
     if (m_aborted) 
         return EMPTY;
     return win ? toPlay : !toPlay;
@@ -142,8 +142,7 @@ bool DfsSolver::CheckAbort()
             m_aborted = true;
             LogInfo() << "DfsSolver::CheckAbort(): Abort flag!\n";
         }
-        else if ((m_timeLimit > 0) && 
-                 ((Time::Get() - m_start_time) > m_timeLimit))
+        else if ((m_timeLimit > 0) && (m_timer.GetTime() > m_timeLimit))
         {
             m_aborted = true;
             LogInfo() << "DfsSolver::CheckAbort(): Timelimit!\n";
@@ -855,7 +854,7 @@ std::string DfsHistogram::Write()
 
 void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
 {
-    const double total_time = m_end_time - m_start_time;
+    const double total_time = m_timer.GetTime();
     std::ostringstream os;
     os << '\n'
        << "Played          " << m_statistics.played << '\n'

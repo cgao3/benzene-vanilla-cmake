@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file ChangeLog.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef CHANGELOG_HPP
@@ -30,7 +29,6 @@ template<typename T>
 class ChangeLog
 {
 public:
-
     /** Constructor. */
     ChangeLog();
 
@@ -41,7 +39,7 @@ public:
     bool empty() const;
 
     /** Returns size of changelog. */
-    int size() const;
+    std::size_t size() const;
 
     /** Adds an entry onto the changelog. */
     void push(Action action, const T& data);
@@ -72,6 +70,7 @@ public:
 
 private:
     std::vector<T> m_data;
+
     std::vector<Action> m_action;
 };
 
@@ -87,7 +86,7 @@ inline bool ChangeLog<T>::empty() const
 }
 
 template<typename T> 
-inline int ChangeLog<T>::size() const
+inline std::size_t ChangeLog<T>::size() const
 {
     return m_action.size();
 }

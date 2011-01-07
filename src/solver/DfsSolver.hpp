@@ -6,7 +6,7 @@
 #ifndef DFSSOLVER_H
 #define DFSSOLVER_H
 
-#include <boost/scoped_ptr.hpp>
+#include "SgTimer.h"
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
@@ -16,6 +16,8 @@
 #include "SolverDB.hpp"
 #include "StateDB.hpp"
 #include "HexEval.hpp"
+
+#include <boost/scoped_ptr.hpp>
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -322,9 +324,7 @@ private:
 
     HexBoard* m_workBrd;
 
-    double m_start_time;
-        
-    double m_end_time;
+    SgTimer m_timer;
 
     std::vector<std::pair<int, int> > m_completed;
 

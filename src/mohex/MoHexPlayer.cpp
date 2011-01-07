@@ -4,7 +4,6 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
-
 #include "SgTimer.h"
 #include "SgUctTreeUtil.h"
 

@@ -64,8 +64,10 @@ int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db,
     const StoneBoard& brd = state.Position();
 
     // Number of non-fillin game stones played
-    int numBlack = (brd.GetPlayed(BLACK) & brd.Const().GetCells()).count();
-    int numWhite = (brd.GetPlayed(WHITE) & brd.Const().GetCells()).count();
+    std::size_t numBlack 
+        = (brd.GetPlayed(BLACK) & brd.Const().GetCells()).count();
+    std::size_t numWhite 
+        = (brd.GetPlayed(WHITE) & brd.Const().GetCells()).count();
     HexAssert(numBlack + numWhite == brd.NumStones());
 
     // Loser can use all his stones as well as all those outside the proof
@@ -98,9 +100,9 @@ int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db,
         {
             // Convert the indices into cells
             board.StartNewGame();
-            for (int i = 0; i < numBlack; ++i)
+            for (std::size_t i = 0; i < numBlack; ++i)
                 board.PlayMove(BLACK, black[bseq[i]]);
-            for (int i = 0; i < numWhite; ++i)
+            for (std::size_t i = 0; i < numWhite; ++i)
                 board.PlayMove(WHITE, white[wseq[i]]);
 
             // Mark state as transposition if the current one is not

@@ -9,7 +9,6 @@
 #include "BitsetIterator.hpp"
 #include "Book.hpp"
 #include "HexModState.hpp"
-#include "Time.hpp"
 
 using namespace benzene;
 

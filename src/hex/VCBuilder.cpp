@@ -3,8 +3,10 @@
  */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
+#include "SgTimer.h"
+
 #include "Hex.hpp"
-#include "Time.hpp"
 #include "BitsetIterator.hpp"
 #include "GraphUtils.hpp"
 #include "ChangeLog.hpp"
@@ -77,7 +79,7 @@ void VCBuilder::Build(VCSet& con, const Groups& groups,
     m_brd = &m_groups->Board();
     m_log = 0;
 
-    double s = Time::Get();
+    SgTimer timer;
     m_con->Clear();
     m_statistics = &m_statsForColor[m_color];
     m_queue.clear();
@@ -88,8 +90,7 @@ void VCBuilder::Build(VCSet& con, const Groups& groups,
         AddPatternVCs();
     DoSearch();
 
-    double e = Time::Get();
-    LogFine() << "  " << (e-s) << "s to build vcs.\n";
+    LogFine() << "  " << timer.GetTime() << "s to build vcs.\n";
 }
 
 /** Computes the 0-connections defined by adjacency.*/
@@ -179,7 +180,7 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
     m_brd = &m_groups->Board();
     m_log = log;
 
-    double s = Time::Get();
+    SgTimer timer;
     m_statistics = &m_statsForColor[m_color];
     m_queue.clear();
 
@@ -189,8 +190,7 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
         AddPatternVCs();
     DoSearch();
 
-    double e = Time::Get();
-    LogFine() << "  " << (e-s) << "s to build vcs incrementally.\n" ;
+    LogFine() << "  " << timer.GetTime() << "s to build vcs incrementally.\n" ;
 }
 
 /** @page mergeshrink Incremental Update Algorithm
