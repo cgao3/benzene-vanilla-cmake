@@ -4,7 +4,6 @@
 #include "SgSystem.h"
 #include "SgTimer.h"
 
-#include "Time.hpp"
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
 #include "Groups.hpp"

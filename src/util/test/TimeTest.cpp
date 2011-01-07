@@ -1,6 +1,5 @@
 //---------------------------------------------------------------------------
-/** @file
- */
+/** @file TimeTest.cpp */
 //---------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
@@ -13,17 +12,6 @@ using namespace benzene;
 
 namespace {
 
-BOOST_AUTO_TEST_CASE(Time_Constants)
-{
-    BOOST_CHECK_EQUAL(Time::ONE_MINUTE, 60.0);
-    BOOST_CHECK_EQUAL(Time::ONE_HOUR, 3600.0);
-    BOOST_CHECK_EQUAL(Time::ONE_DAY, 86400.0);
-}
-
-BOOST_AUTO_TEST_CASE(Time_GetTime)
-{
-}
-
 BOOST_AUTO_TEST_CASE(Time_FormattedString)
 {
     BOOST_CHECK_EQUAL(Time::Formatted(0.0), "0s");
@@ -33,7 +21,6 @@ BOOST_AUTO_TEST_CASE(Time_FormattedString)
     // Note: the rounding of seconds is weird... not always up to 4
     // significant digits
     BOOST_CHECK_EQUAL(Time::Formatted(148337.6173), "1d17h12m17.62s");
-    BOOST_CHECK(Time::Formatted(Time::Get()) != "0s");
 }
 
 }

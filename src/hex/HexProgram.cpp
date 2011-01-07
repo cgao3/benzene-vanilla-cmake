@@ -10,7 +10,6 @@
 #include "HexProgram.hpp"
 #include "Resistance.hpp"
 #include "RingGodel.hpp"
-#include "Time.hpp"
 
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
