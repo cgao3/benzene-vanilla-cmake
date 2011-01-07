@@ -65,7 +65,6 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
         thresholds.push_back(400);
         SetKnowledgeThreshold(thresholds);
     }
-    SetLockFree(true);    
     SetMaxNodes(15000000);
     SetMoveSelect(SG_UCTMOVESELECT_COUNT);
     SetNumberThreads(1);    
