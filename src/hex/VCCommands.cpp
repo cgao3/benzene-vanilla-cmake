@@ -216,8 +216,8 @@ void VCCommands::CmdSetInfo(HtpCommand& cmd)
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     if (cmd.NuArg() == 3)
     {
-        maxConnections = cmd.IntArg(1, 1);
-        numBins = cmd.IntArg(2, 1);
+        maxConnections = cmd.ArgMin<int>(1, 1);
+        numBins = cmd.ArgMin<int>(2, 1);
     }
     HexBoard& brd = *m_env.brd;
     VCSetStatistics stats 

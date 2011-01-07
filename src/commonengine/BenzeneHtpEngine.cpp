@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file BenzeneHtpEngine.cpp
- */
+/** @file BenzeneHtpEngine.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -151,7 +150,7 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
     std::string bookfilename = cmd.Arg(0);
     std::string sgffilename = cmd.Arg(1);
     HexColor colorToSave = HtpUtil::ColorArg(cmd, 2);
-    int maxMove = cmd.IntArg(3, 0);
+    int maxMove = cmd.ArgMin<int>(3, 0);
     
     std::ifstream sgffile(sgffilename.c_str());
     if (!sgffile)

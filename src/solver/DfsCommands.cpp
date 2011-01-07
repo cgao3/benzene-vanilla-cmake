@@ -67,13 +67,13 @@ void DfsCommands::CmdParamSolverDB(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "use_flipped_states")
-            param.m_useFlippedStates = cmd.BoolArg(1);
+            param.m_useFlippedStates = cmd.Arg<bool>(1);
         else if (name == "use_proof_transpositions")
-            param.m_useProofTranspositions = cmd.BoolArg(1);
+            param.m_useProofTranspositions = cmd.Arg<bool>(1);
         else if (name == "max_stones")
-            param.m_maxStones = cmd.IntArg(1, 0);
+            param.m_maxStones = cmd.ArgMin<int>(1, 0);
         else if (name == "trans_stones")
-            param.m_transStones = cmd.IntArg(1, 0);
+            param.m_transStones = cmd.ArgMin<int>(1, 0);
         else
             throw HtpFailure() << "unknown parameter: " << name;
     }
@@ -105,25 +105,25 @@ void DfsCommands::CmdParamSolver(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
-            m_solver.SetBackupIceInfo(cmd.BoolArg(1));
+            m_solver.SetBackupIceInfo(cmd.Arg<bool>(1));
         else if (name == "shrink_proofs")
-            m_solver.SetShrinkProofs(cmd.BoolArg(1));
+            m_solver.SetShrinkProofs(cmd.Arg<bool>(1));
         else if (name == "use_decompositions")
-            m_solver.SetUseDecompositions(cmd.BoolArg(1));
+            m_solver.SetUseDecompositions(cmd.Arg<bool>(1));
         else if (name == "use_guifx")
-            m_solver.SetUseGuiFx(cmd.BoolArg(1));
+            m_solver.SetUseGuiFx(cmd.Arg<bool>(1));
         else if (name == "move_ordering")
-            m_solver.SetMoveOrdering(cmd.IntArg(1,0,7));
+            m_solver.SetMoveOrdering(cmd.ArgMinMax<int>(1, 0, 7));
 	else if (name == "tt_bits")
 	{
-	    int bits = cmd.IntArg(1, 0);
+	    int bits = cmd.ArgMin<int>(1, 0);
 	    if (bits == 0)
 		m_tt.reset(0);
 	    else
 		m_tt.reset(new DfsHashTable(bits));
 	}
         else if (name == "update_depth")
-            m_solver.SetUpdateDepth(cmd.IntArg(1, 0));
+            m_solver.SetUpdateDepth(cmd.ArgMin<int>(1, 0));
         else
             throw HtpFailure() << "unknown parameter: " << name;
     }

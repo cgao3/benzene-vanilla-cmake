@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file WolveEngine.cpp
- */
+/** @file WolveEngine.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -24,7 +23,7 @@ void ParseDashSeparatedString(const std::string& str, std::vector<TYPE>& out)
 {
     // remove the '-' separators
     std::string widths(str);
-    for (std::size_t i=0; i<widths.size(); ++i)
+    for (std::size_t i = 0; i < widths.size(); ++i)
         if (widths[i] == '-') widths[i] = ' ';
 
     // parse the ' ' separated widths
@@ -126,9 +125,9 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
-            search.SetBackupIceInfo(cmd.BoolArg(1));
+            search.SetBackupIceInfo(cmd.Arg<bool>(1));
 	else if (name == "panic_time")
-	    m_player.SetPanicTime(cmd.FloatArg(1));
+	    m_player.SetPanicTime(cmd.ArgMin<float>(1, 0.0));
         else if (name == "ply_width")
         {
             std::vector<int> plywidth;
@@ -142,11 +141,11 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
             m_player.SetSearchDepths(depths);
         }
         else if (name == "use_guifx")
-            search.SetGuiFx(cmd.BoolArg(1));
+            search.SetGuiFx(cmd.Arg<bool>(1));
         else if (name == "search_singleton")
-            m_player.SetSearchSingleton(cmd.BoolArg(1));
+            m_player.SetSearchSingleton(cmd.Arg<bool>(1));
         else if (name == "use_parallel_solver")
-            m_useParallelSolver = cmd.BoolArg(1);
+            m_useParallelSolver = cmd.Arg<bool>(1);
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

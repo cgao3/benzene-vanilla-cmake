@@ -176,7 +176,7 @@ void BookCommands::CmdBookDumpPolarizedLeafs(HtpCommand& cmd)
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArgLessEqual(3);
-    float polarization = cmd.FloatArg(0);
+    float polarization = cmd.Arg<float>(0);
     std::string filename = cmd.Arg(1);
     StateSet ignoreSet;
     if (cmd.NuArg() == 3u)
@@ -243,7 +243,7 @@ void BookCommands::CmdBookSetValue(HtpCommand& cmd)
     else if (vstr == "l")
         value = IMMEDIATE_LOSS;
     else
-        value = cmd.FloatArg(0);
+        value = cmd.Arg<float>(0);
     HexBookNode node;
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     if (!m_book->Get(state, node))
@@ -270,9 +270,9 @@ void BookCommands::CmdBookParam(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "book_min_count")
-            m_bookCheck.SetMinCount(cmd.SizeTypeArg(1, 0));
+            m_bookCheck.SetMinCount(cmd.ArgMin<unsigned>(1, 0));
         else if (name == "book_count_weight")
-            m_bookCheck.SetCountWeight(cmd.FloatArg(1));
+            m_bookCheck.SetCountWeight(cmd.Arg<float>(1));
         else 
             throw HtpFailure() << "Unknown parameter: " << name;
     }

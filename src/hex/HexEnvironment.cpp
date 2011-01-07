@@ -94,21 +94,21 @@ void HexEnvironmentCommands::ParamICE(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "backup_opponent_dead")
-            ice.SetBackupOpponentDead(cmd.BoolArg(1));
+            ice.SetBackupOpponentDead(cmd.Arg<bool>(1));
         else if (name == "find_all_pattern_dominators")
-            ice.SetFindAllPatternDominators(cmd.BoolArg(1));
+            ice.SetFindAllPatternDominators(cmd.Arg<bool>(1));
         else if (name == "find_all_pattern_killers")
-            ice.SetFindAllPatternKillers(cmd.BoolArg(1));
+            ice.SetFindAllPatternKillers(cmd.Arg<bool>(1));
         else if (name == "find_permanently_inferior")
-            ice.SetFindPermanentlyInferior(cmd.BoolArg(1));
+            ice.SetFindPermanentlyInferior(cmd.Arg<bool>(1));
         else if (name == "find_presimplicial_pairs")
-            ice.SetFindPresimplicialPairs(cmd.BoolArg(1));
+            ice.SetFindPresimplicialPairs(cmd.Arg<bool>(1));
         else if (name == "find_three_sided_dead_regions")
-            ice.SetFindThreeSidedDeadRegions(cmd.BoolArg(1));
+            ice.SetFindThreeSidedDeadRegions(cmd.Arg<bool>(1));
         else if (name == "iterative_dead_regions")
-            ice.SetIterativeDeadRegions(cmd.BoolArg(1));
+            ice.SetIterativeDeadRegions(cmd.Arg<bool>(1));
         else if (name == "use_hand_coded_patterns")
-            ice.SetUseHandCodedPatterns(cmd.BoolArg(1));
+            ice.SetUseHandCodedPatterns(cmd.Arg<bool>(1));
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }
@@ -144,26 +144,26 @@ void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "abort_on_winning_connection")
-            param.abort_on_winning_connection = cmd.BoolArg(1);
+            param.abort_on_winning_connection = cmd.Arg<bool>(1);
         else if (name == "and_over_edge")
-            param.and_over_edge = cmd.BoolArg(1);
+            param.and_over_edge = cmd.Arg<bool>(1);
         else if (name == "use_greedy_union")
-            param.use_greedy_union = cmd.BoolArg(1);
+            param.use_greedy_union = cmd.Arg<bool>(1);
         else if (name == "use_patterns")
-            param.use_patterns = cmd.BoolArg(1);
+            param.use_patterns = cmd.Arg<bool>(1);
         else if (name == "use_non_edge_patterns")
-            param.use_non_edge_patterns = cmd.BoolArg(1);
+            param.use_non_edge_patterns = cmd.Arg<bool>(1);
         else if (name == "max_ors")
-            param.max_ors = cmd.IntArg(1);
+            param.max_ors = cmd.ArgMin<int>(1, 1);
         else if (name == "softlimit_full")
         {
-            int limit = cmd.IntArg(1, 0);
+            int limit = cmd.ArgMin<int>(1, 0);
             brd.Cons(BLACK).SetSoftLimit(VC::FULL, limit);
             brd.Cons(WHITE).SetSoftLimit(VC::FULL, limit);
         }
         else if (name == "softlimit_semi")
         {
-            int limit = cmd.IntArg(1, 0);
+            int limit = cmd.ArgMin<int>(1, 0);
             brd.Cons(BLACK).SetSoftLimit(VC::SEMI, limit);
             brd.Cons(WHITE).SetSoftLimit(VC::SEMI, limit);
         }
@@ -193,13 +193,13 @@ void HexEnvironmentCommands::ParamBoard(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
-            brd.SetBackupIceInfo(cmd.BoolArg(1));
+            brd.SetBackupIceInfo(cmd.Arg<bool>(1));
         else if (name == "use_decompositions")
-            brd.SetUseDecompositions(cmd.BoolArg(1));
+            brd.SetUseDecompositions(cmd.Arg<bool>(1));
         else if (name == "use_ice")
-            brd.SetUseICE(cmd.BoolArg(1));
+            brd.SetUseICE(cmd.Arg<bool>(1));
         else if (name == "use_vcs")
-            brd.SetUseVCs(cmd.BoolArg(1));
+            brd.SetUseVCs(cmd.Arg<bool>(1));
         else 
             throw HtpFailure() << "Unknown parameter: " << name;
     }

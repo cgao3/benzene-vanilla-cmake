@@ -66,13 +66,13 @@ void DfpnCommands::CmdParamSolverDB(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "use_flipped_states")
-            param.m_useFlippedStates = cmd.BoolArg(1);
+            param.m_useFlippedStates = cmd.Arg<bool>(1);
         else if (name == "use_proof_transpositions")
-            param.m_useProofTranspositions = cmd.BoolArg(1);
+            param.m_useProofTranspositions = cmd.Arg<bool>(1);
         else if (name == "max_stones")
-            param.m_maxStones = cmd.IntArg(1, 0);
+            param.m_maxStones = cmd.ArgMin<int>(1, 0);
         else if (name == "trans_stones")
-            param.m_transStones = cmd.IntArg(1, 0);
+            param.m_transStones = cmd.ArgMin<int>(1, 0);
         else
             throw HtpFailure() << "unknown parameter: " << name;
     }
@@ -100,28 +100,22 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "use_guifx")
-            m_solver.SetUseGuiFx(cmd.BoolArg(1));
+            m_solver.SetUseGuiFx(cmd.Arg<bool>(1));
         else if (name == "timelimit")
-            m_solver.SetTimelimit(cmd.FloatArg(1));
+            m_solver.SetTimelimit(cmd.ArgMin<float>(1, 0.0));
 	else if (name == "tt_bits")
 	{
-	    int bits = cmd.IntArg(1, 0);
+	    int bits = cmd.ArgMin<int>(1, 0);
 	    if (bits == 0)
 		m_tt.reset(0);
 	    else
 		m_tt.reset(new DfpnHashTable(bits));
 	}
         else if (name == "widening_base")
-        {
-            int value = cmd.IntArg(1, 0);
-            if (0 < value)
-                m_solver.SetWideningBase(value);
-            else
-                throw GtpFailure() << "widening_base must be positive.";
-        }
+            m_solver.SetWideningBase(cmd.ArgMin<int>(1, 1));
         else if (name == "widening_factor")
         {
-            float value = cmd.FloatArg(1);
+            float value = cmd.Arg<float>(1);
             if (0.0f < value && value <= 1.0f)
                 m_solver.SetWideningFactor(value);
             else
@@ -144,9 +138,9 @@ void DfpnCommands::CmdSolveState(HtpCommand& cmd)
     DfpnBoundType maxPhi = DfpnBounds::MAX_WORK;
     DfpnBoundType maxDelta = DfpnBounds::MAX_WORK;
     if (cmd.NuArg() >= 2)
-        maxPhi = cmd.IntArg(1, 0);
+        maxPhi = cmd.ArgMinMax<DfpnBoundType>(1, 0, DfpnBounds::MAX_WORK);
     if (cmd.NuArg() >= 3)
-        maxDelta = cmd.IntArg(2, 0);
+        maxDelta = cmd.ArgMinMax<DfpnBoundType>(2, 0, DfpnBounds::MAX_WORK);
     DfpnBounds maxBounds(maxPhi, maxDelta);
     PointSequence pv;
     HexBoard& brd = m_env.SyncBoard(m_game.Board());

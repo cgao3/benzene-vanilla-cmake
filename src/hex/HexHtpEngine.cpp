@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexHtpEngine.cpp
- */
+/** @file HexHtpEngine.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -158,10 +157,10 @@ void HexHtpEngine::CmdNewGame(HtpCommand& cmd)
     cmd.CheckNuArgLessEqual(2);
     if (cmd.NuArg() == 0)
         throw HtpFailure() << "Must specify board dimensions!";
-    int width = cmd.IntArg(0, 1, MAX_WIDTH);
+    int width = cmd.ArgMinMax<int>(0, 1, MAX_WIDTH);
     int height = width;
     if (cmd.NuArg() == 2)
-        height = cmd.IntArg(1, 1, MAX_HEIGHT);
+        height = cmd.ArgMinMax<int>(1, 1, MAX_HEIGHT);
     NewGame(width, height);
 }
 
@@ -257,7 +256,7 @@ void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
     else 
     {
         HexColor color = HtpUtil::ColorArg(cmd, 0);
-        m_game.SetTimeRemaining(color, cmd.IntArg(1));
+        m_game.SetTimeRemaining(color, cmd.ArgMin<float>(1, 0.0f));
     }
 }
 
@@ -314,7 +313,7 @@ void HexHtpEngine::CmdLoadSgf(HtpCommand& cmd)
     std::string filename = cmd.Arg(0);
     int movenumber = 1024;
     if (cmd.NuArg() == 2) 
-        movenumber = cmd.IntArg(1, 0);
+        movenumber = cmd.ArgMin<int>(1, 0);
 
     std::ifstream file(filename.c_str());
     if (!file) {
@@ -382,12 +381,12 @@ void HexHtpEngine::CmdParamGame(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "allow_swap")
-            m_game.SetAllowSwap(cmd.BoolArg(1));
+            m_game.SetAllowSwap(cmd.Arg<bool>(1));
         else if (name == "game_time")
         {
             if (!m_game.History().empty())
                 throw HtpFailure("Cannot set game time if game started!");
-            m_game.SetGameTime(cmd.FloatArg(1));
+            m_game.SetGameTime(cmd.ArgMin<float>(1, 0.0f));
         }
     }
     else

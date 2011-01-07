@@ -107,17 +107,17 @@ void BookBuilderCommands<PLAYER>::CmdParamBookBuilder(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "alpha")
-            m_bookBuilder.SetAlpha(cmd.FloatArg(1));
+            m_bookBuilder.SetAlpha(cmd.ArgMin<float>(1, 0.0));
         else if (name == "expand_width")
-            m_bookBuilder.SetExpandWidth(cmd.SizeTypeArg(1, 1));
+            m_bookBuilder.SetExpandWidth(cmd.ArgMin<std::size_t>(1, 1));
         else if (name == "expand_threshold")
-            m_bookBuilder.SetExpandThreshold(cmd.SizeTypeArg(1, 1));
+            m_bookBuilder.SetExpandThreshold(cmd.ArgMin<std::size_t>(1, 1));
         else if (name == "num_threads")
-            m_bookBuilder.SetNumThreads(cmd.SizeTypeArg(1));
+            m_bookBuilder.SetNumThreads(cmd.ArgMin<std::size_t>(1, 1));
         else if (name == "use_ice")
-            m_bookBuilder.SetUseICE(cmd.BoolArg(1));
+            m_bookBuilder.SetUseICE(cmd.Arg<bool>(1));
         else if (name == "use_widening")
-            m_bookBuilder.SetUseWidening(cmd.BoolArg(1));
+            m_bookBuilder.SetUseWidening(cmd.Arg<bool>(1));
         else
             throw HtpFailure() << "unknown parameter: " << name;
     }
@@ -134,7 +134,7 @@ void BookBuilderCommands<PLAYER>::CmdBookExpand(HtpCommand& cmd)
     if (m_book.get() == 0) 
         throw HtpFailure() << "No open book.";
     cmd.CheckNuArg(1);
-    int iterations = cmd.IntArg(0, 1);
+    int iterations = cmd.ArgMin<int>(0, 1);
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     m_bookBuilder.SetState(*m_book, state);

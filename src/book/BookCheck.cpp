@@ -12,7 +12,7 @@ using namespace benzene;
 BookCheck::BookCheck(boost::scoped_ptr<Book>& book)
     : m_book(book),
       m_minCount(1),
-      m_countWeight(0.02)
+      m_countWeight(0.02f)
 {
 }
 

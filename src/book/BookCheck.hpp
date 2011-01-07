@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file BookCheck.hpp
- */
+/** @file BookCheck.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef BOOKCHECK_HPP
@@ -29,7 +28,7 @@ public:
     unsigned MinCount() const;
 
     /** See MinCount() */
-    void SetMinCount(int count);
+    void SetMinCount(unsigned count);
 
     /** Weight used to choose best move. */
     float CountWeight() const;
@@ -52,7 +51,7 @@ inline unsigned BookCheck::MinCount() const
     return m_minCount;
 }
 
-inline void BookCheck::SetMinCount(int count)
+inline void BookCheck::SetMinCount(unsigned count)
 {
     m_minCount = count;
 }
