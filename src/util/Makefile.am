@@ -18,7 +18,6 @@ Digraph.hpp \
 HashDB.hpp \
 Hash.hpp \
 HashMap.hpp \
-HashSet.hpp \
 LinkedList.hpp \
 Logger.hpp \
 lssolve.h \
