@@ -1,12 +1,11 @@
 //----------------------------------------------------------------------------
-/** @file HexAbSearch.cpp
- */
+/** @file HexAbSearch.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
+#include "SgTimer.h"
 
 #include "Hex.hpp"
-#include "Time.hpp"
 #include "HexAbSearch.hpp"
 #include "HexBoard.hpp"
 #include "EndgameUtils.hpp"
@@ -100,7 +99,7 @@ HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
 {
     UNUSED(timelimit);
 
-    double start = Time::Get();
+    SgTimer totalTimer;
 
     m_brd = &brd;
     m_toplay = color;
@@ -117,9 +116,9 @@ HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
     for (std::size_t d=0; !m_aborted && d < depths_to_search.size(); ++d) 
     {
         int depth = depths_to_search[d];
-        LogInfo() << "---- Depth " << depth << " ----" << '\n';
+        LogInfo() << "---- Depth " << depth << " ----\n";
 
-        double beganAt = Time::Get();
+        SgTimer levelTimer;
 
         m_eval.clear();
         m_current_depth = 0;
@@ -129,7 +128,7 @@ HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
         double thisValue = SearchState(plywidth, depth, IMMEDIATE_LOSS, 
                                        IMMEDIATE_WIN, thisPV);
 
-        double finishedAt = Time::Get();
+        levelTimer.Stop();
 
         // copy result only if search was not aborted
         if (!m_aborted)
@@ -141,22 +140,18 @@ HexEval HexAbSearch::Search(HexBoard& brd, HexColor color,
             m_statistics.value = thisValue;
             m_statistics.pv = thisPV;
 
-            LogInfo() 
-                     << DumpPV(thisValue, thisPV) << '\n'
-                     << "Time: " << std::fixed << std::setprecision(4) 
-                     << (finishedAt - beganAt) << '\n';
+            LogInfo() << DumpPV(thisValue, thisPV) << '\n'
+                      << "Time: " << std::fixed << std::setprecision(4) 
+                      << levelTimer.GetTime() << '\n';
         }
         else
-        {
-            LogInfo() << "Throwing away current iteration..."
-                     << '\n';
-        }
+            LogInfo() << "Throwing away current iteration...\n";
     }
     
     OnSearchComplete();
 
-    double end = Time::Get();
-    m_statistics.elapsed_time = end - start;
+    totalTimer.Stop();
+    m_statistics.elapsed_time = totalTimer.GetTime();
     
     // Copy the root evaluations back into m_eval; these will be printed
     // when DumpStats() is called.
@@ -182,11 +177,10 @@ bool HexAbSearch::CheckAbort()
 {
     if (SgUserAbort())
     {
-        LogInfo() << "HexAbSearch::CheckAbort(): Abort flag!" << '\n';
+        LogInfo() << "HexAbSearch::CheckAbort(): Abort flag!\n";
         m_aborted = true;
         return true;
     }
-
     // @todo CHECK TIMELIMIT
     return false;
 }
