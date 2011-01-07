@@ -135,13 +135,13 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "pattern_check_percent")
-            config.pattern_check_percent = cmd.IntArg(1, 0, 100);
+            config.pattern_check_percent = cmd.ArgMinMax<int>(1, 0, 100);
         else if (name == "pattern_heuristic")
-            config.patternHeuristic = cmd.BoolArg(1);
+            config.patternHeuristic = cmd.Arg<bool>(1);
         else if (name == "response_heuristic")
-            config.responseHeuristic = cmd.BoolArg(1);
+            config.responseHeuristic = cmd.Arg<bool>(1);
         else if (name == "response_threshold")
-            config.response_threshold = cmd.SizeTypeArg(1, 0);
+            config.response_threshold = cmd.ArgMin<std::size_t>(1, 0);
         else
             throw HtpFailure("Unknown option!");
     }
@@ -215,60 +215,61 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
     {
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
-            m_player.SetBackupIceInfo(cmd.BoolArg(1));
+            m_player.SetBackupIceInfo(cmd.Arg<bool>(1));
         else if (name == "lock_free")
-            search.SetLockFree(cmd.BoolArg(1));
+            search.SetLockFree(cmd.Arg<bool>(1));
         else if (name == "keep_games")
-            search.SetKeepGames(cmd.BoolArg(1));
+            search.SetKeepGames(cmd.Arg<bool>(1));
         else if (name == "perform_pre_search")
-            m_player.SetPerformPreSearch(cmd.BoolArg(1));
+            m_player.SetPerformPreSearch(cmd.Arg<bool>(1));
         else if (name == "ponder")
-            m_player.SetPonder(cmd.BoolArg(1));
+            m_player.SetPonder(cmd.Arg<bool>(1));
         else if (name == "use_livegfx")
-            search.SetLiveGfx(cmd.BoolArg(1));
+            search.SetLiveGfx(cmd.Arg<bool>(1));
         else if (name == "use_rave")
-            search.SetRave(cmd.BoolArg(1));
+            search.SetRave(cmd.Arg<bool>(1));
         else if (name == "randomize_rave_frequency")
-            search.SetRandomizeRaveFrequency(cmd.IntArg(1, 0));
+            search.SetRandomizeRaveFrequency(cmd.ArgMin<int>(1, 0));
         else if (name == "reuse_subtree")
-           m_player.SetReuseSubtree(cmd.BoolArg(1));
+           m_player.SetReuseSubtree(cmd.Arg<bool>(1));
         else if (name == "bias_term")
-            search.SetBiasTermConstant(cmd.FloatArg(1));
+            search.SetBiasTermConstant(cmd.Arg<float>(1));
         else if (name == "expand_threshold")
-            search.SetExpandThreshold(cmd.IntArg(1, 0));
+            search.SetExpandThreshold(cmd.ArgMin<int>(1, 0));
         else if (name == "knowledge_threshold")
             search.SetKnowledgeThreshold
                 (KnowledgeThresholdFromString(cmd.Arg(1)));
         else if (name == "livegfx_interval")
-            search.SetLiveGfxInterval(cmd.IntArg(1, 0));
+            search.SetLiveGfxInterval(cmd.ArgMin<int>(1, 1));
         else if (name == "max_games")
-            m_player.SetMaxGames(cmd.IntArg(1, 0));
+            m_player.SetMaxGames(cmd.ArgMin<int>(1, 1));
         else if (name == "max_memory")
-            search.SetMaxNodes(cmd.SizeTypeArg(1, 1) / sizeof(SgUctNode) / 2);
+            search.SetMaxNodes(cmd.ArgMin<std::size_t>(1, 1) 
+                               / sizeof(SgUctNode) / 2);
         else if (name == "max_time")
-            m_player.SetMaxTime(cmd.FloatArg(1));
+            m_player.SetMaxTime(cmd.Arg<float>(1));
         else if (name == "max_nodes")
-            search.SetMaxNodes(cmd.SizeTypeArg(1, 1));
+            search.SetMaxNodes(cmd.ArgMin<std::size_t>(1, 1));
         else if (name == "num_threads")
-            search.SetNumberThreads(cmd.IntArg(1, 0));
+            search.SetNumberThreads(cmd.ArgMin<int>(1, 1));
         else if (name == "playout_update_radius")
-            search.SetPlayoutUpdateRadius(cmd.IntArg(1, 0));
+            search.SetPlayoutUpdateRadius(cmd.ArgMin<int>(1, 0));
         else if (name == "rave_weight_final")
-            search.SetRaveWeightFinal(cmd.IntArg(1, 0));
+            search.SetRaveWeightFinal(cmd.ArgMin<float>(1, 0));
         else if (name == "rave_weight_initial")
-            search.SetRaveWeightInitial(cmd.IntArg(1, 0));
+            search.SetRaveWeightInitial(cmd.ArgMin<float>(1, 0));
         else if (name == "weight_rave_updates")
-            search.SetWeightRaveUpdates(cmd.BoolArg(1));
+            search.SetWeightRaveUpdates(cmd.Arg<bool>(1));
         else if (name == "tree_update_radius")
-            search.SetTreeUpdateRadius(cmd.IntArg(1, 0));
+            search.SetTreeUpdateRadius(cmd.ArgMin<int>(1, 0));
         else if (name == "search_singleton")
-            m_player.SetSearchSingleton(cmd.BoolArg(1));
+            m_player.SetSearchSingleton(cmd.Arg<bool>(1));
         else if (name == "use_parallel_solver")
-            m_useParallelSolver = cmd.BoolArg(1);
+            m_useParallelSolver = cmd.Arg<bool>(1);
         else if (name == "use_time_management")
-            m_player.SetUseTimeManagement(cmd.BoolArg(1));
+            m_player.SetUseTimeManagement(cmd.Arg<bool>(1));
         else if (name == "virtual_loss")
-            search.SetVirtualLoss(cmd.BoolArg(1));
+            search.SetVirtualLoss(cmd.Arg<bool>(1));
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }
@@ -291,7 +292,7 @@ void MoHexEngine::SaveTree(HtpCommand& cmd)
     if (!file)
         throw HtpFailure() << "Could not open '" << filename << "'";
     if (cmd.NuArg() == 2)
-        maxDepth = cmd.IntArg(1, 0);
+        maxDepth = cmd.ArgMin<int>(1, 0);
     search.SaveTree(file, maxDepth);
 }
 
@@ -312,13 +313,13 @@ void MoHexEngine::Values(HtpCommand& cmd)
     {
         const SgUctNode& child = *it;
         SgPoint p = child.Move();
-        std::size_t count = child.MoveCount();
-        float mean = 0.0;
+        SgUctValue count = child.MoveCount();
+        SgUctValue mean = 0.0;
         if (count > 0)
             mean = child.Mean();
         cmd << ' ' << static_cast<HexPoint>(p)
             << ' ' << std::fixed << std::setprecision(3) << mean
-            << '@' << count;
+            << '@' << static_cast<std::size_t>(count);
     }
 }
 
@@ -347,7 +348,7 @@ void MoHexEngine::Bounds(HtpCommand& cmd)
         SgPoint p = child.Move();
         if (p == SG_PASS || ! child.HasRaveValue())
             continue;
-        float bound = search.GetBound(search.Rave(), tree.Root(), child);
+        SgUctValue bound = search.GetBound(search.Rave(), tree.Root(), child);
         cmd << ' ' << static_cast<HexPoint>(p) 
             << ' ' << std::fixed << std::setprecision(3) << bound;
     }
