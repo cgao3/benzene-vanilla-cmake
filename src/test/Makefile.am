@@ -10,7 +10,6 @@ benzene_unittest_SOURCES = \
 ../util/test/LinkedListTest.cpp \
 ../util/test/LoggerTest.cpp \
 ../util/test/SortedSequenceTest.cpp \
-../util/test/TimeTest.cpp \
 ../util/test/UnionFindTest.cpp \
 ../hex/test/BitsetIteratorTest.cpp \
 ../hex/test/BoardIteratorTest.cpp \

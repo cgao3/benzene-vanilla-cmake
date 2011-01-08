@@ -5,8 +5,7 @@ BenzeneException.cpp \
 Bitset.cpp \
 Logger.cpp \
 lssolve.cpp \
-Misc.cpp \
-Time.cpp
+Misc.cpp
 
 noinst_HEADERS = \
 BenzeneBitset.hpp \
@@ -25,7 +24,6 @@ mat.hpp \
 Misc.hpp \
 SafeBool.hpp \
 SortedSequence.hpp \
-Time.hpp \
 Types.hpp \
 UnionFind.hpp \
 vec.hpp

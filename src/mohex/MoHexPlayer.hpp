@@ -124,7 +124,7 @@ protected:
     HexPoint LastMoveFromHistory(const MoveSequence& history);
 
     bool PerformPreSearch(HexBoard& brd, HexColor color, bitset_t& consider, 
-                          float maxTime, PointSequence& winningSequence);
+                          double maxTime, PointSequence& winningSequence);
 
     void PrintParameters(HexColor color, double remaining);
     

@@ -14,15 +14,12 @@
 #include "GraphUtils.hpp"
 #include "Resistance.hpp"
 #include "DfsSolver.hpp"
-#include "Time.hpp"
 #include "VCUtils.hpp"
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
 #include "EndgameUtils.hpp"
 #include "ProofUtil.hpp"
 
-#include <cmath>
-#include <algorithm>
 #include <boost/scoped_ptr.hpp>
 
 using namespace benzene;
@@ -875,7 +872,7 @@ void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
        << "States/sec      " << (solution.stats.explored_states 
                                  / total_time) << '\n'
        << "Played/sec      " << (m_statistics.played/total_time) << '\n'
-       << "Total Time      " << Time::Formatted(total_time) << '\n'
+       << "Total Time      " << total_time << "s\n"
        << "Moves to W/L    " << solution.m_numMoves << " moves\n"
        << "PV              " << HexPointUtil::ToString(solution.pv) << '\n';
     if (m_positions->Database()) 

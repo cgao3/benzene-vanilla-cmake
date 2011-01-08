@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file MoHexPlayer.cpp
- */
+/** @file MoHexPlayer.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -18,7 +17,6 @@
 #include "EndgameUtils.hpp"
 #include "Resistance.hpp"
 #include "SequenceHash.hpp"
-#include "Time.hpp"
 #include "VCUtils.hpp"
 
 using namespace benzene;
@@ -125,8 +123,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
 	return winningSequence[0];
     }
     timer.Stop();
-    LogInfo() << "Time for PreSearch: " 
-              << Time::Formatted(timer.GetTime()) << '\n';
+    LogInfo() << "Time for PreSearch: " << timer.GetTime() << "s\n";
 
     maxTime -= timer.GetTime();
     maxTime = std::max(1.0, maxTime);
@@ -172,14 +169,13 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     os << m_shared_policy.DumpStatistics() << '\n';
     os << brd.DumpPatternCheckStats() << '\n';
 #endif
-    os << "Elapsed Time   " << Time::Formatted(totalElapsed.GetTime()) << '\n';
+    os << "Elapsed Time   " << totalElapsed.GetTime() << "s\n";
     m_search.WriteStatistics(os);
     os << "Score          " << std::setprecision(2) << score << "\n"
        << "Sequence      ";
     for (std::size_t i = 0; i < sequence.size(); i++)
         os << " " << HexUctUtil::MoveString(sequence[i]);
     os << '\n';
-    
     LogInfo() << os.str() << '\n';
 
 #if 0
@@ -234,7 +230,7 @@ HexPoint MoHexPlayer::LastMoveFromHistory(const MoveSequence& history)
     possible?
 */
 bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color, 
-                                   bitset_t& consider, float maxTime, 
+                                   bitset_t& consider, double maxTime, 
                                    PointSequence& winningSequence)
 {
    
@@ -428,7 +424,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
             moves.push_back(static_cast<SgMove>(*it));
         tree.SetChildren(0, tree.Root(), moves);
 
-        float reuse = static_cast<float>(newTreeNodes) / oldTreeNodes;
+        float reuse = float(newTreeNodes) / float(oldTreeNodes);
         int reusePercent = static_cast<int>(100 * reuse);
         LogInfo() << "MoHexPlayer: Reusing " << newTreeNodes
                   << " nodes (" << reusePercent << "%)\n";
@@ -436,8 +432,8 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         MoveSequence moveSequence = newSequence;
         CopyKnowledgeData(tree, tree.Root(), newData.root_to_play,
                           moveSequence, oldData, newData);
-        float kReuse = static_cast<float>(newData.stones.count())
-            / oldData.stones.count();
+        float kReuse = float(newData.stones.count()) 
+            / float(oldData.stones.count());
         int kReusePercent = static_cast<int>(100 * kReuse);
         LogInfo() << "MoHexPlayer: Reusing " 
                   << newData.stones.count() << " knowledge states ("

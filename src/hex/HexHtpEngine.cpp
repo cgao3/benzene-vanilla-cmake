@@ -3,15 +3,6 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
-
-#include <cmath>
-#include <iomanip>
-#include <sstream>
-#include <limits>
-#include <time.h>
-#include <signal.h>
-#include <iostream>
-
 #include "SgGameReader.h"
 #include "SgNode.h"
 #include "SgTimer.h"
@@ -22,7 +13,6 @@
 #include "HexSgUtil.hpp"
 #include "HexProgram.hpp"
 #include "HexHtpEngine.hpp"
-#include "Time.hpp"
 
 using namespace benzene;
 
@@ -244,14 +234,13 @@ void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
     cmd.CheckNuArgLessEqual(2);
     if (cmd.NuArg() == 0) 
     {
-        cmd << "Black: " << Time::Formatted(m_game.TimeRemaining(BLACK)) 
-            << ", "
-            << "White: " << Time::Formatted(m_game.TimeRemaining(WHITE));
+        cmd << "Black: " << m_game.TimeRemaining(BLACK) << ", " 
+            << "White: " << m_game.TimeRemaining(WHITE);
     }
     else if (cmd.NuArg() == 1) 
     {
         HexColor color = HtpUtil::ColorArg(cmd, 0);
-        cmd << Time::Formatted(m_game.TimeRemaining(color));
+        cmd <<m_game.TimeRemaining(color);
     } 
     else 
     {
