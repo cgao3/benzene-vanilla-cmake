@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file DfsSolver.hpp
- */
+/** @file DfsSolver.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef DFSSOLVER_H
@@ -46,45 +45,45 @@ typedef SolverDB<DfsHashTable, DfsDB, DfsData> DfsStates;
 struct DfsBranchStatistics
 {
     /** Total states in tree if no DB and no TT. */
-    unsigned total_states;
+    std::size_t total_states;
 
     /** States actually visited; includes leafs, tt and db hits. */
-    unsigned explored_states;
+    std::size_t explored_states;
 
     /** Expanded nodes; non leaf, non tt and db hit states. */
-    unsigned expanded_states;
+    std::size_t expanded_states;
 
     /** Number of expanded nodes assuming perfect move ordering 
         (assuming the same set of winning moves). */
-    unsigned minimal_explored;
+    std::size_t minimal_explored;
         
     /** Decompositions found; if black is to move, it must be a
         decomposition for white. */
-    unsigned decompositions;
+    std::size_t decompositions;
 
     /** Decompositions where the player to move won. */
-    unsigned decompositions_won;
+    std::size_t decompositions_won;
     
     /** Total number of moves to consider in expanded states. 
         Includes moves that are later pruned (by mustplay or
         from skipping due to finding a win). */
-    unsigned moves_to_consider;
+    std::size_t moves_to_consider;
     
     /** Number of expanded states that had winning moves. */
-    unsigned winning_expanded;
+    std::size_t winning_expanded;
     
     /** Number of branches tried before win was found. */
-    unsigned branches_to_win;
+    std::size_t branches_to_win;
 
     /** States pruned by mustplay pruning. */
-    unsigned pruned;
+    std::size_t pruned;
     
     /** Number of proofs that were successfully shrunk. */
-    unsigned shrunk;
+    std::size_t shrunk;
     
     /** Total number of cells removed in all successful proof
         shrinkings. */
-    unsigned cells_removed;
+    std::size_t cells_removed;
     
     DfsBranchStatistics();
 
@@ -129,7 +128,7 @@ inline void DfsBranchStatistics::operator+=(const DfsBranchStatistics& o)
 struct DfsHistogram
 {
     /** Map of # of stones to a counter. */
-    typedef std::map<int, std::size_t> StatsMap;
+    typedef std::map<std::size_t, std::size_t> StatsMap;
 
     /** Terminal states encountered at each depth. */
     StatsMap terminal;
@@ -263,10 +262,10 @@ public:
     void SetProgressDepth(int depth);
 
     /** Depth at which the current state is dumped to the log. */
-    int UpdateDepth() const;
+    std::size_t UpdateDepth() const;
 
     /** See UpdateDepth() */
-    void SetUpdateDepth(int depth);
+    void SetUpdateDepth(std::size_t depth);
 
     /** Whether ICE is used to provably shrink proofs. */
     bool ShrinkProofs() const;
@@ -311,7 +310,7 @@ private:
     struct GlobalStatistics
     {
         /** Times HexBoard::PlayMove() was called. */
-        unsigned played;
+        std::size_t played;
 
         GlobalStatistics()
             : played(0)
@@ -340,7 +339,7 @@ private:
     bool m_use_decompositions;
 
     /** See UpdateDepth() */
-    int m_update_depth;
+    std::size_t m_update_depth;
 
     /** See ShrinkProofs() */
     bool m_shrink_proofs;
@@ -354,7 +353,7 @@ private:
     /** See MoveOrdering() */
     int m_move_ordering;
 
-    unsigned m_last_histogram_dump;
+    std::size_t m_last_histogram_dump;
 
     int m_depthLimit;
     
@@ -403,12 +402,12 @@ inline void DfsSolver::SetUseDecompositions(bool enable)
     m_use_decompositions = enable;
 }
 
-inline int DfsSolver::UpdateDepth() const
+inline std::size_t DfsSolver::UpdateDepth() const
 {
     return m_update_depth;
 }
 
-inline void DfsSolver::SetUpdateDepth(int depth)
+inline void DfsSolver::SetUpdateDepth(std::size_t depth)
 {
     m_update_depth = depth;
 }

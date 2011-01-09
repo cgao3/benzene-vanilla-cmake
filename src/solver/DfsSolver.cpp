@@ -150,11 +150,10 @@ bool DfsSolver::CheckAbort()
 }
 
 /** Returns true if node is terminal. Fills in data if terminal.
-    Data's bestmove field is not specified here.
-*/
+    Data's bestmove field is not specified here.*/
 bool DfsSolver::HandleTerminalNode(DfsData& data, bitset_t& proof) const
 {
-    int numstones = m_state->Position().NumStones();
+    std::size_t numstones = m_state->Position().NumStones();
     if (EndgameUtils::IsWonGame(*m_workBrd, m_state->ToPlay(), proof)) 
     {
         data.m_win = true;
@@ -323,7 +322,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
                                    DfsSolutionSet& solution)
 {
     HexColor color = m_state->ToPlay();
-    int numstones = m_state->Position().NumStones();
+    std::size_t numStones = m_state->Position().NumStones();
     // Set initial proof for this state to be the union of all
     // opponent winning semis.  We need to do this because we use the
     // semis to restrict the search (ie, the mustplay).
@@ -336,8 +335,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
     bitset_t mustplay = EndgameUtils::MovesToConsider(*m_workBrd, color);
     BenzeneAssert(mustplay.any());
 
-    int depth = variation.size();
-    if (m_use_guifx && depth == m_update_depth)
+    if (m_use_guifx && variation.size() == m_update_depth)
     {
         std::ostringstream os;
         os << "gogui-gfx:\n";
@@ -358,7 +356,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
                                                     mustplay, inf.All());
         os << '\n';
         os << "TEXT";
-        for (int i = 0; i < depth; ++i) 
+        for (std::size_t i = 0; i < variation.size(); ++i) 
             os << ' ' << m_completed[i].first << '/' << m_completed[i].second;
         os << '\n';
         os << '\n';
@@ -372,7 +370,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
     solution.stats.minimal_explored = 1;
     solution.stats.expanded_states = 1;
     solution.stats.moves_to_consider = mustplay.count();
-    m_histogram.states[numstones]++;
+    m_histogram.states[numStones]++;
 
     // Order moves in the mustplay.
     //
@@ -397,7 +395,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
          ++index) 
     {
         HexPoint cell = moves[index].point();
-        m_completed[depth] = std::make_pair(index, moves.size());
+        m_completed[variation.size()] = std::make_pair(index, moves.size());
         if (!mustplay.test(cell)) 
         {
             solution.stats.pruned++;
@@ -423,12 +421,12 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
             solution.stats.minimal_explored = child.stats.minimal_explored + 1;
             solution.stats.branches_to_win += index + 1;
 
-            m_histogram.winning[numstones]++;
-            m_histogram.size_of_winning_states[numstones] 
+            m_histogram.winning[numStones]++;
+            m_histogram.size_of_winning_states[numStones] 
                 += child.stats.explored_states;
-            m_histogram.branches[numstones] += index + 1;
-            m_histogram.states_under_losing[numstones] += states_under_losing;
-            m_histogram.mustplay[numstones] += original_mustplay.count();
+            m_histogram.branches[numStones] += index + 1;
+            m_histogram.states_under_losing[numStones] += states_under_losing;
+            m_histogram.mustplay[numStones] += original_mustplay.count();
 
 	    BenzeneAssert(solution.m_numMoves != -1);	    
         } 
@@ -440,7 +438,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
             solution.proof |= child.proof;
             states_under_losing += child.stats.explored_states;
 
-            m_histogram.size_of_losing_states[numstones] 
+            m_histogram.size_of_losing_states[numStones] 
                 += child.stats.explored_states;
 
             if (child.m_numMoves + 1 > solution.m_numMoves) 
@@ -530,8 +528,8 @@ void DfsSolver::HandleProof(const PointSequence& variation,
     if (solution.pv.empty())
         solution.pv.push_back(INVALID_POINT);
 
-    StoreState(DfsData(winning_state, solution.stats.total_states, 
-                       solution.m_numMoves, solution.pv[0]), 
+    StoreState(DfsData(winning_state, int(solution.stats.total_states), 
+                       int(solution.m_numMoves), solution.pv[0]), 
                solution.proof);
 }
 
@@ -716,7 +714,7 @@ bool DfsSolver::OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution,
                     if (m_workBrd->Cons(color).Exists(edge1, edge2, VC::SEMI))
                         winning_semi_exists = true;
                     bitset_t mp = VCUtils::GetMustplay(*m_workBrd, other);
-                    mustplay_size = mp.count();
+                    mustplay_size = static_cast<double>(mp.count());
                 } 
                 
                 UndoMove(*it);
@@ -815,36 +813,39 @@ std::string DfsHistogram::Write()
         if (!states[p] && !terminal[p]) 
             continue;
         double moves_to_find_winning = winning[p] 
-            ? (double)branches[p] / winning[p] : 0;
+            ? double(branches[p]) / double(winning[p]) : 0;
         double avg_states_under_losing = (branches[p] - winning[p])
-            ?((double)states_under_losing[p] / (branches[p] - winning[p])):0;
+            ?(double(states_under_losing[p]) 
+              / double(branches[p] - winning[p])):0;
         os << std::setw(3) << p << ":"
            << std::setw(12) << terminal[p] 
            << std::setw(12) << states[p]
            << std::setw(12) << winning[p]
            << std::setw(12) << std::fixed << std::setprecision(3) 
-           << ((states[p])?((double)winning[p]*100.0/states[p]):0)
-           << std::setw(12) << std::fixed << std::setprecision(1) 
-           << ((winning[p]) 
-               ? ((double)size_of_winning_states[p] / winning[p])
+           << (states[p] 
+               ? double(winning[p]) * 100.0 / double(states[p])
                : 0)
            << std::setw(12) << std::fixed << std::setprecision(1) 
-           << ((states[p] - winning[p]) 
-               ? ((double)(size_of_losing_states[p] 
-                           / (states[p] - winning[p])))
-               :0)
+           << (winning[p]
+               ? double(size_of_winning_states[p]) / double(winning[p])
+               : 0)
+           << std::setw(12) << std::fixed << std::setprecision(1) 
+           << (states[p] - winning[p] 
+               ? double(size_of_losing_states[p]) 
+                 / double(states[p] - winning[p])
+               : 0)
            << std::setw(12) << std::fixed << std::setprecision(4)
            << moves_to_find_winning
            << std::setw(12) << std::fixed << std::setprecision(2)
-           << ((winning[p]) ? ((double)mustplay[p] / winning[p]) : 0)
+           << (winning[p] ? double(mustplay[p]) / double(winning[p]) : 0)
            << std::setw(12) << std::fixed << std::setprecision(1)
            << avg_states_under_losing
            << std::setw(12) << std::fixed << std::setprecision(1)
-           << fabs((moves_to_find_winning - 1.0) 
-                   * avg_states_under_losing * winning[p])
+           << fabs((double(moves_to_find_winning) - 1.0) 
+                   * double(avg_states_under_losing) * double(winning[p]))
            << std::setw(12) << tthits[p]
            << std::setw(12) << std::fixed << std::setprecision(3)
-           << ((states[p]) ? ((double)tthits[p] * 100.0 / states[p]) : 0)
+           << (states[p] ? double(tthits[p]) * 100.0 / double(states[p]) : 0)
            << '\n';
     }
     return os.str();
@@ -864,15 +865,19 @@ void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
        << "Decompositions  " << solution.stats.decompositions << '\n'
        << "Decomps won     " << solution.stats.decompositions_won << '\n'
        << "Shrunk Proofs   " << solution.stats.shrunk << '\n'
-       << "Avg. Shrink     " << ((double)solution.stats.cells_removed 
-                                 / solution.stats.shrunk) << '\n'
-       << "Branch Factor   " << ((double)solution.stats.moves_to_consider
-                                 / solution.stats.expanded_states) << '\n'
-       << "To Find Win     " << ((double)solution.stats.branches_to_win
-                                  / solution.stats.winning_expanded) << '\n'
-       << "States/sec      " << (solution.stats.explored_states 
-                                 / total_time) << '\n'
-       << "Played/sec      " << (m_statistics.played/total_time) << '\n'
+       << "Avg. Shrink     " 
+       << (double(solution.stats.cells_removed)
+           / double(solution.stats.shrunk)) << '\n'
+       << "Branch Factor   " 
+       << (double(solution.stats.moves_to_consider)
+           / double(solution.stats.expanded_states)) << '\n'
+       << "To Find Win     " 
+       << (double(solution.stats.branches_to_win)
+           / double(solution.stats.winning_expanded)) << '\n'
+       << "States/sec      " 
+       << (double(solution.stats.explored_states) / total_time) << '\n'
+       << "Played/sec      " << 
+        (double(m_statistics.played) / total_time) << '\n'
        << "Total Time      " << total_time << "s\n"
        << "Moves to W/L    " << solution.m_numMoves << " moves\n"
        << "PV              " << HexPointUtil::ToString(solution.pv) << '\n';

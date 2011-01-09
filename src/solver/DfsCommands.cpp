@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file DfsCommands.cpp
- */
+/** @file DfsCommands.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -123,7 +122,7 @@ void DfsCommands::CmdParamSolver(HtpCommand& cmd)
 		m_tt.reset(new DfsHashTable(bits));
 	}
         else if (name == "update_depth")
-            m_solver.SetUpdateDepth(cmd.ArgMin<int>(1, 0));
+            m_solver.SetUpdateDepth(cmd.Arg<std::size_t>(1));
         else
             throw HtpFailure() << "unknown parameter: " << name;
     }
