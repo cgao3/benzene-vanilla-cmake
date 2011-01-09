@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file Resistance.cpp */
 //----------------------------------------------------------------------------
 
 #ifndef RESISTANCE_HPP
@@ -91,10 +90,6 @@ public:
 
     //---------------------------------------------------------------------- 
 
-    bool SimulateAndOverEdge() const;
-
-    void SetSimulateAndOverEdge(bool enable);
-
     /** Computes the evaluation for the given boardstate; uses
         ResistanceUtil::AddAdjacencies() to compute the
         conductance graphs for this board. */
@@ -136,7 +131,6 @@ public:
     HexEval Score(HexPoint cell) const;
 
 private:
-    
     /** Compute the evaluation for a single color. */
     void ComputeScores(HexColor color, const Groups& brd,
                        const AdjacencyGraph& graph, 
@@ -149,19 +143,7 @@ private:
     HexEval m_score;
     HexEval m_resistance[BLACK_AND_WHITE];
     HexEval m_scores[BLACK_AND_WHITE][BITSETSIZE];
-
-    bool m_simulate_and_over_edge;
 };
-
-inline bool Resistance::SimulateAndOverEdge() const
-{
-    return m_simulate_and_over_edge;
-}
-
-inline void Resistance::SetSimulateAndOverEdge(bool enable) 
-{
-    m_simulate_and_over_edge = enable;
-}
 
 inline HexEval Resistance::Score() const
 {
@@ -185,19 +167,11 @@ inline HexEval Resistance::Score(HexPoint cell, HexColor color) const
 /** Utilities to compute AdjacencyGraphs, etc. */
 namespace ResistanceUtil
 {
-    /** Must be called before SimulateAndOverEdge() can be called! */
-    void Initialize();
-
     /** Computes AdjacencyGraphs for this board state using a
         default ConductanceValues object. */
     void AddAdjacencies(const HexBoard& brd, 
                         AdjacencyGraph graph[BLACK_AND_WHITE]);
 
-    /** Tries to simulate the vc set obtained by anding over the edge
-        by giving connections to cells near the edge. */
-    void SimulateAndOverEdge(const HexBoard& brd,
-                             AdjacencyGraph graph[BLACK_AND_WHITE]);
-    
 }
 
 //----------------------------------------------------------------------------

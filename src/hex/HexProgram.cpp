@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexProgram.cpp
- */
+/** @file HexProgram.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -8,7 +7,6 @@
 #include "BoardUtils.hpp"
 #include "HexProp.hpp"
 #include "HexProgram.hpp"
-#include "Resistance.hpp"
 #include "RingGodel.hpp"
 
 #include <boost/program_options/cmdline.hpp>
@@ -133,7 +131,6 @@ void HexProgram::InitializeHexSystem()
     HexProp::Init();
     InitRandom();
     BoardUtils::InitializeDecompositions();
-    ResistanceUtil::Initialize();
 }
 
 void HexProgram::Initialize(int argc, char **argv)

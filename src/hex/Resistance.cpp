@@ -41,8 +41,7 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 Resistance::Resistance()
-    : m_score(0),
-      m_simulate_and_over_edge(false)
+    : m_score(0)
 {
 }
 
@@ -63,11 +62,6 @@ void Resistance::Evaluate(const HexBoard& brd,
                           AdjacencyGraph graph[BLACK_AND_WHITE])
 {
     ConductanceValues values;
-
-    // augment connection graph if option is on
-    if (m_simulate_and_over_edge)
-        ResistanceUtil::SimulateAndOverEdge(brd, graph);
-
     for (BWIterator c; c; ++c) 
         ComputeScores(*c, brd.GetGroups(), graph[*c], values, m_scores[*c]);
     ComputeScore();
@@ -126,7 +120,7 @@ void Resistance::ComputeScores(HexColor color, const Groups& groups,
     const HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(color);
     const HexPoint source = HexPointUtil::colorEdge1(color);
     const HexPoint sink = HexPointUtil::colorEdge2(color);
-    const int n = groups.NumGroups(not_other) - 1;
+    const int n = static_cast<int>(groups.NumGroups(not_other) - 1);
 
     // Compute index that does not contain the sink
     int pointToIndex[BITSETSIZE];
@@ -207,11 +201,11 @@ void AddAdjacent(HexColor color, const HexBoard& brd,
     HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(color);
     for (BoardIterator x(brd.GetPosition().Stones(not_other)); x; ++x) 
     {
-        for (BoardIterator y(brd.GetPosition().Stones(not_other)); *y != *x; ++y) 
+        for (BoardIterator y(brd.GetPosition().Stones(not_other)); *y!=*x; ++y) 
         {
             HexPoint cx = brd.GetGroups().CaptainOf(*x);
             HexPoint cy = brd.GetGroups().CaptainOf(*y);
-            if ((cx==cy) || brd.Cons(color).Exists(cx, cy, VC::FULL))
+            if ((cx == cy) || brd.Cons(color).Exists(cx, cy, VC::FULL))
             {
                 graph[*x][*y] = true;
                 graph[*y][*x] = true;
@@ -220,88 +214,7 @@ void AddAdjacent(HexColor color, const HexBoard& brd,
     }
 }
 
-bool g_ResistanceUtilInitialized = false;
-
-PatternSet s_capmiai[BLACK_AND_WHITE];
-HashedPatternSet* s_hash_capmiai[BLACK_AND_WHITE];
-
-void InitializeCapMiai()
-{
-    if (g_ResistanceUtilInitialized) return;
-
-    LogFine() << "--InitializeCapMiai" << '\n';
-
-    //
-    // The center 'B' is marked so the group can be determined. 
-    //
-    //              *
-    //             . .
-    //            B B B                          [capmiai/0]
-    // m:0,0,0,0,0;0,0,0,0,0;0,0,0,0,0;0,0,0,0,0;7,6,0,4,0;3,2,0,0,0;1
-    //
-    std::string capmiai = "m:0,0,0,0,0;0,0,0,0,0;0,0,0,0,0;0,0,0,0,0;7,6,0,4,0;3,2,0,0,0;1";
-
-    Pattern pattern;
-    if (!pattern.unserialize(capmiai)) {
-        HexAssert(false);
-    }
-    pattern.setName("capmiai");
-
-    s_capmiai[BLACK].push_back(pattern);
-    s_hash_capmiai[BLACK] = new HashedPatternSet();
-    s_hash_capmiai[BLACK]->hash(s_capmiai[BLACK]);
-
-    pattern.flipColors();
-    s_capmiai[WHITE].push_back(pattern);
-    s_hash_capmiai[WHITE] = new HashedPatternSet();
-    s_hash_capmiai[WHITE]->hash(s_capmiai[WHITE]);
-}
-
-/** Simulates and'ing over the edge for the given color and edge. All
-    empty neighbours of an edge get all the connections the edge
-    has. All cells that are a captured-miai away from the edge get all
-    connections the edge has. */
-void SimulateAndOverEdge1(const HexBoard& brd, HexColor color, 
-                         HexPoint edge, AdjacencyGraph& graph)
-{
-    bitset_t augment = brd.GetGroups().Nbs(edge, EMPTY);
-
-    // add in miai-captured empty cells adjacent to edge
-    HexAssert(g_ResistanceUtilInitialized);
-
-    bitset_t adjToEdge;
-    for (BitsetIterator p(brd.GetPosition().GetEmpty()); p; ++p) 
-    {
-        PatternHits hits;
-        brd.GetPatternState().MatchOnCell(*s_hash_capmiai[color], *p, 
-                                          PatternState::MATCH_ALL, hits);
-        for (unsigned j=0; j<hits.size(); ++j) 
-        {
-            HexPoint cj = brd.GetGroups().CaptainOf(hits[j].moves1()[0]);
-            if (cj == edge) 
-            {
-                augment.set(*p);
-                break;
-            }
-        }
-    }
-
-    // add the edge's connections to all cells in augment
-    for (BitsetIterator p(augment); p; ++p) {
-        for (BoardIterator q(brd.Const().EdgesAndInterior()); q; ++q) {
-            graph[*p][*q] = graph[*p][*q] || graph[edge][*q];
-            graph[*q][*p] = graph[*q][*p] || graph[edge][*q];
-        }
-    }
-}
-
 } // annonymous namespace
-
-void ResistanceUtil::Initialize()
-{
-    InitializeCapMiai();
-    g_ResistanceUtilInitialized = true;
-}
 
 void ResistanceUtil::AddAdjacencies(const HexBoard& brd,
                                     AdjacencyGraph graph[BLACK_AND_WHITE])
@@ -309,22 +222,4 @@ void ResistanceUtil::AddAdjacencies(const HexBoard& brd,
     for (BWIterator c; c; ++c) 
         AddAdjacent(*c, brd, graph[*c]);
 }
-
-void ResistanceUtil::SimulateAndOverEdge(const HexBoard& brd,
-                                         AdjacencyGraph g[BLACK_AND_WHITE])
-{
-    if (brd.Builder().Parameters().and_over_edge)
-    {
-        LogWarning() 
-                 << "**** Simulating and-over-edge "
-                 << "while vcs are computed over edge!! ****" 
-                 << '\n';
-    }
-
-    SimulateAndOverEdge1(brd,BLACK, HexPointUtil::colorEdge1(BLACK), g[BLACK]);
-    SimulateAndOverEdge1(brd,BLACK, HexPointUtil::colorEdge2(BLACK), g[BLACK]);
-    SimulateAndOverEdge1(brd,WHITE, HexPointUtil::colorEdge1(WHITE), g[WHITE]);
-    SimulateAndOverEdge1(brd,WHITE, HexPointUtil::colorEdge2(WHITE), g[WHITE]);
-}
-
 //----------------------------------------------------------------------------
