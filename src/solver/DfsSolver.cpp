@@ -8,7 +8,6 @@
 #include "SgSystem.h"
 
 #include "Hex.hpp"
-#include "VCSet.hpp"
 #include "HexProp.hpp"
 #include "HexBoard.hpp"
 #include "GraphUtils.hpp"
@@ -16,9 +15,11 @@
 #include "DfsSolver.hpp"
 #include "VCUtils.hpp"
 #include "BoardUtils.hpp"
+#include "Decompositions.hpp"
 #include "BitsetIterator.hpp"
 #include "EndgameUtils.hpp"
 #include "ProofUtil.hpp"
+#include "VCSet.hpp"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -220,7 +221,7 @@ bool DfsSolver::SolveState(PointSequence& variation, DfsSolutionSet& solution)
         HexColor color = m_state->ToPlay();
         HexPoint group;
         if (m_use_decompositions
-            && BoardUtils::FindSplittingDecomposition(*m_workBrd, !color, group))
+            && Decompositions::FindSplitting(*m_workBrd, !color, group))
         {
             winning_state = SolveDecomposition(variation, solution, group);
         } 

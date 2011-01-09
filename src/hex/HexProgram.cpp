@@ -4,10 +4,9 @@
 
 #include "SgSystem.h"
 
-#include "BoardUtils.hpp"
+#include "Decompositions.hpp"
 #include "HexProp.hpp"
 #include "HexProgram.hpp"
-#include "RingGodel.hpp"
 
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -130,7 +129,7 @@ void HexProgram::InitializeHexSystem()
     SgProp::Init();
     HexProp::Init();
     InitRandom();
-    BoardUtils::InitializeDecompositions();
+    Decompositions::Initialize();
 }
 
 void HexProgram::Initialize(int argc, char **argv)

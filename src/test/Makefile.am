@@ -15,6 +15,7 @@ benzene_unittest_SOURCES = \
 ../hex/test/BoardIteratorTest.cpp \
 ../hex/test/BoardUtilsTest.cpp \
 ../hex/test/ConstBoardTest.cpp \
+../hex/test/DecompositionsTest.cpp \
 ../hex/test/EndgameUtilsTest.cpp \
 ../hex/test/GraphUtilsTest.cpp \
 ../hex/test/GroupsTest.cpp \

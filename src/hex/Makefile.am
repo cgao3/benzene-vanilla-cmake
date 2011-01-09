@@ -4,6 +4,7 @@ libhex_a_SOURCES = \
 BenzenePlayer.cpp \
 BoardUtils.cpp \
 ConstBoard.cpp \
+Decompositions.cpp \
 EndgameUtils.cpp \
 Game.cpp \
 GraphUtils.cpp \
@@ -44,6 +45,7 @@ BitsetIterator.hpp \
 BoardIterator.hpp \
 BoardUtils.hpp \
 ConstBoard.hpp \
+Decompositions.hpp \
 EndgameUtils.hpp \
 Game.hpp \
 GraphUtils.hpp \

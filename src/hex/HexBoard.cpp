@@ -1,10 +1,11 @@
 //----------------------------------------------------------------------------
 /** @file HexBoard.cpp */
 //----------------------------------------------------------------------------
+
 #include "SgSystem.h"
 #include "SgTimer.h"
 
-#include "BoardUtils.hpp"
+#include "Decompositions.hpp"
 #include "BitsetIterator.hpp"
 #include "Groups.hpp"
 #include "VCSet.hpp"
@@ -108,9 +109,8 @@ void HexBoard::RevertVCs()
 }
 
 /** In non-terminal states, checks for combinatorial decomposition
-    with a vc using BoardUtils::FindCombinatorialDecomposition().
-    Plays the carrier using AddStones(). Loops until no more
-    decompositions are found. */
+    with a vc using Decompositions::Find(). Plays the carrier using
+    AddStones(). Loops until no more decompositions are found. */
 void HexBoard::HandleVCDecomposition(HexColor color_to_move, bool use_changelog)
 {
     if (!m_use_decompositions) 
@@ -128,8 +128,7 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move, bool use_changelog)
         for (BWIterator c; c; ++c) 
         {
             bitset_t captured;
-            if (BoardUtils::FindCombinatorialDecomposition(*this, *c,
-							   captured))
+            if (Decompositions::Find(*this, *c, captured))
             {
                 LogFine() << "Decomposition " << decompositions << ": for " 
 			  << *c << ".\n" << m_brd.Write(captured) << '\n';

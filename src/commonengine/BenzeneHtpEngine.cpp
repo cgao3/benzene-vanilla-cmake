@@ -5,10 +5,9 @@
 #include "SgSystem.h"
 #include "SgGameReader.h"
 
-#include <cmath>
-#include <functional>
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
+#include "Decompositions.hpp"
 #include "GraphUtils.hpp"
 #include "HexProgram.hpp"
 #include "HexSgUtil.hpp"
@@ -332,7 +331,7 @@ void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
     brd.ComputeAll(BLACK);
     brd.SetUseDecompositions(useDecomps);
     bitset_t capturedVC;
-    if (BoardUtils::FindCombinatorialDecomposition(brd, color, capturedVC)) 
+    if (Decompositions::Find(brd, color, capturedVC)) 
         cmd << HexPointUtil::ToString(capturedVC);
 }
 
@@ -350,7 +349,7 @@ void BenzeneHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.ComputeAll(BLACK);
     HexPoint group;
-    if (BoardUtils::FindSplittingDecomposition(brd, color, group))
+    if (Decompositions::FindSplitting(brd, color, group))
         cmd << group;
 }
 
