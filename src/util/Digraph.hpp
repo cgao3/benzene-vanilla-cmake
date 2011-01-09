@@ -2,15 +2,15 @@
 /** @file Digraph.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef DIGRAPH_H
-#define DIGRAPH_H
+#ifndef DIGRAPH_HPP
+#define DIGRAPH_HPP
 
 #include <map>
 #include <set>
 #include <vector>
 #include <iostream>
-#include <cassert>
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -191,7 +191,7 @@ std::set<T> Digraph<T>::Sinks() const
 template<typename T>
 std::size_t Digraph<T>::InDegree(const T& target) const
 {
-    assert(VertexExists(target));
+    BenzeneAssert(VertexExists(target));
     return m_in[target].size();
 }
 
@@ -204,7 +204,7 @@ bool Digraph<T>::IsIsolated(const T& vertex) const
 template<typename T>
 std::size_t Digraph<T>::OutDegree(const T& source) const
 {
-    assert(VertexExists(source));
+    BenzeneAssert(VertexExists(source));
     return m_out[source].size();
 }
 
@@ -217,7 +217,7 @@ bool Digraph<T>::IsEdge(const T& source, const T& target) const
 template<typename T>
 const std::set<T>& Digraph<T>::OutSet(const T& source) const
 {
-    assert(VertexExists(source));
+    BenzeneAssert(VertexExists(source));
     return m_out[source];
 }
 
@@ -226,7 +226,7 @@ void Digraph<T>::OutSet(const std::set<T>& source, std::set<T>& out) const
 {
     out.clear();
     for (const_iterator x=source.begin(); x!=source.end(); ++x) {
-        assert(VertexExists(*x));
+        BenzeneAssert(VertexExists(*x));
         out.insert(out_begin(*x), out_end(*x));
     }
 }
@@ -234,7 +234,7 @@ void Digraph<T>::OutSet(const std::set<T>& source, std::set<T>& out) const
 template<typename T>
 const std::set<T>& Digraph<T>::InSet(const T& target) const
 {
-    assert(VertexExists(target));
+    BenzeneAssert(VertexExists(target));
     return m_in[target];
 }
 
@@ -243,7 +243,7 @@ void Digraph<T>::InSet(const std::set<T>& target, std::set<T>& out) const
 {
     out.clear();
     for (const_iterator x=target.begin(); x!=target.end(); ++x) {
-        assert(VertexExists(*x));
+        BenzeneAssert(VertexExists(*x));
         out.insert(in_begin(*x), in_end(*x));
     }
 }
@@ -280,28 +280,28 @@ void Digraph<T>::FindTwoCycles(std::set<T>& loops) const
 template<typename T>
 typename Digraph<T>::const_iterator Digraph<T>::out_begin(const T& source) const
 {
-    assert(VertexExists(source));
+    BenzeneAssert(VertexExists(source));
     return m_out[source].begin();
 }
 
 template<typename T>
 typename Digraph<T>::const_iterator Digraph<T>::out_end(const T& source) const
 {
-    assert(VertexExists(source));
+    BenzeneAssert(VertexExists(source));
     return m_out[source].end();
 }
 
 template<typename T>
 typename Digraph<T>::const_iterator Digraph<T>::in_begin(const T& target) const
 {
-    assert(VertexExists(target));
+    BenzeneAssert(VertexExists(target));
     return m_in[target].begin();
 }
 
 template<typename T>
 typename Digraph<T>::const_iterator Digraph<T>::in_end(const T& target) const
 {
-    assert(VertexExists(target));
+    BenzeneAssert(VertexExists(target));
     return m_in[target].end();
 }
 
@@ -459,4 +459,4 @@ Digraph<T>::FindStronglyConnectedComponents(std::vector< std::set<T> >& out)
 
 _END_BENZENE_NAMESPACE_
 
-#endif // DIGRAPH_H
+#endif // DIGRAPH_HPP

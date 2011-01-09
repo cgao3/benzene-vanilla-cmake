@@ -4,16 +4,16 @@
  */
 //----------------------------------------------------------------------------
 
-#ifndef HASHMAP_H
-#define HASHMAP_H
+#ifndef HASHMAP_HPP
+#define HASHMAP_HPP
 
 #include <boost/concept_check.hpp>
 #include <boost/scoped_array.hpp>
 
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 #include "Hash.hpp"
 #include "Logger.hpp"
-#include <cassert>
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -248,7 +248,7 @@ void HashMap<T>::clear()
 template<typename T>
 void HashMap<T>::CopyFrom(const HashMap<T>& other)
 {
-    assert(m_size == other.m_size);
+    BenzeneAssert(m_size == other.m_size);
     m_count = other.m_count;
     for (unsigned i = 0; i < m_size; ++i)
     {
@@ -267,4 +267,4 @@ void HashMap<T>::operator=(const HashMap<T>& other)
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HASHMAP_H
+#endif // HASHMAP_HPP

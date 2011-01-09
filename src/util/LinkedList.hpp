@@ -8,8 +8,8 @@
 #define LINKEDLIST_HPP
 
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 #include "SafeBool.hpp"
-#include <cassert>
 #include <iostream>
 #include <boost/utility.hpp>
 
@@ -220,7 +220,7 @@ std::size_t Pool<T>::ChunkSize() const
 template<typename T>
 void Pool<T>::Allocate()
 {
-    assert(m_head == 0);
+    BenzeneAssert(m_head == 0);
     std::size_t num = m_chunkSize / sizeof(ListNode<T>);
     ListNode<T>* data = new ListNode<T>[num];
     m_chunks.push_back(data);
@@ -355,7 +355,7 @@ void LinkedList<T>::Clear()
 template<typename T>
 void LinkedList<T>::CopyList(const LinkedList<T>& other)
 {
-    assert(m_head.m_next == 0);
+    BenzeneAssert(m_head.m_next == 0);
     ListNode<T>* them = other.m_head.GetNext();
     ListNode<T>* mine = m_head;
     while (them != 0)

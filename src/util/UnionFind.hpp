@@ -1,14 +1,13 @@
 //----------------------------------------------------------------------------
-/** @file UnionFind.hpp
- */
+/** @file UnionFind.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef UNIONFIND_HPP
 #define UNIONFIND_HPP
 
-#include <cassert>
 #include <vector>
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -65,7 +64,7 @@ inline bool UnionFind<S>::IsRoot(int x) const
 template<int S>
 inline int UnionFind<S>::GetRoot(int x) const
 {
-    assert(0 <= x && x < S);
+    BenzeneAssert(0 <= x && x < S);
     if (m_sets[x] < 0) 
         return x;
     return (m_sets[x] = GetRoot(m_sets[x]));
