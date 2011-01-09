@@ -1,13 +1,12 @@
 //----------------------------------------------------------------------------
-/** @file MoHexEngine.hpp
- */
+/** @file MoHexEngine.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef MOHEXENGINE_HPP
 #define MOHEXEENGINE_HPP
 
 #include "Hex.hpp"
-#include "BenzeneHtpEngine.hpp"
+#include "CommonHtpEngine.hpp"
 #include "BookBuilderCommands.hpp"
 #include "MoHexPlayer.hpp"
 
@@ -16,7 +15,7 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Htp engine for MoHex. */
-class MoHexEngine : public BenzeneHtpEngine
+class MoHexEngine : public CommonHtpEngine
 {
 public:
 

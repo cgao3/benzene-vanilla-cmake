@@ -1,10 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file BenzeneHtpEngine.hpp
- */
+/** @file CommonHtpEngine.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef BENZENEHTPENGINE_H
-#define BENZENEHTPENGINE_H
+#ifndef COMMONHTPENGINE_H
+#define COMMONHTPENGINE_H
 
 #include "BenzenePlayer.hpp"
 #include "DfpnCommands.hpp"
@@ -21,14 +20,14 @@ _BEGIN_BENZENE_NAMESPACE_
 
 /** HTP engine with commands for stuff common to all UofA Hex
     players. */
-class BenzeneHtpEngine: public HexHtpEngine
+class CommonHtpEngine: public HexHtpEngine
 {
 public:
-    BenzeneHtpEngine(int boardsize); 
+    CommonHtpEngine(int boardsize); 
     
-    ~BenzeneHtpEngine();
+    ~CommonHtpEngine();
 
-    /** @page benzenehtpenginecommands BenzeneHtpEngine Commands
+    /** @page benzenehtpenginecommands CommonHtpEngine Commands
         - @link CmdLicense() @c benzene-license @endlink
         - @link CmdGetAbsorbGroup() @c get_absorb_group @endlink
         - @link CmdHandbookAdd() @c handbook-add @endlink
@@ -127,11 +126,11 @@ protected:
 private:
 
     void RegisterCmd(const std::string& name,
-                     GtpCallback<BenzeneHtpEngine>::Method method);
+                     GtpCallback<CommonHtpEngine>::Method method);
 };
 
 //----------------------------------------------------------------------------
 
 _END_BENZENE_NAMESPACE_
 
-#endif // BENZENEHTPENGINE_H
+#endif // COMMONHTPENGINE_HPP

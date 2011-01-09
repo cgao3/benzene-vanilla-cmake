@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file BenzeneTestEngine.cpp
- */
+/** @file BenzeneTestEngine.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -15,7 +14,7 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 BenzeneTestEngine::BenzeneTestEngine(int boardsize)
-    : BenzeneHtpEngine(boardsize),
+    : CommonHtpEngine(boardsize),
       m_player(0)
 {
     RegisterCmd("set_player", &BenzeneTestEngine::CmdSetPlayer);

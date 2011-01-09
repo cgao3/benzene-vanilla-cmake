@@ -1,13 +1,13 @@
 noinst_LIBRARIES = libcommonengine.a
 
 libcommonengine_a_SOURCES = \
-BenzeneHtpEngine.cpp \
+CommonHtpEngine.cpp \
 CommonProgram.cpp \
 PlayAndSolve.cpp \
 SwapCheck.cpp
 
 noinst_HEADERS = \
-BenzeneHtpEngine.hpp \
+CommonHtpEngine.hpp \
 CommonProgram.hpp \
 PlayAndSolve.hpp \
 SwapCheck.hpp

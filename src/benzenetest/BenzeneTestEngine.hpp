@@ -1,12 +1,11 @@
 //----------------------------------------------------------------------------
-/** @file BenzeneTestEngine.hpp
- */
+/** @file BenzeneTestEngine.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef WOLVEENGINE_HPP
-#define WOLVEENGINE_HPP
+#ifndef BENZENETESTENGINE_HPP
+#define BENZENETESTENGINE_HPP
 
-#include "BenzeneHtpEngine.hpp"
+#include "CommonHtpEngine.hpp"
 #include "BookCheck.hpp"
 #include "BookCommands.hpp"
 
@@ -15,7 +14,7 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Htp engine for Wolve. */
-class BenzeneTestEngine : public BenzeneHtpEngine
+class BenzeneTestEngine : public CommonHtpEngine
 {
 public:
     BenzeneTestEngine(int boardsize);
@@ -54,4 +53,4 @@ private:
 
 _END_BENZENE_NAMESPACE_
 
-#endif // WOLVEENGINE_HPP
+#endif // BENZENETESTENGINE_HPP

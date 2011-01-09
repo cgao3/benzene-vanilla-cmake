@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file BenzeneHtpEngine.cpp */
+/** @file CommonHtpEngine.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -11,7 +11,7 @@
 #include "GraphUtils.hpp"
 #include "CommonProgram.hpp"
 #include "HexSgUtil.hpp"
-#include "BenzeneHtpEngine.hpp"
+#include "CommonHtpEngine.hpp"
 #include "Resistance.hpp"
 #include "DfsSolver.hpp"
 #include "SwapCheck.hpp"
@@ -23,7 +23,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-BenzeneHtpEngine::BenzeneHtpEngine(int boardsize)
+CommonHtpEngine::CommonHtpEngine(int boardsize)
     : HexHtpEngine(boardsize),
       m_pe(m_board.Width(), m_board.Height()),
       m_se(m_board.Width(), m_board.Height()),
@@ -46,22 +46,22 @@ BenzeneHtpEngine::BenzeneHtpEngine(int boardsize)
                            m_dfpnDB, m_dfpnPositions),
       m_useParallelSolver(false)
 {
-    RegisterCmd("benzene-license", &BenzeneHtpEngine::CmdLicense);
+    RegisterCmd("benzene-license", &CommonHtpEngine::CmdLicense);
 
-    RegisterCmd("get_absorb_group", &BenzeneHtpEngine::CmdGetAbsorbGroup);
+    RegisterCmd("get_absorb_group", &CommonHtpEngine::CmdGetAbsorbGroup);
 
-    RegisterCmd("handbook-add", &BenzeneHtpEngine::CmdHandbookAdd);
+    RegisterCmd("handbook-add", &CommonHtpEngine::CmdHandbookAdd);
 
-    RegisterCmd("compute-inferior", &BenzeneHtpEngine::CmdComputeInferior);
-    RegisterCmd("compute-fillin", &BenzeneHtpEngine::CmdComputeFillin);
-    RegisterCmd("compute-vulnerable", &BenzeneHtpEngine::CmdComputeVulnerable);
-    RegisterCmd("compute-reversible", &BenzeneHtpEngine::CmdComputeReversible);
-    RegisterCmd("compute-dominated", &BenzeneHtpEngine::CmdComputeDominated);
+    RegisterCmd("compute-inferior", &CommonHtpEngine::CmdComputeInferior);
+    RegisterCmd("compute-fillin", &CommonHtpEngine::CmdComputeFillin);
+    RegisterCmd("compute-vulnerable", &CommonHtpEngine::CmdComputeVulnerable);
+    RegisterCmd("compute-reversible", &CommonHtpEngine::CmdComputeReversible);
+    RegisterCmd("compute-dominated", &CommonHtpEngine::CmdComputeDominated);
     RegisterCmd("compute-dominated-cell",
-                &BenzeneHtpEngine::CmdComputeDominatedOnCell);
-    RegisterCmd("find-comb-decomp", &BenzeneHtpEngine::CmdFindCombDecomp);
-    RegisterCmd("find-split-decomp", &BenzeneHtpEngine::CmdFindSplitDecomp);
-    RegisterCmd("encode-pattern", &BenzeneHtpEngine::CmdEncodePattern);
+                &CommonHtpEngine::CmdComputeDominatedOnCell);
+    RegisterCmd("find-comb-decomp", &CommonHtpEngine::CmdFindCombDecomp);
+    RegisterCmd("find-split-decomp", &CommonHtpEngine::CmdFindSplitDecomp);
+    RegisterCmd("encode-pattern", &CommonHtpEngine::CmdEncodePattern);
 
     m_playerEnvCommands.Register(*this, "player");
     m_solverEnvCommands.Register(*this, "solver");
@@ -69,27 +69,27 @@ BenzeneHtpEngine::BenzeneHtpEngine(int boardsize)
     m_dfsSolverCommands.Register(*this);
     m_dfpnSolverCommands.Register(*this);
 
-    RegisterCmd("eval-twod", &BenzeneHtpEngine::CmdEvalTwoDist);
-    RegisterCmd("eval-resist", &BenzeneHtpEngine::CmdEvalResist);
-    RegisterCmd("eval-resist-delta", &BenzeneHtpEngine::CmdEvalResistDelta);
-    RegisterCmd("eval-influence", &BenzeneHtpEngine::CmdEvalInfluence);
+    RegisterCmd("eval-twod", &CommonHtpEngine::CmdEvalTwoDist);
+    RegisterCmd("eval-resist", &CommonHtpEngine::CmdEvalResist);
+    RegisterCmd("eval-resist-delta", &CommonHtpEngine::CmdEvalResistDelta);
+    RegisterCmd("eval-influence", &CommonHtpEngine::CmdEvalInfluence);
 
-    RegisterCmd("misc-debug", &BenzeneHtpEngine::CmdMiscDebug);
+    RegisterCmd("misc-debug", &CommonHtpEngine::CmdMiscDebug);
 }
 
-BenzeneHtpEngine::~BenzeneHtpEngine()
+CommonHtpEngine::~CommonHtpEngine()
 {
 }
 
 //----------------------------------------------------------------------------
 
-void BenzeneHtpEngine::RegisterCmd(const std::string& name,
-                               GtpCallback<BenzeneHtpEngine>::Method method)
+void CommonHtpEngine::RegisterCmd(const std::string& name,
+                               GtpCallback<CommonHtpEngine>::Method method)
 {
-    Register(name, new GtpCallback<BenzeneHtpEngine>(this, method));
+    Register(name, new GtpCallback<CommonHtpEngine>(this, method));
 }
 
-void BenzeneHtpEngine::NewGame(int width, int height)
+void CommonHtpEngine::NewGame(int width, int height)
 {
     HexHtpEngine::NewGame(width, height);
 
@@ -102,7 +102,7 @@ void BenzeneHtpEngine::NewGame(int width, int height)
 ////////////////////////////////////////////////////////////////////////
 
 /** Displays usage license. */
-void BenzeneHtpEngine::CmdLicense(HtpCommand& cmd)
+void CommonHtpEngine::CmdLicense(HtpCommand& cmd)
 {
     cmd << 
         BenzeneEnvironment::Get().GetProgram().GetName() << " " <<
@@ -118,7 +118,7 @@ void BenzeneHtpEngine::CmdLicense(HtpCommand& cmd)
 }
 
 /** Returns the set of stones this stone is part of. */
-void BenzeneHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
+void CommonHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexPoint cell = HtpUtil::MoveArg(cmd, 0);
@@ -143,7 +143,7 @@ void BenzeneHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
     Usage: 
       handbook-add [handbook.txt] [sgf file] [color] [max move #] 
 */
-void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
+void CommonHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
 {
     cmd.CheckNuArg(4);
     std::string bookfilename = cmd.Arg(0);
@@ -223,7 +223,7 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
 /** Outputs inferior cell info for current state.
     Usage: "compute-inferior [color]"
  */
-void BenzeneHtpEngine::CmdComputeInferior(HtpCommand& cmd)
+void CommonHtpEngine::CmdComputeInferior(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -239,7 +239,7 @@ void BenzeneHtpEngine::CmdComputeInferior(HtpCommand& cmd)
 
 /** Computes fillin for the given board. Color argument affects order
     for computing vulnerable/presimplicial pairs. */
-void BenzeneHtpEngine::CmdComputeFillin(HtpCommand& cmd)
+void CommonHtpEngine::CmdComputeFillin(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -254,7 +254,7 @@ void BenzeneHtpEngine::CmdComputeFillin(HtpCommand& cmd)
 }
 
 /** Computes vulnerable cells on the current board for the given color. */
-void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
+void CommonHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
@@ -269,7 +269,7 @@ void BenzeneHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
 }
 
 /** Computes reversible cells on the current board for the given color. */
-void BenzeneHtpEngine::CmdComputeReversible(HtpCommand& cmd)
+void CommonHtpEngine::CmdComputeReversible(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
@@ -284,7 +284,7 @@ void BenzeneHtpEngine::CmdComputeReversible(HtpCommand& cmd)
 }
 
 /** Computes dominated cells on the current board for the given color. */
-void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
+void CommonHtpEngine::CmdComputeDominated(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
@@ -298,7 +298,7 @@ void BenzeneHtpEngine::CmdComputeDominated(HtpCommand& cmd)
     cmd << '\n';
 }
 
-void BenzeneHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
+void CommonHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
 {
     cmd.CheckNuArg(2);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
@@ -319,7 +319,7 @@ void BenzeneHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
     Outputs cells in the vc if there is a decomposition.
     Usage: 'find-comb-decomp [color]'
 */
-void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
+void CommonHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -342,7 +342,7 @@ void BenzeneHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
     FIXME: Dump inferior cell info as well? It's hard to see what's
     actually going on if it is not displayed.
 */
-void BenzeneHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
+void CommonHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -358,7 +358,7 @@ void BenzeneHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
     pattern (that is not actually in the pattern).
     FIXME: clean this up!
 */
-void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
+void CommonHtpEngine::CmdEncodePattern(HtpCommand& cmd)
 {
     BenzeneAssert(cmd.NuArg() > 0);
 
@@ -459,7 +459,7 @@ void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
 // Evaluation commands
 //----------------------------------------------------------------------------
 
-void BenzeneHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
+void CommonHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -479,7 +479,7 @@ void BenzeneHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
     }
 }
 
-void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
+void CommonHtpEngine::CmdEvalResist(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -502,7 +502,7 @@ void BenzeneHtpEngine::CmdEvalResist(HtpCommand& cmd)
     }
 }
 
-void BenzeneHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
+void CommonHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -525,7 +525,7 @@ void BenzeneHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
     }
 }
 
-void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
+void CommonHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
@@ -576,7 +576,7 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
 
 //----------------------------------------------------------------------------
 
-void BenzeneHtpEngine::CmdMiscDebug(HtpCommand& cmd)
+void CommonHtpEngine::CmdMiscDebug(HtpCommand& cmd)
 {
 //     cmd.CheckNuArg(1);
 //     HexPoint point = HtpUtil::MoveArg(cmd, 0);

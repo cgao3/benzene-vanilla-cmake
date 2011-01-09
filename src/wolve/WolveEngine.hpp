@@ -1,12 +1,11 @@
 //----------------------------------------------------------------------------
-/** @file WolveEngine.hpp
- */
+/** @file WolveEngine.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef WOLVEENGINE_HPP
 #define WOLVEENGINE_HPP
 
-#include "BenzeneHtpEngine.hpp"
+#include "CommonHtpEngine.hpp"
 #include "BookCheck.hpp"
 #include "BookCommands.hpp"
 #include "CacheBook.hpp"
@@ -17,7 +16,7 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Htp engine for Wolve. */
-class WolveEngine : public BenzeneHtpEngine
+class WolveEngine : public CommonHtpEngine
 {
 public:
     WolveEngine(int boardsize, WolvePlayer& player);

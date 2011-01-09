@@ -49,7 +49,7 @@ std::vector<SgUctValue> KnowledgeThresholdFromString(const std::string& val)
 //----------------------------------------------------------------------------
 
 MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
-    : BenzeneHtpEngine(boardsize),
+    : CommonHtpEngine(boardsize),
       m_player(player), 
       m_book(0),
       m_bookCheck(m_book),
