@@ -495,7 +495,7 @@ private:
         void SetChildren(const DfpnChildren& children,
                          const std::vector<DfpnData>& bounds);
 
-        void PlayMove(HexColor color, int index);
+        void PlayMove(HexColor color, std::size_t index);
 
         void UndoMove();
 
@@ -513,12 +513,12 @@ private:
 
         HexColor m_color;
 
-        int m_index;
+        std::size_t m_index;
 
         double m_timeOfLastWrite;
 
-        int m_indexAtLastWrite;
-
+        std::size_t m_indexAtLastWrite;
+        
         double m_delay;
 
         void DoWrite();
@@ -583,7 +583,7 @@ private:
 
     size_t MID(const DfpnBounds& n, DfpnHistory& history);
 
-    void SelectChild(int& bestMove, DfpnBoundType& delta2, 
+    void SelectChild(std::size_t& bestIndex, DfpnBoundType& delta2, 
                      const std::vector<DfpnData>& childrenDfpnBounds,
                      size_t maxChildIndex) const;
 
@@ -594,7 +594,7 @@ private:
     bool CheckAbort();
 
     void LookupData(DfpnData& data, const DfpnChildren& children, 
-                    int childIndex, HexState& state);
+                    std::size_t childIndex, HexState& state);
 
     bool TTRead(const HexState& state, DfpnData& data);
 

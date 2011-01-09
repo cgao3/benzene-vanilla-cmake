@@ -78,7 +78,7 @@ void DfpnChildren::UndoMove(std::size_t index, HexState& state) const
 */
 
 DfpnSolver::GuiFx::GuiFx()
-    : m_index(-1),
+    : m_index(9999),
       m_timeOfLastWrite(0.0),
       m_delay(1.0)
 {
@@ -91,7 +91,7 @@ void DfpnSolver::GuiFx::SetChildren(const DfpnChildren& children,
     m_data = data;
 }
 
-void DfpnSolver::GuiFx::PlayMove(HexColor color, int index)
+void DfpnSolver::GuiFx::PlayMove(HexColor color, std::size_t index)
 {
     m_color = color;
     m_index = index;
@@ -99,12 +99,12 @@ void DfpnSolver::GuiFx::PlayMove(HexColor color, int index)
 
 void DfpnSolver::GuiFx::UndoMove()
 {
-    m_index = -1;
+    m_index = 9999;
 }
 
 void DfpnSolver::GuiFx::UpdateCurrentBounds(const DfpnBounds& bounds)
 {
-    BenzeneAssert(m_index != -1);
+    BenzeneAssert(m_index != 9999);
     m_data[m_index].m_bounds = bounds;
 }
 
@@ -136,7 +136,7 @@ void DfpnSolver::GuiFx::DoWrite()
     os << "gogui-gfx:\n";
     os << "dfpn\n";
     os << "VAR";
-    if (m_index != -1)
+    if (m_index != 9999)
     {
         os << ' ' << (m_color == BLACK ? 'B' : 'W')
            << ' ' << m_children.FirstMove(m_index);
@@ -270,11 +270,13 @@ void DfpnSolver::PrintStatistics(HexColor winner,
        << "Terminal nodes  " << m_numTerminal << '\n'
        << "Work            " << m_numMIDcalls + m_numTerminal << '\n'
        << "Wasted Work     " << m_totalWastedWork
-       << " (" << (m_totalWastedWork * 100.0 
-                   / (m_numMIDcalls + m_numTerminal)) << "%)\n"
+       << " (" << (double(m_totalWastedWork) * 100.0 
+                   / double(m_numMIDcalls + m_numTerminal)) << "%)\n"
        << "Elapsed Time    " << m_timer.GetTime() << '\n'
-       << "MIDs/sec        " << m_numMIDcalls / m_timer.GetTime() << '\n'
-       << "VCs/sec         " << m_numVCbuilds / m_timer.GetTime() << '\n'
+       << "MIDs/sec        " 
+       << double(m_numMIDcalls) / m_timer.GetTime() << '\n'
+       << "VCs/sec         " 
+       << double(m_numVCbuilds) / m_timer.GetTime() << '\n'
        << "Cnt prune sib   " << m_prunedSiblingStats.Count() << '\n'
        << "Avg prune sib   ";
     m_prunedSiblingStats.Write(os);
@@ -401,7 +403,7 @@ bool DfpnSolver::CheckAbort()
                     else
                     {
                         size_t midsPerSec = static_cast<size_t>
-                            (m_numMIDcalls / elapsed);
+                            (double(m_numMIDcalls) / elapsed);
                         m_checkTimerAbortCalls = midsPerSec / 2;
                     }
                 }
@@ -473,7 +475,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
             bitset_t childrenBitset 
                 = EndgameUtils::MovesToConsider(*m_workBoard, colorToMove);
 
-            m_considerSetSize.Add(childrenBitset.count());
+            m_considerSetSize.Add(float(childrenBitset.count()));
             Resistance resist;
             resist.Evaluate(*m_workBoard);
             evaluationScore = (colorToMove == BLACK) 
@@ -523,7 +525,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
             break;
 
         // Select most proving child
-        int bestIndex = -1;
+        std::size_t bestIndex = 999999;
         DfpnBoundType delta2 = DfpnBounds::INFTY;
         SelectChild(bestIndex, delta2, childrenData, maxChildIndex);
         bestMove = children.FirstMove(bestIndex);
@@ -536,7 +538,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
         childMaxBounds.delta = std::min(maxBounds.phi, delta2 + 1);
         BenzeneAssert(childMaxBounds.GreaterThan(childBounds));
         if (delta2 != DfpnBounds::INFTY)
-            m_deltaIncrease.Add(childMaxBounds.delta - childBounds.delta);
+            m_deltaIncrease.Add(float(childMaxBounds.delta-childBounds.delta));
 
         // Recurse on best child
         if (m_useGuiFx && depth == 0)
@@ -556,8 +558,9 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
         // Compute some stats when find winning move
         if (childrenData[bestIndex].m_bounds.IsLosing())
         {
-            m_moveOrderingIndex.Add(bestIndex);
-            m_moveOrderingPercent.Add(bestIndex / (double)childrenData.size());
+            m_moveOrderingIndex.Add(float(bestIndex));
+            m_moveOrderingPercent.Add(float(bestIndex) 
+                                      / (float)childrenData.size());
             m_totalWastedWork += prevWork + localWork
                 - childrenData[bestIndex].m_work;
         }
@@ -582,11 +585,10 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
             bitset_t canPrune = allChildren
                 - childrenData[bestIndex].m_maxProofSet;
             canPrune.reset(bestMove);
-            int pruneCount = canPrune.count();
-
-            if (pruneCount)
+            std::size_t pruneCount = canPrune.count();
+            if (pruneCount > 0)
             {
-                m_prunedSiblingStats.Add(pruneCount);
+                m_prunedSiblingStats.Add(float(pruneCount));
                 /*
                 LogInfo() << "Pruning " << pruneCount
                           << " moves via " << bestMove
@@ -661,8 +663,8 @@ size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<DfpnData>&
         return childrenData.size();
 
     // this needs experimenting!
-    int childrenToLookAt = WideningBase() + (int) ceil(numNonLosingChildren
-                                                       * WideningFactor());
+    int childrenToLookAt = WideningBase() 
+        + int(ceil(float(numNonLosingChildren) * WideningFactor()));
     // Must examine at least two children when have two or more live,
     // since otherwise delta2 will be set to infinity in SelectChild.
     BenzeneAssert(childrenToLookAt >= 2);
@@ -713,7 +715,7 @@ void DfpnSolver::NotifyListeners(const DfpnHistory& history,
         m_listener[i]->StateSolved(history, data);
 }
 
-void DfpnSolver::SelectChild(int& bestIndex, DfpnBoundType& delta2,
+void DfpnSolver::SelectChild(std::size_t& bestIndex, DfpnBoundType& delta2,
                              const std::vector<DfpnData>& childrenData,
                              size_t maxChildIndex) const
 {
@@ -766,7 +768,7 @@ void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
 }
 
 void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children, 
-                            int childIndex, HexState& state)
+                            std::size_t childIndex, HexState& state)
 {
     children.PlayMove(childIndex, state);
     if (!TTRead(state, data))
