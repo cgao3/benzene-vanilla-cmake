@@ -351,7 +351,7 @@ inline bitset_t StoneBoard::GetWhite() const
 
 inline bitset_t StoneBoard::GetColor(HexColor color) const
 {
-    HexAssert(HexColorUtil::isValidColor(color));
+    BenzeneAssert(HexColorUtil::isValidColor(color));
     if (color == EMPTY) return GetEmpty();
     return m_stones[color] & Const().GetLocations();
 }
@@ -368,32 +368,32 @@ inline bitset_t StoneBoard::GetOccupied() const
 
 inline bool StoneBoard::IsBlack(HexPoint cell) const    
 {
-    HexAssert(Const().IsValid(cell));
+    BenzeneAssert(Const().IsValid(cell));
     return m_stones[BLACK].test(cell);
 }
 
 inline bool StoneBoard::IsWhite(HexPoint cell) const    
 {
-    HexAssert(Const().IsValid(cell));
+    BenzeneAssert(Const().IsValid(cell));
     return m_stones[WHITE].test(cell);
 }
 
 inline bool StoneBoard::IsColor(HexPoint cell, HexColor color) const
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(Const().IsLocation(cell));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(Const().IsLocation(cell));
     return m_stones[color].test(cell);
 }
 
 inline bool StoneBoard::IsEmpty(HexPoint cell) const
 {
-    HexAssert(Const().IsLocation(cell));
+    BenzeneAssert(Const().IsLocation(cell));
     return !IsOccupied(cell);
 }
 
 inline bool StoneBoard::IsOccupied(HexPoint cell) const
 {
-    HexAssert(Const().IsLocation(cell));
+    BenzeneAssert(Const().IsLocation(cell));
     return (IsBlack(cell) || IsWhite(cell));
 }
 
@@ -404,13 +404,13 @@ inline bitset_t StoneBoard::GetPlayed() const
 
 inline bitset_t StoneBoard::GetPlayed(HexColor color) const 
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     return m_played & GetColor(color);
 }
 
 inline bool StoneBoard::IsPlayed(HexPoint cell) const
 {
-    HexAssert(Const().IsValid(cell));
+    BenzeneAssert(Const().IsValid(cell));
     return m_played.test(cell);
 }
 
@@ -434,7 +434,7 @@ inline bool StoneBoard::operator!=(const StoneBoard& other) const
 
 inline HexColor StoneBoard::WhoseTurn() const
 {
-    HexAssert(IsStandardPosition());
+    BenzeneAssert(IsStandardPosition());
     bitset_t mask = GetPlayed() & Const().GetCells();
     std::size_t first = (GetColor(FIRST_TO_PLAY) & mask).count();
     std::size_t second = (GetColor(!FIRST_TO_PLAY) & mask).count();

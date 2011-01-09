@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexPoint.hpp
- */
+/** @file HexPoint.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXPOINT_HPP
@@ -12,8 +11,8 @@
 #include <utility>
 
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 #include "Bitset.hpp"
-#include "HexAssert.hpp"
 #include "HexColor.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -282,76 +281,76 @@ inline bool HexPointUtil::isInteriorCell(HexPoint c)
 
 inline HexPoint HexPointUtil::oppositeEdge(HexPoint edge)
 {
-    HexAssert(isEdge(edge));
+    BenzeneAssert(isEdge(edge));
     if (edge == NORTH) return SOUTH;
     if (edge == SOUTH) return NORTH;
     if (edge == EAST)  return WEST;
-    HexAssert(edge == WEST);
+    BenzeneAssert(edge == WEST);
     return EAST;
 }
 
 inline HexPoint HexPointUtil::leftEdge(HexPoint edge)
 {
-    HexAssert(isEdge(edge));
+    BenzeneAssert(isEdge(edge));
     if (edge == NORTH) return EAST;
     if (edge == SOUTH) return WEST;
     if (edge == EAST)  return SOUTH;
-    HexAssert(edge == WEST);
+    BenzeneAssert(edge == WEST);
     return NORTH;
 }
 
 inline HexPoint HexPointUtil::rightEdge(HexPoint edge)
 {
-    HexAssert(isEdge(edge));
+    BenzeneAssert(isEdge(edge));
     if (edge == NORTH) return WEST;
     if (edge == SOUTH) return EAST;
     if (edge == EAST)  return NORTH;
-    HexAssert(edge == WEST);
+    BenzeneAssert(edge == WEST);
     return SOUTH;
 }
 
 inline HexPoint HexPointUtil::colorEdge1(HexColor color)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     return (color == VERTICAL_COLOR) ? NORTH : EAST;
 }
 
 inline HexPoint HexPointUtil::colorEdge2(HexColor color)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     return (color == VERTICAL_COLOR) ? SOUTH : WEST;
 }
 
 inline bool HexPointUtil::isColorEdge(HexPoint cell, HexColor color)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     return (cell == colorEdge1(color) || cell == colorEdge2(color));
 }
 
 inline void HexPointUtil::pointToCoords(HexPoint cell, int& x, int& y)
 {
-    HexAssert(FIRST_CELL <= cell && cell < FIRST_INVALID);
+    BenzeneAssert(FIRST_CELL <= cell && cell < FIRST_INVALID);
     x = (cell-FIRST_CELL) % MAX_WIDTH;
     y = (cell-FIRST_CELL) / MAX_WIDTH;
 }
 
 inline HexPoint HexPointUtil::coordsToPoint(int x, int y)
 {
-    HexAssert(0 <= x && x < MAX_WIDTH);
-    HexAssert(0 <= y && y < MAX_HEIGHT);
+    BenzeneAssert(0 <= x && x < MAX_WIDTH);
+    BenzeneAssert(0 <= y && y < MAX_HEIGHT);
     return static_cast<HexPoint>(FIRST_CELL + (y*MAX_WIDTH) + x);
 }
 
 inline int HexPointUtil::DeltaX(int dir)
 {
-    HexAssert(DIR_EAST <= dir && dir < NUM_DIRECTIONS);
+    BenzeneAssert(DIR_EAST <= dir && dir < NUM_DIRECTIONS);
     static const int dx[] = {1,  1,  0, -1, -1, 0};
     return dx[dir];
 }
 
 inline int HexPointUtil::DeltaY(int dir)
 {
-    HexAssert(DIR_EAST <= dir && dir < NUM_DIRECTIONS);
+    BenzeneAssert(DIR_EAST <= dir && dir < NUM_DIRECTIONS);
     static const int dy[] = {0, -1, -1,  0,  1, 1};
     return dy[dir];
 }

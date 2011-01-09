@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file HexEval.cpp */
 //----------------------------------------------------------------------------
 
 #include "Hex.hpp"
@@ -18,25 +17,25 @@ bool HexEvalUtil::IsValidEval(HexEval ev)
 
 bool HexEvalUtil::IsWin(HexEval ev)
 {
-    HexAssert(IsValidEval(ev));
+    BenzeneAssert(IsValidEval(ev));
     return ev >= WIN_THRESHOLD;
 }
 
 int HexEvalUtil::PlyToWin(HexEval ev)
 {
-    HexAssert(IsValidEval(ev));
+    BenzeneAssert(IsValidEval(ev));
     return (int)(IMMEDIATE_WIN - ev);
 }
 
 bool HexEvalUtil::IsLoss(HexEval ev)
 {
-    HexAssert(IsValidEval(ev));
+    BenzeneAssert(IsValidEval(ev));
     return ev <= LOSS_THRESHOLD;
 }
 
 int HexEvalUtil::PlyToLoss(HexEval ev)
 {
-    HexAssert(IsValidEval(ev));
+    BenzeneAssert(IsValidEval(ev));
     return (int)(ev - IMMEDIATE_LOSS);
 }
 

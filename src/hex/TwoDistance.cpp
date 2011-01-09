@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file TwoDistance.cpp */
 //----------------------------------------------------------------------------
 
 #include "Hex.hpp"
@@ -67,8 +66,8 @@ void TwoDistance::FindBest(HexEval* po, HexPoint& who, int& count)
             count++;
     }
 
-    HexAssert(who != INVALID_POINT);
-    HexAssert(best != EVAL_INFINITY);
+    BenzeneAssert(who != INVALID_POINT);
+    BenzeneAssert(best != EVAL_INFINITY);
 }
 
 void TwoDistance::ComputeScore()

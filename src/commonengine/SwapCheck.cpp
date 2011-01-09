@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file SwapCheck.cpp
- */
+/** @file SwapCheck.cpp */
 //----------------------------------------------------------------------------
 
 #include "BoardUtils.hpp"
@@ -76,7 +75,7 @@ bool SwapCheck::PlaySwap(const Game& gameState, HexColor toPlay)
         && (!FIRST_TO_PLAY == toPlay))
     {
         const StoneBoard& brd = gameState.Board();
-	HexAssert(1 == brd.NumStones());
+	BenzeneAssert(1 == brd.NumStones());
 	
 	// If board has unequal dimensions, we want to traverse the
 	// shorter distance.

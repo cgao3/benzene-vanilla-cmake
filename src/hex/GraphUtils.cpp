@@ -42,7 +42,7 @@ bitset_t GraphUtils::BFS(HexPoint p, PointToBitset& group_nbs,
     // paths through a location (if these values are desired).
     bool recordDistance = (distFromStart != NULL);
     bool computeFrequency = (numShortestPathsThru != NULL);
-    HexAssert(recordDistance || !computeFrequency);
+    BenzeneAssert(recordDistance || !computeFrequency);
     
     if (recordDistance) {
 	for (int i=0; i<BITSETSIZE; i++)

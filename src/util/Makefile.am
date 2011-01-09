@@ -1,6 +1,7 @@
 noinst_LIBRARIES = libutil.a
 
 libutil_a_SOURCES = \
+BenzeneAssert.hpp \
 BenzeneException.cpp \
 BenzeneProgram.cpp \
 Bitset.cpp \

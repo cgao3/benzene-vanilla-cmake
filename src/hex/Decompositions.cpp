@@ -53,7 +53,7 @@ void InitializeOppMiai()
 /** @todo Is it possible to speed this up? */
 void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
 {
-    HexAssert(g_decompsInitialized);
+    BenzeneAssert(g_decompsInitialized);
 
     adjByMiai.clear();
     for (BWIterator color; color; ++color) 
@@ -117,7 +117,7 @@ bool Decompositions::Find(const HexBoard& brd, HexColor color,
 	    adjTo[g->Captain()] = opptNbs;
     }
     // The two color edges are in the list. If no other groups are, then quit.
-    HexAssert(adjTo.size() >= 2);
+    BenzeneAssert(adjTo.size() >= 2);
     if (adjTo.size() == 2) 
     {
 	captured.reset();
@@ -138,8 +138,8 @@ bool Decompositions::Find(const HexBoard& brd, HexColor color,
 	    
 	    // This is such a pair, so at least one of the two is not an edge.
 	    // Find which color edges are not equal to either of these groups.
-	    HexAssert(!HexPointUtil::isEdge(g1->first) ||
-		      !HexPointUtil::isEdge(g2->first));
+	    BenzeneAssert(!HexPointUtil::isEdge(g1->first) ||
+                          !HexPointUtil::isEdge(g2->first));
 	    bool edge1Free = (g1->first != edge1 && g2->first != edge1);
 	    bool edge2Free = (g1->first != edge2 && g2->first != edge2);
 	    

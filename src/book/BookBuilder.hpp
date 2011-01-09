@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file BookBuilder.hpp
- */
+/** @file BookBuilder.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef BOOKBUILDER_HPP
@@ -453,7 +452,7 @@ bool BookBuilder<PLAYER>::GenerateMoves(std::vector<SgMove>& moves,
     }
 
     bitset_t children = EndgameUtils::MovesToConsider(*m_brd, toMove);
-    HexAssert(children.any());
+    BenzeneAssert(children.any());
     
     Resistance resist;
     resist.Evaluate(*m_brd);

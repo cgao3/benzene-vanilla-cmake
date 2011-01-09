@@ -138,14 +138,14 @@ PatternState::~PatternState()
 
 void PatternState::UpdateRingGodel(HexPoint cell)
 {
-    HexAssert(m_brd.Const().IsCell(cell));
+    BenzeneAssert(m_brd.Const().IsCell(cell));
     HexColor color = m_brd.GetColor(cell);
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     
     /** @note if Pattern::NUM_SLICES != 6, this won't work!! This also
         relies on the fact that slice 3 is opposite 0, 4 opposite 1,
         etc. */
-    HexAssert(Pattern::NUM_SLICES == 6);
+    BenzeneAssert(Pattern::NUM_SLICES == 6);
     for (int opp_slice = 3, slice = 0; slice < Pattern::NUM_SLICES; ++slice) 
     {
         HexPoint p = m_data->inverse_slice_godel[cell][slice][0];
@@ -160,11 +160,11 @@ void PatternState::Update(HexPoint cell)
     if (HexPointUtil::isSwap(cell)) 
         return;
 
-    HexAssert(m_brd.Const().IsLocation(cell));
+    BenzeneAssert(m_brd.Const().IsLocation(cell));
 
     int r = m_update_radius;
     HexColor color = m_brd.GetColor(cell);
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
 
     if (HexPointUtil::isEdge(cell)) 
         goto handleEdge;
@@ -210,7 +210,7 @@ void PatternState::Update(const bitset_t& changed)
 {
     for (BitsetIterator p(changed); p; ++p) 
     {
-        HexAssert(m_brd.IsOccupied(*p));
+        BenzeneAssert(m_brd.IsOccupied(*p));
         Update(*p);
     }
 }
@@ -231,7 +231,7 @@ void PatternState::ClearGodels()
 
 void PatternState::CopyState(const PatternState& other)
 {
-    HexAssert(m_brd.Const() == other.m_brd.Const());
+    BenzeneAssert(m_brd.Const() == other.m_brd.Const());
     m_update_radius = other.m_update_radius;
     memcpy(m_slice_godel, other.m_slice_godel, sizeof(m_slice_godel));
     memcpy(m_ring_godel, other.m_ring_godel, sizeof(m_ring_godel));
@@ -298,7 +298,7 @@ bool PatternState::CheckRotatedPattern(HexPoint cell,
                                        std::vector<HexPoint>& moves1,
                                        std::vector<HexPoint>& moves2) const
 {
-    HexAssert(m_brd.Const().IsCell(cell));
+    BenzeneAssert(m_brd.Const().IsCell(cell));
 
     m_statistics.pattern_checks++;
 

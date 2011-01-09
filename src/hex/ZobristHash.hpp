@@ -96,8 +96,8 @@ inline void ZobristHash::Reset()
 
 inline void ZobristHash::Update(HexColor color, HexPoint cell)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(0 <= cell && cell < BITSETSIZE);
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(0 <= cell && cell < BITSETSIZE);
     m_hash ^= GetGlobalData().m_color_hashes[color][cell];
 }
 

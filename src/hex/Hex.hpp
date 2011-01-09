@@ -27,6 +27,7 @@
 // stuff from src/util/
 
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 #include "Types.hpp"
 #include "Hash.hpp"
 #include "Logger.hpp"
@@ -35,7 +36,6 @@
 //----------------------------------------------------------------------------
 // hex stuff
 
-#include "HexAssert.hpp"
 #include "HexColor.hpp"
 #include "HexPoint.hpp"
 

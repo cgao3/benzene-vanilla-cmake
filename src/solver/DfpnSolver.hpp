@@ -359,7 +359,7 @@ inline void DfpnHistory::Pop()
 
 inline int DfpnHistory::Depth() const
 {
-    HexAssert(!m_move.empty());
+    BenzeneAssert(!m_move.empty());
     return static_cast<int>(m_move.size() - 1);
 }
 

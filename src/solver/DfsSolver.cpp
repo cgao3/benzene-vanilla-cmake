@@ -334,7 +334,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
     // not this one. 
     solution.proof = ProofUtil::InitialProofForOpponent(*m_workBrd, color);
     bitset_t mustplay = EndgameUtils::MovesToConsider(*m_workBrd, color);
-    HexAssert(mustplay.any());
+    BenzeneAssert(mustplay.any());
 
     int depth = variation.size();
     if (m_use_guifx && depth == m_update_depth)
@@ -430,7 +430,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
             m_histogram.states_under_losing[numstones] += states_under_losing;
             m_histogram.mustplay[numstones] += original_mustplay.count();
 
-	    HexAssert(solution.m_numMoves != -1);	    
+	    BenzeneAssert(solution.m_numMoves != -1);	    
         } 
         else 
         {
@@ -448,10 +448,10 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
                 solution.m_numMoves = child.m_numMoves + 1;
                 solution.SetPV(cell, child.pv);
             }
-	    HexAssert(solution.m_numMoves != -1);
+	    BenzeneAssert(solution.m_numMoves != -1);
         }
     }
-    HexAssert(solution.m_numMoves != -1);
+    BenzeneAssert(solution.m_numMoves != -1);
     return winning_state;
 }
 
@@ -627,7 +627,7 @@ bool DfsSolver::OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution,
     
     if (found_win)
     {
-	HexAssert(moves.size() == 1);
+	BenzeneAssert(moves.size() == 1);
 	LogFine() << "Found winning move; aborted ordering.\n";
 	return true;
     }
@@ -733,7 +733,7 @@ bool DfsSolver::OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution,
                 if (with_resist)
 		{
                     rscore = resist->Score(*it);
-                    HexAssert(rscore < 100.0);
+                    BenzeneAssert(rscore < 100.0);
                 }
                 tiebreaker = (with_resist) ? 100.0 - rscore : fromcenter;
                 
@@ -746,7 +746,7 @@ bool DfsSolver::OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution,
         if (!skip_this_move) 
             moves.push_back(HexMoveValue(*it, score));
     }
-    HexAssert(!found_win || moves.size() == 1);
+    BenzeneAssert(!found_win || moves.size() == 1);
     // NOTE: sort() is not stable, so multiple runs can produce
     // different move orders in the same state unless stable_sort() is
     // used.
@@ -767,7 +767,7 @@ bool DfsSolver::OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution,
                 = ProofUtil::InitialProofForOpponent(*m_workBrd, color);
             bitset_t new_mustplay 
                 = EndgameUtils::MovesToConsider(*m_workBrd, color);
-            HexAssert(BitsetUtil::IsSubsetOf(new_mustplay, mustplay));
+            BenzeneAssert(BitsetUtil::IsSubsetOf(new_mustplay, mustplay));
             
             if (new_mustplay.count() < mustplay.count())
 	    {

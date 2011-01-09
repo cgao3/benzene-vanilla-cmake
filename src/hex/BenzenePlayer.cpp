@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------------
-/** @file BenzenePlayer.cpp
- */
+/** @file BenzenePlayer.cpp */
 //----------------------------------------------------------------------------
 
+#include "BenzeneAssert.hpp"
 #include "BenzenePlayer.hpp"
 #include "EndgameUtils.hpp"
 #include "BoardUtils.cpp"
@@ -75,7 +75,7 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
         brd.SetUseICE(false);
         brd.ComputeAll(color);
         brd.SetUseICE(oldUseIce);
-        HexAssert(!brd.GetGroups().IsGameOver());
+        BenzeneAssert(!brd.GetGroups().IsGameOver());
     } 
     consider = brd.GetPosition().GetEmpty();
     score = 0;
@@ -90,7 +90,7 @@ HexPoint BenzenePlayer::CheckEndgame(HexBoard& brd, HexColor color,
     else 
     {
         consider = EndgameUtils::MovesToConsider(brd, color);
-        HexAssert(consider.any());
+        BenzeneAssert(consider.any());
     }
 
     score = 0;

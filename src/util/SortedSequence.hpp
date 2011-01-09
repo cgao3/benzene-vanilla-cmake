@@ -8,6 +8,7 @@
 #include <vector>
 #include <iostream>
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -17,7 +18,6 @@ _BEGIN_BENZENE_NAMESPACE_
 class SortedSequence
 {
 public:
-
     /** Creates an empty sorted sequence. */
     SortedSequence();
 
@@ -76,7 +76,7 @@ inline bool SortedSequence::finished() const
 
 inline const std::size_t& SortedSequence::operator[](std::size_t n) const
 {
-    assert(0 <= n && n < m_seq.size());
+    BenzeneAssert(0 <= n && n < m_seq.size());
     return m_seq[n];
 }
 

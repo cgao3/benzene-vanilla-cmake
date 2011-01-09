@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file ZobristHash.cpp
- */
+/** @file ZobristHash.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -67,7 +66,7 @@ void ZobristHash::GlobalData::GetHashes()
 ZobristHash::ZobristHash(int width, int height)
     : m_base(GetGlobalData().m_hashes[30 * width + height])
 {
-    HexAssert(30 * width + height < 1024);
+    BenzeneAssert(30 * width + height < 1024);
     Reset();
 }
 

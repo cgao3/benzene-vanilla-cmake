@@ -347,19 +347,19 @@ inline void Pattern::setName(const std::string& s)
 
 inline const std::vector<std::pair<int, int> >& Pattern::getMoves1() const
 {
-    HexAssert(m_flags & HAS_MOVES1);
+    BenzeneAssert(m_flags & HAS_MOVES1);
     return m_moves1;
 }
 
 inline const std::vector<std::pair<int, int> >& Pattern::getMoves2() const
 {
-    HexAssert(m_flags & HAS_MOVES2);
+    BenzeneAssert(m_flags & HAS_MOVES2);
     return m_moves2;
 }
 
 inline int Pattern::getWeight() const
 {
-    HexAssert(m_flags & HAS_WEIGHT);
+    BenzeneAssert(m_flags & HAS_WEIGHT);
     return m_weight;
 }
 

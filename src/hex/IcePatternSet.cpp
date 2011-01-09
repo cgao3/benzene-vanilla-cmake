@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file IcePatternSet.cpp
- */
+/** @file IcePatternSet.cpp */
 //----------------------------------------------------------------------------
 
 #include "IcePatternSet.hpp"
@@ -80,7 +79,7 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
 
         default:
             LogSevere() << "Pattern type = " << p.getType() << '\n';
-            HexAssert(false);
+            BenzeneAssert(false);
         }
     }
 

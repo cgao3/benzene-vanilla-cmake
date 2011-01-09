@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file WolvePlayer.cpp
- */
+/** @file WolvePlayer.cpp */
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
@@ -80,7 +79,7 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
 
     LogInfo() << m_search.DumpStats() << '\n';
 
-    HexAssert(PV.size() > 0);
+    BenzeneAssert(PV.size() > 0);
     return PV[0];
 }
 
@@ -146,7 +145,7 @@ void WolveSearch::GenerateMoves(std::vector<HexPoint>& moves)
     }
 
     m_consider.push_back(consider);
-    HexAssert((int)m_consider.size() == m_current_depth+1);
+    BenzeneAssert((int)m_consider.size() == m_current_depth+1);
 
     // Order the moves
     moves.clear();

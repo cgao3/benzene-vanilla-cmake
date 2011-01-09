@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexUctSearch.cpp
- */
+/** @file HexUctSearch.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -85,7 +84,7 @@ HexUctSearch::~HexUctSearch()
 /** Merges last game into the tree of games. */
 void HexUctSearch::AppendGame(const std::vector<SgMove>& sequence)
 {
-    HexAssert(m_root != 0);
+    BenzeneAssert(m_root != 0);
     SgNode* node = m_root->RightMostSon();
     HexColor color = m_shared_data.root_to_play;
     std::vector<SgPoint>::const_iterator it = sequence.begin();
@@ -128,7 +127,7 @@ void HexUctSearch::AppendGame(const std::vector<SgMove>& sequence)
 
 void HexUctSearch::OnStartSearch()
 {
-    HexAssert(m_brd);
+    BenzeneAssert(m_brd);
     if (m_root != 0)
         m_root->DeleteTree();
     if (m_keepGames) 

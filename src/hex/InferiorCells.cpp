@@ -43,9 +43,9 @@ bitset_t InferiorCells::Dominated() const
         m_dominated = vertices - captains;
         m_dominated_computed = true;
 
-        /// @todo ensure m_dominated is disjoint from all others.
-        HexAssert((m_dominated & Vulnerable()).none());
-        HexAssert((m_dominated & Reversible()).none());
+        /// TODO: ensure m_dominated is disjoint from all others.
+        BenzeneAssert((m_dominated & Vulnerable()).none());
+        BenzeneAssert((m_dominated & Reversible()).none());
     }
     return m_dominated;
 }
@@ -422,42 +422,42 @@ void InferiorCells::RemoveReversible(HexPoint reversible)
 
 void InferiorCells::AssertPairwiseDisjoint() const
 {
-    HexAssert((m_dead & m_vulnerable).none());
-    HexAssert((m_dead & m_reversible).none());
-    HexAssert((m_reversible & m_vulnerable).none());
-    HexAssert((m_allReversibleCarriers & m_allReversers).none());
-    HexAssert((m_reversible & m_allReversibleCarriers) == m_reversible);
-    HexAssert(!m_dominated_computed || (m_dead & m_dominated).none());
-    HexAssert(!m_dominated_computed || (m_vulnerable & m_dominated).none());
-    HexAssert(!m_dominated_computed || (m_reversible & m_dominated).none());
+    BenzeneAssert((m_dead & m_vulnerable).none());
+    BenzeneAssert((m_dead & m_reversible).none());
+    BenzeneAssert((m_reversible & m_vulnerable).none());
+    BenzeneAssert((m_allReversibleCarriers & m_allReversers).none());
+    BenzeneAssert((m_reversible & m_allReversibleCarriers) == m_reversible);
+    BenzeneAssert(!m_dominated_computed || (m_dead & m_dominated).none());
+    BenzeneAssert(!m_dominated_computed || (m_vulnerable & m_dominated).none());
+    BenzeneAssert(!m_dominated_computed || (m_reversible & m_dominated).none());
 
     for (BWIterator c; c; ++c) {
-        HexAssert((m_captured[*c] & m_dead).none());
-        HexAssert(!m_dominated_computed
+        BenzeneAssert((m_captured[*c] & m_dead).none());
+        BenzeneAssert(!m_dominated_computed
                   || (m_captured[*c] & m_dominated).none());
-        HexAssert((m_captured[*c] & m_vulnerable).none());
-        HexAssert((m_captured[*c] & m_reversible).none());
-        HexAssert((m_captured[*c] & m_captured[!*c]).none());
+        BenzeneAssert((m_captured[*c] & m_vulnerable).none());
+        BenzeneAssert((m_captured[*c] & m_reversible).none());
+        BenzeneAssert((m_captured[*c] & m_captured[!*c]).none());
         
-        HexAssert((m_perm_inf[*c] & m_dead).none());
-        HexAssert(!m_dominated_computed
+        BenzeneAssert((m_perm_inf[*c] & m_dead).none());
+        BenzeneAssert(!m_dominated_computed
                   || (m_perm_inf[*c] & m_dominated).none());
-        HexAssert((m_perm_inf[*c] & m_vulnerable).none());
-        HexAssert((m_perm_inf[*c] & m_reversible).none());
+        BenzeneAssert((m_perm_inf[*c] & m_vulnerable).none());
+        BenzeneAssert((m_perm_inf[*c] & m_reversible).none());
 
-        HexAssert((m_captured[*c] & m_perm_inf[*c]).none());
-        HexAssert((m_captured[*c] & m_perm_inf[!*c]).none());
+        BenzeneAssert((m_captured[*c] & m_perm_inf[*c]).none());
+        BenzeneAssert((m_captured[*c] & m_perm_inf[!*c]).none());
 
-        HexAssert((m_mutual_fillin[*c] & m_dead).none());
-        HexAssert(!m_dominated_computed
+        BenzeneAssert((m_mutual_fillin[*c] & m_dead).none());
+        BenzeneAssert(!m_dominated_computed
                   || (m_mutual_fillin[*c] & m_dominated).none());
-        HexAssert((m_mutual_fillin[*c] & m_vulnerable).none());
-        HexAssert((m_mutual_fillin[*c] & m_reversible).none());
+        BenzeneAssert((m_mutual_fillin[*c] & m_vulnerable).none());
+        BenzeneAssert((m_mutual_fillin[*c] & m_reversible).none());
 
-        HexAssert((m_mutual_fillin[*c] & m_captured[*c]).none());
-        HexAssert((m_mutual_fillin[*c] & m_captured[!*c]).none());
-        HexAssert((m_mutual_fillin[*c] & m_perm_inf[*c]).none());
-        HexAssert((m_mutual_fillin[*c] & m_perm_inf[!*c]).none());
+        BenzeneAssert((m_mutual_fillin[*c] & m_captured[*c]).none());
+        BenzeneAssert((m_mutual_fillin[*c] & m_captured[!*c]).none());
+        BenzeneAssert((m_mutual_fillin[*c] & m_perm_inf[*c]).none());
+        BenzeneAssert((m_mutual_fillin[*c] & m_perm_inf[!*c]).none());
     }
 }
 

@@ -210,7 +210,7 @@ void BenzeneHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
         color = !color;
         ++moveNum;
     }
-    HexAssert(hashes.size() == responses.size());
+    BenzeneAssert(hashes.size() == responses.size());
  
     std::ofstream out(bookfilename.c_str(), std::ios_base::app);
     for (std::size_t i = 0 ; i < hashes.size(); ++i)
@@ -360,7 +360,7 @@ void BenzeneHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
 */
 void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
 {
-    HexAssert(cmd.NuArg() > 0);
+    BenzeneAssert(cmd.NuArg() > 0);
 
     // Build direction offset look-up matrix.
     int xoffset[Pattern::NUM_SLICES][32];
@@ -427,7 +427,7 @@ void BenzeneHtpEngine::CmdEncodePattern(HtpCommand& cmd)
         while (j < 32 && (xoffset[sliceNo][j] != x2 ||
                           yoffset[sliceNo][j] != y2))
             j++;
-        HexAssert(j != 32);
+        BenzeneAssert(j != 32);
         pattOut[sliceNo*5] += (1 << j);
 
         if (brd.IsBlack(p))
@@ -562,7 +562,7 @@ void BenzeneHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
 	// Compute ratio of VCs at this cell, and use as measure of influence
 	double v1 = (double) b1.count();
 	double v2 = (double) b2.count();
-	HexAssert(v1+v2 >= 1.0);
+	BenzeneAssert(v1+v2 >= 1.0);
 	double influence;
 	if (color == BLACK)
 	    influence = v1 / (v1 + v2);

@@ -1,13 +1,13 @@
 //----------------------------------------------------------------------------
-/** @file HexAssert.hpp */
+/** @file BenzeneAssert.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef HEXASSERT_HPP
-#define HEXASSERT_HPP
+#ifndef BENZENEASSERT_HPP
+#define BENZENEASSERT_HPP
 
 //----------------------------------------------------------------------------
 
-#define __HEX_ASSERT_VOID_CAST static_cast<void>
+#define __BENZENE_ASSERT_VOID_CAST static_cast<void>
 
 extern void BenzeneAssertShutdown(const char* assertion, 
                                   const char* file, int line,
@@ -16,12 +16,12 @@ extern void BenzeneAssertShutdown(const char* assertion,
 
 #ifdef NDEBUG
 
-#define HexAssert(expr)     __HEX_ASSERT_VOID_CAST(0)
+#define BenzeneAssert(expr)     __BENZENE_ASSERT_VOID_CAST(0)
 
 #else
 
-#define HexAssert(expr) \
-    (__HEX_ASSERT_VOID_CAST ((expr) ? 0 :                               \
+#define BenzeneAssert(expr) \
+    (__BENZENE_ASSERT_VOID_CAST ((expr) ? 0 :                               \
                              (BenzeneAssertShutdown(#expr,                  \
                                                     __FILE__, __LINE__,     \
                                                     __PRETTY_FUNCTION__), 0)))
@@ -30,5 +30,5 @@ extern void BenzeneAssertShutdown(const char* assertion,
 
 //----------------------------------------------------------------------------
 
-#endif // HEXASSERT_HPP
+#endif // BENZENEASSERT_HPP
 

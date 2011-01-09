@@ -103,7 +103,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
                              HexBoard& brd, const bitset_t& given_to_consider,
                              double maxTime, double& score)
 {
-    HexAssert(!brd.GetGroups().IsGameOver());
+    BenzeneAssert(!brd.GetGroups().IsGameOver());
     HexColor color = state.ToPlay();   
    
     SgTimer totalElapsed;
@@ -210,7 +210,7 @@ HexPoint MoHexPlayer::LastMoveFromHistory(const MoveSequence& history)
 	lastMove = history.back().point();
 	if (lastMove == SWAP_PIECES) 
         {
-            HexAssert(history.size() == 2);
+            BenzeneAssert(history.size() == 2);
             lastMove = history.front().point();
 	}
     }
@@ -270,7 +270,7 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
         return true;
 
     // Backing up cannot cause this to happen, right? 
-    HexAssert(!EndgameUtils::IsDeterminedState(brd, color));
+    BenzeneAssert(!EndgameUtils::IsDeterminedState(brd, color));
 
     // Use the backed-up ice info to shrink the moves to consider
     if (m_backup_ice_info) 
@@ -302,7 +302,7 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
 	}
     }
 
-    HexAssert(consider.any());
+    BenzeneAssert(consider.any());
     LogInfo() << "Moves to consider:\n" << brd.Write(consider) << '\n';
     return false;
 }
@@ -392,7 +392,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
             brd.SetPlayed(newData.root_stones.played);
             LogWarning() << brd << '\n';
         }
-        HexAssert(oldStateData == newData.root_stones);
+        BenzeneAssert(oldStateData == newData.root_stones);
     }
 
     // Ensure alternating colors and extract suffix

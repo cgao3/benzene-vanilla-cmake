@@ -33,8 +33,6 @@ BOOST_AUTO_TEST_CASE(Logger_LogLevelUtil)
     BOOST_CHECK(LogLevelUtil::IsValidLevel(LOG_LEVEL_CONFIG));
     BOOST_CHECK(LogLevelUtil::IsValidLevel(LOG_LEVEL_FINE));
     BOOST_CHECK(LogLevelUtil::IsValidLevel(LOG_LEVEL_ALL));
-    BOOST_CHECK(!LogLevelUtil::IsValidLevel((LogLevel)(LOG_LEVEL_OFF+1)));
-    BOOST_CHECK(!LogLevelUtil::IsValidLevel((LogLevel)(LOG_LEVEL_ALL - 1)));
     
     // conversion to string
     BOOST_CHECK_EQUAL(LogLevelUtil::toString(LOG_LEVEL_OFF), "off");

@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCBuilder.cpp
- */
+/** @file VCBuilder.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -172,7 +171,7 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
                       const Groups& newGroups, const PatternState& patterns,
                       bitset_t added[BLACK_AND_WHITE], ChangeLog<VC>* log)
 {
-    HexAssert((added[BLACK] & added[WHITE]).none());
+    BenzeneAssert((added[BLACK] & added[WHITE]).none());
 
     m_con = &con;
     m_color = con.Color();
@@ -275,15 +274,15 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
                                HexPoint xin, HexPoint yin,
                                HexPoint xout, HexPoint yout)
 {
-    HexAssert(xin != yin);
-    HexAssert(xout != yout);
+    BenzeneAssert(xin != yin);
+    BenzeneAssert(xout != yout);
 
     VCList* fulls_in = &m_con->GetList(VC::FULL, xin, yin);
     VCList* semis_in = &m_con->GetList(VC::SEMI, xin, yin);
     VCList* fulls_out= &m_con->GetList(VC::FULL, xout, yout);
     VCList* semis_out= &m_con->GetList(VC::SEMI, xout, yout);
 
-    HexAssert((fulls_in == fulls_out) == (semis_in == semis_out));
+    BenzeneAssert((fulls_in == fulls_out) == (semis_in == semis_out));
     bool doing_merge = (fulls_in != fulls_out);
 
     std::list<VC> removed;
@@ -482,7 +481,7 @@ void VCBuilder::DoSearch()
             break;
         }
     }        
-    HexAssert(winning_connection || m_queue.empty());
+    BenzeneAssert(winning_connection || m_queue.empty());
 
     if (winning_connection) 
         LogFine() << "Aborted on winning connection." << '\n';
@@ -521,8 +520,8 @@ void VCBuilder::andClosure(const VC& vc)
 
     bitset_t vcCapturedSet = m_capturedSet[endp[0]] | m_capturedSet[endp[1]];
    
-    HexAssert(endc[0] != other);
-    HexAssert(endc[1] != other);
+    BenzeneAssert(endc[0] != other);
+    BenzeneAssert(endc[1] != other);
     for (GroupIterator g(*m_groups, not_other); g; ++g) 
     {
         HexPoint z = g->Captain();
@@ -648,7 +647,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
         m_tail[i] = m_semi[i].carrier() & m_tail[i+1];
 
     max_ors--;
-    HexAssert(max_ors < 16);
+    BenzeneAssert(max_ors < 16);
 
     // compute the captured-set union for the endpoints of this list
     bitset_t capturedSet = m_builder.m_capturedSet[semi_list->getX()] 
@@ -763,7 +762,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
 */
 bool VCBuilder::AddNewFull(const VC& vc)
 {
-    HexAssert(vc.type() == VC::FULL);
+    BenzeneAssert(vc.type() == VC::FULL);
     VCList::AddResult result = m_con->Add(vc, m_log);
     if (result != VCList::ADD_FAILED) 
     {

@@ -116,7 +116,7 @@ void TightenMoveBitset(bitset_t& moveBitset, const InferiorCells& inf)
     BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Captured(WHITE));
     BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Reversible());
     BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Dominated());
-    HexAssert(moveBitset.any());
+    BenzeneAssert(moveBitset.any());
 }
     
 /** Intersects as many of the smallest connections as possible. Then,
@@ -165,7 +165,7 @@ HexPoint MostOverlappingMove(const std::vector<VC>& VClist,
     {
 	if (numHits[i] > curMostHits) 
         {
-	    HexAssert(intersectSmallest.test(i));
+	    BenzeneAssert(intersectSmallest.test(i));
 	    curMostHits = numHits[i];
 	    curBestMove = i;
 	}
@@ -173,14 +173,14 @@ HexPoint MostOverlappingMove(const std::vector<VC>& VClist,
     
     if (curMostHits == 0)
         LogWarning() << "curMostHits == 0!!\n";
-    HexAssert(curMostHits > 0);
+    BenzeneAssert(curMostHits > 0);
     return (HexPoint)curBestMove;
 }
     
 /** Returns best winning move. */
 HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
 {
-    HexAssert(EndgameUtils::IsWonGame(brd, color));
+    BenzeneAssert(EndgameUtils::IsWonGame(brd, color));
 
     // If we have a winning SC, then play in the key of the smallest one
     VC winningVC;
@@ -205,14 +205,14 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
 	return MostOverlappingMove(vcs, brd.GetInferiorCells());
     }
     // Should never get here!
-    HexAssert(false);
+    BenzeneAssert(false);
     return INVALID_POINT;
 }
 
 /** Returns most blocking (ie, the "best") losing move. */
 HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
 {
-    HexAssert(EndgameUtils::IsLostGame(brd, color));
+    BenzeneAssert(EndgameUtils::IsLostGame(brd, color));
 
     // Determine if color's opponent has guaranteed win
     HexColor other = !color;
@@ -304,24 +304,24 @@ bool EndgameUtils::IsDeterminedState(const HexBoard& brd, HexColor color,
 HexPoint EndgameUtils::PlayDeterminedState(const HexBoard& brd, HexColor color)
                                           
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(IsDeterminedState(brd, color));
-    HexAssert(!brd.GetGroups().IsGameOver());
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(IsDeterminedState(brd, color));
+    BenzeneAssert(!brd.GetGroups().IsGameOver());
 
     if (IsWonGame(brd, color))
         return PlayWonGame(brd, color);
 
-    HexAssert(IsLostGame(brd, color));
+    BenzeneAssert(IsLostGame(brd, color));
     return PlayLostGame(brd, color);
 }
 
 bitset_t EndgameUtils::MovesToConsider(const HexBoard& brd, HexColor color)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(!IsDeterminedState(brd, color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(!IsDeterminedState(brd, color));
     
     bitset_t consider = ComputeConsiderSet(brd, color);
-    HexAssert(consider.any());
+    BenzeneAssert(consider.any());
 
     LogFine() << "Moves to consider for " << color << ":" 
               << brd.Write(consider) << '\n';

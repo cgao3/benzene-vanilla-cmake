@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexSgUtil.cpp
- */
+/** @file HexSgUtil.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -35,7 +34,7 @@ HexPoint HexSgUtil::SgPointToHexPoint(SgPoint p, int height)
 
 SgBlackWhite HexSgUtil::HexColorToSgColor(HexColor color)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     if (color == BLACK) return SG_BLACK;
     return SG_WHITE;
 }
@@ -43,7 +42,7 @@ SgBlackWhite HexSgUtil::HexColorToSgColor(HexColor color)
 
 HexColor HexSgUtil::SgColorToHexColor(SgBlackWhite player)
 {
-    HexAssert(player == SG_BLACK || player == SG_WHITE);
+    BenzeneAssert(player == SG_BLACK || player == SG_WHITE);
     if (player == SG_BLACK) return BLACK;
     return WHITE;
 }

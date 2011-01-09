@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCPattern.cpp
- */
+/** @file VCPattern.cpp */
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
@@ -259,8 +258,8 @@ void VCPattern::CreatePatterns(int width, int height)
             if (line == "") break;
             carrier.push_back(line);
         }
-        HexAssert(!carrier.empty());
-        HexAssert(patternHeight == -1 || patternHeight <= (int)carrier.size());
+        BenzeneAssert(!carrier.empty());
+        BenzeneAssert(patternHeight == -1 || patternHeight <= (int)carrier.size());
 
         // abort if pattern too large for board
         if ((int)carrier.size() > height) 
@@ -288,7 +287,7 @@ void VCPattern::CreatePatterns(int width, int height)
                 case 'E': endpoint = p; empty.set(p); break;
                 case 'B': black.set(p); break;
                 case '.': break;
-                default: HexAssert(false);
+                default: BenzeneAssert(false);
                 }
                 col++;
             }
@@ -296,7 +295,7 @@ void VCPattern::CreatePatterns(int width, int height)
                 break;
             if (numcol == -1) 
                 numcol = col;
-            HexAssert(numcol == col);
+            BenzeneAssert(numcol == col);
             row--;
         }
 

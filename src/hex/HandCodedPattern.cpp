@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HandCodedPattern.cpp
- */
+/** @file HandCodedPattern.cpp */
 //----------------------------------------------------------------------------
 
 #include "HandCodedPattern.hpp"
@@ -30,7 +29,7 @@ HandCodedPattern::~HandCodedPattern()
 
 void HandCodedPattern::set(HexColor color, const bitset_t& bs)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     m_color[color] = bs;
 }
 

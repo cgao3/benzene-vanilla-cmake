@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file ProofUtil.cpp
- */
+/** @file ProofUtil.cpp */
 //----------------------------------------------------------------------------
 
 #include "Hex.hpp"
@@ -82,7 +81,7 @@ bool ProofUtil::ShrinkProof(bitset_t& proof, const StoneBoard& board,
     InferiorCells inf;
     ice.ComputeFillin(loser, groups, pastate, inf, 
                       HexColorSetUtil::Only(loser));
-    HexAssert(inf.Captured(winner).none());
+    BenzeneAssert(inf.Captured(winner).none());
 
     bitset_t filled = inf.Dead() | inf.Captured(loser);
     bitset_t shrunk_proof = proof - filled;

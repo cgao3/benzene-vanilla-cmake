@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file SequenceHash.cpp
- */
+/** @file SequenceHash.cpp */
 //----------------------------------------------------------------------------
 
 #include "SequenceHash.hpp"
@@ -37,7 +36,7 @@ const HashData& GetHashData()
 
 hash_t SequenceHash::Hash(const PointSequence& seq)
 {
-    HexAssert((int)seq.size() < BITSETSIZE);
+    BenzeneAssert((int)seq.size() < BITSETSIZE);
 
     const HashData& data = GetHashData();
 
@@ -51,7 +50,7 @@ hash_t SequenceHash::Hash(const PointSequence& seq)
 
 hash_t SequenceHash::Hash(const MoveSequence& seq)
 {
-    HexAssert((int)seq.size() < BITSETSIZE);
+    BenzeneAssert((int)seq.size() < BITSETSIZE);
 
     const HashData& data = GetHashData();
 

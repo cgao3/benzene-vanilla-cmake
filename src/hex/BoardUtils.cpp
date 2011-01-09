@@ -39,7 +39,7 @@ HexPoint BoardUtils::PointInDir(const ConstBoard& brd,
         return point;
 
     int x, y;
-    HexAssert(HexPointUtil::isInteriorCell(point));
+    BenzeneAssert(HexPointUtil::isInteriorCell(point));
     HexPointUtil::pointToCoords(point, x, y);
     x += HexPointUtil::DeltaX(dir);
     y += HexPointUtil::DeltaY(dir);
@@ -48,7 +48,7 @@ HexPoint BoardUtils::PointInDir(const ConstBoard& brd,
 
 HexPoint BoardUtils::Rotate(const ConstBoard& brd, HexPoint p)
 {
-    HexAssert(brd.IsValid(p));
+    BenzeneAssert(brd.IsValid(p));
     
     if (!brd.IsLocation(p)) return p;
     if (HexPointUtil::isEdge(p)) return HexPointUtil::oppositeEdge(p);
@@ -60,8 +60,8 @@ HexPoint BoardUtils::Rotate(const ConstBoard& brd, HexPoint p)
 
 HexPoint BoardUtils::Mirror(const ConstBoard& brd, HexPoint p)
 {
-    HexAssert(brd.IsValid(p));
-    HexAssert(brd.Width() == brd.Height());
+    BenzeneAssert(brd.IsValid(p));
+    BenzeneAssert(brd.Width() == brd.Height());
     
     if (!brd.IsLocation(p)) return p;
     
@@ -79,7 +79,7 @@ HexPoint BoardUtils::Mirror(const ConstBoard& brd, HexPoint p)
 
 HexPoint BoardUtils::CenterPoint(const ConstBoard& brd)
 {
-    HexAssert((brd.Width() & 1) && (brd.Height() & 1));
+    BenzeneAssert((brd.Width() & 1) && (brd.Height() & 1));
     return CenterPointRight(brd);
 }
 
@@ -115,7 +115,7 @@ HexPoint BoardUtils::RandomEmptyCell(const StoneBoard& brd)
     for (BitsetIterator p(moves); p; ++p) 
         if (--randMove==0) return *p;
 
-    HexAssert(false);
+    BenzeneAssert(false);
     return INVALID_POINT;
 }
 
@@ -183,8 +183,8 @@ bool BoardUtils::ConnectedOnBitset(const ConstBoard& brd,
                                    const bitset_t& carrier,
                                    HexPoint p1, HexPoint p2)
 {
-    HexAssert(carrier.test(p1));
-    HexAssert(carrier.test(p2));
+    BenzeneAssert(carrier.test(p1));
+    BenzeneAssert(carrier.test(p2));
     bitset_t seen = ReachableOnBitset(brd, carrier, EMPTY_BITSET, p1);
     return seen.test(p2);
 }
@@ -194,7 +194,7 @@ bitset_t BoardUtils::ReachableOnBitset(const ConstBoard& brd,
                                        const bitset_t& stopset,
                                        HexPoint start)
 {
-    HexAssert(carrier.test(start));
+    BenzeneAssert(carrier.test(start));
     bitset_t seen;
     std::queue<HexPoint> q;
     q.push(start);

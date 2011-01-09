@@ -149,14 +149,14 @@ void VCSet::Revert(ChangeLog<VC>& log)
 #ifdef NDEBUG
             list->remove(vc, 0);
 #else
-            HexAssert(list->remove(vc, 0));
+            BenzeneAssert(list->remove(vc, 0));
 #endif
         } else if (action == ChangeLog<VC>::REMOVE) {
             list->simple_add(vc);
         } else if (action == ChangeLog<VC>::PROCESSED) {
             VCList::iterator it = list->find(vc);
-            HexAssert(it != list->end());
-            HexAssert(it->processed());
+            BenzeneAssert(it != list->end());
+            BenzeneAssert(it->processed());
             it->setProcessed(false);
         }
     }    

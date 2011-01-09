@@ -53,7 +53,6 @@ HandCodedPattern.hpp \
 HashedPatternSet.hpp \
 Hex.hpp \
 HexAbSearch.hpp \
-HexAssert.hpp \
 HexBoard.hpp \
 HexColor.hpp \
 HexEnvironment.hpp \

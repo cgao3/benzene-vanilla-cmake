@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file Pattern.cpp
- */
+/** @file Pattern.cpp */
 //----------------------------------------------------------------------------
 
 #include "Pattern.hpp"
@@ -69,7 +68,7 @@ bool Pattern::unserialize(std::string code)
             ss >> i;
 #ifndef NDEBUG
             // ensure no bits outside a slice are set
-            HexAssert((i & check)==0);
+            BenzeneAssert((i & check)==0);
 #endif
             m_slice[s][j] = i;
             m_extension = std::max(m_extension, 
@@ -97,17 +96,17 @@ bool Pattern::unserialize(std::string code)
         }
         
         // ensure each feature is a subset of FEATURE_CELLS
-        HexAssert(BitsetUtil::IsSubsetOf(m_slice[s][FEATURE_BLACK],
+        BenzeneAssert(BitsetUtil::IsSubsetOf(m_slice[s][FEATURE_BLACK],
                                          m_slice[s][FEATURE_CELLS]));
-        HexAssert(BitsetUtil::IsSubsetOf(m_slice[s][FEATURE_WHITE],
+        BenzeneAssert(BitsetUtil::IsSubsetOf(m_slice[s][FEATURE_WHITE],
                                          m_slice[s][FEATURE_CELLS]));
-        HexAssert(BitsetUtil::IsSubsetOf(m_slice[s][FEATURE_MARKED1],
+        BenzeneAssert(BitsetUtil::IsSubsetOf(m_slice[s][FEATURE_MARKED1],
                                          m_slice[s][FEATURE_CELLS]));
-        HexAssert(BitsetUtil::IsSubsetOf(m_slice[s][FEATURE_MARKED2],
+        BenzeneAssert(BitsetUtil::IsSubsetOf(m_slice[s][FEATURE_MARKED2],
                                          m_slice[s][FEATURE_CELLS]));
 
         // ensure BLACK does not intersect with WHITE
-        HexAssert((m_slice[s][FEATURE_BLACK] & m_slice[s][FEATURE_WHITE])==0);
+        BenzeneAssert((m_slice[s][FEATURE_BLACK] & m_slice[s][FEATURE_WHITE])==0);
     }
 
     if (m_flags & HAS_WEIGHT) {
@@ -298,7 +297,7 @@ int PatternUtil::GetExtensionFromGodel(int godel)
             return r;
         }
     }
-    HexAssert(false);
+    BenzeneAssert(false);
     return Pattern::MAX_EXTENSION;
 }
 

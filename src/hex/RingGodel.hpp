@@ -117,7 +117,7 @@ inline int RingGodel::Score(HexColor color)
     case BLACK: return 2;
     case WHITE: return 4;
     }
-    HexAssert(false);
+    BenzeneAssert(false);
     return 0;
 }
 

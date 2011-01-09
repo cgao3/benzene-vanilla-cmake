@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCUtils.cpp
- */
+/** @file VCUtils.cpp */
 //----------------------------------------------------------------------------
 
 #include "VCUtils.hpp"
@@ -60,7 +59,7 @@ bool VCUtils::ValidEdgeBridge(const StoneBoard& brd,
     for (BoardIterator n1(brd.Const().Nbs(miai[0])); n1; ++n1)
         for (BoardIterator n2(brd.Const().Nbs(miai[1])); n2; ++n2)
             if (*n1 == *n2) adj.push_back(*n1);
-    HexAssert(adj.size() == 2);
+    BenzeneAssert(adj.size() == 2);
 
     // pick the edge and endpoint
     for (std::size_t i=0; i<2; ++i) 

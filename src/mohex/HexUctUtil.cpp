@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexUctUtil.cpp
-*/
+/** @file HexUctUtil.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -87,9 +86,7 @@ int HexUctUtil::ComputeMaxNumMoves()
 std::string HexUctUtil::MoveString(SgMove sgmove)
 {
     HexPoint move = static_cast<HexPoint>(sgmove);
-    
-    // Simple process if just HexPoint
-    HexAssert(0 <= move && move < FIRST_INVALID);
+    BenzeneAssert(0 <= move && move < FIRST_INVALID);
     return HexPointUtil::ToString(move);
 }
 
@@ -97,7 +94,7 @@ SgBlackWhite HexUctUtil::ToSgBlackWhite(HexColor c)
 {
     if (c == BLACK)
 	return SG_BLACK;
-    HexAssert(c == WHITE);
+    BenzeneAssert(c == WHITE);
     return SG_WHITE;
 }
 

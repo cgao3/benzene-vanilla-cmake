@@ -16,7 +16,7 @@ namespace
 
 HexPoint RandomBit(const bitset_t& bs, SgRandom& random)
 {
-    HexAssert(bs.any());
+    BenzeneAssert(bs.any());
     int index = random.Int(static_cast<int>(bs.count()));
     for (BitsetIterator it(bs); it; ++it)
     {
@@ -24,7 +24,7 @@ HexPoint RandomBit(const bitset_t& bs, SgRandom& random)
             return *it;
         --index;
     }
-    HexAssert(false);
+    BenzeneAssert(false);
     return static_cast<HexPoint>(BitsetUtil::FirstSetBit(bs));
 }
 
@@ -105,8 +105,8 @@ HexPoint PerfectPlayer::Search(const HexState& state, const Game& game,
         LogInfo() << brd << '\n';
         LogInfo() << "PerfectPlayer: Re-solving with temporary hash table.\n";
         winner = m_solver.StartSearch(state, brd, myStates, pv);
-        HexAssert(winner != EMPTY);
-        HexAssert(!pv.empty());
+        BenzeneAssert(winner != EMPTY);
+        BenzeneAssert(!pv.empty());
         return pv[0];
     }
     // Didn't prove it, find non-losing move with most work.

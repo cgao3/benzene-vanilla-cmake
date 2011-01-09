@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file DfpnSolver.cpp
- */
+/** @file DfpnSolver.cpp */
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
@@ -30,13 +29,13 @@ const std::string DfpnDB::DFPN_DB_VERSION("BENZENE_DFPN_DB_VER_0002");
 void DfpnBounds::CheckConsistency() const
 {
     // Check range
-    HexAssert(phi <= INFTY);
-    HexAssert(delta <= INFTY);
+    BenzeneAssert(phi <= INFTY);
+    BenzeneAssert(delta <= INFTY);
     // one is 0 iff the other is infinity
-    HexAssert(0 != phi || INFTY == delta);
-    HexAssert(INFTY != phi || 0 == delta);
-    HexAssert(0 != delta || INFTY == phi);
-    HexAssert(INFTY != delta || 0 == phi);
+    BenzeneAssert(0 != phi || INFTY == delta);
+    BenzeneAssert(INFTY != phi || 0 == delta);
+    BenzeneAssert(0 != delta || INFTY == phi);
+    BenzeneAssert(INFTY != delta || 0 == phi);
 }
 #else
 void DfpnBounds::CheckConsistency() const
@@ -105,7 +104,7 @@ void DfpnSolver::GuiFx::UndoMove()
 
 void DfpnSolver::GuiFx::UpdateCurrentBounds(const DfpnBounds& bounds)
 {
-    HexAssert(m_index != -1);
+    BenzeneAssert(m_index != -1);
     m_data[m_index].m_bounds = bounds;
 }
 
@@ -418,8 +417,8 @@ bool DfpnSolver::CheckAbort()
 size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
 {
     maxBounds.CheckConsistency();
-    HexAssert(maxBounds.phi > 1);
-    HexAssert(maxBounds.delta > 1);
+    BenzeneAssert(maxBounds.phi > 1);
+    BenzeneAssert(maxBounds.delta > 1);
 
     int depth = history.Depth();
     size_t prevWork = 0;
@@ -535,7 +534,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
         childMaxBounds.phi = maxBounds.delta 
             - (currentBounds.delta - childBounds.phi);
         childMaxBounds.delta = std::min(maxBounds.phi, delta2 + 1);
-        HexAssert(childMaxBounds.GreaterThan(childBounds));
+        BenzeneAssert(childMaxBounds.GreaterThan(childBounds));
         if (delta2 != DfpnBounds::INFTY)
             m_deltaIncrease.Add(childMaxBounds.delta - childBounds.delta);
 
@@ -652,7 +651,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
 size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<DfpnData>&
                                         childrenData) const
 {
-    HexAssert(!childrenData.empty());
+    BenzeneAssert(!childrenData.empty());
 
     int numNonLosingChildren = 0;
     for (size_t i = 0; i < childrenData.size(); ++i)
@@ -666,7 +665,7 @@ size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<DfpnData>&
                                                        * WideningFactor());
     // Must examine at least two children when have two or more live,
     // since otherwise delta2 will be set to infinity in SelectChild.
-    HexAssert(childrenToLookAt >= 2);
+    BenzeneAssert(childrenToLookAt >= 2);
 
     int numNonLosingSeen = 0;
     for (size_t i = 0; i < childrenData.size(); ++i)
@@ -682,16 +681,16 @@ void DfpnSolver::DeleteChildren(DfpnChildren& children,
                                 std::vector<DfpnData>& childrenData,
                                 bitset_t deleteChildren) const
 {
-    HexAssert(children.Size() == childrenData.size());
+    BenzeneAssert(children.Size() == childrenData.size());
     bitset_t deleted;
     std::vector<HexPoint>::iterator it1 = children.m_children.begin();
     std::vector<DfpnData>::iterator it2 = childrenData.begin();
     while (it1 != children.m_children.end())
     {
-        HexAssert(it2 != childrenData.end());
+        BenzeneAssert(it2 != childrenData.end());
         if (deleteChildren.test(*it1))
         {
-            HexAssert(!deleted.test(*it1));
+            BenzeneAssert(!deleted.test(*it1));
             deleted.set(*it1);
             it1 = children.m_children.erase(it1);
             it2 = childrenData.erase(it2);
@@ -702,9 +701,9 @@ void DfpnSolver::DeleteChildren(DfpnChildren& children,
             ++it2;
         }
     }
-    HexAssert(children.Size() > 0);
-    HexAssert(children.Size() == childrenData.size());
-    HexAssert(deleteChildren == deleted);
+    BenzeneAssert(children.Size() > 0);
+    BenzeneAssert(children.Size() == childrenData.size());
+    BenzeneAssert(deleteChildren == deleted);
 }
 
 void DfpnSolver::NotifyListeners(const DfpnHistory& history,
@@ -720,7 +719,7 @@ void DfpnSolver::SelectChild(int& bestIndex, DfpnBoundType& delta2,
 {
     DfpnBoundType delta1 = DfpnBounds::INFTY;
 
-    HexAssert(1 <= maxChildIndex && maxChildIndex <= childrenData.size());
+    BenzeneAssert(1 <= maxChildIndex && maxChildIndex <= childrenData.size());
     for (std::size_t i = 0; i < maxChildIndex; ++i)
     {
         const DfpnBounds& child = childrenData[i].m_bounds;
@@ -741,7 +740,7 @@ void DfpnSolver::SelectChild(int& bestIndex, DfpnBoundType& delta2,
         if (child.IsLosing())
             break;
     }
-    HexAssert(delta1 < DfpnBounds::INFTY);
+    BenzeneAssert(delta1 < DfpnBounds::INFTY);
 }
 
 void DfpnSolver::UpdateBounds(DfpnBounds& bounds, 
@@ -749,7 +748,7 @@ void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
                               size_t maxChildIndex) const
 {
     DfpnBounds boundsAll(DfpnBounds::INFTY, 0);
-    HexAssert(1 <= maxChildIndex && maxChildIndex <= childData.size());
+    BenzeneAssert(1 <= maxChildIndex && maxChildIndex <= childData.size());
     for (std::size_t i = 0; i < maxChildIndex; ++i)
     {
         const DfpnBounds& childBounds = childData[i].m_bounds;
@@ -760,7 +759,7 @@ void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
             return;
         }
         boundsAll.phi = std::min(boundsAll.phi, childBounds.delta);
-        HexAssert(childBounds.phi != DfpnBounds::INFTY);
+        BenzeneAssert(childBounds.phi != DfpnBounds::INFTY);
         boundsAll.delta += childBounds.phi;
     }
     bounds = boundsAll;

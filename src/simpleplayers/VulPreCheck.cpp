@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** VulPreCheck.cpp
- */
+/** VulPreCheck.cpp */
 //----------------------------------------------------------------------------
 
 #include "VulPreCheck.hpp"
@@ -41,7 +40,7 @@ HexPoint VulPreCheck::KillLastMove(HexBoard& brd, const Game& game_state,
             */
 	    if (m_killedOpptStones.test(p)) 
             {
-		HexAssert(c == !color);
+		BenzeneAssert(c == !color);
 		c = !c;
 	    }
 	    b.PlayMove(c, p);
@@ -55,7 +54,7 @@ HexPoint VulPreCheck::KillLastMove(HexBoard& brd, const Game& game_state,
 	lastMoveOnly.set(lastCell);
 	LogWarning() << "Last move on this board:"
                      << b.Write(lastMoveOnly) << '\n';
-	HexAssert(gh.back().color() == !color);
+	BenzeneAssert(gh.back().color() == !color);
 	InferiorCells inf;
 	brd.ICE().FindVulnerable(pastate, !color, lastMoveOnly, inf);
 	LogWarning() << "Inferior cells:" << inf.GuiOutput() << '\n';
@@ -66,7 +65,7 @@ HexPoint VulPreCheck::KillLastMove(HexBoard& brd, const Game& game_state,
 	    LogWarning() << "Opponent's last move was vulnerable - killing it!"
                          << '\n';
 	    std::set<VulnerableKiller> killers = inf.Killers(lastCell);
-	    HexAssert(!killers.empty());
+	    BenzeneAssert(!killers.empty());
 	    
 	    /** If opponent's last move can be made unconditionally dead,
 		this is preferable since we can treat it as such in the

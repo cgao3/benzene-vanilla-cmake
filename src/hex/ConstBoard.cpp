@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file ConstBoard.cpp
- */
+/** @file ConstBoard.cpp */
 //----------------------------------------------------------------------------
 
 #include "ConstBoard.hpp"
@@ -17,7 +16,7 @@ namespace {
 
 int DistanceToEdge(const ConstBoard& brd, HexPoint from, HexPoint edge)
 {
-    HexAssert(HexPointUtil::isEdge(edge));
+    BenzeneAssert(HexPointUtil::isEdge(edge));
     
     if (HexPointUtil::isEdge(from)) 
     {
@@ -69,8 +68,8 @@ ConstBoard::ConstBoard(int size)
     : m_width(size),
       m_height(size)
 {
-    HexAssert(1 <= m_width && m_width <= MAX_WIDTH);
-    HexAssert(1 <= m_height && m_height <= MAX_HEIGHT);
+    BenzeneAssert(1 <= m_width && m_width <= MAX_WIDTH);
+    BenzeneAssert(1 <= m_height && m_height <= MAX_HEIGHT);
     Init();
 }
 
@@ -78,8 +77,8 @@ ConstBoard::ConstBoard(int width, int height)
     : m_width(width),
       m_height(height)
 {
-    HexAssert(1 <= m_width && m_width <= MAX_WIDTH);
-    HexAssert(1 <= m_height && m_height <= MAX_HEIGHT);
+    BenzeneAssert(1 <= m_width && m_width <= MAX_WIDTH);
+    BenzeneAssert(1 <= m_height && m_height <= MAX_HEIGHT);
     Init();
 }
 
@@ -99,8 +98,8 @@ bool ConstBoard::Adjacent(HexPoint p1, HexPoint p2) const
 
 int ConstBoard::Distance(HexPoint x, HexPoint y) const
 {
-    HexAssert(IsValid(x));
-    HexAssert(IsValid(y));
+    BenzeneAssert(IsValid(x));
+    BenzeneAssert(IsValid(y));
     
     if (HexPointUtil::isEdge(y)) 
         return DistanceToEdge(*this, x, y);

@@ -68,7 +68,7 @@ int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db,
         = (brd.GetPlayed(BLACK) & brd.Const().GetCells()).count();
     std::size_t numWhite 
         = (brd.GetPlayed(WHITE) & brd.Const().GetCells()).count();
-    HexAssert(numBlack + numWhite == brd.NumStones());
+    BenzeneAssert(numBlack + numWhite == brd.NumStones());
 
     // Loser can use all his stones as well as all those outside the proof
     HexColor loser = !winner;
@@ -85,8 +85,8 @@ int ProofUtil::StoreTranspositions(SolverDB<HASH,DB,DATA>& db,
     BitsetUtil::BitsetToVector(outside, lose_list);
     BitsetUtil::BitsetToVector(winners, winn_list);
 
-    HexAssert(black.size() >= (unsigned)numBlack);
-    HexAssert(white.size() >= (unsigned)numWhite);
+    BenzeneAssert(black.size() >= (unsigned)numBlack);
+    BenzeneAssert(white.size() >= (unsigned)numWhite);
 
     // Write each transposition 
     int count = 0;
@@ -164,14 +164,14 @@ int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
     } 
     else 
     {
-	HexAssert(flippedWinner == WHITE);
+	BenzeneAssert(flippedWinner == WHITE);
 	canAddFlippedBlack = flippedOutside.any();
 	flippedBlackToAdd = flippedOutside;
     }
-    HexAssert(canAddFlippedBlack != flippedBlackToAdd.none());
-    HexAssert(BitsetUtil::IsSubsetOf(flippedBlackToAdd,flippedBrd.GetEmpty()));
-    HexAssert(canRemoveFlippedWhite != flippedWhiteToRemove.none());
-    HexAssert(BitsetUtil::IsSubsetOf(flippedWhiteToRemove,flippedWhite));
+    BenzeneAssert(canAddFlippedBlack != flippedBlackToAdd.none());
+    BenzeneAssert(BitsetUtil::IsSubsetOf(flippedBlackToAdd,flippedBrd.GetEmpty()));
+    BenzeneAssert(canRemoveFlippedWhite != flippedWhiteToRemove.none());
+    BenzeneAssert(BitsetUtil::IsSubsetOf(flippedWhiteToRemove,flippedWhite));
     
     // Now we can create and store the desired flipped states.
     DATA ss(data);
@@ -185,7 +185,7 @@ int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
 	for (BitsetIterator i(flippedBlackToAdd); i; ++i) 
         {
 	    flippedBrd.PlayMove(BLACK, *i);
-	    HexAssert(!state.ToPlay() == flippedBrd.WhoseTurn());
+	    BenzeneAssert(!state.ToPlay() == flippedBrd.WhoseTurn());
 	    db.Put(HexState(flippedBrd, WHITE), ss);
 	    flippedBrd.UndoMove(*i);
             ++count;
@@ -196,7 +196,7 @@ int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
 	for (BitsetIterator i(flippedWhiteToRemove); i; ++i) 
         {
 	    flippedBrd.UndoMove(*i);
-	    HexAssert(!state.ToPlay() == flippedBrd.WhoseTurn());
+	    BenzeneAssert(!state.ToPlay() == flippedBrd.WhoseTurn());
 	    db.Put(HexState(flippedBrd, WHITE), ss);
 	    flippedBrd.PlayMove(WHITE, *i);
             ++count;

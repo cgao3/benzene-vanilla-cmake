@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HandicapPlayer.cpp
- */
+/** @file HandicapPlayer.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -16,7 +15,6 @@ HandicapPlayer::HandicapPlayer(ICEngine* ice)
       m_ice(ice),
       m_assume_added_stones(true)
 {
-    LogFine() << "--- HandicapPlayer" << '\n';
 }
 
 HandicapPlayer::~HandicapPlayer()
@@ -42,7 +40,7 @@ HexPoint HandicapPlayer::Search(HexBoard& brd,
 #endif
 
     HexPoint lastMove, response;
-    HexAssert(color == !VERTICAL_COLOR);
+    BenzeneAssert(color == !VERTICAL_COLOR);
     
     m_width = (m_assume_added_stones) ? brd.Width()-1 : brd.Width();
     if (m_width == brd.Height())
@@ -51,7 +49,7 @@ HexPoint HandicapPlayer::Search(HexBoard& brd,
     /** Handicap player wins playing second, so in this case any random
 	move will suffice. */
     if (game_state.History().empty()) {
-	HexAssert(color == FIRST_TO_PLAY);
+	BenzeneAssert(color == FIRST_TO_PLAY);
 	return BoardUtils::RandomEmptyCell(brd.GetPosition());
     }
     

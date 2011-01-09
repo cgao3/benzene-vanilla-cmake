@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file Book.cpp
-*/
+/** @file Book.cpp */
 //----------------------------------------------------------------------------
 
 #include <cmath>
@@ -48,7 +47,7 @@ float BookUtil::InverseEval(float eval)
         return -eval;
     if (eval < 0 || eval > 1)
         LogInfo() << "eval = " << eval << '\n';
-    HexAssert(0 <= eval && eval <= 1.0);
+    BenzeneAssert(0 <= eval && eval <= 1.0);
     return 1.0 - eval;
 }
 
@@ -146,7 +145,7 @@ HexPoint BookUtil::BestMove(const Book& book, const HexState& origState,
         }
         state.UndoMove(*p);
     }
-    HexAssert(bestChild != INVALID_POINT);
+    BenzeneAssert(bestChild != INVALID_POINT);
     return bestChild;
 }
 
@@ -269,7 +268,7 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
             LogInfo() << "Skipping badly formed line " << lineNumber << ".\n";
             continue;
         }
-        HexAssert(winner != EMPTY);
+        BenzeneAssert(winner != EMPTY);
         
         ++numParsed;
         state.Position().StartNewGame();
@@ -281,8 +280,8 @@ void BookUtil::ImportSolvedStates(Book& book, const ConstBoard& constBoard,
         HexBookNode node;
         if (book.Get(state, node))
         {
-            HexAssert(node.IsLeaf());
-            HexAssert(!node.IsTerminal());
+            BenzeneAssert(node.IsLeaf());
+            BenzeneAssert(!node.IsTerminal());
             node.m_value = ourValue;
             ++numReplaced;
         }

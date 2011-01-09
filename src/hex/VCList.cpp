@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCList.cpp
- */
+/** @file VCList.cpp */
 //----------------------------------------------------------------------------
 
 #include "VCList.hpp"
@@ -82,7 +81,7 @@ int VCList::removeSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
 
 void VCList::simple_add(const VC& vc)
 {
-    HexAssert((vc.x() == getX() && vc.y() == getY()) ||
+    BenzeneAssert((vc.x() == getX() && vc.y() == getY()) ||
               (vc.x() == getY() && vc.y() == getX()));
 
     iterator it;
@@ -101,8 +100,8 @@ void VCList::simple_add(const VC& vc)
 
 VCList::AddResult VCList::add(const VC& vc, ChangeLog<VC>* log)
 {
-    HexAssert((vc.x() == getX() && vc.y() == getY()) ||
-              (vc.x() == getY() && vc.y() == getX()));
+    BenzeneAssert((vc.x() == getX() && vc.y() == getY()) ||
+                  (vc.x() == getY() && vc.y() == getX()));
 
     unsigned count = 0;
     iterator it = m_vcs.begin();

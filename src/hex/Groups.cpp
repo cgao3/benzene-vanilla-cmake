@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file Groups.cpp 
- */
+/** @file Groups.cpp  */
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
@@ -17,8 +16,8 @@ namespace {
 void Flow(const StoneBoard& brd, HexPoint start, HexColor color, 
           bitset_t& members, bitset_t& nbs)
 {
-    HexAssert(!members.test(start));
-    HexAssert(brd.GetColor(start) == color);
+    BenzeneAssert(!members.test(start));
+    BenzeneAssert(brd.GetColor(start) == color);
     members.set(start);
     for (BoardIterator p(brd.Const().Nbs(start)); p; ++p)
     {
@@ -29,7 +28,7 @@ void Flow(const StoneBoard& brd, HexPoint start, HexColor color,
         else
             nbs.set(*p);
     }
-    HexAssert((members & nbs).none());
+    BenzeneAssert((members & nbs).none());
 }
 
 //----------------------------------------------------------------------------
@@ -51,7 +50,7 @@ void GroupBuilder::Build(const StoneBoard& brd, Groups& groups)
         bitset_t nbs, members;
         HexColor color = brd.GetColor(*p);
         Flow(brd, *p, color, members, nbs);
-        HexAssert((visited & members).none());
+        BenzeneAssert((visited & members).none());
         visited |= members;
         for (BitsetIterator m(members); m; ++m)
             groups.m_group_index[*m] = groups.m_groups.size();
@@ -104,7 +103,7 @@ HexColor Groups::GetWinner() const
 
 bitset_t Groups::CaptainizeBitset(bitset_t locations) const
 {
-    HexAssert(m_brd->Const().IsLocation(locations));
+    BenzeneAssert(m_brd->Const().IsLocation(locations));
     bitset_t captains;
     for (BitsetIterator i(locations); i; ++i)
         captains.set(CaptainOf(*i));

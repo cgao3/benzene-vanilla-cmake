@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexPoint.cpp
- */
+/** @file HexPoint.cpp */
 //----------------------------------------------------------------------------
 
 #include <sstream>
@@ -66,7 +65,7 @@ namespace
 
 std::string HexPointUtil::ToString(HexPoint p)
 {
-    HexAssert(0 <= p && p < FIRST_INVALID);
+    BenzeneAssert(0 <= p && p < FIRST_INVALID);
     return GetHexPointData().name[p];
 }
 

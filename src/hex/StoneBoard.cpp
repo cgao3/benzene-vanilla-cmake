@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file StoneBoard.cpp
- */
+/** @file StoneBoard.cpp */
 //----------------------------------------------------------------------------
 
 #include "BoardUtils.hpp"
@@ -45,7 +44,7 @@ StoneBoard::~StoneBoard()
 
 HexColor StoneBoard::GetColor(HexPoint cell) const
 {
-    HexAssert(Const().IsValid(cell));
+    BenzeneAssert(Const().IsValid(cell));
     if (IsBlack(cell)) return BLACK;
     if (IsWhite(cell)) return WHITE;
     return EMPTY;
@@ -64,19 +63,19 @@ bitset_t StoneBoard::GetLegal() const
     // one cell have been played
     if (GetPlayed().count() == 5) 
     {
-	HexAssert(!IsPlayed(SWAP_PIECES));
-	HexAssert(GetColor(FIRST_TO_PLAY).count() >= 3);
-	HexAssert((GetPlayed(FIRST_TO_PLAY)).count() == 3);
-	HexAssert(GetColor(!FIRST_TO_PLAY).count() == 2);
+	BenzeneAssert(!IsPlayed(SWAP_PIECES));
+	BenzeneAssert(GetColor(FIRST_TO_PLAY).count() >= 3);
+	BenzeneAssert((GetPlayed(FIRST_TO_PLAY)).count() == 3);
+	BenzeneAssert(GetColor(!FIRST_TO_PLAY).count() == 2);
 	legal.set(SWAP_PIECES);
     }
-    HexAssert(Const().IsValid(legal));
+    BenzeneAssert(Const().IsValid(legal));
     return legal;
 }
 
 bool StoneBoard::IsLegal(HexPoint cell) const
 {
-    HexAssert(Const().IsValid(cell));
+    BenzeneAssert(Const().IsValid(cell));
     return GetLegal().test(cell);
 }
 
@@ -106,31 +105,31 @@ void StoneBoard::MarkAsDirty()
 
 void StoneBoard::AddColor(HexColor color, const bitset_t& b)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] |= b;
-    HexAssert(IsBlackWhiteDisjoint());
+    BenzeneAssert(IsBlackWhiteDisjoint());
     if (b.any()) MarkAsDirty();
 }
 
 void StoneBoard::RemoveColor(HexColor color, const bitset_t& b)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] = m_stones[color] - b;
-    HexAssert(IsBlackWhiteDisjoint());
+    BenzeneAssert(IsBlackWhiteDisjoint());
     if (b.any()) MarkAsDirty();
 }
 
 void StoneBoard::SetColor(HexColor color, HexPoint cell)
 {
-    HexAssert(HexColorUtil::isValidColor(color));
-    HexAssert(Const().IsValid(cell));
+    BenzeneAssert(HexColorUtil::isValidColor(color));
+    BenzeneAssert(Const().IsValid(cell));
 
     if (color == EMPTY) {
 	for (BWIterator it; it; ++it)
 	    m_stones[*it].reset(cell);
     } else {
         m_stones[color].set(cell);
-        HexAssert(IsBlackWhiteDisjoint());
+        BenzeneAssert(IsBlackWhiteDisjoint());
     }
 
     MarkAsDirty();
@@ -139,11 +138,11 @@ void StoneBoard::SetColor(HexColor color, HexPoint cell)
 void StoneBoard::SetColor(HexColor color, const bitset_t& bs)
 {
     /** @todo Should we make this support EMPTY color too? */
-    HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(Const().IsValid(bs));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(Const().IsValid(bs));
 
     m_stones[color] = bs;
-    HexAssert(IsBlackWhiteDisjoint());
+    BenzeneAssert(IsBlackWhiteDisjoint());
 
     MarkAsDirty();
 }
@@ -179,8 +178,8 @@ void StoneBoard::StartNewGame()
 
 void StoneBoard::PlayMove(HexColor color, HexPoint cell)
 {
-    HexAssert(HexColorUtil::isBlackWhite(color));
-    HexAssert(Const().IsValid(cell));
+    BenzeneAssert(HexColorUtil::isBlackWhite(color));
+    BenzeneAssert(Const().IsValid(cell));
 
     m_played.set(cell);
     if (Const().IsLocation(cell))
@@ -192,9 +191,9 @@ void StoneBoard::PlayMove(HexColor color, HexPoint cell)
 
 void StoneBoard::UndoMove(HexPoint cell)
 {
-    HexAssert(Const().IsValid(cell));
+    BenzeneAssert(Const().IsValid(cell));
     HexColor color = GetColor(cell);
-    HexAssert(color != EMPTY);
+    BenzeneAssert(color != EMPTY);
 
     m_played.reset(cell);
     if (Const().IsLocation(cell))
@@ -296,7 +295,7 @@ void StoneBoard::SetPositionOnlyPlayed(const StoneBoard& brd)
 void StoneBoard::SetPosition(const BoardID& id)
 {
     std::size_t n = (Width() * Height() + 3) / 4 * 4;
-    HexAssert(id.size() == n / 4);
+    BenzeneAssert(id.size() == n / 4);
 
     std::vector<byte> val(n, 0);
     for (std::size_t i = 0; i < n; i += 4) 

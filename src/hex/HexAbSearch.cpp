@@ -189,7 +189,7 @@ HexEval HexAbSearch::SearchState(const std::vector<int>& plywidth,
                                  int depth, HexEval alpha, HexEval beta,
                                  std::vector<HexPoint>& pv)
 {
-    HexAssert(m_current_depth + depth <= (int)plywidth.size());
+    BenzeneAssert(m_current_depth + depth <= (int)plywidth.size());
 
     if (CheckAbort()) 
         return -EVAL_INFINITY;
@@ -283,7 +283,7 @@ HexEval HexAbSearch::SearchState(const std::vector<int>& plywidth,
 
     std::vector<HexPoint> moves;
     GenerateMoves(moves);
-    HexAssert(moves.size());
+    BenzeneAssert(moves.size());
     
     int curwidth = std::min(plywidth[m_current_depth], (int)moves.size());
     m_statistics.mustplay_branches += (int)moves.size();
@@ -354,7 +354,7 @@ HexEval HexAbSearch::SearchState(const std::vector<int>& plywidth,
     //
     // Store in tt
     //
-    HexAssert(bestmove != INVALID_POINT);
+    BenzeneAssert(bestmove != INVALID_POINT);
     if (m_tt) 
     {
         SearchedState::Bound bound = SearchedState::ACCURATE;

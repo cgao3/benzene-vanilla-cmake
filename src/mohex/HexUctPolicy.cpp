@@ -86,7 +86,7 @@ void HexUctSharedPolicy::LoadPlayPatterns(const std::string& filename)
 	      << " patterns from '" << filename << "'.\n";
 
     // can only load patterns once!
-    HexAssert(m_patterns[BLACK].empty());
+    BenzeneAssert(m_patterns[BLACK].empty());
 
     for (std::size_t i = 0; i < patterns.size(); ++i) {
         Pattern p = patterns[i];
@@ -98,7 +98,7 @@ void HexUctSharedPolicy::LoadPlayPatterns(const std::string& filename)
             break;
         default:
             LogWarning() << "Pattern type = " << p.getType() << '\n';
-            HexAssert(false);
+            BenzeneAssert(false);
         }
     }
     // create the hashed pattern sets for fast checking
@@ -178,7 +178,7 @@ HexPoint HexUctPolicy::GenerateMove(PatternState& pastate,
 #endif
     }
     
-    HexAssert(pastate.Board().IsEmpty(move));
+    BenzeneAssert(pastate.Board().IsEmpty(move));
 #if COLLECT_PATTERN_STATISTICS
     stats.total_moves++;
 #endif
@@ -259,7 +259,7 @@ HexPoint HexUctPolicy::GenerateRandomMove(const StoneBoard& brd)
     HexPoint ret = INVALID_POINT;
     while (true) 
     {
-	HexAssert(!m_moves.empty());
+	BenzeneAssert(!m_moves.empty());
         ret = m_moves.back();
         m_moves.pop_back();
         if (brd.IsEmpty(ret))
@@ -301,7 +301,7 @@ HexPoint HexUctPolicy::PickRandomPatternMove(const PatternState& pastate,
             patternIndex[num] = i;
             patternMoves[num] = hits[i].moves1()[0];
             num++;
-            HexAssert(num < MAX_VOTES);
+            BenzeneAssert(num < MAX_VOTES);
         }
     }
     

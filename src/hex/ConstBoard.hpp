@@ -269,14 +269,14 @@ inline BoardIterator ConstBoard::AllValid() const
 
 inline BoardIterator ConstBoard::Nbs(HexPoint cell) const
 {
-    HexAssert(IsLocation(cell));
+    BenzeneAssert(IsLocation(cell));
     return BoardIterator(m_neighbours[cell][1]);
 }
 
 inline BoardIterator ConstBoard::Nbs(HexPoint cell, int radius) const
 {
-    HexAssert(IsLocation(cell));
-    HexAssert(0 <= radius && radius <= Pattern::MAX_EXTENSION);
+    BenzeneAssert(IsLocation(cell));
+    BenzeneAssert(0 <= radius && radius <= Pattern::MAX_EXTENSION);
     return BoardIterator(m_neighbours[cell][radius]);
 }
 

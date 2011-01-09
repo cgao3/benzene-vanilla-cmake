@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file ICEngine.cpp
- */
+/** @file ICEngine.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -74,7 +73,7 @@ bitset_t ComputeDeadRegions(const Groups& groups)
             continue;
 	
 	HexColor c = i->Color();
-	HexAssert(HexColorUtil::isBlackWhite(c));
+	BenzeneAssert(HexColorUtil::isBlackWhite(c));
 	
 	/** Compute which empty cells are reachable from the edges when we
 	    cannot go through this group's empty neighbours (which form a
@@ -87,7 +86,7 @@ bitset_t ComputeDeadRegions(const Groups& groups)
     }
     
     // Areas not reachable due to one or more clique cutsets are dead.
-    HexAssert(BitsetUtil::IsSubsetOf(dead, brd.GetEmpty()));
+    BenzeneAssert(BitsetUtil::IsSubsetOf(dead, brd.GetEmpty()));
     return dead;
 }
 
@@ -113,8 +112,8 @@ bitset_t FindType1Cliques(const Groups& groups)
 	    for (BitsetIterator z(empty); z; ++z) {
 		if (!brd.Const().Adjacent(*x, *z)) continue;
 		if (!brd.Const().Adjacent(*y, *z)) continue;
-		HexAssert(*x != *z);
-		HexAssert(*y != *z);
+		BenzeneAssert(*x != *z);
+		BenzeneAssert(*y != *z);
 		bitset_t xyExclusiveNbs = xyNbs - groups.Nbs(*z, NOT_EMPTY);
 		if (xyExclusiveNbs.none()) continue;
 		
@@ -128,16 +127,16 @@ bitset_t FindType1Cliques(const Groups& groups)
 		// stop set, so we check reachability at most once per color.
 		if ((xyExclusiveNbs & brd.GetBlack()).any()) {
 		    dead |= ComputeEdgeUnreachableRegions(brd, BLACK, clique);
-		    HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
+		    BenzeneAssert(BitsetUtil::IsSubsetOf(dead, empty));
 		}
 		if ((xyExclusiveNbs & brd.GetWhite()).any()) {
 		    dead |= ComputeEdgeUnreachableRegions(brd, WHITE, clique);
-		    HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
+		    BenzeneAssert(BitsetUtil::IsSubsetOf(dead, empty));
 		}
 	    }
 	}
     }
-    HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
+    BenzeneAssert(BitsetUtil::IsSubsetOf(dead, empty));
     return dead;
 }
 
@@ -180,13 +179,13 @@ bitset_t FindType2Cliques(const Groups& groups)
 			clique.set(*x);
 			clique.set(*y);
 			dead |= ComputeEdgeUnreachableRegions(brd, *c, clique);
-			HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
+			BenzeneAssert(BitsetUtil::IsSubsetOf(dead, empty));
 		    }
 		}
 	    }
 	}
     }
-    HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
+    BenzeneAssert(BitsetUtil::IsSubsetOf(dead, empty));
     return dead;
 }
 
@@ -224,12 +223,12 @@ bitset_t FindType3Cliques(const Groups& groups)
 			     (g1_nbs & g3_nbs) |
 			     (g2_nbs & g3_nbs);
 		    dead |= ComputeEdgeUnreachableRegions(brd, *c, clique);
-		    HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
+		    BenzeneAssert(BitsetUtil::IsSubsetOf(dead, empty));
 		}
 	    }
 	}
     }
-    HexAssert(BitsetUtil::IsSubsetOf(dead, empty));
+    BenzeneAssert(BitsetUtil::IsSubsetOf(dead, empty));
     return dead;
 }
 
@@ -317,7 +316,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
                 // special case - always added as a group.
                 if (HexPointUtil::isColorEdge(cap, color)) 
                 {
-		    HexAssert(!adj_to_edge || edgeNbr == cap);
+		    BenzeneAssert(!adj_to_edge || edgeNbr == cap);
                     adj_to_edge = true;
 		    edgeNbr = cap;
                     cnbs.insert(cap);
@@ -366,12 +365,12 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
 	    
 	    if (cnbs.size() == 1) 
             {
-		HexAssert(adj_to_edge && enbs.size() == 1);
+		BenzeneAssert(adj_to_edge && enbs.size() == 1);
                 inf.AddVulnerable(*p, *enbs.begin());
 	    } 
             else 
             {
-		HexAssert(!adj_to_edge || 
+		BenzeneAssert(!adj_to_edge || 
                           HexPointUtil::isColorEdge(edgeNbr, color));
 
 		bitset_t killers_bs;
@@ -394,7 +393,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
 			    simplicial.set(*p);
                         else 
                         {
-			    HexAssert(enbs.size() == 1);
+			    BenzeneAssert(enbs.size() == 1);
 			    isPreSimp = true;
 			    killers_bs.set(*enbs.begin());
 			}
@@ -408,7 +407,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
 		
                 if (!simplicial.test(*p) && isPreSimp) 
                 {
-		    HexAssert(killers_bs.any());
+		    BenzeneAssert(killers_bs.any());
                     for (BitsetIterator k(killers_bs); k; ++k)
                         inf.AddVulnerable(*p, *k);
 		}
@@ -428,8 +427,8 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
 	    if (enbs.size() > 1) 
                 continue;
 
-	    HexAssert(enbs.size() == 1);
-	    HexAssert(empty_adj_to_group.count() >= 2);
+	    BenzeneAssert(enbs.size() == 1);
+	    BenzeneAssert(empty_adj_to_group.count() >= 2);
 	    
 	    // The single empty neighbour always kills *p
             inf.AddVulnerable(*p, *enbs.begin());
@@ -460,7 +459,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
         {
             // If all empty neighbours form a clique, is dead. Otherwise
             // check if eliminating one makes the rest a clique.
-            HexAssert(cnbs.size() == 0);
+            BenzeneAssert(cnbs.size() == 0);
             std::vector<HexPoint> vn(enbs.begin(), enbs.end());
 
             if (IsClique(brd.Const(), vn))
@@ -637,8 +636,8 @@ std::size_t ICEngine::FillInMutualFillin(Groups& groups, PatternState& pastate,
     FindMutualFillin(pastate, color, brd.GetEmpty(), carrier, mut);
     if (mut[BLACK].any())
     {
-        HexAssert(mut[WHITE].any());
-        HexAssert((mut[BLACK] & mut[WHITE]).none());
+        BenzeneAssert(mut[WHITE].any());
+        BenzeneAssert((mut[BLACK] & mut[WHITE]).none());
         /** Note: mutual fillin carrier is same for both colors (* cells). */
         out.AddMutualFillin(BLACK, mut[BLACK], carrier);
         brd.AddColor(BLACK, mut[BLACK]);
@@ -649,7 +648,7 @@ std::size_t ICEngine::FillInMutualFillin(Groups& groups, PatternState& pastate,
         GroupBuilder::Build(brd, groups);
     }
     else
-        HexAssert(mut[WHITE].none());
+        BenzeneAssert(mut[WHITE].none());
     return (mut[BLACK] | mut[WHITE]).count();
 }
 
@@ -752,7 +751,7 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
                                     InferiorCells& out) const
 {
 #ifndef NDEBUG
-    HexAssert(groups.Board() == pastate.Board());
+    BenzeneAssert(groups.Board() == pastate.Board());
     StoneBoard oldBoard(groups.Board());
 #endif
     SgTimer timer;
@@ -788,7 +787,7 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
     LogFine() << "  " << timer.GetTime() << "s to find inferior cells.\n";
 
 #ifndef NDEBUG
-    HexAssert(groups.Board().Hash() == oldBoard.Hash());
+    BenzeneAssert(groups.Board().Hash() == oldBoard.Hash());
 #endif
 }
 
@@ -871,7 +870,7 @@ bitset_t ICEngine::FindCaptured(const PatternState& pastate, HexColor color,
         // set of captured cells found in this pass. 
         if (!hits.empty()) 
         {
-            HexAssert(hits.size() == 1);
+            BenzeneAssert(hits.size() == 1);
             const std::vector<HexPoint>& moves = hits[0].moves2();
 
             bitset_t carrier;
@@ -896,7 +895,7 @@ bitset_t ICEngine::FindPermanentlyInferior(const PatternState& pastate,
                                  PatternState::STOP_AT_FIRST_HIT, hits);
     for (BitsetIterator p(ret); p; ++p) 
     {
-        HexAssert(hits[*p].size() == 1);
+        BenzeneAssert(hits[*p].size() == 1);
         const std::vector<HexPoint>& moves = hits[*p][0].moves2();
         for (unsigned i=0; i<moves.size(); ++i)
             carrier.set(moves[i]);
@@ -922,7 +921,7 @@ void ICEngine::FindMutualFillin(const PatternState& pastate,
         /** Ensure this mutual fillin pattern does not interfere with
             any other already-added mutual fillin.
          */
-        HexAssert(hits.size() == 1);
+        BenzeneAssert(hits.size() == 1);
         bitset_t willAlter;
         willAlter.set(*p);
         const std::vector<HexPoint>& moves1 = hits[0].moves1();
@@ -963,7 +962,7 @@ void ICEngine::FindVulnerable(const PatternState& pastate, HexColor color,
         for (unsigned j=0; j<hits[*p].size(); ++j) 
         {
             const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
-            HexAssert(moves1.size() == 1);
+            BenzeneAssert(moves1.size() == 1);
             HexPoint killer = moves1[0];
             
             bitset_t carrier;
@@ -995,12 +994,12 @@ void ICEngine::FindReversible(const PatternState& pastate, HexColor color,
         for (unsigned j=0; j<hits[*p].size(); ++j) 
         {
             const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
-            HexAssert(moves1.size() == 1);
+            BenzeneAssert(moves1.size() == 1);
             HexPoint reverser = moves1[0];
 
             // Carriers are mandatory for reversible patterns;
             // otherwise cannot check for independence
-            HexAssert(hits[*p][j].moves2().size() != 0);
+            BenzeneAssert(hits[*p][j].moves2().size() != 0);
             bitset_t carrier;
             const std::vector<HexPoint>& moves2 = hits[*p][j].moves2();
             for (unsigned i=0; i<moves2.size(); ++i) {
@@ -1030,13 +1029,13 @@ void ICEngine::FindDominated(const PatternState& pastate, HexColor color,
         for (unsigned j=0; j<hits[*p].size(); ++j) 
         {
             const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
-            HexAssert(moves1.size() == 1);
+            BenzeneAssert(moves1.size() == 1);
             inf.AddDominated(*p, moves1[0]);
 
             // For now, no dominated patterns have carriers
             // Note: this can change in the future if more complex ICE
             // patterns are found
-            HexAssert(hits[*p][j].moves2().size() == 0);
+            BenzeneAssert(hits[*p][j].moves2().size() == 0);
         }
     }
     // Add dominators found via hand coded patterns

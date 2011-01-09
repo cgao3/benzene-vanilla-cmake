@@ -306,8 +306,8 @@ inline StoneBoard& PatternState::Board()
 
 inline void PatternState::SetUpdateRadius(int radius)
 {
-    HexAssert(1 <= radius);
-    HexAssert(radius <= Pattern::MAX_EXTENSION);
+    BenzeneAssert(1 <= radius);
+    BenzeneAssert(radius <= Pattern::MAX_EXTENSION);
     m_update_radius = radius;
 }
 

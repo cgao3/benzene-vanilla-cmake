@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file HexColor.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXCOLOR_HPP
@@ -139,7 +138,7 @@ inline bool isBlackWhite(HexColor color)
 /** Returns a string representation of the given HexColor. */
 inline std::string toString(HexColor color)
 {
-    HexAssert(isValidColor(color));
+    BenzeneAssert(isValidColor(color));
     if (color == BLACK) return "black";
     if (color == WHITE) return "white";
     return "empty";
@@ -148,7 +147,7 @@ inline std::string toString(HexColor color)
 /** Returns the opposite color for BLACK and WHITE, EMPTY for EMPTY. */
 inline HexColor otherColor(HexColor color)
 {
-    HexAssert(isValidColor(color));
+    BenzeneAssert(isValidColor(color));
     if (color == EMPTY) return EMPTY;
     return (color == WHITE) ? BLACK : WHITE;
 }
@@ -192,7 +191,7 @@ inline bool isValid(HexColorSet colorset)
 /** Converts a HexColorSet to a string. */
 inline std::string toString(HexColorSet colorset)
 {
-    HexAssert(isValid(colorset));
+    BenzeneAssert(isValid(colorset));
     if (colorset == BLACK_ONLY) return "black_only";
     if (colorset == WHITE_ONLY) return "white_only";
     if (colorset == EMPTY_ONLY) return "empty_only";
@@ -212,15 +211,15 @@ inline HexColorSet fromString(std::string str)
     if (str == "not_white") return NOT_WHITE;
     if (str == "not_empty") return NOT_EMPTY;
     if (str == "all_colors") return ALL_COLORS;
-    HexAssert(false);
+    BenzeneAssert(false);
     return ALL_COLORS;
 }
     
 /** Returns true if color is in colorset. */
 inline bool InSet(HexColor color, HexColorSet colorset)
 {
-    HexAssert(HexColorUtil::isValidColor(color));
-    HexAssert(HexColorSetUtil::isValid(colorset));
+    BenzeneAssert(HexColorUtil::isValidColor(color));
+    BenzeneAssert(HexColorSetUtil::isValid(colorset));
  
     switch(colorset) {
     case BLACK_ONLY: return (color == BLACK);
@@ -231,7 +230,7 @@ inline bool InSet(HexColor color, HexColorSet colorset)
     case  NOT_EMPTY: return (color != EMPTY);
     case ALL_COLORS: return true;
     default:
-        HexAssert(false);
+        BenzeneAssert(false);
     }
     return true;
 }
@@ -239,7 +238,7 @@ inline bool InSet(HexColor color, HexColorSet colorset)
 /** Returns the HexColorSet composed only of color. */
 inline HexColorSet Only(HexColor color)
 {
-    HexAssert(HexColorUtil::isValidColor(color));
+    BenzeneAssert(HexColorUtil::isValidColor(color));
     if (color == BLACK) 
         return BLACK_ONLY;
     else if (color == WHITE)
@@ -250,7 +249,7 @@ inline HexColorSet Only(HexColor color)
 /** Returns the HexColorSet containing all but color. */
 inline HexColorSet NotColor(HexColor color)
 {
-    HexAssert(HexColorUtil::isValidColor(color));
+    BenzeneAssert(HexColorUtil::isValidColor(color));
     if (color == BLACK) 
         return NOT_BLACK;
     else if (color == WHITE)
@@ -262,7 +261,7 @@ inline HexColorSet NotColor(HexColor color)
     @code NotColor(HexColorUtil::otherColor(color)). @endcode */
 inline HexColorSet ColorOrEmpty(HexColor color)
 {
-    HexAssert(HexColorUtil::isValidColor(color));
+    BenzeneAssert(HexColorUtil::isValidColor(color));
     if (color == BLACK)
         return NOT_WHITE;
     else if (color == WHITE)

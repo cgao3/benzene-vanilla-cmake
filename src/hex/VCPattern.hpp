@@ -93,7 +93,7 @@ inline bitset_t VCPattern::NotOpponent() const
 
 inline HexPoint VCPattern::Endpoint(int i) const
 {
-    HexAssert(0 <= i && i <= 1);
+    BenzeneAssert(0 <= i && i <= 1);
     if (i == 0) return m_end1;
     return m_end2;
 }
