@@ -76,7 +76,7 @@ inline bool SortedSequence::finished() const
 
 inline const std::size_t& SortedSequence::operator[](std::size_t n) const
 {
-    BenzeneAssert(0 <= n && n < m_seq.size());
+    BenzeneAssert(n < m_seq.size());
     return m_seq[n];
 }
 
