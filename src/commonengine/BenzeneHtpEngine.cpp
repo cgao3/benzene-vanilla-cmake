@@ -9,7 +9,7 @@
 #include "BitsetIterator.hpp"
 #include "Decompositions.hpp"
 #include "GraphUtils.hpp"
-#include "HexProgram.hpp"
+#include "CommonProgram.hpp"
 #include "HexSgUtil.hpp"
 #include "BenzeneHtpEngine.hpp"
 #include "Resistance.hpp"
@@ -105,9 +105,9 @@ void BenzeneHtpEngine::NewGame(int width, int height)
 void BenzeneHtpEngine::CmdLicense(HtpCommand& cmd)
 {
     cmd << 
-        HexProgram::Get().getName() << " " <<
-        HexProgram::Get().getVersion() << " " <<
-        HexProgram::Get().getDate() << "\n"
+        BenzeneEnvironment::Get().GetProgram().GetName() << " " <<
+        BenzeneEnvironment::Get().GetProgram().GetVersion() << " " <<
+        BenzeneEnvironment::Get().GetProgram().GetDate() << "\n"
         "Copyright (C) 2010 by the authors of the Benzene project.\n"
         "See http://benzene.sourceforge.net for information about benzene.\n"
         "Benzene comes with NO WARRANTY to the extent permitted by law.\n"

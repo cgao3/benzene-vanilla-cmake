@@ -2,10 +2,12 @@ bin_PROGRAMS = benzenetest
 
 benzenetest_SOURCES = \
 BenzeneTestEngine.cpp \
-BenzeneTestMain.cpp
+BenzeneTestMain.cpp \
+BenzeneTestProgram.cpp
 
 noinst_HEADERS = \
-BenzeneTestEngine.hpp
+BenzeneTestEngine.hpp \
+BenzeneTestProgram.hpp
 
 benzenetest_LDADD = \
 ../commonengine/libcommonengine.a \

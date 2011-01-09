@@ -1,12 +1,12 @@
 //----------------------------------------------------------------------------
-/** @file HexProgram.cpp */
+/** @file BenzeneProgram.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
+#include "SgRandom.h"
 
-#include "Decompositions.hpp"
-#include "HexProp.hpp"
-#include "HexProgram.hpp"
+#include "BenzeneException.hpp"
+#include "BenzeneProgram.hpp"
 
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -25,31 +25,24 @@ namespace
 
 //----------------------------------------------------------------------------
 
-HexProgram::HexProgram()
-    : m_initialized(false),
-      m_options_desc("Options")
+BenzeneProgram::BenzeneProgram()
+    : m_options_desc("Available Options")
 {
 }
 
-HexProgram::~HexProgram()
+BenzeneProgram::~BenzeneProgram()
 {
 }
 
-HexProgram& HexProgram::Get()
-{
-    static HexProgram program;
-    return program;
-}
-
-void HexProgram::SetInfo(std::string name, std::string version, 
-                         std::string date)
+void BenzeneProgram::SetInfo(std::string name, std::string version, 
+                             std::string date)
 {
     m_name = name;
     m_version = version;
     m_date = date;
 }
 
-void HexProgram::PrintStartupMessage()
+void BenzeneProgram::PrintStartupMessage()
 {
     std::cerr <<
         m_name << " " << m_version << " " << m_date << "\n"
@@ -61,7 +54,7 @@ void HexProgram::PrintStartupMessage()
 
 //----------------------------------------------------------------------------
 
-void HexProgram::RegisterCmdLineArguments()
+void BenzeneProgram::RegisterCmdLineArguments()
 {
     m_options_desc.add_options()
         ("help", "Displays this usage information.")
@@ -78,9 +71,6 @@ void HexProgram::RegisterCmdLineArguments()
         ("logfile-level",
          po::value<std::string>(&m_logfile_level)->default_value("config"),
          "Message level for log file.")
-        ("boardsize", 
-         po::value<int>(&m_boardsize)->default_value(11),
-         "Sets the size of the board.")
         ("config", 
          po::value<std::string>(&m_config_file)->default_value(""),
          "Sets the config file to parse.")
@@ -90,7 +80,7 @@ void HexProgram::RegisterCmdLineArguments()
          "(-1 for current time)");
 }
 
-void HexProgram::InitLog()
+void BenzeneProgram::InitLog()
 {
     // remove default streams and add our own
     Logger::Global().ClearStreams();
@@ -100,9 +90,9 @@ void HexProgram::InitLog()
     {
         g_logfile.open(m_logfile_name.c_str());
         if (!g_logfile)
-            LogWarning() 
-                     << "Could not open log file ('" << m_logfile_name << "') "
-                     << "for writing! No log file will be used." << '\n';
+            LogWarning() << "Could not open log file ('" 
+                         << m_logfile_name << "') "
+                         << "for writing! No log file will be used.\n";
     }
     if (g_logfile) 
     {
@@ -111,35 +101,30 @@ void HexProgram::InitLog()
     } 
 }
 
-void HexProgram::InitRandom()
+void BenzeneProgram::InitRandom()
 {
-    LogConfig()<< "HexProgram::InitRandom()" << '\n';
-    if (m_random_seed == -1) {
+    LogConfig() << "BenzeneProgram::InitRandom()\n";
+    if (m_random_seed == -1)
         m_random_seed = static_cast<int>(time(NULL));
-    }
     LogConfig() << "Seed = " << m_random_seed << '\n';
     SgRandom::SetSeed(m_random_seed);
 }
 
-void HexProgram::InitializeHexSystem()
+void BenzeneProgram::InitializeSystem()
 {
     InitLog();
-    LogConfig() << m_name << " v" << m_version << " " << m_date << "." << '\n';
-    LogConfig() << "============ InitializeHexSystem ============" << '\n';
-    SgProp::Init();
-    HexProp::Init();
+    LogConfig() << m_name << " v" << m_version << " " << m_date << ".\n";
+    LogConfig() << "============ InitializeSystem ============\n";
     InitRandom();
-    Decompositions::Initialize();
 }
 
-void HexProgram::Initialize(int argc, char **argv)
+void BenzeneProgram::Initialize(int argc, char **argv)
 {
-    if (m_initialized)
-        return;
+    PrintStartupMessage();
 
     // store the name of the executable
     m_executable_name = argv[0];
-    
+   
     // determine the executable directory
     {
         std::string path = m_executable_name;    
@@ -152,15 +137,18 @@ void HexProgram::Initialize(int argc, char **argv)
         }
         m_executable_path = path;
     }
-
-    RegisterCmdLineArguments();
     ProcessCmdLineArguments(argc, argv);
-    InitializeHexSystem();
+    InitializeSystem();
+}
+
+void BenzeneProgram::ShutdownSystem()
+{
+    LogConfig() << "BenzeneProgram:: ShutdownSystem()\n";
 }
 
 //----------------------------------------------------------------------------
 
-void HexProgram::ShutdownLog()
+void BenzeneProgram::ShutdownLog()
 {
     Logger::Global().Flush();
     if (g_logfile)
@@ -171,15 +159,16 @@ void HexProgram::ShutdownLog()
     g_logfile.close();
 }
 
-void HexProgram::Shutdown()
+void BenzeneProgram::Shutdown()
 {
-    LogConfig() << "============ HexShutdown =============" << '\n';
+    LogConfig() << "============ BenzeneShutdown =============\n";
+    ShutdownSystem();
     ShutdownLog();
 }
 
 //----------------------------------------------------------------------------
 
-void HexProgram::ProcessCmdLineArguments(int argc, char** argv)
+void BenzeneProgram::ProcessCmdLineArguments(int argc, char** argv)
 {
     po::variables_map vm;
     try
@@ -218,7 +207,7 @@ void HexProgram::ProcessCmdLineArguments(int argc, char** argv)
     
 }
 
-void HexProgram::Usage() const
+void BenzeneProgram::Usage() const
 {
     std::cout << std::endl
               << "Usage: " 
@@ -236,16 +225,45 @@ void HexProgram::Usage() const
 
 //----------------------------------------------------------------------------
 
-void HexAssertShutdown(const char* assertion, const char* file, int line,
-                       const char* function)
+BenzeneEnvironment::BenzeneEnvironment()
+    : m_program(0)
+{
+}
+
+BenzeneEnvironment::~BenzeneEnvironment()
+{
+}
+
+BenzeneEnvironment& BenzeneEnvironment::Get()
+{
+    static BenzeneEnvironment env;
+    return env;
+}
+
+void BenzeneEnvironment::RegisterProgram(BenzeneProgram& program)
+{
+    if (m_program)
+        throw BenzeneException("Program already registered!");
+    m_program = &program;
+}
+
+BenzeneProgram& BenzeneEnvironment::GetProgram() const
+{
+    if (m_program == 0)
+        throw BenzeneException("No registered program!");
+    return *m_program;
+}
+
+//----------------------------------------------------------------------------
+
+void BenzeneAssertShutdown(const char* assertion, const char* file, int line,
+                           const char* function)
 {
     std::ostringstream os;
     os << file << ":" << line << ": " << function << ": "
        << "Assertion `" << assertion << "' failed.";
     LogSevere() << os.str() << '\n';
-    
-    HexProgram::Get().Shutdown();
-
+    BenzeneEnvironment::Get().GetProgram().Shutdown();
     abort();
 }
 

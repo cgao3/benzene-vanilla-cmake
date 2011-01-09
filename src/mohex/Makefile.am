@@ -8,7 +8,8 @@ HexUctState.cpp \
 HexUctUtil.cpp \
 MoHexEngine.cpp \
 MoHexMain.cpp \
-MoHexPlayer.cpp
+MoHexPlayer.cpp \
+MoHexProgram.cpp
 
 noinst_HEADERS = \
 HexUctKnowledge.hpp \
@@ -17,7 +18,8 @@ HexUctSearch.hpp \
 HexUctState.hpp \
 HexUctUtil.hpp \
 MoHexEngine.hpp \
-MoHexPlayer.hpp
+MoHexPlayer.hpp \
+MoHexProgram.hpp
 
 mohex_LDADD = \
 ../commonengine/libcommonengine.a \

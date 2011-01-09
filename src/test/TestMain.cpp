@@ -1,13 +1,12 @@
 //----------------------------------------------------------------------------
-/** @file TestMain.cpp
- */
+/** @file TestMain.cpp */
 //----------------------------------------------------------------------------
 
 #include <cstdlib>
 #include <boost/version.hpp>
 
 #include "config.h"
-#include "HexProgram.hpp"
+#include "CommonProgram.hpp"
 
 using namespace benzene;
 
@@ -22,10 +21,11 @@ namespace {
 void Initialize()
 {
     int argc = 1;
-    char name[] = "bin/hex-test";
+    char name[] = "bin/benzene-test";
     char* argv = name;
-    HexProgram& program = HexProgram::Get();
-    program.SetInfo("hex-test", VERSION, __DATE__);
+    CommonProgram program;
+    program.SetInfo("benzene-test", VERSION, __DATE__);
+    BenzeneEnvironment::Get().RegisterProgram(program);
     program.Initialize(argc, &argv);
 }
 

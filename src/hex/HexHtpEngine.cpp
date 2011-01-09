@@ -7,11 +7,11 @@
 #include "SgNode.h"
 #include "SgTimer.h"
 
+#include "BenzeneProgram.hpp"
 #include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
 #include "Groups.hpp"
 #include "HexSgUtil.hpp"
-#include "HexProgram.hpp"
 #include "HexHtpEngine.hpp"
 
 using namespace benzene;
@@ -107,13 +107,13 @@ void HexHtpEngine::BeforeWritingResponse()
 /** Returns program's name. */
 void HexHtpEngine::CmdName(HtpCommand& cmd)
 {
-    cmd << HexProgram::Get().getName();
+    cmd << BenzeneEnvironment::Get().GetProgram().GetName();
 }
 
 /** Returns program's version. */
 void HexHtpEngine::CmdVersion(HtpCommand& cmd)
 {
-    cmd << HexProgram::Get().getVersion();
+    cmd << BenzeneEnvironment::Get().GetProgram().GetVersion();
 }
 
 /** Executes HTP commands contained in given file. */
@@ -126,7 +126,7 @@ void HexHtpEngine::CmdExec(HtpCommand& cmd)
         ExecuteFile(filename, std::cerr);
     }
     catch (std::exception& e) {
-        LogInfo() << "Errors occured." << '\n';
+        LogInfo() << "Errors occured.\n";
     }
 }
 

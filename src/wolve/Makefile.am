@@ -3,11 +3,13 @@ bin_PROGRAMS = wolve
 wolve_SOURCES = \
 WolveEngine.cpp \
 WolveMain.cpp \
-WolvePlayer.cpp
+WolvePlayer.cpp \
+WolveProgram.cpp
 
 noinst_HEADERS = \
 WolveEngine.hpp \
-WolvePlayer.hpp
+WolvePlayer.hpp \
+WolveProgram.hpp
 
 wolve_LDADD = \
 ../commonengine/libcommonengine.a \

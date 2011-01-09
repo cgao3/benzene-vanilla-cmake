@@ -1,14 +1,13 @@
 //----------------------------------------------------------------------------
-/** @file WolveMain.cpp
- */
+/** @file WolveMain.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
 
 #include "config.h"
-#include "HexProgram.hpp"
 #include "WolveEngine.hpp"
 #include "WolvePlayer.hpp"
+#include "WolveProgram.hpp"
 #include "SwapCheck.hpp"
 
 using namespace benzene;
@@ -48,9 +47,11 @@ const char* build_date = __DATE__;
 
 int main(int argc, char** argv)
 {
-    HexProgram& program = HexProgram::Get();
-    program.SetInfo("Wolve", VERSION, build_date);
-    program.PrintStartupMessage();
+    CommonProgram com;
+    com.Shutdown();
+
+    WolveProgram program(VERSION, build_date);
+    BenzeneEnvironment::Get().RegisterProgram(program);
     program.Initialize(argc, argv);
     WolvePlayer player;
     try

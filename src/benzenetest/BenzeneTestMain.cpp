@@ -1,13 +1,12 @@
 //----------------------------------------------------------------------------
-/** @file BenzeneTestMain.cpp
- */
+/** @file BenzeneTestMain.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
 
 #include "config.h"
-#include "HexProgram.hpp"
 #include "BenzeneTestEngine.hpp"
+#include "BenzeneTestProgram.hpp"
 #include "SwapCheck.hpp"
 
 using namespace benzene;
@@ -33,9 +32,8 @@ const char* build_date = __DATE__;
 
 int main(int argc, char** argv)
 {
-    HexProgram& program = HexProgram::Get();
-    program.SetInfo("BenzeneTest", VERSION, build_date);
-    program.PrintStartupMessage();
+    BenzeneTestProgram program(VERSION, build_date);
+    BenzeneEnvironment::Get().RegisterProgram(program);
     program.Initialize(argc, argv);
     try
     {

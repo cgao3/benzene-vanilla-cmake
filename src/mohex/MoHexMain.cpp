@@ -1,14 +1,13 @@
 //----------------------------------------------------------------------------
-/** @file MoHexMain.cpp
- */
+/** @file MoHexMain.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
 
 #include "config.h"
-#include "HexProgram.hpp"
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
+#include "MoHexProgram.hpp"
 
 using namespace benzene;
 
@@ -50,9 +49,8 @@ const char* build_date = __DATE__;
 
 int main(int argc, char** argv)
 {
-    HexProgram& program = HexProgram::Get();
-    program.SetInfo("Mohex", VERSION, build_date);
-    program.PrintStartupMessage();
+    MoHexProgram program(VERSION, build_date);
+    BenzeneEnvironment::Get().RegisterProgram(program);
     program.Initialize(argc, argv);
     MoHexPlayer player;
     try

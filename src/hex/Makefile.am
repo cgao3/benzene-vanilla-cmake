@@ -17,7 +17,6 @@ HexEnvironment.cpp \
 HexEval.cpp \
 HexHtpEngine.cpp \
 HexPoint.cpp \
-HexProgram.cpp \
 HexProp.cpp \
 HexSgUtil.cpp \
 ICEngine.cpp \
@@ -67,7 +66,6 @@ HexPoints11x11.hpp \
 HexPoints13x13.hpp \
 HexPoints14x14.hpp \
 HexPoints19x19.hpp \
-HexProgram.hpp \
 HexProp.hpp \
 HexSgUtil.hpp \
 HexState.hpp \

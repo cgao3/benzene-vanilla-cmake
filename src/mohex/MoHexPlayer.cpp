@@ -301,8 +301,9 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
 	    consider = consider - losing;
 	}
     }
+
     HexAssert(consider.any());
-    LogInfo()<< "Moves to consider:\n" << brd.Write(consider) << '\n';
+    LogInfo() << "Moves to consider:\n" << brd.Write(consider) << '\n';
     return false;
 }
 
