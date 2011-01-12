@@ -108,7 +108,7 @@ void CommonHtpEngine::CmdLicense(HtpCommand& cmd)
         BenzeneEnvironment::Get().GetProgram().GetName() << " " <<
         BenzeneEnvironment::Get().GetProgram().GetVersion() << " " <<
         BenzeneEnvironment::Get().GetProgram().GetDate() << "\n"
-        "Copyright (C) 2010 by the authors of the Benzene project.\n"
+        "Copyright (C) 2007-2010 by the authors of the Benzene project.\n"
         "See http://benzene.sourceforge.net for information about benzene.\n"
         "Benzene comes with NO WARRANTY to the extent permitted by law.\n"
         "This program is free software; you can redistribute it and/or\n"
