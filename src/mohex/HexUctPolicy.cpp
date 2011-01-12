@@ -103,7 +103,7 @@ void HexUctSharedPolicy::LoadPlayPatterns(const std::string& filename)
     }
     // create the hashed pattern sets for fast checking
     for (BWIterator color; color; ++color)
-        m_hash_patterns[*color].hash(m_patterns[*color]);
+        m_hash_patterns[*color].Hash(m_patterns[*color]);
 }
 
 //----------------------------------------------------------------------------

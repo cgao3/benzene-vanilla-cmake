@@ -47,7 +47,7 @@ void InitializeOppMiai()
     g_oppmiai[WHITE].push_back(pattern);
         
     for (BWIterator c; c; ++c)
-        g_hash_oppmiai[*c].hash(g_oppmiai[*c]);
+        g_hash_oppmiai[*c].Hash(g_oppmiai[*c]);
 }
 
 /** @todo Is it possible to speed this up? */

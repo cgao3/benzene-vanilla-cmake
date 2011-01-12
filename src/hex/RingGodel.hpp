@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file RingGodel.hpp
- */
+/** @file RingGodel.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef RING_GODEL_HPP
@@ -16,7 +15,6 @@ _BEGIN_BENZENE_NAMESPACE_
 class RingGodel
 {
 public:
-
     /** Constructor. */
     RingGodel();
 
@@ -42,7 +40,7 @@ public:
     virtual void SetEmpty();
 
     /** Returns the index of this ring_godel; use to hash into arrays. */
-    int Index() const;
+    std::size_t Index() const;
 
     /** Returns godel as an integer. */
     int Value() const;
@@ -70,7 +68,6 @@ protected:
     static int AdjustScoreBySlice(int score, int slice);
 
 private:
-
     struct GlobalData
     {
         /** Value of empty ring godel. */
@@ -90,13 +87,13 @@ private:
     struct ValidGodelData
     {
         std::vector<RingGodel> valid_godel;
-        std::vector<int> godel_to_index;
+
+        std::vector<std::size_t> godel_to_index;
 
         ValidGodelData();
     };
 
     static ValidGodelData& GetValidGodelData();
-   
 };
 
 inline int RingGodel::Value() const
@@ -106,7 +103,7 @@ inline int RingGodel::Value() const
 
 inline int RingGodel::AdjustScoreBySlice(int score, int slice)
 {
-    return (score << (slice*BITS_PER_SLICE));
+    return score << (slice * BITS_PER_SLICE);
 }
 
 inline int RingGodel::Score(HexColor color)
@@ -128,7 +125,6 @@ inline int RingGodel::Score(HexColor color)
 class PatternRingGodel : public RingGodel
 {
 public: 
-    
     /** Constructs pattern ring godel with empty mask. */
     PatternRingGodel();
 

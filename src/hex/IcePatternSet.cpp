@@ -83,15 +83,15 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
         }
     }
 
-    m_hashed_dead.hash(m_dead);
+    m_hashed_dead.Hash(m_dead);
     for (BWIterator it; it; ++it) 
     {
-        m_hashed_captured[*it].hash(m_captured[*it]);
-        m_hashed_permanently_inferior[*it].hash(m_permanently_inferior[*it]);
-        m_hashed_mutual_fillin[*it].hash(m_mutual_fillin[*it]);
-        m_hashed_vulnerable[*it].hash(m_vulnerable[*it]);
-        m_hashed_reversible[*it].hash(m_reversible[*it]);
-        m_hashed_dominated[*it].hash(m_dominated[*it]);
+        m_hashed_captured[*it].Hash(m_captured[*it]);
+        m_hashed_permanently_inferior[*it].Hash(m_permanently_inferior[*it]);
+        m_hashed_mutual_fillin[*it].Hash(m_mutual_fillin[*it]);
+        m_hashed_vulnerable[*it].Hash(m_vulnerable[*it]);
+        m_hashed_reversible[*it].Hash(m_reversible[*it]);
+        m_hashed_dominated[*it].Hash(m_dominated[*it]);
     }
 }
 

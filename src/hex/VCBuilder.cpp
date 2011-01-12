@@ -62,7 +62,7 @@ void VCBuilder::LoadCapturedSetPatterns()
         m_capturedSetPatterns[BLACK].push_back(patterns[i]);
     }
     for (BWIterator c; c; ++c) 
-        m_hash_capturedSetPatterns[*c].hash(m_capturedSetPatterns[*c]);
+        m_hash_capturedSetPatterns[*c].Hash(m_capturedSetPatterns[*c]);
 }
 
 //----------------------------------------------------------------------------

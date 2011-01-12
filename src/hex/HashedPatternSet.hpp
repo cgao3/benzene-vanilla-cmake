@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file HashedPatternSet.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HASHED_PATTERN_HPP
@@ -24,7 +23,6 @@ _BEGIN_BENZENE_NAMESPACE_
 class HashedPatternSet
 {
 public:
-
     /** Creates empty set of hashed patterns. */
     HashedPatternSet();
 
@@ -32,13 +30,12 @@ public:
     ~HashedPatternSet();
 
     /** Hashes the given patterns. */
-    void hash(const PatternSet& patterns);
+    void Hash(const PatternSet& patterns);
 
     /** Returns list of rotated patterns for godel. */
     const RotatedPatternList& ListForGodel(const RingGodel& godel) const;
 
 private:
-
     /** Will contain a RotatedPatternList for each of
         RingGodel::ValidGodels(). */
     std::vector<RotatedPatternList> m_godel_list;

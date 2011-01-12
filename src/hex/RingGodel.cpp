@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file RingGodel.cpp
- */
+/** @file RingGodel.cpp */
 //----------------------------------------------------------------------------
 
 #include "RingGodel.hpp"
@@ -13,19 +12,16 @@ using namespace benzene;
 RingGodel::GlobalData::GlobalData()
 {
     // Compute scores adjusted by slice
-    for (int s=0; s<Pattern::NUM_SLICES; ++s) 
+    for (int s = 0; s < Pattern::NUM_SLICES; ++s) 
     {
         for (ColorIterator color; color; ++color) 
-        {
             color_slice_score[*color].push_back
                 (AdjustScoreBySlice(Score(*color), s));
-        }
         mask_slice_score.push_back(AdjustScoreBySlice(SLICE_MASK, s));
     }
-
     // Compute the empty ring godel
     empty = 0;
-    for (int s=0; s<Pattern::NUM_SLICES; ++s)
+    for (int s = 0; s < Pattern::NUM_SLICES; ++s)
         empty |= color_slice_score[EMPTY][s];
 }
 
@@ -75,7 +71,7 @@ void RingGodel::SetEmpty()
     m_value = GetGlobalData().empty;
 }
 
-int RingGodel::Index() const
+std::size_t RingGodel::Index() const
 {
     return GetValidGodelData().godel_to_index[m_value];
 }
@@ -127,19 +123,18 @@ const std::vector<RingGodel>& RingGodel::ValidGodels()
 /** Computes the set of valid godels. This skips godels where a slice
     is empty and either black or white. Also computes the godel to
     index vector for fast lookups -- using a map is apparently too
-    slow.
-*/
+    slow. */
 RingGodel::ValidGodelData::ValidGodelData()
 {
-    //std::cout << "RingGodel::ComputeValid()" << std::endl;
+    LogInfo() << "RingGodel::ValidGodelData::ValidGodelData()\n";
     
-    int num_possible_godels = 1<<(BITS_PER_SLICE*Pattern::NUM_SLICES);
+    int num_possible_godels = 1 << (BITS_PER_SLICE * Pattern::NUM_SLICES);
 
     const GlobalData& data = GetGlobalData();
-    for (int g=0; g<num_possible_godels; ++g) 
+    for (int g = 0; g < num_possible_godels; ++g) 
     {
         bool valid = true;
-        for (int s=0; valid && s<Pattern::NUM_SLICES; ++s) 
+        for (int s = 0; valid && s < Pattern::NUM_SLICES; ++s) 
         {
             if ((g & data.mask_slice_score[s]) == 0) 
             {
@@ -154,7 +149,6 @@ RingGodel::ValidGodelData::ValidGodelData()
                 }
             }
         }
-
         if (valid) 
         {
             godel_to_index.push_back(valid_godel.size());
@@ -165,9 +159,9 @@ RingGodel::ValidGodelData::ValidGodelData()
             godel_to_index.push_back(-1);
         }
     }
-
-    //std::cout << "Possible godels: " << num_possible_godels << std::endl;
-    //std::cout << "Valid godels: " << valid_godel.size() << std::endl;
+    LogInfo() << "Possible godels: " << num_possible_godels << '\n';
+    LogInfo() << "Valid godels: " << valid_godel.size() << '\n';
+    LogInfo() << "Index: " << godel_to_index.size() << '\n';
 }
 
 //----------------------------------------------------------------------------
