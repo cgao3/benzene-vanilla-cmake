@@ -120,8 +120,6 @@ void BenzeneProgram::InitializeSystem()
 
 void BenzeneProgram::Initialize(int argc, char **argv)
 {
-    PrintStartupMessage();
-
     // store the name of the executable
     m_executable_name = argv[0];
    
@@ -138,6 +136,7 @@ void BenzeneProgram::Initialize(int argc, char **argv)
         m_executable_path = path;
     }
     ProcessCmdLineArguments(argc, argv);
+    PrintStartupMessage();
     InitializeSystem();
 }
 
@@ -179,48 +178,31 @@ void BenzeneProgram::ProcessCmdLineArguments(int argc, char** argv)
     catch(...)
     {
         Usage();
-        Shutdown();
         exit(1);
     }
-    
     if (vm.count("usage") || vm.count("help"))
     {
         Usage();
-        Shutdown();
         exit(1);
     }
-
     if (vm.count("version"))
     {
-        std::cout << m_name;
-        std::cout << " v" << m_version;
-        std::cout << " " << m_date << "." << std::endl;
-        Shutdown();
+        std::cout << m_name << " v" << m_version << ' ' << m_date << "\n";
         exit(0);
     }
-
     m_stderr_level = LOG_LEVEL_INFO;
     if (vm.count("quiet"))
         m_stderr_level = LOG_LEVEL_OFF;
     if (vm.count("verbose"))
         m_stderr_level = LOG_LEVEL_ALL;
-    
 }
 
 void BenzeneProgram::Usage() const
 {
-    std::cout << std::endl
-              << "Usage: " 
-              << std::endl 
-              << "       " << m_executable_name << " [Options]" 
-              << std::endl << std::endl;
-    
-    std::cout << "[OPTIONS] is any number of the following:"
-              << std::endl << std::endl;
-    
-    std::cout << m_options_desc << std::endl;
-
-    std::cout << std::endl;
+    std::cout << "Usage:\n" 
+              << "       " << m_executable_name << " [Options]\n\n"
+              << "[OPTIONS] is any number of the following:\n\n"
+              << m_options_desc << '\n';
 }
 
 //----------------------------------------------------------------------------
