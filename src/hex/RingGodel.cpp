@@ -126,8 +126,6 @@ const std::vector<RingGodel>& RingGodel::ValidGodels()
     slow. */
 RingGodel::ValidGodelData::ValidGodelData()
 {
-    LogInfo() << "RingGodel::ValidGodelData::ValidGodelData()\n";
-    
     int num_possible_godels = 1 << (BITS_PER_SLICE * Pattern::NUM_SLICES);
 
     const GlobalData& data = GetGlobalData();
@@ -159,9 +157,9 @@ RingGodel::ValidGodelData::ValidGodelData()
             godel_to_index.push_back(-1);
         }
     }
-    LogInfo() << "Possible godels: " << num_possible_godels << '\n';
-    LogInfo() << "Valid godels: " << valid_godel.size() << '\n';
-    LogInfo() << "Index: " << godel_to_index.size() << '\n';
+    //LogInfo() << "Possible godels: " << num_possible_godels << '\n';
+    //LogInfo() << "Valid godels: " << valid_godel.size() << '\n';
+    //LogInfo() << "Index: " << godel_to_index.size() << '\n';
 }
 
 //----------------------------------------------------------------------------
