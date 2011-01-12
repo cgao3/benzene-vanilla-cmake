@@ -32,6 +32,11 @@ void BenzeneTestProgram::RegisterCmdLineArguments()
     CommonProgram::RegisterCmdLineArguments();
 }
 
+void BenzeneTestProgram::HandleCmdLineArguments()
+{
+    CommonProgram::HandleCmdLineArguments();
+}
+
 void BenzeneTestProgram::InitializeSystem()
 {
     LogConfig() << "BenzeneTestProgram:: InitializeSystem()\n";

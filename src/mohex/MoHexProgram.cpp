@@ -32,6 +32,11 @@ void MoHexProgram::RegisterCmdLineArguments()
     CommonProgram::RegisterCmdLineArguments();
 }
 
+void MoHexProgram::HandleCmdLineArguments()
+{
+    CommonProgram::HandleCmdLineArguments();
+}
+
 void MoHexProgram::InitializeSystem()
 {
     LogConfig() << "MoHexProgram:: InitializeSystem()\n";

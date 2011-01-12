@@ -9,7 +9,6 @@
 #include "BenzeneProgram.hpp"
 
 #include <boost/program_options/cmdline.hpp>
-#include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
 namespace po = boost::program_options;
@@ -136,6 +135,7 @@ void BenzeneProgram::Initialize(int argc, char **argv)
         m_executable_path = path;
     }
     ProcessCmdLineArguments(argc, argv);
+    HandleCmdLineArguments();
     PrintStartupMessage();
     InitializeSystem();
 }
@@ -169,31 +169,34 @@ void BenzeneProgram::Shutdown()
 
 void BenzeneProgram::ProcessCmdLineArguments(int argc, char** argv)
 {
-    po::variables_map vm;
     try
     {
-        po::store(po::parse_command_line(argc, argv, m_options_desc), vm);
-        po::notify(vm);
+        po::store(po::parse_command_line(argc, argv, m_options_desc), m_vm);
+        po::notify(m_vm);
     }
     catch(...)
     {
         Usage();
         exit(1);
     }
-    if (vm.count("usage") || vm.count("help"))
+}
+
+void BenzeneProgram::HandleCmdLineArguments()
+{
+    if (m_vm.count("usage") || m_vm.count("help"))
     {
         Usage();
         exit(1);
     }
-    if (vm.count("version"))
+    if (m_vm.count("version"))
     {
         std::cout << m_name << " v" << m_version << ' ' << m_date << "\n";
         exit(0);
     }
     m_stderr_level = LOG_LEVEL_INFO;
-    if (vm.count("quiet"))
+    if (m_vm.count("quiet"))
         m_stderr_level = LOG_LEVEL_OFF;
-    if (vm.count("verbose"))
+    if (m_vm.count("verbose"))
         m_stderr_level = LOG_LEVEL_ALL;
 }
 

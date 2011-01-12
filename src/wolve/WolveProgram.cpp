@@ -32,6 +32,11 @@ void WolveProgram::RegisterCmdLineArguments()
     CommonProgram::RegisterCmdLineArguments();
 }
 
+void WolveProgram::HandleCmdLineArguments()
+{
+    CommonProgram::HandleCmdLineArguments();
+}
+
 void WolveProgram::InitializeSystem()
 {
     LogConfig() << "WolveProgram:: InitializeSystem()\n";

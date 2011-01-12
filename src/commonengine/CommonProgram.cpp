@@ -35,6 +35,11 @@ void CommonProgram::RegisterCmdLineArguments()
     BenzeneProgram::RegisterCmdLineArguments();
 }
 
+void CommonProgram::HandleCmdLineArguments()
+{
+    BenzeneProgram::HandleCmdLineArguments();
+}
+
 void CommonProgram::InitializeSystem()
 {
     LogConfig() << "CommonProgram:: InitializeSystem()\n";

@@ -9,6 +9,7 @@
 #include <string>
 
 #include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
 
 #include "Logger.hpp"
 #include "Benzene.hpp"
@@ -34,10 +35,12 @@ public:
 
     virtual void RegisterCmdLineArguments();
 
+    virtual void HandleCmdLineArguments();
+
     //-----------------------------------------------------------------------
 
     /** Parses cmd-line arguments. 
-        Calls InitializeSystem() then parses command-line arguments. */
+        Calls parses command-line arguments then InitializeSystem(). */
     void Initialize(int argc, char** argv);
 
     /** Shuts down the program safely. 
@@ -76,6 +79,8 @@ public:
 
 protected:
     boost::program_options::options_description m_options_desc;
+
+    boost::program_options::variables_map m_vm;
 
 private:
     std::string m_name;

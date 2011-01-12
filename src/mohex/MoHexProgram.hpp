@@ -23,6 +23,8 @@ public:
 
     virtual void RegisterCmdLineArguments();
 
+    virtual void HandleCmdLineArguments();
+
     virtual void InitializeSystem();
 
     virtual void ShutdownSystem();
