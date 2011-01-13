@@ -1,6 +1,5 @@
 //---------------------------------------------------------------------------
-/** @file VCSetTest.cpp
- */
+/** @file VCSetTest.cpp */
 //---------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
@@ -34,14 +33,38 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckCopy)
     BOOST_CHECK(con1 != con2);
 }
 
-/** @todo Make this test quicker! */
 BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
 {
-    StoneBoard bd(11, 11);
-    bd.PlayMove(BLACK, HEX_CELL_A9);
+    //   a  b  c  d  e  f  g  h  i  
+    //  1\.  .  .  .  .  .  .  .  .\1
+    //   2\.  .  .  *  .  .  *  .  .\2
+    //    3\.  .  B  .  .  .  B  .  .\3
+    //     4\.  .  .  .  .  *  *  .  W\4   W
+    //      5\.  .  W  .  B  W  B  .  .\5
+    //  W    6\.  .  .  .  *  B  .  .  .\6  
+    //        7\.  .  .  W  .  .  W  .  .\7
+    //         8\.  .  .  .  .  .  .  .  .\8
+    //          9\.  .  .  .  .  .  .  .  .\9
+    //             a  b  c  d  e  f  g  h  i  
+    StoneBoard bd(9, 9);
+    bd.PlayMove(BLACK, HEX_CELL_E5);
+    bd.PlayMove(WHITE, HEX_CELL_D7);
+    bd.PlayMove(BLACK, HEX_CELL_F6);
     bd.PlayMove(WHITE, HEX_CELL_F5);
-    bd.PlayMove(BLACK, HEX_CELL_I4);
-    bd.PlayMove(WHITE, HEX_CELL_H6);
+    bd.PlayMove(BLACK, HEX_CELL_C3);
+    bd.PlayMove(WHITE, HEX_CELL_C5);
+    bd.PlayMove(BLACK, HEX_CELL_G3);
+    bd.PlayMove(WHITE, HEX_CELL_G7);
+    bd.PlayMove(BLACK, HEX_CELL_G5);
+    bd.PlayMove(WHITE, HEX_CELL_I4);
+
+    std::vector<HexPoint> movesToCheck;
+    movesToCheck.push_back(HEX_CELL_D2);
+    movesToCheck.push_back(HEX_CELL_G2);
+    movesToCheck.push_back(HEX_CELL_F4);
+    movesToCheck.push_back(HEX_CELL_G4);
+    movesToCheck.push_back(HEX_CELL_E6);
+
     Groups groups;
     GroupBuilder::Build(bd, groups);
     PatternState patterns(bd);
@@ -63,25 +86,20 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
     builder.Build(con2, groups, patterns);
     BOOST_CHECK(con1 == con2);
 
-#if 0
-    for (BitsetIterator p(bd.getEmpty()); p; ++p) {
+    for (std::size_t i = 0; i < movesToCheck.size(); ++i) 
+    {
+        HexPoint p = movesToCheck[i];
         bitset_t added[BLACK_AND_WHITE];
-        added[BLACK].set(*p);
-        bd.absorb();
-        bd.PlayMove(BLACK, *p);
-        bd.absorb(*p);
-
-        builder.Build(con2, bd, added, &cl);
-        
-        //std::cout << cl.dump() << std::endl;
-
+        added[BLACK].set(p);
+        bd.PlayMove(BLACK, p);
+        Groups newGroups;
+        GroupBuilder::Build(bd, newGroups);
+        builder.Build(con2, groups, newGroups, patterns, added, &cl);
         con2.Revert(cl);
-        bd.undoMove(*p);
-
+        bd.UndoMove(p);
         BOOST_CHECK(cl.empty());
-        BOOST_CHECK(VCSetUtil::EqualOnGroups(con1, con2, bd));
+        BOOST_CHECK(con1 == con2);
     }
-#endif
 }
 
 }
