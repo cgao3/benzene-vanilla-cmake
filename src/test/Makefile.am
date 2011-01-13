@@ -2,6 +2,7 @@ TESTS = benzene_unittest
 check_PROGRAMS = $(TESTS)
 
 benzene_unittest_SOURCES = \
+../util/test/AtomicMemoryTest.cpp \
 ../util/test/BitsetTest.cpp \
 ../util/test/ChangeLogTest.cpp \
 ../util/test/DigraphTest.cpp \

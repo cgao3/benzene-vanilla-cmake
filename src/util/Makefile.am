@@ -10,6 +10,7 @@ lssolve.cpp \
 Misc.cpp
 
 noinst_HEADERS = \
+AtomicMemory.hpp \
 BenzeneBitset.hpp \
 BenzeneException.hpp \
 BenzeneProgram.hpp \

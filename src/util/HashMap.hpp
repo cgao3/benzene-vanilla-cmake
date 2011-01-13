@@ -10,6 +10,7 @@
 #include <boost/concept_check.hpp>
 #include <boost/scoped_array.hpp>
 
+#include "AtomicMemory.hpp"
 #include "Benzene.hpp"
 #include "BenzeneAssert.hpp"
 #include "Hash.hpp"
@@ -218,7 +219,7 @@ void HashMap<T>::Put(hash_t key, const T& value)
         LogWarning() << "HashMap: table becoming full...\n";
 
     // Atomic: get offset into allocated memory and increment m_count.
-    int offset = __sync_fetch_and_add(&m_count, 1);
+    int offset = FetchAndAdd(&m_count, 1u);
 
     // Copy data over
     m_allocated[offset].key = key;
@@ -230,7 +231,7 @@ void HashMap<T>::Put(hash_t key, const T& value)
     {
         index &= m_mask;
         // Atomic: grab slot if unused
-        if (__sync_bool_compare_and_swap(&m_used[index], EMPTY_SLOT, offset))
+        if (CompareAndSwap(&m_used[index], EMPTY_SLOT, offset))
             break;
         index++;
     }

@@ -7,6 +7,7 @@
 #ifndef LINKEDLIST_HPP
 #define LINKEDLIST_HPP
 
+#include "AtomicMemory.hpp"
 #include "Benzene.hpp"
 #include "BenzeneAssert.hpp"
 #include "SafeBool.hpp"
@@ -48,7 +49,7 @@ private:
         ScopedLock(volatile ListNode<T>& obj) 
             : m_obj(obj)
         { 
-            while (!__sync_bool_compare_and_swap(&m_obj.m_locked, false, true))
+            while (!CompareAndSwap(&m_obj.m_locked, false, true))
                 ;
         }
         ~ScopedLock()
@@ -234,7 +235,7 @@ void Pool<T>::Allocate()
 template<typename T>
 ListNode<T>* Pool<T>::Get() volatile
 {
-    while (!__sync_bool_compare_and_swap(&m_lockedHead, false, true));
+    while (!CompareAndSwap(&m_lockedHead, false, true));
     if (m_head == 0)
     {
         // Strip volatile-ness since we are locked
@@ -250,7 +251,7 @@ ListNode<T>* Pool<T>::Get() volatile
 template<typename T>
 void Pool<T>::AddToDeadList(ListNode<T>* node) volatile
 {
-    while (!__sync_bool_compare_and_swap(&m_lockedDead, false, true));
+    while (!CompareAndSwap(&m_lockedDead, false, true));
     node->m_dead = m_dead;
     m_dead = node;
     m_lockedDead = false;

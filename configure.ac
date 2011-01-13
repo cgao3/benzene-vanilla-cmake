@@ -38,6 +38,22 @@ then
 	CXXFLAGS="$CXXFLAGS -DNDEBUG"
 fi
 
+dnl Check for gcc atomic builtins.
+AC_MSG_CHECKING([for GCC atomic builtins])
+AC_LINK_IFELSE([int main (int argc, char** argv) 
+                {int a; __sync_fetch_and_add(&a, 1); 
+                 __sync_bool_compare_and_swap(&a, 1, 2);}],
+	       [has_gccatomicbuiltins=yes],
+	       [has_gccatomicbuiltins=no])
+AC_MSG_RESULT([$has_gccatomicbuiltins])
+		
+if test "x$has_gccatomicbuiltins" = "xyes"
+then
+	AC_DEFINE(HAVE_GCC_ATOMIC_BUILTINS, 1,
+        define if __sync_fetch_and_add() and __sync_compare_and_swap() 
+        are available)
+fi
+
 dnl Enable various extra-large boardsizes
 AC_ARG_ENABLE([upto19x19],
    AS_HELP_STRING([--enable-upto19x19], 
