@@ -157,8 +157,10 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         cmd << '\n'
             << "[bool] backup_ice_info "
             << m_player.BackupIceInfo() << '\n'
+#if HAVE_GCC_ATOMIC_BUILTINS
             << "[bool] lock_free " 
             << search.LockFree() << '\n'
+#endif
             << "[bool] keep_games "
             << search.KeepGames() << '\n'
             << "[bool] perform_pre_search " 
@@ -197,8 +199,10 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.MaxNodes() << '\n'
             << "[string] max_time "
             << m_player.MaxTime() << '\n'
+#if HAVE_GCC_ATOMIC_BUILTINS
             << "[string] num_threads "
             << search.NumberThreads() << '\n'
+#endif
             << "[string] playout_update_radius "
             << search.PlayoutUpdateRadius() << '\n'
             << "[string] randomize_rave_frequency "
@@ -215,8 +219,10 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
             m_player.SetBackupIceInfo(cmd.Arg<bool>(1));
+#if HAVE_GCC_ATOMIC_BUILTINS
         else if (name == "lock_free")
             search.SetLockFree(cmd.Arg<bool>(1));
+#endif
         else if (name == "keep_games")
             search.SetKeepGames(cmd.Arg<bool>(1));
         else if (name == "perform_pre_search")
@@ -249,8 +255,10 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             m_player.SetMaxTime(cmd.Arg<float>(1));
         else if (name == "max_nodes")
             search.SetMaxNodes(cmd.ArgMin<std::size_t>(1, 1));
+#if HAVE_GCC_ATOMIC_BUILTINS
         else if (name == "num_threads")
             search.SetNumberThreads(cmd.ArgMin<int>(1, 1));
+#endif
         else if (name == "playout_update_radius")
             search.SetPlayoutUpdateRadius(cmd.ArgMin<int>(1, 0));
         else if (name == "rave_weight_final")
