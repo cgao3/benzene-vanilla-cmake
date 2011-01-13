@@ -25,7 +25,8 @@ namespace
 //----------------------------------------------------------------------------
 
 BenzeneProgram::BenzeneProgram()
-    : m_options_desc("Available Options")
+    : m_options_desc("Available Options"),
+      m_use_logfile(false)
 {
 }
 
