@@ -54,7 +54,6 @@ class HashMap
     BOOST_CLASS_REQUIRE(T, benzene, HashMapStateConcept);
 
 public:
-
     /** Constructs a hashmap with 2^bits slots. */
     HashMap(unsigned bits);
 
@@ -65,16 +64,18 @@ public:
     ~HashMap();
 
     /** Returns the lg2 of the number of slots. */
-    unsigned bits() const;
+    unsigned Bits() const;
 
     /** Returns the number of slots. */
-    unsigned size() const;
+    unsigned Size() const;
 
     /** Returns number of objects stored. */
-    unsigned count() const;
+    unsigned Count() const;
 
-    /** Retrieves object with key. Returns true on success. */
-    bool get(hash_t key, T& out) const;
+    /** Retrieves object with key. 
+        Returns true on success and object is copied into
+        out. Otherwise, returns false.*/
+    bool Get(hash_t key, T& out) const;
 
     /** Stores a (key, object) pair. 
      
@@ -84,32 +85,31 @@ public:
 
         Make sure the table is much larger (at least 4x larger) than
         the maximum amount of data you ever expect to store in this
-        table. This is to reduce the number of probes on subsequent
-        get() calls, as well as to avoid the need for dynamic resizing
-        of the table.
+        table to reduce the number of probes on subsequent Get()
+        calls.
 
         This function can possibly create duplicate entries. This is
-        because put() does not check the key of the slots it runs over
+        because Put() does not check the key of the slots it runs over
         while searching for an empty slot. So if two threads both
-        write try to put() k1 at the same time, each will write to its
+        write try to Put() k1 at the same time, each will write to its
         own slot. Only the first slot written will ever be used by
-        get().
+        Get().
      */
-    void put(hash_t key, const T& obj);
+    void Put(hash_t key, const T& obj);
     
     /** Clears the table. */
-    void clear();
+    void Clear();
 
     /** Copys other's data, overwriting everything in this table. */
     void operator=(const HashMap<T>& other);
 
 private:    
-    
     static const int EMPTY_SLOT = -1;
 
     struct Data
     {
         hash_t key;
+
         T value;
     };
 
@@ -126,8 +126,7 @@ private:
     volatile unsigned m_count;
 
     /** Index into m_allocated at which data for this slot is located;
-        index is equal to EMPTY_SLOT if unused.
-     */
+        index is equal to EMPTY_SLOT if unused. */
     boost::scoped_array<volatile int> m_used;
 
     /** Allocated space for entries in the table. */
@@ -145,7 +144,7 @@ HashMap<T>::HashMap(unsigned bits)
       m_used(new volatile int[m_size]),
       m_allocated(new Data[m_size])
 {
-    clear();
+    Clear();
 }
 
 template<typename T>
@@ -166,26 +165,26 @@ HashMap<T>::~HashMap()
 }
 
 template<typename T>
-inline unsigned HashMap<T>::bits() const
+inline unsigned HashMap<T>::Bits() const
 {
     return m_bits;
 }
 
 template<typename T>
-inline unsigned HashMap<T>::size() const
+inline unsigned HashMap<T>::Size() const
 {
     return m_size;
 }
 
 template<typename T>
-inline unsigned HashMap<T>::count() const
+inline unsigned HashMap<T>::Count() const
 {
     return m_count;
 }
 
 /** Performs linear probing to find key. */
 template<typename T>
-bool HashMap<T>::get(hash_t key, T& out) const
+bool HashMap<T>::Get(hash_t key, T& out) const
 {
     // Search for slot containing this key.
     // Limit number of probes to a single pass: Table should never
@@ -208,15 +207,15 @@ bool HashMap<T>::get(hash_t key, T& out) const
 }
 
 template<typename T>
-void HashMap<T>::put(hash_t key, const T& value)
+void HashMap<T>::Put(hash_t key, const T& value)
 {
     if (m_count > m_size)
     {
-        LogSevere() << "HashMap: Full! Uhh oh..." << '\n';
+        LogSevere() << "HashMap: Full! Uhh oh...\n";
         abort();
     }
     else if (m_count > m_size / 4)
-        LogWarning() << "HashMap: table becoming full..." << '\n';
+        LogWarning() << "HashMap: table becoming full...\n";
 
     // Atomic: get offset into allocated memory and increment m_count.
     int offset = __sync_fetch_and_add(&m_count, 1);
@@ -238,7 +237,7 @@ void HashMap<T>::put(hash_t key, const T& value)
 }
 
 template<typename T>
-void HashMap<T>::clear()
+void HashMap<T>::Clear()
 {
     m_count = 0;
     for (unsigned i = 0; i < m_size; ++i)

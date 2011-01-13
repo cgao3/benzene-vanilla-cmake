@@ -154,7 +154,7 @@ void HexUctState::ExecuteTreeMove(HexPoint move)
     m_game_sequence.push_back(Move(m_toPlay, move));
     ExecutePlainMove(move, m_treeUpdateRadius);
     HexUctStoneData stones;
-    if (m_shared_data->stones.get(SequenceHash::Hash(m_game_sequence), stones))
+    if (m_shared_data->stones.Get(SequenceHash::Hash(m_game_sequence), stones))
     {
         m_bd->StartNewGame();
         m_bd->SetColor(BLACK, stones.black);
@@ -181,7 +181,7 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
     // this does not seem to matter too much.
     //   If assertions are on, this will cause the search to abort
     // needlessly.
-    // @todo Handle case when assertions are on.
+    // TODO: Handle case when assertions are on.
     SG_ASSERT(m_bd->IsEmpty(cell));
     SG_ASSERT(m_pastate->UpdateRadius() == updateRadius);
     
@@ -259,7 +259,7 @@ SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
 
 void HexUctState::StartSearch()
 {
-    LogInfo() << "StartSearch()[" << m_threadId <<"]" << '\n';
+    LogInfo() << "StartSearch()[" << m_threadId <<"]\n";
     m_shared_data = &m_search.SharedData();
 
     // @todo Fix the interface to HexBoard so this can be constant!
@@ -315,11 +315,9 @@ void HexUctState::StartPlayouts()
 {
     m_isInPlayout = true;
     m_pastate->SetUpdateRadius(m_playoutUpdateRadius);
-    
-    /** Playout radius should normally be no bigger than tree radius,
-	but if it is, we need to do an extra update for each playout
-	during the transition from the tree phase to the playout
-	phase. */
+    // Playout radius should normally be no bigger than tree radius,
+    // but if it is, we need to do an extra update for each playout
+    // during the transition from the tree phase to the playout phase.
     if (m_playoutUpdateRadius > m_treeUpdateRadius)
 	m_pastate->Update();
 }
@@ -360,7 +358,7 @@ bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
             provenType = SG_PROVEN_LOSS;
         }
         if (DEBUG_KNOWLEDGE)
-            LogInfo() << "Found win for " << winner << ": " << '\n' 
+            LogInfo() << "Found win for " << winner << ":\n"
                       << *m_vc_brd << '\n';
         return m_bd->GetEmpty();
     }
@@ -370,10 +368,10 @@ bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
         consider = EndgameUtils::MovesToConsider(*m_vc_brd, m_toPlay);
     }
 
-    m_shared_data->stones.put(SequenceHash::Hash(m_game_sequence), 
+    m_shared_data->stones.Put(SequenceHash::Hash(m_game_sequence), 
                               HexUctStoneData(m_vc_brd->GetPosition()));
     if (DEBUG_KNOWLEDGE)
-        LogInfo() << "===================================" << '\n'
+        LogInfo() << "===================================\n"
                   << "Recomputed state:" << '\n' << *m_bd << '\n'
                   << "Consider:" << m_vc_brd->Write(consider) << '\n';
 
