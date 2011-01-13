@@ -29,7 +29,7 @@ public:
 
     /** @page benzenehtpenginecommands CommonHtpEngine Commands
         - @link CmdLicense() @c benzene-license @endlink
-        - @link CmdGetAbsorbGroup() @c get_absorb_group @endlink
+        - @link CmdGroupGet() @c group-get @endlink
         - @link CmdHandbookAdd() @c handbook-add @endlink
         - @link CmdComputeInferior() @c compute-inferior @endlink
         - @link CmdComputeFillin() @c compute-fillin @endlink
@@ -40,12 +40,8 @@ public:
         - @link CmdFindCombDecomp() @c find-comb-decomp @endlink
         - @link CmdFindSplitDecomp() @c find-split-decomp @endlink
         - @link CmdEncodePattern() @c encode-pattern @endlink
-        - @link CmdParamDfpn() @c param_dfpn @endlink
         - @link CmdEvalTwoDist() @c eval-twod @endlink
         - @link CmdEvalResist() @c eval-resist @endlink
-        - @link CmdEvalResistDelta() @c eval-resist-delta @endlink
-        - @link CmdEvalInfluence() @c eval-influence @endlink
-        - @link CmdMiscDebug() @c misc_debug @endlink
     */
 
     /** @name Command Callbacks */
@@ -53,11 +49,8 @@ public:
     // The callback functions are documented in the cpp file
 
     void CmdLicense(HtpCommand& cmd);
-
-    void CmdGetAbsorbGroup(HtpCommand& cmd);
-    
+    void CmdGroupGet(HtpCommand& cmd);
     void CmdHandbookAdd(HtpCommand& cmd);
-
     void CmdComputeInferior(HtpCommand& cmd);
     void CmdComputeFillin(HtpCommand& cmd);
     void CmdComputeVulnerable(HtpCommand& cmd);
@@ -67,15 +60,8 @@ public:
     void CmdFindCombDecomp(HtpCommand& cmd);
     void CmdFindSplitDecomp(HtpCommand& cmd);
     void CmdEncodePattern(HtpCommand& cmd);
-    
-    void CmdParamDfpn(HtpCommand& cmd);
-    
     void CmdEvalTwoDist(HtpCommand& cmd);
     void CmdEvalResist(HtpCommand& cmd);
-    void CmdEvalResistDelta(HtpCommand& cmd);
-    void CmdEvalInfluence(HtpCommand& cmd);
-
-    void CmdMiscDebug(HtpCommand& cmd);
 
     // @} // @name
 

@@ -47,11 +47,8 @@ CommonHtpEngine::CommonHtpEngine(int boardsize)
       m_useParallelSolver(false)
 {
     RegisterCmd("benzene-license", &CommonHtpEngine::CmdLicense);
-
-    RegisterCmd("get_absorb_group", &CommonHtpEngine::CmdGetAbsorbGroup);
-
+    RegisterCmd("group-get", &CommonHtpEngine::CmdGroupGet);
     RegisterCmd("handbook-add", &CommonHtpEngine::CmdHandbookAdd);
-
     RegisterCmd("compute-inferior", &CommonHtpEngine::CmdComputeInferior);
     RegisterCmd("compute-fillin", &CommonHtpEngine::CmdComputeFillin);
     RegisterCmd("compute-vulnerable", &CommonHtpEngine::CmdComputeVulnerable);
@@ -71,10 +68,6 @@ CommonHtpEngine::CommonHtpEngine(int boardsize)
 
     RegisterCmd("eval-twod", &CommonHtpEngine::CmdEvalTwoDist);
     RegisterCmd("eval-resist", &CommonHtpEngine::CmdEvalResist);
-    RegisterCmd("eval-resist-delta", &CommonHtpEngine::CmdEvalResistDelta);
-    RegisterCmd("eval-influence", &CommonHtpEngine::CmdEvalInfluence);
-
-    RegisterCmd("misc-debug", &CommonHtpEngine::CmdMiscDebug);
 }
 
 CommonHtpEngine::~CommonHtpEngine()
@@ -92,14 +85,11 @@ void CommonHtpEngine::RegisterCmd(const std::string& name,
 void CommonHtpEngine::NewGame(int width, int height)
 {
     HexHtpEngine::NewGame(width, height);
-
     m_pe.NewGame(width, height);
     m_se.NewGame(width, height);
 }
 
-////////////////////////////////////////////////////////////////////////
-// Commands
-////////////////////////////////////////////////////////////////////////
+//----------------------------------------------------------------------------
 
 /** Displays usage license. */
 void CommonHtpEngine::CmdLicense(HtpCommand& cmd)
@@ -118,24 +108,20 @@ void CommonHtpEngine::CmdLicense(HtpCommand& cmd)
 }
 
 /** Returns the set of stones this stone is part of. */
-void CommonHtpEngine::CmdGetAbsorbGroup(HtpCommand& cmd)
+void CommonHtpEngine::CmdGroupGet(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexPoint cell = HtpUtil::MoveArg(cmd, 0);
     if (m_game.Board().GetColor(cell) == EMPTY)
         return;
-
     Groups groups;
     GroupBuilder::Build(m_game.Board(), groups);
-
     const Group& group = groups.GetGroup(cell);
     cmd << group.Captain();
     for (BitsetIterator p(group.Members()); p; ++p) 
         if (*p != group.Captain()) 
             cmd << ' ' << *p;
 }
-
-//----------------------------------------------------------------------------
 
 /** Pulls moves out of the game for given color and appends them to
     the given handbook file. Skips the first move (ie, the move from
@@ -220,9 +206,7 @@ void CommonHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
 
 //----------------------------------------------------------------------
 
-/** Outputs inferior cell info for current state.
-    Usage: "compute-inferior [color]"
- */
+/** Outputs inferior cell info for current state. */
 void CommonHtpEngine::CmdComputeInferior(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
@@ -298,6 +282,7 @@ void CommonHtpEngine::CmdComputeDominated(HtpCommand& cmd)
     cmd << '\n';
 }
 
+/** Finds dominated patterns matching given cell. */
 void CommonHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
 {
     cmd.CheckNuArg(2);
@@ -310,15 +295,13 @@ void CommonHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
     PatternHits hits;
     m_pe.ice.FindDominatedOnCell(brd.GetPatternState(), col, 
                                  cell, hits);
-    for (std::size_t i=0; i<hits.size(); ++i)
+    for (std::size_t i = 0; i < hits.size(); ++i)
         cmd << " " << hits[i].pattern()->getName();
     cmd << '\n';
 }
 
 /** Tries to find a combinatorial decomposition of the board state.
-    Outputs cells in the vc if there is a decomposition.
-    Usage: 'find-comb-decomp [color]'
-*/
+    Outputs cells in the vc if there is a decomposition. */
 void CommonHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
@@ -337,9 +320,8 @@ void CommonHtpEngine::CmdFindCombDecomp(HtpCommand& cmd)
 
 /** Tries to find a group that crowds both opponent edges. Outputs
     group that crowds both edges if one exists.  
-    Usage: 'find-split-decomp [color]'
 
-    FIXME: Dump inferior cell info as well? It's hard to see what's
+    @todo Dump inferior cell info as well? It's hard to see what's
     actually going on if it is not displayed.
 */
 void CommonHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
@@ -356,7 +338,7 @@ void CommonHtpEngine::CmdFindSplitDecomp(HtpCommand& cmd)
 /** Outputs pattern in encoded form. 
     Takes a list of cells, the first cell being the center of the
     pattern (that is not actually in the pattern).
-    FIXME: clean this up!
+    @todo Clean this up!
 */
 void CommonHtpEngine::CmdEncodePattern(HtpCommand& cmd)
 {
@@ -455,20 +437,15 @@ void CommonHtpEngine::CmdEncodePattern(HtpCommand& cmd)
     LogInfo() << encPattStr << '\n';
 }
 
-//----------------------------------------------------------------------------
-// Evaluation commands
-//----------------------------------------------------------------------------
-
+/** Displays two-distance values for current state. */
 void CommonHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     TwoDistance twod(TwoDistance::ADJACENT);
     twod.Evaluate(brd);
-
     for (BoardIterator it(brd.Const().Interior()); it; ++it) 
     {
         if (brd.GetPosition().IsOccupied(*it)) continue;
@@ -479,108 +456,28 @@ void CommonHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
     }
 }
 
+/** Displays resistance values for current state. */
 void CommonHtpEngine::CmdEvalResist(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-
     HexBoard& brd = *m_pe.brd;
     Resistance resist;
     resist.Evaluate(brd);
-
     cmd << " res " << std::fixed << std::setprecision(3) << resist.Score()
         << " rew " << std::fixed << std::setprecision(3) << resist.Resist(WHITE)
-        << " reb " << std::fixed << std::setprecision(3) << resist.Resist(BLACK);
-
-    for (BoardIterator it(brd.Const().Interior()); it; ++it) {
-        if (brd.GetPosition().IsOccupied(*it)) continue;
+        << " reb " << std::fixed << std::setprecision(3) 
+        << resist.Resist(BLACK);
+    for (BoardIterator it(brd.Const().Interior()); it; ++it) 
+    {
+        if (brd.GetPosition().IsOccupied(*it)) 
+            continue;
         HexEval energy = resist.Score(*it, color);
         if (energy == EVAL_INFINITY)
             energy = -1;
         cmd << " " << *it << " " 
             << std::fixed << std::setprecision(3) << energy;
     }
-}
-
-void CommonHtpEngine::CmdEvalResistDelta(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(1);
-    HexColor color = HtpUtil::ColorArg(cmd, 0);
-
-    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    brd.ComputeAll(color);
-    Resistance resist;
-    resist.Evaluate(brd);
-    HexEval base = resist.Score();
-
-    cmd << " res " << std::fixed << std::setprecision(3) << base;
-    for (BitsetIterator it(brd.GetPosition().GetEmpty()); it; ++it) 
-    {
-        brd.PlayMove(color, *it);
-        resist.Evaluate(brd);
-        HexEval cur = resist.Score();
-        cmd << " " << *it << " " 
-            << std::fixed << std::setprecision(3) << (cur - base);
-        brd.UndoMove();
-    }
-}
-
-void CommonHtpEngine::CmdEvalInfluence(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(1);
-    HexColor color = HtpUtil::ColorArg(cmd, 0);
-
-    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    brd.ComputeAll(color);
-
-    // Pre-compute edge adjacencies
-    const Groups& groups = brd.GetGroups();
-    bitset_t northNbs 
-        = VCSetUtil::ConnectedTo(brd.Cons(BLACK), groups, NORTH, VC::FULL);
-    bitset_t southNbs 
-        = VCSetUtil::ConnectedTo(brd.Cons(BLACK), groups, SOUTH, VC::FULL);
-    bitset_t eastNbs 
-        = VCSetUtil::ConnectedTo(brd.Cons(WHITE), groups, EAST, VC::FULL);
-    bitset_t westNbs 
-        = VCSetUtil::ConnectedTo(brd.Cons(WHITE), groups, WEST, VC::FULL);
-
-    for (BoardIterator it(brd.Const().Interior()); it; ++it) {
-        if (brd.GetPosition().IsOccupied(*it)) continue;
-
-	// Compute neighbours, giving over-estimation to edges
-	bitset_t b1 = VCSetUtil::ConnectedTo(brd.Cons(BLACK), brd.GetGroups(),
-                                             *it, VC::FULL);
-	if (b1.test(NORTH)) b1 |= northNbs;
-	if (b1.test(SOUTH)) b1 |= southNbs;
-	b1 &= brd.GetPosition().GetEmpty();
-	bitset_t b2 = VCSetUtil::ConnectedTo(brd.Cons(WHITE), brd.GetGroups(),
-                                             *it, VC::FULL);
-	if (b2.test(EAST)) b2 |= eastNbs;
-	if (b2.test(WEST)) b2 |= westNbs;
-	b2 &= brd.GetPosition().GetEmpty();
-
-	// Compute ratio of VCs at this cell, and use as measure of influence
-	double v1 = (double) b1.count();
-	double v2 = (double) b2.count();
-	BenzeneAssert(v1+v2 >= 1.0);
-	double influence;
-	if (color == BLACK)
-	    influence = v1 / (v1 + v2);
-	else
-	    influence = v2 / (v1 + v2);
-
-        cmd << " " << *it << " "
-	    << std::fixed << std::setprecision(2) << influence;
-    }
-}
-
-//----------------------------------------------------------------------------
-
-void CommonHtpEngine::CmdMiscDebug(HtpCommand& cmd)
-{
-//     cmd.CheckNuArg(1);
-//     HexPoint point = HtpUtil::MoveArg(cmd, 0);
-    cmd << *m_pe.brd << '\n';
 }
 
 //----------------------------------------------------------------------------
