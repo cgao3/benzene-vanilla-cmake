@@ -21,10 +21,10 @@ namespace {
 void Initialize()
 {
     int argc = 1;
-    char name[] = "bin/benzene-test";
+    char name[] = "benzene-unittest";
     char* argv = name;
     CommonProgram program;
-    program.SetInfo("benzene-test", VERSION, __DATE__);
+    program.SetInfo("benzene-unittest", VERSION, __DATE__);
     BenzeneEnvironment::Get().RegisterProgram(program);
     program.Initialize(argc, &argv);
 }
