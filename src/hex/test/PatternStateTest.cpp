@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(PatternState_Tests)
     pattern.setName("mpat");
     patterns.push_back(pattern);
     HashedPatternSet hashpat;
-    hashpat.hash(patterns);
+    hashpat.Hash(patterns);
     
     StoneBoard brd(11, 11);
     PatternState pastate(brd);
