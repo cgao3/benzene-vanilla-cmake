@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCSet.hpp
- */
+/** @file VCSet.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef VCSET_HPP
@@ -24,7 +23,6 @@ _BEGIN_BENZENE_NAMESPACE_
 class VCSet
 {
 public:
-
     /** Creates a VCSet class on the given board size for color. */
     VCSet(const ConstBoard& brd, HexColor color);
 
@@ -64,8 +62,7 @@ public:
 
     /** Stores the valid connections between x and y for color in out
         (which is cleared beforehand). */
-    void VCs(HexPoint x, HexPoint y, VC::Type type,
-             std::vector<VC>& out) const;
+    void VCs(HexPoint x, HexPoint y, VC::Type type, std::vector<VC>& out) const;
 
     //------------------------------------------------------------------------
 
@@ -110,7 +107,6 @@ public:
     // @}
 
 private:
-
     /** Allocates space for, and copies lists from, the VCLists in
         other. */
     void AllocateAndCopyLists(const VCSet& other);
@@ -125,8 +121,7 @@ private:
     HexColor m_color;
 
     /** The lists of vcs. 
-        @todo use actual boardsize instead of BITSETSIZE? 
-    */
+        @todo use actual boardsize instead of BITSETSIZE? */
     VCList* m_vc[VC::NUM_TYPES][BITSETSIZE][BITSETSIZE];
 };
 
@@ -200,7 +195,6 @@ struct VCSetStatistics
 /** Utilities on VCSet. */
 namespace VCSetUtil 
 {
-    
     /** Returns set of cells connected to x. */
     bitset_t ConnectedTo(const VCSet& con, const Groups& groups, 
                          HexPoint x, VC::Type type);
