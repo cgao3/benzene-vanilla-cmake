@@ -44,7 +44,7 @@ void VCCommands::Register(GtpEngine& engine, const std::string& command,
 
 VC::Type VCCommands::VCTypeArg(const HtpCommand& cmd, std::size_t number) const
 {
-    return VCTypeUtil::fromString(cmd.ArgToLower(number));
+    return VCTypeUtil::FromString(cmd.ArgToLower(number));
 }
 
 //----------------------------------------------------------------------------

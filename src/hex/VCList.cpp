@@ -37,7 +37,7 @@ std::string VCList::Dump() const
 bool VCList::IsSupersetOfAny(const bitset_t& bs) const
 {
     for (const_iterator it = m_vcs.begin(); it != m_vcs.end(); ++it)
-        if (BitsetUtil::IsSubsetOf(it->carrier(), bs))
+        if (BitsetUtil::IsSubsetOf(it->Carrier(), bs))
             return true;
     return false;
 }
@@ -45,7 +45,7 @@ bool VCList::IsSupersetOfAny(const bitset_t& bs) const
 bool VCList::IsSubsetOfAny(const bitset_t& bs) const
 {
     for (const_iterator it = m_vcs.begin(); it != m_vcs.end(); ++it) 
-        if (BitsetUtil::IsSubsetOf(bs, it->carrier())) 
+        if (BitsetUtil::IsSubsetOf(bs, it->Carrier())) 
             return true;
     return false;
 }
@@ -56,7 +56,7 @@ int VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
     int count = 0;
     for (iterator it = m_vcs.begin(); it != m_vcs.end();)
     {
-        if (BitsetUtil::IsSubsetOf(bs, it->carrier())) 
+        if (BitsetUtil::IsSubsetOf(bs, it->Carrier())) 
         {
             if (log) 
                 log->push(ChangeLog<VC>::REMOVE, *it);
@@ -79,8 +79,8 @@ int VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
 
 void VCList::SimpleAdd(const VC& vc)
 {
-    BenzeneAssert((vc.x() == GetX() && vc.y() == GetY()) ||
-                  (vc.x() == GetY() && vc.y() == GetX()));
+    BenzeneAssert((vc.X() == GetX() && vc.Y() == GetY()) ||
+                  (vc.X() == GetY() && vc.Y() == GetX()));
     iterator it;
     unsigned count = 0;
     for (it = m_vcs.begin(); it != m_vcs.end(); ++it, ++count)
@@ -89,21 +89,21 @@ void VCList::SimpleAdd(const VC& vc)
     it = m_vcs.insert(it, vc);
     DirtyListUnions();
     if (count < m_softlimit)
-        m_softIntersection &= vc.carrier();
-    m_hardIntersection &= vc.carrier();
+        m_softIntersection &= vc.Carrier();
+    m_hardIntersection &= vc.Carrier();
 }
 
 VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
 {
-    BenzeneAssert((vc.x() == GetX() && vc.y() == GetY()) ||
-                  (vc.x() == GetY() && vc.y() == GetX()));
+    BenzeneAssert((vc.X() == GetX() && vc.Y() == GetY()) ||
+                  (vc.X() == GetY() && vc.Y() == GetX()));
     unsigned count = 0;
     iterator it = m_vcs.begin();
     for (; it != m_vcs.end(); ++it, ++count) 
     {
         if (*it > vc)
             break;
-        if ((*it).isSubsetOf(vc))
+        if ((*it).IsSubsetOf(vc))
             return ADD_FAILED;
     }
     if (log) 
@@ -113,13 +113,13 @@ VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
     // update unions/intersections
     DirtyListUnions();
     if (count < m_softlimit) 
-        m_softIntersection &= vc.carrier();
-    m_hardIntersection &= vc.carrier();
+        m_softIntersection &= vc.Carrier();
+    m_hardIntersection &= vc.Carrier();
 
     // remove supersets of vc
     for (++it; it != m_vcs.end();)
     {
-        if (vc.isSubsetOf(*it)) 
+        if (vc.IsSubsetOf(*it)) 
         {
             if (log) 
                 log->push(ChangeLog<VC>::REMOVE, *it);
@@ -138,8 +138,8 @@ int VCList::Add(const VCList& other, ChangeLog<VC>* log)
     int count = 0;
     for (const_iterator it = other.Begin(); it != other.End(); ++it) 
     {
-        VC v(GetX(), GetY(), it->key(), it->carrier(), it->rule());
-        v.setProcessed(false);
+        VC v(GetX(), GetY(), it->Key(), it->Carrier(), it->Rule());
+        v.SetProcessed(false);
         if (this->Add(v, log))
             count++;
     }
@@ -210,11 +210,11 @@ void VCList::ComputeUnions() const
     const_iterator cur = m_vcs.begin();
     for (; cur != m_vcs.end(); ++cur) 
     {
-        m_union |= cur->carrier();
-        bitset_t c = inter & cur->carrier();
+        m_union |= cur->Carrier();
+        bitset_t c = inter & cur->Carrier();
         if (inter != c) 
         {
-            m_greedyUnion |= cur->carrier();
+            m_greedyUnion |= cur->Carrier();
             inter = c;
         }
     }
@@ -244,10 +244,10 @@ void VCList::ComputeIntersections() const
     const_iterator end = m_vcs.end();
     // TODO: Abort loops early if intersection is empty?
     for (std::size_t count = 0; count < Softlimit() && cur!=end; ++cur, ++count)
-        m_softIntersection &= cur->carrier();
+        m_softIntersection &= cur->Carrier();
     m_hardIntersection = m_softIntersection;
     for (; cur != end; ++cur)
-        m_hardIntersection &= cur->carrier();
+        m_hardIntersection &= cur->Carrier();
     m_dirtyIntersection = false;
 }
 
@@ -275,7 +275,7 @@ std::size_t VCList::RemoveAllContaining(HexPoint cell, std::list<VC>& out,
     int count = 0;
     for (iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
     {
-        if (it->carrier().test(cell)) 
+        if (it->Carrier().test(cell)) 
         {
             out.push_back(*it);
             if (log) 
@@ -302,7 +302,7 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, std::list<VC>& out,
     std::size_t count = 0;
     for (iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
     {
-        if ((it->carrier() & b).any()) 
+        if ((it->Carrier() & b).any()) 
         {
             out.push_back(*it);
             if (log)
@@ -328,7 +328,7 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, ChangeLog<VC>* log)
     std::size_t count = 0;
     for (iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
     {
-        if ((it->carrier() & b).any()) 
+        if ((it->Carrier() & b).any()) 
         {
             if (log)
                 log->push(ChangeLog<VC>::REMOVE, *it);
@@ -360,7 +360,7 @@ bool VCList::operator==(const VCList& other) const
     {
         if (*us != *them) 
             return false;
-        if (us->processed() != them->processed()) 
+        if (us->Processed() != them->Processed()) 
             return false;
         ++us;
         ++them;
@@ -380,7 +380,7 @@ bool VCList::operator!=(const VCList& other) const
     {
         if (*us != *them) 
             return true;
-        if (us->processed() != them->processed()) 
+        if (us->Processed() != them->Processed()) 
             return true;
         ++us;
         ++them;

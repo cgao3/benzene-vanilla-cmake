@@ -105,7 +105,7 @@ void VCBuilder::AddBaseVCs()
             if (m_con->Add(vc, m_log))
             {
                 m_statistics->base_successes++;
-                m_queue.push(std::make_pair(vc.x(), vc.y()));
+                m_queue.push(std::make_pair(vc.X(), vc.Y()));
             }
         }
     }
@@ -134,7 +134,7 @@ void VCBuilder::AddPatternVCs()
             if (m_con->Add(vc, m_log))
             {
                 m_statistics->pattern_successes++;
-                m_queue.push(std::make_pair(vc.x(), vc.y()));
+                m_queue.push(std::make_pair(vc.X(), vc.Y()));
             }
         }
     }
@@ -327,7 +327,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     // Do not upgrade during this step. 
     for (it = removed.begin(); it != removed.end(); ++it) 
     {
-        if (!added.test(it->key())) 
+        if (!added.test(it->Key())) 
         {
             VC v = VC::ShrinkSemi(*it, added, xout, yout);
             /** @bug These could be supersets of fulls_out. */
@@ -340,7 +340,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     // that we remove all sc supersets from semis_out.
     for (it = removed.begin(); it != removed.end(); ++it) 
     {
-        if (added.test(it->key())) 
+        if (added.test(it->Key())) 
         {
             VC v = VC::UpgradeSemi(*it, added, xout, yout);
             if (fulls_out->Add(v, m_log))
@@ -350,7 +350,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
                 // member of the list. Actually, this probably doesn't
                 // matter since the call to removeAllContaining()
                 // already clobbered the intersections.
-                semis_out->RemoveSuperSetsOf(v.carrier(), m_log, false);
+                semis_out->RemoveSuperSetsOf(v.Carrier(), m_log, false);
                 m_statistics->upgraded++;
             }
         }
@@ -414,7 +414,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
 
     for (std::size_t count = 0; count < soft && cur != end; ++cur, ++count) 
     {
-        if (!cur->processed()) 
+        if (!cur->Processed()) 
         {
             m_statistics->doOrs++;
             if (m_orRule(*cur, &semis, &fulls, added, m_param.max_ors, 
@@ -423,7 +423,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
                 m_statistics->goodOrs++;
             }
 
-            cur->setProcessed(true);
+            cur->SetProcessed(true);
             
             if (m_log)
                 m_log->push(ChangeLog<VC>::PROCESSED, *cur);
@@ -450,10 +450,10 @@ void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
     VCList::iterator end = fulls.End();
     for (std::size_t count = 0; count < soft && cur != end; ++cur, ++count) 
     {
-        if (!cur->processed()) 
+        if (!cur->Processed()) 
         {
             andClosure(*cur);
-            cur->setProcessed(true);
+            cur->SetProcessed(true);
             if (m_log)
                 m_log->push(ChangeLog<VC>::PROCESSED, *cur);
         }
@@ -506,13 +506,14 @@ void VCBuilder::andClosure(const VC& vc)
     HexColorSet not_other = HexColorSetUtil::NotColor(other);
 
     HexPoint endp[2];
-    endp[0] = m_groups->CaptainOf(vc.x());
-    endp[1] = m_groups->CaptainOf(vc.y());
+    endp[0] = m_groups->CaptainOf(vc.X());
+    endp[1] = m_groups->CaptainOf(vc.Y());
     HexColor endc[2];
     endc[0] = m_brd->GetColor(endp[0]);
     endc[1] = m_brd->GetColor(endp[1]);
 
-    if (endc[0] == other || endc[1] == other) {
+    if (endc[0] == other || endc[1] == other)
+    {
         LogInfo() << *m_brd << '\n';
         LogInfo() << vc << '\n';
     }
@@ -524,8 +525,10 @@ void VCBuilder::andClosure(const VC& vc)
     for (GroupIterator g(*m_groups, not_other); g; ++g) 
     {
         HexPoint z = g->Captain();
-        if (z == endp[0] || z == endp[1]) continue;
-        if (vc.carrier().test(z)) continue;
+        if (z == endp[0] || z == endp[1])
+            continue;
+        if (vc.Carrier().test(z))
+            continue;
         bitset_t capturedSet = vcCapturedSet | m_capturedSet[z];
         bitset_t uncapturedSet = capturedSet;
         uncapturedSet.flip();
@@ -535,7 +538,7 @@ void VCBuilder::andClosure(const VC& vc)
             if (m_param.and_over_edge || !HexPointUtil::isEdge(endp[i])) 
             {
                 VCList* fulls = &m_con->GetList(VC::FULL, z, endp[i]);
-                if ((fulls->SoftIntersection() & vc.carrier()
+                if ((fulls->SoftIntersection() & vc.Carrier()
                      & uncapturedSet).any())
                     continue;
                 
@@ -564,11 +567,11 @@ void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
     VCList::const_iterator end = old->End();
     for (std::size_t count = 0; count < soft && i != end; ++i, ++count) 
     {
-        if (!i->processed())
+        if (!i->Processed())
             continue;
-        if (i->carrier().test(to))
+        if (i->Carrier().test(to))
             continue;
-        bitset_t intersection = i->carrier() & vc.carrier();
+        bitset_t intersection = i->Carrier() & vc.Carrier();
         if (intersection.none())
         {
             if (rule == CREATE_FULL)
@@ -630,7 +633,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     VCList::const_iterator it = semi_list->Begin();
     VCList::const_iterator end = semi_list->End();
     for (std::size_t count = 0; count < soft && it != end; ++count, ++it)
-        if (it->processed())
+        if (it->Processed())
             m_semi.push_back(*it);
 
     if (m_semi.empty())
@@ -641,9 +644,9 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     // for each i in [0, N-1], compute intersection of semi[i, N-1]
     if (m_tail.size() < N)
         m_tail.resize(N);
-    m_tail[N-1] = m_semi[N-1].carrier();
+    m_tail[N-1] = m_semi[N-1].Carrier();
     for (int i = static_cast<int>(N - 2); i >= 0; --i)
-        m_tail[i] = m_semi[i].carrier() & m_tail[i+1];
+        m_tail[i] = m_semi[i].Carrier() & m_tail[i+1];
 
     max_ors--;
     BenzeneAssert(max_ors < 16);
@@ -658,8 +661,8 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     bitset_t ors[16];
     bitset_t ands[16];
 
-    ors[0] = vc.carrier();
-    ands[0] = vc.carrier();
+    ors[0] = vc.Carrier();
+    ands[0] = vc.Carrier();
     index[1] = 0;
     
     int d = 1;
@@ -683,8 +686,8 @@ int VCBuilder::OrRule::operator()(const VC& vc,
             continue;
         }
         
-        ands[d] = ands[d-1] & m_semi[i].carrier();
-        ors[d]  =  ors[d-1] | m_semi[i].carrier();
+        ands[d] = ands[d-1] & m_semi[i].Carrier();
+        ors[d]  =  ors[d-1] | m_semi[i].Carrier();
 
         if (ands[d].none()) 
         {
@@ -749,30 +752,30 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     return count;
 }
 
-/** Tries to add a new full-connection to list between (vc.x(), vc.y()).
+/** Tries to add a new full-connection to list between (vc.X(), vc.Y()).
 
     If vc is successfully added, then:
 
-    1) Removes any semi-connections between (vc.x(), vc.y()) that are
+    1) Removes any semi-connections between (vc.X(), vc.Y()) that are
     supersets of vc.
     
-    2) Adds (vc.x(), vc.y()) to the queue if vc was added inside the
+    2) Adds (vc.X(), vc.Y()) to the queue if vc was added inside the
     softlimit.
 */
 bool VCBuilder::AddNewFull(const VC& vc)
 {
-    BenzeneAssert(vc.type() == VC::FULL);
+    BenzeneAssert(vc.GetType() == VC::FULL);
     VCList::AddResult result = m_con->Add(vc, m_log);
     if (result != VCList::ADD_FAILED) 
     {
         // a semi that is a superset of a full is useless, so remove
         // any that exist.
-        m_con->GetList(VC::SEMI, vc.x(), vc.y())
-            .RemoveSuperSetsOf(vc.carrier(), m_log);
+        m_con->GetList(VC::SEMI, vc.X(), vc.Y())
+            .RemoveSuperSetsOf(vc.Carrier(), m_log);
                 
         // add this list to the queue if inside the soft-limit
         if (result == VCList::ADDED_INSIDE_SOFT_LIMIT)
-            m_queue.push(std::make_pair(vc.x(), vc.y()));
+            m_queue.push(std::make_pair(vc.X(), vc.Y()));
 
         return true;
     }
@@ -794,10 +797,10 @@ bool VCBuilder::AddNewFull(const VC& vc)
 */
 bool VCBuilder::AddNewSemi(const VC& vc)
 {
-    VCList* out_full = &m_con->GetList(VC::FULL, vc.x(), vc.y());
-    VCList* out_semi = &m_con->GetList(VC::SEMI, vc.x(), vc.y());
+    VCList* out_full = &m_con->GetList(VC::FULL, vc.X(), vc.Y());
+    VCList* out_semi = &m_con->GetList(VC::SEMI, vc.X(), vc.Y());
     
-    if (!out_full->IsSupersetOfAny(vc.carrier())) 
+    if (!out_full->IsSupersetOfAny(vc.Carrier())) 
     {
         VCList::AddResult result = out_semi->Add(vc, m_log);
         if (result != VCList::ADD_FAILED) 
@@ -806,7 +809,7 @@ bool VCBuilder::AddNewSemi(const VC& vc)
             {
                 if (result == VCList::ADDED_INSIDE_SOFT_LIMIT) 
                 {
-                    m_queue.push(std::make_pair(vc.x(), vc.y()));
+                    m_queue.push(std::make_pair(vc.X(), vc.Y()));
                 } 
                 else if (out_full->Empty())
                 {

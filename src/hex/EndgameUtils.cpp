@@ -133,7 +133,7 @@ HexPoint MostOverlappingMove(const std::vector<VC>& VClist,
     std::vector<VC>::const_iterator it;
     for (it = VClist.begin(); it != VClist.end(); ++it) 
     {
-        bitset_t carrier = it->carrier();
+        bitset_t carrier = it->Carrier();
         if ((carrier & intersectSmallest).none())
 	    break;
 	intersectSmallest &= carrier;
@@ -153,7 +153,7 @@ HexPoint MostOverlappingMove(const std::vector<VC>& VClist,
     memset(numHits, 0, sizeof(numHits));
     for (it = VClist.begin(); it != VClist.end(); ++it) 
     {
-	bitset_t carrier = it->carrier();
+	bitset_t carrier = it->Carrier();
 	for (int i = 0; i < BITSETSIZE; i++) 
 	    if (intersectSmallest.test(i) && carrier.test(i))
 		numHits[i]++;
@@ -189,7 +189,7 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
                                    VC::SEMI, winningVC)) 
     {
         LogInfo() << "Winning SC.\n";
-        return winningVC.key();
+        return winningVC.Key();
     }
     
     // If instead we have a winning VC, then play best move in its carrier set
@@ -249,12 +249,12 @@ bool EndgameUtils::IsWonGame(const HexBoard& brd, HexColor color,
     const HexPoint edge2 = HexPointUtil::colorEdge2(color);
     if (brd.Cons(color).SmallestVC(edge1, edge2, VC::SEMI, vc))
     {        
-        proof = vc.carrier() | StonesInProof(brd, color);
+        proof = vc.Carrier() | StonesInProof(brd, color);
 	return true;
     }
     if (brd.Cons(color).SmallestVC(edge1, edge2, VC::FULL, vc))
     {
-        proof = vc.carrier() | StonesInProof(brd, color);
+        proof = vc.Carrier() | StonesInProof(brd, color);
 	return true;
     }
     return false;
@@ -273,7 +273,7 @@ bool EndgameUtils::IsLostGame(const HexBoard& brd, HexColor color,
                                     HexPointUtil::colorEdge2(!color),
                                     VC::FULL, vc))
     {
-        proof = vc.carrier() | StonesInProof(brd, !color);
+        proof = vc.Carrier() | StonesInProof(brd, !color);
 	return true;
     }
     if (ComputeConsiderSet(brd, color).none())

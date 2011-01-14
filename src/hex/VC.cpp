@@ -52,28 +52,24 @@ VC::VC(HexPoint x, HexPoint y, HexPoint key, const bitset_t& carrier,
       m_processed(false),
       m_count(static_cast<byte>(carrier.count()))
 {
-    if (type() == VC::SEMI)
+    if (GetType() == VC::SEMI)
         BenzeneAssert(m_carrier.test(key));
 }
 
-std::string VC::toString() const
+std::string VC::ToString() const
 {
     std::ostringstream os;
-    os << std::setw(6) << this->x();
-    os << std::setw(6) << this->y();
-    os << std::setw(6) << VCTypeUtil::toString(this->type());
-    os << std::setw(7) << this->rule();
-
-    os << " [";
-    os << HexPointUtil::ToString(this->carrier());
-    os << " ]";
-
-    os << " ["; // Removed stones: leave this so the gui doesn't break
-    os << " ]";
-
-    if (this->type() == VC::SEMI)
-        os << " " << this->key();
-
+    os << std::setw(6) << this->X()
+       << std::setw(6) << this->Y()
+       << std::setw(6) << VCTypeUtil::ToString(this->GetType())
+       << std::setw(7) << this->Rule()
+       << " ["
+       << HexPointUtil::ToString(this->Carrier())
+       << " ]"
+       << " [" // Removed stones: leave this so the gui doesn't break
+       << " ]";
+    if (this->GetType() == VC::SEMI)
+        os << " " << this->Key();
     return os.str();
 }
 
@@ -81,56 +77,56 @@ std::string VC::toString() const
 
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2)
 {
-    BenzeneAssert((v1.carrier() & v2.carrier()).none());
-    return VC(x, y, v1.carrier() | v2.carrier(), VC_RULE_AND);
+    BenzeneAssert((v1.Carrier() & v2.Carrier()).none());
+    return VC(x, y, v1.Carrier() | v2.Carrier(), VC_RULE_AND);
 }
 
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
               const bitset_t& capturedSet)
 {
-    BenzeneAssert(BitsetUtil::IsSubsetOf(v1.carrier() & v2.carrier(),
+    BenzeneAssert(BitsetUtil::IsSubsetOf(v1.Carrier() & v2.Carrier(),
                                      capturedSet));
-    return VC(x, y, v1.carrier() | v2.carrier() | capturedSet, VC_RULE_AND);
+    return VC(x, y, v1.Carrier() | v2.Carrier() | capturedSet, VC_RULE_AND);
 }
 
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2, HexPoint key)
 {
-    BenzeneAssert((v1.carrier() & v2.carrier()).none());
-    return VC(x, y, key, (v1.carrier() | v2.carrier()).set(key), VC_RULE_AND);
+    BenzeneAssert((v1.Carrier() & v2.Carrier()).none());
+    return VC(x, y, key, (v1.Carrier() | v2.Carrier()).set(key), VC_RULE_AND);
 }
 
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2, 
               const bitset_t& capturedSet, HexPoint key)
 {
-    BenzeneAssert(BitsetUtil::IsSubsetOf(v1.carrier() & v2.carrier(),
+    BenzeneAssert(BitsetUtil::IsSubsetOf(v1.Carrier() & v2.Carrier(),
                                      capturedSet));
-    return VC(x, y, key, (v1.carrier() | v2.carrier() | capturedSet).set(key), 
+    return VC(x, y, key, (v1.Carrier() | v2.Carrier() | capturedSet).set(key), 
               VC_RULE_AND);
 }
 
 VC VC::UpgradeSemi(const VC& v1, const bitset_t& takeout,
                    HexPoint outx, HexPoint outy)
 {
-    BenzeneAssert(v1.key() != NO_KEY);
-    BenzeneAssert(takeout.test(v1.key()));
-    return VC(outx, outy, v1.carrier() - takeout, VC_RULE_AND);
+    BenzeneAssert(v1.Key() != NO_KEY);
+    BenzeneAssert(takeout.test(v1.Key()));
+    return VC(outx, outy, v1.Carrier() - takeout, VC_RULE_AND);
 }
 
 VC VC::ShrinkFull(const VC& v1, const bitset_t& takeout,
                   HexPoint outx, HexPoint outy)
 {
-    BenzeneAssert(v1.key() == NO_KEY);
-    BenzeneAssert((v1.carrier() & takeout).any());
-    return VC(outx, outy, v1.carrier() - takeout, v1.rule());
+    BenzeneAssert(v1.Key() == NO_KEY);
+    BenzeneAssert((v1.Carrier() & takeout).any());
+    return VC(outx, outy, v1.Carrier() - takeout, v1.Rule());
 }
 
 VC VC::ShrinkSemi(const VC& v1, const bitset_t& takeout,
                   HexPoint outx, HexPoint outy)
 {
-    BenzeneAssert(v1.key() != NO_KEY);
-    BenzeneAssert(!takeout.test(v1.key()));
-    BenzeneAssert((v1.carrier() & takeout).any());
-    return VC(outx, outy, v1.key(), v1.carrier() - takeout, v1.rule());
+    BenzeneAssert(v1.Key() != NO_KEY);
+    BenzeneAssert(!takeout.test(v1.Key()));
+    BenzeneAssert((v1.Carrier() & takeout).any());
+    return VC(outx, outy, v1.Key(), v1.Carrier() - takeout, v1.Rule());
 }
 
 //----------------------------------------------------------------------------
@@ -140,7 +136,7 @@ bool VCTypeUtil::IsValidType(VC::Type type)
     return (type == VC::FULL || type == VC::SEMI); 
 }
 
-std::string VCTypeUtil::toString(VC::Type type)
+std::string VCTypeUtil::ToString(VC::Type type)
 {
     BenzeneAssert(IsValidType(type));
     if (type == VC::FULL)
@@ -148,7 +144,7 @@ std::string VCTypeUtil::toString(VC::Type type)
     return "semi";
 }
 
-VC::Type VCTypeUtil::fromString(std::string name)
+VC::Type VCTypeUtil::FromString(const std::string& name)
 {
     if (name == "full") 
         return VC::FULL;

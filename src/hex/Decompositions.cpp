@@ -159,9 +159,9 @@ bool Decompositions::Find(const HexBoard& brd, HexColor color,
 	    const VCList& vl = cons.GetList(VC::FULL, g1->first, g2->first);
 	    for (VCList::const_iterator vi = vl.Begin(); vi != vl.End(); ++vi)
             {
-		if (BitsetUtil::IsSubsetOf(vi->carrier(), decompArea)) 
+		if (BitsetUtil::IsSubsetOf(vi->Carrier(), decompArea)) 
                 {
-		    captured = vi->carrier();
+		    captured = vi->Carrier();
 		    return true;
 		}
 	    }

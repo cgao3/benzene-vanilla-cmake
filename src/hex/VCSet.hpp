@@ -150,7 +150,7 @@ VCSet::GetList(VC::Type type, HexPoint x, HexPoint y)
 inline 
 VCList::AddResult VCSet::Add(const VC& vc, ChangeLog<VC>* log)
 {
-    return m_vc[vc.type()][vc.x()][vc.y()]->Add(vc, log);
+    return m_vc[vc.GetType()][vc.X()][vc.Y()]->Add(vc, log);
 }
 
 inline std::size_t VCSet::SoftLimit(VC::Type type) const

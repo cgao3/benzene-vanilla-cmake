@@ -41,8 +41,8 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     BOOST_CHECK(!vl.Empty());
     BOOST_CHECK_EQUAL(vl.Size(), 1);
 
-    BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.carrier());
-    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.carrier());
+    BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.Carrier());
+    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.Carrier());
 
     // duplicates are not added
     BOOST_CHECK_EQUAL(vl.Add(v1, NULL), VCList::ADD_FAILED);
@@ -76,8 +76,8 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     ++it;
     BOOST_CHECK(it == vl.End());
 
-    BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.carrier() & v3.carrier());
-    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.carrier() | v3.carrier());
+    BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.Carrier() & v3.Carrier());
+    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.Carrier() | v3.Carrier());
 
     // add a subset of v3: add should succeed and v3 should be
     // removed.
@@ -97,8 +97,8 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     ++it;
     BOOST_CHECK(it == vl.End());
 
-    BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.carrier() & v4.carrier());
-    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.carrier() | v4.carrier());
+    BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.Carrier() & v4.Carrier());
+    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.Carrier() | v4.Carrier());
 
     // add another vc to the list; this one is added past the
     // end of the softlimit.
@@ -121,10 +121,10 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     ++it;
     BOOST_CHECK(it == vl.End());
     
-    BOOST_CHECK_EQUAL(vl.SoftIntersection(), v1.carrier() & v4.carrier());
+    BOOST_CHECK_EQUAL(vl.SoftIntersection(), v1.Carrier() & v4.Carrier());
     BOOST_CHECK_EQUAL(vl.HardIntersection(), 
-                      v1.carrier() & v4.carrier() & v5.carrier());
-    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.carrier()|v4.carrier()|v5.carrier());
+                      v1.Carrier() & v4.Carrier() & v5.Carrier());
+    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.Carrier()|v4.Carrier()|v5.Carrier());
     
     // test removingAllContaining()
     bitset_t remove;
@@ -143,8 +143,8 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     ++it;
     BOOST_CHECK(it == vl.End());
 
-    BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.carrier() & v5.carrier());
-    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.carrier() | v5.carrier());
+    BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.Carrier() & v5.Carrier());
+    BOOST_CHECK_EQUAL(vl.GetUnion(), v1.Carrier() | v5.Carrier());
 
     // test remove(VC)
     BOOST_CHECK(!vl.Remove(v4, NULL));
@@ -157,8 +157,8 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     ++it;
     BOOST_CHECK(it == vl.End());
 
-    BOOST_CHECK_EQUAL(vl.HardIntersection(), v5.carrier());
-    BOOST_CHECK_EQUAL(vl.GetUnion(), v5.carrier());
+    BOOST_CHECK_EQUAL(vl.HardIntersection(), v5.Carrier());
+    BOOST_CHECK_EQUAL(vl.GetUnion(), v5.Carrier());
 }
 
 }

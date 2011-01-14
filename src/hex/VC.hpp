@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VC.hpp
- */
+/** @file VC.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef VC_HPP
@@ -36,11 +35,11 @@ typedef enum
 namespace VcRuleUtil
 {
     /** Returns string representation of the rule.*/
-    std::string toString(VcCombineRule rule);
+    std::string ToString(VcCombineRule rule);
 
 } // namespace VcRuleUtil
 
-inline std::string VcRuleUtil::toString(VcCombineRule rule)
+inline std::string VcRuleUtil::ToString(VcCombineRule rule)
 {
     if (rule == VC_RULE_BASE)
         return "base";
@@ -53,10 +52,10 @@ inline std::string VcRuleUtil::toString(VcCombineRule rule)
     return "unknown";
 }
 
-/** Extends standout output operator to handle VcCombineRule. */
+/** Extends standard output operator to handle VcCombineRule. */
 inline std::ostream& operator<<(std::ostream& os, VcCombineRule rule)
 {
-    os << VcRuleUtil::toString(rule);
+    os << VcRuleUtil::ToString(rule);
     return os;
 }
 
@@ -104,38 +103,38 @@ public:
     //----------------------------------------------------------------------
 
     /** Returns the smaller of the two endpoints. */
-    HexPoint x() const;
+    HexPoint X() const;
 
     /** Returns the larger of the two endpoints. */
-    HexPoint y() const;
+    HexPoint Y() const;
 
     /** Returns the key of the connection. */
-    HexPoint key() const;
+    HexPoint Key() const;
 
     /** The set of cells required in order to realize this
         connection. */
-    bitset_t carrier() const;
+    bitset_t Carrier() const;
 
     /** Returns the type of connection. */
-    Type type() const;
+    Type GetType() const;
 
     /** Returns rule used to construct this connection. */
-    VcCombineRule rule() const;
+    VcCombineRule Rule() const;
 
     /** Returns the number of set bits in the carrier; this is cached
         so only takes constant time. */
-    int count() const;
+    int Count() const;
    
     /** Returns true if the carrier is empty, false otherwise. */
     bool IsEmpty() const;
 
     /** Returns string representation of connection. */
-    std::string toString() const;
+    std::string ToString() const;
 
     //----------------------------------------------------------------------
 
     /** Returns true if this vc has been processed; false, otherwise.  */
-    bool processed() const;
+    bool Processed() const;
 
     /** Sets the processed flag.
         
@@ -143,7 +142,7 @@ public:
     
         Should only be called inside of VCSet.
     */
-    void setProcessed(bool flag);
+    void SetProcessed(bool flag);
 
     //----------------------------------------------------------------------
 
@@ -160,7 +159,7 @@ public:
     bool operator<=(const VC& o) const;
 
     /** Is this a subset of o? */
-    bool isSubsetOf(const VC& o) const;
+    bool IsSubsetOf(const VC& o) const;
 
     //------------------------------------------------------------
 
@@ -217,37 +216,37 @@ private:
     byte m_count;
 };
 
-inline HexPoint VC::x() const
+inline HexPoint VC::X() const
 {
     return static_cast<HexPoint>(m_x);
 }
 
-inline HexPoint VC::y() const
+inline HexPoint VC::Y() const
 {
     return static_cast<HexPoint>(m_y);
 }
 
-inline HexPoint VC::key() const 
+inline HexPoint VC::Key() const 
 {
     return static_cast<HexPoint>(m_key);
 }
 
-inline bitset_t VC::carrier() const
+inline bitset_t VC::Carrier() const
 {
     return m_carrier;
 }
 
-inline VC::Type VC::type() const
+inline VC::Type VC::GetType() const
 {
     return (m_key == NO_KEY) ? FULL : SEMI;
 }
 
-inline VcCombineRule VC::rule() const
+inline VcCombineRule VC::Rule() const
 {
     return static_cast<VcCombineRule>(m_rule);
 }
 
-inline int VC::count() const
+inline int VC::Count() const
 { 
     return m_count;
 }
@@ -257,12 +256,12 @@ inline bool VC::IsEmpty() const
     return m_carrier.none();
 }
 
-inline bool VC::processed() const
+inline bool VC::Processed() const
 {
     return m_processed;
 }
 
-inline void VC::setProcessed(bool flag)
+inline void VC::SetProcessed(bool flag)
 {
     m_processed = flag;
 }
@@ -279,12 +278,10 @@ inline bool VC::operator!=(const VC& o) const
 
 inline bool VC::operator<(const VC& o) const
 {
-    if (count() != o.count())
-        return (count() < o.count());
-
+    if (Count() != o.Count())
+        return (Count() < o.Count());
     if (m_key != o.m_key)
         return (m_key < o.m_key);
-
     return BitsetUtil::IsLessThan(m_carrier, o.m_carrier);
 }
 
@@ -302,7 +299,7 @@ inline bool VC::operator<=(const VC& o) const
     return false;
 }
 
-inline bool VC::isSubsetOf(const VC& o) const
+inline bool VC::IsSubsetOf(const VC& o) const
 {
     return BitsetUtil::IsSubsetOf(m_carrier, o.m_carrier);
 }
@@ -314,9 +311,9 @@ namespace VCTypeUtil
 {
     bool IsValidType(VC::Type type);
 
-    std::string toString(VC::Type type);
+    std::string ToString(VC::Type type);
 
-    VC::Type fromString(std::string name);
+    VC::Type FromString(const std::string& name);
 }
 
 //----------------------------------------------------------------------------
@@ -324,7 +321,7 @@ namespace VCTypeUtil
 /** Extends standard output operator to print vcs. */
 inline std::ostream& operator<<(std::ostream &os, const VC& vc)
 {
-    os << vc.toString();
+    os << vc.ToString();
     return os;
 }
 

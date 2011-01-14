@@ -139,7 +139,7 @@ void VCSet::Revert(ChangeLog<VC>& log)
         }
         VC vc(log.topData());
         log.pop();
-        VCList* list = m_vc[vc.type()][vc.x()][vc.y()];
+        VCList* list = m_vc[vc.GetType()][vc.X()][vc.Y()];
         if (action == ChangeLog<VC>::ADD) 
         {
 #ifdef NDEBUG
@@ -154,8 +154,8 @@ void VCSet::Revert(ChangeLog<VC>& log)
         {
             VCList::iterator it = list->Find(vc);
             BenzeneAssert(it != list->End());
-            BenzeneAssert(it->processed());
-            it->setProcessed(false);
+            BenzeneAssert(it->Processed());
+            it->SetProcessed(false);
         }
     }    
 }
