@@ -120,7 +120,7 @@ void VCCommands::CmdGetVCsBetween(HtpCommand& cmd)
     const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
     cmd << '\n';
     std::size_t i = 0;
-    for (; i < (std::size_t)lst.softlimit() && i < vc.size(); ++i) 
+    for (; i < lst.Softlimit() && i < vc.size(); ++i) 
         cmd << color << " " << vc.at(i) << '\n';
     if (i >= vc.size())
         return;
@@ -182,7 +182,7 @@ void VCCommands::CmdVCIntersection(HtpCommand& cmd)
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
-    bitset_t intersection = lst.hardIntersection();
+    bitset_t intersection = lst.HardIntersection();
     cmd << HexPointUtil::ToString(intersection);
 }
 
@@ -200,7 +200,7 @@ void VCCommands::CmdVCUnion(HtpCommand& cmd)
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
-    bitset_t un = lst.getGreedyUnion(); // FIXME: shouldn't be greedy!!
+    bitset_t un = lst.GetGreedyUnion(); // FIXME: shouldn't be greedy!!
     cmd << HexPointUtil::ToString(un);
 }
 

@@ -42,7 +42,7 @@ public:
 
     /** Returns soft limit for the given type of VC. This affects
         VCBuilder's performance! */
-    int SoftLimit(VC::Type) const;
+    std::size_t SoftLimit(VC::Type) const;
 
     /** Returns the VCList between (x, y). */
     const VCList& GetList(VC::Type type, HexPoint x, HexPoint y) const;
@@ -70,7 +70,7 @@ public:
     // @{
 
     /** See SoftLimit() */
-    void SetSoftLimit(VC::Type, int limit);
+    void SetSoftLimit(VC::Type, std::size_t limit);
 
     /** Clears the connections. */
     void Clear();
@@ -150,14 +150,14 @@ VCSet::GetList(VC::Type type, HexPoint x, HexPoint y)
 inline 
 VCList::AddResult VCSet::Add(const VC& vc, ChangeLog<VC>* log)
 {
-    return m_vc[vc.type()][vc.x()][vc.y()]->add(vc, log);
+    return m_vc[vc.type()][vc.x()][vc.y()]->Add(vc, log);
 }
 
-inline int VCSet::SoftLimit(VC::Type type) const
+inline std::size_t VCSet::SoftLimit(VC::Type type) const
 {
     return m_vc[type]
         [HexPointUtil::colorEdge1(m_color)]
-        [HexPointUtil::colorEdge2(m_color)]->softlimit();
+        [HexPointUtil::colorEdge2(m_color)]->Softlimit();
 }
 
 //----------------------------------------------------------------------------

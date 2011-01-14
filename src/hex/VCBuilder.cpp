@@ -293,19 +293,19 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     //
     // If (doing_merge) transfer remaining connections over as well. 
     //
-    fulls_in->removeAllContaining(added, removed, m_log);
+    fulls_in->RemoveAllContaining(added, removed, m_log);
     if (doing_merge) 
     { 
         // Copied vc's will be set to unprocessed explicitly.
         /** @bug There could be supersets of these fulls in semis_out! */
-        fulls_out->add(*fulls_in, m_log);
+        fulls_out->Add(*fulls_in, m_log);
     }
 
     for (it = removed.begin(); it != removed.end(); ++it) 
     {
         VC v = VC::ShrinkFull(*it, added, xout, yout);
         /** @bug There could be supersets of these fulls in semis_out! */
-        if (fulls_out->add(v, m_log))
+        if (fulls_out->Add(v, m_log))
             m_statistics->shrunk0++;
     }
 
@@ -315,12 +315,12 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     // over as well. 
     //
     removed.clear();
-    semis_in->removeAllContaining(added, removed, m_log);
+    semis_in->RemoveAllContaining(added, removed, m_log);
     if (doing_merge) 
     {
         // Copied vc's will be set to unprocessed explicitly.
         /** @bug These could be supersets of fulls_out. */
-        semis_out->add(*semis_in, m_log);
+        semis_out->Add(*semis_in, m_log);
     }
 
     // Shrink connections that touch played cells.
@@ -331,7 +331,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
         {
             VC v = VC::ShrinkSemi(*it, added, xout, yout);
             /** @bug These could be supersets of fulls_out. */
-            if (semis_out->add(v, m_log))
+            if (semis_out->Add(v, m_log))
                 m_statistics->shrunk1++;
         }
     }
@@ -343,14 +343,14 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
         if (added.test(it->key())) 
         {
             VC v = VC::UpgradeSemi(*it, added, xout, yout);
-            if (fulls_out->add(v, m_log))
+            if (fulls_out->Add(v, m_log))
             {
                 // Remove supersets from the semi-list; do not
                 // invalidate list intersection since this semi was a
                 // member of the list. Actually, this probably doesn't
                 // matter since the call to removeAllContaining()
                 // already clobbered the intersections.
-                semis_out->removeSuperSetsOf(v.carrier(), m_log, false);
+                semis_out->RemoveSuperSetsOf(v.carrier(), m_log, false);
                 m_statistics->upgraded++;
             }
         }
@@ -378,11 +378,11 @@ void VCBuilder::RemoveAllContaining(const Groups& oldGroups,
             HexPoint yc = y->Captain();
 	    if (m_groups->GetGroup(yc).Color() == !m_color)
 	        continue;
-            int cur0 = m_con->GetList(VC::FULL, xc, yc)
-                .removeAllContaining(bs, m_log);
+            std::size_t cur0 = m_con->GetList(VC::FULL, xc, yc)
+                .RemoveAllContaining(bs, m_log);
             m_statistics->killed0 += cur0; 
-            int cur1 = m_con->GetList(VC::SEMI, xc, yc)
-                .removeAllContaining(bs, m_log);
+            std::size_t cur1 = m_con->GetList(VC::SEMI, xc, yc)
+                .RemoveAllContaining(bs, m_log);
             m_statistics->killed1 += cur1;
             if (cur0 || cur1)
                 m_queue.push(std::make_pair(xc, yc));
@@ -404,15 +404,15 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     uncapturedSet.flip();
 
     // Nothing to do, so abort. 
-    if ((semis.hardIntersection() & uncapturedSet).any())
+    if ((semis.HardIntersection() & uncapturedSet).any())
         return;
 
-    int soft = semis.softlimit();
-    VCList::iterator cur = semis.begin();
-    VCList::iterator end = semis.end();
+    std::size_t soft = semis.Softlimit();
+    VCList::iterator cur = semis.Begin();
+    VCList::iterator end = semis.End();
     std::list<VC> added;
 
-    for (int count=0; count<soft && cur!=end; ++cur, ++count) 
+    for (std::size_t count = 0; count < soft && cur != end; ++cur, ++count) 
     {
         if (!cur->processed()) 
         {
@@ -431,14 +431,13 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     }
 
     // If no full exists, create one by unioning the entire list
-    if (fulls.empty()) 
+    if (fulls.Empty()) 
     {
         bitset_t carrier = m_param.use_greedy_union 
-            ? semis.getGreedyUnion() 
-            : semis.getUnion();
-
-        fulls.add(VC(xc, yc, carrier | capturedSet, VC_RULE_ALL), m_log);
-        // @note No need to remove supersets of v from the semi
+            ? semis.GetGreedyUnion() 
+            : semis.GetUnion();
+        fulls.Add(VC(xc, yc, carrier | capturedSet, VC_RULE_ALL), m_log);
+        // NOTE: No need to remove supersets of v from the semi
         // list since there can be none!
     } 
 }
@@ -446,10 +445,10 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
 void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
 {
     VCList& fulls = m_con->GetList(VC::FULL, xc, yc);
-    int soft = fulls.softlimit();
-    VCList::iterator cur = fulls.begin();
-    VCList::iterator end = fulls.end();
-    for (int count=0; count<soft && cur!=end; ++cur, ++count) 
+    std::size_t soft = fulls.Softlimit();
+    VCList::iterator cur = fulls.Begin();
+    VCList::iterator end = fulls.End();
+    for (std::size_t count = 0; count < soft && cur != end; ++cur, ++count) 
     {
         if (!cur->processed()) 
         {
@@ -536,7 +535,7 @@ void VCBuilder::andClosure(const VC& vc)
             if (m_param.and_over_edge || !HexPointUtil::isEdge(endp[i])) 
             {
                 VCList* fulls = &m_con->GetList(VC::FULL, z, endp[i]);
-                if ((fulls->softIntersection() & vc.carrier()
+                if ((fulls->SoftIntersection() & vc.carrier()
                      & uncapturedSet).any())
                     continue;
                 
@@ -557,13 +556,13 @@ void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
                       AndRule rule, const VC& vc, const bitset_t& capturedSet, 
                       const VCList* old)
 {
-    if (old->empty())
+    if (old->Empty())
         return;
 
-    int soft = old->softlimit();
-    VCList::const_iterator i = old->begin();
-    VCList::const_iterator end = old->end();
-    for (int count=0; count<soft && i!=end; ++i, ++count) 
+    std::size_t soft = old->Softlimit();
+    VCList::const_iterator i = old->Begin();
+    VCList::const_iterator end = old->End();
+    for (std::size_t count = 0; count < soft && i != end; ++i, ++count) 
     {
         if (!i->processed())
             continue;
@@ -622,15 +621,15 @@ int VCBuilder::OrRule::operator()(const VC& vc,
                                   ChangeLog<VC>* log, 
                                   VCBuilderStatistics& stats)
 {
-    if (semi_list->empty())
+    if (semi_list->Empty())
         return 0;
     
     // copy processed semis (unprocessed semis are not used here)
     m_semi.clear();
-    int soft = semi_list->softlimit();
-    VCList::const_iterator it = semi_list->begin();
-    VCList::const_iterator end = semi_list->end();
-    for (int count=0; count<soft && it!=end; ++count, ++it)
+    std::size_t soft = semi_list->Softlimit();
+    VCList::const_iterator it = semi_list->Begin();
+    VCList::const_iterator end = semi_list->End();
+    for (std::size_t count = 0; count < soft && it != end; ++count, ++it)
         if (it->processed())
             m_semi.push_back(*it);
 
@@ -650,8 +649,8 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     BenzeneAssert(max_ors < 16);
 
     // compute the captured-set union for the endpoints of this list
-    bitset_t capturedSet = m_builder.m_capturedSet[semi_list->getX()] 
-                         | m_builder.m_capturedSet[semi_list->getY()];
+    bitset_t capturedSet = m_builder.m_capturedSet[semi_list->GetX()] 
+                         | m_builder.m_capturedSet[semi_list->GetY()];
     bitset_t uncapturedSet = capturedSet;
     uncapturedSet.flip();
 
@@ -696,10 +695,10 @@ int VCBuilder::OrRule::operator()(const VC& vc,
                 list to the queue. Both of these operations are not
                 needed here.
             */
-            VC v(full_list->getX(), full_list->getY(), ors[d], VC_RULE_OR);
+            VC v(full_list->GetX(), full_list->GetY(), ors[d], VC_RULE_OR);
 
             stats.or_attempts++;
-            if (full_list->add(v, log) != VCList::ADD_FAILED) 
+            if (full_list->Add(v, log) != VCList::ADD_FAILED) 
             {
                 count++;
                 stats.or_successes++;
@@ -714,17 +713,17 @@ int VCBuilder::OrRule::operator()(const VC& vc,
                 This vc has one or both captured sets in its carrier.
             */
             bitset_t carrier = ors[d];
-            if ((ands[d] & m_builder.m_capturedSet[semi_list->getX()]).any())
-                carrier |= m_builder.m_capturedSet[semi_list->getX()];
-            if ((ands[d] & m_builder.m_capturedSet[semi_list->getY()]).any())
-                carrier |= m_builder.m_capturedSet[semi_list->getY()];
+            if ((ands[d] & m_builder.m_capturedSet[semi_list->GetX()]).any())
+                carrier |= m_builder.m_capturedSet[semi_list->GetX()];
+            if ((ands[d] & m_builder.m_capturedSet[semi_list->GetY()]).any())
+                carrier |= m_builder.m_capturedSet[semi_list->GetY()];
 
-            VC v(full_list->getX(), full_list->getY(), carrier, VC_RULE_OR);
+            VC v(full_list->GetX(), full_list->GetY(), carrier, VC_RULE_OR);
 
             stats.or_attempts++;
-            if (full_list->add(v, log) != VCList::ADD_FAILED) 
+            if (full_list->Add(v, log) != VCList::ADD_FAILED) 
             {
-                count++;
+                ++count;
                 stats.or_successes++;
                 added.push_back(v);
             }
@@ -769,7 +768,7 @@ bool VCBuilder::AddNewFull(const VC& vc)
         // a semi that is a superset of a full is useless, so remove
         // any that exist.
         m_con->GetList(VC::SEMI, vc.x(), vc.y())
-            .removeSuperSetsOf(vc.carrier(), m_log);
+            .RemoveSuperSetsOf(vc.carrier(), m_log);
                 
         // add this list to the queue if inside the soft-limit
         if (result == VCList::ADDED_INSIDE_SOFT_LIMIT)
@@ -798,27 +797,27 @@ bool VCBuilder::AddNewSemi(const VC& vc)
     VCList* out_full = &m_con->GetList(VC::FULL, vc.x(), vc.y());
     VCList* out_semi = &m_con->GetList(VC::SEMI, vc.x(), vc.y());
     
-    if (!out_full->isSupersetOfAny(vc.carrier())) 
+    if (!out_full->IsSupersetOfAny(vc.carrier())) 
     {
-        VCList::AddResult result = out_semi->add(vc, m_log);
+        VCList::AddResult result = out_semi->Add(vc, m_log);
         if (result != VCList::ADD_FAILED) 
         {
-            if (out_semi->hardIntersection().none())
+            if (out_semi->HardIntersection().none())
             {
                 if (result == VCList::ADDED_INSIDE_SOFT_LIMIT) 
                 {
                     m_queue.push(std::make_pair(vc.x(), vc.y()));
                 } 
-                else if (out_full->empty())
+                else if (out_full->Empty())
                 {
                     bitset_t carrier = m_param.use_greedy_union 
-                        ? out_semi->getGreedyUnion() 
-                        : out_semi->getUnion();
+                        ? out_semi->GetGreedyUnion() 
+                        : out_semi->GetUnion();
                     
-                    VC v(out_full->getX(), out_full->getY(), 
+                    VC v(out_full->GetX(), out_full->GetY(), 
                          carrier, VC_RULE_ALL);
 
-                    out_full->add(v, m_log);
+                    out_full->Add(v, m_log);
                 }
             }
             return true;

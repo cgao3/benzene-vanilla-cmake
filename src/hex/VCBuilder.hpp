@@ -53,56 +53,56 @@ struct VCBuilderParam
 struct VCBuilderStatistics
 {
     /** Base connections built. */
-    int base_attempts;
+    std::size_t base_attempts;
 
     /** Base connections successfully added. */
-    int base_successes;
+    std::size_t base_successes;
 
     /** Pattern connections that match the board. */
-    int pattern_attempts;
+    std::size_t pattern_attempts;
         
     /** Pattern connections successfully added. */
-    int pattern_successes;
+    std::size_t pattern_successes;
 
     /** Full-connections built by and-rule. */
-    int and_full_attempts;
+    std::size_t and_full_attempts;
 
     /** Full-connections successfully added by and-rule. */
-    int and_full_successes;
+    std::size_t and_full_successes;
 
     /** Semi-connections built by and-rule. */
-    int and_semi_attempts;
+    std::size_t and_semi_attempts;
         
     /** Semi-connections successfully added by and-rule. */
-    int and_semi_successes;
+    std::size_t and_semi_successes;
 
     /** Full-connections built by or-rule. */
-    int or_attempts;
+    std::size_t or_attempts;
 
     /** Full-connections successfully added by or-rule. */
-    int or_successes;
+    std::size_t or_successes;
 
     /** Calls to or-rule. */
-    int doOrs;
+    std::size_t doOrs;
 
     /** Successfull or-rule calls -- at least one full-connection
         successfully added by this call. */
-    int goodOrs;
+    std::size_t goodOrs;
 
     /** Fulls shrunk in merge phase. */
-    int shrunk0;
+    std::size_t shrunk0;
 
     /** Semis shrunk in merge phase. */
-    int shrunk1;
+    std::size_t shrunk1;
     
     /** Semis upgraded to fulls in merge phase. */
-    int upgraded;
+    std::size_t upgraded;
     
     /** Fulls killed by opponent stones in merge phase. */
-    int killed0;
+    std::size_t killed0;
     
     /** Semis killed by opponent stones in merge phase. */
-    int killed1;
+    std::size_t killed1;
     
     /** Dumps statistics to a string. */
     std::string ToString() const;

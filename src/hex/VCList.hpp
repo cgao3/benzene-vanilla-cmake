@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCList.hpp
- */
+/** @file VCList.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef VCLIST_HPP
@@ -34,43 +33,42 @@ public:
     /** Creates a list with given limits. */
     VCList(HexPoint x, HexPoint y, unsigned int soft);
 
-    HexPoint getX() const;
+    HexPoint GetX() const;
     
-    HexPoint getY() const;
+    HexPoint GetY() const;
 
     /** Returns the soft limit. */
-    int softlimit() const;
-
-    /** See softlimit() */
-    void setSoftLimit(int limit);
+    std::size_t Softlimit() const;
+    
+    /** See Softlimit() */
+    void SetSoftlimit(std::size_t limit);
 
     /** Empties the list and the changelog. */
-    void clear();
+    void Clear();
 
     /** Returns the number of VCs in this list. */
-    std::size_t size() const;
+    std::size_t Size() const;
 
     /** Returns true if the list is empty. */
-    bool empty() const;
+    bool Empty() const;
 
     /** Dumps the contents of this list to a string. */
-    std::string dump() const;
+    std::string Dump() const;
 
     //----------------------------------------------------------------------
 
     /** Returns true if bs is superset of connection in list. */
-    bool isSupersetOfAny(const bitset_t& vc) const;
+    bool IsSupersetOfAny(const bitset_t& vc) const;
 
     /** Returns true if vc is subset of connection in list. */
-    bool isSubsetOfAny(const bitset_t& vc) const;
+    bool IsSubsetOfAny(const bitset_t& vc) const;
 
     /** Removes any connection whose carrier is a superset of the
         given VC's carrier.  Returns number of connections
         removed. Does not dirty intersections if flag is set to false;
         only use this if you are for sure only removing supersets of a
-        member of this list!
-    */
-    int removeSuperSetsOf(const bitset_t& vc, ChangeLog<VC>* log,
+        member of this list! */
+    int RemoveSuperSetsOf(const bitset_t& vc, ChangeLog<VC>* log,
                           bool dirty_intersections = true);
    
     //----------------------------------------------------------------------
@@ -102,13 +100,13 @@ public:
 
         @return true if the VC was added, false otherwise.
     */
-    AddResult add(const VC& vc, ChangeLog<VC>* log);
+    AddResult Add(const VC& vc, ChangeLog<VC>* log);
 
 
     /** Adds the elements of other to list. Returns number of vcs
         added. Vcs are added as unprocessed. 
         Operations will be recorded in the log if log is not 0. */
-    int add(const VCList& other, ChangeLog<VC>* log);
+    int Add(const VCList& other, ChangeLog<VC>* log);
 
     /** 
      * Force the addition of this vc.  Used by VCSet::revert():
@@ -122,7 +120,7 @@ public:
      *  This method does NO checks.  It simply adds vc into the
      *  proper position according to the ordering on the vcs.
      */
-    void simple_add(const VC& vc);
+    void SimpleAdd(const VC& vc);
 
     // @}
 
@@ -139,44 +137,44 @@ public:
         the list. Note that these methods are not constant, but as
         long as VCs are immutable (except for their processed flags)
         then the list cannot be altered by these methods. */
-    iterator find(const VC& vc);
-    iterator find(const VC& vc, const iterator& b, const iterator& e);
+    iterator Find(const VC& vc);
+
+    iterator Find(const VC& vc, const iterator& b, const iterator& e);
 
     /** Returns a constant iterator to the given VC, or end() if vc is
         not in the list. */
-    const_iterator find(const VC& vc) const;
-    const_iterator find(const VC& vc, 
-                        const const_iterator& b, 
-                        const const_iterator& e) const;
+    const_iterator Find(const VC& vc) const;
 
+    const_iterator Find(const VC& vc, const const_iterator& b, 
+                        const const_iterator& e) const;
 
     /** Removes the element pointed to by i from the list.
         @return the next element. */
-    iterator remove(iterator i, ChangeLog<VC>* log);
+    iterator Remove(iterator i, ChangeLog<VC>* log);
 
     /** Removes the given vc from the list.  Does nothing if vc is not
         actually in the list.  Takes O(n) time. Returns true if vc
         was actually removed, false otherwise. */
-    bool remove(const VC& vc, ChangeLog<VC>* log);
+    bool Remove(const VC& vc, ChangeLog<VC>* log);
 
     /** Returns an iterator to the start of the list. */
-    iterator begin();
+    iterator Begin();
 
     /** Returns an iterator just past the end of the list. */
-    iterator end();
+    iterator End();
 
     /** Returns a constant iterator to the start of the list. */
-    const_iterator begin() const;
+    const_iterator Begin() const;
 
     /** Returns a constant iterator just past the end of the list. */
-    const_iterator end() const;
+    const_iterator End() const;
 
     // @}
 
     //----------------------------------------------------------------------
 
     /** Returns the union of all carriers in the list. */
-    bitset_t getUnion() const;
+    bitset_t GetUnion() const;
 
     /** Returns the union of all carriers in the list.
      
@@ -190,29 +188,32 @@ public:
         connections between non-rotated and rotated versions of the
         board.
     */
-    bitset_t getGreedyUnion() const;
+    bitset_t GetGreedyUnion() const;
 
     /** Returns soft-limit intersection. If list is empty, the bitset
         will have all of its bits set. */
-    bitset_t softIntersection() const;
+    bitset_t SoftIntersection() const;
 
     /** Returns hard-limit intersection. If list is empty, the bitset
         will have all of its bits set. */
-    bitset_t hardIntersection() const;
+    bitset_t HardIntersection() const;
 
     //----------------------------------------------------------------------
 
-    /** Removes all VCs that intersect with b.  Removed VCs are
-        appended to out if out---note that the order of the vcs in out
-        is the same as it was in the original list!  Returns number of
-        vcs removed. */
-    int removeAllContaining(HexPoint cell, std::list<VC>& out,
-                            ChangeLog<VC>* log);
+    /** Removes all VCs that intersect with cell. 
+        Removed VCs are appended to out---note that the order
+        of the vcs in out is the same as it was in the original list.
+        Returns number of vcs removed. */
+    std::size_t RemoveAllContaining(HexPoint cell, std::list<VC>& out,
+                                    ChangeLog<VC>* log);
 
-    int removeAllContaining(const bitset_t& b, std::list<VC>& out,
-                            ChangeLog<VC>* log);
+    /** Removes all VCs that intersect with b. 
+        Removed VCs are stored in out. */
+    std::size_t RemoveAllContaining(const bitset_t& b, std::list<VC>& out,
+                                    ChangeLog<VC>* log);
 
-    int removeAllContaining(const bitset_t& b, ChangeLog<VC>* log);
+    /** Removes all VCs that intersect with b. */
+    std::size_t RemoveAllContaining(const bitset_t& b, ChangeLog<VC>* log);
    
     /** Performs list equality. */
     bool operator==(const VCList& other) const;
@@ -223,106 +224,110 @@ public:
 protected:
 
     /** Invalidates the precomputed list unions. */
-    void dirty_list_unions();
+    void DirtyListUnions();
 
     /** Invalidates the list intersection. */
-    void dirty_list_intersections();
+    void DirtyListIntersections();
 
     /** Computes list unions in one pass: normal and greedy. */
-    void computeUnions() const;
+    void ComputeUnions() const;
 
     /** Computes list intersections in one pass: soft and hard. */
-    void computeIntersections() const;
+    void ComputeIntersections() const;
 
-    HexPoint m_x, m_y;
+    HexPoint m_x;
+        
+    HexPoint m_y;
 
     /** See softlimit() */
-    unsigned int m_softlimit;
+    std::size_t m_softlimit;
 
     std::list<VC> m_vcs;
 
-    mutable bool m_dirty_intersection;
-    mutable bitset_t m_soft_intersection;
-    mutable bitset_t m_hard_intersection;
+    mutable bool m_dirtyIntersection;
 
-    mutable bool m_dirty_union;
+    mutable bitset_t m_softIntersection;
+
+    mutable bitset_t m_hardIntersection;
+
+    mutable bool m_dirtyUnion;
+
     mutable bitset_t m_union;
-    mutable bitset_t m_greedy_union;
+
+    mutable bitset_t m_greedyUnion;
 };
 
-inline HexPoint VCList::getX() const
+inline HexPoint VCList::GetX() const
 {
     return m_x;
 }
 
-inline HexPoint VCList::getY() const
+inline HexPoint VCList::GetY() const
 {
     return m_y;
 }
 
-inline int VCList::softlimit() const
+inline std::size_t VCList::Softlimit() const
 {
     return m_softlimit;
 }
 
-inline void VCList::setSoftLimit(int limit)
+inline void VCList::SetSoftlimit(std::size_t limit)
 {
-    if (limit != (int)m_softlimit)
+    if (limit != m_softlimit)
     {
         m_softlimit = limit;
-        m_dirty_intersection = true;
+        m_dirtyIntersection = true;
     }
 }
 
-// FIXME: size() is might be O(n) for lists:
+// FIXME: Size() is might be O(n) for lists:
 // keep track of size on our own?
-inline std::size_t VCList::size() const
+inline std::size_t VCList::Size() const
 {
     return m_vcs.size();
 }
 
-inline bool VCList::empty() const
+inline bool VCList::Empty() const
 {
     return m_vcs.empty();
 }
 
-inline void VCList::dirty_list_unions()
+inline void VCList::DirtyListUnions()
 {
-    m_dirty_union = true;
+    m_dirtyUnion = true;
 }
 
-inline void VCList::dirty_list_intersections()
+inline void VCList::DirtyListIntersections()
 {
-    m_dirty_intersection = true;
+    m_dirtyIntersection = true;
 }
 
-inline void VCList::clear()
+inline void VCList::Clear()
 {
     m_vcs.clear();
-
-    dirty_list_unions();
-    
-    m_dirty_intersection = false;
-    m_soft_intersection.set();
-    m_hard_intersection.set();
+    DirtyListUnions();
+    m_dirtyIntersection = false;
+    m_softIntersection.set();
+    m_hardIntersection.set();
 }
 
-inline VCList::iterator VCList::begin()
+inline VCList::iterator VCList::Begin()
 {
     return m_vcs.begin();
 }
 
-inline VCList::iterator VCList::end()
+inline VCList::iterator VCList::End()
 {
     return m_vcs.end();
 }
 
-inline VCList::const_iterator VCList::begin() const
+inline VCList::const_iterator VCList::Begin() const
 {
     return m_vcs.begin();
 }
 
-inline VCList::const_iterator VCList::end() const
+inline VCList::const_iterator VCList::End() const
 {
     return m_vcs.end();
 }

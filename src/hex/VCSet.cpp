@@ -90,14 +90,14 @@ void VCSet::FreeLists()
 
 bool VCSet::Exists(HexPoint x, HexPoint y, VC::Type type) const
 {
-    return !m_vc[type][x][y]->empty();
+    return !m_vc[type][x][y]->Empty();
 }
 
 bool VCSet::SmallestVC(HexPoint x, HexPoint y, VC::Type type, VC& out) const
 {
     if (!Exists(x, y, type)) 
         return false;
-    out = *m_vc[type][x][y]->begin();
+    out = *m_vc[type][x][y]->Begin();
     return true;
 }
 
@@ -106,25 +106,25 @@ void VCSet::VCs(HexPoint x, HexPoint y, VC::Type type,
 {
     out.clear();
     const VCList* who = m_vc[type][x][y];
-    for (VCList::const_iterator it(who->begin()); it != who->end(); ++it)
+    for (VCList::const_iterator it(who->Begin()); it != who->End(); ++it)
         out.push_back(*it);
 }
 
 //----------------------------------------------------------------------------
 
-void VCSet::SetSoftLimit(VC::Type type, int limit)
+void VCSet::SetSoftLimit(VC::Type type, std::size_t limit)
 {
     for (BoardIterator y(m_brd->EdgesAndInterior()); y; ++y)
         for (BoardIterator x(m_brd->EdgesAndInterior()); *x != *y; ++x)
-            m_vc[type][*x][*y]->setSoftLimit(limit);
+            m_vc[type][*x][*y]->SetSoftlimit(limit);
 }
 
 void VCSet::Clear()
 {
     for (BoardIterator y(m_brd->EdgesAndInterior()); y; ++y)
         for (BoardIterator x(m_brd->EdgesAndInterior()); *x != *y; ++x)
-            for (int i=0; i<VC::NUM_TYPES; ++i)
-                m_vc[i][*x][*y]->clear();
+            for (int i = 0; i < VC::NUM_TYPES; ++i)
+                m_vc[i][*x][*y]->Clear();
 }
 
 void VCSet::Revert(ChangeLog<VC>& log)
@@ -145,15 +145,15 @@ void VCSet::Revert(ChangeLog<VC>& log)
 #ifdef NDEBUG
             list->remove(vc, 0);
 #else
-            BenzeneAssert(list->remove(vc, 0));
+            BenzeneAssert(list->Remove(vc, 0));
 #endif
         } 
         else if (action == ChangeLog<VC>::REMOVE)
-            list->simple_add(vc);
+            list->SimpleAdd(vc);
         else if (action == ChangeLog<VC>::PROCESSED) 
         {
-            VCList::iterator it = list->find(vc);
-            BenzeneAssert(it != list->end());
+            VCList::iterator it = list->Find(vc);
+            BenzeneAssert(it != list->End());
             BenzeneAssert(it->processed());
             it->setProcessed(false);
         }
@@ -266,9 +266,9 @@ VCSetStatistics VCSetUtil::ComputeStatistics(const VCSet& con,
         for (GroupIterator y(groups, not_other); &*y != &*x; ++y) 
         {
             std::size_t full_size = con.GetList(VC::FULL, x->Captain(), 
-                                                y->Captain()).size();
+                                                y->Captain()).Size();
             std::size_t semi_size = con.GetList(VC::SEMI, x->Captain(), 
-                                                y->Captain()).size();
+                                                y->Captain()).Size();
             stats.m_fulls += full_size;
             stats.m_semis += semi_size;
             stats.m_fullCounts.Add(float(full_size));

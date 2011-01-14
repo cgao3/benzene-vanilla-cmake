@@ -21,7 +21,7 @@ bitset_t VCUtils::GetMustplay(const HexBoard& brd, HexColor color)
         return EMPTY_BITSET;
 
     const VCList& semi = brd.Cons(other).GetList(VC::SEMI, edge1, edge2);
-    bitset_t intersection = semi.hardIntersection();
+    bitset_t intersection = semi.HardIntersection();
     intersection &= brd.GetPosition().GetEmpty(); // FIXME: need this line?
 
     return intersection;

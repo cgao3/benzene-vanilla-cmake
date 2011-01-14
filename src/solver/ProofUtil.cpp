@@ -33,7 +33,7 @@ bitset_t ProofUtil::InitialProofForOpponent(const HexBoard& brd,
                                           HexPointUtil::colorEdge1(!toPlay),
                                           HexPointUtil::colorEdge2(!toPlay));
     const bool useGreedy = brd.Builder().Parameters().use_greedy_union;
-    proof |= useGreedy ? lst.getGreedyUnion() : lst.getUnion();
+    proof |= useGreedy ? lst.GetGreedyUnion() : lst.GetUnion();
 
     // Add reversable reversers. 
     // The carriers do NOT need to be included in the proof, since
