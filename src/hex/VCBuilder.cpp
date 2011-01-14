@@ -81,7 +81,7 @@ void VCBuilder::Build(VCSet& con, const Groups& groups,
     SgTimer timer;
     m_con->Clear();
     m_statistics = &m_statsForColor[m_color];
-    m_queue.clear();
+    m_queue.Clear();
 
     ComputeCapturedSets(patterns);
     AddBaseVCs();
@@ -105,7 +105,7 @@ void VCBuilder::AddBaseVCs()
             if (m_con->Add(vc, m_log))
             {
                 m_statistics->base_successes++;
-                m_queue.push(std::make_pair(vc.X(), vc.Y()));
+                m_queue.Push(std::make_pair(vc.X(), vc.Y()));
             }
         }
     }
@@ -134,7 +134,7 @@ void VCBuilder::AddPatternVCs()
             if (m_con->Add(vc, m_log))
             {
                 m_statistics->pattern_successes++;
-                m_queue.push(std::make_pair(vc.X(), vc.Y()));
+                m_queue.Push(std::make_pair(vc.X(), vc.Y()));
             }
         }
     }
@@ -181,7 +181,7 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
 
     SgTimer timer;
     m_statistics = &m_statsForColor[m_color];
-    m_queue.clear();
+    m_queue.Clear();
 
     ComputeCapturedSets(patterns);
     Merge(oldGroups, added);
@@ -263,7 +263,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& affected,
             // (captain, captain).
             if (cx != cy) 
             {
-                m_queue.push(std::make_pair(cx, cy));
+                m_queue.Push(std::make_pair(cx, cy));
                 MergeAndShrink(added, *x, *y, cx, cy);
             }
         }
@@ -385,7 +385,7 @@ void VCBuilder::RemoveAllContaining(const Groups& oldGroups,
                 .RemoveAllContaining(bs, m_log);
             m_statistics->killed1 += cur1;
             if (cur0 || cur1)
-                m_queue.push(std::make_pair(xc, yc));
+                m_queue.Push(std::make_pair(xc, yc));
         }
     }
 }
@@ -463,10 +463,10 @@ void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
 void VCBuilder::DoSearch()
 {
     bool winning_connection = false;
-    while (!m_queue.empty()) 
+    while (!m_queue.Empty()) 
     {
-        HexPointPair pair = m_queue.front();
-        m_queue.pop();
+        HexPointPair pair = m_queue.Front();
+        m_queue.Pop();
 
         ProcessSemis(pair.first, pair.second);
         ProcessFulls(pair.first, pair.second);
@@ -480,10 +480,10 @@ void VCBuilder::DoSearch()
             break;
         }
     }        
-    BenzeneAssert(winning_connection || m_queue.empty());
+    BenzeneAssert(winning_connection || m_queue.Empty());
 
     if (winning_connection) 
-        LogFine() << "Aborted on winning connection." << '\n';
+        LogFine() << "Aborted on winning connection.\n";
             
     // Process the side-to-side semi list to ensure we have a full if
     // mustplay is empty.
@@ -775,7 +775,7 @@ bool VCBuilder::AddNewFull(const VC& vc)
                 
         // add this list to the queue if inside the soft-limit
         if (result == VCList::ADDED_INSIDE_SOFT_LIMIT)
-            m_queue.push(std::make_pair(vc.X(), vc.Y()));
+            m_queue.Push(std::make_pair(vc.X(), vc.Y()));
 
         return true;
     }
@@ -808,9 +808,7 @@ bool VCBuilder::AddNewSemi(const VC& vc)
             if (out_semi->HardIntersection().none())
             {
                 if (result == VCList::ADDED_INSIDE_SOFT_LIMIT) 
-                {
-                    m_queue.push(std::make_pair(vc.X(), vc.Y()));
-                } 
+                    m_queue.Push(std::make_pair(vc.X(), vc.Y()));
                 else if (out_full->Empty())
                 {
                     bitset_t carrier = m_param.use_greedy_union 
@@ -858,10 +856,10 @@ std::string VCBuilderStatistics::ToString() const
     processed.
 
     The implementation here is a simple vector with an index
-    simulating the front of the queue; that is, push() uses
-    push_back() to add elements to the back and pop() increments the
+    simulating the front of the queue; that is, Push() uses
+    push_back() to add elements to the back and Pop() increments the
     index of the front. This means the vector will need to be as large
-    as the number of calls to push(), not the maximum number of
+    as the number of calls to Push(), not the maximum number of
     elements in the queue at any given time.
     
     On 11x11, the vector quickly grows to hold 2^14 elements if anding
@@ -882,35 +880,35 @@ VCBuilder::WorkQueue::WorkQueue()
 {
 }
 
-bool VCBuilder::WorkQueue::empty() const
+bool VCBuilder::WorkQueue::Empty() const
 {
     return m_head == m_array.size();
 }
 
-const HexPointPair& VCBuilder::WorkQueue::front() const
+const HexPointPair& VCBuilder::WorkQueue::Front() const
 {
     return m_array[m_head];
 }
 
-std::size_t VCBuilder::WorkQueue::capacity() const
+std::size_t VCBuilder::WorkQueue::Capacity() const
 {
     return m_array.capacity();
 }
 
-void VCBuilder::WorkQueue::clear()
+void VCBuilder::WorkQueue::Clear()
 {
     memset(m_seen, 0, sizeof(m_seen));
     m_array.clear();
     m_head = 0;
 }
 
-void VCBuilder::WorkQueue::pop()
+void VCBuilder::WorkQueue::Pop()
 {
-    m_seen[front().first][front().second] = false;
+    m_seen[Front().first][Front().second] = false;
     m_head++;
 }
 
-void VCBuilder::WorkQueue::push(const HexPointPair& p)
+void VCBuilder::WorkQueue::Push(const HexPointPair& p)
 {
     HexPoint a = std::min(p.first, p.second);
     HexPoint b = std::max(p.first, p.second);

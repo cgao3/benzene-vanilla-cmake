@@ -179,13 +179,13 @@ private:
     {
     public:
         WorkQueue();
-        bool empty() const;
-        const HexPointPair& front() const;
-        std::size_t capacity() const;
+        bool Empty() const;
+        const HexPointPair& Front() const;
+        std::size_t Capacity() const;
 
-        void clear();
-        void pop();
-        void push(const HexPointPair& pair);
+        void Clear();
+        void Pop();
+        void Push(const HexPointPair& pair);
 
     private:
         std::size_t m_head;
