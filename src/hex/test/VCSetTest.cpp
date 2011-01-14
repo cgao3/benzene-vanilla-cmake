@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(VCSet_CheckRevert)
         builder.Build(con2, groups, newGroups, patterns, added, &cl);
         con2.Revert(cl);
         bd.UndoMove(p);
-        BOOST_CHECK(cl.empty());
+        BOOST_CHECK(cl.Empty());
         BOOST_CHECK(con1 == con2);
     }
 }

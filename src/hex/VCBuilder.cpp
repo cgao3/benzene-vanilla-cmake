@@ -426,7 +426,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
             cur->SetProcessed(true);
             
             if (m_log)
-                m_log->push(ChangeLog<VC>::PROCESSED, *cur);
+                m_log->Push(ChangeLog<VC>::PROCESSED, *cur);
         }
     }
 
@@ -455,7 +455,7 @@ void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
             andClosure(*cur);
             cur->SetProcessed(true);
             if (m_log)
-                m_log->push(ChangeLog<VC>::PROCESSED, *cur);
+                m_log->Push(ChangeLog<VC>::PROCESSED, *cur);
         }
     }
 }

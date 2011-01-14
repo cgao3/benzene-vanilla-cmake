@@ -10,6 +10,7 @@
 #include <string>
 #include <sstream>
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -36,37 +37,31 @@ public:
     typedef enum {ADD, REMOVE, PROCESSED, MARKER} Action;
 
     /** Returns true if changelog is empty. */
-    bool empty() const;
+    bool Empty() const;
 
     /** Returns size of changelog. */
-    std::size_t size() const;
+    std::size_t Size() const;
 
     /** Adds an entry onto the changelog. */
-    void push(Action action, const T& data);
+    void Push(Action action, const T& data);
 
     /** Pops the top entry off of the changelog. Asserts log is not
-	empty.
-    */
-    void pop();
+	empty. */
+    void Pop();
 
     /** Returns the action on top of the changelog. Asserts log is not
-	empty.
-        
-        @todo how to write this method using the 'inline' syntax?  I
-        keep getting compile errors.
-    */
-    Action topAction() const { assert(!empty()); return m_action.back(); }
+	empty. */
+    Action TopAction() const;
 
     /** Returns a copy of the data on top of the changelog. Asserts log is
-	not empty.
-    */
-    T topData() const;
+	not empty. */
+    T TopData() const;
 
     /** Clears the log. */
-    void clear();
+    void Clear();
 
     /** Dump the contents of the log to a string. */
-    std::string dump() const;
+    std::string Dump() const;
 
 private:
     std::vector<T> m_data;
@@ -80,53 +75,60 @@ inline ChangeLog<T>::ChangeLog()
 }
 
 template<typename T> 
-inline bool ChangeLog<T>::empty() const
+inline bool ChangeLog<T>::Empty() const
 {
     return m_action.empty();
 }
 
 template<typename T> 
-inline std::size_t ChangeLog<T>::size() const
+inline std::size_t ChangeLog<T>::Size() const
 {
     return m_action.size();
 }
 
 template<typename T> 
-inline void ChangeLog<T>::push(Action action, const T& data)
+inline void ChangeLog<T>::Push(Action action, const T& data)
 {
     m_action.push_back(action);
     m_data.push_back(data);
 }
 
 template<typename T>
-inline void ChangeLog<T>::pop()
+inline void ChangeLog<T>::Pop()
 {
-    assert(!empty());
+    BenzeneAssert(!Empty());
     m_action.pop_back();
     m_data.pop_back();
 }
 
 template<typename T>
-inline T ChangeLog<T>::topData() const
+inline typename ChangeLog<T>::Action ChangeLog<T>::TopAction() const 
+{ 
+    BenzeneAssert(!Empty()); 
+    return m_action.back();
+}
+
+template<typename T>
+inline T ChangeLog<T>::TopData() const
 {
-    assert(!empty());
+    BenzeneAssert(!Empty());
     return m_data.back();
 }
 
-/// @todo vector::clear() takes linear time.  Is this a problem?
+/// @todo Takes linear time--is this a problem?
 template<typename T>
-inline void ChangeLog<T>::clear()
+inline void ChangeLog<T>::Clear()
 {
     m_action.clear();
     m_data.clear();
 }
 
 template<typename T>
-std::string ChangeLog<T>::dump() const
+std::string ChangeLog<T>::Dump() const
 {
     std::ostringstream os;
-
-    for (int i=0; i<(int)m_action.size(); ++i) {
+    for (std::size_t i = 0; i < m_action.size(); ++i) 
+    {
         os << i << ": ";
         if (m_action[i] == MARKER)
             os << "MARKER";
@@ -139,7 +141,7 @@ std::string ChangeLog<T>::dump() const
                 os << "PROCESSED: ";
             os << m_data[i];
         }
-        os << std::endl;
+        os << '\n';
     }
     return os.str();
 }

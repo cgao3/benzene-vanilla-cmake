@@ -98,8 +98,8 @@ void HexBoard::BuildVCs(const Groups& oldGroups,
 
 void HexBoard::MarkChangeLog()
 {
-    m_log[BLACK].push(ChangeLog<VC>::MARKER, VC());
-    m_log[WHITE].push(ChangeLog<VC>::MARKER, VC());
+    m_log[BLACK].Push(ChangeLog<VC>::MARKER, VC());
+    m_log[WHITE].Push(ChangeLog<VC>::MARKER, VC());
 }
 
 void HexBoard::RevertVCs()

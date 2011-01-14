@@ -59,7 +59,7 @@ int VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
         if (BitsetUtil::IsSubsetOf(bs, it->Carrier())) 
         {
             if (log) 
-                log->push(ChangeLog<VC>::REMOVE, *it);
+                log->Push(ChangeLog<VC>::REMOVE, *it);
             it = m_vcs.erase(it);
             ++count;
         } 
@@ -107,7 +107,7 @@ VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
             return ADD_FAILED;
     }
     if (log) 
-        log->push(ChangeLog<VC>::ADD, vc);
+        log->Push(ChangeLog<VC>::ADD, vc);
     it = m_vcs.insert(it, vc);
 
     // update unions/intersections
@@ -122,7 +122,7 @@ VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
         if (vc.IsSubsetOf(*it)) 
         {
             if (log) 
-                log->push(ChangeLog<VC>::REMOVE, *it);
+                log->Push(ChangeLog<VC>::REMOVE, *it);
             it = m_vcs.erase(it);
         } 
         else
@@ -151,7 +151,7 @@ int VCList::Add(const VCList& other, ChangeLog<VC>* log)
 VCList::iterator VCList::Remove(iterator it, ChangeLog<VC>* log)
 {
     if (log) 
-        log->push(ChangeLog<VC>::REMOVE, *it);
+        log->Push(ChangeLog<VC>::REMOVE, *it);
     it = m_vcs.erase(it);
     DirtyListUnions();
     DirtyListIntersections();
@@ -279,7 +279,7 @@ std::size_t VCList::RemoveAllContaining(HexPoint cell, std::list<VC>& out,
         {
             out.push_back(*it);
             if (log) 
-                log->push(ChangeLog<VC>::REMOVE, *it);
+                log->Push(ChangeLog<VC>::REMOVE, *it);
             it = m_vcs.erase(it);
             ++count;
         } 
@@ -306,7 +306,7 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, std::list<VC>& out,
         {
             out.push_back(*it);
             if (log)
-                log->push(ChangeLog<VC>::REMOVE, *it);
+                log->Push(ChangeLog<VC>::REMOVE, *it);
             it = m_vcs.erase(it);
             ++count;
         }
@@ -331,7 +331,7 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, ChangeLog<VC>* log)
         if ((it->Carrier() & b).any()) 
         {
             if (log)
-                log->push(ChangeLog<VC>::REMOVE, *it);
+                log->Push(ChangeLog<VC>::REMOVE, *it);
             it = m_vcs.erase(it);
             ++count;
         } 

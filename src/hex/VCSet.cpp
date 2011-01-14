@@ -129,16 +129,16 @@ void VCSet::Clear()
 
 void VCSet::Revert(ChangeLog<VC>& log)
 {
-    while (!log.empty()) 
+    while (!log.Empty()) 
     {
-        int action = log.topAction();
+        ChangeLog<VC>::Action action = log.TopAction();
         if (action == ChangeLog<VC>::MARKER) 
         {
-            log.pop();
+            log.Pop();
             break;
         }
-        VC vc(log.topData());
-        log.pop();
+        VC vc(log.TopData());
+        log.Pop();
         VCList* list = m_vc[vc.GetType()][vc.X()][vc.Y()];
         if (action == ChangeLog<VC>::ADD) 
         {
