@@ -169,12 +169,8 @@ public:
                ChangeLog<VC>* log);
 
 private:
-
-    //----------------------------------------------------------------------
-
     /** Queue of endpoint pairs that need processing. 
-        @ref workqueue
-    */
+        @ref workqueue */
     class WorkQueue
     {
     public:
@@ -193,14 +189,8 @@ private:
         bool m_seen[BITSETSIZE][BITSETSIZE];
     };
     
-    //----------------------------------------------------------------------
-
     /** The types of VC to create when using the AND rule. */
     typedef enum { CREATE_FULL, CREATE_SEMI } AndRule;
-
-    void doAnd(HexPoint from, HexPoint over, HexPoint to,
-               AndRule rule, const VC& vc, const bitset_t& capturedSet,
-               const VCList* old);
 
     class OrRule 
     {
@@ -212,7 +202,6 @@ private:
                        VCList* full_list, std::list<VC>& added, 
                        int max_ors, ChangeLog<VC>* log, 
                        VCBuilderStatistics& stats);
-
     private:
         const VCBuilder& m_builder;
         /** Vectors used in or rule computation are reused between
@@ -223,7 +212,37 @@ private:
 
     OrRule m_orRule;
 
-    void andClosure(const VC& vc);
+    VCBuilderParam& m_param;
+
+    WorkQueue m_queue;
+
+    VCBuilderStatistics m_statsForColor[BLACK_AND_WHITE];
+
+    VCBuilderStatistics* m_statistics;
+
+    const Groups* m_groups;
+
+    const StoneBoard* m_brd;
+
+    VCSet* m_con;
+    
+    HexColor m_color;
+
+    ChangeLog<VC>* m_log;
+
+    bitset_t m_capturedSet[BITSETSIZE];
+
+    PatternSet m_capturedSetPatterns[BLACK_AND_WHITE];
+    
+    HashedPatternSet m_hash_capturedSetPatterns[BLACK_AND_WHITE];
+
+    //-----------------------------------------------------------------------
+
+    void AndClosure(const VC& vc);
+
+    void DoAnd(HexPoint from, HexPoint over, HexPoint to,
+               AndRule rule, const VC& vc, const bitset_t& capturedSet,
+               const VCList* old);
 
     void DoSearch();
 
@@ -256,32 +275,6 @@ private:
                         HexPoint xout, HexPoint yout);
     
     void RemoveAllContaining(const Groups& groups, const bitset_t& bs);
-    
-    //-----------------------------------------------------------------------
-
-    VCBuilderParam& m_param;
-
-    WorkQueue m_queue;
-
-    VCBuilderStatistics m_statsForColor[BLACK_AND_WHITE];
-
-    VCBuilderStatistics* m_statistics;
-
-    const Groups* m_groups;
-
-    const StoneBoard* m_brd;
-
-    VCSet* m_con;
-    
-    HexColor m_color;
-
-    ChangeLog<VC>* m_log;
-
-    bitset_t m_capturedSet[BITSETSIZE];
-
-    PatternSet m_capturedSetPatterns[BLACK_AND_WHITE];
-    
-    HashedPatternSet m_hash_capturedSetPatterns[BLACK_AND_WHITE];
 };
 
 inline VCBuilderParam& VCBuilder::Parameters()

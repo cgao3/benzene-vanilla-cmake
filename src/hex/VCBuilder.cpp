@@ -452,7 +452,7 @@ void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
     {
         if (!cur->Processed()) 
         {
-            andClosure(*cur);
+            AndClosure(*cur);
             cur->SetProcessed(true);
             if (m_log)
                 m_log->Push(ChangeLog<VC>::PROCESSED, *cur);
@@ -498,30 +498,20 @@ void VCBuilder::DoSearch()
     endpoints. A single pass over the board is performed. For each z,
     we try to and the list of fulls between z and x and z and y with
     vc. This function is a major bottleneck. Every operation in it
-    needs to be as efficient as possible.
-*/
-void VCBuilder::andClosure(const VC& vc)
+    needs to be as efficient as possible. */
+void VCBuilder::AndClosure(const VC& vc)
 {
     HexColor other = !m_color;
     HexColorSet not_other = HexColorSetUtil::NotColor(other);
-
     HexPoint endp[2];
     endp[0] = m_groups->CaptainOf(vc.X());
     endp[1] = m_groups->CaptainOf(vc.Y());
     HexColor endc[2];
     endc[0] = m_brd->GetColor(endp[0]);
     endc[1] = m_brd->GetColor(endp[1]);
-
-    if (endc[0] == other || endc[1] == other)
-    {
-        LogInfo() << *m_brd << '\n';
-        LogInfo() << vc << '\n';
-    }
-
-    bitset_t vcCapturedSet = m_capturedSet[endp[0]] | m_capturedSet[endp[1]];
-   
     BenzeneAssert(endc[0] != other);
     BenzeneAssert(endc[1] != other);
+    bitset_t vcCapturedSet = m_capturedSet[endp[0]] | m_capturedSet[endp[1]];
     for (GroupIterator g(*m_groups, not_other); g; ++g) 
     {
         HexPoint z = g->Captain();
@@ -532,7 +522,7 @@ void VCBuilder::andClosure(const VC& vc)
         bitset_t capturedSet = vcCapturedSet | m_capturedSet[z];
         bitset_t uncapturedSet = capturedSet;
         uncapturedSet.flip();
-        for (int i=0; i<2; i++)
+        for (int i = 0; i < 2; i++)
         {
             int j = (i + 1) & 1;
             if (m_param.and_over_edge || !HexPointUtil::isEdge(endp[i])) 
@@ -541,9 +531,8 @@ void VCBuilder::andClosure(const VC& vc)
                 if ((fulls->SoftIntersection() & vc.Carrier()
                      & uncapturedSet).any())
                     continue;
-                
                 AndRule rule = (endc[i] == EMPTY) ? CREATE_SEMI : CREATE_FULL;
-                doAnd(z, endp[i], endp[j], rule, vc, capturedSet, 
+                DoAnd(z, endp[i], endp[j], rule, vc, capturedSet, 
                       &m_con->GetList(VC::FULL, z, endp[i]));
             }
         }
@@ -553,15 +542,13 @@ void VCBuilder::andClosure(const VC& vc)
 /** Compares vc to each connection in the softlimit of the given list.
     Creates a new connection if intersection is empty, or if the
     intersection is a subset of the captured set. Created connections
-    are added with AddNewFull() or AddNewSemi().
-*/
-void VCBuilder::doAnd(HexPoint from, HexPoint over, HexPoint to,
+    are added with AddNewFull() or AddNewSemi(). */
+void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
                       AndRule rule, const VC& vc, const bitset_t& capturedSet, 
                       const VCList* old)
 {
     if (old->Empty())
         return;
-
     std::size_t soft = old->Softlimit();
     VCList::const_iterator i = old->Begin();
     VCList::const_iterator end = old->End();
@@ -626,8 +613,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
 {
     if (semi_list->Empty())
         return 0;
-    
-    // copy processed semis (unprocessed semis are not used here)
+    // Copy processed semis (unprocessed semis are not used here)
     m_semi.clear();
     std::size_t soft = semi_list->Softlimit();
     VCList::const_iterator it = semi_list->Begin();
@@ -635,71 +621,55 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     for (std::size_t count = 0; count < soft && it != end; ++count, ++it)
         if (it->Processed())
             m_semi.push_back(*it);
-
     if (m_semi.empty())
         return 0;
-
+    // For each i in [0, N-1], compute intersection of semi[i, N-1]
     std::size_t N = m_semi.size();
-
-    // for each i in [0, N-1], compute intersection of semi[i, N-1]
     if (m_tail.size() < N)
         m_tail.resize(N);
     m_tail[N-1] = m_semi[N-1].Carrier();
     for (int i = static_cast<int>(N - 2); i >= 0; --i)
         m_tail[i] = m_semi[i].Carrier() & m_tail[i+1];
-
     max_ors--;
     BenzeneAssert(max_ors < 16);
-
-    // compute the captured-set union for the endpoints of this list
+    // Compute the captured-set union for the endpoints of this list
     bitset_t capturedSet = m_builder.m_capturedSet[semi_list->GetX()] 
                          | m_builder.m_capturedSet[semi_list->GetY()];
     bitset_t uncapturedSet = capturedSet;
     uncapturedSet.flip();
-
     std::size_t index[16];
     bitset_t ors[16];
     bitset_t ands[16];
-
     ors[0] = vc.Carrier();
     ands[0] = vc.Carrier();
     index[1] = 0;
-    
     int d = 1;
     int count = 0;
     while (true) 
     {
         std::size_t i = index[d];
-
-        // the current intersection (some subset from [0, i-1]) is not
+        // The current intersection (some subset from [0, i-1]) is not
         // disjoint with the intersection of [i, N), so stop. Note that
         // the captured set is not considered in the intersection.
         if ((i < N) && (ands[d-1] & m_tail[i] & uncapturedSet).any())
             i = N;
-
         if (i == N) 
         {
             if (d == 1) 
                 break;
-            
             ++index[--d];
             continue;
         }
-        
         ands[d] = ands[d-1] & m_semi[i].Carrier();
         ors[d]  =  ors[d-1] | m_semi[i].Carrier();
-
         if (ands[d].none()) 
         {
-            /** Create a new full.
-                
-                @note We do no use AddNewFull() because if add is
-                successful, it checks for semi-supersets and adds the
-                list to the queue. Both of these operations are not
-                needed here.
-            */
+            // Create a new full.
+            // NOTE: We do not use AddNewFull() because if add is
+            // successful, it checks for semi-supersets and adds the
+            // list to the queue. Both of these operations are not
+            // needed here.
             VC v(full_list->GetX(), full_list->GetY(), ors[d], VC_RULE_OR);
-
             stats.or_attempts++;
             if (full_list->Add(v, log) != VCList::ADD_FAILED) 
             {
@@ -707,22 +677,18 @@ int VCBuilder::OrRule::operator()(const VC& vc,
                 stats.or_successes++;
                 added.push_back(v);
             }
-        
             ++index[d];
         } 
         else if (BitsetUtil::IsSubsetOf(ands[d], capturedSet))
         {
-            /** Create a new full.
-                This vc has one or both captured sets in its carrier.
-            */
+            // Create a new full.
+            // This vc has one or both captured sets in its carrier.
             bitset_t carrier = ors[d];
             if ((ands[d] & m_builder.m_capturedSet[semi_list->GetX()]).any())
                 carrier |= m_builder.m_capturedSet[semi_list->GetX()];
             if ((ands[d] & m_builder.m_capturedSet[semi_list->GetY()]).any())
                 carrier |= m_builder.m_capturedSet[semi_list->GetY()];
-
             VC v(full_list->GetX(), full_list->GetY(), carrier, VC_RULE_OR);
-
             stats.or_attempts++;
             if (full_list->Add(v, log) != VCList::ADD_FAILED) 
             {
@@ -730,19 +696,18 @@ int VCBuilder::OrRule::operator()(const VC& vc,
                 stats.or_successes++;
                 added.push_back(v);
             }
-        
             ++index[d];
         }
         else if (ands[d] == ands[d-1]) 
         {
-            // this connection does not shrink intersection so skip it
+            // This connection does not shrink intersection so skip it
             ++index[d];
         }
         else 
         {
-            // this connection reduces intersection, if not at max depth
-            // see if more semis can reduce it to the empty set (or at least
-            // a subset of the captured set).
+            // This connection reduces intersection, if not at max
+            // depth see if more semis can reduce it to the empty set
+            // (or at least a subset of the captured set).
             if (d < max_ors) 
                 index[++d] = ++i;
             else
