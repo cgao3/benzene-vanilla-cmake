@@ -45,6 +45,14 @@ BOOST_AUTO_TEST_CASE(VCList_Iterators)
     b3.set(HEX_CELL_C3);
     VC v3(x, y, b3, VC_RULE_BASE);
     BOOST_CHECK_EQUAL(vl.Add(v3, NULL), VCList::ADDED_INSIDE_SOFT_LIMIT);
+    {   // Check FindInList();
+        VC* v = vl.FindInList(v2);
+        BOOST_CHECK_EQUAL(*v, v2);
+        BOOST_CHECK(!v->Processed());
+        v->SetProcessed(true);
+        VC* w = vl.FindInList(v2);
+        BOOST_CHECK(w->Processed());
+    }
     {   // Check iterating over entire list
         VCListIterator it(vl);
         BOOST_CHECK(it);

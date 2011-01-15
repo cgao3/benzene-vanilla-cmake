@@ -165,6 +165,14 @@ bool VCList::Remove(const VC& vc, ChangeLog<VC>* log)
 
 //----------------------------------------------------------------------------
 
+VC* VCList::FindInList(const VC& vc)
+{
+    for (VCListIterator it(*this); it; ++it)
+        if (*it == vc)
+            return &(*it);
+    return 0;
+}
+
 VCList::const_iterator VCList::Find(const VC& vc, const const_iterator& b, 
                                     const const_iterator& e) const
 {

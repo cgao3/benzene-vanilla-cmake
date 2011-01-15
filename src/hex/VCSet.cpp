@@ -152,8 +152,8 @@ void VCSet::Revert(ChangeLog<VC>& log)
             list->ForcedAdd(vc);
         else if (action == ChangeLog<VC>::PROCESSED) 
         {
-            VCList::iterator it = list->Find(vc);
-            BenzeneAssert(it != list->End());
+            VC* it = list->FindInList(vc);
+            BenzeneAssert(it != 0);
             BenzeneAssert(it->Processed());
             it->SetProcessed(false);
         }

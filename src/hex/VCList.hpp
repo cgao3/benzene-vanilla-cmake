@@ -120,6 +120,10 @@ public:
 
     typedef std::list<VC>::const_iterator const_iterator;
 
+    /** Returns pointer to occurance of VC in the list.
+        Returns 0 if VC is not in the list. */
+    VC* FindInList(const VC& vc);
+
     /** Returns an iterator to the given VC, or End() if vc is not in
         the list. */
     iterator Find(const VC& vc);
