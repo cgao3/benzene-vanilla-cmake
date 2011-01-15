@@ -26,8 +26,7 @@ std::string VCList::Dump() const
 {
     std::size_t i = 0;
     std::ostringstream os;
-    const_iterator it;
-    for (it = m_vcs.begin(); it != m_vcs.end(); ++it) 
+    for (const_iterator it = m_vcs.begin(); it != m_vcs.end(); ++it) 
         os << i++ << ": " << *it << '\n';
     return os.str();
 }
@@ -50,10 +49,10 @@ bool VCList::IsSubsetOfAny(const bitset_t& bs) const
     return false;
 }
 
-int VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
-                              bool dirtyIntersections)
+std::size_t VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
+                                      bool dirtyIntersections)
 {
-    int count = 0;
+    std::size_t count = 0;
     for (iterator it = m_vcs.begin(); it != m_vcs.end();)
     {
         if (BitsetUtil::IsSubsetOf(bs, it->Carrier())) 
@@ -77,7 +76,7 @@ int VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
 
 //----------------------------------------------------------------------------
 
-void VCList::SimpleAdd(const VC& vc)
+void VCList::ForcedAdd(const VC& vc)
 {
     BenzeneAssert((vc.X() == GetX() && vc.Y() == GetY()) ||
                   (vc.X() == GetY() && vc.Y() == GetX()));
@@ -109,14 +108,11 @@ VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
     if (log) 
         log->Push(ChangeLog<VC>::ADD, vc);
     it = m_vcs.insert(it, vc);
-
-    // update unions/intersections
     DirtyListUnions();
     if (count < m_softlimit) 
         m_softIntersection &= vc.Carrier();
     m_hardIntersection &= vc.Carrier();
-
-    // remove supersets of vc
+    // Remove supersets of vc
     for (++it; it != m_vcs.end();)
     {
         if (vc.IsSubsetOf(*it)) 
@@ -133,9 +129,9 @@ VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
         : ADDED_INSIDE_HARD_LIMIT;
 }
 
-int VCList::Add(const VCList& other, ChangeLog<VC>* log)
+std::size_t VCList::Add(const VCList& other, ChangeLog<VC>* log)
 {
-    int count = 0;
+    std::size_t count = 0;
     for (const_iterator it = other.Begin(); it != other.End(); ++it) 
     {
         VC v(GetX(), GetY(), it->Key(), it->Carrier(), it->Rule());

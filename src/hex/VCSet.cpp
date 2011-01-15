@@ -149,7 +149,7 @@ void VCSet::Revert(ChangeLog<VC>& log)
 #endif
         } 
         else if (action == ChangeLog<VC>::REMOVE)
-            list->SimpleAdd(vc);
+            list->ForcedAdd(vc);
         else if (action == ChangeLog<VC>::PROCESSED) 
         {
             VCList::iterator it = list->Find(vc);

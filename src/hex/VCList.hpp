@@ -13,23 +13,20 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------
 
 /** Sorted list of VCs.
-   
     The list is sorted by VC carrier size. When VCs are added, only
     VCs that are not duplicates or supersets of existing VCs in the
     list are considered; any elements currently in the list that are
     supersets of the new vc are removed. This means an add operation
-    will run in linear time.
-
-    The soft limit is the number of vcs used in vc calculations.  VCs
+    takes linear time.
+    The soft limit is the number of vcs used in vc calculations. VCs
     that appear after the soft limit are not considered in vc
-    calculations, but may be later on if some vcs are removed.  The
-    idea is to keep around extra vcs that may be important later, but
-    not at the expense of slower vc calculations now.
-*/
+    calculations, but may be later on vcs under the softlimit are
+    removed. The idea is to keep around extra vcs that may be
+    important later, but not at the expense of slower vc calculations
+    now. */
 class VCList
 {
 public:
-
     /** Creates a list with given limits. */
     VCList(HexPoint x, HexPoint y, unsigned int soft);
 
@@ -43,7 +40,7 @@ public:
     /** See Softlimit() */
     void SetSoftlimit(std::size_t limit);
 
-    /** Empties the list and the changelog. */
+    /** Empties the list. */
     void Clear();
 
     /** Returns the number of VCs in this list. */
@@ -64,19 +61,19 @@ public:
     bool IsSubsetOfAny(const bitset_t& vc) const;
 
     /** Removes any connection whose carrier is a superset of the
-        given VC's carrier.  Returns number of connections
+        given VC's carrier. Returns number of connections
         removed. Does not dirty intersections if flag is set to false;
         only use this if you are for sure only removing supersets of a
         member of this list! */
-    int RemoveSuperSetsOf(const bitset_t& vc, ChangeLog<VC>* log,
-                          bool dirty_intersections = true);
+    std::size_t RemoveSuperSetsOf(const bitset_t& vc, ChangeLog<VC>* log,
+                                  bool dirtyIntersections = true);
    
     //----------------------------------------------------------------------
     
     /** @name Adding connections */
     // @{
 
-    /** Return type for add() methods. */
+    /** Return type for Add() methods. */
     typedef enum 
     { 
         /** Add did not succeed, list is unchanged. */
@@ -87,40 +84,28 @@ public:
         
         /** Add connection within the hard limit. */
         ADDED_INSIDE_HARD_LIMIT = 2 
-
     } AddResult;
 
     /** Adds vc to the list.  
-        
         Requires a single pass over the entire list. The add will fail
-        if vc is a superset of some vc already in the list.  Supersets
-        of this vc that are already in the list are removed.  
-        
+        if vc is a superset of some vc already in the list. Supersets
+        of this vc that are already in the list are removed.
         Operations will be recorded in the log if log is not 0.
-
-        @return true if the VC was added, false otherwise.
-    */
+        @return true if the VC was added, false otherwise. */
     AddResult Add(const VC& vc, ChangeLog<VC>* log);
 
+    /** Adds the elements of other to list. 
+        Returns number of vcs added. VCs are added as unprocessed.
+        Operations will be recorded in the log if log is not 0. 
+        @return Number of elements added to other list. */
+    std::size_t Add(const VCList& other, ChangeLog<VC>* log);
 
-    /** Adds the elements of other to list. Returns number of vcs
-        added. Vcs are added as unprocessed. 
-        Operations will be recorded in the log if log is not 0. */
-    int Add(const VCList& other, ChangeLog<VC>* log);
-
-    /** 
-     * Force the addition of this vc.  Used by VCSet::revert():
-     *
-     *    1) add(vc) can cause a superset to vc to be removed.
-     *    2) this superset is then added to the log
-     *    3) when reverting the log, we try to add the superset,
-     *       but the add fails because vc is still in it.  
-     *    4) Ooops!
-     *
-     *  This method does NO checks.  It simply adds vc into the
-     *  proper position according to the ordering on the vcs.
-     */
-    void SimpleAdd(const VC& vc);
+    /** Force the addition of this VC.
+        This method does NO checks. It simply adds vc at the proper
+        position according to the ordering on the vcs.  Useful for
+        adding superset VCs that were previously removed (by the
+        changelog, say). */
+    void ForcedAdd(const VC& vc);
 
     // @}
 
@@ -133,15 +118,13 @@ public:
 
     typedef std::list<VC>::const_iterator const_iterator;
 
-    /** Returns an iterator to the given VC, or end() if vc is not in
-        the list. Note that these methods are not constant, but as
-        long as VCs are immutable (except for their processed flags)
-        then the list cannot be altered by these methods. */
+    /** Returns an iterator to the given VC, or End() if vc is not in
+        the list. */
     iterator Find(const VC& vc);
 
     iterator Find(const VC& vc, const iterator& b, const iterator& e);
 
-    /** Returns a constant iterator to the given VC, or end() if vc is
+    /** Returns a constant iterator to the given VC, or End() if vc is
         not in the list. */
     const_iterator Find(const VC& vc) const;
 
@@ -176,26 +159,23 @@ public:
     /** Returns the union of all carriers in the list. */
     bitset_t GetUnion() const;
 
-    /** Returns the union of all carriers in the list.
-     
+    /** Returns union of all carriers in the list.
         Only includes carriers of VCs in the union if they shrink the
         intersection at each step (considered in the sorted order).
-        
         @note Doing this may result in different sets of connections
-        depending upon the relative order of the vcs in the list.  So,
+        depending upon the relative order of the VCs in the list. So,
         on an empty board, BLACK can have a slightly different
-        connection set that WHITE.  Can also result in different vc
+        connection set that WHITE. Can also result in different VC
         connections between non-rotated and rotated versions of the
-        board.
-    */
+        board. */
     bitset_t GetGreedyUnion() const;
 
-    /** Returns soft-limit intersection. If list is empty, the bitset
-        will have all of its bits set. */
+    /** Returns soft limit intersection. 
+        If list is empty, the bitset will have all of its bits set. */
     bitset_t SoftIntersection() const;
 
-    /** Returns hard-limit intersection. If list is empty, the bitset
-        will have all of its bits set. */
+    /** Returns hard-limit intersection. 
+        If list is empty, the bitset will have all of its bits set. */
     bitset_t HardIntersection() const;
 
     //----------------------------------------------------------------------
@@ -222,24 +202,10 @@ public:
     bool operator!=(const VCList& other) const;
 
 protected:
-
-    /** Invalidates the precomputed list unions. */
-    void DirtyListUnions();
-
-    /** Invalidates the list intersection. */
-    void DirtyListIntersections();
-
-    /** Computes list unions in one pass: normal and greedy. */
-    void ComputeUnions() const;
-
-    /** Computes list intersections in one pass: soft and hard. */
-    void ComputeIntersections() const;
-
     HexPoint m_x;
         
     HexPoint m_y;
 
-    /** See softlimit() */
     std::size_t m_softlimit;
 
     std::list<VC> m_vcs;
@@ -255,6 +221,18 @@ protected:
     mutable bitset_t m_union;
 
     mutable bitset_t m_greedyUnion;
+
+    /** Invalidates the precomputed list unions. */
+    void DirtyListUnions();
+
+    /** Invalidates the list intersection. */
+    void DirtyListIntersections();
+
+    /** Computes list unions in one pass: normal and greedy. */
+    void ComputeUnions() const;
+
+    /** Computes list intersections in one pass: soft and hard. */
+    void ComputeIntersections() const;
 };
 
 inline HexPoint VCList::GetX() const
@@ -281,8 +259,8 @@ inline void VCList::SetSoftlimit(std::size_t limit)
     }
 }
 
-// FIXME: Size() is might be O(n) for lists:
-// keep track of size on our own?
+/** @todo std::list::size() might be O(n):
+    keep track of size on our own? */
 inline std::size_t VCList::Size() const
 {
     return m_vcs.size();
