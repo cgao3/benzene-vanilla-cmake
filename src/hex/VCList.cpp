@@ -9,7 +9,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-VCList::VCList(HexPoint x, HexPoint y, unsigned int soft)
+VCList::VCList(HexPoint x, HexPoint y, std::size_t soft)
     : m_x(x), m_y(y), 
       m_softlimit(soft),
       m_vcs(),

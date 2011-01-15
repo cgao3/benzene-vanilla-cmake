@@ -22,11 +22,41 @@ using namespace benzene;
 
 namespace {
 
+BOOST_AUTO_TEST_CASE(VCList_VCListIterator)
+{
+    HexPoint x = HEX_CELL_A1;
+    HexPoint y = HEX_CELL_A2;
+    VCList vl(x, y, 10);
+    {
+        VCListConstIterator it(vl);
+        BOOST_CHECK(!it);
+    }
+
+    bitset_t b1;
+    b1.set(HEX_CELL_C1);
+    VC v1(x, y, b1, VC_RULE_BASE);
+    BOOST_CHECK_EQUAL(vl.Add(v1, NULL), VCList::ADDED_INSIDE_SOFT_LIMIT);
+    bitset_t b2;
+    b2.set(HEX_CELL_C2);
+    VC v2(x, y, b2, VC_RULE_BASE);
+    BOOST_CHECK_EQUAL(vl.Add(v2, NULL), VCList::ADDED_INSIDE_SOFT_LIMIT);
+
+    VCListIterator it(vl);
+    BOOST_CHECK(it);
+    BOOST_CHECK(*it == v1);
+    BOOST_CHECK(it->Carrier() == v1.Carrier());
+    it->SetProcessed(false);
+    ++it;
+    BOOST_CHECK(it);
+    BOOST_CHECK(*it == v2);
+    ++it;
+    BOOST_CHECK(!it);
+}
+
 BOOST_AUTO_TEST_CASE(VCList_Basic)
 {
     HexPoint x = HEX_CELL_A1;
     HexPoint y = HEX_CELL_A2;
-
     VCList vl(x, y, 2);
 
     // starts out Empty

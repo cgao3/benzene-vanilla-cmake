@@ -6,6 +6,7 @@
 #define VCLIST_HPP
 
 #include "ChangeLog.hpp"
+#include "SafeBool.hpp"
 #include "VC.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -28,7 +29,7 @@ class VCList
 {
 public:
     /** Creates a list with given limits. */
-    VCList(HexPoint x, HexPoint y, unsigned int soft);
+    VCList(HexPoint x, HexPoint y, std::size_t soft);
 
     HexPoint GetX() const;
     
@@ -233,6 +234,10 @@ protected:
 
     /** Computes list intersections in one pass: soft and hard. */
     void ComputeIntersections() const;
+
+    friend class VCListIterator;
+
+    friend class VCListConstIterator;
 };
 
 inline HexPoint VCList::GetX() const
@@ -308,6 +313,114 @@ inline VCList::const_iterator VCList::Begin() const
 inline VCList::const_iterator VCList::End() const
 {
     return m_vcs.end();
+}
+
+//----------------------------------------------------------------------------
+
+/** Iterates over a VCList. */
+class VCListIterator : public SafeBool<VCListIterator>
+{
+public:
+    /** Creates an iterator over all groups. */
+    VCListIterator(VCList& lst);
+
+    /** Returns current VC. */
+    VC& operator*();
+
+    /** Allows access to current VC's methods. */
+    VC* operator->();
+
+    /** Moves to the next VC. */
+    void operator++();
+
+    /** Used by SafeBool. */
+    bool boolean_test() const;
+
+private:
+    std::list<VC>& m_lst;
+
+    std::list<VC>::iterator m_it;
+};
+
+inline VCListIterator::VCListIterator(VCList& lst)
+    : m_lst(lst.m_vcs),
+      m_it(lst.m_vcs.begin())
+{
+}
+
+inline VC& VCListIterator::operator*()
+{
+    return *m_it;
+}
+
+inline VC* VCListIterator::operator->()
+{
+    return &(*m_it);
+}
+
+inline void VCListIterator::operator++()
+{
+    m_it++;
+}
+
+inline bool VCListIterator::boolean_test() const
+{
+    return m_it != m_lst.end();
+}
+
+//----------------------------------------------------------------------------
+
+/** Iterates over a VCList.
+    Does not allow VC to be modified.
+ */
+class VCListConstIterator : public SafeBool<VCListConstIterator>
+{
+public:
+    /** Creates an iterator over all groups. */
+    VCListConstIterator(const VCList& lst);
+
+    /** Returns current VC. */
+    const VC& operator*() const;
+
+    /** Allows access to current VC's methods. */
+    const VC* operator->() const;
+
+    /** Moves to the next VC. */
+    void operator++();
+
+    /** Used by SafeBool. */
+    bool boolean_test() const;
+
+private:
+    const std::list<VC>& m_lst;
+
+    std::list<VC>::const_iterator m_it;
+};
+
+inline VCListConstIterator::VCListConstIterator(const VCList& lst)
+    : m_lst(lst.m_vcs),
+      m_it(lst.m_vcs.begin())
+{
+}
+
+inline const VC& VCListConstIterator::operator*() const
+{
+    return *m_it;
+}
+
+inline const VC* VCListConstIterator::operator->() const
+{
+    return &(*m_it);
+}
+
+inline void VCListConstIterator::operator++()
+{
+    m_it++;
+}
+
+inline bool VCListConstIterator::boolean_test() const
+{
+    return m_it != m_lst.end();
 }
 
 //----------------------------------------------------------------------------
