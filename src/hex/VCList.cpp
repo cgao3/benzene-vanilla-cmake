@@ -26,7 +26,7 @@ std::string VCList::Dump() const
 {
     std::size_t i = 0;
     std::ostringstream os;
-    for (const_iterator it = m_vcs.begin(); it != m_vcs.end(); ++it) 
+    for (VCListConstIterator it(*this); it; ++it, ++i)
         os << i++ << ": " << *it << '\n';
     return os.str();
 }
@@ -35,7 +35,7 @@ std::string VCList::Dump() const
 
 bool VCList::IsSupersetOfAny(const bitset_t& bs) const
 {
-    for (const_iterator it = m_vcs.begin(); it != m_vcs.end(); ++it)
+    for (VCListConstIterator it(*this); it; ++it)
         if (BitsetUtil::IsSubsetOf(it->Carrier(), bs))
             return true;
     return false;
@@ -43,7 +43,7 @@ bool VCList::IsSupersetOfAny(const bitset_t& bs) const
 
 bool VCList::IsSubsetOfAny(const bitset_t& bs) const
 {
-    for (const_iterator it = m_vcs.begin(); it != m_vcs.end(); ++it) 
+    for (VCListConstIterator it(*this); it; ++it) 
         if (BitsetUtil::IsSubsetOf(bs, it->Carrier())) 
             return true;
     return false;
@@ -53,7 +53,7 @@ std::size_t VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
                                       bool dirtyIntersections)
 {
     std::size_t count = 0;
-    for (iterator it = m_vcs.begin(); it != m_vcs.end();)
+    for (std::list<VC>::iterator it = m_vcs.begin(); it != m_vcs.end();)
     {
         if (BitsetUtil::IsSubsetOf(bs, it->Carrier())) 
         {
@@ -80,7 +80,7 @@ void VCList::ForcedAdd(const VC& vc)
 {
     BenzeneAssert((vc.X() == GetX() && vc.Y() == GetY()) ||
                   (vc.X() == GetY() && vc.Y() == GetX()));
-    iterator it;
+    std::list<VC>::iterator it;
     unsigned count = 0;
     for (it = m_vcs.begin(); it != m_vcs.end(); ++it, ++count)
         if (*it > vc)
@@ -97,7 +97,7 @@ VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
     BenzeneAssert((vc.X() == GetX() && vc.Y() == GetY()) ||
                   (vc.X() == GetY() && vc.Y() == GetX()));
     unsigned count = 0;
-    iterator it = m_vcs.begin();
+    std::list<VC>::iterator it = m_vcs.begin();
     for (; it != m_vcs.end(); ++it, ++count) 
     {
         if (*it > vc)
@@ -132,7 +132,7 @@ VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
 std::size_t VCList::Add(const VCList& other, ChangeLog<VC>* log)
 {
     std::size_t count = 0;
-    for (const_iterator it = other.Begin(); it != other.End(); ++it) 
+    for (VCListConstIterator it(other); it; ++it) 
     {
         VC v(GetX(), GetY(), it->Key(), it->Carrier(), it->Rule());
         v.SetProcessed(false);
@@ -144,22 +144,19 @@ std::size_t VCList::Add(const VCList& other, ChangeLog<VC>* log)
 
 //----------------------------------------------------------------------------
 
-VCList::iterator VCList::Remove(iterator it, ChangeLog<VC>* log)
+bool VCList::Remove(const VC& vc, ChangeLog<VC>* log)
 {
+    std::list<VC>::iterator it = m_vcs.begin();
+    for (; it != m_vcs.end(); ++it)
+        if (vc == *it) 
+            break;
+    if (it == m_vcs.end())
+        return false;
     if (log) 
         log->Push(ChangeLog<VC>::REMOVE, *it);
     it = m_vcs.erase(it);
     DirtyListUnions();
     DirtyListIntersections();
-    return it;
-}
-
-bool VCList::Remove(const VC& vc, ChangeLog<VC>* log)
-{
-    iterator it = Find(vc);
-    if (it == End())
-        return false;
-    Remove(it, log);
     return true;
 }
 
@@ -173,36 +170,6 @@ VC* VCList::FindInList(const VC& vc)
     return 0;
 }
 
-VCList::const_iterator VCList::Find(const VC& vc, const const_iterator& b, 
-                                    const const_iterator& e) const
-{
-    const_iterator it = b;
-    for (; it != e; ++it)
-        if (vc == *it)      // TODO: Check size for speedup!
-            break;
-    return it;
-}
-
-VCList::const_iterator VCList::Find(const VC& vc) const
-{
-    return Find(vc, Begin(), End());
-}
-
-VCList::iterator VCList::Find(const VC& vc, const iterator& b, 
-                              const iterator& e)
-{
-    iterator it = b;
-    for (; it != e; ++it)
-        if (vc == *it) 
-            break;
-    return it;
-}
-
-VCList::iterator VCList::Find(const VC& vc)
-{
-    return Find(vc, Begin(), End());
-}
-
 //----------------------------------------------------------------------------
 
 void VCList::ComputeUnions() const
@@ -211,14 +178,13 @@ void VCList::ComputeUnions() const
     inter.set();
     m_union.reset();
     m_greedyUnion.reset();
-    const_iterator cur = m_vcs.begin();
-    for (; cur != m_vcs.end(); ++cur) 
+    for (VCListConstIterator it(*this); it; ++it) 
     {
-        m_union |= cur->Carrier();
-        bitset_t c = inter & cur->Carrier();
+        m_union |= it->Carrier();
+        bitset_t c = inter & it->Carrier();
         if (inter != c) 
         {
-            m_greedyUnion |= cur->Carrier();
+            m_greedyUnion |= it->Carrier();
             inter = c;
         }
     }
@@ -244,8 +210,8 @@ bitset_t VCList::GetGreedyUnion() const
 void VCList::ComputeIntersections() const
 {
     m_softIntersection.set();
-    const_iterator cur = m_vcs.begin();
-    const_iterator end = m_vcs.end();
+    std::list<VC>::const_iterator cur = m_vcs.begin();
+    std::list<VC>::const_iterator end = m_vcs.end();
     // TODO: Abort loops early if intersection is empty?
     for (std::size_t count = 0; count < Softlimit() && cur!=end; ++cur, ++count)
         m_softIntersection &= cur->Carrier();
@@ -277,7 +243,7 @@ std::size_t VCList::RemoveAllContaining(HexPoint cell, std::list<VC>& out,
     if (!GetUnion().test(cell))
         return 0;
     int count = 0;
-    for (iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
+    for (std::list<VC>::iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
     {
         if (it->Carrier().test(cell)) 
         {
@@ -304,7 +270,7 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, std::list<VC>& out,
     if ((GetUnion() & b).none())
         return 0;
     std::size_t count = 0;
-    for (iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
+    for (std::list<VC>::iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
     {
         if ((it->Carrier() & b).any()) 
         {
@@ -330,7 +296,7 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, ChangeLog<VC>* log)
     if ((GetUnion() & b).none())
         return 0;
     std::size_t count = 0;
-    for (iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
+    for (std::list<VC>::iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
     {
         if ((it->Carrier() & b).any()) 
         {
@@ -358,9 +324,9 @@ bool VCList::operator==(const VCList& other) const
         return false;
     if (Size() != other.Size())
         return false;
-    const_iterator us = Begin();
-    const_iterator them = other.Begin();
-    while (us != End()) 
+    VCListConstIterator us(*this);
+    VCListConstIterator them(other);
+    while (us)
     {
         if (*us != *them) 
             return false;
@@ -378,9 +344,9 @@ bool VCList::operator!=(const VCList& other) const
         return true;
     if (Size() != other.Size())
         return true;
-    const_iterator us = Begin();
-    const_iterator them = other.Begin();
-    while (us != End()) 
+    VCListConstIterator us(*this);
+    VCListConstIterator them(other);
+    while (us) 
     {
         if (*us != *them) 
             return true;

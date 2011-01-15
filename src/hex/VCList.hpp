@@ -113,55 +113,6 @@ public:
 
     //----------------------------------------------------------------------
 
-    /** @name Iterators */
-    // @{
-
-    typedef std::list<VC>::iterator iterator;
-
-    typedef std::list<VC>::const_iterator const_iterator;
-
-    /** Returns pointer to occurance of VC in the list.
-        Returns 0 if VC is not in the list. */
-    VC* FindInList(const VC& vc);
-
-    /** Returns an iterator to the given VC, or End() if vc is not in
-        the list. */
-    iterator Find(const VC& vc);
-
-    iterator Find(const VC& vc, const iterator& b, const iterator& e);
-
-    /** Returns a constant iterator to the given VC, or End() if vc is
-        not in the list. */
-    const_iterator Find(const VC& vc) const;
-
-    const_iterator Find(const VC& vc, const const_iterator& b, 
-                        const const_iterator& e) const;
-
-    /** Removes the element pointed to by i from the list.
-        @return the next element. */
-    iterator Remove(iterator i, ChangeLog<VC>* log);
-
-    /** Removes the given vc from the list.  Does nothing if vc is not
-        actually in the list.  Takes O(n) time. Returns true if vc
-        was actually removed, false otherwise. */
-    bool Remove(const VC& vc, ChangeLog<VC>* log);
-
-    /** Returns an iterator to the start of the list. */
-    iterator Begin();
-
-    /** Returns an iterator just past the end of the list. */
-    iterator End();
-
-    /** Returns a constant iterator to the start of the list. */
-    const_iterator Begin() const;
-
-    /** Returns a constant iterator just past the end of the list. */
-    const_iterator End() const;
-
-    // @}
-
-    //----------------------------------------------------------------------
-
     /** Returns the union of all carriers in the list. */
     bitset_t GetUnion() const;
 
@@ -186,6 +137,15 @@ public:
 
     //----------------------------------------------------------------------
 
+    /** Returns pointer to occurance of VC in the list.
+        Returns 0 if VC is not in the list. */
+    VC* FindInList(const VC& vc);
+
+    /** Removes the given vc from the list.  Does nothing if vc is not
+        actually in the list.  Takes O(n) time. Returns true if vc
+        was actually removed, false otherwise. */
+    bool Remove(const VC& vc, ChangeLog<VC>* log);
+
     /** Removes all VCs that intersect with cell. 
         Removed VCs are appended to out---note that the order
         of the vcs in out is the same as it was in the original list.
@@ -201,6 +161,8 @@ public:
     /** Removes all VCs that intersect with b. */
     std::size_t RemoveAllContaining(const bitset_t& b, ChangeLog<VC>* log);
    
+    //----------------------------------------------------------------------
+
     /** Performs list equality. */
     bool operator==(const VCList& other) const;
 
@@ -298,26 +260,6 @@ inline void VCList::Clear()
     m_dirtyIntersection = false;
     m_softIntersection.set();
     m_hardIntersection.set();
-}
-
-inline VCList::iterator VCList::Begin()
-{
-    return m_vcs.begin();
-}
-
-inline VCList::iterator VCList::End()
-{
-    return m_vcs.end();
-}
-
-inline VCList::const_iterator VCList::Begin() const
-{
-    return m_vcs.begin();
-}
-
-inline VCList::const_iterator VCList::End() const
-{
-    return m_vcs.end();
 }
 
 //----------------------------------------------------------------------------

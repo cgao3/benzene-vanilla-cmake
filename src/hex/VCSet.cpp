@@ -97,7 +97,7 @@ bool VCSet::SmallestVC(HexPoint x, HexPoint y, VC::Type type, VC& out) const
 {
     if (!Exists(x, y, type)) 
         return false;
-    out = *m_vc[type][x][y]->Begin();
+    out = *VCListIterator(*m_vc[type][x][y]);
     return true;
 }
 
