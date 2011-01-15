@@ -143,7 +143,7 @@ void VCSet::Revert(ChangeLog<VC>& log)
         if (action == ChangeLog<VC>::ADD) 
         {
 #ifdef NDEBUG
-            list->remove(vc, 0);
+            list->Remove(vc, 0);
 #else
             BenzeneAssert(list->Remove(vc, 0));
 #endif
