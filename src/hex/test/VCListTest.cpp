@@ -22,16 +22,17 @@ using namespace benzene;
 
 namespace {
 
-BOOST_AUTO_TEST_CASE(VCList_VCListIterator)
+BOOST_AUTO_TEST_CASE(VCList_Iterators)
 {
     HexPoint x = HEX_CELL_A1;
     HexPoint y = HEX_CELL_A2;
     VCList vl(x, y, 10);
     {
-        VCListConstIterator it(vl);
+        VCListIterator it(vl);
         BOOST_CHECK(!it);
+        VCListConstIterator cit(vl);
+        BOOST_CHECK(!cit);
     }
-
     bitset_t b1;
     b1.set(HEX_CELL_C1);
     VC v1(x, y, b1, VC_RULE_BASE);
@@ -40,17 +41,60 @@ BOOST_AUTO_TEST_CASE(VCList_VCListIterator)
     b2.set(HEX_CELL_C2);
     VC v2(x, y, b2, VC_RULE_BASE);
     BOOST_CHECK_EQUAL(vl.Add(v2, NULL), VCList::ADDED_INSIDE_SOFT_LIMIT);
-
-    VCListIterator it(vl);
-    BOOST_CHECK(it);
-    BOOST_CHECK(*it == v1);
-    BOOST_CHECK(it->Carrier() == v1.Carrier());
-    it->SetProcessed(false);
-    ++it;
-    BOOST_CHECK(it);
-    BOOST_CHECK(*it == v2);
-    ++it;
-    BOOST_CHECK(!it);
+    bitset_t b3;
+    b3.set(HEX_CELL_C3);
+    VC v3(x, y, b3, VC_RULE_BASE);
+    BOOST_CHECK_EQUAL(vl.Add(v3, NULL), VCList::ADDED_INSIDE_SOFT_LIMIT);
+    {   // Check iterating over entire list
+        VCListIterator it(vl);
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v1);
+        BOOST_CHECK(it->Carrier() == v1.Carrier());
+        ++it;
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v2);
+        ++it;
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v3);
+        ++it;
+        BOOST_CHECK(!it);
+    }
+    {   // Check iterating over only the first N elements
+        VCListIterator it(vl, 2);
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v1);
+        BOOST_CHECK(it->Carrier() == v1.Carrier());
+        ++it;
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v2);
+        ++it;
+        BOOST_CHECK(!it);
+    }
+    {   // Check iterating over entire list
+        VCListConstIterator it(vl);
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v1);
+        BOOST_CHECK(it->Carrier() == v1.Carrier());
+        ++it;
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v2);
+        ++it;
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v3);
+        ++it;
+        BOOST_CHECK(!it);
+    }
+    {   // Check iterating over only the first N elements
+        VCListConstIterator it(vl, 2);
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v1);
+        BOOST_CHECK(it->Carrier() == v1.Carrier());
+        ++it;
+        BOOST_CHECK(it);
+        BOOST_CHECK(*it == v2);
+        ++it;
+        BOOST_CHECK(!it);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(VCList_Basic)
@@ -99,13 +143,14 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     BOOST_CHECK_EQUAL(vl.Size(), 2);
 
     // ensure v1 appears before v3
-    VCList::const_iterator it = vl.Begin();
-    BOOST_CHECK_EQUAL(*it, v1);
-    ++it;
-    BOOST_CHECK_EQUAL(*it, v3);
-    ++it;
-    BOOST_CHECK(it == vl.End());
-
+    {
+        VCListConstIterator it(vl);
+        BOOST_CHECK_EQUAL(*it, v1);
+        ++it;
+        BOOST_CHECK_EQUAL(*it, v3);
+        ++it;
+        BOOST_CHECK(!it);
+    }
     BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.Carrier() & v3.Carrier());
     BOOST_CHECK_EQUAL(vl.GetUnion(), v1.Carrier() | v3.Carrier());
 
@@ -120,13 +165,14 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     BOOST_CHECK_EQUAL(vl.Size(), 2);
 
     // list should be [v1, v4].
-    it = vl.Begin();
-    BOOST_CHECK_EQUAL(*it, v1);
-    ++it;
-    BOOST_CHECK_EQUAL(*it, v4);
-    ++it;
-    BOOST_CHECK(it == vl.End());
-
+    {
+        VCListConstIterator it(vl);
+        BOOST_CHECK_EQUAL(*it, v1);
+        ++it;
+        BOOST_CHECK_EQUAL(*it, v4);
+        ++it;
+        BOOST_CHECK(!it);
+    }
     BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.Carrier() & v4.Carrier());
     BOOST_CHECK_EQUAL(vl.GetUnion(), v1.Carrier() | v4.Carrier());
 
@@ -142,21 +188,22 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     BOOST_CHECK_EQUAL(vl.Size(), 3);
 
     // list should be [v1, v4, v5].
-    it = vl.Begin();
-    BOOST_CHECK_EQUAL(*it, v1);
-    ++it;
-    BOOST_CHECK_EQUAL(*it, v4);
-    ++it;
-    BOOST_CHECK_EQUAL(*it, v5);
-    ++it;
-    BOOST_CHECK(it == vl.End());
-    
+    {
+        VCListConstIterator it(vl);
+        BOOST_CHECK_EQUAL(*it, v1);
+        ++it;
+        BOOST_CHECK_EQUAL(*it, v4);
+        ++it;
+        BOOST_CHECK_EQUAL(*it, v5);
+        ++it;
+        BOOST_CHECK(!it);
+    }    
     BOOST_CHECK_EQUAL(vl.SoftIntersection(), v1.Carrier() & v4.Carrier());
     BOOST_CHECK_EQUAL(vl.HardIntersection(), 
                       v1.Carrier() & v4.Carrier() & v5.Carrier());
     BOOST_CHECK_EQUAL(vl.GetUnion(), v1.Carrier()|v4.Carrier()|v5.Carrier());
     
-    // test removingAllContaining()
+    // test RemovingAllContaining()
     bitset_t remove;
     remove.set(FIRST_CELL+2);
     remove.set(FIRST_EDGE);
@@ -166,13 +213,14 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     BOOST_CHECK_EQUAL(vl.Size(), 2);
 
     // list should be [v1, v5].
-    it = vl.Begin();
-    BOOST_CHECK_EQUAL(*it, v1);
-    ++it;
-    BOOST_CHECK_EQUAL(*it, v5);
-    ++it;
-    BOOST_CHECK(it == vl.End());
-
+    {
+        VCListConstIterator it(vl);
+        BOOST_CHECK_EQUAL(*it, v1);
+        ++it;
+        BOOST_CHECK_EQUAL(*it, v5);
+        ++it;
+        BOOST_CHECK(!it);
+    }
     BOOST_CHECK_EQUAL(vl.HardIntersection(), v1.Carrier() & v5.Carrier());
     BOOST_CHECK_EQUAL(vl.GetUnion(), v1.Carrier() | v5.Carrier());
 
@@ -182,11 +230,12 @@ BOOST_AUTO_TEST_CASE(VCList_Basic)
     BOOST_CHECK_EQUAL(vl.Size(), 1);
     
     // list should be [v5]
-    it = vl.Begin();
-    BOOST_CHECK_EQUAL(*it, v5);
-    ++it;
-    BOOST_CHECK(it == vl.End());
-
+    {
+        VCListConstIterator it(vl);
+        BOOST_CHECK_EQUAL(*it, v5);
+        ++it;
+        BOOST_CHECK(!it);
+    }
     BOOST_CHECK_EQUAL(vl.HardIntersection(), v5.Carrier());
     BOOST_CHECK_EQUAL(vl.GetUnion(), v5.Carrier());
 }

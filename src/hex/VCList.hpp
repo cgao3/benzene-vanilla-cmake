@@ -5,6 +5,7 @@
 #ifndef VCLIST_HPP
 #define VCLIST_HPP
 
+#include <limits>
 #include "ChangeLog.hpp"
 #include "SafeBool.hpp"
 #include "VC.hpp"
@@ -321,8 +322,12 @@ inline VCList::const_iterator VCList::End() const
 class VCListIterator : public SafeBool<VCListIterator>
 {
 public:
-    /** Creates an iterator over all groups. */
-    VCListIterator(VCList& lst);
+    /** Creates iterator on a VCList. */
+    explicit VCListIterator(VCList& lst);
+    
+    /** Creates iterator on a VCList.
+        Iterates until end of list or at most max elements. */
+    VCListIterator(VCList& lst, std::size_t max);
 
     /** Returns current VC. */
     VC& operator*();
@@ -340,11 +345,25 @@ private:
     std::list<VC>& m_lst;
 
     std::list<VC>::iterator m_it;
+
+    std::size_t m_max;
+
+    std::size_t m_count;
 };
 
 inline VCListIterator::VCListIterator(VCList& lst)
     : m_lst(lst.m_vcs),
-      m_it(lst.m_vcs.begin())
+      m_it(lst.m_vcs.begin()),
+      m_max(std::numeric_limits<std::size_t>::max()),
+      m_count(0)
+{
+}
+
+inline VCListIterator::VCListIterator(VCList& lst, std::size_t max)
+    : m_lst(lst.m_vcs),
+      m_it(lst.m_vcs.begin()),
+      m_max(max),
+      m_count(0)
 {
 }
 
@@ -360,12 +379,13 @@ inline VC* VCListIterator::operator->()
 
 inline void VCListIterator::operator++()
 {
-    m_it++;
+    ++m_it;
+    ++m_count;
 }
 
 inline bool VCListIterator::boolean_test() const
 {
-    return m_it != m_lst.end();
+    return m_it != m_lst.end() && m_count < m_max;
 }
 
 //----------------------------------------------------------------------------
@@ -376,8 +396,12 @@ inline bool VCListIterator::boolean_test() const
 class VCListConstIterator : public SafeBool<VCListConstIterator>
 {
 public:
-    /** Creates an iterator over all groups. */
+    /** Creates a constnat iterator on a VCList. */
     VCListConstIterator(const VCList& lst);
+
+    /** Creates a constant iterator on a VCList.
+        Iterates until end of list or at most max elements. */
+    VCListConstIterator(const VCList& lst, std::size_t max);
 
     /** Returns current VC. */
     const VC& operator*() const;
@@ -395,11 +419,26 @@ private:
     const std::list<VC>& m_lst;
 
     std::list<VC>::const_iterator m_it;
+
+    std::size_t m_max;
+
+    std::size_t m_count;
 };
 
 inline VCListConstIterator::VCListConstIterator(const VCList& lst)
     : m_lst(lst.m_vcs),
-      m_it(lst.m_vcs.begin())
+      m_it(lst.m_vcs.begin()),
+      m_max(std::numeric_limits<std::size_t>::max()),
+      m_count(0)
+{
+}
+
+inline VCListConstIterator::VCListConstIterator(const VCList& lst, 
+                                                std::size_t max)
+    : m_lst(lst.m_vcs),
+      m_it(lst.m_vcs.begin()),
+      m_max(max),
+      m_count(0)
 {
 }
 
@@ -415,12 +454,13 @@ inline const VC* VCListConstIterator::operator->() const
 
 inline void VCListConstIterator::operator++()
 {
-    m_it++;
+    ++m_it;
+    ++m_count;
 }
 
 inline bool VCListConstIterator::boolean_test() const
 {
-    return m_it != m_lst.end();
+    return m_it != m_lst.end() && m_count < m_max;
 }
 
 //----------------------------------------------------------------------------

@@ -106,7 +106,7 @@ void VCSet::VCs(HexPoint x, HexPoint y, VC::Type type,
 {
     out.clear();
     const VCList* who = m_vc[type][x][y];
-    for (VCList::const_iterator it(who->Begin()); it != who->End(); ++it)
+    for (VCListConstIterator it(*who); it; ++it)
         out.push_back(*it);
 }
 

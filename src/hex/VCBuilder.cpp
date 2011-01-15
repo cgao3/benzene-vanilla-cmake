@@ -398,21 +398,14 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
 {
     VCList& semis = m_con->GetList(VC::SEMI, xc, yc);
     VCList& fulls = m_con->GetList(VC::FULL, xc, yc);
-
     bitset_t capturedSet = m_capturedSet[xc] | m_capturedSet[yc];
     bitset_t uncapturedSet = capturedSet;
     uncapturedSet.flip();
-
     // Nothing to do, so abort. 
     if ((semis.HardIntersection() & uncapturedSet).any())
         return;
-
-    std::size_t soft = semis.Softlimit();
-    VCList::iterator cur = semis.Begin();
-    VCList::iterator end = semis.End();
     std::list<VC> added;
-
-    for (std::size_t count = 0; count < soft && cur != end; ++cur, ++count) 
+    for (VCListIterator cur(semis, semis.Softlimit()); cur; ++cur) 
     {
         if (!cur->Processed()) 
         {
@@ -422,14 +415,11 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
             {
                 m_statistics->goodOrs++;
             }
-
             cur->SetProcessed(true);
-            
             if (m_log)
                 m_log->Push(ChangeLog<VC>::PROCESSED, *cur);
         }
     }
-
     // If no full exists, create one by unioning the entire list
     if (fulls.Empty()) 
     {
@@ -445,10 +435,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
 void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
 {
     VCList& fulls = m_con->GetList(VC::FULL, xc, yc);
-    std::size_t soft = fulls.Softlimit();
-    VCList::iterator cur = fulls.Begin();
-    VCList::iterator end = fulls.End();
-    for (std::size_t count = 0; count < soft && cur != end; ++cur, ++count) 
+    for (VCListIterator cur(fulls, fulls.Softlimit()); cur; ++cur) 
     {
         if (!cur->Processed()) 
         {
@@ -467,10 +454,8 @@ void VCBuilder::DoSearch()
     {
         HexPointPair pair = m_queue.Front();
         m_queue.Pop();
-
         ProcessSemis(pair.first, pair.second);
         ProcessFulls(pair.first, pair.second);
-        
         if (m_param.abort_on_winning_connection && 
             m_con->Exists(HexPointUtil::colorEdge1(m_color),
                           HexPointUtil::colorEdge2(m_color),
@@ -481,10 +466,8 @@ void VCBuilder::DoSearch()
         }
     }        
     BenzeneAssert(winning_connection || m_queue.Empty());
-
     if (winning_connection) 
         LogFine() << "Aborted on winning connection.\n";
-            
     // Process the side-to-side semi list to ensure we have a full if
     // mustplay is empty.
     // TODO: IS THIS STILL NEEDED?
@@ -549,10 +532,7 @@ void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
 {
     if (old->Empty())
         return;
-    std::size_t soft = old->Softlimit();
-    VCList::const_iterator i = old->Begin();
-    VCList::const_iterator end = old->End();
-    for (std::size_t count = 0; count < soft && i != end; ++i, ++count) 
+    for (VCListConstIterator i(*old, old->Softlimit()); i; ++i) 
     {
         if (!i->Processed())
             continue;
@@ -615,10 +595,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
         return 0;
     // Copy processed semis (unprocessed semis are not used here)
     m_semi.clear();
-    std::size_t soft = semi_list->Softlimit();
-    VCList::const_iterator it = semi_list->Begin();
-    VCList::const_iterator end = semi_list->End();
-    for (std::size_t count = 0; count < soft && it != end; ++count, ++it)
+    for (VCListConstIterator it(*semi_list, semi_list->Softlimit()); it; ++it)
         if (it->Processed())
             m_semi.push_back(*it);
     if (m_semi.empty())

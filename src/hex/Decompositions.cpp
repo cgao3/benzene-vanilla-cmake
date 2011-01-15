@@ -157,11 +157,11 @@ bool Decompositions::Find(const HexBoard& brd, HexColor color,
 	    // If the pair has a VC confined to these cells, then we have
 	    // a decomposition - return it.
 	    const VCList& vl = cons.GetList(VC::FULL, g1->first, g2->first);
-	    for (VCList::const_iterator vi = vl.Begin(); vi != vl.End(); ++vi)
+	    for (VCListConstIterator it(vl); it; ++it)
             {
-		if (BitsetUtil::IsSubsetOf(vi->Carrier(), decompArea)) 
+		if (BitsetUtil::IsSubsetOf(it->Carrier(), decompArea)) 
                 {
-		    captured = vi->Carrier();
+		    captured = it->Carrier();
 		    return true;
 		}
 	    }
