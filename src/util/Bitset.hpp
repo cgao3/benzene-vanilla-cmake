@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file Bitset.hpp
- */
+/** @file Bitset.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef BITSET_HPP
@@ -12,14 +11,13 @@
 #include <vector>
 
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 #include "Types.hpp"
 
 /** If true, uses our own bitset, otherwise std::bitset.
-
     Homebrewed bitset is a copy of std::bitset with subset and
     less-than operations built in. Using the homebrewed bitset should
     improve performance slightly.
-
     If you are getting compile errors, switch to the stl bitset.
  */
 #define USE_HOMEBREWED_BITSET   1
@@ -36,8 +34,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 /** Maximum size of a bitset. 
     Very important. Only mess with this if you know what you are
-    doing!
-*/
+    doing! */
 #if defined(SUPPORT_19x19)
 
 /** Actually need only 361+7 for 19x19. */
@@ -132,11 +129,10 @@ void BitsetUtil::BitsetToVector(const bitset_t& b,
                                 std::vector<INT>& indices)
 {
     indices.clear();
-    for (int i=0; i<BITSETSIZE; i++) {
+    for (int i = 0; i < BITSETSIZE; i++)
         if (b.test(i))
             indices.push_back(static_cast<INT>(i));
-    }
-    assert(b.count() == indices.size());
+    BenzeneAssert(b.count() == indices.size());
 }
 
 template<typename INT>
@@ -144,7 +140,7 @@ bitset_t BitsetUtil::SetToBitset(const std::set<INT>& indices)
 {
     bitset_t ret;
     typedef typename std::set<INT>::const_iterator const_iterator;
-    for (const_iterator it=indices.begin(); 
+    for (const_iterator it = indices.begin(); 
          it != indices.end();
          ++it) 
     {

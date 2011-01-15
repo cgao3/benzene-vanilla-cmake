@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file Misc.hpp
- */
+/** @file Misc.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef MISC_HPP
@@ -40,7 +39,8 @@ template<typename TYPE>
 std::string MiscUtil::PrintVector(const std::vector<TYPE>& v)
 {
     std::ostringstream is;
-    for (std::size_t i=0; i<v.size(); ++i) {
+    for (std::size_t i = 0; i < v.size(); ++i) 
+    {
         if (i) is << ' ';
         is << v[i];
     }

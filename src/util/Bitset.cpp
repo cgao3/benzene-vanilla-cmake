@@ -1,11 +1,11 @@
 //----------------------------------------------------------------------------
-/** @file Bitset.cpp
- */
+/** @file Bitset.cpp */
 //----------------------------------------------------------------------------
 
 #include <sstream>
 #include <cstdio>
 #include "Bitset.hpp"
+#include "BenzeneAssert.hpp"
 
 using namespace benzene;
 
@@ -13,41 +13,40 @@ using namespace benzene;
 
 void BitsetUtil::BitsetToBytes(const bitset_t& b, byte* out, int numbits)
 {
-    numbits = ((numbits+7)/8)*8;
-    assert(numbits <= BITSETSIZE);
-
-    for (int i=0; i<numbits; i+=8) {
+    numbits = ((numbits + 7) / 8) * 8;
+    BenzeneAssert(numbits <= BITSETSIZE);
+    for (int i = 0; i < numbits; i += 8) 
+    {
         int c = 0;
-        for (int j=0; j<8; j++) 
-            c += (b.test(i+j)) ? (1<<j) : 0;
-        out[i/8] = static_cast<byte>(c);
+        for (int j = 0; j < 8; j++) 
+            c += (b.test(i + j)) ? 1 << j : 0;
+        out[i / 8] = static_cast<byte>(c);
     }
 }
 
 bitset_t BitsetUtil::BytesToBitset(const byte* bytes, int numbits)
 {
     bitset_t ret;
-    int numbytes = (numbits+7)/8;
-    for (int i=0; i<numbytes; i++) {
-        for (int j=0; j<8; j++) {
-            if (bytes[i] & (1<<j))
-                ret.set(i*8 + j);
-        }
+    int numbytes = (numbits + 7) / 8;
+    for (int i = 0; i < numbytes; i++) 
+    {
+        for (int j = 0; j < 8; j++)
+            if (bytes[i] & (1 << j))
+                ret.set(i * 8 + j);
     }
     return ret;
 }
 
 std::string BitsetUtil::BitsetToHex(const bitset_t& b, int numbits)
 {
-    numbits = ((numbits+3)/4)*4;
-    assert(numbits <= BITSETSIZE);
-
+    numbits = ((numbits + 3) / 4) * 4;
+    BenzeneAssert(numbits <= BITSETSIZE);
     std::string out;
-    for (int i=0; i<numbits; i+=4) {
+    for (int i = 0; i < numbits; i += 4) 
+    {
         int c = 0;
-        for (int j=0; j<4; j++) 
-            c += (b.test(i+j)) ? (1<<j) : 0;
-
+        for (int j = 0; j < 4; j++) 
+            c += (b.test(i + j)) ? (1 << j) : 0;
         char buff[4];
         sprintf(buff, "%x", c);
         out += buff;
@@ -58,16 +57,16 @@ std::string BitsetUtil::BitsetToHex(const bitset_t& b, int numbits)
 bitset_t BitsetUtil::HexToBitset(const std::string& str)
 {
     bitset_t out;
-    for (unsigned i=0; i<str.size(); i++) {
+    for (std::size_t i = 0; i < str.size(); i++) 
+    {
         unsigned c;
         char buff[4];
         buff[0] = str[i];
         buff[1] = 0;
         sscanf(buff, "%x", &c);
-        for (int j=0; j<4; j++) {
-            if (c & (1<<j))
-                out.set(i*4 + j);
-        }
+        for (int j = 0; j < 4; j++)
+            if (c & (1 << j))
+                out.set(i * 4 + j);
     }
     return out;
 }
@@ -83,7 +82,8 @@ bool BitsetUtil::SubtractIfLeavesAny(bitset_t& removeFrom,
                                      const bitset_t& remove)
 {
     bitset_t leftover = removeFrom - remove;
-    if (leftover.any()) {
+    if (leftover.any()) 
+    {
         removeFrom = leftover;
         return true;
     } 
@@ -92,24 +92,22 @@ bool BitsetUtil::SubtractIfLeavesAny(bitset_t& removeFrom,
 
 int BitsetUtil::FindSetBit(const bitset_t& b)
 {
-    assert(b.count() == 1);
+    BenzeneAssert(b.count() == 1);
     int ret;
-    for (ret=0; ret<BITSETSIZE; ret++) {
+    for (ret = 0; ret < BITSETSIZE; ret++) 
         if (b.test(ret))
             break;
-    }
     return ret;
 }
 
-/** @todo merge with FindSetBit()? */
+/** @todo Merge with FindSetBit()? */
 int BitsetUtil::FirstSetBit(const bitset_t& b)
 {
-    assert(b.any());
+    BenzeneAssert(b.any());
     int ret;
-    for (ret=0; ret<BITSETSIZE; ret++) {
+    for (ret = 0; ret < BITSETSIZE; ret++)
         if (b.test(ret))
             break;
-    }
     return ret;
 }
 //----------------------------------------------------------------------------
