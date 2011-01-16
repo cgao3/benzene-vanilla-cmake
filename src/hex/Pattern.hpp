@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file Pattern.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef PATTERN_H
@@ -75,23 +74,69 @@ _BEGIN_BENZENE_NAMESPACE_
     contains a black stone.
 */
 
-/** Patterns on a Hex board. 
+/** @page patternfiles Pattern Files
 
+    A pattern file is a text file encoding multiple patterns. In
+    addition to the raw pattern data, it also stores names and
+    mirroring information for each pattern.
+    
+    Pattern names are assumed to come before the encoding and are
+    between '[' and '/' characters (this comes from Jack's pattern
+    file format).
+
+    A mirrored copy of a pattern is stored if two names are
+    encountered before the pattern string.  No checking is done to
+    determine if a mirror is really necessary.
+
+    The pattern encoding is detected by any character in the first
+    column and is assumed to occupy exactly a single line.
+
+    So, to create your own pattern file, use something like this:
+
+    @verbatim
+        |  ...
+        |
+        |  [name1/]
+        |  [name2/]
+        | pattern encoding;
+        |
+        |  ...
+    @endverbatim
+
+    Notice the names are between [ and / symbols and do not start
+    in the first column.  The pattern encoding, however, does
+    start in the first column (and is the ONLY thing starting in the 
+    first column).
+
+    If you want, you can add a picture of the pattern. Here is 
+    an example pattern from our pattern file
+
+    @verbatim
+        |
+        |              B B   
+        |             B * B                         [31/0]
+        |   
+        |             B * B 
+        |              B B                          [31m/0]
+        |   
+        |!:1,0,0,1;1,1,0,0;1,1,0,0;1,1,0,0;0,0,0,0;0,0,0,0;
+        |
+    @endverbatim
+
+    This defines a pattern with name "31" and its mirror "31m".
+
+    Lines not starting in the first column and not containing a name
+    between a pair of '[' and '/' are simply ignored.
+*/
+
+/** Patterns on a Hex board. 
     Patterns are centered around a cell, and are encoded such that they
     can be rotated with minimal computation.  
-
-    These patterns can only be detected on a PatternBoard. 
-
-    Used by:
-       - ICEngine to find inferior cells.  
-       - UCT during the random playout phase. 
-
     @see @ref patternencoding
-*/
+    @see @ref patternfiles */
 class Pattern
 {
 public:
-
     /** This sets how far out patterns are allowed to extend. Value
         must be >= 1 and <= 7. */
     static const int MAX_EXTENSION = 3;
@@ -181,110 +226,64 @@ public:
     /** Returns a string of the pattern in encoded form. 
         @see @ref patternencoding
     */
-    std::string serialize() const;
+    std::string Serialize() const;
 
     /** Parses a pattern from an encoded string. 
         @see @ref patternencoding
-
         @return true if pattern was parsed without error.
     */
-    bool unserialize(std::string code);
+    bool Unserialize(std::string code);
     
     /** Returns the pattern's flags. */
-    int getFlags() const;
+    int GetFlags() const;
 
     /** Returns the pattern's name. */
-    std::string getName() const;
+    std::string GetName() const;
 
     /** Sets the name of this pattern. */
-    void setName(const std::string& s);
+    void SetName(const std::string& s);
 
     /** Returns the pattern's type. */
-    char getType() const;
+    char GetType() const;
     
     /** Returns the list of (slice, bit) pairs for moves defined in the
         marked field (f = 0 or 1). */  
-    const std::vector<std::pair<int, int> >& getMoves1() const;
-    const std::vector<std::pair<int, int> >& getMoves2() const;
+    const std::vector<std::pair<int, int> >& GetMoves1() const;
+
+    const std::vector<std::pair<int, int> >& GetMoves2() const;
 
     /** Gets the weight for this pattern. */
-    int getWeight() const;
+    int GetWeight() const;
 
     /** Gets the extension radius of this pattern. */
-    int extension() const;
+    int Extension() const;
 
     /** Returns pointer to pattern's slice data. */
-    const slice_t* getData() const;
+    const slice_t* GetData() const;
 
     /** Returns the ring godel of this pattern rotated
         by angle slices. */
     const PatternRingGodel& RingGodel(int angle) const;
 
     /** Flip the pattern's colors. */
-    void flipColors();
+    void FlipColors();
 
     /** Mirrors pattern along x/y diagonal. */
-    void mirror(); 
+    void Mirror(); 
 
-    /** Parses patterns from a given stream.
-
-        Pattern names are assumed to come before the encoding and are
-        between '[' and '/' characters (this comes from Jack's
-        pattern file format).
-
-        A mirrored copy of a pattern is stored if two names are
-        encountered before the pattern string.  No checking is done
-        to determine if a mirror is really necessary.
-
-        The pattern encoding is detected by any character in the first
-        column and is assumed to occupy exactly a single line.
-
-        So, to create your own pattern file, use something like this:
-
-        |  ...
-        |
-        | [name1/]
-        | [name2/]
-        | pattern encoding;
-        |
-        |  ...
-
-        Notice the names are between [ and / symbols and do not start
-        in the first column.  The pattern encoding, however, does
-        start in the first column (and is the ONLY thing starting in the 
-        first column).
-
-        This is temporary. :-) 
-
-        If you want, you can add a picture of the pattern.  Here is 
-        an example pattern from our pattern file:
-
-
-        |
-        |              B B   
-        |             B * !                         [31/0]
-        |   
-        |             B * ! 
-        |              B B                          [31m/0]
-        |   
-        |!:1,0,0,1;1,1,0,0;1,1,0,0;1,1,0,0;0,0,0,0;0,0,0,0;
-        |
-
-
-        This defines a pattern with name "31" and its mirror "31m".  
-    */ 
+    /** Parses patterns from a stream.
+        Stream must be formatted as in @ref patternfiles.
+        @throws BenzeneException on error. */
     static void LoadPatternsFromStream(std::istream& f,
 				       std::vector<Pattern>& out);
 
-    /** Load patterns from a file. */
+    /** Load patterns from a file.
+        File must be formatted as in @ref patternfiles.
+        @throws BenzeneException on error. */
     static void LoadPatternsFromFile(const char *filename,
 				     std::vector<Pattern>& out);
 
 private:
-
-    /** Compute the ring godel codes. */
-    void compute_ring_godel();
-
     /** Pattern type. */
     char m_type;
 
@@ -311,59 +310,63 @@ private:
 
     /** One RingGodel for each rotation of the pattern. */
     PatternRingGodel m_ring_godel[NUM_SLICES];
+
+    void ComputeRingGodel();
+
+    bool CheckSliceIsValid(const slice_t& slice) const;
 };
 
 /** Sends output of serialize() to the stream. */
 inline std::ostream& operator<<(std::ostream &os, const Pattern& p)
 {
-    os << p.serialize();
+    os << p.Serialize();
     return os;
 }
 
-inline std::string Pattern::getName() const
+inline std::string Pattern::GetName() const
 {
     return m_name;
 }
 
-inline int Pattern::getFlags() const
+inline int Pattern::GetFlags() const
 {
     return m_flags;
 }
 
-inline char Pattern::getType() const
+inline char Pattern::GetType() const
 {
     return m_type;
 }
 
-inline const Pattern::slice_t* Pattern::getData() const
+inline const Pattern::slice_t* Pattern::GetData() const
 {
     return m_slice;
 }
 
-inline void Pattern::setName(const std::string& s) 
+inline void Pattern::SetName(const std::string& s) 
 {
     m_name = s; 
 }
 
-inline const std::vector<std::pair<int, int> >& Pattern::getMoves1() const
+inline const std::vector<std::pair<int, int> >& Pattern::GetMoves1() const
 {
     BenzeneAssert(m_flags & HAS_MOVES1);
     return m_moves1;
 }
 
-inline const std::vector<std::pair<int, int> >& Pattern::getMoves2() const
+inline const std::vector<std::pair<int, int> >& Pattern::GetMoves2() const
 {
     BenzeneAssert(m_flags & HAS_MOVES2);
     return m_moves2;
 }
 
-inline int Pattern::getWeight() const
+inline int Pattern::GetWeight() const
 {
     BenzeneAssert(m_flags & HAS_WEIGHT);
     return m_weight;
 }
 
-inline int Pattern::extension() const
+inline int Pattern::Extension() const
 {
     return m_extension;
 }
@@ -395,11 +398,14 @@ class RotatedPattern
 {
 public:
     RotatedPattern(const Pattern* pat, int angle);
-    const Pattern* pattern() const;
-    int angle() const;
+
+    const Pattern* GetPattern() const;
+
+    int Angle() const;
 
 private:
     const Pattern* m_pattern;
+
     int m_angle;
 };
 
@@ -409,12 +415,12 @@ inline RotatedPattern::RotatedPattern(const Pattern* pat, int angle)
 {
 }
 
-inline const Pattern* RotatedPattern::pattern() const
+inline const Pattern* RotatedPattern::GetPattern() const
 {
     return m_pattern;
 }
 
-inline int RotatedPattern::angle() const
+inline int RotatedPattern::Angle() const
 {
     return m_angle;
 }

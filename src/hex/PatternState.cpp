@@ -251,7 +251,7 @@ void PatternState::MatchOnCell(const HashedPatternSet& patset,
         std::vector<HexPoint> moves1, moves2;
         if (CheckRotatedPattern(cell, *it, moves1, moves2)) 
         {
-            hits.push_back(PatternHit(it->pattern(), moves1, moves2));
+            hits.push_back(PatternHit(it->GetPattern(), moves1, moves2));
             if (mode == STOP_AT_FIRST_HIT)
                 break;
         }
@@ -304,31 +304,30 @@ bool PatternState::CheckRotatedPattern(HexPoint cell,
 
     bool matches = CheckRingGodel(cell, rotpat);
 
-    const Pattern* pattern = rotpat.pattern();
-    if (matches && pattern->extension() > 1)
+    const Pattern* pattern = rotpat.GetPattern();
+    if (matches && pattern->Extension() > 1)
         matches = CheckRotatedSlices(cell, rotpat);
 
     if (matches) 
     {
-        if (pattern->getFlags() & Pattern::HAS_MOVES1) 
+        if (pattern->GetFlags() & Pattern::HAS_MOVES1) 
         {
-            for (unsigned i = 0; i < pattern->getMoves1().size(); ++i) 
+            for (unsigned i = 0; i < pattern->GetMoves1().size(); ++i) 
             {
-                int slice = pattern->getMoves1()[i].first;
-                int bit = pattern->getMoves1()[i].second;
+                int slice = pattern->GetMoves1()[i].first;
+                int bit = pattern->GetMoves1()[i].second;
                 moves1.push_back(m_data->GetRotatedMove(cell, slice, bit, 
-                                                        rotpat.angle()));
+                                                        rotpat.Angle()));
             }
         }
-
-        if (pattern->getFlags() & Pattern::HAS_MOVES2) 
+        if (pattern->GetFlags() & Pattern::HAS_MOVES2) 
         {
-            for (unsigned i = 0; i < pattern->getMoves2().size(); ++i) 
+            for (unsigned i = 0; i < pattern->GetMoves2().size(); ++i) 
             {
-                int slice = pattern->getMoves2()[i].first;
-                int bit = pattern->getMoves2()[i].second;
+                int slice = pattern->GetMoves2()[i].first;
+                int bit = pattern->GetMoves2()[i].second;
                 moves2.push_back(m_data->GetRotatedMove(cell, slice, bit, 
-                                                        rotpat.angle()));
+                                                        rotpat.Angle()));
             }
         }
         return true;
@@ -340,7 +339,7 @@ bool PatternState::CheckRotatedPattern(HexPoint cell,
 bool PatternState::CheckRotatedSlices(HexPoint cell, 
                                       const RotatedPattern& rotpat) const
 {
-    return CheckRotatedSlices(cell, *rotpat.pattern(), rotpat.angle());
+    return CheckRotatedSlices(cell, *rotpat.GetPattern(), rotpat.Angle());
 }
 
 /** Returns true if pattern's slices rotated by angle match the board
@@ -350,19 +349,16 @@ bool PatternState::CheckRotatedSlices(HexPoint cell, const Pattern& pattern,
 {
     const int *gb = m_slice_godel[cell][BLACK];
     const int *gw = m_slice_godel[cell][WHITE];
-    const Pattern::slice_t* pat = pattern.getData();
+    const Pattern::slice_t* pat = pattern.GetData();
 
     bool matches = true;
     for (int i = 0; matches && i < Pattern::NUM_SLICES; ++i) 
     {
         m_statistics.slice_checks++;
-        
         int j = (angle + i) % Pattern::NUM_SLICES;
-     
         int black_b = gb[i] & pat[j][Pattern::FEATURE_CELLS];
         int white_b = gw[i] & pat[j][Pattern::FEATURE_CELLS];
         int empty_b = black_b | white_b;
-
         int black_p = pat[j][Pattern::FEATURE_BLACK];
         int white_p = pat[j][Pattern::FEATURE_WHITE];
         int empty_p = pat[j][Pattern::FEATURE_CELLS] - 
@@ -390,7 +386,7 @@ bool PatternState::CheckRotatedSlices(HexPoint cell, const Pattern& pattern,
 bool PatternState::CheckRingGodel(HexPoint cell, 
                                   const RotatedPattern& rotpat) const
 {
-    return CheckRingGodel(cell, *rotpat.pattern(), rotpat.angle());
+    return CheckRingGodel(cell, *rotpat.GetPattern(), rotpat.Angle());
 }
 
 /** Returns true if the pattern's ring godel matches the board. */

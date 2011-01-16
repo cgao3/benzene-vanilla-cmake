@@ -90,14 +90,15 @@ void HexUctSharedPolicy::LoadPlayPatterns(const std::string& filename)
 
     for (std::size_t i = 0; i < patterns.size(); ++i) {
         Pattern p = patterns[i];
-        switch(p.getType()) {
+        switch(p.GetType()) 
+        {
         case Pattern::MOHEX:
             m_patterns[BLACK].push_back(p);
-            p.flipColors();
+            p.FlipColors();
             m_patterns[WHITE].push_back(p);
             break;
         default:
-            LogWarning() << "Pattern type = " << p.getType() << '\n';
+            LogWarning() << "Pattern type = " << p.GetType() << '\n';
             BenzeneAssert(false);
         }
     }
@@ -296,7 +297,7 @@ HexPoint HexUctPolicy::PickRandomPatternMove(const PatternState& pastate,
 #endif
             
         // number of entries added to array is equal to the pattern's weight
-        for (int j = 0; j < hits[i].pattern()->getWeight(); ++j) 
+        for (int j = 0; j < hits[i].pattern()->GetWeight(); ++j) 
         {
             patternIndex[num] = i;
             patternMoves[num] = hits[i].moves1()[0];

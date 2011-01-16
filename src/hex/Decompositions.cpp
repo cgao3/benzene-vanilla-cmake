@@ -37,13 +37,13 @@ void InitializeOppMiai()
         = "m:5,0,4,4,0;1,0,0,0,0;0,0,0,0,0;0,0,0,0,0;0,0,0,0,0;0,0,0,0,0;1";
 
     Pattern pattern;
-    if (!pattern.unserialize(oppmiai))
+    if (!pattern.Unserialize(oppmiai))
         throw BenzeneException("InitializeOppMiai: unable to parse pattern!");
 
-    pattern.setName("oppmiai");
+    pattern.SetName("oppmiai");
 
     g_oppmiai[BLACK].push_back(pattern);
-    pattern.flipColors();
+    pattern.FlipColors();
     g_oppmiai[WHITE].push_back(pattern);
         
     for (BWIterator c; c; ++c)

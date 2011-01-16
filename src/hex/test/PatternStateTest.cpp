@@ -35,12 +35,12 @@ BOOST_AUTO_TEST_CASE(PatternState_Tests)
     std::string patstring 
         = "v:1,0,1,0,0;1,0,0,1,0;1,0,1,0,0;1,0,1,0,0;0,0,0,0,0;0,0,0,0,0;";
     Pattern pattern;
-    BOOST_CHECK(pattern.unserialize(patstring));
+    BOOST_CHECK(pattern.Unserialize(patstring));
     PatternSet patterns;
-    pattern.setName("pat");
+    pattern.SetName("pat");
     patterns.push_back(pattern);
-    pattern.mirror();
-    pattern.setName("mpat");
+    pattern.Mirror();
+    pattern.SetName("mpat");
     patterns.push_back(pattern);
     HashedPatternSet hashpat;
     hashpat.Hash(patterns);

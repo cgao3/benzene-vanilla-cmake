@@ -56,7 +56,7 @@ void VCBuilder::LoadCapturedSetPatterns()
     for (std::size_t i = 0; i < patterns.size(); ++i)
     {
         m_capturedSetPatterns[WHITE].push_back(patterns[i]);
-        patterns[i].flipColors();
+        patterns[i].FlipColors();
         m_capturedSetPatterns[BLACK].push_back(patterns[i]);
     }
     for (BWIterator c; c; ++c) 

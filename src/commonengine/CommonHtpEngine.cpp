@@ -296,7 +296,7 @@ void CommonHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
     m_pe.ice.FindDominatedOnCell(brd.GetPatternState(), col, 
                                  cell, hits);
     for (std::size_t i = 0; i < hits.size(); ++i)
-        cmd << " " << hits[i].pattern()->getName();
+        cmd << " " << hits[i].pattern()->GetName();
     cmd << '\n';
 }
 

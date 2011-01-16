@@ -33,7 +33,7 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
     {
         Pattern p(patterns[i]);
 
-        switch(p.getType()) {
+        switch(p.GetType()) {
         case Pattern::DEAD:
             m_dead.push_back(p);
             break;
@@ -41,44 +41,44 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
         case Pattern::CAPTURED:
             // WHITE is first!!
             m_captured[WHITE].push_back(p);  
-            p.flipColors();
+            p.FlipColors();
             m_captured[BLACK].push_back(p);
             break;
 
         case Pattern::PERMANENTLY_INFERIOR:
             // WHITE is first!!
             m_permanently_inferior[WHITE].push_back(p);  
-            p.flipColors();
+            p.FlipColors();
             m_permanently_inferior[BLACK].push_back(p);
             break;
 
         case Pattern::MUTUAL_FILLIN:
             // BLACK is first; should maybe be WHITE to match other fillin?
             m_mutual_fillin[BLACK].push_back(p);
-            p.flipColors();
+            p.FlipColors();
             m_mutual_fillin[WHITE].push_back(p);
             break;
 
         case Pattern::VULNERABLE:
             m_vulnerable[BLACK].push_back(p);
-            p.flipColors();
+            p.FlipColors();
             m_vulnerable[WHITE].push_back(p);
             break;
 
         case Pattern::REVERSIBLE:
             m_reversible[BLACK].push_back(p);
-            p.flipColors();
+            p.FlipColors();
             m_reversible[WHITE].push_back(p);
             break;
 
         case Pattern::DOMINATED:
             m_dominated[BLACK].push_back(p);
-            p.flipColors();
+            p.FlipColors();
             m_dominated[WHITE].push_back(p);
             break;
 
         default:
-            LogSevere() << "Pattern type = " << p.getType() << '\n';
+            LogSevere() << "Pattern type = " << p.GetType() << '\n';
             BenzeneAssert(false);
         }
     }
