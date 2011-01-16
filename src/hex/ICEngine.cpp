@@ -861,18 +861,15 @@ bitset_t ICEngine::FindCaptured(const PatternState& pastate, HexColor color,
     {
         if (captured.test(*p)) 
             continue;
-        
         PatternHits hits;
         pastate.MatchOnCell(m_patterns.HashedCaptured(color), *p,
                             PatternState::STOP_AT_FIRST_HIT, hits);
-
         // Mark carrier as captured if carrier does not intersect the
         // set of captured cells found in this pass. 
         if (!hits.empty()) 
         {
             BenzeneAssert(hits.size() == 1);
-            const std::vector<HexPoint>& moves = hits[0].moves2();
-
+            const std::vector<HexPoint>& moves = hits[0].Moves2();
             bitset_t carrier;
             for (unsigned i = 0; i < moves.size(); ++i)
                 carrier.set(moves[i]);
@@ -896,7 +893,7 @@ bitset_t ICEngine::FindPermanentlyInferior(const PatternState& pastate,
     for (BitsetIterator p(ret); p; ++p) 
     {
         BenzeneAssert(hits[*p].size() == 1);
-        const std::vector<HexPoint>& moves = hits[*p][0].moves2();
+        const std::vector<HexPoint>& moves = hits[*p][0].Moves2();
         for (unsigned i=0; i<moves.size(); ++i)
             carrier.set(moves[i]);
     }
@@ -924,10 +921,10 @@ void ICEngine::FindMutualFillin(const PatternState& pastate,
         BenzeneAssert(hits.size() == 1);
         bitset_t willAlter;
         willAlter.set(*p);
-        const std::vector<HexPoint>& moves1 = hits[0].moves1();
+        const std::vector<HexPoint>& moves1 = hits[0].Moves1();
         for (unsigned i = 0; i < moves1.size(); ++i)
                 willAlter.set(moves1[i]);
-        const std::vector<HexPoint>& moves2 = hits[0].moves2();
+        const std::vector<HexPoint>& moves2 = hits[0].Moves2();
         for (unsigned i = 0; i < moves2.size(); ++i)
                 willAlter.set(moves2[i]);
         if ((willAlter & altered).any())
@@ -961,12 +958,11 @@ void ICEngine::FindVulnerable(const PatternState& pastate, HexColor color,
     {
         for (unsigned j=0; j<hits[*p].size(); ++j) 
         {
-            const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
+            const std::vector<HexPoint>& moves1 = hits[*p][j].Moves1();
             BenzeneAssert(moves1.size() == 1);
             HexPoint killer = moves1[0];
-            
             bitset_t carrier;
-            const std::vector<HexPoint>& moves2 = hits[*p][j].moves2();
+            const std::vector<HexPoint>& moves2 = hits[*p][j].Moves2();
             for (unsigned i=0; i<moves2.size(); ++i) {
                 carrier.set(moves2[i]);
             }
@@ -993,15 +989,14 @@ void ICEngine::FindReversible(const PatternState& pastate, HexColor color,
     {
         for (unsigned j=0; j<hits[*p].size(); ++j) 
         {
-            const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
+            const std::vector<HexPoint>& moves1 = hits[*p][j].Moves1();
             BenzeneAssert(moves1.size() == 1);
             HexPoint reverser = moves1[0];
-
             // Carriers are mandatory for reversible patterns;
             // otherwise cannot check for independence
-            BenzeneAssert(hits[*p][j].moves2().size() != 0);
+            BenzeneAssert(hits[*p][j].Moves2().size() != 0);
             bitset_t carrier;
-            const std::vector<HexPoint>& moves2 = hits[*p][j].moves2();
+            const std::vector<HexPoint>& moves2 = hits[*p][j].Moves2();
             for (unsigned i=0; i<moves2.size(); ++i) {
                 carrier.set(moves2[i]);
             }
@@ -1026,16 +1021,15 @@ void ICEngine::FindDominated(const PatternState& pastate, HexColor color,
     // Add the new dominated cells with their dominators
     for (BitsetIterator p(dom); p; ++p) 
     {
-        for (unsigned j=0; j<hits[*p].size(); ++j) 
+        for (unsigned j = 0; j < hits[*p].size(); ++j) 
         {
-            const std::vector<HexPoint>& moves1 = hits[*p][j].moves1();
+            const std::vector<HexPoint>& moves1 = hits[*p][j].Moves1();
             BenzeneAssert(moves1.size() == 1);
             inf.AddDominated(*p, moves1[0]);
-
             // For now, no dominated patterns have carriers
             // Note: this can change in the future if more complex ICE
             // patterns are found
-            BenzeneAssert(hits[*p][j].moves2().size() == 0);
+            BenzeneAssert(hits[*p][j].Moves2().size() == 0);
         }
     }
     // Add dominators found via hand coded patterns

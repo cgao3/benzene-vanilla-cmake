@@ -68,7 +68,7 @@ void ComputeAdjacentByMiai(const HexBoard& brd, PointToBitset& adjByMiai)
             HexPoint cp = brd.GetGroups().CaptainOf(*p);
             for (unsigned j=0; j<hits.size(); ++j) 
             {
-                HexPoint cj = brd.GetGroups().CaptainOf(hits[j].moves1()[0]);
+                HexPoint cj = brd.GetGroups().CaptainOf(hits[j].Moves1()[0]);
                 adjByMiai[cj].set(cp);
                 adjByMiai[cp].set(cj);
             }

@@ -150,7 +150,7 @@ void VCBuilder::ComputeCapturedSets(const PatternState& patterns)
                                  *p, PatternState::STOP_AT_FIRST_HIT, hits);
             for (std::size_t i = 0; i < hits.size(); ++i)
             {
-                const std::vector<HexPoint>& moves = hits[0].moves2();
+                const std::vector<HexPoint>& moves = hits[0].Moves2();
                 bitset_t carrier;
                 for (std::size_t j = 0; j < moves.size(); ++j)
                     m_capturedSet[*p].set(moves[j]);

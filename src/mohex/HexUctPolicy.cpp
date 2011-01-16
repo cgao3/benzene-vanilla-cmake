@@ -297,10 +297,10 @@ HexPoint HexUctPolicy::PickRandomPatternMove(const PatternState& pastate,
 #endif
             
         // number of entries added to array is equal to the pattern's weight
-        for (int j = 0; j < hits[i].pattern()->GetWeight(); ++j) 
+        for (int j = 0; j < hits[i].GetPattern()->GetWeight(); ++j) 
         {
             patternIndex[num] = i;
-            patternMoves[num] = hits[i].moves1()[0];
+            patternMoves[num] = hits[i].Moves1()[0];
             num++;
             BenzeneAssert(num < MAX_VOTES);
         }

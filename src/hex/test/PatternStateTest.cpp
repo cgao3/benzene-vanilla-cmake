@@ -88,31 +88,31 @@ BOOST_AUTO_TEST_CASE(PatternState_Tests)
                       
     // (a->b)
     BOOST_CHECK_EQUAL(hits[HEX_CELL_H4].size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_H4][0].moves1().size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_H4][0].moves1()[0], HEX_CELL_I3);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_H4][0].Moves1().size(), 1u);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_H4][0].Moves1()[0], HEX_CELL_I3);
 
     // (d->c) 
     BOOST_CHECK_EQUAL(hits[HEX_CELL_H8].size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_H8][0].moves1().size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_H8][0].moves1()[0], HEX_CELL_H9);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_H8][0].Moves1().size(), 1u);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_H8][0].Moves1()[0], HEX_CELL_H9);
 
     // (e<->f)
     BOOST_CHECK_EQUAL(hits[HEX_CELL_A5].size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_A5][0].moves1().size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_A5][0].moves1()[0], HEX_CELL_A4);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_A5][0].Moves1().size(), 1u);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_A5][0].Moves1()[0], HEX_CELL_A4);
 
     BOOST_CHECK_EQUAL(hits[HEX_CELL_A4].size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_A4][0].moves1().size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_A4][0].moves1()[0], HEX_CELL_A5);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_A4][0].Moves1().size(), 1u);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_A4][0].Moves1()[0], HEX_CELL_A5);
 
     // (g<->h)
     BOOST_CHECK_EQUAL(hits[HEX_CELL_K9].size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_K9][0].moves1().size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_K9][0].moves1()[0], HEX_CELL_K8);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_K9][0].Moves1().size(), 1u);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_K9][0].Moves1()[0], HEX_CELL_K8);
 
     BOOST_CHECK_EQUAL(hits[HEX_CELL_K8].size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_K8][0].moves1().size(), 1u);
-    BOOST_CHECK_EQUAL(hits[HEX_CELL_K8][0].moves1()[0], HEX_CELL_K9);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_K8][0].Moves1().size(), 1u);
+    BOOST_CHECK_EQUAL(hits[HEX_CELL_K8][0].Moves1()[0], HEX_CELL_K9);
 }
 
 }

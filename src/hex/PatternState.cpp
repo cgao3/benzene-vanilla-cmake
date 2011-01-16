@@ -13,14 +13,10 @@ using namespace benzene;
 const PatternMatcherData* PatternMatcherData::Get(const ConstBoard* brd)
 {
     static std::vector<const PatternMatcherData*> data;
-    for (std::size_t i=0; i<data.size(); ++i) 
-    {
+    for (std::size_t i = 0; i < data.size(); ++i) 
         if (*brd == *data[i]->brd)
             return data[i];
-    }
-
-    LogFine() << "Data does not exist. Creating..." << '\n';
-
+    LogFine() << "Data does not exist. Creating...\n";
     data.push_back(new PatternMatcherData(brd));
     return data.back();
 }
@@ -35,32 +31,27 @@ PatternMatcherData::PatternMatcherData(const ConstBoard* brd)
 void PatternMatcherData::Initialize()
 {
     LogFine() << "PatternMatcherData::Initialize " 
-	      << "(" << brd->Width() << " x " << brd->Height() <<")" << '\n';
-
+	      << "(" << brd->Width() << " x " << brd->Height() <<")\n";
     memset(played_in_slice, 0, sizeof(played_in_slice));
     memset(played_in_godel, 0, sizeof(played_in_godel));
     memset(played_in_edge,  0, sizeof(played_in_edge));
     memset(inverse_slice_godel, 0, sizeof(inverse_slice_godel));
-
-    for (BoardIterator ip1=brd->Interior(); ip1; ++ip1) 
+    for (BoardIterator ip1 = brd->Interior(); ip1; ++ip1)
     {
         int x, y;
         HexPoint p1 = *ip1;
         HexPointUtil::pointToCoords(p1, x, y);
-
-        for (int s=0; s<Pattern::NUM_SLICES; s++) 
+        for (int s = 0; s < Pattern::NUM_SLICES; s++) 
         {
             int fwd = s;
             int lft = (s + 2) % NUM_DIRECTIONS;
-        
             int x1 = x + HexPointUtil::DeltaX(fwd); 
             int y1 = y + HexPointUtil::DeltaY(fwd);
-
-            for (int i=1, g=0; i<=Pattern::MAX_EXTENSION; i++) 
+            for (int i = 1, g = 0; i <= Pattern::MAX_EXTENSION; i++) 
             {
                 int x2 = x1;
                 int y2 = y1;
-                for (int j=0; j<i; j++) 
+                for (int j = 0; j < i; j++) 
                 {
                     // handle obtuse corner: both colors get it. 
                     if (x2 == -1 && y2 == brd->Height()) 
@@ -85,7 +76,6 @@ void PatternMatcherData::Initialize()
                         // handle all valid interior cells and edges
                         HexPoint p2 
                             = BoardUtils::CoordsToPoint(*brd, x2, y2);
-
                         if (p2 != INVALID_POINT) 
                         {
                             if (HexPointUtil::isEdge(p2)) 
@@ -101,7 +91,6 @@ void PatternMatcherData::Initialize()
                             inverse_slice_godel[p1][s][g] = p2;
                         }
                     }
-
                     x2 += HexPointUtil::DeltaX(lft);
                     y2 += HexPointUtil::DeltaY(lft);
                     g++;
@@ -141,10 +130,9 @@ void PatternState::UpdateRingGodel(HexPoint cell)
     BenzeneAssert(m_brd.Const().IsCell(cell));
     HexColor color = m_brd.GetColor(cell);
     BenzeneAssert(HexColorUtil::isBlackWhite(color));
-    
-    /** @note if Pattern::NUM_SLICES != 6, this won't work!! This also
-        relies on the fact that slice 3 is opposite 0, 4 opposite 1,
-        etc. */
+    // NOTE: if Pattern::NUM_SLICES != 6, this won't work!! This also
+    // relies on the fact that slice 3 is opposite 0, 4 opposite 1,
+    // etc.
     BenzeneAssert(Pattern::NUM_SLICES == 6);
     for (int opp_slice = 3, slice = 0; slice < Pattern::NUM_SLICES; ++slice) 
     {
@@ -159,22 +147,17 @@ void PatternState::Update(HexPoint cell)
 {
     if (HexPointUtil::isSwap(cell)) 
         return;
-
     BenzeneAssert(m_brd.Const().IsLocation(cell));
-
     int r = m_update_radius;
     HexColor color = m_brd.GetColor(cell);
     BenzeneAssert(HexColorUtil::isBlackWhite(color));
-
     if (HexPointUtil::isEdge(cell)) 
         goto handleEdge;
-    
     for (BoardIterator p = m_brd.Const().Nbs(cell, r); p; ++p) 
     {
         int slice = m_data->played_in_slice[*p][cell];
         int godel = m_data->played_in_godel[*p][cell];
         m_slice_godel[*p][color][slice] |= godel;
-
         // Update *p's ring godel if we played next to it
         if (godel == 1)
         {
@@ -185,7 +168,6 @@ void PatternState::Update(HexPoint cell)
     return;
 
  handleEdge:
-
     int edge = cell - FIRST_EDGE;
     for (BoardIterator p = m_brd.Const().Nbs(cell, r); p; ++p) 
     {
@@ -193,7 +175,6 @@ void PatternState::Update(HexPoint cell)
         {
             int godel = m_data->played_in_edge[*p][edge][slice];
             m_slice_godel[*p][color][slice] |= godel;
-
             // Update *p's ring godel if we played next to it.
             // Must use AddColorToSlice instead of SetSliceToColor
             // because the obtuse corner is both black and white.
@@ -299,15 +280,11 @@ bool PatternState::CheckRotatedPattern(HexPoint cell,
                                        std::vector<HexPoint>& moves2) const
 {
     BenzeneAssert(m_brd.Const().IsCell(cell));
-
     m_statistics.pattern_checks++;
-
     bool matches = CheckRingGodel(cell, rotpat);
-
     const Pattern* pattern = rotpat.GetPattern();
     if (matches && pattern->Extension() > 1)
         matches = CheckRotatedSlices(cell, rotpat);
-
     if (matches) 
     {
         if (pattern->GetFlags() & Pattern::HAS_MOVES1) 
@@ -350,7 +327,6 @@ bool PatternState::CheckRotatedSlices(HexPoint cell, const Pattern& pattern,
     const int *gb = m_slice_godel[cell][BLACK];
     const int *gw = m_slice_godel[cell][WHITE];
     const Pattern::slice_t* pat = pattern.GetData();
-
     bool matches = true;
     for (int i = 0; matches && i < Pattern::NUM_SLICES; ++i) 
     {
@@ -368,10 +344,8 @@ bool PatternState::CheckRotatedSlices(HexPoint cell, const Pattern& pattern,
         // black cells on the board must be a superset of the
         // black cells in the pattern since the obtuse corner
         // is both black and white. 
-
-        // @todo all cells to be black/white/empty (ie, dead cells),
+        // TODO: all cells to be black/white/empty (ie, dead cells),
         // in which case we would use ((empty_b & empty_p) != empty_p)
-
         if (empty_b & empty_p)
             matches = false;
         else if ((black_b & black_p) != black_p)

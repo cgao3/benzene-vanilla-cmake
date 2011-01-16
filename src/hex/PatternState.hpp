@@ -1,10 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file PatternState.hpp
- */
+/** @file PatternState.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef PATTERNBOARD_HPP
-#define PATTERNBOARD_HPP
+#ifndef PATTERNSTATE_HPP
+#define PATTERNSTATE_HPP
 
 #include "Hex.hpp"
 #include "HashedPatternSet.hpp"
@@ -33,15 +32,14 @@ public:
                const std::vector<HexPoint>& moves2);
 
     /** Returns the pattern. */
-    const Pattern* pattern() const;
+    const Pattern* GetPattern() const;
 
     /** Returns the set of moves the pattern encodes. */
-    const std::vector<HexPoint>& moves1() const;
+    const std::vector<HexPoint>& Moves1() const;
 
-    const std::vector<HexPoint>& moves2() const;
+    const std::vector<HexPoint>& Moves2() const;
 
 private:
-
     const Pattern* m_pattern;
 
     std::vector<HexPoint> m_moves1;
@@ -73,20 +71,22 @@ inline PatternHit::PatternHit(const Pattern* pat,
 {
 }
 
-inline const Pattern* PatternHit::pattern() const
+inline const Pattern* PatternHit::GetPattern() const
 {
     return m_pattern;
 }
 
-inline const std::vector<HexPoint>& PatternHit::moves1() const
+inline const std::vector<HexPoint>& PatternHit::Moves1() const
 {
     return m_moves1;
 }
 
-inline const std::vector<HexPoint>& PatternHit::moves2() const
+inline const std::vector<HexPoint>& PatternHit::Moves2() const
 {
     return m_moves2;
 }
+
+//----------------------------------------------------------------------------
 
 /** Vector of PatternHits. */
 typedef std::vector<PatternHit> PatternHits;
@@ -97,7 +97,6 @@ typedef std::vector<PatternHit> PatternHits;
 class PatternMatcherData
 {
 public:
-
     /** Returns instance for given board. */
     static const PatternMatcherData* Get(const ConstBoard* brd);
 
@@ -122,7 +121,6 @@ public:
                             int bit, int angle) const;
 
 private:
-
     /** Constructor. */
     PatternMatcherData(const ConstBoard* brd);
 
@@ -148,6 +146,9 @@ public:
     /** Returns board state is tracking. */
     StoneBoard& Board();
 
+    /** Copies state from other. */
+    void CopyState(const PatternState& other);
+
     /** Sets the distance to which we update pattern info from the
         last played cell; used in Update(cell). Default is
         Pattern::MAX_EXTENSION. */
@@ -156,10 +157,8 @@ public:
     /** See SetUpdateRadius(). */
     void SetUpdateRadius(int radius);
 
-    //-----------------------------------------------------------------------
-
     /** Computes the pattern checking information for this board
-        state.  Calls update(cell) for each occupied cell. */
+        state.  Calls Update(cell) for each occupied cell. */
     void Update();
 
     /** Updates the pattern checking information only for the given
@@ -167,7 +166,7 @@ public:
         cell. */
     void Update(HexPoint cell);
 
-    /** Calls update(cell) for each move in changed, each of which
+    /** Calls Update(cell) for each move in changed, each of which
         must correspond to an occupied cell. */
     void Update(const bitset_t& changed);
 
@@ -176,10 +175,9 @@ public:
 
     //-----------------------------------------------------------------------
 
-    /** Copies state from other. */
-    void CopyState(const PatternState& other);
+    /** @name Pattern Matching */
 
-    //-----------------------------------------------------------------------
+    // @{
 
     /** Options controlling pattern matching behavoir at a cell. */
     typedef enum 
@@ -189,7 +187,6 @@ public:
 
         /** Continues search after first hit, storing all results. */
         MATCH_ALL 
-
     } MatchMode;
 
     //-----------------------------------------------------------------------
@@ -223,7 +220,9 @@ public:
         convience method. */
     bitset_t MatchOnBoard(const bitset_t& consider,
                           const HashedPatternSet& patset) const;
-        
+    
+    // @}
+
     //-----------------------------------------------------------------------
 
     /** Reset the pattern checking statistics. */
@@ -233,9 +232,6 @@ public:
     std::string DumpPatternCheckStats() const;
 
 private:
-
-    //-----------------------------------------------------------------------
-
     /** Pattern checking statistics. */
     struct Statistics
     {
@@ -248,8 +244,6 @@ private:
         /** Number of slice checks. */
         size_t slice_checks;
     };
-
-    //-----------------------------------------------------------------------
 
     StoneBoard& m_brd;
 
@@ -264,8 +258,6 @@ private:
 
     mutable Statistics m_statistics;
 
-    //-----------------------------------------------------------------------
-
     /** Non-assignable. */
     void operator=(const PatternState& other);
     
@@ -273,8 +265,6 @@ private:
     PatternState(const PatternState& other);
 
     void ClearGodels();
-
-    //-----------------------------------------------------------------------
 
     bool CheckRotatedSlices(HexPoint cell, 
                             const Pattern& pat, int angle) const;
@@ -320,4 +310,4 @@ inline int PatternState::UpdateRadius() const
 
 _END_BENZENE_NAMESPACE_
 
-#endif // PATTERNBOARD_HPP
+#endif // PATTERNSTATE_HPP
