@@ -48,11 +48,9 @@ void VCBuilder::LoadCapturedSetPatterns()
     using namespace boost::filesystem;
     path filename = path(ABS_TOP_SRCDIR) / "share" / "vc-captured-set.txt";
     filename.normalize();
-
     std::vector<Pattern> patterns;
     Pattern::LoadPatternsFromFile(filename.native_file_string().c_str(), 
                                   patterns);
-
     LogFine() << "--LoadCapturedSetPatterns()\n";    
     LogFine() << "Read " << patterns.size() << " patterns.\n";
     for (std::size_t i = 0; i < patterns.size(); ++i)
@@ -72,13 +70,12 @@ void VCBuilder::LoadCapturedSetPatterns()
 void VCBuilder::Build(VCSet& con, const Groups& groups, 
                       const PatternState& patterns)
 {
+    SgTimer timer;
     m_con = &con;
     m_color = con.Color();
     m_groups = &groups;
     m_brd = &m_groups->Board();
     m_log = 0;
-
-    SgTimer timer;
     m_con->Clear();
     m_statistics = &m_statsForColor[m_color];
     m_queue.Clear();
@@ -157,8 +154,6 @@ void VCBuilder::ComputeCapturedSets(const PatternState& patterns)
                 bitset_t carrier;
                 for (std::size_t j = 0; j < moves.size(); ++j)
                     m_capturedSet[*p].set(moves[j]);
-                //LogInfo() << "Captured " << *p
-                //          << m_brd->Write(m_capturedSet[*p]) << '\n';
             }
         }
     }
@@ -172,14 +167,12 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
                       bitset_t added[BLACK_AND_WHITE], ChangeLog<VC>* log)
 {
     BenzeneAssert((added[BLACK] & added[WHITE]).none());
-
+    SgTimer timer;
     m_con = &con;
     m_color = con.Color();
     m_groups = &newGroups;
     m_brd = &m_groups->Board();
     m_log = log;
-
-    SgTimer timer;
     m_statistics = &m_statsForColor[m_color];
     m_queue.Clear();
 
@@ -206,17 +199,16 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
     to the played stones.
 
     Any list with either endpoint in the affected set will need to
-    either pass on its connections to the list now responsible for
-    that group or recieve connections from other lists that it is now
-    responsible for. Lists belonging to groups that are merge into
+    either pass its connections to the list now responsible for that
+    group, or recieve connections from other lists that it is now
+    responsible for. Lists belonging to groups that are merged into
     other groups are not destroyed, they remain so that undoing this
     merge is more efficient.
 
-    Every list needs to be checked for shrinking.
-    
-    TODO Finish this documentation!
-            
-*/
+    Every list needs to be checked for shrinking. This entails
+    removing any cells from a connection's carrier that are now
+    occupied by friendly stones. Semi-connections that have their keys
+    played must be upgraded to full connections. */
 void VCBuilder::Merge(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE])
 {
     // Kill connections containing stones the opponent just played.
@@ -231,13 +223,14 @@ void VCBuilder::Merge(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE])
     // the affected set along with the played stones.
     bitset_t affected = added[m_color];
     for (BitsetIterator x(added[m_color]); x; ++x)
+    {
         for (BoardIterator y(m_brd->Const().Nbs(*x)); y; ++y)
         {
             const Group& grp = oldGroups.GetGroup(*y);
             if (grp.Color() == m_color)
                 affected.set(grp.Captain());
         }
-
+    }
     MergeAndShrink(affected, added[m_color]);
 }
 
@@ -255,7 +248,6 @@ void VCBuilder::MergeAndShrink(const bitset_t& affected,
                 continue;
             HexPoint cx = m_groups->CaptainOf(*x);
             HexPoint cy = m_groups->CaptainOf(*y);
-
             // Lists between (cx, cx) are never used, so only do work
             // if it's worthwhile. This can occur if y was recently
             // played next to group x, now they both have the same
@@ -270,6 +262,12 @@ void VCBuilder::MergeAndShrink(const bitset_t& affected,
     }
 }
 
+/** Merges and shrinks connections between the given endpoints.
+    @bug It is possible that we end up with semi connections that are
+    supersets of full connections due to the shrinking.  These are
+    rare and unimportant and the cost of checking for them exceeds any
+    gain we get from removing them.
+ */
 void VCBuilder::MergeAndShrink(const bitset_t& added, 
                                HexPoint xin, HexPoint yin,
                                HexPoint xout, HexPoint yout)
@@ -277,80 +275,64 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     BenzeneAssert(xin != yin);
     BenzeneAssert(xout != yout);
 
-    VCList* fulls_in = &m_con->GetList(VC::FULL, xin, yin);
-    VCList* semis_in = &m_con->GetList(VC::SEMI, xin, yin);
-    VCList* fulls_out= &m_con->GetList(VC::FULL, xout, yout);
-    VCList* semis_out= &m_con->GetList(VC::SEMI, xout, yout);
+    VCList* fullsIn = &m_con->GetList(VC::FULL, xin, yin);
+    VCList* semisIn = &m_con->GetList(VC::SEMI, xin, yin);
+    VCList* fullsOut= &m_con->GetList(VC::FULL, xout, yout);
+    VCList* semisOut= &m_con->GetList(VC::SEMI, xout, yout);
+    BenzeneAssert((fullsIn == fullsOut) == (semisIn == semisOut));
+    bool doingMerge = (fullsIn != fullsOut);
 
-    BenzeneAssert((fulls_in == fulls_out) == (semis_in == semis_out));
-    bool doing_merge = (fulls_in != fulls_out);
-
-    std::list<VC> removed;
-    std::list<VC>::iterator it;
-
-    // 
     // Shrink all 0-connections.
-    //
-    // If (doing_merge) transfer remaining connections over as well. 
-    //
-    fulls_in->RemoveAllContaining(added, removed, m_log);
-    if (doing_merge) 
-    { 
-        // Copied vc's will be set to unprocessed explicitly.
-        /** @bug There could be supersets of these fulls in semis_out! */
-        fulls_out->Add(*fulls_in, m_log);
-    }
-
-    for (it = removed.begin(); it != removed.end(); ++it) 
     {
-        VC v = VC::ShrinkFull(*it, added, xout, yout);
-        /** @bug There could be supersets of these fulls in semis_out! */
-        if (fulls_out->Add(v, m_log))
-            m_statistics->shrunk0++;
+        std::list<VC> removed;
+        fullsIn->RemoveAllContaining(added, removed, m_log);
+        if (doingMerge) 
+            fullsOut->Add(*fullsIn, m_log);
+        for (std::list<VC>::iterator it = removed.begin(); 
+             it != removed.end(); ++it) 
+        {
+            VC v = VC::ShrinkFull(*it, added, xout, yout);
+            if (fullsOut->Add(v, m_log))
+                m_statistics->shrunk0++;
+        }
     }
 
-    //
     // Shrink all 1-connections.
-    // if (doing_merge) transfer remaining connections
-    // over as well. 
-    //
-    removed.clear();
-    semis_in->RemoveAllContaining(added, removed, m_log);
-    if (doing_merge) 
-    {
-        // Copied vc's will be set to unprocessed explicitly.
-        /** @bug These could be supersets of fulls_out. */
-        semis_out->Add(*semis_in, m_log);
+    std::list<VC> removed;
+    semisIn->RemoveAllContaining(added, removed, m_log);
+    if (doingMerge)
+    {   
+        // BUG: These could be supersets of fullsOut.
+        semisOut->Add(*semisIn, m_log);
     }
-
     // Shrink connections that touch played cells.
-    // Do not upgrade during this step. 
+    // Do not upgrade during this step.
+    std::list<VC>::iterator it;
     for (it = removed.begin(); it != removed.end(); ++it) 
     {
         if (!added.test(it->Key())) 
         {
             VC v = VC::ShrinkSemi(*it, added, xout, yout);
-            /** @bug These could be supersets of fulls_out. */
-            if (semis_out->Add(v, m_log))
+            // BUG: These could be supersets of fullsOut.
+            if (semisOut->Add(v, m_log))
                 m_statistics->shrunk1++;
         }
     }
-
     // Upgrade semis. Need to do this after shrinking to ensure
-    // that we remove all sc supersets from semis_out.
+    // that we remove all sc supersets from semisOut.
     for (it = removed.begin(); it != removed.end(); ++it) 
     {
         if (added.test(it->Key())) 
         {
             VC v = VC::UpgradeSemi(*it, added, xout, yout);
-            if (fulls_out->Add(v, m_log))
+            if (fullsOut->Add(v, m_log))
             {
                 // Remove supersets from the semi-list; do not
                 // invalidate list intersection since this semi was a
                 // member of the list. Actually, this probably doesn't
-                // matter since the call to removeAllContaining()
+                // matter since the call to RemoveAllContaining()
                 // already clobbered the intersections.
-                semis_out->RemoveSuperSetsOf(v.Carrier(), m_log, false);
+                semisOut->RemoveSuperSetsOf(v.Carrier(), m_log, false);
                 m_statistics->upgraded++;
             }
         }
@@ -360,8 +342,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
 /** Removes all connections whose intersection with given set is
     non-empty. Any list that is modified is added to the queue, since
     some unprocessed connections could have been brought under the
-    softlimit.
-*/
+    softlimit. */
 void VCBuilder::RemoveAllContaining(const Groups& oldGroups,
                                     const bitset_t& bs)
 {
@@ -572,12 +553,13 @@ void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
     }
 }
 
-/** Runs over all subsets of size 2 to max_ors of semis containing vc
+/** Runs over all subsets of size 2 to maxOrs of semis containing vc
     and adds the union to out if it has an empty intersection. This
     function is a major bottleneck and so needs to be as efficient as
     possible.
 
-    TODO: Document this more!
+    Subsets are built-up incrementally. If a semi does not make the subsets
+    intersection smaller, it is skipped. 
 
     TODO: Check if unrolling the recursion really does speed it up.
 
@@ -587,7 +569,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
                                   const VCList* semi_list, 
                                   VCList* full_list, 
                                   std::list<VC>& added, 
-                                  int max_ors,
+                                  int maxOrs,
                                   ChangeLog<VC>* log, 
                                   VCBuilderStatistics& stats)
 {
@@ -607,8 +589,8 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     m_tail[N-1] = m_semi[N-1].Carrier();
     for (int i = static_cast<int>(N - 2); i >= 0; --i)
         m_tail[i] = m_semi[i].Carrier() & m_tail[i+1];
-    max_ors--;
-    BenzeneAssert(max_ors < 16);
+    maxOrs--;
+    BenzeneAssert(maxOrs < 16);
     // Compute the captured-set union for the endpoints of this list
     bitset_t capturedSet = m_builder.m_capturedSet[semi_list->GetX()] 
                          | m_builder.m_capturedSet[semi_list->GetY()];
@@ -685,7 +667,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
             // This connection reduces intersection, if not at max
             // depth see if more semis can reduce it to the empty set
             // (or at least a subset of the captured set).
-            if (d < max_ors) 
+            if (d < maxOrs) 
                 index[++d] = ++i;
             else
                 ++index[d];
@@ -694,73 +676,60 @@ int VCBuilder::OrRule::operator()(const VC& vc,
     return count;
 }
 
-/** Tries to add a new full-connection to list between (vc.X(), vc.Y()).
-
-    If vc is successfully added, then:
-
-    1) Removes any semi-connections between (vc.X(), vc.Y()) that are
-    supersets of vc.
-    
-    2) Adds (vc.X(), vc.Y()) to the queue if vc was added inside the
-    softlimit.
-*/
+/** Tries to add a new full-connection.  
+    If vc is successfully added, then: 1) semi-connections between
+    (vc.X(), vc.Y()) that are supersets of vc of removed; and 2), the
+    endpoints (vc.X(), vc.Y()) are added to queue if vc was added
+    inside the softlimit, signalling that more work needs to be
+    performed on this list. */
 bool VCBuilder::AddNewFull(const VC& vc)
 {
     BenzeneAssert(vc.GetType() == VC::FULL);
     VCList::AddResult result = m_con->Add(vc, m_log);
     if (result != VCList::ADD_FAILED) 
     {
-        // a semi that is a superset of a full is useless, so remove
-        // any that exist.
         m_con->GetList(VC::SEMI, vc.X(), vc.Y())
             .RemoveSuperSetsOf(vc.Carrier(), m_log);
-                
-        // add this list to the queue if inside the soft-limit
         if (result == VCList::ADDED_INSIDE_SOFT_LIMIT)
             m_queue.Push(std::make_pair(vc.X(), vc.Y()));
-
         return true;
     }
     return false;
 }
 
-/** Tries to add a new semi-connection to list between (vc.x(), vc.y()). 
+/** Tries to add a new semi-connection.
         
-    Does not add if vc is a superset of some full-connection between
+    Does not add if semi is a superset of some full-connection between
     (vc.x(), and vc.y()).
     
-    If vc is successfully added and intersection on semi-list is
-    empty, then:
+    If add is successfull and intersection on semi-list is empty: if
+    semi was added inside soft limit, (vc.x(), vc.y()) is added to
+    work queue; otherwise, if no full exists between (vc.x(), vc.y()),
+    the entire semi list is combined to form a new full connection.
 
-    1) if vc added inside soft limit, adds (vc.x(), vc.y()) to queue.
-    
-    2) otherwise, if no full exists between (vc.x(), vc.y()), adds the
-    or over the entire semi list.
-*/
+    This ensures that there is always a full connection whenever the
+    intersection the semi-list is empty. */
 bool VCBuilder::AddNewSemi(const VC& vc)
 {
-    VCList* out_full = &m_con->GetList(VC::FULL, vc.X(), vc.Y());
-    VCList* out_semi = &m_con->GetList(VC::SEMI, vc.X(), vc.Y());
-    
-    if (!out_full->IsSupersetOfAny(vc.Carrier())) 
+    VCList* outFull = &m_con->GetList(VC::FULL, vc.X(), vc.Y());
+    VCList* outSemi = &m_con->GetList(VC::SEMI, vc.X(), vc.Y());
+    if (!outFull->IsSupersetOfAny(vc.Carrier())) 
     {
-        VCList::AddResult result = out_semi->Add(vc, m_log);
+        VCList::AddResult result = outSemi->Add(vc, m_log);
         if (result != VCList::ADD_FAILED) 
         {
-            if (out_semi->HardIntersection().none())
+            if (outSemi->HardIntersection().none())
             {
                 if (result == VCList::ADDED_INSIDE_SOFT_LIMIT) 
                     m_queue.Push(std::make_pair(vc.X(), vc.Y()));
-                else if (out_full->Empty())
+                else if (outFull->Empty())
                 {
                     bitset_t carrier = m_param.use_greedy_union 
-                        ? out_semi->GetGreedyUnion() 
-                        : out_semi->GetUnion();
-                    
-                    VC v(out_full->GetX(), out_full->GetY(), 
+                        ? outSemi->GetGreedyUnion() 
+                        : outSemi->GetUnion();
+                    VC v(outFull->GetX(), outFull->GetY(), 
                          carrier, VC_RULE_ALL);
-
-                    out_full->Add(v, m_log);
+                    outFull->Add(v, m_log);
                 }
             }
             return true;

@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCCommands.cpp
- */
+/** @file VCCommands.cpp */
 //----------------------------------------------------------------------------
 
 #include "BoardUtils.hpp"
@@ -49,10 +48,9 @@ VC::Type VCCommands::VCTypeArg(const HtpCommand& cmd, std::size_t number) const
 
 //----------------------------------------------------------------------------
 
-/** Builds VCs for both players and displays ice info for the given
-    color in the current board-state. 
-    Usage: "vc-build [color]"
-*/
+/** Builds VCs for both players.
+    Displays ice info for the given color in the current
+    board-state. */
 void VCCommands::CmdBuildStatic(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
@@ -70,10 +68,9 @@ void VCCommands::CmdBuildStatic(HtpCommand& cmd)
     cmd << '\n';
 }
 
-/** Builds VCs incrementally for both players and displays ice info
-    the given color in the current board-state.
-    Usage: "vc-build-incremental [color] [move]"
-*/
+/** Builds VCs incrementally.
+    Must play move to the board first. Move that was played must be passed
+    as an argument. */
 void VCCommands::CmdBuildIncremental(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(2);
@@ -85,26 +82,24 @@ void VCCommands::CmdBuildIncremental(HtpCommand& cmd)
     if (!EndgameUtils::IsDeterminedState(brd, color))
     {
         bitset_t consider = EndgameUtils::MovesToConsider(brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetPosition(), consider,
+        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetPosition(), 
+                                                     consider,
                                            brd.GetInferiorCells().All());
     }
     cmd << '\n';
 }
 
-/** Reverts VCs built incrementally. 
-    Usage: "vc-undo-incremental"
-*/
+/** Reverts VCs built incrementally. */
 void VCCommands::CmdUndoIncremental(HtpCommand& cmd)
 {
     UNUSED(cmd);
     m_env.brd->UndoMove();
 }
 
-/** Returns a list of VCs between the given two cells.  
+/** Returns list of VCs between two cells.  
     Usage: "vc-between-cells x y c t", where x and y are the cells, c
     is the color of the player, and t is the type of connection
-    (full,semi).
-*/
+    (full,semi). */
 void VCCommands::CmdGetVCsBetween(HtpCommand& cmd)
 {
     cmd.CheckNuArg(4);
@@ -131,10 +126,7 @@ void VCCommands::CmdGetVCsBetween(HtpCommand& cmd)
         cmd << color << " " << vc.at(i) << '\n';
 }
 
-/** Returns a list of cells the given cell shares a vc with.
-    Usage: "vc-connected-to x c t", where x is the cell in question,
-    c is the color of the player, and t is the type of vc. 
-*/
+/** Returns list of cells given cell shares a vc with. */
 void VCCommands::CmdGetCellsConnectedTo(HtpCommand& cmd)
 {
     cmd.CheckNuArg(3);
@@ -146,9 +138,7 @@ void VCCommands::CmdGetCellsConnectedTo(HtpCommand& cmd)
     cmd << HexPointUtil::ToString(pt);
 }
 
-/** Prints the cells in the current mustplay for the given player.
-    Usage: "vc-get-mustplay [color]"
-*/
+/** Prints the cells in the current mustplay. */
 void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
@@ -168,9 +158,8 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
     }
 }
 
-/** Prints the cells in the all connections between given endpoints. 
-    Usage: "vc-intersection [from] [to] [color] [vctype]"
-*/
+/** Prints cells in intersection of all connections between
+    endpoints. */
 void VCCommands::CmdVCIntersection(HtpCommand& cmd)
 {
     cmd.CheckNuArg(4);
@@ -186,9 +175,7 @@ void VCCommands::CmdVCIntersection(HtpCommand& cmd)
     cmd << HexPointUtil::ToString(intersection);
 }
 
-/** Prints the cells in union of connections between given endpoints. 
-    Usage: "vc-union [from] [to] [color] [vctype]"
-*/
+/** Prints cells in the union of connections between endpoints. */
 void VCCommands::CmdVCUnion(HtpCommand& cmd)
 {
     cmd.CheckNuArg(4);

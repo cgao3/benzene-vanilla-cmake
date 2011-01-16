@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCUtils.hpp
- */
+/** @file VCUtils.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef VCUTILS_HPP
@@ -18,18 +17,14 @@ _BEGIN_BENZENE_NAMESPACE_
 /** Utilities on VCs. */
 namespace VCUtils
 {
-    /** Returns mustplay for color to move. 
-        @todo Document what the mustplay is! 
-     */
+    /** Returns mustplay for color to move. */
     bitset_t GetMustplay(const HexBoard& brd, HexColor color);
 
     /** Returns true if carrier defines a valid bridge to the
-        edge. Edge and the other endpoint are stored if it is valid.
-    */
-    bool ValidEdgeBridge(const StoneBoard& brd, 
-                         const bitset_t& carrier, 
-                         HexPoint& endpoint,
-                         HexPoint& edge);
+        edge. Edge and the other endpoint are stored if it is
+        valid. */
+    bool ValidEdgeBridge(const StoneBoard& brd, const bitset_t& carrier, 
+                         HexPoint& endpoint, HexPoint& edge);
 }
 
 //----------------------------------------------------------------------------

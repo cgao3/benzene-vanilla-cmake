@@ -12,7 +12,7 @@
 
 _BEGIN_BENZENE_NAMESPACE_
 
-//----------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 /** Sorted list of VCs.
     The list is sorted by VC carrier size. When VCs are added, only

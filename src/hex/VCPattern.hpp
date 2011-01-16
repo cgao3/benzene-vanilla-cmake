@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCPattern.hpp
- */
+/** @file VCPattern.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef VC_PATTERN_HPP
@@ -23,19 +22,17 @@ typedef std::vector<VCPattern> VCPatternSet;
 class VCPattern
 {        
 public: 
-
     VCPattern(HexPoint end1, HexPoint end2, const bitset_t& must_have, 
               const bitset_t& not_oppt);
 
     ~VCPattern();
 
     /** Returns the set of patterns for the given boardsize; creates
-        patterns if they currently do not exist. Return set of
+        patterns if they currently do not exist. Returned set of
         patterns will always be empty if width does not equal
         height. */
     static const VCPatternSet& GetPatterns(int width, int height, 
                                            HexColor color);
-
 
     /** Returns cells that this player must have. */
     bitset_t MustHave() const;
@@ -51,12 +48,10 @@ public:
 
     /** Shifts the pattern in direction dir, if possible. Returns true
         on success, false if shifted pattern goes off board. 
-        ONLY USE THIS IF YOU KNOW WHAT YOU ARE DOING!
-    */
+        ONLY USE THIS IF YOU KNOW WHAT YOU ARE DOING! */
     bool ShiftPattern(HexDirection dir, const StoneBoard& brd);
 
 private:
-
     /** Cells that must be occupied. */
     bitset_t m_must_have;
 
@@ -94,8 +89,7 @@ inline bitset_t VCPattern::NotOpponent() const
 inline HexPoint VCPattern::Endpoint(int i) const
 {
     BenzeneAssert(0 <= i && i <= 1);
-    if (i == 0) return m_end1;
-    return m_end2;
+    return (i == 0) ? m_end1 : m_end2;
 }
 
 //----------------------------------------------------------------------------

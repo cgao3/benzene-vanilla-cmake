@@ -36,7 +36,6 @@ bool ShiftBuilderPattern(BuilderPattern& pat, HexDirection dir,
 {
     bitset_t black, empty, bad;
     HexPoint endpoint = BoardUtils::PointInDir(brd.Const(), pat.endpoint, dir);
-   
     if (!BoardUtils::ShiftBitset(brd.Const(), pat.black, dir, black)) 
         return false;
     if (!BoardUtils::ShiftBitset(brd.Const(), pat.empty, dir, empty)) 
@@ -74,13 +73,11 @@ HexPoint ReversePoint(HexPoint point, const StoneBoard& brd)
 {
     if (HexPointUtil::isEdge(point)) 
         return point;
-
     int x, y;
     HexPointUtil::pointToCoords(point, x, y);
     x = (brd.Width() - 1 - x) + (brd.Height() - 1 - y);
     if (x >= brd.Width()) 
         return INVALID_POINT;
-
     return HexPointUtil::coordsToPoint(x, y);
 }
 
@@ -89,9 +86,11 @@ HexPoint ReversePoint(HexPoint point, const StoneBoard& brd)
 bool ReverseBitset(const bitset_t& bs, const StoneBoard& brd, bitset_t& out)
 {
     out.reset();
-    for (BitsetIterator p(bs); p; ++p) {
+    for (BitsetIterator p(bs); p; ++p) 
+    {
         HexPoint rp = ReversePoint(*p, brd);
-        if (rp == INVALID_POINT) return false;
+        if (rp == INVALID_POINT) 
+            return false;
         out.set(rp);
     }
     return true;
@@ -100,7 +99,8 @@ bool ReverseBitset(const bitset_t& bs, const StoneBoard& brd, bitset_t& out)
 /** Reverses a pattern situated in the bottom left corner. */
 bool ReversePattern(VCPattern& pat, const StoneBoard& brd)
 {
-    do {
+    do 
+    {
         bitset_t must, oppt, badp;
         if (ReverseBitset(pat.MustHave(), brd, must) 
             && ReverseBitset(pat.NotOpponent(), brd, oppt))
@@ -111,7 +111,6 @@ bool ReversePattern(VCPattern& pat, const StoneBoard& brd)
             return true;
         }
     } while (pat.ShiftPattern(DIR_EAST, brd));
-
     return false;
 }
 
@@ -146,7 +145,6 @@ void ProcessPattern(const VCPattern& pat, StoneBoard& brd,
     RotateAndShift(pat, brd, DIR_EAST, DIR_WEST, out[BLACK]);
     RotateAndShift(MirrorPattern(pat, brd), brd, DIR_SOUTH, 
                    DIR_NORTH, out[WHITE]);
-
     VCPattern rpat(pat);
     ReversePattern(rpat, brd);
     RotateAndShift(rpat, brd, DIR_WEST, DIR_EAST, out[BLACK]);
@@ -168,9 +166,9 @@ const VCPatternSet&
 VCPattern::GetPatterns(int width, int height, HexColor color)
 {
     std::pair<int, int> key = std::make_pair(width, height);
-
     /** Return an empty list for all non-square boards. */
-    if (width != height) {
+    if (width != height) 
+    {
         width = 0;
         height = 1;
         VCPatternSetMap::iterator it = GetConstructed(color).find(key);
@@ -183,21 +181,10 @@ VCPattern::GetPatterns(int width, int height, HexColor color)
     }
     else
     {
-        /** @bug The "vc-pattern-file" option is not checked
-            here. This means that creating a VCPatternSet for board size
-            (x,y), changing "vc-pattern-file", and then asking for a
-            pattern set for (x,y) will not cause a re-build.  No one will
-            want to do this anyway (right?), so it doesn't matter.  If you
-            really want to do this, add the filename as part of the key
-            for VCPatternSetMap.
-        */
         VCPatternSetMap::iterator it = GetConstructed(color).find(key);
         if (it == GetConstructed(color).end()) 
-        {
             CreatePatterns(width, height);
-        }
     }
-
     return GetConstructed(color)[key];
 }
 
@@ -205,11 +192,9 @@ void VCPattern::CreatePatterns(int width, int height)
 {
     LogFine() << "VCPattern::CreatePatterns(" 
               << width << ", " << height << ")\n";
-    
 #ifndef ABS_TOP_SRCDIR
     #error "ABS_TOP_SRCDIR not defined!"
 #endif 
-
     boost::filesystem::path pp = boost::filesystem::path(ABS_TOP_SRCDIR) 
         / "share" / "vc-patterns.txt";
     pp.normalize();
@@ -218,24 +203,22 @@ void VCPattern::CreatePatterns(int width, int height)
     std::ifstream fin(file.c_str());
     if (!fin)
         throw BenzeneException("Could not open pattern file!\n");
-
     std::vector<VCPattern> out[BLACK_AND_WHITE];
     std::vector<BuilderPattern> start, end;
     std::vector<VCPattern> complete;
-
     int numConstructed = 0;
     int numComplete = 0;
-
     std::string line;
-    while (true) {
+    while (true) 
+    {
         int patternHeight;
         std::string tmp, name, type;
         std::vector<std::string> carrier;
-        
         std::istringstream is;
-        if (!getline(fin, line)) break;
-        if (line == "") break;
-        
+        if (!getline(fin, line)) 
+            break;
+        if (line == "") 
+            break;
         is.str(line);
         is >> name;
         is >> name;
@@ -253,36 +236,43 @@ void VCPattern::CreatePatterns(int width, int height)
         is >> patternHeight;
         is.clear();
 
-        while (true) {
+        while (true) 
+        {
             getline(fin, line);
-            if (line == "") break;
+            if (line == "") 
+                break;
             carrier.push_back(line);
         }
         BenzeneAssert(!carrier.empty());
-        BenzeneAssert(patternHeight == -1 || patternHeight <= (int)carrier.size());
+        BenzeneAssert(patternHeight == -1 
+                      || patternHeight <= (int)carrier.size());
 
         // abort if pattern too large for board
         if ((int)carrier.size() > height) 
             continue;
         
-        int row = height-1;
+        int row = height - 1;
         int numcol = -1;
         HexPoint endpoint = SOUTH;
         bitset_t black, empty;
         bool patternFits = true;
-        for (int i = static_cast<int>(carrier.size() - 1); i >= 0; --i) {
+        for (int i = static_cast<int>(carrier.size() - 1); i >= 0; --i) 
+        {
             is.clear();
             is.str(carrier[i]);
 
             std::string sym;
             int col = 0;
-            while (is >> sym) {
-                if (col >= width) {
+            while (is >> sym) 
+            {
+                if (col >= width) 
+                {
                     patternFits = false;
                     break;
                 }
                 HexPoint p = HexPointUtil::coordsToPoint(col, row);
-                switch(sym[0]) {
+                switch(sym[0]) 
+                {
                 case '*': empty.set(p); break;
                 case 'E': endpoint = p; empty.set(p); break;
                 case 'B': black.set(p); break;
@@ -306,83 +296,84 @@ void VCPattern::CreatePatterns(int width, int height)
         StoneBoard sb(width, height);
         sb.StartNewGame();
 
-        if (type == "complete") {
+        if (type == "complete") 
+        {
             numComplete++;
             VCPattern pat(endpoint, SOUTH, black, empty);
             complete.push_back(pat);
-        } else if (type == "start") {
+        } 
+        else if (type == "start") 
+        {
             if (endpoint == SOUTH)
                 throw BenzeneException("Start pattern with no endpoint!");
             start.push_back(BuilderPattern(black, empty, endpoint, 
                                            patternHeight));
-        } else if (type == "end") {
+        } 
+        else if (type == "end") 
+        {
             end.push_back(BuilderPattern(black, empty, endpoint, 
                                          patternHeight));
         }
     }
     fin.close();
 
-    // build ladder patterns by combining start and end patterns
+    // Build ladder patterns by combining start and end patterns
     LogFine() << "Combining start(" << start.size()
               << ") and end(" << end.size() << ")...\n";
     StoneBoard sb(width, height);
-    for (std::size_t s=0; s<start.size(); ++s) {
+    for (std::size_t s = 0; s < start.size(); ++s) 
+    {
         const BuilderPattern& st = start[s];
-
-        for (std::size_t e=0; e<end.size(); ++e) {
+        for (std::size_t e = 0; e < end.size(); ++e) 
+        {
             const BuilderPattern& en = end[e];
-            if (en.height < st.height) continue;
-
-            // shift end pattern until it does not hit start pattern
+            if (en.height < st.height) 
+                continue;
+            // Shift end pattern until it does not hit start pattern
             sb.StartNewGame();
             BuilderPattern bp(en);
-            int col=0;
+            int col = 0;
             bool onBoard = true;
-            while (onBoard) {
-		if (((bp.empty|bp.black) & (st.empty|st.black)).none()) break;
+            while (onBoard) 
+            {
+		if (((bp.empty|bp.black) & (st.empty|st.black)).none()) 
+                    break;
                 onBoard = ShiftBuilderPattern(bp, DIR_EAST, sb);
                 col++;
             }
-            
-            // patterns are too big combined to fit on board 
-            if (!onBoard) continue;
+            if (!onBoard) 
+                continue;
 
             int startCol = col;
-            while (onBoard) {
+            while (onBoard) 
+            {
                 bitset_t empty = st.empty | bp.empty;
                 bitset_t black = st.black | bp.black;
-                
-                for (int i=startCol; i<col; ++i) {
-                    for (int j=0; j<st.height; ++j) {
+                for (int i = startCol; i < col; ++i) 
+                {
+                    for (int j = 0; j < st.height; ++j) 
+                    {
                         HexPoint p 
                             = HexPointUtil::coordsToPoint(i, height-1-j);
                         empty.set(p);
                     }
                 }
-                
                 VCPattern pat(st.endpoint, bp.endpoint, black, empty);
                 complete.push_back(pat);
                 numConstructed++;
-
                 onBoard = ShiftBuilderPattern(bp, DIR_EAST, sb);
                 col++;
             }
         }
     }
-
     LogFine() << "Constructed " << numConstructed << ".\n" 
 	      << "Parsed " << numComplete << " complete.\n";
-
-    // translate, rotate, and mirror all completed patterns
     LogFine() << "Translating, rotating, mirroring...\n";
     for (std::size_t i=0; i<complete.size(); ++i)
         ProcessPattern(complete[i], sb, out);
-
     LogFine() << out[BLACK].size() << " total patterns\n";
-
     GetConstructed(BLACK)[std::make_pair(width, height)] = out[BLACK];
     GetConstructed(WHITE)[std::make_pair(width, height)] = out[WHITE];
-
     LogFine() << "Done.\n";
 }
 
@@ -407,7 +398,6 @@ bool VCPattern::Matches(HexColor color, const StoneBoard& brd) const
 {
     bitset_t my_color = brd.GetColor(color) & brd.Const().GetCells();
     bitset_t op_color = brd.GetColor(!color) & brd.Const().GetCells();
-
     return ((m_not_oppt & op_color).none() 
             && BitsetUtil::IsSubsetOf(m_must_have, my_color));
 }
@@ -423,7 +413,6 @@ bool VCPattern::ShiftPattern(HexDirection dir, const StoneBoard& brd)
         return false;
     HexPoint endpoint1 = BoardUtils::PointInDir(brd.Const(), Endpoint(0), dir);
     HexPoint endpoint2 = BoardUtils::PointInDir(brd.Const(), Endpoint(1), dir);
-
     m_end1 = endpoint1;
     m_end2 = endpoint2;
     m_must_have = must;
