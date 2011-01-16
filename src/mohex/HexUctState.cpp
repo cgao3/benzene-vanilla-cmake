@@ -196,8 +196,8 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
 }
 
 bool HexUctState::GenerateAllMoves(SgUctValue count, 
-                                   std::vector<SgMoveInfo>& moves,
-                                   SgProvenNodeType& provenType)
+                                   std::vector<SgUctMoveInfo>& moves,
+                                   SgUctProvenType& provenType)
 {
     moves.clear();
 
@@ -205,7 +205,7 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
     if (m_new_game)
     {
         for (BitsetIterator it(m_shared_data->root_consider); it; ++it)
-            moves.push_back(SgMoveInfo(*it));
+            moves.push_back(SgUctMoveInfo(*it));
         if (count == 0)
             m_knowledge.ProcessPosition(moves);
         return false;
@@ -224,7 +224,7 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
             }
         }
         for (BitsetIterator it(m_bd->GetEmpty()); it; ++it)
-            moves.push_back(SgMoveInfo(*it));
+            moves.push_back(SgUctMoveInfo(*it));
         m_knowledge.ProcessPosition(moves);
     }
     else
@@ -239,7 +239,7 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
         truncateChildTrees = true;
         bitset_t moveset = m_bd->GetEmpty() & ComputeKnowledge(provenType);
         for (BitsetIterator it(moveset); it; ++it)
-            moves.push_back(SgMoveInfo(*it));
+            moves.push_back(SgUctMoveInfo(*it));
     }
     return truncateChildTrees;
 }
@@ -333,7 +333,7 @@ void HexUctState::EndPlayout()
 
 /** Computes moves to consider and stores fillin in the shared
     data. */
-bitset_t HexUctState::ComputeKnowledge(SgProvenNodeType& provenType)
+bitset_t HexUctState::ComputeKnowledge(SgUctProvenType& provenType)
 {
     m_vc_brd->GetPosition().StartNewGame();
     m_vc_brd->GetPosition().SetColor(BLACK, m_bd->GetPlayed(BLACK));

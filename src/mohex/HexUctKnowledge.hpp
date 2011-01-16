@@ -23,7 +23,7 @@ public:
 
     ~HexUctKnowledge();
 
-    void ProcessPosition(std::vector<SgMoveInfo>& moves);
+    void ProcessPosition(std::vector<SgUctMoveInfo>& moves);
     
 private:
     const HexUctState& m_state;

@@ -19,7 +19,7 @@ HexUctKnowledge::~HexUctKnowledge()
 {
 }
 
-void HexUctKnowledge::ProcessPosition(std::vector<SgMoveInfo>& moves)
+void HexUctKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
 {
     SG_UNUSED(moves);
 }
