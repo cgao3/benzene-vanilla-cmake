@@ -8,7 +8,7 @@ using namespace benzene;
 
 namespace {
 
-BOOST_AUTO_TEST_CASE(SequenceHash_Hash)
+BOOST_AUTO_TEST_CASE(SequenceHash_PointSequence)
 {
     PointSequence a, b;
 
@@ -49,6 +49,22 @@ BOOST_AUTO_TEST_CASE(SequenceHash_Hash)
     // a = {1,2,3}, b = {1,2,3}
     b.push_back(HEX_CELL_A3);
     BOOST_CHECK(SequenceHash::Hash(a) == SequenceHash::Hash(b));
+}
+
+BOOST_AUTO_TEST_CASE(SequenceHash_MoveSequence)
+{
+    MoveSequence a, b, c;
+    BOOST_CHECK(SequenceHash::Hash(a) == SequenceHash::Hash(b));
+    a.push_back(Move(BLACK, HEX_CELL_A1));
+    BOOST_CHECK(SequenceHash::Hash(a) != SequenceHash::Hash(b));
+    b.push_back(Move(BLACK, HEX_CELL_A1));
+    BOOST_CHECK(SequenceHash::Hash(a) == SequenceHash::Hash(b));
+    c.push_back(Move(BLACK, HEX_CELL_A3));
+    BOOST_CHECK(SequenceHash::Hash(a) != SequenceHash::Hash(c));    
+    a.push_back(Move(BLACK, HEX_CELL_A2));
+    BOOST_CHECK(SequenceHash::Hash(a) != SequenceHash::Hash(b));
+    b.push_back(Move(WHITE, HEX_CELL_A2));
+    BOOST_CHECK(SequenceHash::Hash(a) != SequenceHash::Hash(b));
 }
 
 }
