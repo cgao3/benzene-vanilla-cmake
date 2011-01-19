@@ -81,7 +81,6 @@ SearchedState.hpp \
 SequenceHash.hpp \
 StateDB.hpp \
 StoneBoard.hpp \
-TransTable.hpp \
 TwoDistance.hpp \
 VC.hpp \
 VCBuilder.hpp \

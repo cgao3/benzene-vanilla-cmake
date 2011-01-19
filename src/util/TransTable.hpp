@@ -1,14 +1,13 @@
 //----------------------------------------------------------------------------
-/** @file TransTable.hpp
- */
+/** @file TransTable.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef TRANSTABLE_H
-#define TRANSTABLE_H
+#ifndef TRANSTABLE_HPP
+#define TRANSTABLE_HPP
 
 #include <boost/concept_check.hpp>
 
-#include "Hex.hpp"
+#include "Hash.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -22,10 +21,8 @@ struct TransTableStateConcept
     {
         boost::function_requires< boost::DefaultConstructibleConcept<T> >();
         boost::function_requires< boost::AssignableConcept<T> >();
-
         const T a;
         if (a.Initialized()) { }
-
         const T b;
         if (a.ReplaceWith(b)) { }
     }
@@ -41,11 +38,9 @@ class TransTable
     BOOST_CLASS_REQUIRE(T, benzene, TransTableStateConcept);
 
 public:
-
     /** Creates table with 2^n slots. */
     TransTable(int bits);
 
-    /** Destructor. */
     ~TransTable();
 
     /** Returns lg2 of number of entries. */
@@ -58,35 +53,31 @@ public:
     void Clear();
 
     /** Stores data in slot for hash. New data
-        overwrites old only if "old.ReplaceWith(new)" is true.
-    */
+        overwrites old only if "old.ReplaceWith(new)" is true. */
     bool Put(hash_t hash, const T& data);
     
     /** Returns true if the slot for hash contains a state with that
         hash value, data is copied into data if so. Otherwise, nothing
-        is copied into data.
-    */
+        is copied into data. */
     bool Get(hash_t hash, T& data);
 
     /** Returns statistics in string form. */
     std::string Stats() const;
 
 private:
-
-    // -----------------------------------------------------------------------
-
     struct Statistics
     {
-        unsigned reads;
-        unsigned hits;
-        unsigned writes;
-        unsigned overwrites;
+        std::size_t reads;
+        
+        std::size_t hits;
+        
+        std::size_t writes;
+        
+        std::size_t overwrites;
 
         Statistics() : reads(0), hits(0), writes(0), overwrites(0) { }
     };
    
-    // -----------------------------------------------------------------------
-    
     int m_bits;
 
     std::size_t m_size;
@@ -187,4 +178,4 @@ std::string TransTable<T>::Stats() const
 
 _END_BENZENE_NAMESPACE_
 
-#endif // TRANSTABLE_H
+#endif // TRANSTABLE_HPP

@@ -28,6 +28,7 @@ mat.hpp \
 Misc.hpp \
 SafeBool.hpp \
 SortedSequence.hpp \
+TransTable.hpp \
 Types.hpp \
 UnionFind.hpp \
 vec.hpp
