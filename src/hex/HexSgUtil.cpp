@@ -20,7 +20,7 @@ SgPoint HexSgUtil::HexPointToSgPoint(HexPoint p, int height)
 {
     int c, r;
     HexPointUtil::pointToCoords(p, c, r);
-    return SgPointUtil::Pt(1+c, height - r);
+    return SgPointUtil::Pt(1 + c, height - r);
 }
 
 
@@ -28,23 +28,20 @@ HexPoint HexSgUtil::SgPointToHexPoint(SgPoint p, int height)
 {
     int c = SgPointUtil::Col(p);
     int r = SgPointUtil::Row(p);
-    return HexPointUtil::coordsToPoint(c-1, height - r);
+    return HexPointUtil::coordsToPoint(c - 1, height - r);
 }
 
 
 SgBlackWhite HexSgUtil::HexColorToSgColor(HexColor color)
 {
     BenzeneAssert(HexColorUtil::isBlackWhite(color));
-    if (color == BLACK) return SG_BLACK;
-    return SG_WHITE;
+    return (color == BLACK) ? SG_BLACK : SG_WHITE;
 }
-
 
 HexColor HexSgUtil::SgColorToHexColor(SgBlackWhite player)
 {
     BenzeneAssert(player == SG_BLACK || player == SG_WHITE);
-    if (player == SG_BLACK) return BLACK;
-    return WHITE;
+    return (player == SG_BLACK) ? BLACK : WHITE;
 }
 
 SgVector<SgPoint> HexSgUtil::BitsetToSgVector(const bitset_t& b, int height)
@@ -66,10 +63,11 @@ void HexSgUtil::AddMoveToNode(SgNode* node, HexColor color,
 
 bool HexSgUtil::NodeHasSetupInfo(SgNode* node)
 {
-    if (node->HasProp(SG_PROP_ADD_BLACK)) return true;
-    if (node->HasProp(SG_PROP_ADD_WHITE)) return true;
-    if (node->HasProp(SG_PROP_ADD_EMPTY)) return true;
-    if (node->HasProp(SG_PROP_PLAYER)) return true;
+    if (   node->HasProp(SG_PROP_ADD_BLACK)
+        || node->HasProp(SG_PROP_ADD_WHITE)
+        || node->HasProp(SG_PROP_ADD_EMPTY)
+        || node->HasProp(SG_PROP_PLAYER))
+        return true;
     return false;
 }
 
@@ -83,17 +81,14 @@ void HexSgUtil::SetPositionInNode(SgNode* node, const StoneBoard& brd,
                                        & brd.Const().GetCells(), height);
     SgVector<SgPoint> elist = HexSgUtil::BitsetToSgVector(brd.GetEmpty()
                                        & brd.Const().GetCells(), height);
-
     SgPropPlayer* pprop = new SgPropPlayer(SG_PROP_PLAYER);
     SgPropAddStone* bprop = new SgPropAddStone(SG_PROP_ADD_BLACK);
     SgPropAddStone* wprop = new SgPropAddStone(SG_PROP_ADD_WHITE);
     SgPropAddStone* eprop = new SgPropAddStone(SG_PROP_ADD_EMPTY);
-
     pprop->SetValue(HexSgUtil::HexColorToSgColor(color));    
     bprop->SetValue(blist);
     wprop->SetValue(wlist);
     eprop->SetValue(elist);
-
     node->Add(pprop);
     node->Add(bprop);
     node->Add(wprop);
@@ -131,28 +126,15 @@ void HexSgUtil::GetSetupPosition(const SgNode* node, int height,
     }
 }
 
-void HexSgUtil::SetPositionInBoard(const SgNode* node, StoneBoard& brd)
-{
-    std::vector<HexPoint> black, white, empty;
-    GetSetupPosition(node, brd.Height(), black, white, empty);
-    brd.StartNewGame();
-    for (std::size_t i = 0; i < black.size(); ++i) 
-        brd.PlayMove(BLACK, black[i]);
-    for (std::size_t i = 0; i < white.size(); ++i)
-        brd.PlayMove(WHITE, white[i]);
-}
-
-
 bool HexSgUtil::WriteSgf(SgNode* tree, const char* filename, int boardsize)
 {
     // Set the boardsize property
     tree->Add(new SgPropInt(SG_PROP_SIZE, boardsize));
-
-    // @note 11 is the sgf gamenumber for Hex
     std::ofstream f(filename);
     if (f) 
     {
         SgGameWriter sgwriter(f);
+        // NOTE: 11 is the sgf gamenumber for Hex
         sgwriter.WriteGame(*tree, true, 0, 11, boardsize);
         f.close();
     } 

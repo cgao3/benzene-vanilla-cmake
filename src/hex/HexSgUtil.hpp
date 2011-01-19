@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file HexSgUtil.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXSGUTIL_HPP
@@ -27,7 +26,7 @@ namespace HexSgUtil
     /** Converts from from a SgPoint to a HexPoint. */
     HexPoint SgPointToHexPoint(SgPoint p, int height);
 
-    /** Converts a HexColor to SgBlackWhite,  color must not equal
+    /** Converts a HexColor to SgBlackWhite, color must not equal
         EMPTY. */
     SgBlackWhite HexColorToSgColor(HexColor color);
 
@@ -60,9 +59,6 @@ namespace HexSgUtil
                           std::vector<HexPoint>& black,
                           std::vector<HexPoint>& white,
                           std::vector<HexPoint>& empty);
-
-    /** Sets node's position in the board. */
-    void SetPositionInBoard(const SgNode* node, StoneBoard& brd);
 
     //------------------------------------------------------------------------
 
