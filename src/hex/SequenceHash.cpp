@@ -54,8 +54,8 @@ hash_t SequenceHash::Hash(const MoveSequence& seq)
     hash_t ret = 0;
     for (std::size_t i = 0; i < seq.size(); ++i)
     {
-        ret ^= data.m_hashes[i][seq[i].point()];
-        ret ^= data.m_colorHash[seq[i].color()];
+        ret ^= data.m_hashes[i][seq[i].Point()];
+        ret ^= data.m_colorHash[seq[i].Color()];
     }
     return ret;
 }

@@ -20,7 +20,7 @@ Game::Game(StoneBoard& board)
 
 void Game::NewGame()
 {
-    LogFine() << "Game::NewGame()" << '\n';
+    LogFine() << "Game::NewGame()\n";
     m_board->StartNewGame();
     m_time_remaining[BLACK] = m_game_time;
     m_time_remaining[WHITE] = m_game_time;
@@ -58,7 +58,7 @@ void Game::UndoMove()
 {
     if (m_history.empty())
         return;
-    m_board->UndoMove(m_history.back().point());
+    m_board->UndoMove(m_history.back().Point());
     m_history.pop_back();
 }
 
@@ -88,10 +88,10 @@ bool GameUtil::SequenceFromPosition(const Game& game, const StoneBoard& pos,
          it != history.end(); ++it)
     {    
         const Move& move = *it;
-        cur.PlayMove(move.color(), move.point());
+        cur.PlayMove(move.Color(), move.Point());
         if (cur == pos)
         {
-            LogInfo() << "Position matched!" << '\n';
+            LogInfo() << "Position matched!\n";
             seq.assign(++it, history.end());
             return true;
         }
@@ -107,7 +107,7 @@ void GameUtil::HistoryToSequence(const MoveSequence& history,
          it != history.end(); ++it)
     {    
         const Move& move = *it;
-        sequence.push_back(move.point());
+        sequence.push_back(move.Point());
     }
 }
 

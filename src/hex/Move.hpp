@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file Move.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef MOVE_HPP
@@ -21,13 +20,13 @@ public:
     Move(HexColor color, HexPoint point);
     
     /** Returns color of move. */
-    HexColor color() const;
+    HexColor Color() const;
 
     /** Returns point of move. */
-    HexPoint point() const;
+    HexPoint Point() const;
 
     /** Outputs a [color, move] string. */
-    std::string toString() const;
+    std::string ToString() const;
 
     /** Returns true if point and color are equal. */
     bool operator==(const Move& other) const;
@@ -37,25 +36,27 @@ public:
 
 private:
     HexColor m_color;
+
     HexPoint m_point;
 };
 
 inline Move::Move(HexColor color, HexPoint point)
-    : m_color(color), m_point(point)
+    : m_color(color),
+      m_point(point)
 {
 }
 
-inline HexColor Move::color() const
+inline HexColor Move::Color() const
 {
     return m_color;
 }
 
-inline HexPoint Move::point() const
+inline HexPoint Move::Point() const
 {
     return m_point;
 }
 
-inline std::string Move::toString() const
+inline std::string Move::ToString() const
 {
     std::ostringstream os;
     os << '[' << m_color << ", " << m_point << ']';
@@ -78,7 +79,7 @@ inline bool Move::operator!=(const Move& other) const
 /** Extends standard output operator to Moves. */
 inline std::ostream& operator<<(std::ostream& os, const Move& move)
 {
-    return os << move.toString();
+    return os << move.ToString();
 }
 
 //----------------------------------------------------------------------------

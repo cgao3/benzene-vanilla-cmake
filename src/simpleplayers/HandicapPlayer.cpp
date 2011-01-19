@@ -53,7 +53,7 @@ HexPoint HandicapPlayer::Search(HexBoard& brd,
 	return BoardUtils::RandomEmptyCell(brd.GetPosition());
     }
     
-    lastMove = game_state.History().back().point();
+    lastMove = game_state.History().back().Point();
     LogInfo() << "Last move: " << lastMove << '\n';
     /** For future implementation: discard the naive responseMap and
 	just do it here. Only build the responseMap for the places on

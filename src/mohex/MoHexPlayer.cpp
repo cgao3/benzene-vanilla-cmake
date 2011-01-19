@@ -207,11 +207,11 @@ HexPoint MoHexPlayer::LastMoveFromHistory(const MoveSequence& history)
     HexPoint lastMove = INVALID_POINT;
     if (!history.empty()) 
     {
-	lastMove = history.back().point();
+	lastMove = history.back().Point();
 	if (lastMove == SWAP_PIECES) 
         {
             BenzeneAssert(history.size() == 2);
-            lastMove = history.front().point();
+            lastMove = history.front().Point();
 	}
     }
     return lastMove;
@@ -400,13 +400,13 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
     std::vector<SgMove> sequence;
     for (std::size_t i = oldSequence.size(); i < newSequence.size(); ++i)
     {
-        if (i && newSequence[i-1].color() == newSequence[i].color())
+        if (i && newSequence[i-1].Color() == newSequence[i].Color())
         {
             LogInfo() << "ReuseSubtree: Colors do not alternate.\n";
             return 0;
         }
         suffix.push_back(newSequence[i]);
-        sequence.push_back(newSequence[i].point());
+        sequence.push_back(newSequence[i].Point());
     }
     LogInfo() << "MovesPlayed: " << suffix << '\n';
     

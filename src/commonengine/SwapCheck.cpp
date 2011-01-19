@@ -92,7 +92,7 @@ bool SwapCheck::PlaySwap(const Game& gameState, HexColor toPlay)
         {
             if (!s_swapLoaded)
                 LoadSwapMoves("swap-moves.txt");
-	    HexPoint firstMove = gameState.History().back().point();
+	    HexPoint firstMove = gameState.History().back().Point();
 	    if (toPlay == VERTICAL_COLOR)
                 // Swap decisions assume VERTICAL_COLOR was FIRST_TO_PLAY,
                 // so we mirror the first move if this is not the case

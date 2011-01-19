@@ -801,9 +801,9 @@ void DfpnSolver::PropagateBackwards(const Game& game, DfpnStates& pos)
         return;
     do
     {
-        HexPoint cell = history.back().point();
+        HexPoint cell = history.back().Point();
         state.UndoMove(cell);
-        state.SetToPlay(history.back().color());
+        state.SetToPlay(history.back().Color());
         history.pop_back();
         DfpnData data;
         if (!pos.Get(state, data))

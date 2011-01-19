@@ -29,8 +29,8 @@ HexPoint VulPreCheck::KillLastMove(HexBoard& brd, const Game& game_state,
 	PatternState pastate(b);
 	for (std::size_t i = 0; i + 1 < gh.size(); ++i) 
         {
-	    HexPoint p = gh[i].point();
-	    HexColor c = gh[i].color();
+	    HexPoint p = gh[i].Point();
+	    HexColor c = gh[i].Color();
 	    
 	    /** If we've killed this opponent stone, give it to ourselves.
 		This often helps to find more vulnerable opponent moves. 
@@ -49,12 +49,12 @@ HexPoint VulPreCheck::KillLastMove(HexBoard& brd, const Game& game_state,
 	LogWarning() << "Board before last move:" << b << '\n';
 	
 	// Check if last move played (by opponent) was vulnerable.
-	HexPoint lastCell = gh.back().point();
+	HexPoint lastCell = gh.back().Point();
 	bitset_t lastMoveOnly;
 	lastMoveOnly.set(lastCell);
 	LogWarning() << "Last move on this board:"
                      << b.Write(lastMoveOnly) << '\n';
-	BenzeneAssert(gh.back().color() == !color);
+	BenzeneAssert(gh.back().Color() == !color);
 	InferiorCells inf;
 	brd.ICE().FindVulnerable(pastate, !color, lastMoveOnly, inf);
 	LogWarning() << "Inferior cells:" << inf.GuiOutput() << '\n';
