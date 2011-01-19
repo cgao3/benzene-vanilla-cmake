@@ -62,24 +62,23 @@ void HexHtpEngine::Play(HexColor color, HexPoint move)
 {
     bool illegal = false;
     std::string reason = "";
-
-    // do nothing if a resign move
+    // Do nothing if a resign move
     if (move == RESIGN)
         return;
-
     Game::ReturnType result = m_game.PlayMove(color, move);
-    if (result == Game::INVALID_MOVE) {
+    if (result == Game::INVALID_MOVE) 
+    {
         illegal = true;
         reason = " (invalid)";
-    } else if (result == Game::OCCUPIED_CELL) {
+    } 
+    else if (result == Game::OCCUPIED_CELL) 
+    {
         illegal = true;
         reason = " (occupied)";
     }
-    
-    if (illegal) {
-        throw HtpFailure() << "illegal move: " << ' '
-                           << color << ' ' << move << reason;
-    }
+    if (illegal)
+        throw HtpFailure() << "illegal move: " << ' '<< color 
+                           << ' ' << move << reason;
 }
 
 void HexHtpEngine::NewGame(int width, int height)
@@ -121,7 +120,6 @@ void HexHtpEngine::CmdExec(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
-
     try {
         ExecuteFile(filename, std::cerr);
     }
@@ -183,11 +181,9 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
         double oldTimeRemaining = m_game.TimeRemaining(color);
         HexPoint move = GenMove(color, true);
         timer.Stop();
-        
         m_game.SetTimeRemaining(color, oldTimeRemaining - timer.GetTime());
         if (m_game.TimeRemaining(color) < 0)
             LogWarning() << "**** FLAG DROPPED ****\n";
-        
         Play(color, move);
         cmd << move;
     }
@@ -217,7 +213,7 @@ void HexHtpEngine::CmdUndo(HtpCommand& cmd)
 /** Displays the board. */
 void HexHtpEngine::CmdShowboard(HtpCommand& cmd)
 {
-    cmd << "\n";
+    cmd << '\n';
     cmd << m_game.Board();
 }
 
@@ -250,8 +246,7 @@ void HexHtpEngine::CmdTimeLeft(HtpCommand& cmd)
 }
 
 /** Returns a string with what we think the outcome of the game is.
-    Value will be "B+" for a black win, and "W+" for a white win.
- */
+    Value will be "B+" for a black win, and "W+" for a white win. */
 void HexHtpEngine::CmdFinalScore(HtpCommand& cmd)
 {
     Groups groups;
@@ -268,85 +263,81 @@ void HexHtpEngine::CmdFinalScore(HtpCommand& cmd)
 /** Returns a list of all legal moves on current board position. */
 void HexHtpEngine::CmdAllLegalMoves(HtpCommand& cmd)
 {
-    int c = 0;
-    bitset_t legal = m_game.Board().GetLegal();
-    for (BitsetIterator i(legal); i; ++i) 
-    {
-        cmd << " " << *i;
-        if ((++c % 10) == 0) cmd << "\n";
-    }
+    for (BitsetIterator i(m_game.Board().GetLegal()); i; ++i) 
+        cmd << ' ' << *i;
 }
 
-/** @bug This won't work if we're overwriting previosly played stones! */
+/** Plays setup stones to the board.
+    Plays all black moves first then all white moves as actuall game
+    moves.
+    @bug This will not work if the setup stones intersect previously
+    played stones! The current only works if we expect only a single
+    node with setup information. If multiple nodes in the game tree
+    are adding/removing stones this will break horribly. */
 void HexHtpEngine::SetPosition(const SgNode* node)
 {
     std::vector<HexPoint> black, white, empty;
     HexSgUtil::GetSetupPosition(node, m_game.Board().Height(), 
                                 black, white, empty);
-    for (unsigned i=0; ; ++i) 
+    for (std::size_t i = 0; ; ++i) 
     {
         bool bdone = (i >= black.size());
         bool wdone = (i >= white.size());
-        if (!bdone) Play(BLACK, black[i]);
-        if (!wdone) Play(WHITE, white[i]);
-        if (bdone && wdone) break;
+        if (!bdone)
+            Play(BLACK, black[i]);
+        if (!wdone)
+            Play(WHITE, white[i]);
+        if (bdone && wdone)
+            break;
     }
 }
 
-/** Loads game or position from given sgf. Sets position to given move
-    number or the last move of the game if none is given.
-*/
+/** Loads game or position from given sgf. 
+    Sets position to given move number or the last move of the game if
+    none is given. */
 void HexHtpEngine::CmdLoadSgf(HtpCommand& cmd)
 {
     cmd.CheckNuArgLessEqual(2);
     std::string filename = cmd.Arg(0);
-    int movenumber = 1024;
+    int moveNumber = std::numeric_limits<int>::max();
     if (cmd.NuArg() == 2) 
-        movenumber = cmd.ArgMin<int>(1, 0);
-
+        moveNumber = cmd.ArgMin<int>(1, 0);
     std::ifstream file(filename.c_str());
-    if (!file) {
+    if (!file)
         throw HtpFailure() << "cannot load file";
-        return;
-    }
-
     SgGameReader sgreader(file, 11);
     SgNode* root = sgreader.ReadGame(); 
-    if (root == 0) {
+    if (root == 0)
         throw HtpFailure() << "cannot load file";
-        return;
-    }
     sgreader.PrintWarnings(std::cerr);
 
     int size = root->GetIntProp(SG_PROP_SIZE);
-
     NewGame(size, size);
-
     const StoneBoard& brd = m_game.Board();
-
-    if (HexSgUtil::NodeHasSetupInfo(root)) {
-        LogWarning() << "Root has setup info!" << '\n';
+    if (HexSgUtil::NodeHasSetupInfo(root)) 
+    {
+        LogWarning() << "Root has setup info!\n";
         SetPosition(root);
     }
-
-    // play movenumber moves; stop if we hit the end of the game
+    // Play moveNumber moves; stop if we hit the end of the game
     SgNode* cur = root;
-    for (int mn=0; mn<movenumber;) {
+    for (int mn = 0; mn < moveNumber;)
+    {
         cur = cur->NodeInDirection(SgNode::NEXT);
-        if (!cur) break;
-
-        if (HexSgUtil::NodeHasSetupInfo(cur)) {
+        if (!cur) 
+            break;
+        if (HexSgUtil::NodeHasSetupInfo(cur))
+        {
             SetPosition(cur);
             continue;
-        } else if (!cur->HasNodeMove()) {
+        } 
+        else if (!cur->HasNodeMove())
             continue;
-        }
-
         HexColor color = HexSgUtil::SgColorToHexColor(cur->NodePlayer());
         HexPoint point = HexSgUtil::SgPointToHexPoint(cur->NodeMove(), 
                                                       brd.Height());
         Play(color, point);
-        mn++;
+        ++mn;
     }
 }
 
@@ -377,6 +368,8 @@ void HexHtpEngine::CmdParamGame(HtpCommand& cmd)
                 throw HtpFailure("Cannot set game time if game started!");
             m_game.SetGameTime(cmd.ArgMin<float>(1, 0.0f));
         }
+        else
+            throw HtpFailure() << "Unknown parameter: " << name;
     }
     else
         throw HtpFailure("Expected 0 or 2 arguments");
