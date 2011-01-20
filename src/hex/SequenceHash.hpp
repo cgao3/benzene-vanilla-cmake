@@ -5,7 +5,7 @@
 #ifndef SEQUENCEHASH_HPP
 #define SEQUENCEHASH_HPP
 
-#include "Hex.hpp"
+#include "SgHash.h"
 #include "Move.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -16,10 +16,10 @@ _BEGIN_BENZENE_NAMESPACE_
 namespace SequenceHash
 {
     /** Hashes a sequence of points. */
-    hash_t Hash(const PointSequence& seq);
+    SgHashCode Hash(const PointSequence& seq);
     
     /** Hashes a sequence of moves. */
-    hash_t Hash(const MoveSequence& seq);
+    SgHashCode Hash(const MoveSequence& seq);
 }
 
 //----------------------------------------------------------------------------

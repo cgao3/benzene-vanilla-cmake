@@ -45,7 +45,7 @@ namespace
 void ZobristHash::GlobalData::GetHashes()
 {
     for (int i = 0; i < NUM_HASHES; ++i)
-        m_hashes[i] = s_predefined_hashes[i];
+        m_hashes[i].FromString(s_predefined_hashes[i]);
 }
 
 #else
@@ -55,7 +55,7 @@ void ZobristHash::GlobalData::GetHashes()
     int old_seed = SgRandom::Global().Seed();
     SgRandom::Global().SetSeed(1);
     for (int i = 0; i < NUM_HASHES; ++i)
-        m_hashes[i] = HashUtil::RandomHash();
+        m_hashes[i] = SgHash::Random();
     SgRandom::SetSeed(old_seed);
 }
 
@@ -81,8 +81,10 @@ void ZobristHash::Compute(const bitset_t& black, const bitset_t& white)
     Reset();
     for (int p = 0; p < BITSETSIZE; ++p) 
     {
-        if (black.test(p)) m_hash ^= GetGlobalData().m_black_hashes[p];
-        if (white.test(p)) m_hash ^= GetGlobalData().m_white_hashes[p];
+        if (black.test(p)) 
+            m_hash.Xor(GetGlobalData().m_black_hashes[p]);
+        if (white.test(p)) 
+            m_hash.Xor(GetGlobalData().m_white_hashes[p]);
     }
 }
 

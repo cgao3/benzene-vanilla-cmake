@@ -1,10 +1,10 @@
 //---------------------------------------------------------------------------
-/** @file StoneBoardTest.cpp
- */
+/** @file StoneBoardTest.cpp */
 //---------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
 
+#include "SgSystem.h"
 #include "StoneBoard.hpp"
 
 using namespace benzene;
@@ -310,7 +310,7 @@ BOOST_AUTO_TEST_CASE(StoneBoard_Hash)
     BOOST_REQUIRE(MAX_WIDTH >= 5 && MAX_HEIGHT >= 5);
     StoneBoard sb = StoneBoard(5, 5);
 
-    hash_t h1,h2;
+    SgHashCode h1,h2;
     h1 = sb.Hash();
 
     // check that playmove modifies the hash

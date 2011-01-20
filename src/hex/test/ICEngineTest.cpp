@@ -1,11 +1,10 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file IceEngineTest.cpp */
 //----------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
 
-#include "Hex.hpp"
+#include "SgSystem.h"
 #include "ICEngine.hpp"
 
 using namespace benzene;

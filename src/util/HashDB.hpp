@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HashDB.hpp
- */
+/** @file HashDB.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HASHDB_H
@@ -14,9 +13,9 @@
 
 #include <db.h>
 
+#include "SgHash.h"
 #include "Benzene.hpp"
 #include "Types.hpp"
-#include "Hash.hpp"
 #include "BenzeneException.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -67,13 +66,13 @@ public:
     ~HashDB();
 
     /** Returns true if hash exists in database. */
-    bool Exists(hash_t hash) const;
+    bool Exists(SgHashCode hash) const;
 
     /** Returns true if get is successful. */
-    bool Get(hash_t hash, T& data) const;
+    bool Get(SgHashCode hash, T& data) const;
 
     /** Returns true if put is successful. */
-    bool Put(hash_t hash, const T& data);
+    bool Put(SgHashCode hash, const T& data);
 
     /** Generic Put; for adding non (hash, value) pairs. */
     bool Put(void* k, int ksize, void* d, int dsize);
@@ -189,7 +188,7 @@ void HashDB<T>::PutHeader(Header& header)
 }
 
 template<class T>
-bool HashDB<T>::Exists(hash_t hash) const
+bool HashDB<T>::Exists(SgHashCode hash) const
 {
     DBT key, data;
     memset(&key, 0, sizeof(key)); 
@@ -214,7 +213,7 @@ bool HashDB<T>::Exists(hash_t hash) const
 }
 
 template<class T>
-bool HashDB<T>::Get(hash_t hash, T& d) const
+bool HashDB<T>::Get(SgHashCode hash, T& d) const
 {
     DBT key, data;
     memset(&key, 0, sizeof(key)); 
@@ -268,7 +267,7 @@ bool HashDB<T>::Get(void* k, int ksize, void* d, int dsize) const
 }
 
 template<class T>
-bool HashDB<T>::Put(hash_t hash, const T& d)
+bool HashDB<T>::Put(SgHashCode hash, const T& d)
 {
     DBT key, data; 
     memset(&key, 0, sizeof(key)); 

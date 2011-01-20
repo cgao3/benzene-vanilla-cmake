@@ -4,6 +4,7 @@
 
 #include <boost/test/auto_unit_test.hpp>
 
+#include "SgSystem.h"
 #include "HashMap.hpp"
 
 using namespace benzene;

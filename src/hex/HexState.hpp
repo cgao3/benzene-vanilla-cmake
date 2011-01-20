@@ -1,12 +1,10 @@
 //----------------------------------------------------------------------------
-/** @file HexState.hpp
- */
+/** @file HexState.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXSTATE_H
 #define HEXSTATE_H
 
-#include "Hex.hpp"
 #include "StoneBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -31,7 +29,7 @@ public:
 
     HexColor ToPlay() const;
 
-    hash_t Hash() const;
+    SgHashCode Hash() const;
 
     void PlayMove(HexPoint move);
     
@@ -81,7 +79,7 @@ inline HexColor HexState::ToPlay() const
     return m_toPlay;
 }
 
-inline hash_t HexState::Hash() const
+inline SgHashCode HexState::Hash() const
 {
     return m_brd.Hash(m_toPlay);
 }

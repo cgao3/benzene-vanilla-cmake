@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file StoneBoard.hpp
- */
+/** @file StoneBoard.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef STONEBOARD_H
@@ -69,12 +68,12 @@ public:
         change the hash for the position. Methods that change the
         color of played cells internally will always compute a new
         hash automatically. */
-    hash_t Hash() const;
+    SgHashCode Hash() const;
 
     /** Returns the hash of the position taking the color to play into
         account. This will be different than the hash returned by
         Hash(). */
-    hash_t Hash(HexColor toPlay) const;
+    SgHashCode Hash(HexColor toPlay) const;
 
     /** Returns BoardID for the current board state, looking only at
         the played cells. */
@@ -329,12 +328,12 @@ inline int StoneBoard::Height() const
     return m_const->Height();
 }
 
-inline hash_t StoneBoard::Hash() const
+inline SgHashCode StoneBoard::Hash() const
 {
     return m_hash.Hash(EMPTY);
 }
 
-inline hash_t StoneBoard::Hash(HexColor toPlay) const
+inline SgHashCode StoneBoard::Hash(HexColor toPlay) const
 {
     return m_hash.Hash(toPlay);
 }

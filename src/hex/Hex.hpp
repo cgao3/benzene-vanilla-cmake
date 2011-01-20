@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file Hex.hpp
- */
+/** @file Hex.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEX_HPP
@@ -29,7 +28,6 @@
 #include "Benzene.hpp"
 #include "BenzeneAssert.hpp"
 #include "Types.hpp"
-#include "Hash.hpp"
 #include "Logger.hpp"
 #include "Bitset.hpp"
 

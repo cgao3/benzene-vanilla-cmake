@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file DfpnSolver.hpp
- */
+/** @file DfpnSolver.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef SOLVERDFPN_HPP
@@ -316,7 +315,7 @@ public:
     DfpnHistory();
 
     /** Adds a new state to the history. */
-    void Push(HexPoint m_move, hash_t hash);
+    void Push(HexPoint m_move, SgHashCode hash);
 
     /** Removes last stated added from history. */
     void Pop();
@@ -325,7 +324,7 @@ public:
     int Depth() const;
 
     /** Hash of last state. */
-    hash_t LastHash() const;
+    SgHashCode LastHash() const;
 
     /** Move played from parent state to bring us to this state. */
     HexPoint LastMove() const;
@@ -336,7 +335,7 @@ private:
     std::vector<HexPoint> m_move;
 
     /** Hash of state. */
-    std::vector<hash_t> m_hash;
+    std::vector<SgHashCode> m_hash;
 };
 
 inline DfpnHistory::DfpnHistory()
@@ -345,7 +344,7 @@ inline DfpnHistory::DfpnHistory()
     m_hash.push_back(0);
 }
 
-inline void DfpnHistory::Push(HexPoint move, hash_t hash)
+inline void DfpnHistory::Push(HexPoint move, SgHashCode hash)
 {
     m_move.push_back(move);
     m_hash.push_back(hash);
@@ -363,7 +362,7 @@ inline int DfpnHistory::Depth() const
     return static_cast<int>(m_move.size() - 1);
 }
 
-inline hash_t DfpnHistory::LastHash() const
+inline SgHashCode DfpnHistory::LastHash() const
 {
     return m_hash.back();
 }

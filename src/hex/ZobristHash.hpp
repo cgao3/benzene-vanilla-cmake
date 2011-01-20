@@ -1,12 +1,14 @@
 //----------------------------------------------------------------------------
-/** @file ZobristHash.hpp
- */
+/** @file ZobristHash.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef ZOBRISTHASH_HPP
 #define ZOBRISTHASH_HPP
 
-#include "Hex.hpp"
+#include "SgHash.h"
+#include "HexColor.hpp"
+#include "HexPoint.hpp"
+#include "Bitset.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -26,10 +28,10 @@ public:
     ZobristHash(int width, int height);
 
     /** Returns the current hash value for the color to play. */
-    hash_t Hash(HexColor toPlay) const;
+    SgHashCode Hash(HexColor toPlay) const;
 
     /** Helper function: same as Hash(EMPTY). */
-    hash_t Hash() const;
+    SgHashCode Hash() const;
     
     /** Reset hash to the base hash value. */
     void Reset();
@@ -42,12 +44,11 @@ public:
     void Update(HexColor color, HexPoint cell);
 
 private:
-
     /** Hash for the current state. */
-    hash_t m_hash;
+    SgHashCode m_hash;
 
     /** Base hash. */
-    hash_t m_base;
+    SgHashCode m_base;
 
     //----------------------------------------------------------------------
 
@@ -56,15 +57,15 @@ private:
     {
         static const int NUM_HASHES = 4096;
 
-        hash_t m_hashes[NUM_HASHES];
+        SgHashCode m_hashes[NUM_HASHES];
 
-        hash_t* m_black_hashes;
+        SgHashCode* m_black_hashes;
 
-        hash_t* m_white_hashes;
+        SgHashCode* m_white_hashes;
 
-        hash_t* m_color_hashes[BLACK_AND_WHITE];
+        SgHashCode* m_color_hashes[BLACK_AND_WHITE];
 
-        hash_t* m_toPlay_hashes[BLACK_WHITE_EMPTY];
+        SgHashCode* m_toPlay_hashes[BLACK_WHITE_EMPTY];
 
         GlobalData();
 
@@ -79,12 +80,14 @@ private:
     static GlobalData& GetGlobalData(); 
 };
 
-inline hash_t ZobristHash::Hash(HexColor toPlay) const
+inline SgHashCode ZobristHash::Hash(HexColor toPlay) const
 {
-    return m_hash ^ *GetGlobalData().m_toPlay_hashes[toPlay];
+    SgHashCode ret(m_hash);
+    ret.Xor(*GetGlobalData().m_toPlay_hashes[toPlay]);
+    return ret;
 }
 
-inline hash_t ZobristHash::Hash() const
+inline SgHashCode ZobristHash::Hash() const
 {
     return Hash(EMPTY);
 }
@@ -98,7 +101,7 @@ inline void ZobristHash::Update(HexColor color, HexPoint cell)
 {
     BenzeneAssert(HexColorUtil::isBlackWhite(color));
     BenzeneAssert(0 <= cell && cell < BITSETSIZE);
-    m_hash ^= GetGlobalData().m_color_hashes[color][cell];
+    m_hash.Xor(GetGlobalData().m_color_hashes[color][cell]);
 }
 
 //----------------------------------------------------------------------------

@@ -8,6 +8,7 @@
  */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
 #include "Hex.hpp"
 #include "Misc.hpp"
 #include "PatternState.hpp"

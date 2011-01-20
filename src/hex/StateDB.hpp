@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file StateDB.hpp
- */
+/** @file StateDB.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef POSITIONDB_HPP
@@ -16,17 +15,17 @@ _BEGIN_BENZENE_NAMESPACE_
 
 namespace {
 
-hash_t GetHash(const HexState& state)
+SgHashCode GetHash(const HexState& state)
 {
-    hash_t hash1 = state.Hash();
+    SgHashCode hash1 = state.Hash();
     HexState rotatedState(state);
     rotatedState.Position().RotateBoard();
-    hash_t hash2 = rotatedState.Hash();
-    return std::min(hash1, hash2);
+    SgHashCode hash2 = rotatedState.Hash();
+    return (hash1 < hash2) ? hash1 : hash2;
 }
 
 /** Data must be stored for the state of the minimum hash. */
-inline bool NeedToRotate(const HexState& state, hash_t minHash)
+inline bool NeedToRotate(const HexState& state, SgHashCode minHash)
 {
     return state.Hash() != minHash;
 }
@@ -132,7 +131,7 @@ template<class T>
 bool StateDB<T>::Get(const HexState& state, T& data) const
 {
     m_stats.m_gets++;
-    hash_t hash = GetHash(state);
+    SgHashCode hash = GetHash(state);
     if (!m_db.Get(hash, data))
         return false;
     m_stats.m_hits++;
@@ -148,7 +147,7 @@ template<class T>
 bool StateDB<T>::Put(const HexState& state, const T& data)
 {
     m_stats.m_puts++;
-    hash_t hash = GetHash(state);
+    SgHashCode hash = GetHash(state);
     T myData(data);
     if (NeedToRotate(state, hash))
     {
@@ -215,7 +214,7 @@ public:
     std::size_t Size() const;
 
 private:
-    std::set<hash_t> m_set;
+    std::set<SgHashCode> m_set;
 };
 
 inline StateSet::StateSet()
@@ -259,7 +258,7 @@ public:
     std::size_t Size() const;
 
 private:
-    std::map<hash_t, T> m_map;
+    std::map<SgHashCode, T> m_map;
 };
 
 template<class T>

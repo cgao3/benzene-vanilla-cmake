@@ -7,7 +7,7 @@
 
 #include <boost/concept_check.hpp>
 
-#include "Hash.hpp"
+#include "SgHash.h"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -54,12 +54,12 @@ public:
 
     /** Stores data in slot for hash. New data
         overwrites old only if "old.ReplaceWith(new)" is true. */
-    bool Put(hash_t hash, const T& data);
+    bool Put(SgHashCode hash, const T& data);
     
     /** Returns true if the slot for hash contains a state with that
         hash value, data is copied into data if so. Otherwise, nothing
         is copied into data. */
-    bool Get(hash_t hash, T& data);
+    bool Get(SgHashCode hash, T& data);
 
     /** Returns statistics in string form. */
     std::string Stats() const;
@@ -86,7 +86,7 @@ private:
 
     std::vector<T> m_data;
 
-    std::vector<hash_t> m_hash;
+    std::vector<SgHashCode> m_hash;
 
     Statistics m_stats;
 };
@@ -133,13 +133,13 @@ inline void TransTable<T>::Clear()
 }
 
 template<typename T>
-bool TransTable<T>::Put(hash_t hash, const T& data)
+bool TransTable<T>::Put(SgHashCode hash, const T& data)
 {
-    std::size_t slot = hash & m_mask;
+    std::size_t slot = hash.Hash((int)m_size);
     if (m_data[slot].ReplaceWith(data)) 
     {
         m_stats.writes++;
-        if (m_hash[slot] && m_hash[slot] != hash)
+        if (!m_hash[slot].IsZero() && m_hash[slot] != hash)
             m_stats.overwrites++;
         m_data[slot] = data;
         m_hash[slot] = hash;
@@ -148,10 +148,10 @@ bool TransTable<T>::Put(hash_t hash, const T& data)
 }
 
 template<typename T>
-bool TransTable<T>::Get(hash_t hash, T& data)
+bool TransTable<T>::Get(SgHashCode hash, T& data)
 {
     m_stats.reads++;
-    std::size_t slot = hash & m_mask;
+    std::size_t slot = hash.Hash((int)m_size);
     T& old = m_data[slot];
     bool ret = old.Initialized() && (m_hash[slot] == hash);
     if (ret) 

@@ -2,6 +2,7 @@
 /** @file HandCodedPattern.cpp */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
 #include "HandCodedPattern.hpp"
 #include "BoardUtils.hpp"
 

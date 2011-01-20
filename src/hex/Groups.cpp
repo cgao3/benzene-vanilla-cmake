@@ -2,6 +2,7 @@
 /** @file Groups.cpp  */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
 #include "BitsetIterator.hpp"
 #include "Groups.hpp"
 

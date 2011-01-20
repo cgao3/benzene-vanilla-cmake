@@ -1,11 +1,11 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file SearchedState.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef SEARCHEDSTATE_HPP
 #define SEARCHEDSTATE_HPP
 
+#include "SgHash.h"
 #include "Hex.hpp"
 #include "HexEval.hpp"
 
@@ -13,7 +13,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** State that has been search with Alpha-Beta. */
+/** State that has been searched with Alpha-Beta. */
 struct SearchedState
 {
     //------------------------------------------------------------------------
@@ -27,7 +27,7 @@ struct SearchedState
           depth(0)
     { }
     
-    SearchedState(hash_t h, int depth, Bound b, HexEval s, HexPoint m)
+    SearchedState(SgHashCode h, int depth, Bound b, HexEval s, HexPoint m)
         : hash(h), bound(b), score(s), move(m), depth(depth)
     { }
 
@@ -35,7 +35,7 @@ struct SearchedState
     
     bool Initialized() const;
 
-    hash_t Hash() const;
+    SgHashCode Hash() const;
 
     void CheckCollision(const SearchedState& other) const;
 
@@ -44,7 +44,7 @@ struct SearchedState
     //------------------------------------------------------------------------
 
     /** Zobrist Hash for this state. */
-    hash_t hash;
+    SgHashCode hash;
    
     /** How the score should be interpreted. */
     Bound bound;
@@ -69,7 +69,7 @@ inline bool SearchedState::Initialized() const
     return (move != INVALID_POINT);
 }
 
-inline hash_t SearchedState::Hash() const
+inline SgHashCode SearchedState::Hash() const
 {
     return hash;
 }

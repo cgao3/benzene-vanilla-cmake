@@ -369,7 +369,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
     if (!samePosition)
     {
         HexUctStoneData oldStateData;
-        hash_t hash = SequenceHash::Hash(newSequence);
+        SgHashCode hash = SequenceHash::Hash(newSequence);
         if (!oldData.stones.Get(hash, oldStateData))
         {
             LogInfo() << "ReuseSubtree: No knowledge for state in old tree.\n";
@@ -454,7 +454,7 @@ void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
     // entire tree, so only do it when not in the root.
     if (sequence != oldData.game_sequence)
     {
-        hash_t hash = SequenceHash::Hash(sequence);
+        SgHashCode hash = SequenceHash::Hash(sequence);
         HexUctStoneData stones;
         if (!oldData.stones.Get(hash, stones))
             return;

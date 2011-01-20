@@ -372,7 +372,7 @@ std::string StoneBoard::Write(const bitset_t& b) const
 {
     std::ostringstream out;
     out << '\n';
-    out << "  " << HashUtil::toString(Hash()) << '\n';
+    out << "  " << Hash() << '\n';
     out << "  ";
     for (int i = 0; i < Width(); i++) 
         out << (char)('a' + i) << "  ";

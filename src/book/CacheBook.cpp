@@ -1,10 +1,11 @@
 //----------------------------------------------------------------------------
-/** @file CacheBook.cpp
-*/
+/** @file CacheBook.cpp */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
+#include "SgHash.h"
 #include "CacheBook.hpp"
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
 
 using namespace benzene;
 
@@ -22,11 +23,11 @@ CacheBook::CacheBook()
     std::ifstream f(nativeFile.c_str());
     if (!f.is_open())
         LogWarning() << "Could not open cache book file for reading: '"
-                     << nativeFile << "'" << '\n';
+                     << nativeFile << "'\n";
     else
         ParseFile(f);
 #else
-    LogWarning() << "**** NO CACHE BOOK LOADED ***" << '\n';
+    LogWarning() << "**** NO CACHE BOOK LOADED ***\n";
 #endif
 }
 

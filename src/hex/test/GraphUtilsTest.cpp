@@ -1,10 +1,10 @@
 //----------------------------------------------------------------------------
-/** @file GraphUtilsTest.cpp
- */
+/** @file GraphUtilsTest.cpp */
 //----------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
 
+#include "SgSystem.h"
 #include "GraphUtils.hpp"
 
 using namespace benzene;

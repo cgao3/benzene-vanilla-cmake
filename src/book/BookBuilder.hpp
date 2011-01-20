@@ -150,7 +150,7 @@ private:
 
     HexState m_state;
 
-    std::set<hash_t> m_visited;
+    std::set<SgHashCode> m_visited;
 
     /** See UseICE() */
     bool m_use_ice;

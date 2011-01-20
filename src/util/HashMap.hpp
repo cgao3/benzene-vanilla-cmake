@@ -10,10 +10,10 @@
 #include <boost/concept_check.hpp>
 #include <boost/scoped_array.hpp>
 
+#include "SgHash.h"
 #include "AtomicMemory.hpp"
 #include "Benzene.hpp"
 #include "BenzeneAssert.hpp"
-#include "Hash.hpp"
 #include "Logger.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -76,7 +76,7 @@ public:
     /** Retrieves object with key. 
         Returns true on success and object is copied into
         out. Otherwise, returns false.*/
-    bool Get(hash_t key, T& out) const;
+    bool Get(SgHashCode key, T& out) const;
 
     /** Stores a (key, object) pair. 
      
@@ -96,7 +96,7 @@ public:
         own slot. Only the first slot written will ever be used by
         Get().
      */
-    void Put(hash_t key, const T& obj);
+    void Put(SgHashCode key, const T& obj);
     
     /** Clears the table. */
     void Clear();
@@ -109,7 +109,7 @@ private:
 
     struct Data
     {
-        hash_t key;
+        SgHashCode key;
 
         T value;
     };
@@ -185,12 +185,12 @@ inline unsigned HashMap<T>::Count() const
 
 /** Performs linear probing to find key. */
 template<typename T>
-bool HashMap<T>::Get(hash_t key, T& out) const
+bool HashMap<T>::Get(SgHashCode key, T& out) const
 {
     // Search for slot containing this key.
     // Limit number of probes to a single pass: Table should never
     // fill up, but I'm being extra paranoid anyway.
-    hash_t index = key;
+    unsigned index = key.Hash(m_size);
     for (int guard = m_size; guard > 0; --guard)
     {
         index &= m_mask;
@@ -208,7 +208,7 @@ bool HashMap<T>::Get(hash_t key, T& out) const
 }
 
 template<typename T>
-void HashMap<T>::Put(hash_t key, const T& value)
+void HashMap<T>::Put(SgHashCode key, const T& value)
 {
     if (m_count > m_size)
     {
@@ -226,7 +226,7 @@ void HashMap<T>::Put(hash_t key, const T& value)
     m_allocated[offset].value = value;
 
     // Find an empty slot
-    hash_t index = key;
+    unsigned index = key.Hash(m_size);
     while (true)
     {
         index &= m_mask;

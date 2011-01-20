@@ -1,10 +1,10 @@
 //----------------------------------------------------------------------------
-/** @file GroupsTest.cpp
- */
+/** @file GroupsTest.cpp */
 //----------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
 
+#include "SgSystem.h"
 #include "Groups.hpp"
 #include "BoardIterator.hpp"
 

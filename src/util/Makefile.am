@@ -19,7 +19,6 @@ Bitset.hpp \
 ChangeLog.hpp \
 Digraph.hpp \
 HashDB.hpp \
-Hash.hpp \
 HashMap.hpp \
 LinkedList.hpp \
 Logger.hpp \

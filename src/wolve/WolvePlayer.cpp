@@ -183,7 +183,7 @@ void WolveSearch::AfterStateSearched()
         bitset_t old_consider = m_consider[m_current_depth];
         bitset_t new_consider 
             = EndgameUtils::MovesToConsider(*m_brd, m_toplay) & old_consider;
-        hash_t hash = SequenceHash::Hash(m_sequence);
+        SgHashCode hash = SequenceHash::Hash(m_sequence);
         m_varTT.Put(hash, VariationInfo(m_current_depth, new_consider));
     }
     m_consider.pop_back();

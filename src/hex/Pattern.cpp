@@ -2,6 +2,7 @@
 /** @file Pattern.cpp */
 //----------------------------------------------------------------------------
 
+#include <cstring>
 #include "Pattern.hpp"
 
 using namespace benzene;

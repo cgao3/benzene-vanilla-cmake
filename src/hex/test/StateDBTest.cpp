@@ -1,9 +1,9 @@
 //---------------------------------------------------------------------------
-/** @file StateDBTest.cpp
- */
+/** @file StateDBTest.cpp */
 //---------------------------------------------------------------------------
 #include <boost/test/auto_unit_test.hpp>
 
+#include "SgSystem.h"
 #include "StateDB.hpp"
 
 using namespace benzene;

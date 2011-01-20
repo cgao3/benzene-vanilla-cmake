@@ -158,7 +158,7 @@ void CommonHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
     StoneBoard brd(m_game.Board());
     HexColor color = FIRST_TO_PLAY;
     PointSequence responses;
-    std::vector<hash_t> hashes;
+    std::vector<SgHashCode> hashes;
     SgNode* cur = root;
     for (int moveNum = 0; moveNum < maxMove;) 
     {
@@ -200,7 +200,7 @@ void CommonHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
  
     std::ofstream out(bookfilename.c_str(), std::ios_base::app);
     for (std::size_t i = 0 ; i < hashes.size(); ++i)
-        out << HashUtil::toString(hashes[i]) << ' ' << responses[i] << '\n';
+        out << hashes[i] << ' ' << responses[i] << '\n';
     out.close();
 }
 

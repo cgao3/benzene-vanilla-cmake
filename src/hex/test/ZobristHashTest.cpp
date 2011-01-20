@@ -1,10 +1,10 @@
 //---------------------------------------------------------------------------
-/** @file ZobristHashTest.cpp
- */
+/** @file ZobristHashTest.cpp */
 //---------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
 
+#include "SgSystem.h"
 #include "ZobristHash.hpp"
 
 using namespace benzene;
@@ -20,7 +20,6 @@ BOOST_AUTO_TEST_CASE(ZobristHash_InitializationAndUpdates)
     // can fail. However, it should be extremely improbable,
     // to the point of never occuring in practice.
     // This is true only if USE_PREDEFINED_HASHES is false. 
-
     
     // check that base values do NOT differ
     ZobristHash zh1(5, 5);
@@ -28,7 +27,7 @@ BOOST_AUTO_TEST_CASE(ZobristHash_InitializationAndUpdates)
     BOOST_CHECK(zh1.Hash() == zh2.Hash());
     
     // check that updates change hash value, reset restores
-    hash_t h1, h2, h3;
+    SgHashCode h1, h2, h3;
     h1 = zh1.Hash();
     zh1.Update(BLACK, FIRST_CELL);
     h2 = zh1.Hash();
@@ -73,7 +72,8 @@ BOOST_AUTO_TEST_CASE(ZobristHash_InitializationAndUpdates)
     zh1.Compute(black, white);
     BOOST_CHECK_EQUAL(h1, zh1.Hash());
     zh1.Reset();
-    for (int i=0; i<FIRST_INVALID; ++i) {
+    for (int i = 0; i < FIRST_INVALID; ++i) 
+    {
         if (black.test(i)) 
             zh1.Update(BLACK, static_cast<HexPoint>(i));
         if (white.test(i))

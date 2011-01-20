@@ -232,9 +232,8 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
         // Prune moves outside of mustplay and fillin
         if (TRACK_KNOWLEDGE)
         {
-            hash_t hash = SequenceHash::Hash(m_game_sequence);
-            LogInfo() << m_threadId << ": " 
-                      << HashUtil::toString(hash) << '\n';
+            SgHashCode hash(SequenceHash::Hash(m_game_sequence));
+            LogInfo() << m_threadId << ": " << hash << '\n';
         }
         truncateChildTrees = true;
         bitset_t moveset = m_bd->GetEmpty() & ComputeKnowledge(provenType);

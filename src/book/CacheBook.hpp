@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file CacheBook.hpp
- */
+/** @file CacheBook.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef CACHEBOOK_HPP
@@ -30,7 +29,7 @@ public:
     std::size_t Size() const;
 
 private:
-    std::map<hash_t, HexPoint> m_map;
+    std::map<SgHashCode, HexPoint> m_map;
 
     void ParseFile(std::ifstream& inFile);
     std::vector<HexPoint> ReadPoints(std::istringstream& in) const;

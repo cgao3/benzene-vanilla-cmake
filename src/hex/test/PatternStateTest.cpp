@@ -16,7 +16,7 @@
 
 #include <boost/test/auto_unit_test.hpp>
 
-#include "Hex.hpp"
+#include "SgSystem.h"
 #include "PatternState.hpp"
 
 using namespace benzene;

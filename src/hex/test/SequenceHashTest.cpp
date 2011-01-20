@@ -1,5 +1,10 @@
+//----------------------------------------------------------------------------
+/** @file SequenceHashTest.cpp */
+//----------------------------------------------------------------------------
+
 #include <boost/test/auto_unit_test.hpp>
 
+#include "SgSystem.h"
 #include "SequenceHash.hpp"
 
 using namespace benzene;

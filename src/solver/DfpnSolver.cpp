@@ -2,6 +2,7 @@
 /** @file DfpnSolver.cpp */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
 #include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
 #include "DfpnSolver.hpp"
@@ -508,7 +509,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
     if (m_useGuiFx && depth == 0)
         m_guiFx.SetChildren(children, childrenData);
 
-    hash_t currentHash = m_state->Hash();
+    SgHashCode currentHash = m_state->Hash();
     HexPoint bestMove = INVALID_POINT;
     DfpnBounds currentBounds;
     do

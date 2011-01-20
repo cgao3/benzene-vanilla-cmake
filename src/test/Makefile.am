@@ -6,7 +6,6 @@ benzene_unittest_SOURCES = \
 ../util/test/BitsetTest.cpp \
 ../util/test/ChangeLogTest.cpp \
 ../util/test/DigraphTest.cpp \
-../util/test/HashTest.cpp \
 ../util/test/HashMapTest.cpp \
 ../util/test/LinkedListTest.cpp \
 ../util/test/LoggerTest.cpp \

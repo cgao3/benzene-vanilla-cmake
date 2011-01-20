@@ -6,6 +6,7 @@
 #define HEXCOLOR_HPP
 
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
