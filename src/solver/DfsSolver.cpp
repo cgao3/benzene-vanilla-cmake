@@ -884,7 +884,7 @@ void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
     if (m_positions->Database()) 
         os << '\n' << m_positions->Database()->GetStatistics().Write() << '\n';
     if (m_positions->HashTable()) 
-        os << '\n' << m_positions->HashTable()->Stats();
+        os << '\n' << *m_positions->HashTable() << '\n';
     LogInfo() << os.str();
 }
 
@@ -895,7 +895,6 @@ int DfsSolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
     // Odd boards are easy
     if ((brd.Width() & 1) && (brd.Height() & 1))
         return brd.Distance(BoardUtils::CenterPoint(brd), cell);
-
     // Make sure we spiral nicely on boards with even
     // dimensions. Take the sum of the distance between
     // the two center cells on the main diagonal.

@@ -1,25 +1,24 @@
 //----------------------------------------------------------------------------
-/** @file DfsData.hpp
- */
+/** @file DfsData.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef DFSDATA_H
-#define DFSDATA_H
+#ifndef DFSDATA_HPP
+#define DFSDATA_HPP
 
-#include "Hex.hpp"
 #include "ConstBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** A solved state. Stored in a TT or DB. Matches
-    TransTableStateConcept.
-    Do not forget to update DFS_DB_VERSION if this class changes in a
-    way that invalidiates old databases.
-*/
+/** State solved by DfsSolver. 
+    Stored in a DfsHashTable or DfsStates database. Do not forget to
+    update DFS_DB_VERSION if this class changes in a way that
+    invalidiates old databases. */
 struct DfsData
 {
+    bool m_isValid;
+
     /** True if player to move wins. */
     bool m_win;
 
@@ -46,18 +45,19 @@ struct DfsData
     DfsData();
     
     /** Initializes state to given values. */
-    DfsData(bool w, int nstates, int nmoves, HexPoint bmove);
+    DfsData(bool win, int numStates, int numMoves, HexPoint bestMove);
 
-    /** @name TransTableStateConcept */
+    /** @name SgHashTable methods. */
     // @{
     
-    /** Returns true if this state is not the same as that built by
-        the default constructor. */
-    bool Initialized() const;
+    bool IsValid() const;
 
-    /** If true, then this will give up its TT slot to other.
-        @note ALWAYS RETURNS TRUE FOR NOW!  */
-    bool ReplaceWith(const DfsData& other) const;
+    void Invalidate();
+
+    /** Always returns true.
+        @todo Try other replacement policies?
+     */
+    bool IsBetterThan(const DfsData& other) const;
     
     // @} 
 
@@ -78,29 +78,32 @@ struct DfsData
 };
 
 inline DfsData::DfsData()
-    : m_win(false), 
-      m_flags(0), 
-      m_numStates(0), 
-      m_numMoves(0), 
-      m_bestMove(INVALID_POINT)
+    : m_isValid(false)
 { 
 }
     
-inline DfsData::DfsData(bool w, int nstates, int nmoves, HexPoint bmove)
-    : m_win(w),
+inline DfsData::DfsData(bool win, int numStates, int numMoves, 
+                        HexPoint bestMove)
+    : m_isValid(true),
+      m_win(win),
       m_flags(0),
-      m_numStates(nstates),
-      m_numMoves(nmoves),
-      m_bestMove(bmove)
+      m_numStates(numStates),
+      m_numMoves(numMoves),
+      m_bestMove(bestMove)
 { 
 }
 
-inline bool DfsData::Initialized() const
+inline bool DfsData::IsValid() const
 {
-    return m_bestMove != INVALID_POINT;
+    return m_isValid;
 }
 
-inline bool DfsData::ReplaceWith(const DfsData& other) const
+inline void DfsData::Invalidate()
+{
+    m_isValid = false;
+}
+
+inline bool DfsData::IsBetterThan(const DfsData& other) const
 {
     UNUSED(other);
     return true;
@@ -110,4 +113,4 @@ inline bool DfsData::ReplaceWith(const DfsData& other) const
 
 _END_BENZENE_NAMESPACE_
 
-#endif // DFSDATA_H
+#endif // DFSDATA_HPP

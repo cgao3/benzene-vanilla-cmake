@@ -6,11 +6,11 @@
 #define DFSSOLVER_H
 
 #include "SgTimer.h"
+#include "SgHashTable.h"
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
 #include "VC.hpp"
-#include "TransTable.hpp"
 #include "DfsData.hpp"
 #include "SolverDB.hpp"
 #include "StateDB.hpp"
@@ -23,7 +23,7 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Transposition table for use in DfsSolver. */
-typedef TransTable<DfsData> DfsHashTable;
+typedef SgHashTable<DfsData> DfsHashTable;
 
 /** Database for use in DfsSolver. */
 class DfsDB : public StateDB<DfsData>

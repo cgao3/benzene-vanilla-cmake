@@ -96,7 +96,7 @@ void DfsCommands::CmdParamSolver(HtpCommand& cmd)
             << "[string] move_ordering "
             << m_solver.MoveOrdering() << '\n' // FIXME: PRINT NICELY!!
             << "[string] tt_bits "  
-            << ((m_tt.get() == 0) ? 0 : m_tt->Bits()) << '\n'
+            << ((m_tt.get() == 0) ? 0 : log2(m_tt->MaxHash())) << '\n'
             << "[string] update_depth "  
             << m_solver.UpdateDepth() << '\n';
     }
@@ -119,7 +119,7 @@ void DfsCommands::CmdParamSolver(HtpCommand& cmd)
 	    if (bits == 0)
 		m_tt.reset(0);
 	    else
-		m_tt.reset(new DfsHashTable(bits));
+		m_tt.reset(new DfsHashTable(1 << bits));
 	}
         else if (name == "update_depth")
             m_solver.SetUpdateDepth(cmd.Arg<std::size_t>(1));

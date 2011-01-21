@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file DfsData.cpp
- */
+/** @file DfsData.cpp */
 //----------------------------------------------------------------------------
 
 #include "Misc.hpp"
@@ -47,8 +46,9 @@ byte* DfsData::Pack() const
 
 void DfsData::Unpack(const byte* data)
 {
+    m_isValid = true;
+
     int index = 0;
-    
     m_win = MiscUtil::BytesToWord(&data[index]);
     index += 4;
 
@@ -66,13 +66,13 @@ void DfsData::Unpack(const byte* data)
 
 void DfsData::Rotate(const ConstBoard& brd)
 {
-    if (m_bestMove != INVALID_POINT)
-        m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
+    BenzeneAssert(m_isValid);
+    m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
 }
 
 void DfsData::Mirror(const ConstBoard& brd)
 {
-    if (m_bestMove != INVALID_POINT)
-        m_bestMove = BoardUtils::Mirror(brd, m_bestMove);
+    BenzeneAssert(m_isValid);
+    m_bestMove = BoardUtils::Mirror(brd, m_bestMove);
 }
 //----------------------------------------------------------------------------

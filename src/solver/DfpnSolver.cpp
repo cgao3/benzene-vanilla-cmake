@@ -298,8 +298,8 @@ void DfpnSolver::PrintStatistics(HexColor winner,
        << "PV              " << HexPointUtil::ToString(pv) << '\n';
     if (m_positions->Database())
         os << '\n' << m_positions->Database()->GetStatistics().Write() << '\n';
-    if (m_positions->HashTable())    
-        os << '\n' << m_positions->HashTable()->Stats() << '\n';
+    if (m_positions->HashTable())
+        os << '\n' << *m_positions->HashTable() << '\n';
     LogInfo() << os.str();
 }
 

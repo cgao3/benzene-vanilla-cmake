@@ -6,6 +6,7 @@
 #define SOLVERDFPN_HPP
 
 #include "SgSystem.h"
+#include "SgHashTable.h"
 #include "SgStatistics.h"
 #include "SgTimer.h"
 
@@ -13,7 +14,6 @@
 #include "HexBoard.hpp"
 #include "HexState.hpp"
 #include "Game.hpp"
-#include "TransTable.hpp"
 #include "StateDB.hpp"
 #include "SolverDB.hpp"
 
@@ -190,7 +190,7 @@ inline HexPoint DfpnChildren::FirstMove(std::size_t index) const
 
 //----------------------------------------------------------------------------
 
-/** State in hashtable.
+/** State in DfpnHashTable.
     Do not forget to update DFPN_DB_VERSION if this class changes in a
     way that invalidiates old databases.  
     @ingroup dfpn
@@ -198,7 +198,6 @@ inline HexPoint DfpnChildren::FirstMove(std::size_t index) const
 class DfpnData
 {
 public:
-
     DfpnBounds m_bounds;
 
     DfpnChildren m_children;
@@ -221,12 +220,14 @@ public:
 
     std::string Print() const; 
     
-    /** @name TransTableStateConcept */
+    /** @name SgHashTable methods. */
     // @{
 
-    bool Initialized() const;
+    bool IsValid() const;
+
+    void Invalidate();
     
-    bool ReplaceWith(const DfpnData& data) const;
+    bool IsBetterThan(const DfpnData& data) const;
 
     // @}
 
@@ -244,14 +245,13 @@ public:
     // @}
 
 private:
-
-    bool m_initialized;
+    bool m_isValid;
 };
 
 
 inline DfpnData::DfpnData()
-    : m_initialized(false)
-{ 
+    : m_isValid(false)
+{
 }
 
 inline DfpnData::DfpnData(const DfpnBounds& bounds, 
@@ -264,7 +264,7 @@ inline DfpnData::DfpnData(const DfpnBounds& bounds,
       m_work(work),
       m_maxProofSet(maxProofSet),
       m_evaluationScore(evaluationScore),
-      m_initialized(true)
+      m_isValid(true)
 { 
 }
 
@@ -286,15 +286,20 @@ inline std::string DfpnData::Print() const
     return os.str();
 }
 
-inline bool DfpnData::ReplaceWith(const DfpnData& data) const
+inline bool DfpnData::IsBetterThan(const DfpnData& data) const
 {
     SG_UNUSED(data);
     return true;
 }
 
-inline bool DfpnData::Initialized() const
+inline bool DfpnData::IsValid() const
 {
-    return m_initialized;
+    return m_isValid;
+}
+
+inline void DfpnData::Invalidate()
+{
+    m_isValid = false;
 }
 
 /** Extends global output operator for DfpnData. */
@@ -391,7 +396,7 @@ public:
 /** Hashtable used in dfpn search.  
     @ingroup dfpn
 */
-typedef TransTable<DfpnData> DfpnHashTable;
+typedef SgHashTable<DfpnData> DfpnHashTable;
 
 /** Database of solved positions. 
     @ingroup dfpn

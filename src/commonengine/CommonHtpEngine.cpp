@@ -29,8 +29,8 @@ CommonHtpEngine::CommonHtpEngine(int boardsize)
       m_se(m_board.Width(), m_board.Height()),
       m_dfsSolver(),
       m_dfpnSolver(),
-      m_dfsHashTable(new DfsHashTable(20)), // TT with 2^20 entries
-      m_dfpnHashTable(new DfpnHashTable(21)), // TT with 2^21 entries
+      m_dfsHashTable(new DfsHashTable(1 << 20)), // TT with 2^20 entries
+      m_dfpnHashTable(new DfpnHashTable(1 << 21)), // TT with 2^21 entries
       m_dfsDB(0),
       m_dfpnDB(0),
       m_dfsParam(),
