@@ -118,7 +118,9 @@ std::string WolvePlayer::PrintStatistics(int score, const SgVector<SgMove>& pv)
        << SgWriteLabel("Elapsed") << stats.TimeUsed() << '\n'
        << SgWriteLabel("Nodes/s") << stats.NumNodesPerSecond() << '\n'
        << SgWriteLabel("Score") << score << '\n'
-       << SgWriteLabel("PV") << PrintVector(pv) << '\n';
+       << SgWriteLabel("PV") << PrintVector(pv) << '\n'
+       << '\n' 
+       << m_hashTable << '\n';
     return os.str();
 }
 
