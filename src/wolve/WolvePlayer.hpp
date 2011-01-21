@@ -1,20 +1,14 @@
 //----------------------------------------------------------------------------
-/** @file WolvePlayer.hpp
- */
+/** @file WolvePlayer.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef WOLVEPLAYER_HPP
 #define WOLVEPLAYER_HPP
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/thread/barrier.hpp>
-#include <boost/thread/condition.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/thread.hpp>
-
+#include "SgSearch.h"
+#include "SgHashTable.h"
 #include "BenzenePlayer.hpp"
-#include "TwoDistance.hpp"
-#include "HexAbSearch.hpp"
+#include "HexSgUtil.hpp"
 #include "Resistance.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -24,60 +18,63 @@ _BEGIN_BENZENE_NAMESPACE_
 /** Varaition TT entry. */
 struct VariationInfo
 {
-    VariationInfo()
-        : depth(-1)
-    { }
+    /** Depth state was searched. */
+    int m_depth;
+
+    /** Moves to consider from this variation. */
+    bitset_t m_consider;
+
+    VariationInfo();
     
-    VariationInfo(int d, const bitset_t& con)
-        : depth(d), consider(con)
-    { }
+    VariationInfo(int depth, const bitset_t& consider);
 
     ~VariationInfo();
     
-    bool Initialized() const;
+    bool IsValid() const;
 
-    void CheckCollision(const VariationInfo& other) const;
+    void Invalidate();
 
-    bool ReplaceWith(const VariationInfo& other) const;
+    bool IsBetterThan(const VariationInfo& other) const;
 
-    //------------------------------------------------------------------------
-
-    /** Depth state was searched. */
-    int depth;
-
-    /** Moves to consider from this variation. */
-    bitset_t consider;
+private:
+    bool m_isValid;    
 };
+
+inline VariationInfo::VariationInfo()
+    : m_isValid(false)
+{
+}
+
+inline VariationInfo::VariationInfo(int depth, const bitset_t& consider)
+    : m_depth(depth),
+      m_consider(consider),
+      m_isValid(false)
+{
+}
 
 inline VariationInfo::~VariationInfo()
 {
 }
 
-inline bool VariationInfo::Initialized() const
+inline bool VariationInfo::IsValid() const
 {
-    return (depth != -1);
+    return m_isValid;
 }
 
-inline void VariationInfo::CheckCollision(const VariationInfo& other) const
+inline void VariationInfo::Invalidate()
 {
-    UNUSED(other);
+    m_isValid = false;
 }
 
-inline bool VariationInfo::ReplaceWith(const VariationInfo& other) const
+inline bool VariationInfo::IsBetterThan(const VariationInfo& other) const
 {
-    /** @todo check for better bounds/scores? */
-
-    // replace this state only with a deeper state
-    return (other.depth > depth);
+    return m_depth > other.m_depth;
 }
 
 //-------------------------------------------------------------------------- 
 
-/** Performs an AlphaBeta search using Resistance for evaluations. 
-
-    @todo Switch to SgSearch instead of HexAbSearch?
-*/
-class WolveSearch : public HexAbSearch
+/** Performs an AlphaBeta search using Resistance for evaluations. */
+class WolveSearch : public SgSearch
 {
 public:
     WolveSearch();
@@ -94,26 +91,43 @@ public:
     /** See RootMovesToConsider() */
     void SetRootMovesToConsider(const bitset_t& consider);
 
+    /** Number of moves to consider at each depth after move
+        ordering. */
+    const std::vector<std::size_t>& PlyWidth() const;
+
+    /** See PlyWidth() */
+    void SetPlyWidth(const std::vector<std::size_t>& width);
+
+    void SetWorkBoard(HexBoard* brd);
+
     //-----------------------------------------------------------------------
 
     /** @name Virtual methods from HexAbSearch. */
     // @{
 
-    virtual HexEval Evaluate();
+    bool CheckDepthLimitReached() const;
 
-    virtual void GenerateMoves(std::vector<HexPoint>& moves);
+    std::string MoveString(SgMove move) const;
 
-    virtual void ExecuteMove(HexPoint move);
+    void SetToPlay(SgBlackWhite toPlay);
 
-    virtual void UndoMove(HexPoint move);
+    SgBlackWhite GetToPlay() const;
 
-    virtual void EnteredNewState();
+    void StartOfDepth(int depthLimit);
 
-    virtual void OnStartSearch();
+    void OnStartSearch();
 
-    virtual void OnSearchComplete();
+    void Generate(SgVector<SgMove>* moves, int depth);
 
-    virtual void AfterStateSearched();
+    int Evaluate(bool* isExact, int depth);
+
+    bool Execute(SgMove move, int* delta, int depth);
+
+    void TakeBack();
+
+    SgHashCode GetHashCode() const;
+
+    bool EndOfGame() const;
 
     // @}
 
@@ -134,21 +148,32 @@ public:
     // @}
 
 private:
-    /** Computes the evaluation on the no_fillin_board (if it exists)
-        using the ConductanceGraph from m_brd. */
-    void ComputeResistance(Resistance& resist);
+    HexBoard* m_brd;
 
     /** Consider sets for each depth. */
     std::vector<bitset_t> m_consider;
+
+    /** Sequence of moves from the root. */
+    MoveSequence m_sequence;
+
+    /** See PlyWidths() */
+    std::vector<std::size_t> m_plyWidth;
 
     /** See RootMovesToConsider() */
     bitset_t m_rootMTC;
 
     /** Variation TT. */
-    TransTable<VariationInfo> m_varTT;
+    //TransTable<VariationInfo> m_varTT;
+
+    HexColor m_toPlay;
 
     /** See BackupIceInfo() */
     bool m_backup_ice_info;
+
+    void ComputeResistance(Resistance& resist);
+
+    void OrderMoves(const bitset_t& consider, const Resistance& resist,
+                    SgVector<SgMove>& outMoves);
 };
 
 inline bitset_t WolveSearch::RootMovesToConsider() const
@@ -161,6 +186,16 @@ inline void WolveSearch::SetRootMovesToConsider(const bitset_t& consider)
     m_rootMTC = consider;
 }
 
+inline const std::vector<std::size_t>& WolveSearch::PlyWidth() const
+{
+    return m_plyWidth;
+}
+
+inline void WolveSearch::SetPlyWidth(const std::vector<std::size_t>& width)
+{
+    m_plyWidth = width;
+}
+
 inline bool WolveSearch::BackupIceInfo() const
 {
     return m_backup_ice_info;
@@ -169,6 +204,26 @@ inline bool WolveSearch::BackupIceInfo() const
 inline void WolveSearch::SetBackupIceInfo(bool enable)
 {
     m_backup_ice_info = enable;
+}
+
+inline void WolveSearch::SetWorkBoard(HexBoard* brd)
+{
+    m_brd = brd;
+}
+
+inline void WolveSearch::SetToPlay(SgBlackWhite toPlay)
+{
+    m_toPlay = HexSgUtil::SgColorToHexColor(toPlay);
+}
+
+inline SgBlackWhite WolveSearch::GetToPlay() const
+{
+    return HexSgUtil::HexColorToSgColor(m_toPlay);
+}
+
+inline SgHashCode WolveSearch::GetHashCode() const
+{
+    return m_brd->GetPosition().Hash();
 }
 
 //----------------------------------------------------------------------------
@@ -192,19 +247,12 @@ public:
     /** @name Parameters */
     // @{
 
-    /** Number of moves to consider at each depth after move
-        ordering. */
-    const std::vector<int>& PlyWidth() const;
-
-    /** See PlyWidth() */
-    void SetPlyWidth(const std::vector<int>& width);
-
     /** Depths to search if using iterative deepening.  
         See UseIterativeDeepening(). */
-    const std::vector<int>& SearchDepths() const;
+    const std::vector<std::size_t>& SearchDepths() const;
 
     /** See UseIterativeDeepening() */
-    void SetSearchDepths(const std::vector<int>& depths);
+    void SetSearchDepths(const std::vector<std::size_t>& depths);
 
     /** When time remaining is less than this, max search depth is set
 	to 4. A value of zero turns this option off. */
@@ -219,19 +267,17 @@ private:
     WolveSearch m_search;
 
     /** TT for search. */
-    SearchTT m_tt;
-
-    /** See PlyWidths() */
-    std::vector<int> m_plywidth;
+    SgSearchHashTable m_hashTable;
 
     /** See SearchDepths() */
-    std::vector<int> m_search_depths;
+    std::vector<std::size_t> m_search_depths;
 
     /** See PanicTime() */
     double m_panic_time;
 
-    void CheckPanicMode(double timeRemaining, std::vector<int>& search_depths, 
-                        std::vector<int>& plywidth);
+    void CheckPanicMode(double timeRemaining, 
+                        std::vector<std::size_t>& search_depths, 
+                        std::vector<std::size_t>& plywidth);
 
     virtual HexPoint Search(const HexState& state, const Game& game,
                             HexBoard& brd, const bitset_t& consider,
@@ -248,22 +294,13 @@ inline WolveSearch& WolvePlayer::Search()
     return m_search;
 }
 
-inline const std::vector<int>& WolvePlayer::PlyWidth() const
-{
-    return m_plywidth;
-}
-
-inline void WolvePlayer::SetPlyWidth(const std::vector<int>& width)
-{
-    m_plywidth = width;
-}
-
-inline const std::vector<int>& WolvePlayer::SearchDepths() const
+inline const std::vector<std::size_t>& WolvePlayer::SearchDepths() const
 {
     return m_search_depths;
 }
 
-inline void WolvePlayer::SetSearchDepths(const std::vector<int>& depths)
+inline void WolvePlayer::SetSearchDepths
+(const std::vector<std::size_t>& depths)
 {
     m_search_depths = depths;
 }

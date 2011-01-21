@@ -108,12 +108,12 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
         cmd << '\n'
             << "[bool] backup_ice_info "
             << search.BackupIceInfo() << '\n'
-            << "[bool] use_guifx "
-            << search.GuiFx() << '\n'
+            //<< "[bool] use_guifx "
+            //<< search.GuiFx() << '\n'
 	    << "[string] panic_time "
 	    << m_player.PanicTime() << '\n'
             << "[string] ply_width " 
-            << MiscUtil::PrintVector(m_player.PlyWidth()) << '\n'
+            << MiscUtil::PrintVector(search.PlyWidth()) << '\n'
             << "[string] search_depths "
             << MiscUtil::PrintVector(m_player.SearchDepths()) << '\n'
             << "[bool] search_singleton "
@@ -130,18 +130,18 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
 	    m_player.SetPanicTime(cmd.ArgMin<float>(1, 0.0));
         else if (name == "ply_width")
         {
-            std::vector<int> plywidth;
+            std::vector<std::size_t> plywidth;
             ParseDashSeparatedString(cmd.Arg(1), plywidth);
-            m_player.SetPlyWidth(plywidth);
+            search.SetPlyWidth(plywidth);
         } 
         else if (name == "search_depths")
         {
-            std::vector<int> depths;
+            std::vector<std::size_t> depths;
             ParseDashSeparatedString(cmd.Arg(1), depths);
             m_player.SetSearchDepths(depths);
         }
-        else if (name == "use_guifx")
-            search.SetGuiFx(cmd.Arg<bool>(1));
+        //else if (name == "use_guifx")
+        //    search.SetGuiFx(cmd.Arg<bool>(1));
         else if (name == "search_singleton")
             m_player.SetSearchSingleton(cmd.Arg<bool>(1));
         else if (name == "use_parallel_solver")
