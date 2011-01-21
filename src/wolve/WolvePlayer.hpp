@@ -173,7 +173,7 @@ private:
     void ComputeResistance(Resistance& resist);
 
     void OrderMoves(const bitset_t& consider, const Resistance& resist,
-                    SgVector<SgMove>& outMoves);
+                    SgVector<SgMove>& outMoves) const;
 };
 
 inline bitset_t WolveSearch::RootMovesToConsider() const
@@ -282,6 +282,8 @@ private:
     virtual HexPoint Search(const HexState& state, const Game& game,
                             HexBoard& brd, const bitset_t& consider,
                             double maxTime, double& score);
+
+    std::string PrintStatistics(int score, const SgVector<SgMove>& pv);
 };
 
 inline std::string WolvePlayer::Name() const

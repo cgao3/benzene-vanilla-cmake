@@ -19,12 +19,12 @@ using namespace benzene;
 
 namespace {
 
-    const int sgTopScore = SgSearchValue::MIN_PROVEN_VALUE - 1;
-    const int sgBottomScore = -sgTopScore;
-    const HexEval topScore = +10.0;
-    const HexEval bottomScore = -10.0;
-    const HexEval factor = (sgTopScore - sgBottomScore)
-        / (topScore - bottomScore);
+static const int sgTopScore = SgSearchValue::MIN_PROVEN_VALUE - 1;
+static const int sgBottomScore = -sgTopScore;
+static const HexEval topScore = +10.0;
+static const HexEval bottomScore = -10.0;
+static const HexEval factor = (sgTopScore - sgBottomScore)
+    / (topScore - bottomScore);
 
 /** Converts a floating point score to a score used in SgSearch. */
 int ConvertToSgScore(HexEval score)
@@ -101,7 +101,15 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     int score = m_search.IteratedSearch(1, 4, &PV);
     BenzeneAssert(PV.Length() > 0);
     HexPoint bestMove = static_cast<HexPoint>(PV[0]);
-    const SgSearchStatistics& stats = m_search.Statistics();
+    LogInfo() << PrintStatistics(score, PV) << '\n';
+    outScore = score;
+    return bestMove;
+}
+
+std::string WolvePlayer::PrintStatistics(int score, const SgVector<SgMove>& pv)
+{
+    SgSearchStatistics stats;
+    m_search.GetStatistics(&stats);
     std::ostringstream os;
     os << '\n'
        << SgWriteLabel("NumNodes") << stats.NumNodes() << '\n'
@@ -110,10 +118,8 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
        << SgWriteLabel("Elapsed") << stats.TimeUsed() << '\n'
        << SgWriteLabel("Nodes/s") << stats.NumNodesPerSecond() << '\n'
        << SgWriteLabel("Score") << score << '\n'
-       << SgWriteLabel("PV") << PrintVector(PV) << '\n';
-    LogInfo() << os.str() << '\n';
-    outScore = score;
-    return bestMove;
+       << SgWriteLabel("PV") << PrintVector(pv) << '\n';
+    return os.str();
 }
 
 //----------------------------------------------------------------------------
@@ -259,7 +265,7 @@ void WolveSearch::ComputeResistance(Resistance& resist)
     number of moves copied is equal to plyWidth[CurrentDepth()]. */
 void WolveSearch::OrderMoves(const bitset_t& consider,
                              const Resistance& resist,
-                             SgVector<SgMove>& outMoves)
+                             SgVector<SgMove>& outMoves) const
 {
     std::vector<std::pair<HexEval, HexPoint> > mvsc;
     for (BitsetIterator it(consider); it; ++it) 
