@@ -7,7 +7,6 @@
 #include "SgException.h"
 #include "SgNode.h"
 #include "SgMove.h"
-#include "SgSList.h"
 
 #include "BoardUtils.hpp"
 #include "BitsetIterator.hpp"
