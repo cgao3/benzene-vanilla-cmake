@@ -3,6 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
+#include "SgWrite.h"
 #include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
 #include "DfpnSolver.hpp"
@@ -266,36 +267,32 @@ void DfpnSolver::PrintStatistics(HexColor winner,
 {
     std::ostringstream os;
     os << '\n'
-       << "MID calls       " << m_numMIDcalls << '\n'
-       << "VC builds       " << m_numVCbuilds << '\n'
-       << "Terminal nodes  " << m_numTerminal << '\n'
-       << "Work            " << m_numMIDcalls + m_numTerminal << '\n'
-       << "Wasted Work     " << m_totalWastedWork
+       << SgWriteLabel("MID calls") << m_numMIDcalls << '\n'
+       << SgWriteLabel("VC builds") << m_numVCbuilds << '\n'
+       << SgWriteLabel("Terminal") << m_numTerminal << '\n'
+       << SgWriteLabel("Work") << m_numMIDcalls + m_numTerminal << '\n'
+       << SgWriteLabel("Wasted Work") << m_totalWastedWork
        << " (" << (double(m_totalWastedWork) * 100.0 
                    / double(m_numMIDcalls + m_numTerminal)) << "%)\n"
-       << "Elapsed Time    " << m_timer.GetTime() << '\n'
-       << "MIDs/sec        " 
+       << SgWriteLabel("Elapsed Time") << m_timer.GetTime() << '\n'
+       << SgWriteLabel("MIDs/sec") 
        << double(m_numMIDcalls) / m_timer.GetTime() << '\n'
-       << "VCs/sec         " 
+       << SgWriteLabel("VCs/sec")
        << double(m_numVCbuilds) / m_timer.GetTime() << '\n'
-       << "Cnt prune sib   " << m_prunedSiblingStats.Count() << '\n'
-       << "Avg prune sib   ";
+       << SgWriteLabel("Cnt prune sib") << m_prunedSiblingStats.Count() << '\n'
+       << SgWriteLabel("Avg prune sib");
     m_prunedSiblingStats.Write(os);
-    os << '\n'
-       << "Consider Size   ";
+    os << '\n' << SgWriteLabel("Consider Size");
     m_considerSetSize.Write(os);
-    os << '\n'
-       << "Move Index      ";
+    os << '\n' << SgWriteLabel("Move Index");
     m_moveOrderingIndex.Write(os);
-    os << '\n';
-    os << "Move Percent    ";
+    os << '\n' << SgWriteLabel("Move Percent");
     m_moveOrderingPercent.Write(os);
-    os << '\n';
-    os << "Delta Increase  ";
+    os << '\n' << SgWriteLabel("Delta Increase");
     m_deltaIncrease.Write(os);
     os << '\n'
-       << "Winner          " << winner << '\n'
-       << "PV              " << HexPointUtil::ToString(pv) << '\n';
+       << SgWriteLabel("Winner") << winner << '\n'
+       << SgWriteLabel("PV") << HexPointUtil::ToString(pv) << '\n';
     if (m_positions->Database())
         os << '\n' << m_positions->Database()->GetStatistics().Write() << '\n';
     if (m_positions->HashTable())

@@ -6,20 +6,19 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
+#include "SgWrite.h"
 
-#include "Hex.hpp"
-#include "HexProp.hpp"
-#include "HexBoard.hpp"
-#include "GraphUtils.hpp"
-#include "Resistance.hpp"
-#include "DfsSolver.hpp"
-#include "VCUtils.hpp"
+#include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
 #include "Decompositions.hpp"
-#include "BitsetIterator.hpp"
+#include "DfsSolver.hpp"
 #include "EndgameUtils.hpp"
+#include "GraphUtils.hpp"
+#include "HexBoard.hpp"
 #include "ProofUtil.hpp"
+#include "Resistance.hpp"
 #include "VCSet.hpp"
+#include "VCUtils.hpp"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -856,31 +855,34 @@ void DfsSolver::DumpStats(const DfsSolutionSet& solution) const
     const double total_time = m_timer.GetTime();
     std::ostringstream os;
     os << '\n'
-       << "Played          " << m_statistics.played << '\n'
-       << "Pruned          " << solution.stats.pruned << '\n'
-       << "Total States    " << solution.stats.total_states << '\n'
-       << "Explored States " << solution.stats.explored_states 
+       << SgWriteLabel("Played") << m_statistics.played << '\n'
+       << SgWriteLabel("Pruned") << solution.stats.pruned << '\n'
+       << SgWriteLabel("Total States") << solution.stats.total_states << '\n'
+       << SgWriteLabel("Explored") << solution.stats.explored_states 
        << " (" << solution.stats.minimal_explored << ")" << '\n'
-       << "Expanded States " << solution.stats.expanded_states << '\n'
-       << "Decompositions  " << solution.stats.decompositions << '\n'
-       << "Decomps won     " << solution.stats.decompositions_won << '\n'
-       << "Shrunk Proofs   " << solution.stats.shrunk << '\n'
-       << "Avg. Shrink     " 
+       << SgWriteLabel("Expanded") 
+       << solution.stats.expanded_states << '\n'
+       << SgWriteLabel("Decompositions") 
+       << solution.stats.decompositions << '\n'
+       << SgWriteLabel("Decomps Won")
+       << solution.stats.decompositions_won << '\n'
+       << SgWriteLabel("Shrunk Proofs") << solution.stats.shrunk << '\n'
+       << SgWriteLabel("Avg. Shrink")
        << (double(solution.stats.cells_removed)
            / double(solution.stats.shrunk)) << '\n'
-       << "Branch Factor   " 
+       << SgWriteLabel("Branch Factor")
        << (double(solution.stats.moves_to_consider)
            / double(solution.stats.expanded_states)) << '\n'
-       << "To Find Win     " 
+       << SgWriteLabel("To Find Win")
        << (double(solution.stats.branches_to_win)
            / double(solution.stats.winning_expanded)) << '\n'
-       << "States/sec      " 
+       << SgWriteLabel("States/sec")
        << (double(solution.stats.explored_states) / total_time) << '\n'
-       << "Played/sec      " << 
+       << SgWriteLabel("Played/sec") << 
         (double(m_statistics.played) / total_time) << '\n'
-       << "Total Time      " << total_time << "s\n"
-       << "Moves to W/L    " << solution.m_numMoves << " moves\n"
-       << "PV              " << HexPointUtil::ToString(solution.pv) << '\n';
+       << SgWriteLabel("Total Time") << total_time << "s\n"
+       << SgWriteLabel("Moves to W/L") << solution.m_numMoves << " moves\n"
+       << SgWriteLabel("PV") << HexPointUtil::ToString(solution.pv) << '\n';
     if (m_positions->Database()) 
         os << '\n' << m_positions->Database()->GetStatistics().Write() << '\n';
     if (m_positions->HashTable()) 
