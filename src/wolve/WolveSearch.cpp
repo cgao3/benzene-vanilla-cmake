@@ -8,6 +8,7 @@
 #include "BitsetIterator.hpp"
 #include "VCSet.hpp"
 #include "HexEval.hpp"
+#include "HexState.hpp"
 #include "EndgameUtils.hpp"
 #include "SequenceHash.hpp"
 #include "WolveSearch.hpp"
@@ -17,6 +18,8 @@ using namespace benzene;
 //----------------------------------------------------------------------------
 
 namespace {
+
+//----------------------------------------------------------------------------
 
 static const int sgTopScore = SgSearchValue::MIN_PROVEN_VALUE - 1;
 static const int sgBottomScore = -sgTopScore;
@@ -33,15 +36,90 @@ int ConvertToSgScore(HexEval score)
     return static_cast<int>(score * factor);
 }
 
+void ExtractPVFromHashTable(const HexState& state, 
+                            const SgSearchHashTable& hashTable, 
+                            std::vector<HexPoint>& pv)
+{
+    HexState myState(state);
+    SgSearchHashData data;
+    while (hashTable.Lookup(myState.Hash(), &data))
+    {
+        if (data.BestMove() == SG_NULLMOVE)
+            break;
+        HexPoint bestMove = static_cast<HexPoint>(data.BestMove());
+        pv.push_back(bestMove);
+        myState.PlayMove(bestMove);
+    }
+}
+
+/** Dump state info so the gui can display progress.
+    Currently only does so after each depth is complete.  Has to
+    extract the PV from the hashtable implicitly.
+    @todo Add hook functions in SgSearch so we can get updates more
+    often. The old way was to print the current pv and values of all
+    searched moves each time the search returned to the root. */
+void DumpGuiFx(const HexState& state, const SgSearchHashTable& hashTable)
+{
+    std::ostringstream os;
+    os << "gogui-gfx:\n"
+       << "ab\n"
+       << "VAR";
+    std::vector<HexPoint> pv;
+    ExtractPVFromHashTable(state, hashTable, pv);
+    HexColor color = state.ToPlay();
+    for (std::size_t i = 0; i < pv.size(); ++i) 
+    {
+        os << ' ' << ((color == BLACK) ? "B" : "W")
+           << ' ' << pv[i];
+        color = !color;
+    }
+    os << '\n'
+       << "LABEL " <<  WolveSearchUtil::PrintScores(state, hashTable)
+       << '\n'
+       << "TEXT WolveSearch\n"
+       << '\n';
+    std::cout << os.str();
+    std::cout.flush();
 }
 
 //----------------------------------------------------------------------------
 
+} // namespace
+
+//----------------------------------------------------------------------------
+
+std::string WolveSearchUtil::PrintScores(const HexState& state,
+                                         const SgSearchHashTable& hashTable)
+{
+    std::ostringstream os;
+    HexState myState(state);
+    for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
+    {
+        myState.PlayMove(*p);
+        SgSearchHashData data;
+        if (hashTable.Lookup(myState.Hash(), &data))
+        {
+            os << ' ' << *p;
+            int value = -data.Value();
+            if (value <= -SgSearchValue::MIN_PROVEN_VALUE)
+                os << " L";
+            else if (value >= SgSearchValue::MIN_PROVEN_VALUE)
+                os << " W";
+            else 
+                os << ' ' << value;
+        }
+        myState.UndoMove(*p);
+    }
+    return os.str();
+}
+
+//----------------------------------------------------------------------------
 
 WolveSearch::WolveSearch()
     : SgSearch(0),
       //m_varTT(16),           // 16bit variation trans-table
-      m_backup_ice_info(true)
+      m_backup_ice_info(true),
+      m_useGuiFx(false)
 {
     m_plyWidth.push_back(20);
     m_plyWidth.push_back(20);
@@ -133,6 +211,12 @@ bool WolveSearch::Execute(SgMove move, int* delta, int depth)
 
 void WolveSearch::StartOfDepth(int depth)
 {
+    if (m_useGuiFx && depth > 1)
+    {
+        const StoneBoard& position = m_brd->GetPosition();
+        DumpGuiFx(HexState(position, position.WhoseTurn()),
+                  *HashTable());
+    }
     LogInfo() << "===== Depth " << depth << " =====\n";
 }
 

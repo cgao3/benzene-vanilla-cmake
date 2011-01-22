@@ -97,7 +97,16 @@ public:
     /** See PlyWidth() */
     void SetPlyWidth(const std::vector<std::size_t>& width);
 
+    /** Board search will use.
+        Caller retains ownership. */
     void SetWorkBoard(HexBoard* brd);
+
+    /** Displays search progess.
+        Use with HexGui to view search as it progresses. */
+    bool GuiFx() const;
+
+    /** See GuiFX(). */
+    void SetGuiFx(bool flag);
 
     //-----------------------------------------------------------------------
 
@@ -169,6 +178,9 @@ private:
     /** See BackupIceInfo() */
     bool m_backup_ice_info;
 
+    /** See GuiFx() */
+    bool m_useGuiFx;
+
     void ComputeResistance(Resistance& resist);
 
     void OrderMoves(const bitset_t& consider, const Resistance& resist,
@@ -223,6 +235,26 @@ inline SgBlackWhite WolveSearch::GetToPlay() const
 inline SgHashCode WolveSearch::GetHashCode() const
 {
     return m_brd->GetPosition().Hash(m_toPlay);
+}
+
+inline void WolveSearch::SetGuiFx(bool flag)
+{
+    m_useGuiFx = flag;
+}
+
+inline bool WolveSearch::GuiFx() const
+{
+    return m_useGuiFx;
+}
+
+//----------------------------------------------------------------------------
+
+namespace WolveSearchUtil 
+{
+    /** Print move-value pairs for all moves in this state.
+        Winning moves are denoted with a 'W' and losing moves a 'L'. */
+    std::string PrintScores(const HexState& state,
+                            const SgSearchHashTable& hashTable);
 }
 
 //----------------------------------------------------------------------------

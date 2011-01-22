@@ -111,8 +111,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
         cmd << '\n'
             << "[bool] backup_ice_info "
             << search.BackupIceInfo() << '\n'
-            //<< "[bool] use_guifx "
-            //<< search.GuiFx() << '\n'
+            << "[bool] use_guifx "
+            << search.GuiFx() << '\n'
             << "[string] ply_width " 
             << MiscUtil::PrintVector(search.PlyWidth()) << '\n'
             << "[string] search_depths "
@@ -139,8 +139,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             ParseDashSeparatedString(cmd.Arg(1), depths);
             m_player.SetSearchDepths(depths);
         }
-        //else if (name == "use_guifx")
-        //    search.SetGuiFx(cmd.Arg<bool>(1));
+        else if (name == "use_guifx")
+            search.SetGuiFx(cmd.Arg<bool>(1));
         else if (name == "search_singleton")
             m_player.SetSearchSingleton(cmd.Arg<bool>(1));
         else if (name == "use_parallel_solver")
@@ -157,14 +157,7 @@ void WolveEngine::CmdScores(HtpCommand& cmd)
 {
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     const SgSearchHashTable& hashTable = m_player.HashTable();
-    for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
-    {
-        state.PlayMove(*p);
-        SgSearchHashData data;
-        if (hashTable.Lookup(state.Hash(), &data))
-            cmd << ' ' << *p << ' ' << -data.Value();
-        state.UndoMove(*p);
-    }    
+    cmd << WolveSearchUtil::PrintScores(state, hashTable);
 }
 
 /** Returns data on this state in the hashtable. */
