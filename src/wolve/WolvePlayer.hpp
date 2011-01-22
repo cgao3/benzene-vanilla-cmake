@@ -38,12 +38,13 @@ public:
     /** See UseIterativeDeepening() */
     void SetSearchDepths(const std::vector<std::size_t>& depths);
 
+    const SgSearchHashTable& HashTable() const;
+
     // @}
 
 private: 
     WolveSearch m_search;
 
-    /** TT for search. */
     SgSearchHashTable m_hashTable;
 
     /** See SearchDepths() */
@@ -75,6 +76,11 @@ inline void WolvePlayer::SetSearchDepths
 (const std::vector<std::size_t>& depths)
 {
     m_search_depths = depths;
+}
+
+inline const SgSearchHashTable& WolvePlayer::HashTable() const
+{
+    return m_hashTable;
 }
 
 //----------------------------------------------------------------------------

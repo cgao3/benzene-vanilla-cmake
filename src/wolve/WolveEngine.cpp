@@ -4,11 +4,12 @@
 
 #include "SgSystem.h"
 
+#include "BitsetIterator.hpp"
 #include "Misc.hpp"
-#include "WolveEngine.hpp"
-#include "WolvePlayer.hpp"
 #include "PlayAndSolve.hpp"
 #include "SwapCheck.hpp"
+#include "WolveEngine.hpp"
+#include "WolvePlayer.hpp"
 
 using namespace benzene;
 
@@ -52,7 +53,9 @@ WolveEngine::WolveEngine(int boardsize, WolvePlayer& player)
       m_cacheBook()
 {
     m_bookCommands.Register(*this);
-    RegisterCmd("param_wolve", &WolveEngine::WolveParam);
+    RegisterCmd("param_wolve", &WolveEngine::CmdParam);
+    RegisterCmd("wolve-scores", &WolveEngine::CmdScores);
+    RegisterCmd("wolve-data", &WolveEngine::CmdData);
 }
 
 WolveEngine::~WolveEngine()
@@ -99,7 +102,7 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
                             maxTime, score);
 }
 
-void WolveEngine::WolveParam(HtpCommand& cmd)
+void WolveEngine::CmdParam(HtpCommand& cmd)
 {
     WolveSearch& search = m_player.Search();
 
@@ -147,6 +150,34 @@ void WolveEngine::WolveParam(HtpCommand& cmd)
     }
     else
         throw HtpFailure("Expected 0 or 2 arguments");
+}
+
+/** Prints scores of moves. */
+void WolveEngine::CmdScores(HtpCommand& cmd)
+{
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    const SgSearchHashTable& hashTable = m_player.HashTable();
+    for (BitsetIterator p(state.Position().GetEmpty()); p; ++p) 
+    {
+        state.PlayMove(*p);
+        SgSearchHashData data;
+        if (hashTable.Lookup(state.Position().Hash(), &data))
+            cmd << ' ' << *p << ' ' << -data.Value();
+        state.UndoMove(*p);
+    }    
+}
+
+/** Returns data on this state in the hashtable. */
+void WolveEngine::CmdData(HtpCommand& cmd)
+{
+    const SgSearchHashTable& hashTable = m_player.HashTable();
+    SgSearchHashData data;
+    if (hashTable.Lookup(m_game.Board().Hash(), &data))
+        cmd << "[score=" << data.Value()
+            << " bestMove=" << static_cast<HexPoint>(data.BestMove())
+            << " isExact=" << data.IsExactValue()
+            << " depth=" << data.Depth()
+            << ']';
 }
 
 //----------------------------------------------------------------------------
