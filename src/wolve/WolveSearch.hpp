@@ -255,6 +255,20 @@ namespace WolveSearchUtil
         Winning moves are denoted with a 'W' and losing moves a 'L'. */
     std::string PrintScores(const HexState& state,
                             const SgSearchHashTable& hashTable);
+
+    /** Obtain PV by examining the hashtable. */
+    void ExtractPVFromHashTable(const HexState& state, 
+                                const SgSearchHashTable& hashTable, 
+                                std::vector<HexPoint>& pv);
+
+    /** Dump state info so the gui can display progress.
+        Currently only does so after each depth is complete. Has to
+        extract the PV from the hashtable implicitly.
+        @todo Add hook functions in SgSearch so we can get updates
+        more often, like we did before. The old way was to print the
+        current pv and values of all searched moves each time the
+        search returned to the root (see ticket #84). */
+    void DumpGuiFx(const HexState& state, const SgSearchHashTable& hashTable);
 }
 
 //----------------------------------------------------------------------------

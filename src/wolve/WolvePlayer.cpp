@@ -91,8 +91,9 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     SgVector<SgMove> PV;
     int score = m_search.IteratedSearch(int(minDepth), int(maxDepth),
                                         -SgSearchValue::MIN_PROVEN_VALUE,
-                                        +SgSearchValue::MIN_PROVEN_VALUE,
-                                        &PV);
+                                        +SgSearchValue::MIN_PROVEN_VALUE, &PV);
+    if (m_search.GuiFx())
+        WolveSearchUtil::DumpGuiFx(state, m_hashTable);
     BenzeneAssert(PV.Length() > 0);
     HexPoint bestMove = static_cast<HexPoint>(PV[0]);
     LogInfo() << PrintStatistics(score, PV) << '\n';
