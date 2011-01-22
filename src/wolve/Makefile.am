@@ -4,12 +4,14 @@ wolve_SOURCES = \
 WolveEngine.cpp \
 WolveMain.cpp \
 WolvePlayer.cpp \
-WolveProgram.cpp
+WolveProgram.cpp \
+WolveSearch.cpp
 
 noinst_HEADERS = \
 WolveEngine.hpp \
 WolvePlayer.hpp \
-WolveProgram.hpp
+WolveProgram.hpp \
+WolveSearch.hpp
 
 wolve_LDADD = \
 ../commonengine/libcommonengine.a \
