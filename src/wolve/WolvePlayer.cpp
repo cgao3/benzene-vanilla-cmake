@@ -59,8 +59,7 @@ std::string PrintVector(const SgVector<SgMove>& vec)
 WolvePlayer::WolvePlayer()
     : BenzenePlayer(),
       m_hashTable(1 << 16),
-      m_search_depths(),
-      m_panic_time(240)
+      m_search_depths()
 {
     m_search_depths.push_back(1);
     m_search_depths.push_back(2);
@@ -73,26 +72,6 @@ WolvePlayer::~WolvePlayer()
 
 //----------------------------------------------------------------------------
 
-/** Reduce search strength if running out of time. */
-void WolvePlayer::CheckPanicMode(double timeRemaining,
-                                 std::vector<std::size_t>& search_depths,
-                                 std::vector<std::size_t>& plywidth)
-{
-    // If low on time, set a maximum search depth of 4.
-    if (m_panic_time >= 0.01 && timeRemaining < m_panic_time)
-    {
-	std::vector<std::size_t> new_search_depths;
-	for (std::size_t i = 0; i < search_depths.size(); ++i)
-	    if (search_depths[i] <= 4)
-		new_search_depths.push_back(search_depths[i]);
-	search_depths = new_search_depths;
-        // We also ensure plywidth is at least 15
-        for (std::size_t i = 0; i < plywidth.size(); ++i)
-            plywidth[i] = std::max(plywidth[i], 15lu);
-	LogWarning() << "############# PANIC MODE #############\n";
-    }
-}
-
 /** Generates a move using WolveSearch.    
     @todo Handle timelimit. */
 HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
@@ -101,9 +80,6 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
 {
     UNUSED(game);
     UNUSED(maxTime);
-    std::vector<std::size_t> search_depths = m_search_depths;
-
-    //CheckPanicMode(maxTime, search_depths, plywidth);
     m_search.SetRootMovesToConsider(consider);
     m_search.SetWorkBoard(&brd);
     m_search.SetHashTable(&m_hashTable);
@@ -177,7 +153,6 @@ void WolveSearch::OnStartSearch()
 int WolveSearch::Evaluate(bool* isExact, int depth)
 {
     UNUSED(depth);
-    //LogInfo() << "Evaluate:" << *m_brd << '\n';
     int sgScore;
     if (EndgameUtils::IsDeterminedState(*m_brd, m_toPlay))
     {
@@ -185,17 +160,14 @@ int WolveSearch::Evaluate(bool* isExact, int depth)
         sgScore = EndgameUtils::IsWonGame(*m_brd, m_toPlay) 
             ? +SgSearchValue::MAX_VALUE
             : -SgSearchValue::MAX_VALUE;
-        //LogInfo() << "Determined! " << sgScore << '\n';
     }
     else 
     {
         Resistance resist;
         ComputeResistance(resist);
         HexEval score = (m_toPlay == BLACK) ? resist.Score() : -resist.Score();
-        //LogInfo() << "Resistance: " << score << '\n';
         sgScore = ConvertToSgScore(score);
     }
-    //LogInfo() << "score = " << PrintScScore(sgScore) << '\n';
     return sgScore;
 }
 
@@ -207,7 +179,6 @@ bool WolveSearch::EndOfGame() const
 void WolveSearch::Generate(SgVector<SgMove>* moves, int depthRemaining)
 {
     UNUSED(depthRemaining);
-    //LogInfo() << "Generate:" << *m_brd << '\n';
     if (!EndgameUtils::IsDeterminedState(*m_brd, m_toPlay))
     {
         bitset_t consider;

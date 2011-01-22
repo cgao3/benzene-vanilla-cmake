@@ -254,13 +254,6 @@ public:
     /** See UseIterativeDeepening() */
     void SetSearchDepths(const std::vector<std::size_t>& depths);
 
-    /** When time remaining is less than this, max search depth is set
-	to 4. A value of zero turns this option off. */
-    double PanicTime() const;
-    
-    /** See PanicTime() */
-    void SetPanicTime(double time);
-
     // @}
 
 private: 
@@ -271,13 +264,6 @@ private:
 
     /** See SearchDepths() */
     std::vector<std::size_t> m_search_depths;
-
-    /** See PanicTime() */
-    double m_panic_time;
-
-    void CheckPanicMode(double timeRemaining, 
-                        std::vector<std::size_t>& search_depths, 
-                        std::vector<std::size_t>& plywidth);
 
     virtual HexPoint Search(const HexState& state, const Game& game,
                             HexBoard& brd, const bitset_t& consider,
@@ -305,16 +291,6 @@ inline void WolvePlayer::SetSearchDepths
 (const std::vector<std::size_t>& depths)
 {
     m_search_depths = depths;
-}
-
-inline double WolvePlayer::PanicTime() const
-{
-    return m_panic_time;
-}
-
-inline void WolvePlayer::SetPanicTime(double time)
-{
-    m_panic_time = time;
 }
 
 //----------------------------------------------------------------------------
