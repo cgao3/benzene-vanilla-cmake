@@ -222,7 +222,7 @@ inline SgBlackWhite WolveSearch::GetToPlay() const
 
 inline SgHashCode WolveSearch::GetHashCode() const
 {
-    return m_brd->GetPosition().Hash();
+    return m_brd->GetPosition().Hash(m_toPlay);
 }
 
 //----------------------------------------------------------------------------

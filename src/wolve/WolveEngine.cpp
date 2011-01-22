@@ -161,7 +161,7 @@ void WolveEngine::CmdScores(HtpCommand& cmd)
     {
         state.PlayMove(*p);
         SgSearchHashData data;
-        if (hashTable.Lookup(state.Position().Hash(), &data))
+        if (hashTable.Lookup(state.Hash(), &data))
             cmd << ' ' << *p << ' ' << -data.Value();
         state.UndoMove(*p);
     }    
@@ -172,9 +172,10 @@ void WolveEngine::CmdData(HtpCommand& cmd)
 {
     const SgSearchHashTable& hashTable = m_player.HashTable();
     SgSearchHashData data;
-    if (hashTable.Lookup(m_game.Board().Hash(), &data))
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    if (hashTable.Lookup(state.Hash(), &data))
         cmd << "[score=" << data.Value()
-            << " bestMove=" << static_cast<HexPoint>(data.BestMove())
+            << " bestMove=" << m_player.Search().MoveString(data.BestMove())
             << " isExact=" << data.IsExactValue()
             << " depth=" << data.Depth()
             << ']';
