@@ -74,7 +74,9 @@ void WolveEngine::RegisterCmd(const std::string& name,
 
 double WolveEngine::TimeForMove(HexColor color)
 {
-    return m_game.TimeRemaining(color);
+    if (m_player.UseTimeManagement())
+        return m_game.TimeRemaining(color) * 0.08;
+    return m_player.MaxTime();
 }
 
 /** Generates a move. */
@@ -89,7 +91,6 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
         return bookMove;
     if (m_cacheBook.Exists(state))
         return m_cacheBook[state];
-
     double maxTime = TimeForMove(color);
     if (m_useParallelSolver)
     {
@@ -111,6 +112,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
         cmd << '\n'
             << "[bool] backup_ice_info "
             << search.BackupIceInfo() << '\n'
+            << "[string] max_time "
+            << m_player.MaxTime() << '\n'
             << "[bool] use_guifx "
             << search.GuiFx() << '\n'
             << "[string] ply_width " 
@@ -120,13 +123,17 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             << "[bool] search_singleton "
             << m_player.SearchSingleton() << '\n'
             << "[bool] use_parallel_solver "
-            << m_useParallelSolver << '\n';
+            << m_useParallelSolver << '\n'
+            << "[bool] use_time_management "
+            << m_player.UseTimeManagement() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
             search.SetBackupIceInfo(cmd.Arg<bool>(1));
+        else if (name == "max_time")
+            m_player.SetMaxTime(cmd.Arg<float>(1));
         else if (name == "ply_width")
         {
             std::vector<std::size_t> plywidth;
@@ -145,6 +152,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             m_player.SetSearchSingleton(cmd.Arg<bool>(1));
         else if (name == "use_parallel_solver")
             m_useParallelSolver = cmd.Arg<bool>(1);
+        else if (name == "use_time_management")
+            m_player.SetUseTimeManagement(cmd.Arg<bool>(1));
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

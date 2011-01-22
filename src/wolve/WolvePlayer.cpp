@@ -3,6 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
+#include "SgSearchControl.h"
 #include "SgSearchValue.h"
 
 #include "BitsetIterator.hpp"
@@ -49,7 +50,9 @@ std::string PrintVector(const SgVector<SgMove>& vec)
 WolvePlayer::WolvePlayer()
     : BenzenePlayer(),
       m_hashTable(1 << 16),
-      m_searchDepths()
+      m_maxTime(180),
+      m_searchDepths(),
+      m_useTimeManagement(false)
 {
     m_searchDepths.push_back(1);
     m_searchDepths.push_back(2);
@@ -62,20 +65,25 @@ WolvePlayer::~WolvePlayer()
 
 //----------------------------------------------------------------------------
 
-/** Generates a move using WolveSearch.    
-    @todo Handle timelimit. 
-    @todo Handle arbitrary search depths, ie, [1, 2, 4].
-*/
+/** Generates a move using WolveSearch.
+    @todo Make sure timelimits do not cause weird behaviour.  SgSearch
+    will allow PVs from an aborted depth if they score better than the
+    previously completed depth's PV. This is bad for us since we have
+    a really bad odd-even effect, so bad than any PV of depth, say, 3,
+    will supersede the best PV of depth 2. Use a timelimit that can
+    cause an early abort with caution! (ticket #82)
+    @todo Handle arbitrary search depths, ie, [1, 2, 4] (ticket #83). */
 HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
                              HexBoard& brd, const bitset_t& consider,
                              double maxTime, double& outScore)
 {
     UNUSED(game);
-    UNUSED(maxTime);
     m_search.SetRootMovesToConsider(consider);
     m_search.SetWorkBoard(&brd);
     m_search.SetHashTable(&m_hashTable);
     m_search.SetToPlay(HexSgUtil::HexColorToSgColor(state.ToPlay()));
+    SgTimeSearchControl timeControl(maxTime);
+    m_search.SetSearchControl(&timeControl);
     // TODO: handle search depths properly
     const vector<std::size_t>& depths = m_searchDepths;
     std::size_t minDepth = *std::min_element(depths.begin(), depths.end());
