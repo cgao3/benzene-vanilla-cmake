@@ -48,7 +48,7 @@ private:
     SgSearchHashTable m_hashTable;
 
     /** See SearchDepths() */
-    std::vector<std::size_t> m_search_depths;
+    std::vector<std::size_t> m_searchDepths;
 
     virtual HexPoint Search(const HexState& state, const Game& game,
                             HexBoard& brd, const bitset_t& consider,
@@ -69,13 +69,13 @@ inline WolveSearch& WolvePlayer::Search()
 
 inline const std::vector<std::size_t>& WolvePlayer::SearchDepths() const
 {
-    return m_search_depths;
+    return m_searchDepths;
 }
 
 inline void WolvePlayer::SetSearchDepths
 (const std::vector<std::size_t>& depths)
 {
-    m_search_depths = depths;
+    m_searchDepths = depths;
 }
 
 inline const SgSearchHashTable& WolvePlayer::HashTable() const

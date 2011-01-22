@@ -17,8 +17,9 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-namespace 
-{
+namespace {
+
+//----------------------------------------------------------------------------
 
 std::string PrintSgScore(int score)
 {
@@ -39,6 +40,8 @@ std::string PrintVector(const SgVector<SgMove>& vec)
     return os.str();
 }
 
+//----------------------------------------------------------------------------
+
 }
 
 //----------------------------------------------------------------------------
@@ -46,11 +49,11 @@ std::string PrintVector(const SgVector<SgMove>& vec)
 WolvePlayer::WolvePlayer()
     : BenzenePlayer(),
       m_hashTable(1 << 16),
-      m_search_depths()
+      m_searchDepths()
 {
-    m_search_depths.push_back(1);
-    m_search_depths.push_back(2);
-    m_search_depths.push_back(4);
+    m_searchDepths.push_back(1);
+    m_searchDepths.push_back(2);
+    m_searchDepths.push_back(4);
 }
 
 WolvePlayer::~WolvePlayer()
@@ -60,7 +63,9 @@ WolvePlayer::~WolvePlayer()
 //----------------------------------------------------------------------------
 
 /** Generates a move using WolveSearch.    
-    @todo Handle timelimit. */
+    @todo Handle timelimit. 
+    @todo Handle arbitrary search depths, ie, [1, 2, 4].
+*/
 HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
                              HexBoard& brd, const bitset_t& consider,
                              double maxTime, double& outScore)
@@ -71,8 +76,12 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     m_search.SetWorkBoard(&brd);
     m_search.SetHashTable(&m_hashTable);
     m_search.SetToPlay(HexSgUtil::HexColorToSgColor(state.ToPlay()));
+    // TODO: handle search depths properly
+    const vector<std::size_t>& depths = m_searchDepths;
+    std::size_t minDepth = *std::min_element(depths.begin(), depths.end());
+    std::size_t maxDepth = *std::max_element(depths.begin(), depths.end());
     SgVector<SgMove> PV;
-    int score = m_search.IteratedSearch(1, 4, 
+    int score = m_search.IteratedSearch(int(minDepth), int(maxDepth),
                                         -SgSearchValue::MIN_PROVEN_VALUE,
                                         +SgSearchValue::MIN_PROVEN_VALUE,
                                         &PV);
