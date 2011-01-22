@@ -34,6 +34,17 @@ int ConvertToSgScore(HexEval score)
     return static_cast<int>(score * factor);
 }
 
+std::string PrintSgScore(int score)
+{
+    if (score >= +SgSearchValue::MIN_PROVEN_VALUE)
+        return "win";
+    if (score <= -SgSearchValue::MIN_PROVEN_VALUE)
+        return "loss";
+    std::ostringstream os;
+    os << score;
+    return os.str();
+}
+
 std::string PrintVector(const SgVector<SgMove>& vec)
 {
     std::ostringstream os;
@@ -98,7 +109,10 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     m_search.SetHashTable(&m_hashTable);
     m_search.SetToPlay(HexSgUtil::HexColorToSgColor(state.ToPlay()));
     SgVector<SgMove> PV;
-    int score = m_search.IteratedSearch(1, 4, &PV);
+    int score = m_search.IteratedSearch(1, 4, 
+                                        -SgSearchValue::MIN_PROVEN_VALUE,
+                                        +SgSearchValue::MIN_PROVEN_VALUE,
+                                        &PV);
     BenzeneAssert(PV.Length() > 0);
     HexPoint bestMove = static_cast<HexPoint>(PV[0]);
     LogInfo() << PrintStatistics(score, PV) << '\n';
@@ -117,7 +131,7 @@ std::string WolvePlayer::PrintStatistics(int score, const SgVector<SgMove>& pv)
        << SgWriteLabel("DepthReached") << stats.DepthReached() << '\n'
        << SgWriteLabel("Elapsed") << stats.TimeUsed() << '\n'
        << SgWriteLabel("Nodes/s") << stats.NumNodesPerSecond() << '\n'
-       << SgWriteLabel("Score") << score << '\n'
+       << SgWriteLabel("Score") << PrintSgScore(score) << '\n'
        << SgWriteLabel("PV") << PrintVector(pv) << '\n'
        << '\n' 
        << m_hashTable << '\n';
@@ -148,6 +162,8 @@ bool WolveSearch::CheckDepthLimitReached() const
 
 std::string WolveSearch::MoveString(SgMove move) const
 {
+    if (move == SG_NULLMOVE)
+        return "null";
     return HexPointUtil::ToString(static_cast<HexPoint>(move));
 }
 
@@ -167,8 +183,8 @@ int WolveSearch::Evaluate(bool* isExact, int depth)
     {
         *isExact = true;
         sgScore = EndgameUtils::IsWonGame(*m_brd, m_toPlay) 
-            ? +SgSearchValue::MAX_VALUE - CurrentDepth()
-            : -SgSearchValue::MAX_VALUE + CurrentDepth();
+            ? +SgSearchValue::MAX_VALUE
+            : -SgSearchValue::MAX_VALUE;
         //LogInfo() << "Determined! " << sgScore << '\n';
     }
     else 
@@ -179,7 +195,7 @@ int WolveSearch::Evaluate(bool* isExact, int depth)
         //LogInfo() << "Resistance: " << score << '\n';
         sgScore = ConvertToSgScore(score);
     }
-    //LogInfo() << "score = " << sgScore << '\n';
+    //LogInfo() << "score = " << PrintScScore(sgScore) << '\n';
     return sgScore;
 }
 
