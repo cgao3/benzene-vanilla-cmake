@@ -9,12 +9,9 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
-#include "Hex.hpp"
+#include "HexUctPolicy.hpp"
 #include "Misc.hpp"
 #include "PatternState.hpp"
-#include "HexUctPolicy.hpp"
-
-#include <boost/filesystem/path.hpp>
 
 using namespace benzene;
 
@@ -63,7 +60,6 @@ HexUctPolicyConfig::HexUctPolicyConfig()
 HexUctSharedPolicy::HexUctSharedPolicy()
     : m_config()
 {
-    LogFine() << "--- HexUctSharedPolicy\n";
     LoadPatterns();
 }
 
@@ -73,23 +69,27 @@ HexUctSharedPolicy::~HexUctSharedPolicy()
 
 void HexUctSharedPolicy::LoadPatterns()
 {
-    using namespace boost::filesystem;
-    path p = path(ABS_TOP_SRCDIR) / "share" / "mohex-patterns.txt";
-    p.normalize();
-    LoadPlayPatterns(p.native_file_string());
+    LoadPlayPatterns();
 }
 
-void HexUctSharedPolicy::LoadPlayPatterns(const std::string& filename)
+void HexUctSharedPolicy::LoadPlayPatterns()
 {
+    std::ifstream inFile;
+    try {
+        std::string file = MiscUtil::OpenFile("mohex-patterns.txt", inFile);
+        LogConfig() << "HexUctSharedPolicy: reading patterns from '" 
+                    << file << "'.\n";
+    }
+    catch (BenzeneException& e) {
+        throw BenzeneException() << "HexUctSharedPolicy: " << e.what();
+    }
     std::vector<Pattern> patterns;
-    Pattern::LoadPatternsFromFile(filename.c_str(), patterns);
-    LogInfo() << "HexUctSharedPolicy: Read " << patterns.size()
-	      << " patterns from '" << filename << "'.\n";
-
-    // can only load patterns once!
-    BenzeneAssert(m_patterns[BLACK].empty());
-
-    for (std::size_t i = 0; i < patterns.size(); ++i) {
+    Pattern::LoadPatternsFromStream(inFile, patterns);
+    LogConfig() << "HexUctSharedPolicy: parsed " << patterns.size() 
+                << " patterns.\n";
+    BenzeneAssert(m_patterns[BLACK].empty()); // Can only load patterns once!
+    for (std::size_t i = 0; i < patterns.size(); ++i) 
+    {
         Pattern p = patterns[i];
         switch(p.GetType()) 
         {
@@ -99,11 +99,11 @@ void HexUctSharedPolicy::LoadPlayPatterns(const std::string& filename)
             m_patterns[WHITE].push_back(p);
             break;
         default:
-            LogWarning() << "Pattern type = " << p.GetType() << '\n';
-            BenzeneAssert(false);
+            throw BenzeneException() 
+                  << "HexUctSharedPolicy: unknown pattern type '" 
+                  << p.GetType() << "'\n";
         }
     }
-    // create the hashed pattern sets for fast checking
     for (BWIterator color; color; ++color)
         m_hash_patterns[*color].Hash(m_patterns[*color]);
 }

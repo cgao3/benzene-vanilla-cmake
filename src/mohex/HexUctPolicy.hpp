@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexUctPolicy.hpp
- */
+/** @file HexUctPolicy.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXUCTPOLICY_H
@@ -65,11 +64,8 @@ struct HexUctPolicyStatistics
 class HexUctSharedPolicy
 {
 public:
-
-    /** Constructor. */
     HexUctSharedPolicy();
 
-    /** Destructor. */
     ~HexUctSharedPolicy();
 
     //----------------------------------------------------------------------
@@ -91,16 +87,13 @@ public:
     const HexUctPolicyConfig& Config() const;
 
 private:
-
     HexUctPolicyConfig m_config;
 
     std::vector<Pattern> m_patterns[BLACK_AND_WHITE];
 
     HashedPatternSet m_hash_patterns[BLACK_AND_WHITE];
 
-    //----------------------------------------------------------------------
-
-    void LoadPlayPatterns(const std::string& filename);
+    void LoadPlayPatterns();
 };
 
 inline HexUctPolicyConfig& HexUctSharedPolicy::Config()
@@ -128,17 +121,14 @@ HexUctSharedPolicy::PlayPatterns(HexColor color) const
 class HexUctPolicy : public HexUctSearchPolicy
 {
 public:
-
-    /** Constructor. Creates a policy. */
+    /** Creates a policy. */
     HexUctPolicy(const HexUctSharedPolicy* shared);
 
-    /* Destructor. */
     ~HexUctPolicy();
 
     /** Implementation of SgUctSearch::GenerateRandomMove().
         - Pattern move (if enabled)
-        - Purely random
-    */
+        - Purely random */
     HexPoint GenerateMove(PatternState& pastate, HexColor color, 
                           HexPoint lastMove);
 
@@ -176,8 +166,6 @@ private:
 #if COLLECT_PATTERN_STATISTICS
     HexUctPolicyStatistics m_statistics;
 #endif
-
-    //----------------------------------------------------------------------
 
     HexPoint PickRandomPatternMove(const PatternState& pastate, 
                                    const HashedPatternSet& patterns, 

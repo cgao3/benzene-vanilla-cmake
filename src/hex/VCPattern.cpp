@@ -4,10 +4,9 @@
 
 #include "BitsetIterator.hpp"
 #include "BoardUtils.hpp"
-#include "VCPattern.hpp"
+#include "Misc.hpp"
 #include "StoneBoard.hpp"
-
-#include <boost/filesystem/path.hpp>
+#include "VCPattern.hpp"
 
 using namespace benzene;
 
@@ -192,17 +191,15 @@ void VCPattern::CreatePatterns(int width, int height)
 {
     LogFine() << "VCPattern::CreatePatterns(" 
               << width << ", " << height << ")\n";
-#ifndef ABS_TOP_SRCDIR
-    #error "ABS_TOP_SRCDIR not defined!"
-#endif 
-    boost::filesystem::path pp = boost::filesystem::path(ABS_TOP_SRCDIR) 
-        / "share" / "vc-patterns.txt";
-    pp.normalize();
-    std::string file = pp.native_file_string();
-    LogFine() << "Loading pattern templates from: '" << file << "'\n";
-    std::ifstream fin(file.c_str());
-    if (!fin)
-        throw BenzeneException("Could not open pattern file!\n");
+    std::ifstream fin;
+    try {
+        std::string file = MiscUtil::OpenFile("vc-patterns.txt", fin);
+        LogConfig() << "VCPattern: loading pattern templates from '" 
+                    << file << "'.\n";
+    }
+    catch (BenzeneException& e) {
+        throw BenzeneException() << "VCPattern: " << e.what();
+    }
     std::vector<VCPattern> out[BLACK_AND_WHITE];
     std::vector<BuilderPattern> start, end;
     std::vector<VCPattern> complete;

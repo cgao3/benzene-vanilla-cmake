@@ -3,6 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "IcePatternSet.hpp"
+#include "Misc.hpp"
 
 using namespace benzene;
 
@@ -16,23 +17,23 @@ IcePatternSet::~IcePatternSet()
 {
 }
 
-void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
+void IcePatternSet::LoadPatterns(std::string name)
 {
-    boost::filesystem::path normalizedFile = file;
-    normalizedFile.normalize();
-    std::string nativeFile = normalizedFile.native_file_string();
-
+    std::ifstream inFile;
+    try {
+        std::string file = MiscUtil::OpenFile(name, inFile);
+        LogConfig() << "IcePatternSet: reading from '" << file << "'.\n";
+    }
+    catch (BenzeneException& e) {
+        throw BenzeneException() << "IcePatternSet: " << e.what();
+    }
     std::vector<Pattern> patterns;
-    Pattern::LoadPatternsFromFile(nativeFile.c_str(), patterns);
-
-    LogFine() << "IcePatternSet: "
-	      << "Read " << patterns.size() << " patterns " 
-	      << "from '" << nativeFile << "'." << '\n';
-
+    Pattern::LoadPatternsFromStream(inFile, patterns);
+    LogConfig() << "IcePatternSet: parsed " << patterns.size() 
+                << " patterns.\n";
     for (std::size_t i = 0; i < patterns.size(); i++) 
     {
         Pattern p(patterns[i]);
-
         switch(p.GetType()) {
         case Pattern::DEAD:
             m_dead.push_back(p);
@@ -78,8 +79,8 @@ void IcePatternSet::LoadPatterns(const boost::filesystem::path& file)
             break;
 
         default:
-            LogSevere() << "Pattern type = " << p.GetType() << '\n';
-            BenzeneAssert(false);
+            throw BenzeneException() << "IcePatternSet: unknown pattern type " 
+                                     << "'" << p.GetType() << "'\n";
         }
     }
 

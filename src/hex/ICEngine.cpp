@@ -521,12 +521,7 @@ void ICEngine::LoadHandCodedPatterns()
 /** Loads local patterns from "ice-pattern-file". */
 void ICEngine::LoadPatterns()
 {
-#ifdef ABS_TOP_SRCDIR
-    m_patterns.LoadPatterns(boost::filesystem::path(ABS_TOP_SRCDIR) 
-                            / "share" / "ice-patterns.txt");
-#else
-    LogWarning() << "**** NO ICE PATTERNS LOADED ***\n";
-#endif
+    m_patterns.LoadPatterns("ice-patterns.txt");
 }    
 
 //----------------------------------------------------------------------------

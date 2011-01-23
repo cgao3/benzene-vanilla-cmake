@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file IcePatternSet.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef ICE_PATTERN_SET_HPP
@@ -8,8 +7,6 @@
 
 #include "Pattern.hpp"
 #include "HashedPatternSet.hpp"
-
-#include "boost/filesystem/path.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -27,7 +24,7 @@ public:
     ~IcePatternSet();
 
     /** Loads the patterns from the given file. */
-    void LoadPatterns(const boost::filesystem::path& file);
+    void LoadPatterns(std::string name);
 
     /** @name Pattern Access Methods */
     // @{

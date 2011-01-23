@@ -10,4 +10,5 @@ mohex-patterns.txt \
 swap-moves.txt \
 unique-probe.txt \
 vc-captured-set.txt \
-vc-patterns.txt
+vc-patterns.txt \
+wolve-cache-book.txt

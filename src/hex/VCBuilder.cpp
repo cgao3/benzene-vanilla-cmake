@@ -9,12 +9,11 @@
 #include "BitsetIterator.hpp"
 #include "GraphUtils.hpp"
 #include "ChangeLog.hpp"
+#include "Misc.hpp"
 #include "VCBuilder.hpp"
 #include "VCSet.hpp"
 #include "VCPattern.hpp"
 #include "VCUtils.hpp"
-
-#include <boost/filesystem/path.hpp>
 
 using namespace benzene;
 
@@ -45,14 +44,18 @@ VCBuilder::~VCBuilder()
 
 void VCBuilder::LoadCapturedSetPatterns()
 {
-    using namespace boost::filesystem;
-    path filename = path(ABS_TOP_SRCDIR) / "share" / "vc-captured-set.txt";
-    filename.normalize();
+    std::ifstream inFile;
+    try {
+        std::string file = MiscUtil::OpenFile("vc-captured-set.txt", inFile);
+        LogConfig() << "VCBuilder: reading captured set patterns from '" 
+                    << file << "'.\n";
+    }
+    catch (BenzeneException& e) {
+        throw BenzeneException() << "VCBuilder: " << e.what();
+    }
     std::vector<Pattern> patterns;
-    Pattern::LoadPatternsFromFile(filename.native_file_string().c_str(), 
-                                  patterns);
-    LogFine() << "--LoadCapturedSetPatterns()\n";    
-    LogFine() << "Read " << patterns.size() << " patterns.\n";
+    Pattern::LoadPatternsFromStream(inFile, patterns);
+    LogConfig() << "VCBuilder:: parsed " << patterns.size() << " patterns.\n";
     for (std::size_t i = 0; i < patterns.size(); ++i)
     {
         m_capturedSetPatterns[WHITE].push_back(patterns[i]);

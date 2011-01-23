@@ -3,7 +3,9 @@
 //----------------------------------------------------------------------------
 
 #include "BoardUtils.hpp"
+#include "Misc.hpp"
 #include "SwapCheck.hpp"
+#include <boost/filesystem/path.hpp>
 
 using namespace benzene;
 
@@ -20,26 +22,25 @@ bool s_swapLoaded = false;
     board. */
 std::map<std::string, std::set<HexPoint> > s_swapMoves;
 
-/** Loads swap moves for each boardsize from the given file.
+/** Loads swap moves for each boardsize.
     Ignores lines begining with '#'. On lines not begining with '#',
     expects a string of the form "nxn" and the name of a HexPoint:
     this pair denotes a move to swap on an nxn board. The remainder of
     the line is not looked at. */
-void LoadSwapMoves(const std::string& name)
+void LoadSwapMoves()
 {
-    using namespace boost::filesystem;
-    path swap_path = path(ABS_TOP_SRCDIR) / "share";
-    path swap_list = swap_path / name;
-    swap_list.normalize();
-    std::string swap_file = swap_list.native_file_string();
-    LogInfo() << "SwapCheck: Loading swap moves: '" << swap_file << "'...\n";
+    std::ifstream inFile;
+    try {
+        std::string file = MiscUtil::OpenFile("swap-moves.txt", inFile);
+        LogInfo() << "SwapCheck: reading from '" << file << "'.\n";
+    }
+    catch (BenzeneException& e) {
+        throw BenzeneException() << "SwapCheck: " << e.what();
+    }
     s_swapMoves.clear();
-    std::ifstream s(swap_file.c_str());
-    if (!s)
-        throw BenzeneException("SwapCheck: could not open list!\n");
     std::string line;
     std::size_t lineNumber = 0;
-    while (std::getline(s, line))
+    while (std::getline(inFile, line))
     {
         lineNumber++;
         if (line[0] == '#')
@@ -58,7 +59,7 @@ void LoadSwapMoves(const std::string& name)
         else
             s_swapMoves[boardSizeStr].insert(point);
     }
-    s.close();
+    inFile.close();
     s_swapLoaded = true;
 }
 
@@ -91,7 +92,7 @@ bool SwapCheck::PlaySwap(const Game& gameState, HexColor toPlay)
         else 
         {
             if (!s_swapLoaded)
-                LoadSwapMoves("swap-moves.txt");
+                LoadSwapMoves();
 	    HexPoint firstMove = gameState.History().back().Point();
 	    if (toPlay == VERTICAL_COLOR)
                 // Swap decisions assume VERTICAL_COLOR was FIRST_TO_PLAY,
