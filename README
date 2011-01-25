@@ -103,7 +103,7 @@ If you are only modifying existing source files, then a simple 'make'
 is enough to build the new code properly. If you wish to add or remove
 source files, then you will have to edit the proper 'Makefile.am'
 files.  If you modify any 'Makefile.am', you will need to recreate the
-makefiles with 'config.status': 
+makefiles with 'config.status':
 
 [add some source files, make changes in all relevant Makefile.am]
 % autoreconf -i
@@ -114,5 +114,14 @@ makefiles with 'config.status':
  Installing
 ------------
 
-There is no need to install benzene. Installing it probably won't work.
+There is no need to install benzene. If you do wish to install it, the
+code will be installed to "${prefix}/bin" and the data files from
+"share/" will be stored under "${prefix}/benzene/share/".
+
+Two locations are checked when loading these data files when the
+program starts up. The first is the "share/" directory where benzene
+was compiled. The second is the installed data directory mentioned
+above. The source directory is checked first, then the data directory.
+If neither exists the program will abort. 
+
 
