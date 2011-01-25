@@ -265,6 +265,7 @@ void WolveSearch::OrderMoves(const bitset_t& consider,
     }
     // NOTE: To ensure we are deterministic, we must use stable_sort.
     stable_sort(mvsc.begin(), mvsc.end());
+    BenzeneAssert(std::size_t(CurrentDepth()) < m_plyWidth.size());
     const std::size_t movesToCopy 
         = std::min(mvsc.size(), m_plyWidth[CurrentDepth()]);
     for (std::size_t i = 0; i < movesToCopy;  ++i)
