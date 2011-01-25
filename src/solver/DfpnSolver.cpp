@@ -5,7 +5,7 @@
 #include "SgSystem.h"
 #include "SgWrite.h"
 #include "BitsetIterator.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "DfpnSolver.hpp"
 #include "PatternState.hpp"
 #include "EndgameUtils.hpp"
@@ -235,11 +235,11 @@ void DfpnData::Unpack(const byte* data)
 void DfpnData::Rotate(const ConstBoard& brd)
 {
     if (m_bestMove != INVALID_POINT)
-        m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
-    m_maxProofSet = BoardUtils::Rotate(brd, m_maxProofSet);
+        m_bestMove = BoardUtil::Rotate(brd, m_bestMove);
+    m_maxProofSet = BoardUtil::Rotate(brd, m_maxProofSet);
     std::vector<HexPoint>& moves = m_children.m_children;
     for (std::size_t i = 0; i < moves.size(); ++i)
-        moves[i] = BoardUtils::Rotate(brd, moves[i]);
+        moves[i] = BoardUtil::Rotate(brd, moves[i]);
 }
 
 //----------------------------------------------------------------------------

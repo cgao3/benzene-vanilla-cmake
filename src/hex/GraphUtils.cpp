@@ -1,9 +1,8 @@
 //----------------------------------------------------------------------------
-/** @file GraphUtils.cpp
- */
+/** @file GraphUtils.cpp */
 //----------------------------------------------------------------------------
 
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "GraphUtils.hpp"
 

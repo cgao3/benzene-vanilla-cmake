@@ -2,7 +2,7 @@ noinst_LIBRARIES = libhex.a
 
 libhex_a_SOURCES = \
 BenzenePlayer.cpp \
-BoardUtils.cpp \
+BoardUtil.cpp \
 ConstBoard.cpp \
 Decompositions.cpp \
 EndgameUtils.cpp \
@@ -42,7 +42,7 @@ noinst_HEADERS = \
 BenzenePlayer.hpp \
 BitsetIterator.hpp \
 BoardIterator.hpp \
-BoardUtils.hpp \
+BoardUtil.hpp \
 ConstBoard.hpp \
 Decompositions.hpp \
 EndgameUtils.hpp \

@@ -5,7 +5,7 @@
 #include "SgSystem.h"
 #include "SgRandom.h"
 
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "VCSet.hpp"
 #include "GraphUtils.hpp"
@@ -17,7 +17,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-HexPoint BoardUtils::CoordsToPoint(const ConstBoard& brd, int x, int y)
+HexPoint BoardUtil::CoordsToPoint(const ConstBoard& brd, int x, int y)
 {
     if (x <= -2 || x > brd.Width())      return INVALID_POINT;
     if (y <= -2 || y > brd.Height())     return INVALID_POINT;
@@ -32,7 +32,7 @@ HexPoint BoardUtils::CoordsToPoint(const ConstBoard& brd, int x, int y)
     return HexPointUtil::coordsToPoint(x, y);
 }
 
-HexPoint BoardUtils::PointInDir(const ConstBoard& brd, 
+HexPoint BoardUtil::PointInDir(const ConstBoard& brd, 
                                 HexPoint point, HexDirection dir)
 {
     if (HexPointUtil::isEdge(point))
@@ -43,10 +43,10 @@ HexPoint BoardUtils::PointInDir(const ConstBoard& brd,
     HexPointUtil::pointToCoords(point, x, y);
     x += HexPointUtil::DeltaX(dir);
     y += HexPointUtil::DeltaY(dir);
-    return BoardUtils::CoordsToPoint(brd, x, y);
+    return BoardUtil::CoordsToPoint(brd, x, y);
 }
 
-HexPoint BoardUtils::Rotate(const ConstBoard& brd, HexPoint p)
+HexPoint BoardUtil::Rotate(const ConstBoard& brd, HexPoint p)
 {
     BenzeneAssert(brd.IsValid(p));
     
@@ -58,7 +58,7 @@ HexPoint BoardUtils::Rotate(const ConstBoard& brd, HexPoint p)
     return HexPointUtil::coordsToPoint(brd.Width()-1-x, brd.Height()-1-y);
 }
 
-HexPoint BoardUtils::Mirror(const ConstBoard& brd, HexPoint p)
+HexPoint BoardUtil::Mirror(const ConstBoard& brd, HexPoint p)
 {
     BenzeneAssert(brd.IsValid(p));
     BenzeneAssert(brd.Width() == brd.Height());
@@ -77,13 +77,13 @@ HexPoint BoardUtils::Mirror(const ConstBoard& brd, HexPoint p)
     return HexPointUtil::coordsToPoint(y, x);
 }
 
-HexPoint BoardUtils::CenterPoint(const ConstBoard& brd)
+HexPoint BoardUtil::CenterPoint(const ConstBoard& brd)
 {
     BenzeneAssert((brd.Width() & 1) && (brd.Height() & 1));
     return CenterPointRight(brd);
 }
 
-HexPoint BoardUtils::CenterPointRight(const ConstBoard& brd)
+HexPoint BoardUtil::CenterPointRight(const ConstBoard& brd)
 {
     int x = brd.Width() / 2;
     int y = brd.Height() / 2;
@@ -93,7 +93,7 @@ HexPoint BoardUtils::CenterPointRight(const ConstBoard& brd)
     return HexPointUtil::coordsToPoint(x, y);
 }
 
-HexPoint BoardUtils::CenterPointLeft(const ConstBoard& brd)
+HexPoint BoardUtil::CenterPointLeft(const ConstBoard& brd)
 {
     int x = brd.Width() / 2;
     int y = brd.Height() / 2;
@@ -104,7 +104,7 @@ HexPoint BoardUtils::CenterPointLeft(const ConstBoard& brd)
     return HexPointUtil::coordsToPoint(x, y);
 }
 
-HexPoint BoardUtils::RandomEmptyCell(const StoneBoard& brd)
+HexPoint BoardUtil::RandomEmptyCell(const StoneBoard& brd)
 {
     bitset_t moves = brd.GetEmpty() & brd.Const().GetCells();
     int count = static_cast<int>(moves.count());
@@ -121,7 +121,7 @@ HexPoint BoardUtils::RandomEmptyCell(const StoneBoard& brd)
 
 //----------------------------------------------------------------------------
 
-bitset_t BoardUtils::PackBitset(const ConstBoard& brd, 
+bitset_t BoardUtil::PackBitset(const ConstBoard& brd, 
                                 const bitset_t& in)
 {
     int j=0;
@@ -133,7 +133,7 @@ bitset_t BoardUtils::PackBitset(const ConstBoard& brd,
     return ret;
 }
 
-bitset_t BoardUtils::UnpackBitset(const ConstBoard& brd, 
+bitset_t BoardUtil::UnpackBitset(const ConstBoard& brd, 
                                   const bitset_t& in)
 {
     int j=0;
@@ -145,7 +145,7 @@ bitset_t BoardUtils::UnpackBitset(const ConstBoard& brd,
     return ret;
 }
 
-bitset_t BoardUtils::Rotate(const ConstBoard& brd, 
+bitset_t BoardUtil::Rotate(const ConstBoard& brd, 
                             const bitset_t& bs)
 {
     bitset_t ret;
@@ -155,7 +155,7 @@ bitset_t BoardUtils::Rotate(const ConstBoard& brd,
     return ret;
 }
 
-bitset_t BoardUtils::Mirror(const ConstBoard& brd, 
+bitset_t BoardUtil::Mirror(const ConstBoard& brd, 
                             const bitset_t& bs)
 {
     bitset_t ret;
@@ -165,7 +165,7 @@ bitset_t BoardUtils::Mirror(const ConstBoard& brd,
     return ret;
 }
 
-bool BoardUtils::ShiftBitset(const ConstBoard& brd, const bitset_t& bs, 
+bool BoardUtil::ShiftBitset(const ConstBoard& brd, const bitset_t& bs, 
                              HexDirection dir, bitset_t& out)
 {
     out.reset();
@@ -179,7 +179,7 @@ bool BoardUtils::ShiftBitset(const ConstBoard& brd, const bitset_t& bs,
     return still_inside;
 }
 
-bool BoardUtils::ConnectedOnBitset(const ConstBoard& brd, 
+bool BoardUtil::ConnectedOnBitset(const ConstBoard& brd, 
                                    const bitset_t& carrier,
                                    HexPoint p1, HexPoint p2)
 {
@@ -189,7 +189,7 @@ bool BoardUtils::ConnectedOnBitset(const ConstBoard& brd,
     return seen.test(p2);
 }
 
-bitset_t BoardUtils::ReachableOnBitset(const ConstBoard& brd, 
+bitset_t BoardUtil::ReachableOnBitset(const ConstBoard& brd, 
                                        const bitset_t& carrier,
                                        const bitset_t& stopset,
                                        HexPoint start)
@@ -219,7 +219,7 @@ bitset_t BoardUtils::ReachableOnBitset(const ConstBoard& brd,
 
 //----------------------------------------------------------------------------
 
-std::string BoardUtils::GuiDumpOutsideConsiderSet(const StoneBoard& brd, 
+std::string BoardUtil::GuiDumpOutsideConsiderSet(const StoneBoard& brd, 
                                                   const bitset_t& consider,
                                                   const bitset_t& remove)
 {

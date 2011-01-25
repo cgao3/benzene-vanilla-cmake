@@ -7,7 +7,7 @@
 
 #include "BitsetIterator.hpp"
 #include "ICEngine.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -39,16 +39,16 @@ bitset_t ComputeEdgeUnreachableRegions(const StoneBoard& brd, HexColor c,
         bitset_t flowSet1 = flowSet;
         flowSet1.set(HexPointUtil::colorEdge1(c));
         reachable1 
-            = BoardUtils::ReachableOnBitset(brd.Const(), flowSet1, stopSet,
-                                            HexPointUtil::colorEdge1(c));
+            = BoardUtil::ReachableOnBitset(brd.Const(), flowSet1, stopSet,
+                                           HexPointUtil::colorEdge1(c));
     }
     if (flowFrom2) 
     {
         bitset_t flowSet2 = flowSet;
         flowSet2.set(HexPointUtil::colorEdge2(c));
         reachable2 
-            = BoardUtils::ReachableOnBitset(brd.Const(), flowSet2, stopSet,
-                                            HexPointUtil::colorEdge2(c));
+            = BoardUtil::ReachableOnBitset(brd.Const(), flowSet2, stopSet,
+                                           HexPointUtil::colorEdge2(c));
     }
     return brd.GetEmpty() - (reachable1 | reachable2);
 }

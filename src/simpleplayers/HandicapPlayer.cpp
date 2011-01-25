@@ -4,7 +4,7 @@
 
 #include "SgSystem.h"
 #include "HandicapPlayer.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 
 using namespace benzene;
 
@@ -48,9 +48,10 @@ HexPoint HandicapPlayer::Search(HexBoard& brd,
     
     /** Handicap player wins playing second, so in this case any random
 	move will suffice. */
-    if (game_state.History().empty()) {
+    if (game_state.History().empty()) 
+    {
 	BenzeneAssert(color == FIRST_TO_PLAY);
-	return BoardUtils::RandomEmptyCell(brd.GetPosition());
+	return BoardUtil::RandomEmptyCell(brd.GetPosition());
     }
     
     lastMove = game_state.History().back().Point();
@@ -67,7 +68,7 @@ HexPoint HandicapPlayer::Search(HexBoard& brd,
         return response;
 
     LogInfo() << "Playing random move" << '\n';
-    return BoardUtils::RandomEmptyCell(brd.GetPosition());
+    return BoardUtil::RandomEmptyCell(brd.GetPosition());
 }
 
 void HandicapPlayer::buildResponseMap(const StoneBoard& brd)

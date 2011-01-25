@@ -2,7 +2,7 @@
 /** @file VCCommands.cpp */
 //----------------------------------------------------------------------------
 
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "EndgameUtils.hpp"
 #include "VCCommands.hpp"
 #include "VCUtils.hpp"
@@ -61,7 +61,7 @@ void VCCommands::CmdBuildStatic(HtpCommand& cmd)
     if (!EndgameUtils::IsDeterminedState(brd, color))
     {
         bitset_t consider = EndgameUtils::MovesToConsider(brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetPosition(), 
+        cmd << BoardUtil::GuiDumpOutsideConsiderSet(brd.GetPosition(), 
                                                      consider,
                                               brd.GetInferiorCells().All());
     }
@@ -82,7 +82,7 @@ void VCCommands::CmdBuildIncremental(HtpCommand& cmd)
     if (!EndgameUtils::IsDeterminedState(brd, color))
     {
         bitset_t consider = EndgameUtils::MovesToConsider(brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(brd.GetPosition(), 
+        cmd << BoardUtil::GuiDumpOutsideConsiderSet(brd.GetPosition(), 
                                                      consider,
                                            brd.GetInferiorCells().All());
     }
@@ -152,7 +152,7 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
     if (!EndgameUtils::IsDeterminedState(*m_env.brd, color))
     {
         bitset_t consider = EndgameUtils::MovesToConsider(*m_env.brd, color);
-        cmd << BoardUtils::GuiDumpOutsideConsiderSet(m_env.brd->GetPosition(), 
+        cmd << BoardUtil::GuiDumpOutsideConsiderSet(m_env.brd->GetPosition(), 
                                                      consider,
                                                      inf.All());
     }

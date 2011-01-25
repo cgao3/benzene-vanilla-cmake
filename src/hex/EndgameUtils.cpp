@@ -5,7 +5,7 @@
 
 #include "EndgameUtils.hpp"
 #include "BitsetIterator.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "VCSet.hpp"
 #include "VCUtils.hpp"
 
@@ -58,13 +58,13 @@ bitset_t ComputeLossesViaStrategyStealingArgument(const StoneBoard& brd,
         && (brd.GetPlayed(!color).count() - brd.GetPlayed(color).count() == 1))
     {
         bitset_t mirror1 
-            = BoardUtils::Mirror(brd.Const(), brd.GetPlayed(!color))
+            = BoardUtil::Mirror(brd.Const(), brd.GetPlayed(!color))
             - brd.GetPlayed(color);
         if (mirror1.count() == 1)
             ret |= mirror1;
         bitset_t mirror2 =
-            BoardUtils::Mirror(brd.Const(), BoardUtils::Rotate(brd.Const(), 
-                                                     brd.GetPlayed(!color)))
+            BoardUtil::Mirror(brd.Const(), BoardUtil::Rotate(brd.Const(), 
+                                                  brd.GetPlayed(!color)))
             - brd.GetPlayed(color);
         if (mirror2.count() == 1)
             ret |= mirror2;
@@ -78,7 +78,7 @@ bitset_t RemoveRotations(const StoneBoard& brd, const bitset_t& consider)
     bitset_t ret;
     for (BitsetIterator it(consider); it; ++it)
     {
-        HexPoint rotated = BoardUtils::Rotate(brd.Const(), *it);
+        HexPoint rotated = BoardUtil::Rotate(brd.Const(), *it);
         if (!ret.test(rotated))
             ret.set(*it);
     }

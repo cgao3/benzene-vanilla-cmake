@@ -9,7 +9,7 @@
 
 #include "BenzeneProgram.hpp"
 #include "BitsetIterator.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "Groups.hpp"
 #include "HexSgUtil.hpp"
 #include "HexHtpEngine.hpp"

@@ -131,9 +131,9 @@ int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
 
     // Start by computing the flipped board position.
     // This involves mirroring the stones and *flipping their colour*.
-    bitset_t flippedBlack = BoardUtils::Mirror(brd.Const(), 
+    bitset_t flippedBlack = BoardUtil::Mirror(brd.Const(), 
                     brd.GetPlayed(WHITE) & brd.Const().GetCells());
-    bitset_t flippedWhite = BoardUtils::Mirror(brd.Const(),
+    bitset_t flippedWhite = BoardUtil::Mirror(brd.Const(),
                     brd.GetPlayed(BLACK) & brd.Const().GetCells());
     StoneBoard flippedBrd(brd.Width(), brd.Height());
     flippedBrd.AddColor(BLACK, flippedBlack);
@@ -142,7 +142,7 @@ int ProofUtil::StoreFlippedStates(SolverDB<HASH,DB,DATA>& db, const DATA& data,
 
     
     HexColor flippedWinner = !winner;
-    bitset_t flippedProof = BoardUtils::Mirror(brd.Const(), proof);
+    bitset_t flippedProof = BoardUtil::Mirror(brd.Const(), proof);
     bitset_t flippedOutside = (~flippedProof & flippedBrd.GetEmpty());
     
     // Determine what stones we can add or remove.

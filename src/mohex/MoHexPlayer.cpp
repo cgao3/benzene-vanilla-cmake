@@ -7,7 +7,7 @@
 #include "SgUctTreeUtil.h"
 
 #include "BitsetIterator.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "VCSet.hpp"
 #include "HexUctUtil.hpp"
 #include "HexUctKnowledge.hpp"
@@ -197,7 +197,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     // move.
     LogWarning() << "**** HexUctSearch returned empty sequence!\n"
 		 << "**** Returning random move!\n";
-    return BoardUtils::RandomEmptyCell(brd.GetPosition());
+    return BoardUtil::RandomEmptyCell(brd.GetPosition());
 }
 
 /** Returns INVALID_POINT if history is empty, otherwise last move

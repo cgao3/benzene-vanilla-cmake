@@ -2,7 +2,7 @@
 /** @file SwapCheck.cpp */
 //----------------------------------------------------------------------------
 
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "Misc.hpp"
 #include "SwapCheck.hpp"
 #include <boost/filesystem/path.hpp>
@@ -98,7 +98,7 @@ bool SwapCheck::PlaySwap(const Game& gameState, HexColor toPlay)
                 // Swap decisions assume VERTICAL_COLOR was FIRST_TO_PLAY,
                 // so we mirror the first move if this is not the case
                 // (i.e. to consider an equivalent decision).
-                firstMove = BoardUtils::Mirror(brd.Const(), firstMove);
+                firstMove = BoardUtil::Mirror(brd.Const(), firstMove);
             std::ostringstream os;
             os << brd.Width() << 'x' << brd.Height();
             if (s_swapMoves[os.str()].count(firstMove) > 0)

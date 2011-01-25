@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "ConstBoard.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 
 using namespace benzene;
@@ -194,7 +194,7 @@ void ConstBoard::ComputeNeighbours()
                 int y2 = y1;
                 for (int t = 0; t < r; t++) 
                 {
-                    HexPoint p = BoardUtils::CoordsToPoint(*this, x2, y2);
+                    HexPoint p = BoardUtil::CoordsToPoint(*this, x2, y2);
                     if (p != INVALID_POINT) 
                     {
                         // Add p to cur's list and cur to p's list

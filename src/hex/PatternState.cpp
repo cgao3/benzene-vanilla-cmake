@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "PatternState.hpp"
 
 using namespace benzene;
@@ -74,8 +74,7 @@ void PatternMatcherData::Initialize()
                     else 
                     {
                         // handle all valid interior cells and edges
-                        HexPoint p2 
-                            = BoardUtils::CoordsToPoint(*brd, x2, y2);
+                        HexPoint p2 = BoardUtil::CoordsToPoint(*brd, x2, y2);
                         if (p2 != INVALID_POINT) 
                         {
                             if (HexPointUtil::isEdge(p2)) 

@@ -19,7 +19,7 @@
 #include "SgException.h"
 #include "SgMove.h"
 
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "HexUctPolicy.hpp"
 #include "HexUctUtil.hpp"
@@ -51,8 +51,8 @@ bool GameOver(const StoneBoard& brd)
 HexColor GetWinner(const StoneBoard& brd)
 {
     SG_ASSERT(GameOver(brd));
-    if (BoardUtils::ConnectedOnBitset(brd.Const(), brd.GetColor(BLACK), 
-                                      NORTH, SOUTH))
+    if (BoardUtil::ConnectedOnBitset(brd.Const(), brd.GetColor(BLACK), 
+                                     NORTH, SOUTH))
         return BLACK;
     return WHITE;
 }
@@ -60,11 +60,11 @@ HexColor GetWinner(const StoneBoard& brd)
 /** Returns winner if there is one. Returns EMPTY if no winner. */
 HexColor CheckIfWinner(const StoneBoard& brd)
 {
-    if (BoardUtils::ConnectedOnBitset(brd.Const(), brd.GetColor(BLACK), 
-                                      NORTH, SOUTH))
+    if (BoardUtil::ConnectedOnBitset(brd.Const(), brd.GetColor(BLACK), 
+                                     NORTH, SOUTH))
         return BLACK;
-    if (BoardUtils::ConnectedOnBitset(brd.Const(), brd.GetColor(WHITE),
-                                      EAST, WEST))
+    if (BoardUtil::ConnectedOnBitset(brd.Const(), brd.GetColor(WHITE),
+                                     EAST, WEST))
         return WHITE;
     return EMPTY;
 }

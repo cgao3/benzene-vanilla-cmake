@@ -13,10 +13,8 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Utilities on Boards. */
-namespace BoardUtils
+namespace BoardUtil
 {
-    //------------------------------------------------------------------------
-
     /** @name Cells */
     // @{
 
@@ -50,7 +48,7 @@ namespace BoardUtils
 	these methods return the same point as centerPoint(). */
     HexPoint CenterPointRight(const ConstBoard& brd);
 
-    /** @see centerPointRight(). */
+    /** See centerPointRight(). */
     HexPoint CenterPointLeft(const ConstBoard& brd);
 
     /** Returns a random empty cell or INVALID_POINT if the board is
@@ -72,14 +70,13 @@ namespace BoardUtils
     bitset_t PackBitset(const ConstBoard& brd, const bitset_t& in);
 
     /** Unpacks a bitset to the canonical representation. 
-        @see PackBitset() */
+        See PackBitset() */
     bitset_t UnpackBitset(const ConstBoard& brd, const bitset_t& in);
 
     /** Shifts bitset in direction dir using PointInDir(). Returns
         true if each interior point is still an interior point. */
-    bool ShiftBitset(const ConstBoard& brd, 
-                     const bitset_t& bs, HexDirection dir,
-                     bitset_t& out);
+    bool ShiftBitset(const ConstBoard& brd, const bitset_t& bs, 
+                     HexDirection dir, bitset_t& out);
 
     /** Rotates the given bitset 180' about the center of the
         board. */
@@ -91,18 +88,14 @@ namespace BoardUtils
 
     /** Returns true if p1 is connected to p2 on the bitset; p1 and p2
         are assumed to be inside the bitset.  */
-    bool ConnectedOnBitset(const ConstBoard& brd, 
-                           const bitset_t& carrier,
+    bool ConnectedOnBitset(const ConstBoard& brd, const bitset_t& carrier,
                            HexPoint p1, HexPoint p2);
 
     /** Returns a subset of carrier: the points that are reachable
         from start. Flow will enter and leave cells in carrier, and
         enter but not leave cells in stopset. */
-    bitset_t ReachableOnBitset(const ConstBoard& brd, 
-                               const bitset_t& carrier,
-                               const bitset_t& stopset, 
-                               HexPoint start);
-
+    bitset_t ReachableOnBitset(const ConstBoard& brd, const bitset_t& carrier,
+                               const bitset_t& stopset, HexPoint start);
     // @}
 
     //----------------------------------------------------------------------

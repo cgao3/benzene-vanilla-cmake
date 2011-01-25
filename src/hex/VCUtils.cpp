@@ -5,7 +5,7 @@
 #include "VCUtils.hpp"
 #include "VCSet.hpp"
 #include "HexBoard.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 
 using namespace benzene;
 

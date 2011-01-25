@@ -1,11 +1,10 @@
 //---------------------------------------------------------------------------
-/** @file 
- */
+/** @file ConstBoardTest.cpp */
 //---------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
 
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "ConstBoard.hpp"
 
 using namespace benzene;

@@ -5,7 +5,7 @@
 #include "SgSystem.h"
 #include "SgGameReader.h"
 
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "Decompositions.hpp"
 #include "GraphUtils.hpp"

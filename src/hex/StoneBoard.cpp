@@ -2,7 +2,7 @@
 /** @file StoneBoard.cpp */
 //----------------------------------------------------------------------------
 
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "StoneBoard.hpp"
 
 using namespace benzene;
@@ -207,27 +207,27 @@ void StoneBoard::UndoMove(HexPoint cell)
 
 void StoneBoard::RotateBoard()
 {
-    m_played = BoardUtils::Rotate(Const(), m_played);
+    m_played = BoardUtil::Rotate(Const(), m_played);
     for (BWIterator it; it; ++it)
-        m_stones[*it] = BoardUtils::Rotate(Const(), m_stones[*it]);
+        m_stones[*it] = BoardUtil::Rotate(Const(), m_stones[*it]);
     ComputeHash();
     MarkAsDirty();
 }
 
 bool StoneBoard::IsSelfRotation() const
 {
-    if (m_stones[BLACK] != BoardUtils::Rotate(Const(), m_stones[BLACK]))
+    if (m_stones[BLACK] != BoardUtil::Rotate(Const(), m_stones[BLACK]))
         return false;
-    if (m_stones[WHITE] != BoardUtils::Rotate(Const(), m_stones[WHITE]))
+    if (m_stones[WHITE] != BoardUtil::Rotate(Const(), m_stones[WHITE]))
         return false;
     return true;
 }
 
 void StoneBoard::MirrorBoard()
 {
-    m_played = BoardUtils::Mirror(Const(), m_played);
+    m_played = BoardUtil::Mirror(Const(), m_played);
     for (BWIterator it; it; ++it)
-        m_stones[*it] = BoardUtils::Mirror(Const(), m_stones[*it]);
+        m_stones[*it] = BoardUtil::Mirror(Const(), m_stones[*it]);
     ComputeHash();
     MarkAsDirty();
 }

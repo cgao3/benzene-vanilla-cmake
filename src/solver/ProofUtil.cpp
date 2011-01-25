@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "Hex.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "DfsSolver.hpp"
 #include "ProofUtil.hpp"

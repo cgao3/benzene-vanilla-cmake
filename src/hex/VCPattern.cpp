@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "Misc.hpp"
 #include "StoneBoard.hpp"
 #include "VCPattern.hpp"
@@ -34,10 +34,10 @@ bool ShiftBuilderPattern(BuilderPattern& pat, HexDirection dir,
                          const StoneBoard& brd)
 {
     bitset_t black, empty, bad;
-    HexPoint endpoint = BoardUtils::PointInDir(brd.Const(), pat.endpoint, dir);
-    if (!BoardUtils::ShiftBitset(brd.Const(), pat.black, dir, black)) 
+    HexPoint endpoint = BoardUtil::PointInDir(brd.Const(), pat.endpoint, dir);
+    if (!BoardUtil::ShiftBitset(brd.Const(), pat.black, dir, black)) 
         return false;
-    if (!BoardUtils::ShiftBitset(brd.Const(), pat.empty, dir, empty)) 
+    if (!BoardUtil::ShiftBitset(brd.Const(), pat.empty, dir, empty)) 
         return false;
     pat = BuilderPattern(black, empty, endpoint, pat.height);
     return true;
@@ -48,20 +48,20 @@ bool ShiftBuilderPattern(BuilderPattern& pat, HexDirection dir,
 /** Rotates pattern on given board. */
 VCPattern RotatePattern(const VCPattern& pat, const StoneBoard& brd)
 {
-    HexPoint endpoint1 = BoardUtils::Rotate(brd.Const(), pat.Endpoint(0));
-    HexPoint endpoint2 = BoardUtils::Rotate(brd.Const(), pat.Endpoint(1));
-    bitset_t must = BoardUtils::Rotate(brd.Const(), pat.MustHave());
-    bitset_t oppt = BoardUtils::Rotate(brd.Const(), pat.NotOpponent());
+    HexPoint endpoint1 = BoardUtil::Rotate(brd.Const(), pat.Endpoint(0));
+    HexPoint endpoint2 = BoardUtil::Rotate(brd.Const(), pat.Endpoint(1));
+    bitset_t must = BoardUtil::Rotate(brd.Const(), pat.MustHave());
+    bitset_t oppt = BoardUtil::Rotate(brd.Const(), pat.NotOpponent());
     return VCPattern(endpoint1, endpoint2, must, oppt);
 }
 
 /** Mirrors pattern on given board. */
 VCPattern MirrorPattern(const VCPattern& pat, const StoneBoard& brd)
 {
-    HexPoint endpoint1 = BoardUtils::Mirror(brd.Const(), pat.Endpoint(0));
-    HexPoint endpoint2 = BoardUtils::Mirror(brd.Const(), pat.Endpoint(1));
-    bitset_t must = BoardUtils::Mirror(brd.Const(), pat.MustHave());
-    bitset_t oppt = BoardUtils::Mirror(brd.Const(), pat.NotOpponent());
+    HexPoint endpoint1 = BoardUtil::Mirror(brd.Const(), pat.Endpoint(0));
+    HexPoint endpoint2 = BoardUtil::Mirror(brd.Const(), pat.Endpoint(1));
+    bitset_t must = BoardUtil::Mirror(brd.Const(), pat.MustHave());
+    bitset_t oppt = BoardUtil::Mirror(brd.Const(), pat.NotOpponent());
     return VCPattern(endpoint1, endpoint2, must, oppt);
 }
 
@@ -404,12 +404,12 @@ bool VCPattern::Matches(HexColor color, const StoneBoard& brd) const
 bool VCPattern::ShiftPattern(HexDirection dir, const StoneBoard& brd)
 {
     bitset_t must, oppt, bad;
-    if (!BoardUtils::ShiftBitset(brd.Const(), MustHave(), dir, must)) 
+    if (!BoardUtil::ShiftBitset(brd.Const(), MustHave(), dir, must)) 
         return false;
-    if (!BoardUtils::ShiftBitset(brd.Const(), NotOpponent(), dir, oppt)) 
+    if (!BoardUtil::ShiftBitset(brd.Const(), NotOpponent(), dir, oppt)) 
         return false;
-    HexPoint endpoint1 = BoardUtils::PointInDir(brd.Const(), Endpoint(0), dir);
-    HexPoint endpoint2 = BoardUtils::PointInDir(brd.Const(), Endpoint(1), dir);
+    HexPoint endpoint1 = BoardUtil::PointInDir(brd.Const(), Endpoint(0), dir);
+    HexPoint endpoint2 = BoardUtil::PointInDir(brd.Const(), Endpoint(1), dir);
     m_end1 = endpoint1;
     m_end2 = endpoint2;
     m_must_have = must;

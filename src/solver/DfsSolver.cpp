@@ -9,7 +9,7 @@
 #include "SgWrite.h"
 
 #include "BitsetIterator.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "Decompositions.hpp"
 #include "DfsSolver.hpp"
 #include "EndgameUtils.hpp"
@@ -351,7 +351,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
         os << "LABEL ";
         const InferiorCells& inf = m_workBrd->GetInferiorCells();
         os << inf.GuiOutput();
-        os << BoardUtils::GuiDumpOutsideConsiderSet(m_workBrd->GetPosition(), 
+        os << BoardUtil::GuiDumpOutsideConsiderSet(m_workBrd->GetPosition(), 
                                                     mustplay, inf.All());
         os << '\n';
         os << "TEXT";
@@ -488,11 +488,11 @@ void DfsSolver::HandleProof(const PointSequence& variation,
         ProofUtil::ShrinkProof(solution.proof, m_state->Position(), loser, 
                                m_workBrd->ICE());
         bitset_t pruned;
-        pruned  = BoardUtils::ReachableOnBitset(m_workBrd->Const(), 
+        pruned  = BoardUtil::ReachableOnBitset(m_workBrd->Const(), 
                                                 solution.proof, 
                                                 EMPTY_BITSET,
                                  HexPointUtil::colorEdge1(winner));
-        pruned &= BoardUtils::ReachableOnBitset(m_workBrd->Const(), 
+        pruned &= BoardUtil::ReachableOnBitset(m_workBrd->Const(), 
                                                 solution.proof, 
                                                 EMPTY_BITSET,
                                  HexPointUtil::colorEdge2(winner));
@@ -506,7 +506,7 @@ void DfsSolver::HandleProof(const PointSequence& variation,
         }
     }
     // Verify proof touches both of winner's edges
-    if (!BoardUtils::ConnectedOnBitset(m_workBrd->Const(), solution.proof, 
+    if (!BoardUtil::ConnectedOnBitset(m_workBrd->Const(), solution.proof, 
                                        HexPointUtil::colorEdge1(winner),
                                        HexPointUtil::colorEdge2(winner)))
         throw BenzeneException()
@@ -896,12 +896,12 @@ int DfsSolverUtil::DistanceFromCenter(const ConstBoard& brd, HexPoint cell)
 {
     // Odd boards are easy
     if ((brd.Width() & 1) && (brd.Height() & 1))
-        return brd.Distance(BoardUtils::CenterPoint(brd), cell);
+        return brd.Distance(BoardUtil::CenterPoint(brd), cell);
     // Make sure we spiral nicely on boards with even
     // dimensions. Take the sum of the distance between
     // the two center cells on the main diagonal.
-    return brd.Distance(BoardUtils::CenterPointRight(brd), cell)
-        +  brd.Distance(BoardUtils::CenterPointLeft(brd), cell);
+    return brd.Distance(BoardUtil::CenterPointRight(brd), cell)
+        +  brd.Distance(BoardUtil::CenterPointLeft(brd), cell);
 }
 
 //----------------------------------------------------------------------------

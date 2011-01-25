@@ -1,13 +1,12 @@
 //---------------------------------------------------------------------------
-/** @file EndgameUtilsTest.cpp
- */
+/** @file EndgameUtilsTest.cpp */
 //---------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
 
 #include "EndgameUtils.hpp"
 #include "BitsetIterator.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 
 using namespace benzene;
 
@@ -26,7 +25,7 @@ BOOST_AUTO_TEST_CASE(EndgameUtils_ConsiderRotations)
     const bitset_t consider = EndgameUtils::MovesToConsider(brd, WHITE);
     for (BitsetIterator it(consider); it; ++it)
     {
-        HexPoint rotated = BoardUtils::Rotate(brd.GetPosition().Const(), *it);
+        HexPoint rotated = BoardUtil::Rotate(brd.GetPosition().Const(), *it);
         BOOST_CHECK(!consider.test(rotated));
     }
 }

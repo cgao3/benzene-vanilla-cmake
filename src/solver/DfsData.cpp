@@ -4,7 +4,7 @@
 
 #include "Misc.hpp"
 #include "DfsData.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 
 using namespace benzene;
 
@@ -67,12 +67,12 @@ void DfsData::Unpack(const byte* data)
 void DfsData::Rotate(const ConstBoard& brd)
 {
     BenzeneAssert(m_isValid);
-    m_bestMove = BoardUtils::Rotate(brd, m_bestMove);
+    m_bestMove = BoardUtil::Rotate(brd, m_bestMove);
 }
 
 void DfsData::Mirror(const ConstBoard& brd)
 {
     BenzeneAssert(m_isValid);
-    m_bestMove = BoardUtils::Mirror(brd, m_bestMove);
+    m_bestMove = BoardUtil::Mirror(brd, m_bestMove);
 }
 //----------------------------------------------------------------------------

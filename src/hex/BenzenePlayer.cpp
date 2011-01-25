@@ -5,7 +5,7 @@
 #include "BenzeneAssert.hpp"
 #include "BenzenePlayer.hpp"
 #include "EndgameUtils.hpp"
-#include "BoardUtils.cpp"
+#include "BoardUtil.hpp"
 
 using namespace benzene;
 

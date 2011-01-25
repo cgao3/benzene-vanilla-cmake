@@ -4,7 +4,7 @@
 
 #include "SgSystem.h"
 #include "HandCodedPattern.hpp"
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 
 using namespace benzene;
 
@@ -36,20 +36,20 @@ void HandCodedPattern::set(HexColor color, const bitset_t& bs)
 
 void HandCodedPattern::rotate(const ConstBoard& brd)
 {
-    m_dominatee = BoardUtils::Rotate(brd, m_dominatee);
-    m_dominator = BoardUtils::Rotate(brd, m_dominator);
-    m_mask = BoardUtils::Rotate(brd, m_mask);
+    m_dominatee = BoardUtil::Rotate(brd, m_dominatee);
+    m_dominator = BoardUtil::Rotate(brd, m_dominator);
+    m_mask = BoardUtil::Rotate(brd, m_mask);
     for (BWIterator it; it; ++it)
-        m_color[*it] = BoardUtils::Rotate(brd, m_color[*it]);
+        m_color[*it] = BoardUtil::Rotate(brd, m_color[*it]);
 }
 
 void HandCodedPattern::mirror(const ConstBoard& brd)
 {
-    m_dominatee = BoardUtils::Mirror(brd, m_dominatee);
-    m_dominator = BoardUtils::Mirror(brd, m_dominator);
-    m_mask = BoardUtils::Mirror(brd, m_mask);
+    m_dominatee = BoardUtil::Mirror(brd, m_dominatee);
+    m_dominator = BoardUtil::Mirror(brd, m_dominator);
+    m_mask = BoardUtil::Mirror(brd, m_mask);
     for (BWIterator it; it; ++it)
-        m_color[*it] = BoardUtils::Mirror(brd, m_color[*it]);
+        m_color[*it] = BoardUtil::Mirror(brd, m_color[*it]);
 }
 
 void HandCodedPattern::flipColors()

@@ -8,7 +8,7 @@
 #include "SgNode.h"
 #include "SgMove.h"
 
-#include "BoardUtils.hpp"
+#include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "HexSgUtil.hpp"
 #include "HexUctPolicy.hpp"
