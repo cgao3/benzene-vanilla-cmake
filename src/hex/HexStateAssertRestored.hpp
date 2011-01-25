@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexStateAssertRestored.h */
+/** @file HexStateAssertRestored.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXSTATEASSERTRESTORED_HPP
@@ -32,8 +32,7 @@ public:
     void Init(const HexState& state);
 
     /** Set to a state in which the destructor does not call
-        AssertRestored() anymore.
-    */
+        AssertRestored() anymore. */
     void Clear();
 
 private:
