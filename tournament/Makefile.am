@@ -1,7 +1,6 @@
 EXTRA_DIST = \
 HOWTO \
 asymmetric.py \
-checkSgfs.py \
 common.sh \
 difference.py \
 game.py \
@@ -14,7 +13,6 @@ run-wolve-vs-six.sh \
 run-wolve-vs-wolve.sh \
 statistics.py \
 summary.py \
-tournyNotes \
 tournament.py \
 twogtp.py \
 openings/11x11-a2-2ply \

@@ -4,8 +4,6 @@
 # Play a couple of quick moves as wolve and as mohex. 
 #
 # This test is mainly for checking that no assertion triggers.
-#
-# $Id: play.tst 1720 2008-10-31 01:49:25Z broderic $
 #-----------------------------------------------------------------------------
 
 boardsize 6 6

@@ -1,7 +1,5 @@
 #-----------------------------------------------------------------------------
 # Tests inferior cell engine.
-#
-# $Id: ice.tst 1786 2008-12-14 01:55:45Z broderic $
 #-----------------------------------------------------------------------------
 
 # Turn these settings on for improved identification of dead regions

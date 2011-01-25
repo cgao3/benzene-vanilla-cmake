@@ -3,8 +3,6 @@
 #
 # This is basically ensuring the code in the HTP wrapper 
 # doesn't crash for each basic command. 
-#
-# $Id: htp.tst 1536 2008-07-09 22:47:27Z broderic $
 #-----------------------------------------------------------------------------
 
 10 name

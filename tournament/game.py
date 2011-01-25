@@ -1,8 +1,7 @@
 #----------------------------------------------------------------------------
-# $Id: game.py 1826 2008-12-24 01:49:29Z broderic $
+# A game of Hex.
+# Contains a list of moves and a result.
 #----------------------------------------------------------------------------
-
-# A game of Hex. List of moves. Stores result. 
 class Game:
     
     def __init__(self):
