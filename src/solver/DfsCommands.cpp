@@ -5,7 +5,7 @@
 #include "SgSystem.h"
 #include "SgTimer.h"
 #include "BitsetIterator.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "DfsCommands.hpp"
 
 using namespace benzene;
@@ -168,9 +168,9 @@ void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
     if (brd.ICE().FindPermanentlyInferior())
         throw HtpFailure("Permanently inferior not supported in DfsSolver");
     brd.ComputeAll(color);
-    bitset_t consider = (EndgameUtils::IsDeterminedState(brd, color) ?
+    bitset_t consider = (EndgameUtil::IsDeterminedState(brd, color) ?
                          brd.GetPosition().GetEmpty() :
-                         EndgameUtils::MovesToConsider(brd, color));
+                         EndgameUtil::MovesToConsider(brd, color));
     bitset_t winning;
     SgTimer timer;
     HexState state(m_game.Board(), color);

@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "BoardUtil.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "VCCommands.hpp"
 #include "VCUtils.hpp"
 
@@ -58,9 +58,9 @@ void VCCommands::CmdBuildStatic(HtpCommand& cmd)
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(color);
     cmd << brd.GetInferiorCells().GuiOutput();
-    if (!EndgameUtils::IsDeterminedState(brd, color))
+    if (!EndgameUtil::IsDeterminedState(brd, color))
     {
-        bitset_t consider = EndgameUtils::MovesToConsider(brd, color);
+        bitset_t consider = EndgameUtil::MovesToConsider(brd, color);
         cmd << BoardUtil::GuiDumpOutsideConsiderSet(brd.GetPosition(), 
                                                      consider,
                                               brd.GetInferiorCells().All());
@@ -79,9 +79,9 @@ void VCCommands::CmdBuildIncremental(HtpCommand& cmd)
     HexBoard& brd = *m_env.brd; // <-- NOTE: no call to SyncBoard()!
     brd.PlayMove(color, point);
     cmd << brd.GetInferiorCells().GuiOutput();
-    if (!EndgameUtils::IsDeterminedState(brd, color))
+    if (!EndgameUtil::IsDeterminedState(brd, color))
     {
-        bitset_t consider = EndgameUtils::MovesToConsider(brd, color);
+        bitset_t consider = EndgameUtil::MovesToConsider(brd, color);
         cmd << BoardUtil::GuiDumpOutsideConsiderSet(brd.GetPosition(), 
                                                      consider,
                                            brd.GetInferiorCells().All());
@@ -149,9 +149,9 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
     inf.ClearReversible();
     inf.ClearDominated();
     cmd << inf.GuiOutput();
-    if (!EndgameUtils::IsDeterminedState(*m_env.brd, color))
+    if (!EndgameUtil::IsDeterminedState(*m_env.brd, color))
     {
-        bitset_t consider = EndgameUtils::MovesToConsider(*m_env.brd, color);
+        bitset_t consider = EndgameUtil::MovesToConsider(*m_env.brd, color);
         cmd << BoardUtil::GuiDumpOutsideConsiderSet(m_env.brd->GetPosition(), 
                                                      consider,
                                                      inf.All());

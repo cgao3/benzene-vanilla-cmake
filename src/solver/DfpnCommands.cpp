@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "BitsetIterator.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "DfpnCommands.hpp"
 
 using namespace benzene;
@@ -157,9 +157,9 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
     HexColor colorToMove = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
     brd.ComputeAll(colorToMove);
-    bitset_t consider = (EndgameUtils::IsDeterminedState(brd, colorToMove) ?
+    bitset_t consider = (EndgameUtil::IsDeterminedState(brd, colorToMove) ?
                          brd.GetPosition().GetEmpty() :
-                         EndgameUtils::MovesToConsider(brd, colorToMove));
+                         EndgameUtil::MovesToConsider(brd, colorToMove));
     bitset_t winning;
     SgTimer timer;
 

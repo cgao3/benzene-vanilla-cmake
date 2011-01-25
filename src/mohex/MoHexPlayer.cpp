@@ -14,7 +14,7 @@
 #include "HexUctSearch.hpp"
 #include "HexUctPolicy.hpp"
 #include "MoHexPlayer.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "Resistance.hpp"
 #include "SequenceHash.hpp"
 #include "VCUtils.hpp"
@@ -254,12 +254,12 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
         }
         brd.PlayMove(color, moves[i]);
         seq.push_back(moves[i]);
-        if (EndgameUtils::IsLostGame(brd, other)) // Check for winning move
+        if (EndgameUtil::IsLostGame(brd, other)) // Check for winning move
         {
             winningSequence = seq;
             foundWin = true;
         }	
-        else if (EndgameUtils::IsWonGame(brd, other))
+        else if (EndgameUtil::IsWonGame(brd, other))
             losing.set(moves[i]);
         seq.pop_back();
         brd.UndoMove();
@@ -270,13 +270,13 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
         return true;
 
     // Backing up cannot cause this to happen, right? 
-    BenzeneAssert(!EndgameUtils::IsDeterminedState(brd, color));
+    BenzeneAssert(!EndgameUtil::IsDeterminedState(brd, color));
 
     // Use the backed-up ice info to shrink the moves to consider
     if (m_backup_ice_info) 
     {
         bitset_t new_consider 
-            = EndgameUtils::MovesToConsider(brd, color) & consider;
+            = EndgameUtil::MovesToConsider(brd, color) & consider;
 
         if (new_consider.count() < consider.count()) 
         {

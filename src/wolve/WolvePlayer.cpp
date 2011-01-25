@@ -10,7 +10,6 @@
 #include "VCSet.hpp"
 #include "HexEval.hpp"
 #include "Misc.hpp"
-#include "EndgameUtils.hpp"
 #include "SequenceHash.hpp"
 #include "WolvePlayer.hpp"
 

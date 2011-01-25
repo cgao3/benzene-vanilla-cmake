@@ -1,9 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file EndgameUtils.hpp */
+/** @file EndgameUtil.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef ENDGAMEUTILS_HPP
-#define ENDGAMEUTILS_HPP
+#ifndef ENDGAMEUTIL_HPP
+#define ENDGAMEUTIL_HPP
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
@@ -14,7 +14,7 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Utilities on endgames: detecting, playing, etc. */
-namespace EndgameUtils
+namespace EndgameUtil
 {
 
     /** Returns true if color wins in this state. This checks
@@ -65,7 +65,7 @@ namespace EndgameUtils
 
 //----------------------------------------------------------------------------
 
-inline bool EndgameUtils::IsDeterminedState(const HexBoard& brd, 
+inline bool EndgameUtil::IsDeterminedState(const HexBoard& brd, 
                                            HexColor color, HexEval& eval)
                                           
 {
@@ -73,20 +73,20 @@ inline bool EndgameUtils::IsDeterminedState(const HexBoard& brd,
     return IsDeterminedState(brd, color, eval, proof);
 }
 
-inline bool EndgameUtils::IsDeterminedState(const HexBoard& brd, HexColor color)
+inline bool EndgameUtil::IsDeterminedState(const HexBoard& brd, HexColor color)
 {
     HexEval eval;
     bitset_t proof;
     return IsDeterminedState(brd, color, eval, proof);
 }
 
-inline bool EndgameUtils::IsLostGame(const HexBoard& brd, HexColor color)
+inline bool EndgameUtil::IsLostGame(const HexBoard& brd, HexColor color)
 {
     bitset_t proof;
     return IsLostGame(brd, color, proof);
 }
 
-inline bool EndgameUtils::IsWonGame(const HexBoard& brd, HexColor color)
+inline bool EndgameUtil::IsWonGame(const HexBoard& brd, HexColor color)
 {
     bitset_t proof;
     return IsWonGame(brd, color, proof);
@@ -96,4 +96,4 @@ inline bool EndgameUtils::IsWonGame(const HexBoard& brd, HexColor color)
 
 _END_BENZENE_NAMESPACE_
 
-#endif // ENDGAMEUTILS_HPP
+#endif // ENDGAMEUTIL_HPP

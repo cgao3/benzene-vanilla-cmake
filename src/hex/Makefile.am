@@ -5,7 +5,7 @@ BenzenePlayer.cpp \
 BoardUtil.cpp \
 ConstBoard.cpp \
 Decompositions.cpp \
-EndgameUtils.cpp \
+EndgameUtil.cpp \
 Game.cpp \
 GraphUtils.cpp \
 Groups.cpp \
@@ -45,7 +45,7 @@ BoardIterator.hpp \
 BoardUtil.hpp \
 ConstBoard.hpp \
 Decompositions.hpp \
-EndgameUtils.hpp \
+EndgameUtil.hpp \
 Game.hpp \
 GraphUtils.hpp \
 Groups.hpp \

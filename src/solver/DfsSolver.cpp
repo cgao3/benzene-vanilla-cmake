@@ -12,7 +12,7 @@
 #include "BoardUtil.hpp"
 #include "Decompositions.hpp"
 #include "DfsSolver.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "GraphUtils.hpp"
 #include "HexBoard.hpp"
 #include "ProofUtil.hpp"
@@ -153,7 +153,7 @@ bool DfsSolver::CheckAbort()
 bool DfsSolver::HandleTerminalNode(DfsData& data, bitset_t& proof) const
 {
     std::size_t numstones = m_state->Position().NumStones();
-    if (EndgameUtils::IsWonGame(*m_workBrd, m_state->ToPlay(), proof)) 
+    if (EndgameUtil::IsWonGame(*m_workBrd, m_state->ToPlay(), proof)) 
     {
         data.m_win = true;
         data.m_numMoves = 0;
@@ -161,7 +161,7 @@ bool DfsSolver::HandleTerminalNode(DfsData& data, bitset_t& proof) const
         m_histogram.terminal[numstones]++;
         return true;
     } 
-    else if (EndgameUtils::IsLostGame(*m_workBrd, m_state->ToPlay(), proof)) 
+    else if (EndgameUtil::IsLostGame(*m_workBrd, m_state->ToPlay(), proof)) 
     {
         data.m_win = false;
         data.m_numMoves = 0;
@@ -331,7 +331,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
     // if we win instead, we use the proof generated from that state,
     // not this one. 
     solution.proof = ProofUtil::InitialProofForOpponent(*m_workBrd, color);
-    bitset_t mustplay = EndgameUtils::MovesToConsider(*m_workBrd, color);
+    bitset_t mustplay = EndgameUtil::MovesToConsider(*m_workBrd, color);
     BenzeneAssert(mustplay.any());
 
     if (m_use_guifx && variation.size() == m_update_depth)
@@ -763,7 +763,7 @@ bool DfsSolver::OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution,
             bitset_t new_initial_proof 
                 = ProofUtil::InitialProofForOpponent(*m_workBrd, color);
             bitset_t new_mustplay 
-                = EndgameUtils::MovesToConsider(*m_workBrd, color);
+                = EndgameUtil::MovesToConsider(*m_workBrd, color);
             BenzeneAssert(BitsetUtil::IsSubsetOf(new_mustplay, mustplay));
             
             if (new_mustplay.count() < mustplay.count())

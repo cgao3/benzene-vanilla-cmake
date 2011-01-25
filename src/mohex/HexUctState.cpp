@@ -24,7 +24,7 @@
 #include "HexUctPolicy.hpp"
 #include "HexUctUtil.hpp"
 #include "PatternState.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "SequenceHash.hpp"
 
 using namespace benzene;
@@ -347,11 +347,11 @@ bitset_t HexUctState::ComputeKnowledge(SgUctProvenType& provenType)
     //
     // Consider set is the set of moves to consider otherwise.
     bitset_t consider;
-    if (EndgameUtils::IsDeterminedState(*m_vc_brd, m_toPlay))
+    if (EndgameUtil::IsDeterminedState(*m_vc_brd, m_toPlay))
     {
         HexColor winner = m_toPlay;
         provenType = SG_PROVEN_WIN;
-        if (EndgameUtils::IsLostGame(*m_vc_brd, m_toPlay))
+        if (EndgameUtil::IsLostGame(*m_vc_brd, m_toPlay))
         {
             winner = !m_toPlay;
             provenType = SG_PROVEN_LOSS;
@@ -364,7 +364,7 @@ bitset_t HexUctState::ComputeKnowledge(SgUctProvenType& provenType)
     else
     {
         provenType = SG_NOT_PROVEN;
-        consider = EndgameUtils::MovesToConsider(*m_vc_brd, m_toPlay);
+        consider = EndgameUtil::MovesToConsider(*m_vc_brd, m_toPlay);
     }
 
     m_shared_data->stones.Put(SequenceHash::Hash(m_game_sequence), 

@@ -8,7 +8,7 @@
 #include "BoardUtil.hpp"
 #include "DfpnSolver.hpp"
 #include "PatternState.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "ProofUtil.hpp"
 #include "Resistance.hpp"
 
@@ -452,11 +452,11 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
             // This data is used to prune siblings of this state.
             maxProofSet = ProofUtil::MaximumProofSet(*m_workBoard, colorToMove);
 
-            if (EndgameUtils::IsDeterminedState(*m_workBoard, colorToMove))
+            if (EndgameUtil::IsDeterminedState(*m_workBoard, colorToMove))
             {
                 ++m_numTerminal;
                 DfpnBounds terminal;
-                if (EndgameUtils::IsWonGame(*m_workBoard, colorToMove))
+                if (EndgameUtil::IsWonGame(*m_workBoard, colorToMove))
                     DfpnBounds::SetToWinning(terminal);
                 else 
                     DfpnBounds::SetToLosing(terminal);
@@ -471,7 +471,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
                 return 1;
             }
             bitset_t childrenBitset 
-                = EndgameUtils::MovesToConsider(*m_workBoard, colorToMove);
+                = EndgameUtil::MovesToConsider(*m_workBoard, colorToMove);
 
             m_considerSetSize.Add(float(childrenBitset.count()));
             Resistance resist;

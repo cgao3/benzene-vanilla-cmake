@@ -10,7 +10,7 @@
 #include "BitsetIterator.hpp"
 #include "HashDB.hpp"
 #include "Book.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "StateDB.hpp"
 #include "Resistance.hpp"
 #include "SgThreadedWorker.h"
@@ -444,14 +444,14 @@ bool BookBuilder<PLAYER>::GenerateMoves(std::vector<SgMove>& moves,
 
     {
         HexEval hexValue;
-        if (EndgameUtils::IsDeterminedState(*m_brd, toMove, hexValue))
+        if (EndgameUtil::IsDeterminedState(*m_brd, toMove, hexValue))
         {
             value = hexValue;
             return true;
         }
     }
 
-    bitset_t children = EndgameUtils::MovesToConsider(*m_brd, toMove);
+    bitset_t children = EndgameUtil::MovesToConsider(*m_brd, toMove);
     BenzeneAssert(children.any());
     
     Resistance resist;

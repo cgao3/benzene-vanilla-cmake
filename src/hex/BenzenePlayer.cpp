@@ -4,7 +4,7 @@
 
 #include "BenzeneAssert.hpp"
 #include "BenzenePlayer.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "BoardUtil.hpp"
 
 using namespace benzene;
@@ -85,11 +85,11 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
 HexPoint BenzenePlayer::CheckEndgame(HexBoard& brd, HexColor color, 
                                      bitset_t& consider, double& score)
 {
-    if (EndgameUtils::IsDeterminedState(brd, color, score)) 
-        return EndgameUtils::PlayDeterminedState(brd, color);
+    if (EndgameUtil::IsDeterminedState(brd, color, score)) 
+        return EndgameUtil::PlayDeterminedState(brd, color);
     else 
     {
-        consider = EndgameUtils::MovesToConsider(brd, color);
+        consider = EndgameUtil::MovesToConsider(brd, color);
         BenzeneAssert(consider.any());
     }
 

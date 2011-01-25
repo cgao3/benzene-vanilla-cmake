@@ -9,7 +9,7 @@
 #include "VCSet.hpp"
 #include "HexEval.hpp"
 #include "HexState.hpp"
-#include "EndgameUtils.hpp"
+#include "EndgameUtil.hpp"
 #include "SequenceHash.hpp"
 #include "WolveSearch.hpp"
 
@@ -149,10 +149,10 @@ int WolveSearch::Evaluate(bool* isExact, int depth)
 {
     UNUSED(depth);
     int sgScore;
-    if (EndgameUtils::IsDeterminedState(*m_brd, m_toPlay))
+    if (EndgameUtil::IsDeterminedState(*m_brd, m_toPlay))
     {
         *isExact = true;
-        sgScore = EndgameUtils::IsWonGame(*m_brd, m_toPlay) 
+        sgScore = EndgameUtil::IsWonGame(*m_brd, m_toPlay) 
             ? +SgSearchValue::MAX_VALUE
             : -SgSearchValue::MAX_VALUE;
     }
@@ -168,13 +168,13 @@ int WolveSearch::Evaluate(bool* isExact, int depth)
 
 bool WolveSearch::EndOfGame() const
 {
-    return EndgameUtils::IsDeterminedState(*m_brd, m_toPlay);
+    return EndgameUtil::IsDeterminedState(*m_brd, m_toPlay);
 }
 
 void WolveSearch::Generate(SgVector<SgMove>* moves, int depthRemaining)
 {
     UNUSED(depthRemaining);
-    if (!EndgameUtils::IsDeterminedState(*m_brd, m_toPlay))
+    if (!EndgameUtil::IsDeterminedState(*m_brd, m_toPlay))
     {
         bitset_t consider;
         VariationInfo varInfo;
@@ -187,7 +187,7 @@ void WolveSearch::Generate(SgVector<SgMove>* moves, int depthRemaining)
             consider = varInfo.consider;
         }
 #endif
-        consider = EndgameUtils::MovesToConsider(*m_brd, m_toPlay);
+        consider = EndgameUtil::MovesToConsider(*m_brd, m_toPlay);
         m_consider.push_back(consider);
         Resistance resist;
         ComputeResistance(resist);
@@ -230,7 +230,7 @@ void WolveSearch::AfterStateSearched()
         // Store new consider set in varTT
         bitset_t old_consider = m_consider[m_current_depth];
         bitset_t new_consider 
-            = EndgameUtils::MovesToConsider(*m_brd, m_toplay) & old_consider;
+            = EndgameUtil::MovesToConsider(*m_brd, m_toplay) & old_consider;
         SgHashCode hash = SequenceHash::Hash(m_sequence);
         m_varTT.Put(hash, VariationInfo(m_current_depth, new_consider));
     }
