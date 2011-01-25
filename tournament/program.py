@@ -103,6 +103,7 @@ class Program:
         list = select([self._stderr], [], [], 0)[0]
         for s in list:
             self._log.write(os.read(s.fileno(), 8192))
+        self._log.flush()
 
     def _programDied(self):
         self._isDead = 1
