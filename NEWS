@@ -2,6 +2,11 @@ Benzene 1.0 (current development version)
 -----------------------------------------
 * Small code changes:
   * moved code in src/uct/ to src/mohex/
+  * lots of cleanup
+* Wolve uses SgSearch from the smartgame library
+* MoHex and Wolve both obey time controls now
+* Removed support for the crossing rule during vc construction
+* New website
 
 Benzene 0.9 (released 10/10/02)
 -----------------------------------------
