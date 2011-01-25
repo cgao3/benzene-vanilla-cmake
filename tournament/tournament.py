@@ -153,9 +153,12 @@ class Tournament:
         wcmd = "nice " + whiteCmd + " --seed %SRAND" \
                + " --logfile-name " + self._outdir + "/"  \
                + whiteName + "-" + str(gameIndex) + ".log"
-        
-        black = Program("B", bcmd, verbose)
-        white = Program("W", wcmd, verbose)
+        bLogName = self._outdir + "/" + blackName + "-" + str(gameIndex) \
+                          + "-stderr.log"
+        wLogName = self._outdir + "/" + whiteName + "-" + str(gameIndex) \
+                          + "-stderr.log"
+        black = Program("B", bcmd, bLogName, verbose)
+        white = Program("W", wcmd, wLogName, verbose)
         
         resultBlack = "?"
         resultWhite = "?"
@@ -196,14 +199,8 @@ class Tournament:
 
         # save game
         gamePlayer.save(name + ".sgf", name, resultBlack, resultWhite)
-        
         if error:
             print "Error: Game", gameIndex
-            for p in (black, white):
-                if p.isDead():
-                    p.saveLog(name + ".log")
-                    p.saveCommandLog(name + ".gtp")
-                    break
         for program in [black, white]:
             try:
                 program.sendCommand("quit");

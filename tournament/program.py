@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-# $Id: program.py 1670 2008-09-17 23:01:34Z broderic $
+# Connects to a Hex program.
 #----------------------------------------------------------------------------
 
 import os, string, sys
@@ -15,7 +15,7 @@ class Program:
     class Died(Exception):
         pass
 
-    def __init__(self, color, command, verbose):
+    def __init__(self, color, command, logName, verbose):
         command = command.replace("%SRAND", `randrange(0, 1000000)`)
         self._command = command
         self._color = color
@@ -24,8 +24,8 @@ class Program:
             print "Creating program:", command
         self._stdin, self._stdout, self._stderr = os.popen3(command)
         self._isDead = 0
-        self._commandLog = ""
-        self._log = ""
+        self._log = open(logName, "w")
+        self._log.write("# " + self._command + "\n")
 
     def getColor(self):
         return self._color
@@ -65,22 +65,9 @@ class Program:
     def isDead(self):
         return self._isDead
 
-    def saveCommandLog(self, file):
-        f = open(file, "w")
-        f.write("# " + self._command + "\n")
-        f.write(self._commandLog)
-        f.close()
-
-    def saveLog(self, file):
-        f = open(file, "w")
-        f.write("# " + self._command + "\n")
-        f.write(self._log)
-        f.close()
-
     def sendCommand(self, cmd):
         try:
-            self._log += cmd + "\n"
-            self._commandLog += cmd + "\n"
+            self._log.write(">" + cmd + "\n")
             if self._verbose:
                 print self._color + "< " + cmd
             self._stdin.write(cmd + "\n")
@@ -98,7 +85,7 @@ class Program:
             line = self._stdout.readline()
             if line == "":
                 self._programDied()
-            self._log += line
+            self._log.write("<" + line)
             if self._verbose:
                 sys.stdout.write(self._color + "> " + line)
             numberLines += 1
@@ -115,7 +102,7 @@ class Program:
     def _logStdErr(self):
         list = select([self._stderr], [], [], 0)[0]
         for s in list:
-            self._log += os.read(s.fileno(), 8192)
+            self._log.write(os.read(s.fileno(), 8192))
 
     def _programDied(self):
         self._isDead = 1
