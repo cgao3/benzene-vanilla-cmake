@@ -88,6 +88,15 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     const vector<std::size_t>& depths = m_searchDepths;
     std::size_t minDepth = *std::min_element(depths.begin(), depths.end());
     std::size_t maxDepth = *std::max_element(depths.begin(), depths.end());
+    if (maxDepth > m_search.PlyWidth().size())
+    {
+        maxDepth = m_search.PlyWidth().size();
+        LogWarning() << "Max depth specified in search_depths exceeds "
+                     << "depth specified in ply_width!\n"
+                     << "Capping maxDepth to be safe.\n";
+    }
+    LogInfo() << "minDepth=" << minDepth << ' ' 
+              << "maxDepth=" << maxDepth << '\n';
     SgVector<SgMove> PV;
     int score = m_search.IteratedSearch(int(minDepth), int(maxDepth),
                                         -SgSearchValue::MIN_PROVEN_VALUE,
