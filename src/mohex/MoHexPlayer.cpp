@@ -17,7 +17,6 @@
 #include "EndgameUtil.hpp"
 #include "Resistance.hpp"
 #include "SequenceHash.hpp"
-#include "VCUtils.hpp"
 
 using namespace benzene;
 

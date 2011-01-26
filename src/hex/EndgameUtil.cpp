@@ -1,12 +1,12 @@
 //----------------------------------------------------------------------------
-/** @file EndgameUtils.cpp */
+/** @file EndgameUtil.cpp */
 //----------------------------------------------------------------------------
 
 #include "EndgameUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "BoardUtil.hpp"
 #include "VCSet.hpp"
-#include "VCUtils.hpp"
+#include "VCUtil.hpp"
 
 using namespace benzene;
 
@@ -86,7 +86,7 @@ bitset_t RemoveRotations(const StoneBoard& brd, const bitset_t& consider)
 
 bitset_t ComputeConsiderSet(const HexBoard& brd, HexColor color)
 {
-    bitset_t consider = VCUtils::GetMustplay(brd, color);
+    bitset_t consider = VCUtil::GetMustplay(brd, color);
     const InferiorCells& inf = brd.GetInferiorCells();
     consider = consider - inf.Vulnerable()
                         - inf.Reversible()

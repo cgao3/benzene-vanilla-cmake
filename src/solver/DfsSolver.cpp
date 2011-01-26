@@ -18,7 +18,7 @@
 #include "ProofUtil.hpp"
 #include "Resistance.hpp"
 #include "VCSet.hpp"
-#include "VCUtils.hpp"
+#include "VCUtil.hpp"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -712,7 +712,7 @@ bool DfsSolver::OrderMoves(bitset_t& mustplay, DfsSolutionSet& solution,
                     HexPoint edge2 = HexPointUtil::colorEdge2(color);
                     if (m_workBrd->Cons(color).Exists(edge1, edge2, VC::SEMI))
                         winning_semi_exists = true;
-                    bitset_t mp = VCUtils::GetMustplay(*m_workBrd, other);
+                    bitset_t mp = VCUtil::GetMustplay(*m_workBrd, other);
                     mustplay_size = static_cast<double>(mp.count());
                 } 
                 

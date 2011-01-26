@@ -32,7 +32,7 @@ benzene_unittest_SOURCES = \
 ../hex/test/VCListTest.cpp \
 ../hex/test/VCSetTest.cpp \
 ../hex/test/VCTest.cpp \
-../hex/test/VCUtilsTest.cpp \
+../hex/test/VCUtilTest.cpp \
 ../hex/test/ZobristHashTest.cpp \
 ../test/TestMain.cpp
 

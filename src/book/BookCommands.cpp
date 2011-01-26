@@ -1,11 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file BookCommands.cpp
- */
+/** @file BookCommands.cpp */
 //----------------------------------------------------------------------------
 
 #include "BookBuilder.hpp"
 #include "BookCommands.hpp"
-#include "VCUtils.hpp"
 
 using namespace benzene;
 

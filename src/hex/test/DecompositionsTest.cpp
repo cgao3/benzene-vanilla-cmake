@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-/** @file BoardUtilsTest.cpp */
+/** @file DecompositionsTest.cpp */
 //---------------------------------------------------------------------------
 #include <boost/test/auto_unit_test.hpp>
 
@@ -11,7 +11,7 @@ using namespace benzene;
 
 namespace {
 
-BOOST_AUTO_TEST_CASE(BoardUtil_Decompositions)
+BOOST_AUTO_TEST_CASE(Decompositions_VCDecomp)
 {
     ICEngine ice;
     VCBuilderParam param;

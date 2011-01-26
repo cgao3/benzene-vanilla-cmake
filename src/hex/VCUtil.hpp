@@ -1,9 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file VCUtils.hpp */
+/** @file VCUtil.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef VCUTILS_HPP
-#define VCUTILS_HPP
+#ifndef VCUTIL_HPP
+#define VCUTIL_HPP
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
@@ -15,7 +15,7 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Utilities on VCs. */
-namespace VCUtils
+namespace VCUtil
 {
     /** Returns mustplay for color to move. */
     bitset_t GetMustplay(const HexBoard& brd, HexColor color);
@@ -31,4 +31,4 @@ namespace VCUtils
 
 _END_BENZENE_NAMESPACE_
 
-#endif // VCUTILS_HPP
+#endif // VCUTIL_HPP

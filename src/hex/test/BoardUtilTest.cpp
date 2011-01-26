@@ -12,7 +12,7 @@ using namespace benzene;
 
 namespace {
 
-BOOST_AUTO_TEST_CASE(BoardUtils_BitsetPacking)
+BOOST_AUTO_TEST_CASE(BoardUtil_BitsetPacking)
 {
     BOOST_REQUIRE(MAX_WIDTH >= 7 && MAX_HEIGHT >= 9);
     ConstBoard* cb = &ConstBoard::Get(7, 9);

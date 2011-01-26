@@ -35,7 +35,7 @@ VCCommands.cpp \
 VCList.cpp \
 VCPattern.cpp \
 VCSet.cpp \
-VCUtils.cpp \
+VCUtil.cpp \
 ZobristHash.cpp
 
 noinst_HEADERS = \
@@ -88,7 +88,7 @@ VCCommands.hpp \
 VCList.hpp \
 VCPattern.hpp \
 VCSet.hpp \
-VCUtils.hpp \
+VCUtil.hpp \
 ZobristHashes.hpp \
 ZobristHash.hpp
 

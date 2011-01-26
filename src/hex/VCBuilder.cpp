@@ -12,7 +12,6 @@
 #include "VCBuilder.hpp"
 #include "VCSet.hpp"
 #include "VCPattern.hpp"
-#include "VCUtils.hpp"
 
 using namespace benzene;
 

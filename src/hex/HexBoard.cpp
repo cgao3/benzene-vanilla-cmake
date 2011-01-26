@@ -10,7 +10,7 @@
 #include "Groups.hpp"
 #include "VCSet.hpp"
 #include "HexBoard.hpp"
-#include "VCUtils.hpp"
+#include "VCUtil.hpp"
 
 using namespace benzene;
 

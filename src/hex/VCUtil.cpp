@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------------
-/** @file VCUtils.cpp */
+/** @file VCUtil.cpp */
 //----------------------------------------------------------------------------
 
-#include "VCUtils.hpp"
+#include "VCUtil.hpp"
 #include "VCSet.hpp"
 #include "HexBoard.hpp"
 #include "BoardUtil.hpp"
@@ -11,7 +11,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-bitset_t VCUtils::GetMustplay(const HexBoard& brd, HexColor color)
+bitset_t VCUtil::GetMustplay(const HexBoard& brd, HexColor color)
 {
     HexColor other = !color;
     HexPoint edge1 = HexPointUtil::colorEdge1(other);
@@ -26,8 +26,8 @@ bitset_t VCUtils::GetMustplay(const HexBoard& brd, HexColor color)
 
 //----------------------------------------------------------------------------
 
-bool VCUtils::ValidEdgeBridge(const StoneBoard& brd, const bitset_t& carrier, 
-                              HexPoint& endpoint, HexPoint& edge)
+bool VCUtil::ValidEdgeBridge(const StoneBoard& brd, const bitset_t& carrier, 
+                             HexPoint& endpoint, HexPoint& edge)
 {
     if (carrier.count() != 2) 
         return false;

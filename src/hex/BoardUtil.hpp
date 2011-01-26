@@ -1,9 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file BoardUtils.hpp */
+/** @file BoardUtil.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef BOARDUTILS_HPP
-#define BOARDUTILS_HPP
+#ifndef BOARDUTIL_HPP
+#define BOARDUTIL_HPP
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
@@ -111,4 +111,4 @@ namespace BoardUtil
 
 _END_BENZENE_NAMESPACE_
 
-#endif // BOARDUTILS_HPP
+#endif // BOARDUTIL_HPP

@@ -5,7 +5,7 @@
 #include "BoardUtil.hpp"
 #include "EndgameUtil.hpp"
 #include "VCCommands.hpp"
-#include "VCUtils.hpp"
+#include "VCUtil.hpp"
 
 using namespace benzene;
 
@@ -143,7 +143,7 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
-    bitset_t mustplay = VCUtils::GetMustplay(*m_env.brd, color);
+    bitset_t mustplay = VCUtil::GetMustplay(*m_env.brd, color);
     InferiorCells inf(m_env.brd->GetInferiorCells());
     inf.ClearVulnerable();
     inf.ClearReversible();
