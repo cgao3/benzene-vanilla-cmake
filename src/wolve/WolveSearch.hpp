@@ -83,8 +83,13 @@ public:
 
     virtual bool Abort(double elapsedTime, int ignoreNumNodes);
 
+    virtual bool StartNextIteration(int depth, double elapsedTime,
+                                    int numNodes);
+
 private:
     double m_maxTime;
+
+    double m_lastDepthFinishedAt;
 
     /** Not implemented */
     WolveSearchControl(const WolveSearchControl&);
@@ -92,26 +97,6 @@ private:
     /** Not implemented */
     WolveSearchControl& operator=(const WolveSearchControl&);
 };
-
-inline WolveSearchControl::WolveSearchControl(double maxTime)
-    : m_maxTime(maxTime)
-{
-}
-
-inline WolveSearchControl::~WolveSearchControl()
-{
-}
-
-inline bool WolveSearchControl::Abort(double elapsedTime, int ignoreNumNodes)
-{
-    UNUSED(ignoreNumNodes);
-    if (elapsedTime >= m_maxTime)
-    {
-        LogInfo() << "WolveSearchControl: time elapsed. Aborting...\n";
-        return true;
-    }
-    return false;
-}
 
 //-------------------------------------------------------------------------- 
 

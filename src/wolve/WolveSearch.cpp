@@ -42,6 +42,53 @@ int ConvertToSgScore(HexEval score)
 
 //----------------------------------------------------------------------------
 
+WolveSearchControl::WolveSearchControl(double maxTime)
+    : m_maxTime(maxTime),
+      m_lastDepthFinishedAt(0.)
+{
+}
+
+WolveSearchControl::~WolveSearchControl()
+{
+}
+
+bool WolveSearchControl::Abort(double elapsedTime, int ignoreNumNodes)
+{
+    UNUSED(ignoreNumNodes);
+    if (elapsedTime >= m_maxTime)
+    {
+        LogInfo() << "WolveSearchControl: time elapsed. Aborting...\n";
+        return true;
+    }
+    return false;
+}
+
+bool WolveSearchControl::StartNextIteration(int depth, double elapsedTime, 
+                                            int ignoreNumNodes)
+{
+    UNUSED(ignoreNumNodes);
+    if (depth > 1)
+    {
+        const double timeLeft = m_maxTime - elapsedTime;
+        const double timeSinceLast = elapsedTime - m_lastDepthFinishedAt;
+        LogInfo() << "WolveSearchControl::StartNextIteration:\n"
+                  << "elapsed=" << elapsedTime << ", "
+                  << "timeSinceLast=" << timeSinceLast << ", "
+                  << "timeLeft=" << timeLeft << '\n';
+        // Assume the next depth will take at least as long as the
+        // last depth
+        if (timeSinceLast > timeLeft)
+        {
+            LogInfo() << "Insufficient time for next depth. Aborting...\n";
+            return false;
+        }
+        m_lastDepthFinishedAt = elapsedTime;
+    }
+    return true;
+}
+
+//----------------------------------------------------------------------------
+
 void WolveSearchUtil::ExtractPVFromHashTable(const HexState& state, 
                                        const SgSearchHashTable& hashTable, 
                                              std::vector<HexPoint>& pv)
