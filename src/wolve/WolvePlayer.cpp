@@ -65,12 +65,6 @@ WolvePlayer::~WolvePlayer()
 //----------------------------------------------------------------------------
 
 /** Generates a move using WolveSearch.
-    @todo Make sure timelimits do not cause weird behaviour.  SgSearch
-    will allow PVs from an aborted depth if they score better than the
-    previously completed depth's PV. This is bad for us since we have
-    a really bad odd-even effect, so bad than any PV of depth, say, 3,
-    will supersede the best PV of depth 2. Use a timelimit that can
-    cause an early abort with caution! (ticket #82)
     @todo Handle arbitrary search depths, ie, [1, 2, 4] (ticket #83). */
 HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
                              HexBoard& brd, const bitset_t& consider,
