@@ -13,10 +13,10 @@ benzene_unittest_SOURCES = \
 ../util/test/UnionFindTest.cpp \
 ../hex/test/BitsetIteratorTest.cpp \
 ../hex/test/BoardIteratorTest.cpp \
-../hex/test/BoardUtilsTest.cpp \
+../hex/test/BoardUtilTest.cpp \
 ../hex/test/ConstBoardTest.cpp \
 ../hex/test/DecompositionsTest.cpp \
-../hex/test/EndgameUtilsTest.cpp \
+../hex/test/EndgameUtilTest.cpp \
 ../hex/test/GraphUtilTest.cpp \
 ../hex/test/GroupsTest.cpp \
 ../hex/test/HexBoardTest.cpp \
