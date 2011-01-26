@@ -1,10 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file GraphUtils.hpp
- */
+/** @file GraphUtil.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef GRAPHUTILS_HPP
-#define GRAPHUTILS_HPP
+#ifndef GRAPHUTIL_HPP
+#define GRAPHUTIL_HPP
 
 #include "Hex.hpp"
 #include "Groups.hpp"
@@ -16,7 +15,7 @@ _BEGIN_BENZENE_NAMESPACE_
 class HexBoard;
 
 /** Utilities on Graphs. */
-namespace GraphUtils
+namespace GraphUtil
 {
     /** Computes neighbours of all empty cells going through groups of
         color. Neighbours of groups of color are also included in
@@ -46,4 +45,4 @@ namespace GraphUtils
 
 _END_BENZENE_NAMESPACE_
 
-#endif // GRAPHUTILS_HPP
+#endif // GRAPHUTIL_HPP

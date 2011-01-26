@@ -13,7 +13,7 @@
 #include "Decompositions.hpp"
 #include "DfsSolver.hpp"
 #include "EndgameUtil.hpp"
-#include "GraphUtils.hpp"
+#include "GraphUtil.hpp"
 #include "HexBoard.hpp"
 #include "ProofUtil.hpp"
 #include "Resistance.hpp"
@@ -251,14 +251,14 @@ bool DfsSolver::SolveDecomposition(PointSequence& variation,
 
     // Compute the carriers for each side 
     PointToBitset nbs;
-    GraphUtils::ComputeDigraph(m_workBrd->GetGroups(), !color, nbs);
+    GraphUtil::ComputeDigraph(m_workBrd->GetGroups(), !color, nbs);
     bitset_t stopset = nbs[group];
 
     bitset_t carrier[2];
     carrier[0] = 
-        GraphUtils::BFS(HexPointUtil::colorEdge1(!color), nbs, stopset);
+        GraphUtil::BFS(HexPointUtil::colorEdge1(!color), nbs, stopset);
     carrier[1] = 
-        GraphUtils::BFS(HexPointUtil::colorEdge2(!color), nbs, stopset);
+        GraphUtil::BFS(HexPointUtil::colorEdge2(!color), nbs, stopset);
 
     if ((carrier[0] & carrier[1]).any())
         throw BenzeneException()

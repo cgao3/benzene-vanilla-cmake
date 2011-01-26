@@ -8,7 +8,7 @@
 #include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "VCSet.hpp"
-#include "GraphUtils.hpp"
+#include "GraphUtil.hpp"
 #include "HexBoard.hpp"
 #include "Pattern.hpp"
 #include "HashedPatternSet.hpp"

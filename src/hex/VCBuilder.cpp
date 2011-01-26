@@ -7,7 +7,6 @@
 
 #include "Hex.hpp"
 #include "BitsetIterator.hpp"
-#include "GraphUtils.hpp"
 #include "ChangeLog.hpp"
 #include "Misc.hpp"
 #include "VCBuilder.hpp"

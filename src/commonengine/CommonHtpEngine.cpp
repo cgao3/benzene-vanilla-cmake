@@ -8,7 +8,6 @@
 #include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "Decompositions.hpp"
-#include "GraphUtils.hpp"
 #include "CommonProgram.hpp"
 #include "HexSgUtil.hpp"
 #include "CommonHtpEngine.hpp"

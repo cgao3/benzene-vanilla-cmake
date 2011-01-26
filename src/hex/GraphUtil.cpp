@@ -1,17 +1,17 @@
 //----------------------------------------------------------------------------
-/** @file GraphUtils.cpp */
+/** @file GraphUtil.cpp */
 //----------------------------------------------------------------------------
 
 #include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
-#include "GraphUtils.hpp"
+#include "GraphUtil.hpp"
 
 using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-void GraphUtils::ComputeDigraph(const Groups& groups, HexColor color, 
-                                PointToBitset& nbs)
+void GraphUtil::ComputeDigraph(const Groups& groups, HexColor color, 
+                               PointToBitset& nbs)
 {
     nbs.clear();
 
@@ -33,9 +33,9 @@ void GraphUtils::ComputeDigraph(const Groups& groups, HexColor color,
 
 //----------------------------------------------------------------------------
 
-bitset_t GraphUtils::BFS(HexPoint p, PointToBitset& group_nbs,
-			 bitset_t stopSet, int* distFromStart,
-			 int* numShortestPathsThru)
+bitset_t GraphUtil::BFS(HexPoint p, PointToBitset& group_nbs,
+                        bitset_t stopSet, int* distFromStart,
+                        int* numShortestPathsThru)
 {
     // Initialize distances from BFS starting point and number of shortest
     // paths through a location (if these values are desired).

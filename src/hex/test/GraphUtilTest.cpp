@@ -1,11 +1,11 @@
 //----------------------------------------------------------------------------
-/** @file GraphUtilsTest.cpp */
+/** @file GraphUtilTest.cpp */
 //----------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
 
 #include "SgSystem.h"
-#include "GraphUtils.hpp"
+#include "GraphUtil.hpp"
 
 using namespace benzene;
 
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(GraphUtils_ComputeDigraph)
     GroupBuilder::Build(gb, groups);
 
     PointToBitset dg;
-    GraphUtils::ComputeDigraph(groups, BLACK, dg);
+    GraphUtil::ComputeDigraph(groups, BLACK, dg);
 
     BOOST_CHECK(dg[groups.CaptainOf(b2)] == groups.Nbs(b2, EMPTY));
 
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(GraphUtils_ComputeDigraph)
     BOOST_CHECK(dg[a3].test(a4));
     BOOST_CHECK(dg[a3].test(b4));
 
-    GraphUtils::ComputeDigraph(groups, WHITE, dg);
+    GraphUtil::ComputeDigraph(groups, WHITE, dg);
 
     BOOST_CHECK(dg[groups.CaptainOf(a2)] == groups.Nbs(a2, EMPTY));
 

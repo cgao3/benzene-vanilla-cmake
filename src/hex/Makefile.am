@@ -7,7 +7,7 @@ ConstBoard.cpp \
 Decompositions.cpp \
 EndgameUtil.cpp \
 Game.cpp \
-GraphUtils.cpp \
+GraphUtil.cpp \
 Groups.cpp \
 HandCodedPattern.cpp\
 HashedPatternSet.cpp\
@@ -47,7 +47,7 @@ ConstBoard.hpp \
 Decompositions.hpp \
 EndgameUtil.hpp \
 Game.hpp \
-GraphUtils.hpp \
+GraphUtil.hpp \
 Groups.hpp \
 HandCodedPattern.hpp \
 HashedPatternSet.hpp \

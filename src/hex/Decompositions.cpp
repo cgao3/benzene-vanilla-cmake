@@ -4,7 +4,7 @@
 
 #include "BitsetIterator.hpp"
 #include "Decompositions.hpp"
-#include "GraphUtils.hpp"
+#include "GraphUtil.hpp"
 
 using namespace benzene;
 
@@ -126,7 +126,7 @@ bool Decompositions::Find(const HexBoard& brd, HexColor color,
     
     // Compute graph representing board from color's perspective.
     PointToBitset graphNbs;
-    GraphUtils::ComputeDigraph(brd.GetGroups(), color, graphNbs);
+    GraphUtil::ComputeDigraph(brd.GetGroups(), color, graphNbs);
     
     // Find (ordered) pairs of color groups that are VC-connected and have at
     // least two adjacent opponent groups in common.
@@ -148,9 +148,9 @@ bool Decompositions::Find(const HexBoard& brd, HexColor color,
 	    bitset_t decompArea;
 	    decompArea.reset();
 	    if (edge1Free)
-		decompArea |= GraphUtils::BFS(edge1, graphNbs, stopSet);
+		decompArea |= GraphUtil::BFS(edge1, graphNbs, stopSet);
 	    if (edge2Free)
-		decompArea |= GraphUtils::BFS(edge2, graphNbs, stopSet);
+		decompArea |= GraphUtil::BFS(edge2, graphNbs, stopSet);
 	    decompArea.flip();
 	    decompArea &= brd.GetPosition().GetEmpty();
 	    
