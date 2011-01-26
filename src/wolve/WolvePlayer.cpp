@@ -81,7 +81,7 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     m_search.SetWorkBoard(&brd);
     m_search.SetHashTable(&m_hashTable);
     m_search.SetToPlay(HexSgUtil::HexColorToSgColor(state.ToPlay()));
-    SgTimeSearchControl timeControl(maxTime);
+    WolveSearchControl timeControl(maxTime);
     m_search.SetSearchControl(&timeControl);
     // TODO: handle search depths properly
     const vector<std::size_t>& depths = m_searchDepths;

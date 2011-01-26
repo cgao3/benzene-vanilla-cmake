@@ -6,6 +6,7 @@
 #define WOLVESEARCH_HPP
 
 #include "SgSearch.h"
+#include "SgSearchControl.h"
 #include "SgHashTable.h"
 #include "HexSgUtil.hpp"
 #include "Resistance.hpp"
@@ -14,7 +15,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Varaition TT entry. */
+/** Variation TT entry. */
 struct VariationInfo
 {
     /** Depth state was searched. */
@@ -68,6 +69,48 @@ inline void VariationInfo::Invalidate()
 inline bool VariationInfo::IsBetterThan(const VariationInfo& other) const
 {
     return m_depth > other.m_depth;
+}
+
+//-------------------------------------------------------------------------- 
+
+/** Aborts search when time has expired. */
+class WolveSearchControl : public SgSearchControl
+{
+public:
+    WolveSearchControl(double maxTime);
+
+    virtual ~WolveSearchControl();
+
+    virtual bool Abort(double elapsedTime, int ignoreNumNodes);
+
+private:
+    double m_maxTime;
+
+    /** Not implemented */
+    WolveSearchControl(const WolveSearchControl&);
+
+    /** Not implemented */
+    WolveSearchControl& operator=(const WolveSearchControl&);
+};
+
+inline WolveSearchControl::WolveSearchControl(double maxTime)
+    : m_maxTime(maxTime)
+{
+}
+
+inline WolveSearchControl::~WolveSearchControl()
+{
+}
+
+inline bool WolveSearchControl::Abort(double elapsedTime, int ignoreNumNodes)
+{
+    UNUSED(ignoreNumNodes);
+    if (elapsedTime >= m_maxTime)
+    {
+        LogInfo() << "WolveSearchControl: time elapsed. Aborting...\n";
+        return true;
+    }
+    return false;
 }
 
 //-------------------------------------------------------------------------- 
