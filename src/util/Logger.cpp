@@ -2,6 +2,7 @@
 /** @file Logger.cpp */
 //----------------------------------------------------------------------------
 
+#include <iomanip>
 #include "Logger.hpp"
 
 using namespace benzene;
@@ -95,7 +96,6 @@ void Logger::Flush()
     ThreadBuffer& buffer = GetThreadBuffer();
     if (buffer.buffer.str() == "") 
         return;
-
     // dump msg to handlers of appropriate level; grab the
     // buffer mutex so no one else can do this or change the
     // buffers in any way. 
@@ -106,12 +106,12 @@ void Logger::Flush()
         if (level < m_levels[i]) 
             continue;
         std::ostream& stream = *m_streams[i];
-        stream << std::hex << pthread_self() << " " 
+        stream << std::hex << std::setfill('0') 
+               << std::setw(5) << ((pthread_self() >> 8) & 0xfffff) << " " 
                << LogLevelUtil::toString(level) << ": " 
                << buffer.buffer.str();
         stream.flush();
     }
-
     // clear buffer and set it to unused
     buffer.buffer.str("");
     buffer.id = 0;
