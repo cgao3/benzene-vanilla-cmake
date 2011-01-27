@@ -10,6 +10,7 @@
 #include "SwapCheck.hpp"
 #include "WolveEngine.hpp"
 #include "WolvePlayer.hpp"
+#include "WolveTimeControl.hpp"
 
 using namespace benzene;
 
@@ -72,10 +73,10 @@ void WolveEngine::RegisterCmd(const std::string& name,
 
 //----------------------------------------------------------------------------
 
-double WolveEngine::TimeForMove(HexColor color)
+double WolveEngine::TimeForMove(HexColor c)
 {
     if (m_player.UseTimeManagement())
-        return m_game.TimeRemaining(color) * 0.08;
+        return WolveTimeControl::TimeForMove(m_game, m_game.TimeRemaining(c));
     return m_player.MaxTime();
 }
 

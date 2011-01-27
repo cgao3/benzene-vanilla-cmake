@@ -5,13 +5,15 @@ WolveEngine.cpp \
 WolveMain.cpp \
 WolvePlayer.cpp \
 WolveProgram.cpp \
-WolveSearch.cpp
+WolveSearch.cpp \
+WolveTimeControl.cpp
 
 noinst_HEADERS = \
 WolveEngine.hpp \
 WolvePlayer.hpp \
 WolveProgram.hpp \
-WolveSearch.hpp
+WolveSearch.hpp \
+WolveTimeControl.hpp
 
 wolve_LDADD = \
 ../commonengine/libcommonengine.a \
