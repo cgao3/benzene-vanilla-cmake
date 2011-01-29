@@ -100,7 +100,10 @@ private:
 
 //-------------------------------------------------------------------------- 
 
-/** Performs an AlphaBeta search using Resistance for evaluations. */
+/** Search used in Wolve.
+    Based on SgSearch from the smartgame library. Performs an
+    iterative deepening alpha-beta search using Resistance as the
+    evaluation function. */
 class WolveSearch : public SgSearch
 {
 public:

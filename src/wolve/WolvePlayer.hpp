@@ -12,7 +12,8 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Player using HexAbSearch to generate moves. */
+/** Wolve. 
+    Uses WolveSearch to generate moves. */
 class WolvePlayer : public BenzenePlayer
 {
 public:

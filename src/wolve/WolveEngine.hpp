@@ -23,6 +23,12 @@ public:
     
     ~WolveEngine();
 
+    /** @page wolvehtpenginecommands WolveEngine Commands
+        - @link CmdParam() @c param_wolve @endlink
+        - @link CmdScores() @c wolve-scores @endlink
+        - @link CmdData() @c wolve-data @endlink
+    */
+
     /** @name Command Callbacks */
     // @{
 

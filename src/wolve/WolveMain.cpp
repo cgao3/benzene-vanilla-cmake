@@ -16,23 +16,30 @@ using namespace benzene;
 
 /** @page wolvemainpage Wolve
 
-    @section overview Overview
+    Wolve is a traditional alpha-beta Hex player. 
 
-    Wolve is a traditional Six-like Hex player. It uses a truncated
-    iterative deepening alpha-beta search with an electric ciruit
-    evaluation function.
+    Wolve uses a truncated iterative deepening alpha-beta search with
+    an electric ciruit evaluation function. 
 
-    @section search Search
+    Much of Wolve's design was inspired by the program <a
+    href="http://six.retes.hu/">Six</a> written by <a
+    href="http://quotenil.com/">Gabor Melis</a>.
+
+    @section classes Classes
     - WolveEngine
     - WolvePlayer
-    - HexAbSearch
+    - WolveProgram
+    - WolveSearch
+    - WolveTimeControl
     - Resistance
 
     @section htpcommands HTP Commands
     - @ref hexhtpenginecommands
     - @ref benzenehtpenginecommands
+    - @ref wolvehtpenginecommands
 
-    @todo Add more documentation about Wolve!
+    @see
+    - @ref wolvetimecontrol
 */
 
 //----------------------------------------------------------------------------

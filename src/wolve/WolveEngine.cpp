@@ -104,6 +104,7 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
                             maxTime, score);
 }
 
+/** Wolve parameters. */
 void WolveEngine::CmdParam(HtpCommand& cmd)
 {
     WolveSearch& search = m_player.Search();
