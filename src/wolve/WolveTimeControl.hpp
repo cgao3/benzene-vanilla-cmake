@@ -11,10 +11,14 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Time control. */
+/** Time control. 
+    See @ref wolvetimecontrol
+*/
 class WolveTimeControl
 {
 public:
+    /** Determines time for move. 
+        See @ref wolvetimecontrol */
     static double TimeForMove(const Game& game, double timeLeft);
 
 private: 
