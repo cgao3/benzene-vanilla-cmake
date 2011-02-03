@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexUctState.hpp
- */
+/** @file HexUctState.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXUCTSTATE_HPP
@@ -12,6 +11,7 @@
 
 #include "HashMap.hpp"
 #include "HexBoard.hpp"
+#include "HexState.hpp"
 #include "HexUctKnowledge.hpp"
 #include "Move.hpp"
 #include "VC.hpp"
@@ -217,7 +217,7 @@ private:
 
     AssertionHandler m_assertionHandler;
 
-    boost::scoped_ptr<StoneBoard> m_bd;
+    boost::scoped_ptr<HexState> m_state;
 
     /** Board used during search. */
     boost::scoped_ptr<PatternState> m_pastate;
@@ -236,9 +236,6 @@ private:
     /** Parent search object. */
     HexUctSearch& m_search;
    
-    /** Color to play next. */
-    HexColor m_toPlay;
-
     /** See HexUctSearch::TreeUpdateRadius() */
     int m_treeUpdateRadius;
 
@@ -272,7 +269,7 @@ private:
 
 inline const StoneBoard& HexUctState::Board() const
 {
-    return *m_bd;
+    return m_state->Position();
 }
 
 inline const PatternState& HexUctState::GetPatternState() const
@@ -297,7 +294,7 @@ inline HexPoint HexUctState::GetLastMovePlayed() const
 
 inline HexColor HexUctState::GetColorToPlay() const
 {
-    return m_toPlay;
+    return m_state->ToPlay();
 }
 
 //----------------------------------------------------------------------------

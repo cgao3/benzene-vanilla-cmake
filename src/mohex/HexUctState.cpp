@@ -92,7 +92,7 @@ HexUctState::HexUctState(const unsigned int threadId,
     : SgUctThreadState(threadId, HexUctUtil::ComputeMaxNumMoves()),
       m_assertionHandler(*this),
 
-      m_bd(0),
+      m_state(0),
       m_vc_brd(0),
       m_policy(0),
       m_shared_data(0),
@@ -119,27 +119,26 @@ std::string HexUctState::Dump() const
     os << "HexUctState[" << m_threadId << "] ";
     if (m_isInPlayout) 
         os << "[playout] ";
-    os << "board:" << *m_bd;
+    os << "board:" << m_state->Position();
     return os.str();
 }
 
 SgUctValue HexUctState::Evaluate()
 {
-    SG_ASSERT(GameOver(*m_bd));
-    SgUctValue score = (GetWinner(*m_bd) == m_toPlay) ? 1.0 : 0.0;
+    const StoneBoard& pos = m_state->Position();
+    SG_ASSERT(GameOver(pos));
+    SgUctValue score = (GetWinner(pos) == m_state->ToPlay()) ? 1.0 : 0.0;
     return score;
 }
 
 void HexUctState::Execute(SgMove sgmove)
 {
     ExecuteTreeMove(static_cast<HexPoint>(sgmove));
-    m_toPlay = !m_toPlay;
 }
 
 void HexUctState::ExecutePlayout(SgMove sgmove)
 {
     ExecuteRolloutMove(static_cast<HexPoint>(sgmove));
-    m_toPlay = !m_toPlay;
 }
 
 void HexUctState::ExecuteTreeMove(HexPoint move)
@@ -148,18 +147,18 @@ void HexUctState::ExecuteTreeMove(HexPoint move)
         HexUctPolicy* blah = dynamic_cast<HexUctPolicy*>(m_policy.get());
         if (!blah)
             abort();
-        blah->AddResponse(m_toPlay, m_lastMovePlayed, move);
+        blah->AddResponse(m_state->ToPlay(), m_lastMovePlayed, move);
     }
-
-    m_game_sequence.push_back(Move(m_toPlay, move));
+    m_game_sequence.push_back(Move(m_state->ToPlay(), move));
     ExecutePlainMove(move, m_treeUpdateRadius);
     HexUctStoneData stones;
     if (m_shared_data->stones.Get(SequenceHash::Hash(m_game_sequence), stones))
     {
-        m_bd->StartNewGame();
-        m_bd->SetColor(BLACK, stones.black);
-        m_bd->SetColor(WHITE, stones.white);
-        m_bd->SetPlayed(stones.played);
+        StoneBoard& brd = m_state->Position();
+        brd.StartNewGame();
+        brd.SetColor(BLACK, stones.black);
+        brd.SetColor(WHITE, stones.white);
+        brd.SetPlayed(stones.played);
         m_pastate->Update();
     }
 }
@@ -182,15 +181,13 @@ void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
     //   If assertions are on, this will cause the search to abort
     // needlessly.
     // TODO: Handle case when assertions are on.
-    SG_ASSERT(m_bd->IsEmpty(cell));
+    SG_ASSERT(m_state->Position().IsEmpty(cell));
     SG_ASSERT(m_pastate->UpdateRadius() == updateRadius);
-    
-    m_bd->PlayMove(m_toPlay, cell);
+    m_state->PlayMove(cell);
     if (updateRadius == 1)
 	m_pastate->UpdateRingGodel(cell);
     else
 	m_pastate->Update(cell);
-    
     m_lastMovePlayed = cell;
     m_new_game = false;
 }
@@ -215,15 +212,15 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
     if (count == 0)
     {
         {
-            HexColor winner = CheckIfWinner(*m_bd);
+            HexColor winner = CheckIfWinner(m_state->Position());
             if (winner != EMPTY)
             {
-                provenType = (winner == m_toPlay) 
+                provenType = (winner == m_state->ToPlay()) 
                     ? SG_PROVEN_WIN : SG_PROVEN_LOSS;
                 return false;
             }
         }
-        for (BitsetIterator it(m_bd->GetEmpty()); it; ++it)
+        for (BitsetIterator it(m_state->Position().GetEmpty()); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
         m_knowledge.ProcessPosition(moves);
     }
@@ -236,7 +233,8 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
             LogInfo() << m_threadId << ": " << hash << '\n';
         }
         truncateChildTrees = true;
-        bitset_t moveset = m_bd->GetEmpty() & ComputeKnowledge(provenType);
+        bitset_t moveset = m_state->Position().GetEmpty() 
+            & ComputeKnowledge(provenType);
         for (BitsetIterator it(moveset); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
     }
@@ -246,11 +244,9 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
 SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
 {
     skipRaveUpdate = false;
-    
-    if (GameOver(*m_bd))
+    if (GameOver(m_state->Position()))
         return SG_NULLMOVE;
-        
-    SgPoint move = m_policy->GenerateMove(*m_pastate, m_toPlay,
+    SgPoint move = m_policy->GenerateMove(*m_pastate, m_state->ToPlay(),
                                           m_lastMovePlayed);
     SG_ASSERT(move != SG_NULLMOVE);
     return move;
@@ -260,22 +256,19 @@ void HexUctState::StartSearch()
 {
     LogInfo() << "StartSearch()[" << m_threadId <<"]\n";
     m_shared_data = &m_search.SharedData();
-
-    // @todo Fix the interface to HexBoard so this can be constant!
+    // TODO: Fix the interface to HexBoard so this can be constant!
     // The problem is that VCBuilder (which is inside of HexBoard)
     // expects a non-const reference to a VCBuilderParam object.
     HexBoard& brd = const_cast<HexBoard&>(m_search.Board());
-    
-    if (!m_bd.get() 
-        || m_bd->Width() != brd.Width() 
-        || m_bd->Height() != brd.Height())
+    if (!m_state.get() 
+        || m_state->Position().Width() != brd.Width() 
+        || m_state->Position().Height() != brd.Height())
     {
-        m_bd.reset(new StoneBoard(brd.Width(), brd.Height()));
-        m_pastate.reset(new PatternState(*m_bd));
+        m_state.reset(new HexState(brd.GetPosition(), BLACK));
+        m_pastate.reset(new PatternState(m_state->Position()));
         m_vc_brd.reset(new HexBoard(brd.Width(), brd.Height(), 
                                     brd.ICE(), brd.Builder().Parameters()));
     }
-
     m_policy->InitializeForSearch();
 }
 
@@ -291,7 +284,7 @@ void HexUctState::TakeBackPlayout(std::size_t nuMoves)
 
 SgBlackWhite HexUctState::ToPlay() const
 {
-    return HexUctUtil::ToSgBlackWhite(m_toPlay);
+    return HexUctUtil::ToSgBlackWhite(m_state->ToPlay());
 }
 
 void HexUctState::GameStart()
@@ -299,14 +292,13 @@ void HexUctState::GameStart()
     m_new_game = true;
     m_isInPlayout = false;
     m_game_sequence = m_shared_data->game_sequence;
-    m_toPlay = m_shared_data->root_to_play;
     m_lastMovePlayed = m_shared_data->root_last_move_played;
     m_pastate->SetUpdateRadius(m_treeUpdateRadius);
-
-    m_bd->StartNewGame();
-    m_bd->SetColor(BLACK, m_shared_data->root_stones.black);
-    m_bd->SetColor(WHITE, m_shared_data->root_stones.white);
-    m_bd->SetPlayed(m_shared_data->root_stones.played);
+    m_state->Position().StartNewGame();
+    m_state->Position().SetColor(BLACK, m_shared_data->root_stones.black);
+    m_state->Position().SetColor(WHITE, m_shared_data->root_stones.white);
+    m_state->Position().SetPlayed(m_shared_data->root_stones.played);
+    m_state->SetToPlay(m_shared_data->root_to_play);
     m_pastate->Update();
 }
 
@@ -323,7 +315,7 @@ void HexUctState::StartPlayouts()
 
 void HexUctState::StartPlayout()
 {
-    m_policy->InitializeForRollout(*m_bd);
+    m_policy->InitializeForRollout(m_state->Position());
 }
 
 void HexUctState::EndPlayout()
@@ -334,46 +326,39 @@ void HexUctState::EndPlayout()
     data. */
 bitset_t HexUctState::ComputeKnowledge(SgUctProvenType& provenType)
 {
-    m_vc_brd->GetPosition().StartNewGame();
-    m_vc_brd->GetPosition().SetColor(BLACK, m_bd->GetPlayed(BLACK));
-    m_vc_brd->GetPosition().SetColor(WHITE, m_bd->GetPlayed(WHITE));
-    m_vc_brd->GetPosition().SetPlayed(m_bd->GetPlayed());
-    m_vc_brd->ComputeAll(m_toPlay);
-
+    m_vc_brd->GetPosition().SetPosition(m_state->Position());
+    m_vc_brd->ComputeAll(m_state->ToPlay());
     // Consider set will be all empty cells if state is a determined
     // state (can't compute consider set in this case and we cannot
     // delete the children as this will cause a race condition in the
     // parent class).
-    //
     // Consider set is the set of moves to consider otherwise.
     bitset_t consider;
-    if (EndgameUtil::IsDeterminedState(*m_vc_brd, m_toPlay))
+    if (EndgameUtil::IsDeterminedState(*m_vc_brd, m_state->ToPlay()))
     {
-        HexColor winner = m_toPlay;
+        HexColor winner = m_state->ToPlay();
         provenType = SG_PROVEN_WIN;
-        if (EndgameUtil::IsLostGame(*m_vc_brd, m_toPlay))
+        if (EndgameUtil::IsLostGame(*m_vc_brd, m_state->ToPlay()))
         {
-            winner = !m_toPlay;
+            winner = !m_state->ToPlay();
             provenType = SG_PROVEN_LOSS;
         }
         if (DEBUG_KNOWLEDGE)
             LogInfo() << "Found win for " << winner << ":\n"
                       << *m_vc_brd << '\n';
-        return m_bd->GetEmpty();
+        return m_state->Position().GetEmpty();
     }
     else
     {
         provenType = SG_NOT_PROVEN;
-        consider = EndgameUtil::MovesToConsider(*m_vc_brd, m_toPlay);
+        consider = EndgameUtil::MovesToConsider(*m_vc_brd, m_state->ToPlay());
     }
-
     m_shared_data->stones.Put(SequenceHash::Hash(m_game_sequence), 
                               HexUctStoneData(m_vc_brd->GetPosition()));
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"
-                  << "Recomputed state:" << '\n' << *m_bd << '\n'
+                  << "Recomputed state:" << '\n' << m_state->Position() << '\n'
                   << "Consider:" << m_vc_brd->Write(consider) << '\n';
-
     return consider;
 }
     
