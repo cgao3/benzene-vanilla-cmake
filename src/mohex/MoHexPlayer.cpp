@@ -137,10 +137,15 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     SgUctTree* initTree = 0;
     if (m_reuse_subtree)
     {
-        HexUctSharedData oldData = m_search.SharedData();        
-        initTree = TryReuseSubtree(oldData, data);
-        if (!initTree)
-            LogInfo() << "No subtree to reuse.\n";
+        HexUctSharedData oldData = m_search.SharedData();
+        if (&oldData.rootState.Position().Const() != 0)
+        {
+            initTree = TryReuseSubtree(oldData, data);
+            if (!initTree)
+                LogInfo() << "No subtree to reuse.\n";
+        }
+        else
+            LogInfo() << "Have not searched yet; no subtree to reuse.\n";
     }
     m_search.SetSharedData(data);
 
@@ -333,9 +338,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
 
     const HexState& oldState = oldData.rootState;
     const HexState& newState = newData.rootState;
-    bool samePosition = (oldSequence == newSequence
-                         && oldState.ToPlay() == newState.ToPlay()
-                         && oldState.Position() == newState.Position()
+    bool samePosition = (oldSequence == newSequence && oldState == newState
                          && oldData.rootConsider == newData.rootConsider);
     if (samePosition)
         LogInfo() << "ReuseSubtree: in same position as last time!\n";
