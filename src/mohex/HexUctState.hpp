@@ -72,18 +72,13 @@ inline bool HexUctStoneData::operator==(const HexUctStoneData& other) const
 struct HexUctSharedData
 {
     /** Moves from begining of game leading to this position. */
-    MoveSequence game_sequence;
+    MoveSequence gameSequence;
 
     /** State at root of search. */
     HexState rootState;
 
-    /** Move played that led to this state.
-        @todo Remove and use game_sequence to get this info?
-    */
-    HexPoint root_last_move_played;
-
     /** Set of moves to consider from the root. */
-    bitset_t root_consider;
+    bitset_t rootConsider;
 
     /** Stores fillin information for states in the tree. */
     HashMap<HexUctStoneData> stones;
@@ -240,7 +235,7 @@ private:
     bool m_isInPlayout;
 
     /** Moves played the game plus moves in tree. */
-    MoveSequence m_game_sequence;
+    MoveSequence m_gameSequence;
 
     /** Keeps track of last playout move made.
 	Used for pattern-generated rollouts when call

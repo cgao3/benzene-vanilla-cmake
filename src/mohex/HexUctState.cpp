@@ -69,6 +69,25 @@ HexColor CheckIfWinner(const StoneBoard& brd)
     return EMPTY;
 }
 
+/** Returns INVALID_POINT if history is empty, otherwise last move
+    played to the board, ie, skips swap move. */
+HexPoint LastMoveFromHistory(const MoveSequence& history)
+{
+    HexPoint lastMove = INVALID_POINT;
+    if (!history.empty()) 
+    {
+	lastMove = history.back().Point();
+	if (lastMove == SWAP_PIECES) 
+        {
+            BenzeneAssert(history.size() == 2);
+            lastMove = history.front().Point();
+	}
+    }
+    return lastMove;
+}
+
+//----------------------------------------------------------------------------
+
 } // namespace
 
 //----------------------------------------------------------------------------
@@ -140,10 +159,10 @@ void HexUctState::Execute(SgMove sgmove)
             abort();
         blah->AddResponse(m_state->ToPlay(), m_lastMovePlayed, move);
     }
-    m_game_sequence.push_back(Move(m_state->ToPlay(), move));
+    m_gameSequence.push_back(Move(m_state->ToPlay(), move));
     ExecuteMove(move, m_treeUpdateRadius);
     HexUctStoneData stones;
-    if (m_shared_data->stones.Get(SequenceHash::Hash(m_game_sequence), stones))
+    if (m_shared_data->stones.Get(SequenceHash::Hash(m_gameSequence), stones))
     {
         StoneBoard& brd = m_state->Position();
         brd.StartNewGame();
@@ -192,7 +211,7 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
     // Handle root node as a special case
     if (m_new_game)
     {
-        for (BitsetIterator it(m_shared_data->root_consider); it; ++it)
+        for (BitsetIterator it(m_shared_data->rootConsider); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
         if (count == 0)
             m_knowledge.ProcessPosition(moves);
@@ -220,7 +239,7 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
         // Prune moves outside of mustplay and fillin
         if (TRACK_KNOWLEDGE)
         {
-            SgHashCode hash(SequenceHash::Hash(m_game_sequence));
+            SgHashCode hash(SequenceHash::Hash(m_gameSequence));
             LogInfo() << m_threadId << ": " << hash << '\n';
         }
         truncateChildTrees = true;
@@ -282,8 +301,8 @@ void HexUctState::GameStart()
 {
     m_new_game = true;
     m_isInPlayout = false;
-    m_game_sequence = m_shared_data->game_sequence;
-    m_lastMovePlayed = m_shared_data->root_last_move_played;
+    m_gameSequence = m_shared_data->gameSequence;
+    m_lastMovePlayed = LastMoveFromHistory(m_gameSequence);
     *m_state = m_shared_data->rootState;
     m_pastate->SetUpdateRadius(m_treeUpdateRadius);
     m_pastate->Update();
@@ -340,7 +359,7 @@ bitset_t HexUctState::ComputeKnowledge(SgUctProvenType& provenType)
         provenType = SG_NOT_PROVEN;
         consider = EndgameUtil::MovesToConsider(*m_vc_brd, m_state->ToPlay());
     }
-    m_shared_data->stones.Put(SequenceHash::Hash(m_game_sequence), 
+    m_shared_data->stones.Put(SequenceHash::Hash(m_gameSequence), 
                               HexUctStoneData(m_vc_brd->GetPosition()));
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"

@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file MoHexPlayer.hpp
- */
+/** @file MoHexPlayer.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef MOHEXPLAYER_HPP
@@ -120,8 +119,6 @@ protected:
     HexPoint Search(const HexState& state, const Game& game,
                     HexBoard& brd, const bitset_t& consider,
                     double maxTime, double& score);
-
-    HexPoint LastMoveFromHistory(const MoveSequence& history);
 
     bool PerformPreSearch(HexBoard& brd, HexColor color, bitset_t& consider, 
                           double maxTime, PointSequence& winningSequence);

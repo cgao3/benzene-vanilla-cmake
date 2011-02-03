@@ -129,10 +129,9 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
         
     // Create the initial state data
     HexUctSharedData data;
-    data.game_sequence = game.History();
+    data.gameSequence = game.History();
     data.rootState = HexState(brd.GetPosition(), color);
-    data.root_last_move_played = LastMoveFromHistory(game.History());
-    data.root_consider = consider;
+    data.rootConsider = consider;
     
     // Reuse the old subtree
     SgUctTree* initTree = 0;
@@ -194,23 +193,6 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     LogWarning() << "**** HexUctSearch returned empty sequence!\n"
 		 << "**** Returning random move!\n";
     return BoardUtil::RandomEmptyCell(brd.GetPosition());
-}
-
-/** Returns INVALID_POINT if history is empty, otherwise last move
-    played to the board, ie, skips swap move. */
-HexPoint MoHexPlayer::LastMoveFromHistory(const MoveSequence& history)
-{
-    HexPoint lastMove = INVALID_POINT;
-    if (!history.empty()) 
-    {
-	lastMove = history.back().Point();
-	if (lastMove == SWAP_PIECES) 
-        {
-            BenzeneAssert(history.size() == 2);
-            lastMove = history.front().Point();
-	}
-    }
-    return lastMove;
 }
 
 /** Does a 1-ply search.
@@ -334,8 +316,8 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         oldPosition.Height() != newPosition.Height())
         return 0;
 
-    const MoveSequence& oldSequence = oldData.game_sequence;
-    const MoveSequence& newSequence = newData.game_sequence;
+    const MoveSequence& oldSequence = oldData.gameSequence;
+    const MoveSequence& newSequence = newData.gameSequence;
     LogInfo() << "Old: " << oldSequence << '\n';
     LogInfo() << "New: "<< newSequence << '\n';
     if (oldSequence.size() > newSequence.size())
@@ -354,7 +336,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
     bool samePosition = (oldSequence == newSequence
                          && oldState.ToPlay() == newState.ToPlay()
                          && oldState.Position() == newState.Position()
-                         && oldData.root_consider == newData.root_consider);
+                         && oldData.rootConsider == newData.rootConsider);
     if (samePosition)
         LogInfo() << "ReuseSubtree: in same position as last time!\n";
 
@@ -417,7 +399,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
     {
         // Fix root's children to be those in the consider set
         std::vector<SgMove> moves;
-        for (BitsetIterator it(newData.root_consider); it; ++it)
+        for (BitsetIterator it(newData.rootConsider); it; ++it)
             moves.push_back(static_cast<SgMove>(*it));
         tree.SetChildren(0, tree.Root(), moves);
 
@@ -448,7 +430,7 @@ void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
 {
     // This check will fail in the root if we are reusing the
     // entire tree, so only do it when not in the root.
-    if (sequence != oldData.game_sequence)
+    if (sequence != oldData.gameSequence)
     {
         SgHashCode hash = SequenceHash::Hash(sequence);
         HexUctStoneData stones;
