@@ -284,12 +284,8 @@ void HexUctState::GameStart()
     m_isInPlayout = false;
     m_game_sequence = m_shared_data->game_sequence;
     m_lastMovePlayed = m_shared_data->root_last_move_played;
+    *m_state = m_shared_data->rootState;
     m_pastate->SetUpdateRadius(m_treeUpdateRadius);
-    m_state->Position().StartNewGame();
-    m_state->Position().SetColor(BLACK, m_shared_data->root_stones.black);
-    m_state->Position().SetColor(WHITE, m_shared_data->root_stones.white);
-    m_state->Position().SetPlayed(m_shared_data->root_stones.played);
-    m_state->SetToPlay(m_shared_data->root_to_play);
     m_pastate->Update();
 }
 

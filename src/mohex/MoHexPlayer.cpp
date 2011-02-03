@@ -129,12 +129,9 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
         
     // Create the initial state data
     HexUctSharedData data;
-    data.board_width = brd.Width();
-    data.board_height = brd.Height();
-    data.root_to_play = color;
     data.game_sequence = game.History();
+    data.rootState = HexState(brd.GetPosition(), color);
     data.root_last_move_played = LastMoveFromHistory(game.History());
-    data.root_stones = HexUctStoneData(brd.GetPosition());
     data.root_consider = consider;
     
     // Reuse the old subtree
@@ -329,19 +326,18 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         LogInfo() << "ReuseSubtree: knowledge is off.\n";
         return 0;
     }
-
     // Board size must be the same. This also catches the case where
     // no previous search has been performed.
-    if (oldData.board_width != newData.board_width ||
-        oldData.board_height != newData.board_height)
+    const StoneBoard& oldPosition = oldData.rootState.Position();
+    const StoneBoard& newPosition = newData.rootState.Position();
+    if (oldPosition.Width() != newPosition.Width() ||
+        oldPosition.Height() != newPosition.Height())
         return 0;
 
     const MoveSequence& oldSequence = oldData.game_sequence;
     const MoveSequence& newSequence = newData.game_sequence;
-
     LogInfo() << "Old: " << oldSequence << '\n';
     LogInfo() << "New: "<< newSequence << '\n';
-
     if (oldSequence.size() > newSequence.size())
     {
         LogInfo() << "ReuseSubtree: Backtracked to an earlier state.\n";
@@ -353,11 +349,12 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         return 0;
     }
 
+    const HexState& oldState = oldData.rootState;
+    const HexState& newState = newData.rootState;
     bool samePosition = (oldSequence == newSequence
-                         && oldData.root_to_play == newData.root_to_play
-                         && oldData.root_consider == newData.root_consider
-                         && oldData.root_stones == newData.root_stones);
-
+                         && oldState.ToPlay() == newState.ToPlay()
+                         && oldState.Position() == newState.Position()
+                         && oldData.root_consider == newData.root_consider);
     if (samePosition)
         LogInfo() << "ReuseSubtree: in same position as last time!\n";
 
@@ -374,10 +371,10 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
             LogInfo() << "ReuseSubtree: No knowledge for state in old tree.\n";
             return 0;
         }
-
         // Check that the old knowledge is equal to the new knowledge
         // in the would-be root node.
-        if (!(oldStateData == newData.root_stones))
+        HexUctStoneData newStateData(newPosition);
+        if (!(oldStateData == newStateData))
         {
             StoneBoard brd(11);
             brd.SetColor(BLACK, oldStateData.black);
@@ -386,12 +383,12 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
             LogWarning() << "FILLIN DOES NOT MATCH\n";
             LogWarning() << brd << '\n';
             brd.StartNewGame();
-            brd.SetColor(BLACK, newData.root_stones.black);
-            brd.SetColor(WHITE, newData.root_stones.white);
-            brd.SetPlayed(newData.root_stones.played);
+            brd.SetColor(BLACK, newStateData.black);
+            brd.SetColor(WHITE, newStateData.white);
+            brd.SetPlayed(newStateData.played);
             LogWarning() << brd << '\n';
         }
-        BenzeneAssert(oldStateData == newData.root_stones);
+        BenzeneAssert(oldStateData == newStateData);
     }
 
     // Ensure alternating colors and extract suffix
@@ -430,7 +427,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
                   << " nodes (" << reusePercent << "%)\n";
 
         MoveSequence moveSequence = newSequence;
-        CopyKnowledgeData(tree, tree.Root(), newData.root_to_play,
+        CopyKnowledgeData(tree, tree.Root(), newData.rootState.ToPlay(),
                           moveSequence, oldData, newData);
         float kReuse = float(newData.stones.Count()) 
             / float(oldData.stones.Count());

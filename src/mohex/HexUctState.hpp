@@ -24,7 +24,12 @@ class HexUctSearch;
 
 //----------------------------------------------------------------------------
 
-/** Black and white stones. */
+/** Black and white stones. 
+    This appears to be a pointless class since all the functionality
+    is also in StoneBoard. However, StoneBoard hash extra information
+    (like the hash and some colorset information) that would be a waste
+    of space. So we use this for now. 
+ */
 struct HexUctStoneData
 {
     bitset_t black;
@@ -66,20 +71,11 @@ inline bool HexUctStoneData::operator==(const HexUctStoneData& other) const
 /** Data shared among all threads. */
 struct HexUctSharedData
 {
-    /** Width of board used in last search. */
-    int board_width;
-
-    /** Height of board used in last search. */ 
-    int board_height;
-
-    /** Stones in root position. */
-    HexUctStoneData root_stones;
-
     /** Moves from begining of game leading to this position. */
     MoveSequence game_sequence;
 
-    /** Color to play. */
-    HexColor root_to_play;
+    /** State at root of search. */
+    HexState rootState;
 
     /** Move played that led to this state.
         @todo Remove and use game_sequence to get this info?
@@ -96,9 +92,7 @@ struct HexUctSharedData
 };
 
 inline HexUctSharedData::HexUctSharedData()
-    : board_width(-1), 
-      board_height(-1), 
-      stones(16)
+    : stones(16)
 { 
 }
 
