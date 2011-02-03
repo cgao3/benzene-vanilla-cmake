@@ -35,6 +35,10 @@ public:
     
     void UndoMove(HexPoint move);
 
+    bool operator==(const HexState& other) const;
+
+    bool operator!=(const HexState& other) const;
+
 private:
     StoneBoard m_brd;
 
@@ -99,6 +103,17 @@ inline void HexState::UndoMove(HexPoint move)
 inline void HexState::FlipColorToPlay()
 {
     m_toPlay = !m_toPlay;
+}
+
+inline bool HexState::operator==(const HexState& other) const
+{
+    return m_toPlay == other.m_toPlay
+        && m_brd == other.m_brd;
+}
+
+inline bool HexState::operator!=(const HexState& other) const
+{
+    return !operator==(other);
 }
 
 //----------------------------------------------------------------------------
