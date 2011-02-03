@@ -358,19 +358,9 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
         HexUctStoneData newStateData(newPosition);
         if (!(oldStateData == newStateData))
         {
-            StoneBoard brd(11);
-            brd.SetColor(BLACK, oldStateData.black);
-            brd.SetColor(WHITE, oldStateData.white);
-            brd.SetPlayed(oldStateData.played);
-            LogWarning() << "FILLIN DOES NOT MATCH\n";
-            LogWarning() << brd << '\n';
-            brd.StartNewGame();
-            brd.SetColor(BLACK, newStateData.black);
-            brd.SetColor(WHITE, newStateData.white);
-            brd.SetPlayed(newStateData.played);
-            LogWarning() << brd << '\n';
+            LogInfo() << "Old fillin data does not match data for new root!\n";
+            return 0;
         }
-        BenzeneAssert(oldStateData == newStateData);
     }
 
     // Ensure alternating colors and extract suffix
