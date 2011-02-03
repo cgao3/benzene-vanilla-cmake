@@ -17,7 +17,7 @@ class HexState
 public:
     HexState();
 
-    HexState(unsigned size);
+    explicit HexState(unsigned size);
 
     HexState(const StoneBoard& brd, HexColor toPlay);
 
