@@ -128,7 +128,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     maxTime = std::max(1.0, maxTime);
         
     // Create the initial state data
-    HexUctSharedData data;
+    HexUctSharedData data(m_search.FillinMapBits());
     data.gameSequence = game.History();
     data.rootState = HexState(brd.GetPosition(), color);
     data.rootConsider = consider;
@@ -137,7 +137,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     SgUctTree* initTree = 0;
     if (m_reuse_subtree)
     {
-        HexUctSharedData oldData = m_search.SharedData();
+        HexUctSharedData oldData(m_search.SharedData());
         initTree = TryReuseSubtree(oldData, data);
         if (!initTree)
             LogInfo() << "No subtree to reuse.\n";

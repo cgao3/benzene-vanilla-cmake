@@ -187,6 +187,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.BiasTermConstant() << '\n'
             << "[string] expand_threshold "
             << search.ExpandThreshold() << '\n'
+            << "[string] fillin_map_bits "
+            << search.FillinMapBits() << '\n'
             << "[string] knowledge_threshold "
             << KnowledgeThresholdToString(search.KnowledgeThreshold()) << '\n'
             << "[string] livegfx_interval "
@@ -246,6 +248,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
                 (KnowledgeThresholdFromString(cmd.Arg(1)));
         else if (name == "livegfx_interval")
             search.SetLiveGfxInterval(cmd.ArgMin<int>(1, 1));
+        else if (name == "fillin_map_bits")
+            search.SetFillinMapBits(cmd.ArgMin<int>(1, 1));
         else if (name == "max_games")
             m_player.SetMaxGames(cmd.ArgMin<int>(1, 1));
         else if (name == "max_memory")

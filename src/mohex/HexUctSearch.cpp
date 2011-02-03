@@ -53,7 +53,8 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
       m_treeUpdateRadius(2),
       m_playoutUpdateRadius(1),
       m_brd(0),
-      m_shared_data(),
+      m_fillinMapBits(16),
+      m_sharedData(new HexUctSharedData(m_fillinMapBits)),
       m_root(0)
 {
     SetBiasTermConstant(0.0);
@@ -85,7 +86,7 @@ void HexUctSearch::AppendGame(const std::vector<SgMove>& sequence)
 {
     BenzeneAssert(m_root != 0);
     SgNode* node = m_root->RightMostSon();
-    HexColor color = m_shared_data.rootState.ToPlay();
+    HexColor color = m_sharedData->rootState.ToPlay();
     std::vector<SgPoint>::const_iterator it = sequence.begin();
     // Find first move that starts a new variation
     for (; it != sequence.end(); ++it) 
@@ -134,8 +135,8 @@ void HexUctSearch::OnStartSearch()
         m_root = new SgNode();
         SgNode* position = m_root->NewRightMostSon();
         HexSgUtil::SetPositionInNode(position, 
-                                     m_shared_data.rootState.Position(),
-                                     m_shared_data.rootState.ToPlay());
+                                     m_sharedData->rootState.Position(),
+                                     m_sharedData->rootState.ToPlay());
     }
     // Limit to avoid very long games (no need in Hex)
     int size = m_brd->Width() * m_brd->Height();
@@ -155,7 +156,7 @@ void HexUctSearch::SaveGames(const std::string& filename) const
 void HexUctSearch::SaveTree(std::ostream& out, int maxDepth) const
 {
     HexUctUtil::SaveTree(Tree(), m_lastPositionSearched, 
-                         m_shared_data.rootState.ToPlay(), out, maxDepth);
+                         m_sharedData->rootState.ToPlay(), out, maxDepth);
 }
 
 void HexUctSearch::OnSearchIteration(SgUctValue gameNumber, 
@@ -169,7 +170,7 @@ void HexUctSearch::OnSearchIteration(SgUctValue gameNumber,
         std::ostringstream os;
         os << "gogui-gfx:\n";
         os << "uct\n";
-        HexColor initial_toPlay = m_shared_data.rootState.ToPlay();
+        HexColor initial_toPlay = m_sharedData->rootState.ToPlay();
         HexUctUtil::GoGuiGfx(*this, 
                              HexUctUtil::ToSgBlackWhite(initial_toPlay),
 			     os);

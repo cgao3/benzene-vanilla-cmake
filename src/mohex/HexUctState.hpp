@@ -83,11 +83,11 @@ struct HexUctSharedData
     /** Stores fillin information for states in the tree. */
     HashMap<HexUctStoneData> stones;
 
-    HexUctSharedData();
+    explicit HexUctSharedData(int fillinMapBits);
 };
 
-inline HexUctSharedData::HexUctSharedData()
-    : stones(16)
+inline HexUctSharedData::HexUctSharedData(int fillinMapBits)
+    : stones(fillinMapBits)
 { 
 }
 

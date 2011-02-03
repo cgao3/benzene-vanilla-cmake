@@ -141,6 +141,12 @@ public:
     /** See PlayoutUpdateRadius(). */
     void SetPlayoutUpdateRadius(int radius);
 
+    /** Size of the map of fillin states. */
+    int FillinMapBits() const;
+
+    /** See FillinMapBits(). */
+    void SetFillinMapBits(int bits);
+
     // @} 
 
 private:
@@ -164,9 +170,11 @@ private:
         HexBoards, but the settings (ICE and VCs) will be copied from
         this board. */
     HexBoard* m_brd;
+
+    int m_fillinMapBits;
    
     /** Data among threads. */
-    HexUctSharedData m_shared_data;
+    boost::scoped_ptr<HexUctSharedData> m_sharedData;
 
     StoneBoard m_lastPositionSearched;
 
@@ -251,17 +259,27 @@ inline void HexUctSearch::SetPlayoutUpdateRadius(int radius)
 
 inline void HexUctSearch::SetSharedData(HexUctSharedData& data)
 {
-    m_shared_data = data;
+    m_sharedData.reset(new HexUctSharedData(data));
 }
 
 inline HexUctSharedData& HexUctSearch::SharedData()
 {
-    return m_shared_data;
+    return *m_sharedData;
 }
 
 inline const HexUctSharedData& HexUctSearch::SharedData() const
 {
-    return m_shared_data;
+    return *m_sharedData;
+}
+
+inline int HexUctSearch::FillinMapBits() const
+{
+    return m_fillinMapBits;
+}
+
+inline void HexUctSearch::SetFillinMapBits(int bits)
+{
+    m_fillinMapBits = bits;
 }
 
 //----------------------------------------------------------------------------
