@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexUctSearch.hpp
- */
+/** @file HexUctSearch.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXUCTSEARCH_H
@@ -93,17 +92,13 @@ public:
 
     /** @see SetKeepGames()
         @throws SgException if KeepGames() was false at last invocation of
-        StartSearch()
-    */
+        StartSearch() */
     void SaveGames(const std::string& fileName) const;
 
     void AppendGame(const std::vector<SgMove>& sequence);
 
     /** @see HexUctUtil::SaveTree() */
     void SaveTree(std::ostream& out, int maxDepth) const;
-
-    /** Returns the position the previous search was run on. */
-    const StoneBoard& LastPositionSearched() const;
 
     // @}
 
@@ -112,67 +107,62 @@ public:
     /** @name Hex-specific parameters */
     // @{
 
-    /** Keep a SGF tree of all games.
+    /** Keeps a SGF tree of all games.
         Games are cleared in each OnStartSearch(). Games can be saved
-        with SaveGames().
-    */
+        with SaveGames(). */
     void SetKeepGames(bool enable);
 
-    /** @see SetKeepGames() */
+    /** See SetKeepGames(). */
     bool KeepGames() const;
 
-    /** Enable output of live graphics commands for HexGui.
-        @see GoGuiGfx(), SetLiveGfxInterval()
-    */
+    /** Enables output of live graphics commands for HexGui.
+        See GoGuiGfx() and SetLiveGfxInterval() */
     void SetLiveGfx(bool enable);
 
-    /** @see SetLiveGfx() */
+    /** See SetLiveGfx(). */
     bool LiveGfx() const;
 
-    /** Set interval for outputting of live graphics commands for HexGui.
-        @see SetLiveGfx()
-    */
+    /** Sets interval for outputting of live graphics commands for HexGui.
+        See SetLiveGfx(). */
     void SetLiveGfxInterval(int interval);
 
-    /** @see SetLiveGfxInterval() */
+    /** See SetLiveGfxInterval(). */
     int LiveGfxInterval() const;
 
     /** Pattern-check radius to use during in-tree phase. */
     int TreeUpdateRadius() const;
 
-    /** See TreeUpdateRadius() */
+    /** See TreeUpdateRadius(). */
     void SetTreeUpdateRadius(int radius);
     
     /** Pattern-check radius to use during playout phase. */
     int PlayoutUpdateRadius() const;
     
-    /** See PlayoutUpdateRadius() */
+    /** See PlayoutUpdateRadius(). */
     void SetPlayoutUpdateRadius(int radius);
 
     // @} 
 
 protected:
-
-    /** @see SetKeepGames() */
+    /** See SetKeepGames() */
     bool m_keepGames;
 
-    /** @see SetLiveGfx() */
+    /** See SetLiveGfx() */
     bool m_liveGfx;
 
-    /** @see SetLiveGfxInterval() */
+    /** See SetLiveGfxInterval() */
     int m_liveGfxInterval;
 
-    /** @see TreeUpdateRadius() */
+    /** See TreeUpdateRadius() */
     int m_treeUpdateRadius;
 
-    /** @see PlayoutUpdateRadius() */
+    /** See PlayoutUpdateRadius() */
     int m_playoutUpdateRadius;
 
-    //----------------------------------------------------------------------
-
-    /** Nothing is done to this board. We do not own this pointer.
-        Threads will synchronise with this board at the start of the
-        search. */
+    /** Nothing is done to this board. 
+        We do not own this pointer. Threads will create their own
+        HexBoards, but the settings (ICE and VCs) will be copied from
+        this board. */
     HexBoard* m_brd;
    
     /** Data among threads. */
@@ -180,17 +170,13 @@ protected:
 
     StoneBoard m_lastPositionSearched;
 
-    //----------------------------------------------------------------------
-
-    /** @see SetKeepGames().
-        Should be non-null only if KeepGames() is true.
-    */
+    /** See SetKeepGames().
+        Should be non-null only if KeepGames() is true. */
     SgNode* m_root;
 
     SgUctValue m_nextLiveGfx;
 
 private:
-    
     /** Not implemented */
     HexUctSearch(const HexUctSearch& search);
 
@@ -277,11 +263,6 @@ inline HexUctSharedData& HexUctSearch::SharedData()
 inline const HexUctSharedData& HexUctSearch::SharedData() const
 {
     return m_shared_data;
-}
-
-inline const StoneBoard& HexUctSearch::LastPositionSearched() const
-{
-    return m_lastPositionSearched;
 }
 
 //----------------------------------------------------------------------------
