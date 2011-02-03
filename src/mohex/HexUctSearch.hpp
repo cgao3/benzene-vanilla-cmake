@@ -143,7 +143,7 @@ public:
 
     // @} 
 
-protected:
+private:
     /** See SetKeepGames() */
     bool m_keepGames;
 
@@ -176,7 +176,6 @@ protected:
 
     SgUctValue m_nextLiveGfx;
 
-private:
     /** Not implemented */
     HexUctSearch(const HexUctSearch& search);
 
