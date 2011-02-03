@@ -260,11 +260,7 @@ private:
 
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
 
-    void ExecuteTreeMove(HexPoint move);
-
-    void ExecuteRolloutMove(HexPoint move);
-
-    void ExecutePlainMove(HexPoint cell, int updateRadius);
+    void ExecuteMove(HexPoint cell, int updateRadius);
 };
 
 inline const StoneBoard& HexUctState::Board() const

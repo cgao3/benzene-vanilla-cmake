@@ -133,16 +133,7 @@ SgUctValue HexUctState::Evaluate()
 
 void HexUctState::Execute(SgMove sgmove)
 {
-    ExecuteTreeMove(static_cast<HexPoint>(sgmove));
-}
-
-void HexUctState::ExecutePlayout(SgMove sgmove)
-{
-    ExecuteRolloutMove(static_cast<HexPoint>(sgmove));
-}
-
-void HexUctState::ExecuteTreeMove(HexPoint move)
-{
+    HexPoint move = static_cast<HexPoint>(sgmove);
     {
         HexUctPolicy* blah = dynamic_cast<HexUctPolicy*>(m_policy.get());
         if (!blah)
@@ -150,7 +141,7 @@ void HexUctState::ExecuteTreeMove(HexPoint move)
         blah->AddResponse(m_state->ToPlay(), m_lastMovePlayed, move);
     }
     m_game_sequence.push_back(Move(m_state->ToPlay(), move));
-    ExecutePlainMove(move, m_treeUpdateRadius);
+    ExecuteMove(move, m_treeUpdateRadius);
     HexUctStoneData stones;
     if (m_shared_data->stones.Get(SequenceHash::Hash(m_game_sequence), stones))
     {
@@ -163,12 +154,12 @@ void HexUctState::ExecuteTreeMove(HexPoint move)
     }
 }
 
-void HexUctState::ExecuteRolloutMove(HexPoint move)
+void HexUctState::ExecutePlayout(SgMove sgmove)
 {
-    ExecutePlainMove(move, m_playoutUpdateRadius);
+    ExecuteMove(static_cast<HexPoint>(sgmove), m_playoutUpdateRadius);
 }
 
-void HexUctState::ExecutePlainMove(HexPoint cell, int updateRadius)
+void HexUctState::ExecuteMove(HexPoint cell, int updateRadius)
 {
     // Lock-free mode: It is possible we are playing into a filled-in
     // cell during the in-tree phase. This can occur if the thread
