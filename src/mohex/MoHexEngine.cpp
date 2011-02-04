@@ -16,6 +16,8 @@ using namespace benzene;
 
 namespace {
 
+//----------------------------------------------------------------------------
+
 std::string KnowledgeThresholdToString(const std::vector<SgUctValue>& t)
 {
     if (t.empty())
@@ -44,7 +46,40 @@ std::vector<SgUctValue> KnowledgeThresholdFromString(const std::string& val)
     return v;
 }
 
+SgUctMoveSelect MoveSelectArg(const HtpCommand& cmd, size_t number)
+{
+    std::string arg = cmd.ArgToLower(number);
+    if (arg == "value")
+        return SG_UCTMOVESELECT_VALUE;
+    if (arg == "count")
+        return SG_UCTMOVESELECT_COUNT;
+    if (arg == "bound")
+        return SG_UCTMOVESELECT_BOUND;
+    if (arg == "estimate")
+        return SG_UCTMOVESELECT_ESTIMATE;
+    throw HtpFailure() << "unknown move select argument \"" << arg << '"';
 }
+
+std::string MoveSelectToString(SgUctMoveSelect moveSelect)
+{
+    switch (moveSelect)
+    {
+    case SG_UCTMOVESELECT_VALUE:
+        return "value";
+    case SG_UCTMOVESELECT_COUNT:
+        return "count";
+    case SG_UCTMOVESELECT_BOUND:
+        return "bound";
+    case SG_UCTMOVESELECT_ESTIMATE:
+        return "estimate";
+    default:
+        return "?";
+    }
+}
+
+//----------------------------------------------------------------------------
+
+} // namespace
 
 //----------------------------------------------------------------------------
 
@@ -201,6 +236,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.MaxNodes() << '\n'
             << "[string] max_time "
             << m_player.MaxTime() << '\n'
+            << "[string] move_select "
+            << MoveSelectToString(search.MoveSelect()) << '\n'
 #if HAVE_GCC_ATOMIC_BUILTINS
             << "[string] num_threads "
             << search.NumberThreads() << '\n'
@@ -259,6 +296,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             m_player.SetMaxTime(cmd.Arg<float>(1));
         else if (name == "max_nodes")
             search.SetMaxNodes(cmd.ArgMin<std::size_t>(1, 1));
+        else if (name == "move_select")
+            search.SetMoveSelect(MoveSelectArg(cmd, 1));
 #if HAVE_GCC_ATOMIC_BUILTINS
         else if (name == "num_threads")
             search.SetNumberThreads(cmd.ArgMin<int>(1, 1));
