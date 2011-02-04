@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexUctUtil.hpp
-*/
+/** @file HexUctUtil.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXUCTUTIL_H
@@ -18,8 +17,7 @@ _BEGIN_BENZENE_NAMESPACE_
 
 /** General utility functions used in GoUct.
     These functions are used in GoUct, but should not depend on other classes
-    in GoUct to avoid cyclic dependencies.
-*/
+    in GoUct to avoid cyclic dependencies. */
 namespace HexUctUtil
 {
     /** Print information about search as Gfx commands for GoGui.

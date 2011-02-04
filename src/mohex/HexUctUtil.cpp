@@ -3,15 +3,14 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
-#include "Hex.hpp"
-#include "HexUctUtil.hpp"
-
-#include <iomanip>
-#include <iostream>
 #include "SgBWSet.h"
 #include "SgPointSet.h"
 #include "SgProp.h"
 #include "SgUctSearch.h"
+
+#include "HexUctUtil.hpp"
+#include <iomanip>
+#include <iostream>
 
 using namespace benzene;
 
