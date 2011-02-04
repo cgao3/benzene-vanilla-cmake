@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexUctUtil.cpp */
+/** @file MoHexUtil.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -8,7 +8,7 @@
 #include "SgProp.h"
 #include "SgUctSearch.h"
 
-#include "HexUctUtil.hpp"
+#include "MoHexUtil.hpp"
 #include <iomanip>
 #include <iostream>
 
@@ -31,8 +31,8 @@ void GoGuiGfxStatus(const SgUctSearch& search, std::ostream& out)
         << " Gm/s=" << static_cast<int>(stat.m_gamesPerSecond) << '\n';
 }
 
-void HexUctUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
-                          std::ostream& out)
+void MoHexUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
+                         std::ostream& out)
 {
     const SgUctTree& tree = search.Tree();
     const SgUctNode& root = tree.Root();
@@ -44,10 +44,10 @@ void HexUctUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
 	SgPoint move = bestValueChild[i]->Move();
 	if (0 == (i % 2))
 	    out << ' ' << (toPlay == SG_BLACK ? 'B' : 'W') << ' '
-		<< HexUctUtil::MoveString(move);
+		<< MoHexUtil::MoveString(move);
 	else
 	    out << ' ' << (toPlay == SG_WHITE ? 'B' : 'W') << ' '
-		<< HexUctUtil::MoveString(move);
+		<< MoHexUtil::MoveString(move);
 	bestValueChild.push_back(search.FindBestChild(*(bestValueChild[i])));
     }
     out << "\n";
@@ -59,7 +59,7 @@ void HexUctUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
             continue;
         float influence = search.InverseEval(child.Mean());
         SgPoint move = child.Move();
-        out << ' ' << HexUctUtil::MoveString(move) << ' ' 
+        out << ' ' << MoHexUtil::MoveString(move) << ' ' 
             << std::fixed << std::setprecision(2) << influence;
     }
     out << '\n'
@@ -70,26 +70,26 @@ void HexUctUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
         const SgUctNode& child = *it;
         size_t count = static_cast<size_t>(child.MoveCount());
 	numChildren++;
-	out << ' ' << HexUctUtil::MoveString(child.Move())
+	out << ' ' << MoHexUtil::MoveString(child.Move())
 	    << ' ' << count;
     }
     out << '\n';
     GoGuiGfxStatus(search, out);
 }
 
-int HexUctUtil::ComputeMaxNumMoves()
+int MoHexUtil::ComputeMaxNumMoves()
 {
     return FIRST_INVALID;
 }
 
-std::string HexUctUtil::MoveString(SgMove sgmove)
+std::string MoHexUtil::MoveString(SgMove sgmove)
 {
     HexPoint move = static_cast<HexPoint>(sgmove);
     BenzeneAssert(0 <= move && move < FIRST_INVALID);
     return HexPointUtil::ToString(move);
 }
 
-SgBlackWhite HexUctUtil::ToSgBlackWhite(HexColor c)
+SgBlackWhite MoHexUtil::ToSgBlackWhite(HexColor c)
 {
     if (c == BLACK)
 	return SG_BLACK;
@@ -120,7 +120,7 @@ void SaveNode(std::ostream& out, const SgUctTree& tree, const SgUctNode& node,
         HexPoint move = static_cast<HexPoint>(child.Move());
         if (child.HasRaveValue())
         {
-            out << '\n' << HexUctUtil::MoveString(move) << ' '
+            out << '\n' << MoHexUtil::MoveString(move) << ' '
                 << std::fixed << std::setprecision(2) << child.RaveValue()
                 << " (" << child.RaveCount() << ')';
         }
@@ -132,7 +132,7 @@ void SaveNode(std::ostream& out, const SgUctTree& tree, const SgUctNode& node,
         if (! child.HasMean())
             continue;
         HexPoint move = static_cast<HexPoint>(child.Move());
-        out << "[" << HexUctUtil::MoveString(move) << ':' 
+        out << "[" << MoHexUtil::MoveString(move) << ':' 
             << child.MoveCount() << '@' << child.Mean() << ']';
     }
     out << '\n';
@@ -145,7 +145,7 @@ void SaveNode(std::ostream& out, const SgUctTree& tree, const SgUctNode& node,
             continue;
         HexPoint move = static_cast<HexPoint>(child.Move());
         out << "(;" << (toPlay == BLACK ? 'B' : 'W') 
-            << '[' << HexUctUtil::MoveString(move) << ']';
+            << '[' << MoHexUtil::MoveString(move) << ']';
         SaveNode(out, tree, child, !toPlay, maxDepth, depth + 1);
         out << ")\n";
     }
@@ -153,8 +153,8 @@ void SaveNode(std::ostream& out, const SgUctTree& tree, const SgUctNode& node,
 
 }
 
-void HexUctUtil::SaveTree(const SgUctTree& tree, const StoneBoard& brd, 
-                     HexColor toPlay, std::ostream& out, int maxDepth)
+void MoHexUtil::SaveTree(const SgUctTree& tree, const StoneBoard& brd, 
+                         HexColor toPlay, std::ostream& out, int maxDepth)
 {
     out << "(;FF[4]GM[11]SZ[" << brd.Width() << "]\n";
     out << ";AB";

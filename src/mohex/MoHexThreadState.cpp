@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexUctState.cpp
+/** @file MoHexThreadState.cpp
 
     @note Use SG_ASSERT so that the assertion handler is used to dump
     the state of each thread when an assertion fails.
@@ -15,14 +15,13 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
-
 #include "SgException.h"
 #include "SgMove.h"
 
 #include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
-#include "HexUctPolicy.hpp"
-#include "HexUctUtil.hpp"
+#include "MoHexPlayoutPolicy.hpp"
+#include "MoHexUtil.hpp"
 #include "PatternState.hpp"
 #include "EndgameUtil.hpp"
 #include "SequenceHash.hpp"
@@ -92,25 +91,24 @@ HexPoint LastMoveFromHistory(const MoveSequence& history)
 
 //----------------------------------------------------------------------------
 
-HexUctState::AssertionHandler::AssertionHandler(const HexUctState& state)
+MoHexThreadState::AssertionHandler::AssertionHandler
+(const MoHexThreadState& state)
     : m_state(state)
 {
 }
 
-void HexUctState::AssertionHandler::Run()
+void MoHexThreadState::AssertionHandler::Run()
 {
     LogSevere() << m_state.Dump() << '\n';
 }
 
 //----------------------------------------------------------------------------
 
-HexUctState::HexUctState(const unsigned int threadId,
-			 HexUctSearch& sch,
-                         int treeUpdateRadius,
-                         int playoutUpdateRadius)
-    : SgUctThreadState(threadId, HexUctUtil::ComputeMaxNumMoves()),
+MoHexThreadState::MoHexThreadState(const unsigned int threadId,
+                                   MoHexSearch& sch, int treeUpdateRadius,
+                                   int playoutUpdateRadius)
+    : SgUctThreadState(threadId, MoHexUtil::ComputeMaxNumMoves()),
       m_assertionHandler(*this),
-
       m_state(0),
       m_vcBrd(0),
       m_policy(0),
@@ -123,26 +121,26 @@ HexUctState::HexUctState(const unsigned int threadId,
 {
 }
 
-HexUctState::~HexUctState()
+MoHexThreadState::~MoHexThreadState()
 {
 }
 
-void HexUctState::SetPolicy(HexUctSearchPolicy* policy)
+void MoHexThreadState::SetPolicy(MoHexSearchPolicy* policy)
 {
     m_policy.reset(policy);
 }
 
-std::string HexUctState::Dump() const
+std::string MoHexThreadState::Dump() const
 {
     std::ostringstream os;
-    os << "HexUctState[" << m_threadId << "] ";
+    os << "MoHexThreadState[" << m_threadId << "] ";
     if (m_isInPlayout) 
         os << "[playout] ";
     os << "board:" << m_state->Position();
     return os.str();
 }
 
-SgUctValue HexUctState::Evaluate()
+SgUctValue MoHexThreadState::Evaluate()
 {
     const StoneBoard& pos = m_state->Position();
     SG_ASSERT(GameOver(pos));
@@ -150,14 +148,14 @@ SgUctValue HexUctState::Evaluate()
     return score;
 }
 
-void HexUctState::Execute(SgMove sgmove)
+void MoHexThreadState::Execute(SgMove sgmove)
 {
     HexPoint move = static_cast<HexPoint>(sgmove);
     {
-        HexUctPolicy* blah = dynamic_cast<HexUctPolicy*>(m_policy.get());
-        if (!blah)
-            abort();
-        blah->AddResponse(m_state->ToPlay(), m_lastMovePlayed, move);
+        MoHexPlayoutPolicy* blah 
+            = dynamic_cast<MoHexPlayoutPolicy*>(m_policy.get());
+        if (blah)
+            blah->AddResponse(m_state->ToPlay(), m_lastMovePlayed, move);
     }
     m_gameSequence.push_back(Move(m_state->ToPlay(), move));
     ExecuteMove(move, m_treeUpdateRadius);
@@ -168,12 +166,12 @@ void HexUctState::Execute(SgMove sgmove)
     }
 }
 
-void HexUctState::ExecutePlayout(SgMove sgmove)
+void MoHexThreadState::ExecutePlayout(SgMove sgmove)
 {
     ExecuteMove(static_cast<HexPoint>(sgmove), m_playoutUpdateRadius);
 }
 
-void HexUctState::ExecuteMove(HexPoint cell, int updateRadius)
+void MoHexThreadState::ExecuteMove(HexPoint cell, int updateRadius)
 {
     // Lock-free mode: It is possible we are playing into a filled-in
     // cell during the in-tree phase. This can occur if the thread
@@ -197,7 +195,7 @@ void HexUctState::ExecuteMove(HexPoint cell, int updateRadius)
     m_atRoot = false;
 }
 
-bool HexUctState::GenerateAllMoves(SgUctValue count, 
+bool MoHexThreadState::GenerateAllMoves(SgUctValue count, 
                                    std::vector<SgUctMoveInfo>& moves,
                                    SgUctProvenType& provenType)
 {
@@ -246,7 +244,7 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
     return truncateChildTrees;
 }
 
-SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
+SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
 {
     skipRaveUpdate = false;
     if (GameOver(m_state->Position()))
@@ -257,7 +255,7 @@ SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
     return move;
 }
 
-void HexUctState::StartSearch()
+void MoHexThreadState::StartSearch()
 {
     LogInfo() << "StartSearch()[" << m_threadId <<"]\n";
     m_sharedData = &m_search.SharedData();
@@ -277,22 +275,22 @@ void HexUctState::StartSearch()
     m_policy->InitializeForSearch();
 }
 
-void HexUctState::TakeBackInTree(std::size_t nuMoves)
+void MoHexThreadState::TakeBackInTree(std::size_t nuMoves)
 {
     SG_UNUSED(nuMoves);
 }
 
-void HexUctState::TakeBackPlayout(std::size_t nuMoves)
+void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
 {
     SG_UNUSED(nuMoves);
 }
 
-SgBlackWhite HexUctState::ToPlay() const
+SgBlackWhite MoHexThreadState::ToPlay() const
 {
-    return HexUctUtil::ToSgBlackWhite(m_state->ToPlay());
+    return MoHexUtil::ToSgBlackWhite(m_state->ToPlay());
 }
 
-void HexUctState::GameStart()
+void MoHexThreadState::GameStart()
 {
     m_atRoot = true;
     m_isInPlayout = false;
@@ -303,7 +301,7 @@ void HexUctState::GameStart()
     m_pastate->Update();
 }
 
-void HexUctState::StartPlayouts()
+void MoHexThreadState::StartPlayouts()
 {
     m_isInPlayout = true;
     m_pastate->SetUpdateRadius(m_playoutUpdateRadius);
@@ -314,18 +312,18 @@ void HexUctState::StartPlayouts()
 	m_pastate->Update();
 }
 
-void HexUctState::StartPlayout()
+void MoHexThreadState::StartPlayout()
 {
-    m_policy->InitializeForRollout(m_state->Position());
+    m_policy->InitializeForPlayout(m_state->Position());
 }
 
-void HexUctState::EndPlayout()
+void MoHexThreadState::EndPlayout()
 {
 }
 
 /** Computes moves to consider and stores fillin in the shared
     data. */
-bitset_t HexUctState::ComputeKnowledge(SgUctProvenType& provenType)
+bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
 {
     m_vcBrd->GetPosition().SetPosition(m_state->Position());
     m_vcBrd->ComputeAll(m_state->ToPlay());

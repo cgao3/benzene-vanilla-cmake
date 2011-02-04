@@ -6,8 +6,8 @@
 #define MOHEXPLAYER_HPP
 
 #include "BenzenePlayer.hpp"
-#include "HexUctSearch.hpp"
-#include "HexUctPolicy.hpp"
+#include "MoHexSearch.hpp"
+#include "MoHexPlayoutPolicy.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -17,27 +17,24 @@ _BEGIN_BENZENE_NAMESPACE_
 class MoHexPlayer : public BenzenePlayer
 {
 public:
-
-    /** Constructor. */
     MoHexPlayer();
 
-    /** Destructor. */
     virtual ~MoHexPlayer();
 
     /** Returns "mohex". */
     std::string Name() const;
 
     /** Returns the search. */
-    HexUctSearch& Search();
+    MoHexSearch& Search();
 
     /** Returns the search. */
-    const HexUctSearch& Search() const;
+    const MoHexSearch& Search() const;
 
     /** Returns the shared policy. */
-    HexUctSharedPolicy& SharedPolicy();
+    MoHexSharedPolicy& SharedPolicy();
 
     /** Returns the shared policy. */
-    const HexUctSharedPolicy& SharedPolicy() const;
+    const MoHexSharedPolicy& SharedPolicy() const;
 
     /** Copy settings from other player. */
     void CopySettingsFrom(const MoHexPlayer& other);
@@ -91,10 +88,9 @@ public:
     // @}
 
 protected:
-
-    HexUctSharedPolicy m_shared_policy;
+    MoHexSharedPolicy m_shared_policy;
     
-    HexUctSearch m_search;
+    MoHexSearch m_search;
    
     bool m_backup_ice_info;
 
@@ -125,13 +121,13 @@ protected:
 
     void PrintParameters(HexColor color, double remaining);
     
-    SgUctTree* TryReuseSubtree(const HexUctSharedData& oldData,
-                               HexUctSharedData& newData);
+    SgUctTree* TryReuseSubtree(const MoHexSharedData& oldData,
+                               MoHexSharedData& newData);
 
     void CopyKnowledgeData(const SgUctTree& tree, const SgUctNode& node,
                            HexColor color, MoveSequence& sequence,
-                           const HexUctSharedData& oldData,
-                           HexUctSharedData& newData) const;
+                           const MoHexSharedData& oldData,
+                           MoHexSharedData& newData) const;
 };
 
 inline std::string MoHexPlayer::Name() const
@@ -139,22 +135,22 @@ inline std::string MoHexPlayer::Name() const
     return "mohex";
 }
 
-inline HexUctSearch& MoHexPlayer::Search()
+inline MoHexSearch& MoHexPlayer::Search()
 {
     return m_search;
 }
 
-inline const HexUctSearch& MoHexPlayer::Search() const
+inline const MoHexSearch& MoHexPlayer::Search() const
 {
     return m_search;
 }
 
-inline HexUctSharedPolicy& MoHexPlayer::SharedPolicy()
+inline MoHexSharedPolicy& MoHexPlayer::SharedPolicy()
 {
     return m_shared_policy;
 }
 
-inline const HexUctSharedPolicy& MoHexPlayer::SharedPolicy() const
+inline const MoHexSharedPolicy& MoHexPlayer::SharedPolicy() const
 {
     return m_shared_policy;
 }

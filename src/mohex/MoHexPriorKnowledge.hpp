@@ -1,36 +1,32 @@
 //----------------------------------------------------------------------------
-/** @file HexUctKnowledge.hpp
- */
+/** @file MoHexPriorKnowledge.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef HEXUCTKNOWLEDGE_HPP
-#define HEXUCTKNOWLEDGE_HPP
-
-//#include "SgSystem.h"
-//#include "SgUctSearch.h"
+#ifndef MOHEXPRIORKNOWLEDGE_HPP
+#define MOHEXPRIORKNOWLEDGE_HPP
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-class HexUctState;
+class MoHexThreadState;
 
 /** Applies knowledge to set of moves. */
-class HexUctKnowledge
+class MoHexPriorKnowledge
 {
 public:
-    HexUctKnowledge(const HexUctState& m_state);
+    MoHexPriorKnowledge(const MoHexThreadState& m_state);
 
-    ~HexUctKnowledge();
+    ~MoHexPriorKnowledge();
 
     void ProcessPosition(std::vector<SgUctMoveInfo>& moves);
     
 private:
-    const HexUctState& m_state;
+    const MoHexThreadState& m_state;
 };
 
 //----------------------------------------------------------------------------
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HEXUCTKNOWLEDGE_HPP
+#endif // MOHEXPRIORKNOWLEDGE_HPP

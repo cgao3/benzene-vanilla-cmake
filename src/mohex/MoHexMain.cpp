@@ -25,10 +25,10 @@ using namespace benzene;
     tree that have been visited more than a certain threshold number
     of times.
 
-    @section search Classes
+    @section classes Classes
     - MoHexEngine
     - MoHexPlayer
-    - HexUctSearch
+    - MoHexSearch
 
     @section htpcommands HTP Commands
     - @ref hexhtpenginecommands

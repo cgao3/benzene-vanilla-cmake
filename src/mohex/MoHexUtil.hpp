@@ -1,9 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file HexUctUtil.hpp */
+/** @file MoHexUtil.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef HEXUCTUTIL_H
-#define HEXUCTUTIL_H
+#ifndef MOHEXUTIL_HPP
+#define MOHEXUTIL_HPP
 
 #include "SgBlackWhite.h"
 #include "SgPoint.h"
@@ -18,7 +18,7 @@ _BEGIN_BENZENE_NAMESPACE_
 /** General utility functions used in GoUct.
     These functions are used in GoUct, but should not depend on other classes
     in GoUct to avoid cyclic dependencies. */
-namespace HexUctUtil
+namespace MoHexUtil
 {
     /** Print information about search as Gfx commands for GoGui.
         Can be used for GoGui live graphics during the search or GoGui
@@ -63,5 +63,5 @@ namespace HexUctUtil
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HEXUCTUTIL_H
+#endif // HEXUCTUTIL_HPP
 

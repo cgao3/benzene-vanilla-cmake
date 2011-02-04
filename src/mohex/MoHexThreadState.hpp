@@ -1,9 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file HexUctState.hpp */
+/** @file MoHexThreadState.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef HEXUCTSTATE_HPP
-#define HEXUCTSTATE_HPP
+#ifndef MOHEXTHREADSTATE_HPP
+#define MOHEXTHREADSTATE_HPP
 
 #include "SgBlackWhite.h"
 #include "SgPoint.h"
@@ -12,7 +12,7 @@
 #include "HashMap.hpp"
 #include "HexBoard.hpp"
 #include "HexState.hpp"
-#include "HexUctKnowledge.hpp"
+#include "MoHexPriorKnowledge.hpp"
 #include "Move.hpp"
 #include "VC.hpp"
 
@@ -20,12 +20,12 @@
 
 _BEGIN_BENZENE_NAMESPACE_
 
-class HexUctSearch;
+class MoHexSearch;
 
 //----------------------------------------------------------------------------
 
 /** Data shared among all threads. */
-struct HexUctSharedData
+struct MoHexSharedData
 {
     /** Moves from begining of game leading to this position. */
     MoveSequence gameSequence;
@@ -39,10 +39,10 @@ struct HexUctSharedData
     /** Stores fillin information for states in the tree. */
     HashMap<StoneBoard> stones;
 
-    explicit HexUctSharedData(int fillinMapBits);
+    explicit MoHexSharedData(int fillinMapBits);
 };
 
-inline HexUctSharedData::HexUctSharedData(int fillinMapBits)
+inline MoHexSharedData::MoHexSharedData(int fillinMapBits)
     : stones(fillinMapBits)
 { 
 }
@@ -50,26 +50,26 @@ inline HexUctSharedData::HexUctSharedData(int fillinMapBits)
 //----------------------------------------------------------------------------
 
 /** Interface for policies controlling move generation in the random
-    play-out phase of HexUctSearch. */
-class HexUctSearchPolicy
+    play-out phase of MoHexSearch. */
+class MoHexSearchPolicy
 {
 public:
-    virtual ~HexUctSearchPolicy() { };
+    virtual ~MoHexSearchPolicy() { };
 
-    /** Generate a move in the random play-out phase of
-        HexUctSearch. */
+    /** Generates a move in the random playout phase of
+        MoHexSearch. */
     virtual HexPoint GenerateMove(PatternState& pastate, HexColor color, 
                                   HexPoint lastMove) = 0;
 
-    virtual void InitializeForRollout(const StoneBoard& brd) = 0;
+    virtual void InitializeForPlayout(const StoneBoard& brd) = 0;
 
     virtual void InitializeForSearch() = 0;
 };
 
 //----------------------------------------------------------------------------
 
-/** Thread state for HexUctSearch. */
-class HexUctState : public SgUctThreadState
+/** Thread state for MoHexSearch. */
+class MoHexThreadState : public SgUctThreadState
 {
 public: 
     /** Constructor.
@@ -79,10 +79,10 @@ public:
         @param treeUpdateRadius Pattern matching radius in tree.
         @param playoutUpdateRadius Pattern matching radius in playouts.
     */
-    HexUctState(const unsigned int threadId, HexUctSearch& sch,
+    MoHexThreadState(const unsigned int threadId, MoHexSearch& sch,
                 int treeUpdateRadius, int playoutUpdateRadius);
 
-    virtual ~HexUctState();
+    virtual ~MoHexThreadState();
 
     //-----------------------------------------------------------------------
 
@@ -131,7 +131,7 @@ public:
 
     const PatternState& GetPatternState() const;
 
-    HexUctSearchPolicy* Policy();
+    MoHexSearchPolicy* Policy();
 
     bool IsInPlayout() const;
 
@@ -139,24 +139,24 @@ public:
 
     /** Sets policy (takes control of pointer) and deletes the old
         one, if it existed. */
-    void SetPolicy(HexUctSearchPolicy* policy);
+    void SetPolicy(MoHexSearchPolicy* policy);
     
     HexPoint GetLastMovePlayed() const;
 
     HexColor GetColorToPlay() const;
 
 private:
-    /** Assertion handler to dump the state of a HexUctState. */
+    /** Assertion handler to dump the state of a MoHexThreadState. */
     class AssertionHandler
         : public SgAssertionHandler
     {
     public:
-        AssertionHandler(const HexUctState& state);
+        AssertionHandler(const MoHexThreadState& state);
 
         void Run();
 
     private:
-        const HexUctState& m_state;
+        const MoHexThreadState& m_state;
     };
 
     AssertionHandler m_assertionHandler;
@@ -170,20 +170,20 @@ private:
     boost::scoped_ptr<HexBoard> m_vcBrd;
 
     /** Playout policy. */
-    boost::scoped_ptr<HexUctSearchPolicy> m_policy;
+    boost::scoped_ptr<MoHexSearchPolicy> m_policy;
 
     /** Data shared between threads. */
-    HexUctSharedData* m_sharedData;
+    MoHexSharedData* m_sharedData;
 
-    HexUctKnowledge m_knowledge;
+    MoHexPriorKnowledge m_knowledge;
 
     /** Parent search object. */
-    HexUctSearch& m_search;
+    MoHexSearch& m_search;
    
-    /** See HexUctSearch::TreeUpdateRadius() */
+    /** See MoHexSearch::TreeUpdateRadius() */
     int m_treeUpdateRadius;
 
-    /** See HexUctSearch::PlayoutUpdateRadius() */
+    /** See MoHexSearch::PlayoutUpdateRadius() */
     int m_playoutUpdateRadius;
 
     /** True if in playout phase. */
@@ -194,7 +194,7 @@ private:
 
     /** Keeps track of last playout move made.
 	Used for pattern-generated rollouts when call
-	HexUctSearchPolicy. */
+	MoHexSearchPolicy. */
     HexPoint m_lastMovePlayed;
 
     /** True at the start of a game until the first move is played. */
@@ -205,32 +205,32 @@ private:
     void ExecuteMove(HexPoint cell, int updateRadius);
 };
 
-inline const StoneBoard& HexUctState::Board() const
+inline const StoneBoard& MoHexThreadState::Board() const
 {
     return m_state->Position();
 }
 
-inline const PatternState& HexUctState::GetPatternState() const
+inline const PatternState& MoHexThreadState::GetPatternState() const
 {
     return *m_pastate;
 }
 
-inline HexUctSearchPolicy* HexUctState::Policy()
+inline MoHexSearchPolicy* MoHexThreadState::Policy()
 {
     return m_policy.get();
 }
 
-inline bool HexUctState::IsInPlayout() const
+inline bool MoHexThreadState::IsInPlayout() const
 {
     return m_isInPlayout;
 }
 
-inline HexPoint HexUctState::GetLastMovePlayed() const
+inline HexPoint MoHexThreadState::GetLastMovePlayed() const
 {
     return m_lastMovePlayed;
 }
 
-inline HexColor HexUctState::GetColorToPlay() const
+inline HexColor MoHexThreadState::GetColorToPlay() const
 {
     return m_state->ToPlay();
 }
@@ -239,4 +239,4 @@ inline HexColor HexUctState::GetColorToPlay() const
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HEXUCTSTATE_HPP
+#endif // MOHEXTHREADSTATE_HPP

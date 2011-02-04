@@ -1,9 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file HexUctPolicy.cpp */
+/** @file MoHexPlayoutPolicy.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
-#include "HexUctPolicy.hpp"
+#include "MoHexPlayoutPolicy.hpp"
 #include "Misc.hpp"
 #include "PatternState.hpp"
 
@@ -42,35 +42,35 @@ bool PercentChance(int percent, SgRandom& random)
 
 //----------------------------------------------------------------------------
 
-HexUctSharedPolicy::HexUctSharedPolicy()
+MoHexSharedPolicy::MoHexSharedPolicy()
     : m_config()
 {
     LoadPatterns();
 }
 
-HexUctSharedPolicy::~HexUctSharedPolicy()
+MoHexSharedPolicy::~MoHexSharedPolicy()
 {
 }
 
-void HexUctSharedPolicy::LoadPatterns()
+void MoHexSharedPolicy::LoadPatterns()
 {
     LoadPlayPatterns();
 }
 
-void HexUctSharedPolicy::LoadPlayPatterns()
+void MoHexSharedPolicy::LoadPlayPatterns()
 {
     std::ifstream inFile;
     try {
         std::string file = MiscUtil::OpenFile("mohex-patterns.txt", inFile);
-        LogConfig() << "HexUctSharedPolicy: reading patterns from '" 
+        LogConfig() << "MoHexSharedPolicy: reading patterns from '" 
                     << file << "'.\n";
     }
     catch (BenzeneException& e) {
-        throw BenzeneException() << "HexUctSharedPolicy: " << e.what();
+        throw BenzeneException() << "MoHexSharedPolicy: " << e.what();
     }
     std::vector<Pattern> patterns;
     Pattern::LoadPatternsFromStream(inFile, patterns);
-    LogConfig() << "HexUctSharedPolicy: parsed " << patterns.size() 
+    LogConfig() << "MoHexSharedPolicy: parsed " << patterns.size() 
                 << " patterns.\n";
     BenzeneAssert(m_patterns[BLACK].empty()); // Can only load patterns once!
     for (std::size_t i = 0; i < patterns.size(); ++i) 
@@ -85,7 +85,7 @@ void HexUctSharedPolicy::LoadPlayPatterns()
             break;
         default:
             throw BenzeneException() 
-                  << "HexUctSharedPolicy: unknown pattern type '" 
+                  << "MoHexSharedPolicy: unknown pattern type '" 
                   << p.GetType() << "'\n";
         }
     }
@@ -95,7 +95,7 @@ void HexUctSharedPolicy::LoadPlayPatterns()
 
 //----------------------------------------------------------------------------
 
-HexUctPolicy::HexUctPolicy(const HexUctSharedPolicy* shared)
+MoHexPlayoutPolicy::MoHexPlayoutPolicy(const MoHexSharedPolicy* shared)
     : m_shared(shared)
 #if COLLECT_PATTERN_STATISTICS
     , m_statistics()
@@ -103,14 +103,14 @@ HexUctPolicy::HexUctPolicy(const HexUctSharedPolicy* shared)
 {
 }
 
-HexUctPolicy::~HexUctPolicy()
+MoHexPlayoutPolicy::~MoHexPlayoutPolicy()
 {
 }
 
 //----------------------------------------------------------------------------
 
 /** @todo Pass initial tree and initialize off of that? */
-void HexUctPolicy::InitializeForSearch()
+void MoHexPlayoutPolicy::InitializeForSearch()
 {
     for (int i = 0; i < BITSETSIZE; ++i)
     {
@@ -119,20 +119,20 @@ void HexUctPolicy::InitializeForSearch()
     }
 }
 
-void HexUctPolicy::InitializeForRollout(const StoneBoard& brd)
+void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
     BitsetUtil::BitsetToVector(brd.GetEmpty(), m_moves);
     ShuffleVector(m_moves, m_random);
 }
 
-HexPoint HexUctPolicy::GenerateMove(PatternState& pastate, HexColor toPlay, 
-                                    HexPoint lastMove)
+HexPoint MoHexPlayoutPolicy::GenerateMove(PatternState& pastate, 
+                                          HexColor toPlay, HexPoint lastMove)
 {
     HexPoint move = INVALID_POINT;
     bool pattern_move = false;
-    const HexUctPolicyConfig& config = m_shared->Config();
+    const MoHexPlayoutPolicyConfig& config = m_shared->Config();
 #if COLLECT_PATTERN_STATISTICS
-    HexUctPolicyStatistics& stats = m_statistics;
+    MoHexPlayoutPolicyStatistics& stats = m_statistics;
 #endif
     // Patterns applied probabilistically (if heuristic is turned on)
     if (config.patternHeuristic 
@@ -168,7 +168,7 @@ HexPoint HexUctPolicy::GenerateMove(PatternState& pastate, HexColor toPlay,
 }
 
 #if COLLECT_PATTERN_STATISTICS
-std::string HexUctPolicy::DumpStatistics()
+std::string MoHexPlayoutPolicy::DumpStatistics()
 {
     std::ostringstream os;
     os << '\n'
@@ -179,7 +179,7 @@ std::string HexUctPolicy::DumpStatistics()
        << std::setw(10) << "Black" << ' '
        << std::setw(10) << "White" << '\n'
        << "     ------------------------------------------------------\n";
-    HexUctPolicyStatistics stats = Statistics();
+    MoHexPlayoutPolicyStatistics stats = Statistics();
     const PatternSet& blackPat = m_shared->PlayPatterns(BLACK);
     const PatternSet& whitePat = m_shared->PlayPatterns(WHITE);
     for (std::size_t i = 0; i < blackPat.size(); ++i) 
@@ -209,8 +209,9 @@ std::string HexUctPolicy::DumpStatistics()
 
 //--------------------------------------------------------------------------
 
-HexPoint HexUctPolicy::GenerateResponseMove(HexColor toPlay, HexPoint lastMove,
-                                            const StoneBoard& brd)
+HexPoint MoHexPlayoutPolicy::GenerateResponseMove(HexColor toPlay, 
+                                                  HexPoint lastMove,
+                                                  const StoneBoard& brd)
 {
     std::size_t num = m_response[toPlay][lastMove].size();
     if (num > m_shared->Config().responseThreshold)
@@ -223,7 +224,7 @@ HexPoint HexUctPolicy::GenerateResponseMove(HexColor toPlay, HexPoint lastMove,
 }
 
 /** Selects random move among the empty cells on the board. */
-HexPoint HexUctPolicy::GenerateRandomMove(const StoneBoard& brd)
+HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const StoneBoard& brd)
 {
     HexPoint ret = INVALID_POINT;
     while (true) 
@@ -240,7 +241,7 @@ HexPoint HexUctPolicy::GenerateRandomMove(const StoneBoard& brd)
 /** Randomly picks a pattern move from the set of patterns that hit
     the last move, weighted by the pattern's weight. 
     If no pattern matches, returns INVALID_POINT. */
-HexPoint HexUctPolicy::PickRandomPatternMove(const PatternState& pastate, 
+HexPoint MoHexPlayoutPolicy::PickRandomPatternMove(const PatternState& pastate, 
                                              const HashedPatternSet& patterns, 
                                              HexColor toPlay, HexPoint lastMove)
 {
@@ -277,7 +278,7 @@ HexPoint HexUctPolicy::PickRandomPatternMove(const PatternState& pastate,
 }
 
 /** Uses PickRandomPatternMove() with the shared PlayPatterns(). */
-HexPoint HexUctPolicy::GeneratePatternMove(const PatternState& pastate, 
+HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const PatternState& pastate, 
                                            HexColor toPlay, HexPoint lastMove)
 {
     return PickRandomPatternMove(pastate, m_shared->HashedPlayPatterns(toPlay),

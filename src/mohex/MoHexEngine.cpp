@@ -152,7 +152,7 @@ HexPoint MoHexEngine::DoSearch(HexColor color, double maxTime)
 
 void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
 {
-    HexUctPolicyConfig& config = m_player.SharedPolicy().Config();
+    MoHexPlayoutPolicyConfig& config = m_player.SharedPolicy().Config();
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
@@ -185,8 +185,7 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
 
 void MoHexEngine::MoHexParam(HtpCommand& cmd)
 {
-    HexUctSearch& search = m_player.Search();
-
+    MoHexSearch& search = m_player.Search();
     if (cmd.NuArg() == 0) 
     {
         cmd << '\n'
@@ -333,7 +332,7 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
 */
 void MoHexEngine::SaveTree(HtpCommand& cmd)
 {
-    HexUctSearch& search = m_player.Search();
+    MoHexSearch& search = m_player.Search();
 
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
@@ -349,7 +348,7 @@ void MoHexEngine::SaveTree(HtpCommand& cmd)
 /** Saves games from last search to a SGF. */
 void MoHexEngine::SaveGames(HtpCommand& cmd)
 {
-    HexUctSearch& search = m_player.Search();
+    MoHexSearch& search = m_player.Search();
     cmd.CheckNuArg(1);
     std::string filename = cmd.Arg(0);
     search.SaveGames(filename);
@@ -357,7 +356,7 @@ void MoHexEngine::SaveGames(HtpCommand& cmd)
 
 void MoHexEngine::Values(HtpCommand& cmd)
 {
-    HexUctSearch& search = m_player.Search();
+    MoHexSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
     for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
     {
@@ -375,7 +374,7 @@ void MoHexEngine::Values(HtpCommand& cmd)
 
 void MoHexEngine::RaveValues(HtpCommand& cmd)
 {
-    HexUctSearch& search = m_player.Search();
+    MoHexSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
     for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
     {
@@ -390,7 +389,7 @@ void MoHexEngine::RaveValues(HtpCommand& cmd)
 
 void MoHexEngine::Bounds(HtpCommand& cmd)
 {
-    HexUctSearch& search = m_player.Search();
+    MoHexSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
     for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
     {

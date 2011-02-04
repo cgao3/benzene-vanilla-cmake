@@ -9,10 +9,10 @@
 #include "BitsetIterator.hpp"
 #include "BoardUtil.hpp"
 #include "VCSet.hpp"
-#include "HexUctUtil.hpp"
-#include "HexUctKnowledge.hpp"
-#include "HexUctSearch.hpp"
-#include "HexUctPolicy.hpp"
+#include "MoHexUtil.hpp"
+#include "MoHexPriorKnowledge.hpp"
+#include "MoHexSearch.hpp"
+#include "MoHexPlayoutPolicy.hpp"
 #include "MoHexPlayer.hpp"
 #include "EndgameUtil.hpp"
 #include "Resistance.hpp"
@@ -56,7 +56,7 @@ MoHexPlayer::MoHexPlayer()
     : BenzenePlayer(),
       m_shared_policy(),
       m_search(new HexThreadStateFactory(&m_shared_policy), 
-               HexUctUtil::ComputeMaxNumMoves()),
+               MoHexUtil::ComputeMaxNumMoves()),
       m_backup_ice_info(true),
       m_max_games(99999999),
       m_max_time(10),
@@ -128,7 +128,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     maxTime = std::max(1.0, maxTime);
         
     // Create the initial state data
-    HexUctSharedData data(m_search.FillinMapBits());
+    MoHexSharedData data(m_search.FillinMapBits());
     data.gameSequence = game.History();
     data.rootState = HexState(brd.GetPosition(), color);
     data.rootConsider = consider;
@@ -137,7 +137,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     SgUctTree* initTree = 0;
     if (m_reuse_subtree)
     {
-        HexUctSharedData oldData(m_search.SharedData());
+        MoHexSharedData oldData(m_search.SharedData());
         initTree = TryReuseSubtree(oldData, data);
         if (!initTree)
             LogInfo() << "No subtree to reuse.\n";
@@ -162,9 +162,9 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     os << '\n';
 #if COLLECT_PATTERN_STATISTICS
     {
-        HexUctState& thread0 
-            = dynamic_cast<HexUctState&>(m_search.ThreadState(0));
-        HexUctPolicy* policy = dynamic_cast<HexUctPolicy*>(thread0.Policy());
+        MoHexState& thread0 
+            = dynamic_cast<MoHexState&>(m_search.ThreadState(0));
+        MoHexPolicy* policy = dynamic_cast<MoHexPolicy*>(thread0.Policy());
         if (policy)
             os << policy->DumpStatistics() << '\n';
     }
@@ -174,7 +174,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     os << "Score          " << std::setprecision(2) << score << "\n"
        << "Sequence      ";
     for (std::size_t i = 0; i < sequence.size(); i++)
-        os << " " << HexUctUtil::MoveString(sequence[i]);
+        os << " " << MoHexUtil::MoveString(sequence[i]);
     os << '\n';
     LogInfo() << os.str() << '\n';
 
@@ -187,15 +187,15 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     }
 #endif
 
-    // Return move recommended by HexUctSearch
+    // Return move recommended by MoHexSearch
     if (sequence.size() > 0) 
         return static_cast<HexPoint>(sequence[0]);
 
-    // It is possible that HexUctSearch did only 1 simulation (probably
+    // It is possible that MoHexSearch did only 1 simulation (probably
     // because it ran out of time to do more); in this case, the move
     // sequence is empty and so we give a warning and return a random
     // move.
-    LogWarning() << "**** HexUctSearch returned empty sequence!\n"
+    LogWarning() << "**** MoHexSearch returned empty sequence!\n"
 		 << "**** Returning random move!\n";
     return BoardUtil::RandomEmptyCell(brd.GetPosition());
 }
@@ -303,8 +303,8 @@ void MoHexPlayer::PrintParameters(HexColor color, double timeForMove)
 
 /** Extracts relevant portion of old tree for use in upcoming search.
     Returns valid pointer to new tree on success, 0 on failure. */
-SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
-                                        HexUctSharedData& newData)
+SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
+                                        MoHexSharedData& newData)
 {
     // Must have knowledge on to reuse subtrees, since root has fillin
     // knowledge which affects the tree below.
@@ -418,8 +418,8 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
 void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
                                     const SgUctNode& node,
                                     HexColor color, MoveSequence& sequence,
-                                    const HexUctSharedData& oldData,
-                                    HexUctSharedData& newData) const
+                                    const MoHexSharedData& oldData,
+                                    MoHexSharedData& newData) const
 {
     // This check will fail in the root if we are reusing the
     // entire tree, so only do it when not in the root.

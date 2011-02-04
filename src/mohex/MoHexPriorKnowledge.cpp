@@ -1,25 +1,25 @@
 //----------------------------------------------------------------------------
-/** @file HexUctKnowledge.cpp */
+/** @file MoHexPriorKnowledge.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
-#include "HexUctState.hpp"
-#include "HexUctKnowledge.hpp"
+#include "MoHexThreadState.hpp"
+#include "MoHexPriorKnowledge.hpp"
 
 using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-HexUctKnowledge::HexUctKnowledge(const HexUctState& state) 
+MoHexPriorKnowledge::MoHexPriorKnowledge(const MoHexThreadState& state) 
     : m_state(state)
 {
 }
 
-HexUctKnowledge::~HexUctKnowledge()
+MoHexPriorKnowledge::~MoHexPriorKnowledge()
 {
 }
 
-void HexUctKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
+void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
 {
     SG_UNUSED(moves);
 }

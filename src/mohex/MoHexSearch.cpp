@@ -1,9 +1,8 @@
 //----------------------------------------------------------------------------
-/** @file HexUctSearch.cpp */
+/** @file MoHexSearch.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
-
 #include "SgException.h"
 #include "SgNode.h"
 #include "SgMove.h"
@@ -11,17 +10,17 @@
 #include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "HexSgUtil.hpp"
-#include "HexUctPolicy.hpp"
-#include "HexUctSearch.hpp"
-#include "HexUctState.hpp"
-#include "HexUctUtil.hpp"
+#include "MoHexPlayoutPolicy.hpp"
+#include "MoHexSearch.hpp"
+#include "MoHexThreadState.hpp"
+#include "MoHexUtil.hpp"
 #include "PatternState.hpp"
 
 using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-HexThreadStateFactory::HexThreadStateFactory(HexUctSharedPolicy* shared)
+HexThreadStateFactory::HexThreadStateFactory(MoHexSharedPolicy* shared)
     : m_shared_policy(shared)
 {
 }
@@ -34,18 +33,18 @@ SgUctThreadState*
 HexThreadStateFactory::Create(unsigned int threadId, const SgUctSearch& search)
 {
     SgUctSearch& srch = const_cast<SgUctSearch&>(search);
-    HexUctSearch& hexSearch = dynamic_cast<HexUctSearch&>(srch);
+    MoHexSearch& hexSearch = dynamic_cast<MoHexSearch&>(srch);
     LogInfo() << "Creating thread " << threadId << '\n';
-    HexUctState* state = new HexUctState(threadId, hexSearch,
+    MoHexThreadState* state = new MoHexThreadState(threadId, hexSearch,
                                          hexSearch.TreeUpdateRadius(),
                                          hexSearch.PlayoutUpdateRadius());
-    state->SetPolicy(new HexUctPolicy(m_shared_policy));
+    state->SetPolicy(new MoHexPlayoutPolicy(m_shared_policy));
     return state;
 }
 
 //----------------------------------------------------------------------------
 
-HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
+MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     : SgUctSearch(factory, maxMoves),
       m_keepGames(false),
       m_liveGfx(false),
@@ -54,7 +53,7 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
       m_playoutUpdateRadius(1),
       m_brd(0),
       m_fillinMapBits(16),
-      m_sharedData(new HexUctSharedData(m_fillinMapBits)),
+      m_sharedData(new MoHexSharedData(m_fillinMapBits)),
       m_root(0)
 {
     SetBiasTermConstant(0.0);
@@ -74,7 +73,7 @@ HexUctSearch::HexUctSearch(SgUctThreadStateFactory* factory, int maxMoves)
     SetRaveWeightFinal(20000.0);
 }
 
-HexUctSearch::~HexUctSearch()
+MoHexSearch::~MoHexSearch()
 {
     if (m_root != 0)
         m_root->DeleteTree();
@@ -82,7 +81,7 @@ HexUctSearch::~HexUctSearch()
 }
 
 /** Merges last game into the tree of games. */
-void HexUctSearch::AppendGame(const std::vector<SgMove>& sequence)
+void MoHexSearch::AppendGame(const std::vector<SgMove>& sequence)
 {
     BenzeneAssert(m_root != 0);
     SgNode* node = m_root->RightMostSon();
@@ -125,7 +124,7 @@ void HexUctSearch::AppendGame(const std::vector<SgMove>& sequence)
     }
 }
 
-void HexUctSearch::OnStartSearch()
+void MoHexSearch::OnStartSearch()
 {
     BenzeneAssert(m_brd);
     if (m_root != 0)
@@ -146,22 +145,22 @@ void HexUctSearch::OnStartSearch()
     m_nextLiveGfx = m_liveGfxInterval;
 }
 
-void HexUctSearch::SaveGames(const std::string& filename) const
+void MoHexSearch::SaveGames(const std::string& filename) const
 {
     if (m_root == 0)
         throw SgException("No games to save");
     HexSgUtil::WriteSgf(m_root, filename.c_str(), m_brd->Height()); 
 }
 
-void HexUctSearch::SaveTree(std::ostream& out, int maxDepth) const
+void MoHexSearch::SaveTree(std::ostream& out, int maxDepth) const
 {
-    HexUctUtil::SaveTree(Tree(), m_lastPositionSearched, 
-                         m_sharedData->rootState.ToPlay(), out, maxDepth);
+    MoHexUtil::SaveTree(Tree(), m_lastPositionSearched, 
+                        m_sharedData->rootState.ToPlay(), out, maxDepth);
 }
 
-void HexUctSearch::OnSearchIteration(SgUctValue gameNumber, 
-                                     const unsigned int threadId,
-                                     const SgUctGameInfo& info)
+void MoHexSearch::OnSearchIteration(SgUctValue gameNumber, 
+                                    const unsigned int threadId,
+                                    const SgUctGameInfo& info)
 {
     SgUctSearch::OnSearchIteration(gameNumber, threadId, info);
     if (m_liveGfx && threadId == 0 && gameNumber > m_nextLiveGfx)
@@ -171,9 +170,9 @@ void HexUctSearch::OnSearchIteration(SgUctValue gameNumber,
         os << "gogui-gfx:\n";
         os << "uct\n";
         HexColor initial_toPlay = m_sharedData->rootState.ToPlay();
-        HexUctUtil::GoGuiGfx(*this, 
-                             HexUctUtil::ToSgBlackWhite(initial_toPlay),
-			     os);
+        MoHexUtil::GoGuiGfx(*this, 
+                            MoHexUtil::ToSgBlackWhite(initial_toPlay),
+                            os);
         os << "\n";
         std::cout << os.str();
         std::cout.flush();
@@ -186,19 +185,19 @@ void HexUctSearch::OnSearchIteration(SgUctValue gameNumber,
     }
 }
 
-SgUctValue HexUctSearch::UnknownEval() const
+SgUctValue MoHexSearch::UnknownEval() const
 {
     // Note: 0.5 is not a possible value for a Bernoulli variable, better
     // use 0?
     return 0.5;
 }
 
-SgUctValue HexUctSearch::InverseEval(SgUctValue eval) const
+SgUctValue MoHexSearch::InverseEval(SgUctValue eval) const
 {
     return (1 - eval);
 }
 
-std::string HexUctSearch::MoveString(SgMove move) const
+std::string MoHexSearch::MoveString(SgMove move) const
 {
     return HexPointUtil::ToString(static_cast<HexPoint>(move));
 }

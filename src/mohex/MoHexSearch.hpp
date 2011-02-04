@@ -1,52 +1,52 @@
 //----------------------------------------------------------------------------
-/** @file HexUctSearch.hpp */
+/** @file MoHexSearch.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef HEXUCTSEARCH_H
-#define HEXUCTSEARCH_H
+#ifndef MOHEXSEARCH_H
+#define MOHEXSEARCH_H
 
 #include "SgBlackWhite.h"
 #include "SgPoint.h"
 #include "SgNode.h"
 #include "SgUctSearch.h"
 
-#include "HexUctState.hpp"
+#include "MoHexThreadState.hpp"
 #include "PatternState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-class HexUctSharedPolicy;
+class MoHexSharedPolicy;
 
 /** Creates threads. */
 class HexThreadStateFactory : public SgUctThreadStateFactory
 {
 public:
-    HexThreadStateFactory(HexUctSharedPolicy* shared_policy);
+    HexThreadStateFactory(MoHexSharedPolicy* shared_policy);
 
     ~HexThreadStateFactory();
 
     SgUctThreadState* Create(unsigned int threadId, const SgUctSearch& search);
 private:
 
-    HexUctSharedPolicy* m_shared_policy;
+    MoHexSharedPolicy* m_shared_policy;
 };
 
 //----------------------------------------------------------------------------
 
 /** Monte-Carlo search using UCT for Hex. */
-class HexUctSearch : public SgUctSearch
+class MoHexSearch : public SgUctSearch
 {
 public:
     /** Constructor.
-        @param factory Creates HexUctState instances for each thread.
+        @param factory Creates MoHexState instances for each thread.
         @param maxMoves Maximum move number.
     */
-    HexUctSearch(SgUctThreadStateFactory* factory,
-                 int maxMoves = 0);
+    MoHexSearch(SgUctThreadStateFactory* factory,
+                int maxMoves = 0);
     
-    ~HexUctSearch();    
+    ~MoHexSearch();    
 
     //-----------------------------------------------------------------------
     
@@ -84,11 +84,11 @@ public:
 
     const HexBoard& Board() const;
 
-    void SetSharedData(HexUctSharedData& data);
+    void SetSharedData(MoHexSharedData& data);
 
-    HexUctSharedData& SharedData();
+    MoHexSharedData& SharedData();
 
-    const HexUctSharedData& SharedData() const;
+    const MoHexSharedData& SharedData() const;
 
     /** @see SetKeepGames()
         @throws SgException if KeepGames() was false at last invocation of
@@ -97,7 +97,7 @@ public:
 
     void AppendGame(const std::vector<SgMove>& sequence);
 
-    /** @see HexUctUtil::SaveTree() */
+    /** @see MoHexUtil::SaveTree() */
     void SaveTree(std::ostream& out, int maxDepth) const;
 
     // @}
@@ -174,7 +174,7 @@ private:
     int m_fillinMapBits;
    
     /** Data among threads. */
-    boost::scoped_ptr<HexUctSharedData> m_sharedData;
+    boost::scoped_ptr<MoHexSharedData> m_sharedData;
 
     StoneBoard m_lastPositionSearched;
 
@@ -185,99 +185,99 @@ private:
     SgUctValue m_nextLiveGfx;
 
     /** Not implemented */
-    HexUctSearch(const HexUctSearch& search);
+    MoHexSearch(const MoHexSearch& search);
 
     /** Not implemented */
-    HexUctSearch& operator=(const HexUctSearch& search);
+    MoHexSearch& operator=(const MoHexSearch& search);
 };
 
-inline void HexUctSearch::SetBoard(HexBoard& board)
+inline void MoHexSearch::SetBoard(HexBoard& board)
 {
     m_brd = &board;
 }
 
-inline HexBoard& HexUctSearch::Board()
+inline HexBoard& MoHexSearch::Board()
 {
     return *m_brd;
 }
 
-inline const HexBoard& HexUctSearch::Board() const
+inline const HexBoard& MoHexSearch::Board() const
 {
     return *m_brd;
 }
 
-inline bool HexUctSearch::KeepGames() const
+inline bool MoHexSearch::KeepGames() const
 {
     return m_keepGames;
 }
 
-inline bool HexUctSearch::LiveGfx() const
+inline bool MoHexSearch::LiveGfx() const
 {
     return m_liveGfx;
 }
 
-inline int HexUctSearch::LiveGfxInterval() const
+inline int MoHexSearch::LiveGfxInterval() const
 {
     return m_liveGfxInterval;
 }
 
-inline void HexUctSearch::SetKeepGames(bool enable)
+inline void MoHexSearch::SetKeepGames(bool enable)
 {
     m_keepGames = enable;
 }
 
-inline void HexUctSearch::SetLiveGfx(bool enable)
+inline void MoHexSearch::SetLiveGfx(bool enable)
 {
     m_liveGfx = enable;
 }
 
-inline void HexUctSearch::SetLiveGfxInterval(int interval)
+inline void MoHexSearch::SetLiveGfxInterval(int interval)
 {
     SG_ASSERT(interval > 0);
     m_liveGfxInterval = interval;
 }
 
-inline int HexUctSearch::TreeUpdateRadius() const
+inline int MoHexSearch::TreeUpdateRadius() const
 {
     return m_treeUpdateRadius;
 }
 
-inline void HexUctSearch::SetTreeUpdateRadius(int radius)
+inline void MoHexSearch::SetTreeUpdateRadius(int radius)
 {
     m_treeUpdateRadius = radius;
 }
     
-inline int HexUctSearch::PlayoutUpdateRadius() const
+inline int MoHexSearch::PlayoutUpdateRadius() const
 {
     return m_playoutUpdateRadius;
 }
     
-inline void HexUctSearch::SetPlayoutUpdateRadius(int radius)
+inline void MoHexSearch::SetPlayoutUpdateRadius(int radius)
 {
     m_playoutUpdateRadius = radius;
 }
 
-inline void HexUctSearch::SetSharedData(HexUctSharedData& data)
+inline void MoHexSearch::SetSharedData(MoHexSharedData& data)
 {
-    m_sharedData.reset(new HexUctSharedData(data));
+    m_sharedData.reset(new MoHexSharedData(data));
 }
 
-inline HexUctSharedData& HexUctSearch::SharedData()
-{
-    return *m_sharedData;
-}
-
-inline const HexUctSharedData& HexUctSearch::SharedData() const
+inline MoHexSharedData& MoHexSearch::SharedData()
 {
     return *m_sharedData;
 }
 
-inline int HexUctSearch::FillinMapBits() const
+inline const MoHexSharedData& MoHexSearch::SharedData() const
+{
+    return *m_sharedData;
+}
+
+inline int MoHexSearch::FillinMapBits() const
 {
     return m_fillinMapBits;
 }
 
-inline void HexUctSearch::SetFillinMapBits(int bits)
+inline void MoHexSearch::SetFillinMapBits(int bits)
 {
     m_fillinMapBits = bits;
 }
@@ -286,4 +286,4 @@ inline void HexUctSearch::SetFillinMapBits(int bits)
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HEXUCTSEARCH_H
+#endif // MOHEXSEARCH_H

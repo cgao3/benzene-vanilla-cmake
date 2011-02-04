@@ -1,25 +1,26 @@
 bin_PROGRAMS = mohex
 
 mohex_SOURCES = \
-HexUctKnowledge.cpp \
-HexUctPolicy.cpp \
-HexUctSearch.cpp \
-HexUctState.cpp \
-HexUctUtil.cpp \
 MoHexEngine.cpp \
 MoHexMain.cpp \
 MoHexPlayer.cpp \
-MoHexProgram.cpp
+MoHexPlayoutPolicy.cpp \
+MoHexPriorKnowledge.cpp \
+MoHexProgram.cpp \
+MoHexSearch.cpp \
+MoHexThreadState.cpp \
+MoHexUtil.cpp
 
 noinst_HEADERS = \
-HexUctKnowledge.hpp \
-HexUctPolicy.hpp \
-HexUctSearch.hpp \
-HexUctState.hpp \
-HexUctUtil.hpp \
 MoHexEngine.hpp \
 MoHexPlayer.hpp \
-MoHexProgram.hpp
+MoHexPlayoutPolicy.hpp \
+MoHexPriorKnowledge.hpp \
+MoHexProgram.hpp \
+MoHexSearch.hpp \
+MoHexThreadState.hpp \
+MoHexUtil.hpp
+
 
 mohex_LDADD = \
 ../commonengine/libcommonengine.a \
