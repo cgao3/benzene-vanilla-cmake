@@ -24,50 +24,6 @@ class HexUctSearch;
 
 //----------------------------------------------------------------------------
 
-/** Black and white stones. 
-    This appears to be a pointless class since all the functionality
-    is also in StoneBoard. However, StoneBoard hash extra information
-    (like the hash and some colorset information) that would be a waste
-    of space. So we use this for now. 
- */
-struct HexUctStoneData
-{
-    bitset_t black;
-
-    bitset_t white;
-
-    bitset_t played;
-
-    /** Creates empty stone set. */
-    HexUctStoneData();
-
-    /** Copies stones from board. */
-    HexUctStoneData(const StoneBoard& brd);
-
-    /** Returns true only if all three sets are equal. */
-    bool operator==(const HexUctStoneData& other) const;
-};
-
-inline HexUctStoneData::HexUctStoneData()
-{
-}
-
-inline HexUctStoneData::HexUctStoneData(const StoneBoard& brd)
-    : black(brd.GetBlack()),
-      white(brd.GetWhite()),
-      played(brd.GetPlayed())
-{
-}
-
-inline bool HexUctStoneData::operator==(const HexUctStoneData& other) const
-{
-    return black == other.black 
-        && white == other.white
-        && played == other.played;
-}
-
-//----------------------------------------------------------------------------
-
 /** Data shared among all threads. */
 struct HexUctSharedData
 {
@@ -81,7 +37,7 @@ struct HexUctSharedData
     bitset_t rootConsider;
 
     /** Stores fillin information for states in the tree. */
-    HashMap<HexUctStoneData> stones;
+    HashMap<StoneBoard> stones;
 
     explicit HexUctSharedData(int fillinMapBits);
 };

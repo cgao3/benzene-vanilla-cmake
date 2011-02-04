@@ -351,17 +351,15 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const HexUctSharedData& oldData,
     // the root's children). 
     if (!samePosition)
     {
-        HexUctStoneData oldStateData;
-        SgHashCode hash = SequenceHash::Hash(newSequence);
-        if (!oldData.stones.Get(hash, oldStateData))
+        StoneBoard oldPosition;
+        if (!oldData.stones.Get(SequenceHash::Hash(newSequence), oldPosition))
         {
             LogInfo() << "ReuseSubtree: No knowledge for state in old tree.\n";
             return 0;
         }
         // Check that the old knowledge is equal to the new knowledge
         // in the would-be root node.
-        HexUctStoneData newStateData(newPosition);
-        if (!(oldStateData == newStateData))
+        if (!(oldPosition == newPosition))
         {
             LogInfo() << "Old fillin data does not match data for new root!\n";
             return 0;
@@ -428,7 +426,7 @@ void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
     if (sequence != oldData.gameSequence)
     {
         SgHashCode hash = SequenceHash::Hash(sequence);
-        HexUctStoneData stones;
+        StoneBoard stones;
         if (!oldData.stones.Get(hash, stones))
             return;
         newData.stones.Put(hash, stones);

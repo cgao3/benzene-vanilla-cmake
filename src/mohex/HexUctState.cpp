@@ -161,14 +161,9 @@ void HexUctState::Execute(SgMove sgmove)
     }
     m_gameSequence.push_back(Move(m_state->ToPlay(), move));
     ExecuteMove(move, m_treeUpdateRadius);
-    HexUctStoneData stones;
-    if (m_sharedData->stones.Get(SequenceHash::Hash(m_gameSequence), stones))
+    if (m_sharedData->stones.Get(SequenceHash::Hash(m_gameSequence), 
+                                 m_state->Position()))
     {
-        StoneBoard& brd = m_state->Position();
-        brd.StartNewGame();
-        brd.SetColor(BLACK, stones.black);
-        brd.SetColor(WHITE, stones.white);
-        brd.SetPlayed(stones.played);
         m_pastate->Update();
     }
 }
@@ -360,7 +355,7 @@ bitset_t HexUctState::ComputeKnowledge(SgUctProvenType& provenType)
         consider = EndgameUtil::MovesToConsider(*m_vcBrd, m_state->ToPlay());
     }
     m_sharedData->stones.Put(SequenceHash::Hash(m_gameSequence), 
-                             HexUctStoneData(m_vcBrd->GetPosition()));
+                             m_vcBrd->GetPosition());
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"
                   << "Recomputed state:" << '\n' << m_state->Position() << '\n'
