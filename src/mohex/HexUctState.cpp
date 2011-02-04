@@ -112,12 +112,12 @@ HexUctState::HexUctState(const unsigned int threadId,
       m_assertionHandler(*this),
 
       m_state(0),
-      m_vc_brd(0),
+      m_vcBrd(0),
       m_policy(0),
-      m_shared_data(0),
+      m_sharedData(0),
       m_knowledge(*this),
       m_search(sch),
-       m_treeUpdateRadius(treeUpdateRadius),
+      m_treeUpdateRadius(treeUpdateRadius),
       m_playoutUpdateRadius(playoutUpdateRadius),
       m_isInPlayout(false)
 {
@@ -162,7 +162,7 @@ void HexUctState::Execute(SgMove sgmove)
     m_gameSequence.push_back(Move(m_state->ToPlay(), move));
     ExecuteMove(move, m_treeUpdateRadius);
     HexUctStoneData stones;
-    if (m_shared_data->stones.Get(SequenceHash::Hash(m_gameSequence), stones))
+    if (m_sharedData->stones.Get(SequenceHash::Hash(m_gameSequence), stones))
     {
         StoneBoard& brd = m_state->Position();
         brd.StartNewGame();
@@ -199,7 +199,7 @@ void HexUctState::ExecuteMove(HexPoint cell, int updateRadius)
     else
 	m_pastate->Update(cell);
     m_lastMovePlayed = cell;
-    m_new_game = false;
+    m_atRoot = false;
 }
 
 bool HexUctState::GenerateAllMoves(SgUctValue count, 
@@ -209,9 +209,9 @@ bool HexUctState::GenerateAllMoves(SgUctValue count,
     moves.clear();
 
     // Handle root node as a special case
-    if (m_new_game)
+    if (m_atRoot)
     {
-        for (BitsetIterator it(m_shared_data->rootConsider); it; ++it)
+        for (BitsetIterator it(m_sharedData->rootConsider); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
         if (count == 0)
             m_knowledge.ProcessPosition(moves);
@@ -265,7 +265,7 @@ SgMove HexUctState::GeneratePlayoutMove(bool& skipRaveUpdate)
 void HexUctState::StartSearch()
 {
     LogInfo() << "StartSearch()[" << m_threadId <<"]\n";
-    m_shared_data = &m_search.SharedData();
+    m_sharedData = &m_search.SharedData();
     // TODO: Fix the interface to HexBoard so this can be constant!
     // The problem is that VCBuilder (which is inside of HexBoard)
     // expects a non-const reference to a VCBuilderParam object.
@@ -276,8 +276,8 @@ void HexUctState::StartSearch()
     {
         m_state.reset(new HexState(brd.GetPosition(), BLACK));
         m_pastate.reset(new PatternState(m_state->Position()));
-        m_vc_brd.reset(new HexBoard(brd.Width(), brd.Height(), 
-                                    brd.ICE(), brd.Builder().Parameters()));
+        m_vcBrd.reset(new HexBoard(brd.Width(), brd.Height(), 
+                                   brd.ICE(), brd.Builder().Parameters()));
     }
     m_policy->InitializeForSearch();
 }
@@ -299,11 +299,11 @@ SgBlackWhite HexUctState::ToPlay() const
 
 void HexUctState::GameStart()
 {
-    m_new_game = true;
+    m_atRoot = true;
     m_isInPlayout = false;
-    m_gameSequence = m_shared_data->gameSequence;
+    m_gameSequence = m_sharedData->gameSequence;
     m_lastMovePlayed = LastMoveFromHistory(m_gameSequence);
-    *m_state = m_shared_data->rootState;
+    *m_state = m_sharedData->rootState;
     m_pastate->SetUpdateRadius(m_treeUpdateRadius);
     m_pastate->Update();
 }
@@ -332,39 +332,39 @@ void HexUctState::EndPlayout()
     data. */
 bitset_t HexUctState::ComputeKnowledge(SgUctProvenType& provenType)
 {
-    m_vc_brd->GetPosition().SetPosition(m_state->Position());
-    m_vc_brd->ComputeAll(m_state->ToPlay());
+    m_vcBrd->GetPosition().SetPosition(m_state->Position());
+    m_vcBrd->ComputeAll(m_state->ToPlay());
     // Consider set will be all empty cells if state is a determined
     // state (can't compute consider set in this case and we cannot
     // delete the children as this will cause a race condition in the
     // parent class).
     // Consider set is the set of moves to consider otherwise.
     bitset_t consider;
-    if (EndgameUtil::IsDeterminedState(*m_vc_brd, m_state->ToPlay()))
+    if (EndgameUtil::IsDeterminedState(*m_vcBrd, m_state->ToPlay()))
     {
         HexColor winner = m_state->ToPlay();
         provenType = SG_PROVEN_WIN;
-        if (EndgameUtil::IsLostGame(*m_vc_brd, m_state->ToPlay()))
+        if (EndgameUtil::IsLostGame(*m_vcBrd, m_state->ToPlay()))
         {
             winner = !m_state->ToPlay();
             provenType = SG_PROVEN_LOSS;
         }
         if (DEBUG_KNOWLEDGE)
             LogInfo() << "Found win for " << winner << ":\n"
-                      << *m_vc_brd << '\n';
+                      << *m_vcBrd << '\n';
         return m_state->Position().GetEmpty();
     }
     else
     {
         provenType = SG_NOT_PROVEN;
-        consider = EndgameUtil::MovesToConsider(*m_vc_brd, m_state->ToPlay());
+        consider = EndgameUtil::MovesToConsider(*m_vcBrd, m_state->ToPlay());
     }
-    m_shared_data->stones.Put(SequenceHash::Hash(m_gameSequence), 
-                              HexUctStoneData(m_vc_brd->GetPosition()));
+    m_sharedData->stones.Put(SequenceHash::Hash(m_gameSequence), 
+                             HexUctStoneData(m_vcBrd->GetPosition()));
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"
                   << "Recomputed state:" << '\n' << m_state->Position() << '\n'
-                  << "Consider:" << m_vc_brd->Write(consider) << '\n';
+                  << "Consider:" << m_vcBrd->Write(consider) << '\n';
     return consider;
 }
     

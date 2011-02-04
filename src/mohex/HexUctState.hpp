@@ -190,7 +190,6 @@ public:
     HexColor GetColorToPlay() const;
 
 private:
-
     /** Assertion handler to dump the state of a HexUctState. */
     class AssertionHandler
         : public SgAssertionHandler
@@ -212,13 +211,13 @@ private:
     boost::scoped_ptr<PatternState> m_pastate;
 
     /** Board used to compute knowledge. */
-    boost::scoped_ptr<HexBoard> m_vc_brd;
+    boost::scoped_ptr<HexBoard> m_vcBrd;
 
     /** Playout policy. */
     boost::scoped_ptr<HexUctSearchPolicy> m_policy;
 
     /** Data shared between threads. */
-    HexUctSharedData* m_shared_data;
+    HexUctSharedData* m_sharedData;
 
     HexUctKnowledge m_knowledge;
 
@@ -243,9 +242,7 @@ private:
     HexPoint m_lastMovePlayed;
 
     /** True at the start of a game until the first move is played. */
-    bool m_new_game;
-
-    //----------------------------------------------------------------------
+    bool m_atRoot;
 
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
 

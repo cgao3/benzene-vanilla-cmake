@@ -122,25 +122,25 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
     {
         cmd << '\n'
             << "pattern_check_percent "
-            << config.pattern_check_percent << '\n'
+            << config.patternCheckPercent << '\n'
             << "pattern_heuristic "
             << config.patternHeuristic << '\n'
             << "response_heuristic "
             << config.responseHeuristic << '\n'
             << "response_threshold "
-            << config.response_threshold << '\n';
+            << config.responseThreshold << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
         if (name == "pattern_check_percent")
-            config.pattern_check_percent = cmd.ArgMinMax<int>(1, 0, 100);
+            config.patternCheckPercent = cmd.ArgMinMax<int>(1, 0, 100);
         else if (name == "pattern_heuristic")
             config.patternHeuristic = cmd.Arg<bool>(1);
         else if (name == "response_heuristic")
             config.responseHeuristic = cmd.Arg<bool>(1);
         else if (name == "response_threshold")
-            config.response_threshold = cmd.ArgMin<std::size_t>(1, 0);
+            config.responseThreshold = cmd.ArgMin<std::size_t>(1, 0);
         else
             throw HtpFailure("Unknown option!");
     }

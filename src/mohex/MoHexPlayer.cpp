@@ -161,8 +161,13 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     std::ostringstream os;
     os << '\n';
 #if COLLECT_PATTERN_STATISTICS
-    os << m_shared_policy.DumpStatistics() << '\n';
-    os << brd.DumpPatternCheckStats() << '\n';
+    {
+        HexUctState& thread0 
+            = dynamic_cast<HexUctState&>(m_search.ThreadState(0));
+        HexUctPolicy* policy = dynamic_cast<HexUctPolicy*>(thread0.Policy());
+        if (policy)
+            os << policy->DumpStatistics() << '\n';
+    }
 #endif
     os << "Elapsed Time   " << totalElapsed.GetTime() << "s\n";
     m_search.WriteStatistics(os);

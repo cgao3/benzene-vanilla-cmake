@@ -1,11 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexUctPolicy.cpp
-    
-    @todo Pattern statistics are collected for each thread. Add
-    functionality to combine the stats from each thread before
-    displaying them. Only do this if pattern statistics are actually
-    required, obviously.
- */
+/** @file HexUctPolicy.cpp */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -17,12 +11,12 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-namespace 
-{
+namespace {
+
+//----------------------------------------------------------------------------
 
 /** Shuffle a vector with the given random number generator. 
-    @todo Refactor this out somewhere.
-*/
+    @todo Refactor this out somewhere. */
 template<typename T>
 void ShuffleVector(std::vector<T>& v, SgRandom& random)
 {
@@ -42,18 +36,9 @@ bool PercentChance(int percent, SgRandom& random)
     return random.RandomEvent(threshold);
 }
 
-} // annonymous namespace
-
 //----------------------------------------------------------------------------
 
-HexUctPolicyConfig::HexUctPolicyConfig()
-    : patternHeuristic(true),
-      responseHeuristic(false),
-      pattern_update_radius(1),
-      pattern_check_percent(100),
-      response_threshold(100)
-{
-}
+} // annonymous namespace
 
 //----------------------------------------------------------------------------
 
@@ -105,7 +90,7 @@ void HexUctSharedPolicy::LoadPlayPatterns()
         }
     }
     for (BWIterator color; color; ++color)
-        m_hash_patterns[*color].Hash(m_patterns[*color]);
+        m_hashPatterns[*color].Hash(m_patterns[*color]);
 }
 
 //----------------------------------------------------------------------------
@@ -124,7 +109,7 @@ HexUctPolicy::~HexUctPolicy()
 
 //----------------------------------------------------------------------------
 
-/** @todo Pass initialial tree and initialize off of that? */
+/** @todo Pass initial tree and initialize off of that? */
 void HexUctPolicy::InitializeForSearch()
 {
     for (int i = 0; i < BITSETSIZE; ++i)
@@ -140,8 +125,7 @@ void HexUctPolicy::InitializeForRollout(const StoneBoard& brd)
     ShuffleVector(m_moves, m_random);
 }
 
-HexPoint HexUctPolicy::GenerateMove(PatternState& pastate, 
-                                    HexColor toPlay, 
+HexPoint HexUctPolicy::GenerateMove(PatternState& pastate, HexColor toPlay, 
                                     HexPoint lastMove)
 {
     HexPoint move = INVALID_POINT;
@@ -150,25 +134,21 @@ HexPoint HexUctPolicy::GenerateMove(PatternState& pastate,
 #if COLLECT_PATTERN_STATISTICS
     HexUctPolicyStatistics& stats = m_statistics;
 #endif
-
-    // patterns applied probabilistically (if heuristic is turned on)
+    // Patterns applied probabilistically (if heuristic is turned on)
     if (config.patternHeuristic 
-        && PercentChance(config.pattern_check_percent, m_random))
+        && PercentChance(config.patternCheckPercent, m_random))
     {
         move = GeneratePatternMove(pastate, toPlay, lastMove);
     }
-    
-    if (move == INVALID_POINT
-        && config.responseHeuristic)
+    if (move == INVALID_POINT && config.responseHeuristic)
     {
         move = GenerateResponseMove(toPlay, lastMove, pastate.Board());
     }
-
-    // select random move if invalid point from pattern heuristic
+    // Select random move if no move was selected by the heuristics
     if (move == INVALID_POINT) 
     {
 #if COLLECT_PATTERN_STATISTICS
-	stats.random_moves++;
+	stats.randomMoves++;
 #endif
         move = GenerateRandomMove(pastate.Board());
     } 
@@ -176,13 +156,13 @@ HexPoint HexUctPolicy::GenerateMove(PatternState& pastate,
     {
 	pattern_move = true;
 #if COLLECT_PATTERN_STATISTICS
-        stats.pattern_moves++;
+        stats.patternMoves++;
 #endif
     }
     
     BenzeneAssert(pastate.Board().IsEmpty(move));
 #if COLLECT_PATTERN_STATISTICS
-    stats.total_moves++;
+    stats.totalMoves++;
 #endif
     return move;
 }
@@ -191,51 +171,38 @@ HexPoint HexUctPolicy::GenerateMove(PatternState& pastate,
 std::string HexUctPolicy::DumpStatistics()
 {
     std::ostringstream os;
-
-    os << std::endl;
-    os << "Pattern statistics:" << std::endl;
-    os << std::setw(12) << "Name" << "  "
-       << std::setw(10) << "Black" << " "
-       << std::setw(10) << "White" << " "
-       << std::setw(10) << "Black" << " "
-       << std::setw(10) << "White" << std::endl;
-
-    os << "     ------------------------------------------------------" 
-       << std::endl;
-
-    HexUctPolicyStatistics& stats = Statistics();
-    for (unsigned i=0; i<m_patterns[BLACK].size(); ++i) {
-        os << std::setw(12) << m_patterns[BLACK][i].getName() << ": "
-           << std::setw(10) << stats.pattern_counts[BLACK]
-            [&m_patterns[BLACK][i]] << " "
-           << std::setw(10) << stats.pattern_counts[WHITE]
-            [&m_patterns[WHITE][i]] << " " 
-           << std::setw(10) << stats.pattern_picked[BLACK]
-            [&m_patterns[BLACK][i]] << " "
-           << std::setw(10) << stats.pattern_picked[WHITE]
-            [&m_patterns[WHITE][i]]
-           << std::endl;
-    }
-
-    os << "     ------------------------------------------------------" 
-       << std::endl;
-
-    os << std::endl;
-    os << std::setw(12) << "Pattern" << ": " 
-       << std::setw(10) << stats.pattern_moves << " "
+    os << '\n'
+       << "Pattern statistics:" << '\n'
+       << std::setw(12) << "Name" << "  "
+       << std::setw(10) << "Black" << ' '
+       << std::setw(10) << "White" << ' '
+       << std::setw(10) << "Black" << ' '
+       << std::setw(10) << "White" << '\n'
+       << "     ------------------------------------------------------\n";
+    HexUctPolicyStatistics stats = Statistics();
+    const PatternSet& blackPat = m_shared->PlayPatterns(BLACK);
+    const PatternSet& whitePat = m_shared->PlayPatterns(WHITE);
+    for (std::size_t i = 0; i < blackPat.size(); ++i) 
+        os << std::setw(12) << blackPat[i].GetName() << ": "
+           << std::setw(10) << stats.patternCounts[BLACK][&blackPat[i]] << ' '
+           << std::setw(10) << stats.patternCounts[WHITE][&whitePat[i]] << ' ' 
+           << std::setw(10) << stats.patternPicked[BLACK][&blackPat[i]] << ' '
+           << std::setw(10) << stats.patternPicked[WHITE][&whitePat[i]]<< '\n';
+    os << "     ------------------------------------------------------\n"
+       << '\n'
+       << std::setw(12) << "Pattern" << ": " 
+       << std::setw(10) << stats.patternMoves << ' '
        << std::setw(10) << std::setprecision(3) << 
-        stats.pattern_moves*100.0/stats.total_moves << "%" 
-       << std::endl;
-    os << std::setw(12) << "Random" << ": " 
-       << std::setw(10) << stats.random_moves << " "
+        double(stats.patternMoves) * 100.0 / double(stats.totalMoves) << "%" 
+       << '\n'
+       << std::setw(12) << "Random" << ": " 
+       << std::setw(10) << stats.randomMoves << ' '
        << std::setw(10) << std::setprecision(3) << 
-        stats.random_moves*100.0/stats.total_moves << "%"  
-       << std::endl;
-    os << std::setw(12) << "Total" << ": " 
-       << std::setw(10) << stats.total_moves << std::endl;
-
-    os << std::endl;
-    
+        double(stats.randomMoves) * 100.0 / double(stats.totalMoves) << "%"  
+       << '\n'
+       << std::setw(12) << "Total" << ": " 
+       << std::setw(10) << stats.totalMoves << '\n'
+       << '\n';
     return os.str();
 }
 #endif
@@ -246,7 +213,7 @@ HexPoint HexUctPolicy::GenerateResponseMove(HexColor toPlay, HexPoint lastMove,
                                             const StoneBoard& brd)
 {
     std::size_t num = m_response[toPlay][lastMove].size();
-    if (num > m_shared->Config().response_threshold)
+    if (num > m_shared->Config().responseThreshold)
     {
         HexPoint move = m_response[toPlay][lastMove][m_random.Int(num)];
         if (brd.IsEmpty(move))
@@ -275,59 +242,45 @@ HexPoint HexUctPolicy::GenerateRandomMove(const StoneBoard& brd)
     If no pattern matches, returns INVALID_POINT. */
 HexPoint HexUctPolicy::PickRandomPatternMove(const PatternState& pastate, 
                                              const HashedPatternSet& patterns, 
-                                             HexColor toPlay,
-                                             HexPoint lastMove)
+                                             HexColor toPlay, HexPoint lastMove)
 {
     UNUSED(toPlay);
-
     if (lastMove == INVALID_POINT)
 	return INVALID_POINT;
-    
-    int num = 0;
-    int patternIndex[MAX_VOTES];
-    HexPoint patternMoves[MAX_VOTES];
-
     PatternHits hits;
     pastate.MatchOnCell(patterns, lastMove, PatternState::MATCH_ALL, hits);
-
-    for (unsigned i = 0; i < hits.size(); ++i) 
+    if (hits.empty())
+        return INVALID_POINT;
+    int num = 0;
+    std::size_t patternIndex[MAX_VOTES];
+    HexPoint patternMoves[MAX_VOTES];
+    for (std::size_t i = 0; i < hits.size(); ++i) 
     {
 #if COLLECT_PATTERN_STATISTICS
-        // record that this pattern hit
-        m_shared->Statistics().pattern_counts[toPlay][hits[i].pattern()]++;
+        m_statistics.patternCounts[toPlay][hits[i].GetPattern()]++;
 #endif
-            
-        // number of entries added to array is equal to the pattern's weight
+        // Number of entries added to array is equal to the pattern's weight
+        BenzeneAssert(num + hits[i].GetPattern()->GetWeight() < MAX_VOTES);
         for (int j = 0; j < hits[i].GetPattern()->GetWeight(); ++j) 
         {
             patternIndex[num] = i;
             patternMoves[num] = hits[i].Moves1()[0];
             num++;
-            BenzeneAssert(num < MAX_VOTES);
         }
     }
-    
-    // abort if no pattern hit
-    if (num == 0) 
-        return INVALID_POINT;
-    
-    // select move at random (biased according to number of entries)
+    BenzeneAssert(num > 0);
     int i = m_random.Int(num);
-
 #if COLLECT_PATTERN_STATISTICS
-    m_shared->Statistics().pattern_picked
-        [toPlay][hits[patternIndex[i]].pattern()]++;
+    m_statistics.patternPicked[toPlay][hits[patternIndex[i]].GetPattern()]++;
 #endif
-
     return patternMoves[i];
 }
 
 /** Uses PickRandomPatternMove() with the shared PlayPatterns(). */
 HexPoint HexUctPolicy::GeneratePatternMove(const PatternState& pastate, 
-                                           HexColor toPlay, 
-                                           HexPoint lastMove)
+                                           HexColor toPlay, HexPoint lastMove)
 {
-    return PickRandomPatternMove(pastate, m_shared->PlayPatterns(toPlay),
+    return PickRandomPatternMove(pastate, m_shared->HashedPlayPatterns(toPlay),
                                  toPlay, lastMove);
 }
 

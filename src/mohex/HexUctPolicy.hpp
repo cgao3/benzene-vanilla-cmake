@@ -14,8 +14,9 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Whether statistics on patterns should be collected or not.  This
-    information is pretty much useless and slows down the search. */
+/** Whether statistics on patterns should be collected or not. 
+    Only use if debugging the policy as collecting the statistics greatly
+    impacts performance. */
 #define COLLECT_PATTERN_STATISTICS 0
 
 //----------------------------------------------------------------------------
@@ -26,41 +27,54 @@ struct HexUctPolicyConfig
     /** Generate pattern moves. */
     bool patternHeuristic;
 
+    /** Percent chance to check for pattern moves. */
+    int patternCheckPercent;
+
     /** Play learned responses. */    
     bool responseHeuristic;
 
-    int pattern_update_radius;
-
-    /** Percent chance to check for pattern moves. */
-    int pattern_check_percent;
-
     /** Threshold at which the reponse heuristic is used. */
-    std::size_t response_threshold;
+    std::size_t responseThreshold;
 
     HexUctPolicyConfig();
 };
 
-/** Statistics over all threads. */
+inline HexUctPolicyConfig::HexUctPolicyConfig()
+    : patternHeuristic(true),
+      patternCheckPercent(100),
+      responseHeuristic(false),
+      responseThreshold(100)
+{
+}
+
+//----------------------------------------------------------------------------
+
+/** Statistics for a policy. */
 struct HexUctPolicyStatistics
 {
-    std::size_t total_moves;
+    std::size_t totalMoves;
 
-    std::size_t random_moves;
+    std::size_t randomMoves;
 
-    std::size_t pattern_moves;
+    std::size_t patternMoves;
 
-    std::map<const Pattern*, size_t> pattern_counts[BLACK_AND_WHITE];
+    std::map<const Pattern*, size_t> patternCounts[BLACK_AND_WHITE];
 
-    std::map<const Pattern*, size_t> pattern_picked[BLACK_AND_WHITE];
+    std::map<const Pattern*, size_t> patternPicked[BLACK_AND_WHITE];
 
-    HexUctPolicyStatistics()
-        : total_moves(0),
-          random_moves(0),
-          pattern_moves(0)
-    { }
+    HexUctPolicyStatistics();
 };
 
-/** Policy information shared amoung all threads. */
+inline HexUctPolicyStatistics::HexUctPolicyStatistics()
+    : totalMoves(0),
+      randomMoves(0),
+      patternMoves(0)
+{
+}
+
+//----------------------------------------------------------------------------
+
+/** Policy information shared among all threads. */
 class HexUctSharedPolicy
 {
 public:
@@ -68,15 +82,14 @@ public:
 
     ~HexUctSharedPolicy();
 
-    //----------------------------------------------------------------------
-
     /** Loads patterns from shared directory. */
     void LoadPatterns();
 
     /** Returns set of patterns used to guide playouts. */
-    const HashedPatternSet& PlayPatterns(HexColor color) const;
+    const HashedPatternSet& HashedPlayPatterns(HexColor color) const;
 
-    //----------------------------------------------------------------------
+    /** Returns set of patterns used to guide playouts. */
+    const PatternSet& PlayPatterns(HexColor color) const;
 
     /** Returns reference to configuration settings controlling all
         policies. */
@@ -91,7 +104,7 @@ private:
 
     std::vector<Pattern> m_patterns[BLACK_AND_WHITE];
 
-    HashedPatternSet m_hash_patterns[BLACK_AND_WHITE];
+    HashedPatternSet m_hashPatterns[BLACK_AND_WHITE];
 
     void LoadPlayPatterns();
 };
@@ -106,18 +119,22 @@ inline const HexUctPolicyConfig& HexUctSharedPolicy::Config() const
     return m_config;
 }
 
-inline const HashedPatternSet& 
-HexUctSharedPolicy::PlayPatterns(HexColor color) const
+inline const PatternSet& HexUctSharedPolicy::PlayPatterns(HexColor color) const
 {
-    return m_hash_patterns[color];
+    return m_patterns[color];
+}
+
+inline const HashedPatternSet& 
+HexUctSharedPolicy::HashedPlayPatterns(HexColor color) const
+{
+    return m_hashPatterns[color];
 }
 
 //----------------------------------------------------------------------------
 
 /** Generates moves during the random playout phase of UCT search.
     Uses local configuration and pattern data in HexUctSharedPolicy.
-    Everything in this class must be thread-safe. 
-*/
+    Everything in this class must be thread-safe. */
 class HexUctPolicy : public HexUctSearchPolicy
 {
 public:
@@ -126,15 +143,12 @@ public:
 
     ~HexUctPolicy();
 
-    /** Implementation of SgUctSearch::GenerateRandomMove().
-        - Pattern move (if enabled)
-        - Purely random */
+    /** Generates a move. */
     HexPoint GenerateMove(PatternState& pastate, HexColor color, 
                           HexPoint lastMove);
 
-    /** Initializes the moves to generate from the empty cells on the
-        given board. Should be called with the boardstate before any
-        calls to GenerateMove(). */
+    /** Initializes for fast playing of moves during playout.
+        Must be called before any calls to GenerateMove(). */
     void InitializeForRollout(const StoneBoard& brd);
 
     void InitializeForSearch();
@@ -151,7 +165,6 @@ public:
 #endif
 
 private:
-
     static const int MAX_VOTES = 1024;
 
     const HexUctSharedPolicy* m_shared;
