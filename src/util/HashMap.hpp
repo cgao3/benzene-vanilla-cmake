@@ -101,6 +101,9 @@ public:
     /** Updates the value of previously added object.
         Returns true on success and false on failure. */        
     bool Update(SgHashCode key, const T& obj);
+
+    /** Returns true if key exists in map. */
+    bool Exists(SgHashCode key) const;
     
     /** Clears the table. */
     void Clear();
@@ -238,6 +241,13 @@ bool HashMap<T>::Update(SgHashCode key, const T& value)
         return true;
     }
     return false;
+}
+
+template<typename T>
+bool HashMap<T>::Exists(SgHashCode key) const
+{
+    unsigned slot;
+    return FindKey(key, slot);
 }
 
 template<typename T>

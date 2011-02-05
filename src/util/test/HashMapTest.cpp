@@ -27,6 +27,7 @@ BOOST_AUTO_TEST_CASE(HashMap_AllTests)
 
     // check Add()/Get()
     hm.Add(1, 5);
+    BOOST_CHECK(hm.Exists(1));
     BOOST_CHECK(hm.Get(1, data));
     BOOST_CHECK_EQUAL(data, 5);
     BOOST_CHECK(!hm.Get(2, data));
