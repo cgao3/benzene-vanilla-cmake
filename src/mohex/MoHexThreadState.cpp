@@ -151,12 +151,6 @@ SgUctValue MoHexThreadState::Evaluate()
 void MoHexThreadState::Execute(SgMove sgmove)
 {
     HexPoint move = static_cast<HexPoint>(sgmove);
-    {
-        MoHexPlayoutPolicy* blah 
-            = dynamic_cast<MoHexPlayoutPolicy*>(m_policy.get());
-        if (blah)
-            blah->AddResponse(m_state->ToPlay(), m_lastMovePlayed, move);
-    }
     m_gameSequence.push_back(Move(m_state->ToPlay(), move));
     ExecuteMove(move, m_treeUpdateRadius);
     if (m_usingKnowledge
