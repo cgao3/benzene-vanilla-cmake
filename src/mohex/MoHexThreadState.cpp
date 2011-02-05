@@ -352,7 +352,7 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
         provenType = SG_NOT_PROVEN;
         consider = EndgameUtil::MovesToConsider(*m_vcBrd, m_state->ToPlay());
     }
-    m_sharedData->stones.Put(SequenceHash::Hash(m_gameSequence), 
+    m_sharedData->stones.Add(SequenceHash::Hash(m_gameSequence), 
                              m_vcBrd->GetPosition());
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"

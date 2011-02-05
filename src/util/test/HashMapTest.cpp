@@ -25,15 +25,15 @@ BOOST_AUTO_TEST_CASE(HashMap_AllTests)
     // table is empty, so better get fail!
     BOOST_CHECK(!hm.Get(1, data));
 
-    // check Put()/Get()
-    hm.Put(1, 5);
+    // check Add()/Get()
+    hm.Add(1, 5);
     BOOST_CHECK(hm.Get(1, data));
     BOOST_CHECK_EQUAL(data, 5);
     BOOST_CHECK(!hm.Get(2, data));
     BOOST_CHECK_EQUAL(hm.Count(), 1u);
 
     // check collision will not clobber values (33 = 1 mod 32)
-    hm.Put(33, 11);
+    hm.Add(33, 11);
     BOOST_CHECK(hm.Get(1, data));
     BOOST_CHECK_EQUAL(data, 5);
     BOOST_CHECK(hm.Get(33, data));
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(HashMap_ConstIterator)
         HashMapConstIterator<int> it(hm);
         BOOST_CHECK(!it);
     }
-    hm.Put(3, 5);
+    hm.Add(3, 5);
     {
         HashMapConstIterator<int> it(hm);
         BOOST_CHECK(it);
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(HashMap_ConstIterator)
         ++it;
         BOOST_CHECK(!it);
     }
-    hm.Put(2, 7);
+    hm.Add(2, 7);
     {
         HashMapConstIterator<int> it(hm);
         BOOST_CHECK(it);

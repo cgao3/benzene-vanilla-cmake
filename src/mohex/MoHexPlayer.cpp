@@ -429,7 +429,7 @@ void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
         StoneBoard stones;
         if (!oldData.stones.Get(hash, stones))
             return;
-        newData.stones.Put(hash, stones);
+        newData.stones.Add(hash, stones);
     }
     if (!node.HasChildren())
         return;

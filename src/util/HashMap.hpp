@@ -36,7 +36,7 @@ struct HashMapStateConcept
 
 /** Lock-free HashMap with 2^n slots. 
 
-    Deletes and dynamic resizing are not supported.  Thread-safe, so
+    Deletes and dynamic resizing are not supported. Thread-safe, so
     multiple threads can read/write data at the same time. Performs
     simple linear probing on hash collisions.
 
@@ -79,7 +79,7 @@ public:
         out. Otherwise, returns false.*/
     bool Get(SgHashCode key, T& out) const;
 
-    /** Stores a (key, object) pair. 
+    /** Adds a new (key, object) pair.
      
         WILL ABORT IF TABLE IS FULL!
 
@@ -91,13 +91,12 @@ public:
         calls.
 
         This function can possibly create duplicate entries. This is
-        because Put() does not check the key of the slots it runs over
-        while searching for an empty slot. So if two threads both
-        write try to Put() k1 at the same time, each will write to its
-        own slot. Only the first slot written will ever be used by
-        Get().
-     */
-    void Put(SgHashCode key, const T& obj);
+        because Add() does not check the key of the slots it runs over
+        while searching for an empty slot. So if two threads both try
+        to Add() k1 at the same time, each will write to its own
+        slot. Only the first slot written will ever be used by Get().
+    */
+    void Add(SgHashCode key, const T& obj);
     
     /** Clears the table. */
     void Clear();
@@ -118,16 +117,16 @@ private:
         T value;
     };
 
-    /** See bits() */
+    /** See Bits() */
     unsigned m_bits;
 
-    /** See size() */
+    /** See Size() */
     unsigned m_size;
 
     /** Equal to size() - 1. Used for bitmasking operations. */
     unsigned m_mask;
 
-    /** See count() */
+    /** See Count() */
     volatile unsigned m_count;
 
     /** Index into m_allocated at which data for this slot is located;
@@ -212,7 +211,7 @@ bool HashMap<T>::Get(SgHashCode key, T& out) const
 }
 
 template<typename T>
-void HashMap<T>::Put(SgHashCode key, const T& value)
+void HashMap<T>::Add(SgHashCode key, const T& value)
 {
     if (m_count > m_size)
     {
