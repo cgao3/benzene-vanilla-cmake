@@ -175,7 +175,7 @@ private:
     /** Data shared between threads. */
     MoHexSharedData* m_sharedData;
 
-    MoHexPriorKnowledge m_knowledge;
+    MoHexPriorKnowledge m_priorKnowledge;
 
     /** Parent search object. */
     MoHexSearch& m_search;
@@ -199,6 +199,8 @@ private:
 
     /** True at the start of a game until the first move is played. */
     bool m_atRoot;
+
+    bool m_usingKnowledge;
 
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
 

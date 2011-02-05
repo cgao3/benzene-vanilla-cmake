@@ -113,7 +113,7 @@ MoHexThreadState::MoHexThreadState(const unsigned int threadId,
       m_vcBrd(0),
       m_policy(0),
       m_sharedData(0),
-      m_knowledge(*this),
+      m_priorKnowledge(*this),
       m_search(sch),
       m_treeUpdateRadius(treeUpdateRadius),
       m_playoutUpdateRadius(playoutUpdateRadius),
@@ -159,8 +159,9 @@ void MoHexThreadState::Execute(SgMove sgmove)
     }
     m_gameSequence.push_back(Move(m_state->ToPlay(), move));
     ExecuteMove(move, m_treeUpdateRadius);
-    if (m_sharedData->stones.Get(SequenceHash::Hash(m_gameSequence), 
-                                 m_state->Position()))
+    if (m_usingKnowledge
+        && m_sharedData->stones.Get(SequenceHash::Hash(m_gameSequence), 
+                                    m_state->Position()))
     {
         m_pastate->Update();
     }
@@ -207,7 +208,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         for (BitsetIterator it(m_sharedData->rootConsider); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
         if (count == 0)
-            m_knowledge.ProcessPosition(moves);
+            m_priorKnowledge.ProcessPosition(moves);
         return false;
     }
 
@@ -225,7 +226,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         }
         for (BitsetIterator it(m_state->Position().GetEmpty()); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
-        m_knowledge.ProcessPosition(moves);
+        m_priorKnowledge.ProcessPosition(moves);
     }
     else
     {
@@ -258,6 +259,7 @@ SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
 void MoHexThreadState::StartSearch()
 {
     LogInfo() << "StartSearch()[" << m_threadId <<"]\n";
+    m_usingKnowledge = !m_search.KnowledgeThreshold().empty();
     m_sharedData = &m_search.SharedData();
     // TODO: Fix the interface to HexBoard so this can be constant!
     // The problem is that VCBuilder (which is inside of HexBoard)
