@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(HashMap_AllTests)
     BOOST_CHECK_EQUAL(hm.Size(), 32u);
     BOOST_CHECK_EQUAL(hm.Count(), 0u);
 
-    // table is empty, so get better fail!
+    // table is empty, so better get fail!
     BOOST_CHECK(!hm.Get(1, data));
 
     // check Put()/Get()
@@ -54,6 +54,37 @@ BOOST_AUTO_TEST_CASE(HashMap_AllTests)
     BOOST_CHECK(blah.Get(33, data));
     BOOST_CHECK_EQUAL(data, 11);
     BOOST_CHECK_EQUAL(blah.Count(), 2u);
+}
+
+BOOST_AUTO_TEST_CASE(HashMap_ConstIterator)
+{
+    HashMap<int> hm(5);
+    {
+        HashMapConstIterator<int> it(hm);
+        BOOST_CHECK(!it);
+    }
+    hm.Put(3, 5);
+    {
+        HashMapConstIterator<int> it(hm);
+        BOOST_CHECK(it);
+        BOOST_CHECK_EQUAL(it.Hash(), 3);
+        BOOST_CHECK_EQUAL(it.Data(), 5);
+        ++it;
+        BOOST_CHECK(!it);
+    }
+    hm.Put(2, 7);
+    {
+        HashMapConstIterator<int> it(hm);
+        BOOST_CHECK(it);
+        BOOST_CHECK_EQUAL(it.Hash(), 3);
+        BOOST_CHECK_EQUAL(it.Data(), 5);
+        ++it;
+        BOOST_CHECK(it);
+        BOOST_CHECK_EQUAL(it.Hash(), 2);
+        BOOST_CHECK_EQUAL(it.Data(), 7);
+        ++it;
+        BOOST_CHECK(!it);
+    }
 }
 
 }

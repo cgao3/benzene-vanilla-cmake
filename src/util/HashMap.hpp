@@ -15,6 +15,7 @@
 #include "Benzene.hpp"
 #include "BenzeneAssert.hpp"
 #include "Logger.hpp"
+#include "SafeBool.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -104,7 +105,10 @@ public:
     /** Copys other's data, overwriting everything in this table. */
     void operator=(const HashMap<T>& other);
 
-private:    
+private:
+    template<typename U>
+    friend class HashMapConstIterator;
+
     static const int EMPTY_SLOT = -1;
 
     struct Data
@@ -261,6 +265,65 @@ template<typename T>
 void HashMap<T>::operator=(const HashMap<T>& other)
 {
     CopyFrom(other);
+}
+
+//----------------------------------------------------------------------------
+
+/** Iterator over a HashMap. 
+    Iterates over the elements in the order they were added to the map. */
+template<typename T>
+class HashMapConstIterator : public SafeBool<HashMapConstIterator<T> >
+{
+public:
+    HashMapConstIterator(const HashMap<T>& map);
+
+    /** Returns hash of current entry. */
+    SgHashCode Hash() const;
+
+    /** Returns data in current entry. */
+    const T& Data() const;
+
+    /** Moves to next entry in the map. */
+    void operator++();
+
+    /** Used by SafeBool. */
+    bool boolean_test() const;
+
+private:
+    const HashMap<T>& m_map;
+
+    unsigned m_index;
+};
+
+template<typename T>
+inline HashMapConstIterator<T>::HashMapConstIterator(const HashMap<T>& map)
+    : m_map(map),
+      m_index(0)
+{
+}
+
+template<typename T>
+inline SgHashCode HashMapConstIterator<T>::Hash() const
+{
+    return m_map.m_allocated[m_index].key;
+}
+
+template<typename T>
+inline const T& HashMapConstIterator<T>::Data() const
+{
+    return m_map.m_allocated[m_index].value;
+}
+
+template<typename T>
+inline void HashMapConstIterator<T>::operator++()
+{
+    ++m_index;
+}
+
+template<typename T>
+inline bool HashMapConstIterator<T>::boolean_test() const
+{
+    return m_index < m_map.m_count;
 }
 
 //----------------------------------------------------------------------------
