@@ -151,13 +151,15 @@ SgUctValue MoHexThreadState::Evaluate()
 void MoHexThreadState::Execute(SgMove sgmove)
 {
     HexPoint move = static_cast<HexPoint>(sgmove);
-    m_gameSequence.push_back(Move(m_state->ToPlay(), move));
     ExecuteMove(move, m_treeUpdateRadius);
-    if (m_usingKnowledge
-        && m_sharedData->stones.Get(SequenceHash::Hash(m_gameSequence), 
-                                    m_state->Position()))
+    if (m_usingKnowledge)
     {
-        m_pastate->Update();
+        m_gameSequence.push_back(Move(m_state->ToPlay(), move));
+        if(m_sharedData->stones.Get(SequenceHash::Hash(m_gameSequence), 
+                                    m_state->Position()))
+        {
+            m_pastate->Update();
+        }
     }
 }
 
@@ -225,6 +227,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
     else
     {
         // Prune moves outside of mustplay and fillin
+        BenzeneAssert(m_usingKnowledge);
         if (TRACK_KNOWLEDGE)
         {
             SgHashCode hash(SequenceHash::Hash(m_gameSequence));
