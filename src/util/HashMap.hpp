@@ -97,6 +97,10 @@ public:
         slot. Only the first slot written will ever be used by Get().
     */
     void Add(SgHashCode key, const T& obj);
+
+    /** Updates the value of previously added object.
+        Returns true on success and false on failure. */        
+    bool Update(SgHashCode key, const T& obj);
     
     /** Clears the table. */
     void Clear();
@@ -137,6 +141,8 @@ private:
     boost::scoped_array<Data> m_allocated;
 
     void CopyFrom(const HashMap<T>& other);
+
+    bool FindKey(const SgHashCode& key, unsigned& slot) const;
 };
 
 template<typename T>
@@ -188,7 +194,7 @@ inline unsigned HashMap<T>::Count() const
 
 /** Performs linear probing to find key. */
 template<typename T>
-bool HashMap<T>::Get(SgHashCode key, T& out) const
+bool HashMap<T>::FindKey(const SgHashCode& key, unsigned& slot) const
 {
     // Search for slot containing this key.
     // Limit number of probes to a single pass: Table should never
@@ -202,10 +208,34 @@ bool HashMap<T>::Get(SgHashCode key, T& out) const
         if (m_used[index] != EMPTY_SLOT
             && m_allocated[m_used[index]].key == key)
         {
-            out = m_allocated[m_used[index]].value;
+            slot = index;
             return true;
         }
         index++;
+    }
+    return false;
+}
+
+template<typename T>
+bool HashMap<T>::Get(SgHashCode key, T& out) const
+{
+    unsigned slot;
+    if (FindKey(key, slot))
+    {
+        out = m_allocated[m_used[slot]].value;
+        return true;
+    }
+    return false;
+}
+
+template<typename T>
+bool HashMap<T>::Update(SgHashCode key, const T& value)
+{
+    unsigned slot;
+    if (FindKey(key, slot))
+    {
+        m_allocated[m_used[slot]].value = value;
+        return true;
     }
     return false;
 }

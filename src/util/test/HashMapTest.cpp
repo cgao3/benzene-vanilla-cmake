@@ -40,17 +40,27 @@ BOOST_AUTO_TEST_CASE(HashMap_AllTests)
     BOOST_CHECK_EQUAL(data, 11);
     BOOST_CHECK_EQUAL(hm.Count(), 2u);
 
+    // check update changes value
+    hm.Update(1, 42);
+    BOOST_CHECK(hm.Get(1, data));
+    BOOST_CHECK_EQUAL(data, 42);
+    BOOST_CHECK(hm.Get(33, data));
+    BOOST_CHECK_EQUAL(data, 11);
+    BOOST_CHECK_EQUAL(hm.Count(), 2u);
+   
+    // check operator=
     HashMap<int> mm(5);
     mm = hm;
     BOOST_CHECK(mm.Get(1, data));
-    BOOST_CHECK_EQUAL(data, 5);
+    BOOST_CHECK_EQUAL(data, 42);
     BOOST_CHECK(mm.Get(33, data));
     BOOST_CHECK_EQUAL(data, 11);
     BOOST_CHECK_EQUAL(mm.Count(), 2u);
 
+    // check copy constructor
     HashMap<int> blah(mm);
     BOOST_CHECK(blah.Get(1, data));
-    BOOST_CHECK_EQUAL(data, 5);
+    BOOST_CHECK_EQUAL(data, 42);
     BOOST_CHECK(blah.Get(33, data));
     BOOST_CHECK_EQUAL(data, 11);
     BOOST_CHECK_EQUAL(blah.Count(), 2u);
