@@ -68,6 +68,19 @@ HexColor CheckIfWinner(const StoneBoard& brd)
     return EMPTY;
 }
 
+/** Returns true if game is over and sets provenType appropriately. */
+bool IsProvenState(const HexState& state, SgUctProvenType& provenType)
+{
+    HexColor winner = CheckIfWinner(state.Position());
+    if (winner != EMPTY)
+    {
+        provenType = (winner == state.ToPlay())
+            ? SG_PROVEN_WIN : SG_PROVEN_LOSS;
+        return true;
+    }
+    return false;
+}
+
 /** Returns INVALID_POINT if history is empty, otherwise last move
     played to the board, ie, skips swap move. */
 HexPoint LastMoveFromHistory(const MoveSequence& history)
@@ -193,53 +206,52 @@ void MoHexThreadState::ExecuteMove(HexPoint cell, int updateRadius)
 }
 
 bool MoHexThreadState::GenerateAllMoves(SgUctValue count, 
-                                   std::vector<SgUctMoveInfo>& moves,
-                                   SgUctProvenType& provenType)
+                                        std::vector<SgUctMoveInfo>& moves,
+                                        SgUctProvenType& provenType)
 {
     moves.clear();
-
-    // Handle root node as a special case
     if (m_atRoot)
     {
+        // Handle root node as a special case: using consider set
+        // passed to us from MoHexPlayer.
         for (BitsetIterator it(m_sharedData->rootConsider); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
         if (count == 0)
             m_priorKnowledge.ProcessPosition(moves);
         return false;
     }
-
-    bool truncateChildTrees = false;
-    if (count == 0)
+    else if (count == 0)
     {
-        {
-            HexColor winner = CheckIfWinner(m_state->Position());
-            if (winner != EMPTY)
-            {
-                provenType = (winner == m_state->ToPlay()) 
-                    ? SG_PROVEN_WIN : SG_PROVEN_LOSS;
-                return false;
-            }
-        }
+        // First time we have been to this node. If solid winning
+        // chain exists then mark as proven and abort. Otherwise, mark
+        // every empty cell is a valid move.
+        if (IsProvenState(*m_state, provenType))
+            return false;
         for (BitsetIterator it(m_state->Position().GetEmpty()); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
         m_priorKnowledge.ProcessPosition(moves);
+        return false;
     }
     else
     {
-        // Prune moves outside of mustplay and fillin
+        // Re-visiting this state after a certain number of playouts.
+        // If VC-win exists then mark as proven; otherwise, prune
+        // moves outside of mustplay and store fillin. We must
+        // truncate the child subtrees because of the fillin.
         BenzeneAssert(m_usingKnowledge);
         if (TRACK_KNOWLEDGE)
         {
             SgHashCode hash(SequenceHash::Hash(m_gameSequence));
             LogInfo() << m_threadId << ": " << hash << '\n';
         }
-        truncateChildTrees = true;
         bitset_t moveset = m_state->Position().GetEmpty() 
             & ComputeKnowledge(provenType);
         for (BitsetIterator it(moveset); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
+        return true;
     }
-    return truncateChildTrees;
+    BenzeneAssert(false);
+    return false;
 }
 
 SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
@@ -321,7 +333,7 @@ void MoHexThreadState::EndPlayout()
 }
 
 /** Computes moves to consider and stores fillin in the shared
-    data. */
+    data. Sets provenType if state is determined by VCs. */
 bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
 {
     m_vcBrd->GetPosition().SetPosition(m_state->Position());
