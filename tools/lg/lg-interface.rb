@@ -1,3 +1,4 @@
+#!/usr/bin/ruby
 require 'net/http'
 require 'yaml'
 
@@ -38,10 +39,9 @@ class Logger
 end
 
 class LittleGolemInterface
-  def initialize (loginname,psw,boss_id)
-    @login,@psw,@boss_id=loginname,psw,boss_id
+  def initialize (loginname,psw,boss_id,sleep=30)
+    @login,@psw,@boss_id,@sleep=loginname,psw,boss_id,sleep
     @http = Net::HTTP.new('www.littlegolem.net')
-    @sleep=30
     @config_data = {}
     @logger=Logger.new
   end
@@ -134,7 +134,7 @@ class LittleGolemInterface
         self.log("No games found where it's my turn, #{@sleep}s sleep")
       end
     else
-      self.log('login failed'.red_back)
+      self.log('Login failed, trying again in 10 minutes.'.red_back)
       sleep(600)
     end
     #check invitations
@@ -149,7 +149,9 @@ class LittleGolemInterface
         else
           answer='refuse'
         end
-	  self.send_message(@boss_id,"New invitation","#{gametype} #{answer}")
+        if (@boss_id)
+          self.send_message(@boss_id,"New invitation","#{gametype} #{answer}")
+        end
         s=a[5]
         inv_id=s.scan(/invid=(\d*)?/m)[0]
         self.reply_invitation(inv_id,answer)
