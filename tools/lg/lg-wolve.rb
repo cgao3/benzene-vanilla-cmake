@@ -1,0 +1,52 @@
+#!/usr/bin/ruby
+require 'tools/lg/lg-hex'
+class WolveBot < BenzeneBot
+    LOGIN='WolveBot'
+    BOSS_ID='WolveBot'
+    def initialize
+        @supported_gametypes = /Hex 13x13/
+        print "Enter Password for WolveBot: "
+        ps=gets
+        ps=ps.chomp
+        super(LOGIN,ps,BOSS_ID)
+    end
+    def genmove(size, moves)
+        gtp = GTPClient.new("src/wolve/wolve")
+        gtp.cmd('boardsize ' + size.to_s)
+        gtp.cmd('param_wolve search_depths "1 2"')
+        translate_LG2Hex!(moves)
+        color='B'
+        moves.each do |m|
+            gtp.cmd("play #{color} #{m}")
+            color = (color=='W'?'B':'W')
+        end
+        response = gtp.cmd('showboard')
+        print response[2..-1]
+        sleep 1
+        response = gtp.cmd('genmove '+color)
+        gtp.cmd('quit')
+        sleep 1
+        gtp.close
+        return response[2..-3]
+    end
+end
+
+#enable to cause the http library to show warnings/errors
+#$VERBOSE = 1
+w=WolveBot.new
+loop {
+    begin
+        while w.parse
+        end
+        sleep(30)
+    rescue Timeout::Error => e
+        p 'timeout error (rbuff_fill exception), try again in 30 seconds'
+		sleep(30)
+    rescue => e
+        p e.message
+        p e.backtrace
+        p 'An error... wait 5 minutes'
+        sleep(300)
+    end
+}
+

@@ -1,6 +1,5 @@
 #!/usr/bin/ruby
-
-require 'lg-interface'
+require 'tools/lg/lg-interface'
 
 class GTPClient
     def initialize(cmdline)
@@ -16,16 +15,7 @@ class GTPClient
     end
 end
 
-class UALGHex < LittleGolemInterface
-    LOGIN='WolveBot'
-    BOSS_ID='WolveBot'
-    def initialize
-        @supported_gametypes = /Hex 13x13/
-        print "Enter Password for WolveBot: "
-        ps=gets
-        ps=ps.chomp
-        super(LOGIN,ps,BOSS_ID)
-    end
+class BenzeneBot < LittleGolemInterface
     def translate_Hex2LG(c)
         return c if c == "swap"
         x=c[0].chr
@@ -53,32 +43,13 @@ class UALGHex < LittleGolemInterface
             m=x+y.to_s
         end
     end
-    def call_hex(size, moves)
-        gtp = GTPClient.new("../../src/wolve/wolve")
-        gtp.cmd('boardsize ' + size.to_s)
-        gtp.cmd('param_wolve search_depths "1 2"')
-        translate_LG2Hex!(moves)
-        color='B'
-        moves.each do |m|
-            gtp.cmd("play #{color} #{m}")
-            color = (color=='W'?'B':'W')
-        end
-        response = gtp.cmd('showboard')
-        print response[2..-1]
-        sleep 1
-        response = gtp.cmd('genmove '+color)
-        gtp.cmd('quit')
-        sleep 1
-        gtp.close
-        return response[2..-3]
-    end
     def parse_make_moves(gameids)
         gameids.each do |g|
             if (game = get_game(g))
                 size = game.scan(/SZ\[(.+?)\]/).flatten[0].to_i
                 moves = game.scan(/;[B|W]\[(.+?)\]/).flatten
                 self.log("Game #{g}, size #{size}: #{moves.join(' ')}")
-                newmove = self.call_hex(size, moves)
+                newmove = self.genmove(size, moves)
                 self.log("Game #{g}, size #{size}: response #{newmove}")
                 self.post_move(g, translate_Hex2LG(newmove))
                 @swap = false
@@ -89,25 +60,3 @@ class UALGHex < LittleGolemInterface
         end
     end
 end
-
-#enable to cause the http library to show warnings/errors
-#$VERBOSE = 1
-
-w=UALGHex.new
-#w.test_coords
-loop {
-    begin
-        while w.parse
-        end
-        sleep(30)
-    rescue Timeout::Error => e
-        p 'timeout error (rbuff_fill exception), try again in 30 seconds'
-		sleep(30)
-    rescue => e
-        p e.message
-        p e.backtrace
-        p 'An error... wait 5 minutes'
-        sleep(300)
-    end
-}
-
