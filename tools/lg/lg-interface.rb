@@ -100,22 +100,9 @@ class LittleGolemInterface
         resp = @http.get(path, @headers)
         return (resp.code == '200' ? resp.body : nil)
     end
-    def get_my_turn_games
-        if self.login 
-            if (gamesheet = get_gamesheet)
-                if !(gamesheet =~  /Games where it is your turn \[0\]/)
-                    return gamesheet.slice(/your turn.*your opponent/m).scan(/gid=(\d+)?/).flatten
-                end  
-            end 
-        else
-            self.log("Could not log in, #{@sleep}s sleep".red_back)
-        end
-        []
-    end
     def parse
         if !self.login
             self.log('login failed'.red_back)
-            sleep(600)
             return false;
         end
         if (gamesheet = get_gamesheet)
@@ -132,7 +119,7 @@ class LittleGolemInterface
                         answer='refuse'
                     end
                     self.send_message(@boss_id,"New invitation","#{answer} #{gametype} from #{opponent}")
-                    self.log("#{answer} #{gametype} from #{opponent}".green)
+                    self.log("#{answer} '#{gametype}' from #{opponent}".green)
                     inv_id = a[5].scan(/invid=(\d*)?/m)[0]
                     reply_invitation(inv_id, answer)
                 end

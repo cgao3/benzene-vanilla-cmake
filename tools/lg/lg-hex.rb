@@ -19,9 +19,8 @@ end
 class UALGHex < LittleGolemInterface
     LOGIN='WolveBot'
     BOSS_ID='WolveBot'
-    #gacohota
     def initialize
-        @supported_gametypes = /Hex/
+        @supported_gametypes = /Hex 13x13/
         print "Enter Password for WolveBot: "
         ps=gets
         ps=ps.chomp
@@ -48,6 +47,9 @@ class UALGHex < LittleGolemInterface
             gtp.cmd("play #{color} #{m}")
             color = (color=='W'?'B':'W')
         end
+        response = gtp.cmd('showboard')
+        print response[2..-1]
+        sleep 1
         response = gtp.cmd('genmove '+color)
         gtp.cmd('quit')
         sleep 1
