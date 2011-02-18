@@ -22,7 +22,6 @@ class WolveBot < BenzeneBot
         end
         response = gtp.cmd('showboard')
         print response[2..-1]
-        sleep 1
         response = gtp.cmd('genmove '+color)
         gtp.cmd('quit')
         sleep 1
