@@ -41,6 +41,7 @@ class UALGHex < LittleGolemInterface
     def call_hex(size, moves)
         gtp = GTPClient.new("../../src/wolve/wolve")
         gtp.cmd('boardsize ' + size.to_s)
+        gtp.cmd('param_wolve search_depths "1 2"')
         translate_LG2Hex!(moves)
         color='B'
         moves.each do |m|
@@ -50,13 +51,14 @@ class UALGHex < LittleGolemInterface
         response = gtp.cmd('genmove '+color)
         gtp.cmd('quit')
         sleep 1
-        return s
+        gtp.close
+        return response[2..-3]
     end
     def parse_make_moves(gameids)
         gameids.each do |g|
             if (game = get_game(g))
                 size = game.scan(/SZ\[(.+?)\]/).flatten[0].to_i
-                moves = game.scan(/;[B|W]\[(.+?)\]/).flatten.map{|m| coord_HGF2GA(m, size) }
+                moves = game.scan(/;[B|W]\[(.+?)\]/).flatten#.map{|m| coord_HGF2GA(m, size) }
                 self.log("Game #{g}, size #{size}: #{moves.join(' ')}")
                 newmove = self.call_hex(size, moves)
                 self.log("Game #{g}, size #{size}: response #{newmove}")
@@ -92,18 +94,18 @@ end
 w=UALGHex.new
 #w.test_coords
 loop {
-	begin
-		while w.parse
-		end
+    begin
+        while w.parse
+        end
+        sleep(30)
+    rescue Timeout::Error => e
+        p 'timeout error (rbuff_fill exception), try again in 30 seconds'
 		sleep(30)
-	rescue Timeout::Error => e
-		p 'timeout error (rbuff_fill exception), try again in 30 seconds'
-		sleep(30)
-	rescue => e
-		p e.message
-		p e.backtrace
-		p 'An error... wait 5 minutes'
-		sleep(300)
-	end
+    rescue => e
+        p e.message
+        p e.backtrace
+        p 'An error... wait 5 minutes'
+        sleep(300)
+    end
 }
 

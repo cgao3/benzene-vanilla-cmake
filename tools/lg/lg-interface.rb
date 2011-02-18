@@ -64,7 +64,7 @@ class LittleGolemInterface
         chat.sub!('+',' leads with ')
         path="/jsp/game/game.jsp?sendgame=#{gid}&sendmove=#{mv}"
         resp = @http.post(path, "message=#{chat}", @headers)
-        if resp.code!='200'
+         if resp.code!='200'
             logout
             login
             resp = @http.post(path, "message=#{chat}", @headers)
@@ -144,7 +144,7 @@ class LittleGolemInterface
                 parse_make_moves(gameids)
                 return true;
             else
-                self.log("No games found where it's my turn, sleep")
+                self.log("No games found where it's my turn. Sleeping...")
                 return false
             end
         end
