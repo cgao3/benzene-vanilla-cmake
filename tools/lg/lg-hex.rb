@@ -26,7 +26,7 @@ class UALGHex < LittleGolemInterface
         ps=ps.chomp
         super(LOGIN,ps,BOSS_ID)
     end
-    def coord_Hex2LG(c)
+    def translate_Hex2LG(c)
         return c if c == "swap"
         x=c[0].chr
         y=c[1..2].to_i
@@ -36,6 +36,22 @@ class UALGHex < LittleGolemInterface
             c.reverse!
         end
         return c
+    end
+    def translate_LG2Hex!(moves)
+        if (moves.include?("swap"))
+            # we'll need to mirror our move back to LG later
+            @swap = true
+            moves.delete("swap")
+            # mirror everything after the first move
+            moves[1..-1].map! { |m| m.reverse! }
+        end
+        # convert numbers to letters, eg: f10 to FJ
+        moves.map! do |m|
+            m.upcase!
+            x=m[0].chr
+            y=m[1]-64
+            m=x+y.to_s
+        end
     end
     def call_hex(size, moves)
         gtp = GTPClient.new("../../src/wolve/wolve")
@@ -60,32 +76,16 @@ class UALGHex < LittleGolemInterface
         gameids.each do |g|
             if (game = get_game(g))
                 size = game.scan(/SZ\[(.+?)\]/).flatten[0].to_i
-                moves = game.scan(/;[B|W]\[(.+?)\]/).flatten#.map{|m| coord_HGF2GA(m, size) }
+                moves = game.scan(/;[B|W]\[(.+?)\]/).flatten
                 self.log("Game #{g}, size #{size}: #{moves.join(' ')}")
                 newmove = self.call_hex(size, moves)
                 self.log("Game #{g}, size #{size}: response #{newmove}")
-                self.post_move(g, coord_Hex2LG(newmove))
+                self.post_move(g, translate_Hex2LG(newmove))
                 @swap = false
             else
                 self.log('error getting game')
                 sleep(600)
             end
-        end
-    end
-    def translate_LG2Hex!(moves)
-        if (moves.include?("swap"))
-            # we'll need to mirror our move back to LG later
-            @swap = true
-            moves.delete("swap")
-            # mirror everything after the first move
-            moves[1..-1].map! { |m| m.reverse! }
-        end
-        # f10 |-> FJ
-        moves.map! do |m|
-            m.upcase!
-            x=m[0].chr
-            y=m[1]-64
-            m=x+y.to_s
         end
     end
 end
