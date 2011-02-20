@@ -38,6 +38,7 @@ HexHtpEngine::HexHtpEngine(int boardsize)
     RegisterCmd("name", &HexHtpEngine::CmdName);
     RegisterCmd("param_game", &HexHtpEngine::CmdParamGame);
     RegisterCmd("play", &HexHtpEngine::CmdPlay);
+    RegisterCmd("play-game", &HexHtpEngine::CmdPlayGame);
     RegisterCmd("showboard", &HexHtpEngine::CmdShowboard);
     RegisterCmd("time_left", &HexHtpEngine::CmdTimeLeft);
     RegisterCmd("undo", &HexHtpEngine::CmdUndo);
@@ -164,6 +165,17 @@ void HexHtpEngine::CmdPlay(HtpCommand& cmd)
 {
     cmd.CheckNuArg(2);
     Play(HtpUtil::ColorArg(cmd, 0), HtpUtil::MoveArg(cmd, 1));
+}
+
+void HexHtpEngine::CmdPlayGame(HtpCommand& cmd)
+{
+    NewGame(m_game.Board().Width(), m_game.Board().Height());
+    HexColor color = FIRST_TO_PLAY;
+    for (std::size_t i = 0; i < cmd.NuArg(); ++i)
+    {
+        Play(color, HtpUtil::MoveArg(cmd, i));
+        color = !color;
+    }
 }
 
 /** Generates a move and handles time remaining. */

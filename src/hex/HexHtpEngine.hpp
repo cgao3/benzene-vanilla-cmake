@@ -44,6 +44,7 @@ public:
         - @link CmdNewGame() @c boardsize @endlink
         - @link CmdParamGame() @c param_game @endlink
         - @link CmdPlay() @c play @endlink
+        - @link CmdPlayGame() @c play-game @endlink
         - @link CmdShowboard() @c showboard @endlink
         - @link CmdTimeLeft() @c time_left @endlink
         - @link CmdUndo() @c undo @endlink
@@ -69,6 +70,7 @@ public:
     virtual void CmdNewGame(HtpCommand& cmd);
     virtual void CmdParamGame(HtpCommand& cmd);
     virtual void CmdPlay(HtpCommand&);
+    virtual void CmdPlayGame(HtpCommand&);
     virtual void CmdShowboard(HtpCommand&);
     virtual void CmdTimeLeft(HtpCommand&);
     virtual void CmdUndo(HtpCommand& cmd);
