@@ -1,17 +1,46 @@
 #!/usr/bin/ruby
 require 'tools/lg/lg-interface'
+require 'open3'
+
+#class GTPClient
+#    def initialize(cmdline)
+#        @io=IO.popen(cmdline,'w+')
+#    end
+#    def cmd(c)
+#        @io.puts c.strip
+#        return @io.gets("\n\n")
+#    end
+#    def close
+#        @io.close_write
+#        @io.close_read
+#    end
+#end
 
 class GTPClient
-    def initialize(cmdline)
-        @io=IO.popen(cmdline,'w+')
+    def initialize(logger, cmdline)
+        @logger = logger
+        @ins, @out, @err = Open3.popen3(cmdline)
+        Thread.new do  
+            until (line = @err.gets).nil? do  
+                log line
+            end  
+        end
     end
+    def log(str)
+        @logger.log_nostamp str
+    end
+
     def cmd(c)
-        @io.puts c.strip
-        return @io.gets("\n\n")
+        log '>>' + c.strip
+        @ins.puts c.strip
+        response = @out.gets("\n\n")
+        log '<<' + response
+        return response
     end
     def close
-        @io.close_write
-        @io.close_read
+        @ins.close_write
+        @out.close_read
+        @err.close_read
     end
 end
 

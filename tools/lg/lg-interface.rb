@@ -21,8 +21,20 @@ class String
 end
 
 class Logger
+    def initialize(filename)
+        @file = File.new(filename, 'a')
+        log '========== Startup =========='
+    end
+    def timestamp
+        return '[' + Time::now.strftime('%y-%m-%d %H:%M:%S') + ']'
+    end
     def log(msg)
-        puts((('[' + Time::now.strftime('%y-%m-%d %H:%M:%S') + '] ').yellow) + msg)
+        puts (timestamp().yellow) + ' ' + msg
+        @file.puts timestamp() + ' ' + msg
+    end
+    def log_nostamp(msg)
+        puts msg
+        @file.puts msg
     end
 end
 
@@ -31,7 +43,7 @@ class LittleGolemInterface
         @login,@psw,@boss_id=loginname,psw,boss_id
         @http = Net::HTTP.new('www.littlegolem.net')
         @config_data = {}
-        @logger=Logger.new
+        @logger=Logger.new(loginname + '.log')
     end
     def get_game(gid)
         path="/servlet/sgf/#{gid}/game.hgf"
@@ -67,6 +79,9 @@ class LittleGolemInterface
     def log(msg)
         @logger.log(msg)
     end
+    def log_nostamp(msg)
+        @logger.log_nostamp(msg)
+    end
     def logout
         path="/jsp/login/logoff.jsp"
         resp = @http.get(path, @headers)
@@ -76,7 +91,7 @@ class LittleGolemInterface
     def login
         path='/jsp/login/index.jsp'
         resp = @http.get(path, nil)
-        @headers = {'Cookie' => resp['set-cookie'] }#, 'Content-Type' => 'using application/x-www-form-urlencoded' }
+        @headers = {'Cookie' => resp['set-cookie'] }
         
         data = "login=#{@login}&password=#{@psw}"
         resp = @http.post(path, data, @headers)
@@ -90,14 +105,12 @@ class LittleGolemInterface
     end
     def parse
         if !self.login
-            self.log('login failed'.red_back)
+            self.log('login failed')
             return false;
         end
         if (gamesheet = get_gamesheet)
-            #check invitations
             if gamesheet =~ /New invitations:/
                 if invites = get_invitations
-                    #a = invites.slice(/Your decision.*?Confirm selection/m).scan(/<td>(.*?)<\/td>/m).flatten
                     a = invites.slice(/Your decision.*?table>/m).scan(/<td>(.*?)<\/td>/m).flatten
                     opponent = a[1]
                     gametype = a[2]
@@ -107,13 +120,12 @@ class LittleGolemInterface
                         answer='refuse'
                     end
                     self.send_message(@boss_id,"New invitation","#{answer} #{gametype} from #{opponent}")
-                    self.log("#{answer} '#{gametype}' from #{opponent}".green)
+                    self.log("#{answer} '#{gametype}' from #{opponent}")
                     inv_id = a[5].scan(/invid=(\d*)?/m)[0]
                     reply_invitation(inv_id, answer)
                 end
             end
             
-            #play a move
             if !(gamesheet =~  /Games where it is your turn \[0\]/)
                 gameids=gamesheet.slice(/your turn.*your opponent/m).scan(/gid=(\d+)?/).flatten
                 parse_make_moves(gameids)

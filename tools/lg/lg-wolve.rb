@@ -11,18 +11,14 @@ class WolveBot < BenzeneBot
         super(LOGIN,ps,BOSS_ID)
     end
     def genmove(size, moves)
-        gtp = GTPClient.new("src/wolve/wolve")
+        gtp = GTPClient.new(@logger, "src/wolve/wolve")
+        sleep 1
         gtp.cmd('boardsize ' + size.to_s)
         gtp.cmd('param_wolve search_depths "1 2"')
         translate_LG2Hex!(moves)
-        color='B'
-        moves.each do |m|
-            gtp.cmd("play #{color} #{m}")
-            color = (color=='W'?'B':'W')
-        end
-        response = gtp.cmd('showboard')
-        print response[2..-1]
-        response = gtp.cmd('genmove '+color)
+        gtp.cmd('play-game ' + moves.join(' '))
+        gtp.cmd('showboard')
+        response = gtp.cmd('genmove ' + (moves.length % 2 == 0 ? 'b' : 'w'))
         gtp.cmd('quit')
         sleep 1
         gtp.close
