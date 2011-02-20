@@ -2,18 +2,6 @@
 require 'net/http'
 require 'yaml'
 
-#fix rbuf_fill error
-#http://www.ruby-forum.com/topic/105212
-#module Net
-#  class BufferedIO
-#    def rbuf_fill
-#      timeout(@read_timeout,ProtocolError) {
-#      @rbuf << @io.sysread(BUFSIZE)
-#      }
-#    end
-#  end
-#end
-
 class String
     def red
         "\e[31m#{self}\e[0m"
@@ -34,7 +22,7 @@ end
 
 class Logger
     def log(msg)
-        puts((('[' + Time::now.strftime('%d-%m-%y %H:%M:%S') + '] ').yellow) + msg)
+        puts((('[' + Time::now.strftime('%y-%m-%d %H:%M:%S') + '] ').yellow) + msg)
     end
 end
 
