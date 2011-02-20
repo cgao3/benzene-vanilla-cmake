@@ -16,7 +16,7 @@ using namespace benzene;
     (determined experimentally). Let @f$ k @f$ be the average number
     of moves in a game (also determined experimentally). Then the
     fraction of total time remaining after @f$ k @f$ moves will be @f$
-    ((1-c)/c)^k @f$ on average. Because Wolve will abort early when it
+    ((c-1)/c)^k @f$ on average. Because Wolve will abort early when it
     detects it cannot complete the next iteration in the time alloted,
     this is an under estimate on how much time will be left after @f$
     k @f$ moves.  Setting @f$ c @f$ so the above equation gives values
