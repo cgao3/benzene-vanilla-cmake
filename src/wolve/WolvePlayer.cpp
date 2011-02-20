@@ -98,7 +98,7 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
         WolveSearchUtil::DumpGuiFx(state, m_hashTable);
     BenzeneAssert(PV.Length() > 0);
     HexPoint bestMove = static_cast<HexPoint>(PV[0]);
-    LogInfo() << PrintStatistics(score, PV) << '\n';
+    LogInfo() << PrintStatistics(score, PV);
     outScore = score;
     return bestMove;
 }
