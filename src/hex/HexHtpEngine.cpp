@@ -21,7 +21,8 @@ using namespace benzene;
 HexHtpEngine::HexHtpEngine(int boardsize)
     : GtpEngine(),
       m_board(boardsize, boardsize),
-      m_game(m_board)
+      m_game(m_board),
+      m_onLittleGolem(false)
 {
     RegisterCmd("all_legal_moves", &HexHtpEngine::CmdAllLegalMoves);
     RegisterCmd("board_id", &HexHtpEngine::CmdBoardID);
@@ -91,6 +92,17 @@ void HexHtpEngine::NewGame(int width, int height)
         m_game.SetBoard(m_board);
     } 
     m_game.NewGame();
+}
+
+/** Writes move to gtp command.
+    Handles the special case of swap moves on LittleGolem: ie, LG
+    expects 'swap' instead of 'swap-pieces' or 'swap-sides'. */
+void HexHtpEngine::WriteMoveToGtp(HtpCommand& cmd, HexPoint move) const
+{
+    if (m_onLittleGolem && move == SWAP_PIECES)
+        cmd << "swap";
+    else 
+        cmd << move;
 }
 
 void HexHtpEngine::BeforeHandleCommand()
@@ -197,7 +209,7 @@ void HexHtpEngine::CmdGenMove(HtpCommand& cmd)
         if (m_game.TimeRemaining(color) < 0)
             LogWarning() << "**** FLAG DROPPED ****\n";
         Play(color, move);
-        cmd << move;
+        WriteMoveToGtp(cmd, move);
     }
 }
 
@@ -366,6 +378,8 @@ void HexHtpEngine::CmdParamGame(HtpCommand& cmd)
         cmd << "\n"
             << "[bool] allow_swap "
             << m_game.AllowSwap() << '\n'
+            << "[bool] on_little_golem "
+            << m_onLittleGolem << '\n'
             << "[string] game_time "
             << m_game.GameTime() << '\n';
     }
@@ -374,6 +388,8 @@ void HexHtpEngine::CmdParamGame(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "allow_swap")
             m_game.SetAllowSwap(cmd.Arg<bool>(1));
+        else if (name == "on_little_golem")
+            m_onLittleGolem = cmd.Arg<bool>(1);
         else if (name == "game_time")
         {
             if (!m_game.History().empty())

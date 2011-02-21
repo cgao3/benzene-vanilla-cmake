@@ -1,10 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file HexHtpEngine.hpp
- */
+/** @file HexHtpEngine.hpp */
 //----------------------------------------------------------------------------
 
-#ifndef HEXHTPENGINE_H
-#define HEXHTPENGINE_H
+#ifndef HEXHTPENGINE_HPP
+#define HEXHTPENGINE_HPP
 
 #include "GtpEngine.h"
 #include "SgNode.h"
@@ -84,10 +83,11 @@ public:
 #endif
 
 protected:
-
     StoneBoard m_board;
 
     Game m_game;
+    
+    bool m_onLittleGolem;
 
     /** Clears SgAbortFlag() */
     void BeforeHandleCommand();
@@ -107,6 +107,8 @@ protected:
     void SetPosition(const SgNode* node);
 
 private:
+    void WriteMoveToGtp(HtpCommand& cmd, HexPoint move) const;
+
     void RegisterCmd(const std::string& name,
                      GtpCallback<HexHtpEngine>::Method method);
 };
@@ -125,4 +127,4 @@ namespace HtpUtil
 
 _END_BENZENE_NAMESPACE_
 
-#endif // HEXHTPENGINE_H
+#endif // HEXHTPENGINE_HPP

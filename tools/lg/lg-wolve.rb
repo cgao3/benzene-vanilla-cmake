@@ -14,6 +14,7 @@ class WolveBot < BenzeneBot
         gtp = GTPClient.new(@logger, "src/wolve/wolve")
         sleep 1
         gtp.cmd('boardsize ' + size.to_s)
+        gtp.cmd('param_game on_little_golem 1')
         gtp.cmd('param_wolve search_depths "1 2"')
         translate_LG2Hex!(moves)
         gtp.cmd('play-game ' + moves.join(' '))
