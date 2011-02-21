@@ -16,7 +16,7 @@ using namespace benzene;
     (determined experimentally). Let @f$ k @f$ be the average number
     of moves in a game (also determined experimentally). Then the
     fraction of total time remaining after @f$ k @f$ moves will be @f$
-    ((1-c)/c)^k @f$ on average. Because Wolve will abort early when it
+    ((c-1)/c)^k @f$ on average. Because Wolve will abort early when it
     detects it cannot complete the next iteration in the time alloted,
     this is an under estimate on how much time will be left after @f$
     k @f$ moves.  Setting @f$ c @f$ so the above equation gives values
@@ -36,7 +36,7 @@ using namespace benzene;
 double WolveTimeControl::TimeForMove(const Game& game, double timeLeft)
 {
     const StoneBoard& brd = game.Board();
-    double numMovesRemaining = 12.5;
+    double numMovesRemaining = 10.;
     if (brd.Width() == 9)
         // In practice, the average number of moves per game generated
         // by a search is around 8.5. The last couple moves are
@@ -46,6 +46,14 @@ double WolveTimeControl::TimeForMove(const Game& game, double timeLeft)
         // and seems to be the strongest (assuming 4 moves uses more time
         // but plays weaker for some reason).        
         numMovesRemaining = 5.;
+    else if (brd.Width() == 11)
+        // On average 15 moves/game. (9/10)^15 ~= 0.206.
+        // TODO: Test!
+        numMovesRemaining = 10.;
+    else if (brd.Width() == 13)
+        // On average 23 moves/game. (14/15)^23 ~= 0.205.
+        // TODO: Test!
+        numMovesRemaining = 15.;
     const double timeForMove = timeLeft / numMovesRemaining;
     LogInfo() << "timeLeft=" << timeLeft << ' '
               << "remaining=" << numMovesRemaining << ' '
