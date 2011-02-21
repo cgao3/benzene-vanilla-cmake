@@ -15,6 +15,7 @@ class MoHexBot < BenzeneBot
         sleep 1
         gtp.cmd('boardsize ' + size.to_s)
         gtp.cmd('param_game on_little_golem 1')
+        gtp.cmd('param_game allow_swap 1')
         gtp.cmd('param_mohex knowledge_threshold 0')
         gtp.cmd('param_mohex reuse_subtree 0')
         gtp.cmd('param_mohex max_games 999999999')
