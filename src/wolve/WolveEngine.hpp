@@ -6,8 +6,6 @@
 #define WOLVEENGINE_HPP
 
 #include "CommonHtpEngine.hpp"
-#include "BookCheck.hpp"
-#include "BookCommands.hpp"
 #include "CacheBook.hpp"
 #include "WolvePlayer.hpp"
 
@@ -46,14 +44,7 @@ public:
 #endif
 
 private:
-
     WolvePlayer& m_player;
-
-    boost::scoped_ptr<Book> m_book;
-
-    BookCheck m_bookCheck;
-
-    BookCommands m_bookCommands;
 
     CacheBook m_cacheBook;
 
@@ -63,7 +54,6 @@ private:
 
     void RegisterCmd(const std::string& name,
                      GtpCallback<WolveEngine>::Method method);
-
 };
 
 //----------------------------------------------------------------------------
