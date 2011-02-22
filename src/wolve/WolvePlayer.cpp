@@ -48,7 +48,7 @@ std::string PrintVector(const SgVector<SgMove>& vec)
 
 WolvePlayer::WolvePlayer()
     : BenzenePlayer(),
-      m_hashTable(1 << 16),
+      m_hashTable(new SgSearchHashTable(1 << 20)),
       m_maxTime(180),
       m_minDepth(1),
       m_maxDepth(4),
@@ -70,7 +70,7 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     UNUSED(game);
     m_search.SetRootMovesToConsider(consider);
     m_search.SetWorkBoard(&brd);
-    m_search.SetHashTable(&m_hashTable);
+    m_search.SetHashTable(m_hashTable.get());
     m_search.SetToPlay(HexSgUtil::HexColorToSgColor(state.ToPlay()));
     WolveSearchControl timeControl(maxTime);
     m_search.SetSearchControl(&timeControl);
@@ -89,7 +89,7 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
                                         -SgSearchValue::MIN_PROVEN_VALUE,
                                         +SgSearchValue::MIN_PROVEN_VALUE, &PV);
     if (m_search.GuiFx())
-        WolveSearchUtil::DumpGuiFx(state, m_hashTable);
+        WolveSearchUtil::DumpGuiFx(state, *m_hashTable);
     BenzeneAssert(PV.Length() > 0);
     HexPoint bestMove = static_cast<HexPoint>(PV[0]);
     LogInfo() << PrintStatistics(score, PV);
@@ -110,8 +110,9 @@ std::string WolvePlayer::PrintStatistics(int score, const SgVector<SgMove>& pv)
        << SgWriteLabel("Nodes/s") << stats.NumNodesPerSecond() << '\n'
        << SgWriteLabel("Score") << PrintSgScore(score) << '\n'
        << SgWriteLabel("PV") << PrintVector(pv) << '\n'
-       << '\n' 
-       << m_hashTable << '\n';
+       << '\n'; 
+    if (m_hashTable.get()) 
+        os << *m_hashTable << '\n';
     return os.str();
 }
 

@@ -46,7 +46,9 @@ public:
 
     void SetMaxDepth(std::size_t max);
 
-    const SgSearchHashTable& HashTable() const;
+    const SgSearchHashTable* HashTable() const;
+
+    void SetHashTable(SgSearchHashTable* hash);
 
     /** Use time control to determine how much time to use per move. */
     bool UseTimeManagement() const;
@@ -59,7 +61,7 @@ public:
 private: 
     WolveSearch m_search;
 
-    SgSearchHashTable m_hashTable;
+    boost::scoped_ptr<SgSearchHashTable> m_hashTable;
 
     /** See MaxTime() */
     double m_maxTime;
@@ -118,9 +120,14 @@ inline void WolvePlayer::SetMaxDepth(std::size_t max)
     m_maxDepth = max;
 }
 
-inline const SgSearchHashTable& WolvePlayer::HashTable() const
+inline const SgSearchHashTable* WolvePlayer::HashTable() const
 {
-    return m_hashTable;
+    return m_hashTable.get();
+}
+
+inline void WolvePlayer::SetHashTable(SgSearchHashTable* hash)
+{
+    m_hashTable.reset(hash);
 }
 
 inline bool WolvePlayer::UseTimeManagement() const

@@ -107,22 +107,25 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
         cmd << '\n'
             << "[bool] backup_ice_info "
             << search.BackupIceInfo() << '\n'
-            << "[string] max_time "
-            << m_player.MaxTime() << '\n'
             << "[bool] use_guifx "
             << search.GuiFx() << '\n'
-            << "[string] ply_width " 
-            << MiscUtil::PrintVector(search.PlyWidth()) << '\n'
-            << "[string] max_depth "
-            << m_player.MaxDepth() << '\n'
-            << "[string] min_depth "
-            << m_player.MinDepth() << '\n'
             << "[bool] search_singleton "
             << m_player.SearchSingleton() << '\n'
             << "[bool] use_parallel_solver "
             << m_useParallelSolver << '\n'
             << "[bool] use_time_management "
-            << m_player.UseTimeManagement() << '\n';
+            << m_player.UseTimeManagement() << '\n'
+            << "[string] ply_width " 
+            << MiscUtil::PrintVector(search.PlyWidth()) << '\n'
+            << "[string] max_depth "
+            << m_player.MaxDepth() << '\n'
+            << "[string] max_time "
+            << m_player.MaxTime() << '\n'
+            << "[string] min_depth "
+            << m_player.MinDepth() << '\n'
+            << "[string] tt_bits "
+            << (m_player.HashTable() 
+                ? log2(m_player.HashTable()->MaxHash()) : 0);
     }
     else if (cmd.NuArg() == 2)
     {
@@ -145,6 +148,14 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             search.SetGuiFx(cmd.Arg<bool>(1));
         else if (name == "search_singleton")
             m_player.SetSearchSingleton(cmd.Arg<bool>(1));
+        else if (name == "tt_bits")
+	{
+	    int bits = cmd.ArgMin<int>(1, 0);
+	    if (bits == 0)
+		m_player.SetHashTable(0);
+	    else
+		m_player.SetHashTable(new SgSearchHashTable(1 << bits));
+        }
         else if (name == "use_parallel_solver")
             m_useParallelSolver = cmd.Arg<bool>(1);
         else if (name == "use_time_management")
@@ -160,17 +171,21 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
 void WolveEngine::CmdScores(HtpCommand& cmd)
 {
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
-    const SgSearchHashTable& hashTable = m_player.HashTable();
-    cmd << WolveSearchUtil::PrintScores(state, hashTable);
+    const SgSearchHashTable* hashTable = m_player.HashTable();
+    if (!hashTable)
+        throw HtpFailure("No hashtable!");
+    cmd << WolveSearchUtil::PrintScores(state, *hashTable);
 }
 
 /** Returns data on this state in the hashtable. */
 void WolveEngine::CmdData(HtpCommand& cmd)
 {
-    const SgSearchHashTable& hashTable = m_player.HashTable();
+    const SgSearchHashTable* hashTable = m_player.HashTable();
+    if (!hashTable)
+        throw HtpFailure("No hashtable!");
     SgSearchHashData data;
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
-    if (hashTable.Lookup(state.Hash(), &data))
+    if (hashTable->Lookup(state.Hash(), &data))
         cmd << "[score=" << data.Value()
             << " bestMove=" << m_player.Search().MoveString(data.BestMove())
             << " isExact=" << data.IsExactValue()
