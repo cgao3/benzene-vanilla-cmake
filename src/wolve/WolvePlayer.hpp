@@ -38,11 +38,13 @@ public:
     /** See MaxTime() */
     void SetMaxTime(double time);
 
-    /** Depths to search if using iterative deepening. */
-    const std::vector<std::size_t>& SearchDepths() const;
+    std::size_t MinDepth() const;
 
-    /** See SearchDepths() */
-    void SetSearchDepths(const std::vector<std::size_t>& depths);
+    void SetMinDepth(std::size_t min);
+   
+    std::size_t MaxDepth() const;
+
+    void SetMaxDepth(std::size_t max);
 
     const SgSearchHashTable& HashTable() const;
 
@@ -62,8 +64,9 @@ private:
     /** See MaxTime() */
     double m_maxTime;
 
-    /** See SearchDepths() */
-    std::vector<std::size_t> m_searchDepths;
+    std::size_t m_minDepth;
+
+    std::size_t m_maxDepth;
 
     /** See UseTimeManagement() */
     bool m_useTimeManagement;
@@ -95,15 +98,24 @@ inline void WolvePlayer::SetMaxTime(double time)
     m_maxTime = time;
 }
 
-inline const std::vector<std::size_t>& WolvePlayer::SearchDepths() const
+inline std::size_t WolvePlayer::MinDepth() const
 {
-    return m_searchDepths;
+    return m_minDepth;
 }
 
-inline void WolvePlayer::SetSearchDepths
-(const std::vector<std::size_t>& depths)
+inline void WolvePlayer::SetMinDepth(std::size_t min)
 {
-    m_searchDepths = depths;
+    m_minDepth = min;
+}
+
+inline std::size_t WolvePlayer::MaxDepth() const
+{
+    return m_maxDepth;
+}
+
+inline void WolvePlayer::SetMaxDepth(std::size_t max)
+{
+    m_maxDepth = max;
 }
 
 inline const SgSearchHashTable& WolvePlayer::HashTable() const

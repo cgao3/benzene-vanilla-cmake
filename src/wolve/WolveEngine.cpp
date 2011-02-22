@@ -113,8 +113,10 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             << search.GuiFx() << '\n'
             << "[string] ply_width " 
             << MiscUtil::PrintVector(search.PlyWidth()) << '\n'
-            << "[string] search_depths "
-            << MiscUtil::PrintVector(m_player.SearchDepths()) << '\n'
+            << "[string] max_depth "
+            << m_player.MaxDepth() << '\n'
+            << "[string] min_depth "
+            << m_player.MinDepth() << '\n'
             << "[bool] search_singleton "
             << m_player.SearchSingleton() << '\n'
             << "[bool] use_parallel_solver "
@@ -135,12 +137,10 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             ParseDashSeparatedString(cmd.Arg(1), plywidth);
             search.SetPlyWidth(plywidth);
         } 
-        else if (name == "search_depths")
-        {
-            std::vector<std::size_t> depths;
-            ParseDashSeparatedString(cmd.Arg(1), depths);
-            m_player.SetSearchDepths(depths);
-        }
+        else if (name == "max_depth")
+            m_player.SetMaxDepth(cmd.ArgMin<std::size_t>(1, 1));
+        else if (name == "min_depth")
+            m_player.SetMinDepth(cmd.ArgMin<std::size_t>(1, 1));
         else if (name == "use_guifx")
             search.SetGuiFx(cmd.Arg<bool>(1));
         else if (name == "search_singleton")

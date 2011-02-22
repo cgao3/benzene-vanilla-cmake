@@ -50,12 +50,10 @@ WolvePlayer::WolvePlayer()
     : BenzenePlayer(),
       m_hashTable(1 << 16),
       m_maxTime(180),
-      m_searchDepths(),
+      m_minDepth(1),
+      m_maxDepth(4),
       m_useTimeManagement(false)
 {
-    m_searchDepths.push_back(1);
-    m_searchDepths.push_back(2);
-    m_searchDepths.push_back(4);
 }
 
 WolvePlayer::~WolvePlayer()
@@ -64,8 +62,7 @@ WolvePlayer::~WolvePlayer()
 
 //----------------------------------------------------------------------------
 
-/** Generates a move using WolveSearch.
-    @todo Handle arbitrary search depths, ie, [1, 2, 4] (ticket #83). */
+/** Generates a move using WolveSearch. */
 HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
                              HexBoard& brd, const bitset_t& consider,
                              double maxTime, double& outScore)
@@ -77,15 +74,12 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     m_search.SetToPlay(HexSgUtil::HexColorToSgColor(state.ToPlay()));
     WolveSearchControl timeControl(maxTime);
     m_search.SetSearchControl(&timeControl);
-    // TODO: handle search depths properly
-    const vector<std::size_t>& depths = m_searchDepths;
-    std::size_t minDepth = *std::min_element(depths.begin(), depths.end());
-    std::size_t maxDepth = *std::max_element(depths.begin(), depths.end());
+    std::size_t minDepth = MinDepth();
+    std::size_t maxDepth = MaxDepth();
     if (maxDepth > m_search.PlyWidth().size())
     {
         maxDepth = m_search.PlyWidth().size();
-        LogWarning() << "Max depth specified in search_depths exceeds "
-                     << "depth specified in ply_width!\n"
+        LogWarning() << "Max depth exceeds depth specified in ply_width!\n"
                      << "Capping maxDepth to be safe.\n";
     }
     LogInfo() << "minDepth=" << minDepth << ' ' 
