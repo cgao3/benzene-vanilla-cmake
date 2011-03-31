@@ -8,14 +8,10 @@
 # be in TEST_DIR. 
 #
 # Any errors will be reported to REPORT_EMAIL.
-#
-# Documentation will be copied to WEBPAGE.
 
 TEST_DIR=/local/scratch/broderic/benzene-daily
 GIT_BACKUP_DIR=~broderic/hex/benzene.git.sf.backup/
 REPORT_EMAIL="hexml@lists.cs.ualberta.ca"
-WEBPAGE=~broderic/web_docs/hex/local
-RESULT_TABLE=$WEBPAGE/autotest-result.dat
 RESULT_TABLE_LOCAL=$TEST_DIR/result.dat
 MAIL_EXEC=`which mail`
 
@@ -43,7 +39,6 @@ $OUTPUT
 EOF
   $MAIL_EXEC -s "Benzene Error Report" "$REPORT_EMAIL" < $TEST_DIR/last_error
   echo -e "$(date +'%F')\t$FAILURE" >> $RESULT_TABLE_LOCAL
-  cp $RESULT_TABLE_LOCAL $RESULT_TABLE
   echo "Failure: $FAILURE"
   exit 1
 }
@@ -111,13 +106,6 @@ build-benzene()
     run-checked "make -s check" "BENZENE MAKE CHECK"
     cd $TEST_DIR/benzene/regression || return 2
     run-checked "./run.sh" "BENZENE BASIC REGRESSION TESTS"
-
-    # Build documentation and upload to server
-    cd $TEST_DIR/benzene/doc || return 2
-    make -s
-    tar czf benzene-doc.tar.gz benzene-doc/
-    scp benzene-doc.tar.gz $WEBPAGE
-    cd $WEBPAGE && rm -rf benzene-doc && tar xzf benzene-doc.tar.gz && chmod a+rX -R benzene-doc
 }
 
 rm -f $TEST_DIR/last_error
@@ -125,6 +113,5 @@ run-function "build-fuego" \
     && run-function "build-benzene"
 
 echo -e "$(date +'%F')\tSUCCESS" >> $RESULT_TABLE_LOCAL
-cp $RESULT_TABLE_LOCAL $RESULT_TABLE
 echo "Success"
 
