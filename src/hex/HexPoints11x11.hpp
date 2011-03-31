@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file
- */
+/** @file HexPoints11x11.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXPOINT11x11_HPP
@@ -97,6 +96,9 @@ typedef enum
     FIRST_INVALID
 
 } HexPoint;
+
+/** The value of the last interior cell. */
+static const HexPoint LAST_CELL = HEX_CELL_K11;
 
 //----------------------------------------------------------------------------
 

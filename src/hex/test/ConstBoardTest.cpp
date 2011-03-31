@@ -86,13 +86,6 @@ BOOST_AUTO_TEST_CASE(ConstBoard_CellsLocationsValid)
     b1.set(6);
     b1.set(7);
     BOOST_CHECK(cb->IsValid(b1));
-    
-    // testing that FIRST_INVALID is just beyond the last valid
-    // HexPoint on the largest possible board
-    cb = &ConstBoard::Get(MAX_WIDTH, MAX_HEIGHT);
-    BOOST_CHECK(FIRST_INVALID==BITSETSIZE);
-    BOOST_CHECK(FIRST_INVALID-1==HEX_CELL_K11);
-    BOOST_CHECK(cb->IsValid(HEX_CELL_K11));
 }
 
 BOOST_AUTO_TEST_CASE(ConstBoard_CellLocationValidIterators)

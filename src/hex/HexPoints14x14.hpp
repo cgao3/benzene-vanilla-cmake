@@ -106,6 +106,9 @@ typedef enum
 
 } HexPoint;
 
+/** The value of the last interior cell. */
+static const HexPoint LAST_CELL = HEX_CELL_N14;
+
 //----------------------------------------------------------------------------
 
 #endif

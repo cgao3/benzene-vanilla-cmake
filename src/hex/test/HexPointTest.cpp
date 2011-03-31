@@ -1,6 +1,5 @@
 //---------------------------------------------------------------------------
-/** @file HexPointTest.cpp
- */
+/** @file HexPointTest.cpp */
 //---------------------------------------------------------------------------
 
 #include <boost/test/auto_unit_test.hpp>
@@ -147,10 +146,10 @@ BOOST_AUTO_TEST_CASE(HexPoint_CoordsConversion)
     BOOST_CHECK_EQUAL(y, 0);
     BOOST_CHECK_EQUAL(HexPointUtil::coordsToPoint(x, y), FIRST_CELL);
 
-    HexPointUtil::pointToCoords(HEX_CELL_K11, x, y);
+    HexPointUtil::pointToCoords(LAST_CELL, x, y);
     BOOST_CHECK_EQUAL(x, MAX_WIDTH - 1);
     BOOST_CHECK_EQUAL(y, MAX_HEIGHT - 1);
-    BOOST_CHECK_EQUAL(HexPointUtil::coordsToPoint(x, y), HEX_CELL_K11);
+    BOOST_CHECK_EQUAL(HexPointUtil::coordsToPoint(x, y), LAST_CELL);
     
     BOOST_REQUIRE(MAX_WIDTH >= 2 && MAX_HEIGHT >= 2);
     BOOST_CHECK_EQUAL(HexPointUtil::coordsToPoint(0, 1), HEX_CELL_A2);
