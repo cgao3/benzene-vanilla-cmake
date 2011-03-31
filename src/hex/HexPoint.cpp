@@ -4,6 +4,7 @@
 
 #include <sstream>
 #include <string>
+#include <strings.h> // strcasecmp
 #include <cstring>
 #include <cstdio>
 #include "HexPoint.hpp"

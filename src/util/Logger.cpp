@@ -106,8 +106,11 @@ void Logger::Flush()
         if (level < m_levels[i]) 
             continue;
         std::ostream& stream = *m_streams[i];
+        // pthread_t is a pointer type in Cygwin
+        long unsigned int self =
+            reinterpret_cast<long unsigned int>(pthread_self());
         stream << std::hex << std::setfill('0') 
-               << std::setw(5) << ((pthread_self() >> 8) & 0xfffff) << " " 
+               << std::setw(5) << ((self >> 8) & 0xfffff) << " " 
                << LogLevelUtil::toString(level) << ": " 
                << buffer.buffer.str();
         stream.flush();

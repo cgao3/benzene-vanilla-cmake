@@ -134,12 +134,20 @@ void DfpnCommands::CmdSolveState(HtpCommand& cmd)
     HexColor colorToMove = m_game.Board().WhoseTurn();
     if (cmd.NuArg() >= 1)
         colorToMove = HtpUtil::ColorArg(cmd, 0);
-    DfpnBoundType maxPhi = DfpnBounds::MAX_WORK;
-    DfpnBoundType maxDelta = DfpnBounds::MAX_WORK;
+    // DfpnBounds::MAX_WORK cannot be used as an argument to ArgMinMax()
+    // directly, because it is an integral constant class member that is not
+    // defined anywhere and arguments to ArgMinMax() are passed by reference.
+    // Older versions of GCC (including the current Cygwin GCC 4.3.4) generate
+    // and error ("undefined reference to DfpnBounds::MAX_WORK"), probably in
+    // accordance to the C++ standard. The best solution would be to change
+    // GtpCommand::ArgMinMax() in Fuego to pass arguments by value.
+    const DfpnBoundType maxWork = DfpnBounds::MAX_WORK;
+    DfpnBoundType maxPhi = maxWork;
+    DfpnBoundType maxDelta = maxWork;
     if (cmd.NuArg() >= 2)
-        maxPhi = cmd.ArgMinMax<DfpnBoundType>(1, 0, DfpnBounds::MAX_WORK);
+        maxPhi = cmd.ArgMinMax<DfpnBoundType>(1, 0, maxWork);
     if (cmd.NuArg() >= 3)
-        maxDelta = cmd.ArgMinMax<DfpnBoundType>(2, 0, DfpnBounds::MAX_WORK);
+        maxDelta = cmd.ArgMinMax<DfpnBoundType>(2, 0, maxWork);
     DfpnBounds maxBounds(maxPhi, maxDelta);
     PointSequence pv;
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
