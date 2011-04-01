@@ -5,7 +5,6 @@
 #include "BenzeneException.hpp"
 #include "Misc.hpp"
 #include <fstream>
-#include <iostream>
 #include <boost/filesystem/path.hpp>
 
 using namespace benzene;
@@ -16,6 +15,9 @@ using namespace boost::filesystem;
 namespace
 {
 
+/** Directory of executable.
+    Can be set with MiscUtil::FindProgramDir() and is used in
+    MiscUtil::OpenFile() */
 path programDir;
 
 }
