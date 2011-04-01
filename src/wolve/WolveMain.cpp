@@ -5,6 +5,7 @@
 #include "SgSystem.h"
 
 #include "config.h"
+#include "Misc.hpp"
 #include "WolveEngine.hpp"
 #include "WolvePlayer.hpp"
 #include "WolveProgram.hpp"
@@ -54,6 +55,8 @@ const char* build_date = __DATE__;
 
 int main(int argc, char** argv)
 {
+    MiscUtil::FindProgramDir(argc, argv);
+
     CommonProgram com;
     com.Shutdown();
 

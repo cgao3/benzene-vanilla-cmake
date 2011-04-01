@@ -5,6 +5,7 @@
 #include "SgSystem.h"
 
 #include "config.h"
+#include "Misc.hpp"
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
 #include "MoHexProgram.hpp"
@@ -49,6 +50,7 @@ const char* build_date = __DATE__;
 
 int main(int argc, char** argv)
 {
+    MiscUtil::FindProgramDir(argc, argv);
     MoHexProgram program(VERSION, build_date);
     BenzeneEnvironment::Get().RegisterProgram(program);
     program.Initialize(argc, argv);

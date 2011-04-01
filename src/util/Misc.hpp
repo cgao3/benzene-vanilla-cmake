@@ -33,6 +33,13 @@ namespace MiscUtil
     template<typename TYPE>
     std::string PrintVector(const std::vector<TYPE>& v);
 
+    /** Get directory of the executable from arguments to main().
+        If this function is called in main(), the directory of the executable
+        will be extracted from the path to the executable in argv[0] (if
+        possible) and added to the data directories searched in
+        MiscUtil::OpenFile(). */
+    void FindProgramDir(int argc, char* argv[]);
+
     std::string OpenFile(std::string name, std::ifstream& f);
 }
 

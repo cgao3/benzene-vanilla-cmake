@@ -5,12 +5,29 @@
 #include "BenzeneException.hpp"
 #include "Misc.hpp"
 #include <fstream>
+#include <iostream>
 #include <boost/filesystem/path.hpp>
 
 using namespace benzene;
 using namespace boost::filesystem;
 
 //----------------------------------------------------------------------------
+
+namespace
+{
+
+path programDir;
+
+}
+
+//----------------------------------------------------------------------------
+
+void MiscUtil::FindProgramDir(int argc, char* argv[])
+{
+    if (argc == 0 || argv == 0)
+        return;
+    programDir = path(argv[0], native).branch_path();
+}
 
 void MiscUtil::WordToBytes(unsigned word, byte* out)
 {
@@ -45,8 +62,18 @@ std::string MiscUtil::OpenFile(std::string name, std::ifstream& f)
 #ifndef DATADIR
     #error ABS_TOP_SRCDIR not defined!
 #endif
+    std::string programDirFile;
     std::string absFile;
     std::string dataFile;
+    if (! programDir.empty())
+    {
+        path p = programDir / name;
+        p.normalize();
+        programDirFile = p.native_file_string();
+        f.open(programDirFile.c_str());
+        if (f.is_open())
+            return programDirFile;
+    }
     {
         path p = boost::filesystem::path(ABS_TOP_SRCDIR) / "share" / name;
         p.normalize();
@@ -63,9 +90,15 @@ std::string MiscUtil::OpenFile(std::string name, std::ifstream& f)
         if (f.is_open())
             return dataFile;
     }
-    throw BenzeneException() << "Could not find '" << name << "'. Tried \n"
-                             << "\t'" << absFile << "' and\n"
-                             << "\t'" << dataFile << "'.";
+    if (! programDir.empty())
+        throw BenzeneException() << "Could not find '" << name << "'. Tried \n"
+                                 << "\t'" << programDirFile << "' and\n"
+                                 << "\t'" << absFile << "' and\n"
+                                 << "\t'" << dataFile << "'.";
+    else
+        throw BenzeneException() << "Could not find '" << name << "'. Tried \n"
+                                 << "\t'" << absFile << "' and\n"
+                                 << "\t'" << dataFile << "'.";
 }
 
 //----------------------------------------------------------------------------
