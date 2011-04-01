@@ -106,7 +106,7 @@ void Logger::Flush()
         if (level < m_levels[i]) 
             continue;
         std::ostream& stream = *m_streams[i];
-#ifdef CYGWIN
+#ifdef __CYGWIN__
         // pthread_t is a pointer type in Cygwin
         long unsigned int self =
             reinterpret_cast<long unsigned int>(pthread_self());
