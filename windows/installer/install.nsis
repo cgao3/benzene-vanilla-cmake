@@ -3,6 +3,7 @@
 
 !define BENZENE_SRCDIR "..\.."
 !define BENZENE_BUILDDIR "${BENZENE_SRCDIR}\build\opt"
+!define HEXGUI_SRCDIR "..\..\..\hexgui"
 !define CYGWIN_BINDIR "C:\cygwin\bin"
 !define CYGWIN_DLL "cygwin1.dll"
 !define CYGGCC_DLL "cyggcc_s-1.dll"
@@ -69,9 +70,8 @@ File "${BENZENE_SRCDIR}\share\unique-probe.txt"
 File "${BENZENE_SRCDIR}\share\vc-captured-set.txt"
 File "${BENZENE_SRCDIR}\share\vc-patterns.txt"
 File "${BENZENE_SRCDIR}\share\wolve-cache-book.txt"
-
-File "HexGui.exe"
-File "hexgui.ico"
+File "${HEXGUI_SRCDIR}\windows\l4j\HexGui.exe"
+File "${HEXGUI_SRCDIR}\windows\icons\hexgui.ico"
 File "License.txt"
 
 WriteRegStr HKLM "Software\Benzene" "" $INSTDIR
