@@ -68,10 +68,13 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     // Use 2 GB for search trees, but not more than half of the system memory
     // (note that SgUctSearch uses 2 trees)
     size_t systemMemory = SgPlatform::TotalMemory();
-    size_t maxMemory = 2000000000;
-    if (maxMemory > systemMemory / 2)
-        maxMemory = systemMemory / 2;
-    SetMaxNodes(maxMemory / sizeof(SgUctNode) / 2);
+    if (systemMemory != 0)
+    {
+        size_t maxMemory = 2000000000;
+        if (maxMemory > systemMemory / 2)
+            maxMemory = systemMemory / 2;
+        SetMaxNodes(maxMemory / sizeof(SgUctNode) / 2);
+    }
     SetMoveSelect(SG_UCTMOVESELECT_COUNT);
     SetNumberThreads(1);    
     SetRave(true);
