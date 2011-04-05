@@ -6,7 +6,7 @@ using NSIS (http://nsis.sourceforge.net)
      env LDFLAGS="-Wl,--large-address-aware" CXXFLAGS="-O3" configure
    and Benzene with:
      env LDFLAGS="-Wl,--large-address-aware" CXXFLAGS="-O3" \
-         configure --enable-optimize=no
+         configure --enable-optimize=no --enable-upto14x14=yes
 2. Compile HexGui.exe. The sources for HexGui are in the Benzene repository.
    HexGui.exe can be created with the command "ant l4j".
 3. Check the macros defined at the top of install.nsis. You might have to
