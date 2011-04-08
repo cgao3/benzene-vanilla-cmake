@@ -23,11 +23,17 @@ VCCommands::~VCCommands()
 
 void VCCommands::Register(GtpEngine& e)
 {
-    Register(e, "vc-between-cells", &VCCommands::CmdGetVCsBetween);
-    Register(e, "vc-connected-to", &VCCommands::CmdGetCellsConnectedTo);
+    Register(e, "vc-between-cells-full", &VCCommands::CmdGetBetweenFull);
+    Register(e, "vc-between-cells-semi", &VCCommands::CmdGetBetweenSemi);
+    Register(e, "vc-connected-to-full", 
+             &VCCommands::CmdGetCellsConnectedToFull);
+    Register(e, "vc-connected-to-semi", 
+             &VCCommands::CmdGetCellsConnectedToSemi);
     Register(e, "vc-get-mustplay", &VCCommands::CmdGetMustPlay);
-    Register(e, "vc-intersection", &VCCommands::CmdVCIntersection);
-    Register(e, "vc-union", &VCCommands::CmdVCUnion);
+    Register(e, "vc-intersection-full", &VCCommands::CmdIntersectionFull);
+    Register(e, "vc-intersection-semi", &VCCommands::CmdIntersectionSemi);
+    Register(e, "vc-union-full", &VCCommands::CmdUnionFull);
+    Register(e, "vc-union-semi", &VCCommands::CmdUnionSemi);
     Register(e, "vc-build", &VCCommands::CmdBuildStatic);
     Register(e, "vc-build-incremental", &VCCommands::CmdBuildIncremental);
     Register(e, "vc-undo-incremental", &VCCommands::CmdUndoIncremental);
@@ -39,11 +45,6 @@ void VCCommands::Register(GtpEngine& engine, const std::string& command,
                           GtpCallback<VCCommands>::Method method)
 {
     engine.Register(command, new GtpCallback<VCCommands>(this, method));
-}
-
-VC::Type VCCommands::VCTypeArg(const HtpCommand& cmd, std::size_t number) const
-{
-    return VCTypeUtil::FromString(cmd.ArgToLower(number));
 }
 
 //----------------------------------------------------------------------------
@@ -96,23 +97,19 @@ void VCCommands::CmdUndoIncremental(HtpCommand& cmd)
     m_env.brd->UndoMove();
 }
 
-/** Returns list of VCs between two cells.  
-    Usage: "vc-between-cells x y c t", where x and y are the cells, c
-    is the color of the player, and t is the type of connection
-    (full,semi). */
-void VCCommands::CmdGetVCsBetween(HtpCommand& cmd)
+/** Returns list of VCs between two cells. */
+void VCCommands::CmdGetBetweenFull(HtpCommand& cmd)
 {
-    cmd.CheckNuArg(4);
+    cmd.CheckNuArg(3);
     HexPoint from = HtpUtil::MoveArg(cmd, 0);
     HexPoint to = HtpUtil::MoveArg(cmd, 1);
     HexColor color = HtpUtil::ColorArg(cmd, 2);
-    VC::Type ctype = VCTypeArg(cmd, 3);
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     std::vector<VC> vc;
-    brd.Cons(color).VCs(fcaptain, tcaptain, ctype, vc);
-    const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
+    brd.Cons(color).VCs(fcaptain, tcaptain, VC::FULL, vc);
+    const VCList& lst = brd.Cons(color).GetList(VC::FULL, fcaptain, tcaptain);
     cmd << '\n';
     std::size_t i = 0;
     for (; i < lst.Softlimit() && i < vc.size(); ++i) 
@@ -126,15 +123,55 @@ void VCCommands::CmdGetVCsBetween(HtpCommand& cmd)
         cmd << color << " " << vc.at(i) << '\n';
 }
 
-/** Returns list of cells given cell shares a vc with. */
-void VCCommands::CmdGetCellsConnectedTo(HtpCommand& cmd)
+/** Returns list of VCs between two cells. */
+void VCCommands::CmdGetBetweenSemi(HtpCommand& cmd)
 {
     cmd.CheckNuArg(3);
     HexPoint from = HtpUtil::MoveArg(cmd, 0);
+    HexPoint to = HtpUtil::MoveArg(cmd, 1);
+    HexColor color = HtpUtil::ColorArg(cmd, 2);
+    HexBoard& brd = *m_env.brd;
+    HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
+    HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
+    std::vector<VC> vc;
+    brd.Cons(color).VCs(fcaptain, tcaptain, VC::SEMI, vc);
+    const VCList& lst = brd.Cons(color).GetList(VC::SEMI, fcaptain, tcaptain);
+    cmd << '\n';
+    std::size_t i = 0;
+    for (; i < lst.Softlimit() && i < vc.size(); ++i) 
+        cmd << color << " " << vc.at(i) << '\n';
+    if (i >= vc.size())
+        return;
+    cmd << color << " " << fcaptain << " " << tcaptain << " ";
+    cmd << "softlimit ----------------------";
+    cmd << '\n';
+    for (; i < vc.size(); ++i)
+        cmd << color << " " << vc.at(i) << '\n';
+}
+
+/** Returns list of cells given cell is connected to via a full
+    connection. */
+void VCCommands::CmdGetCellsConnectedToFull(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(2);
+    HexPoint from = HtpUtil::MoveArg(cmd, 0);
     HexColor color = HtpUtil::ColorArg(cmd, 1);
-    VC::Type ctype = VCTypeArg(cmd, 2);
     bitset_t pt = VCSetUtil::ConnectedTo(m_env.brd->Cons(color), 
-                                         m_env.brd->GetGroups(), from, ctype);
+                                         m_env.brd->GetGroups(), from, 
+                                         VC::FULL);
+    cmd << HexPointUtil::ToString(pt);
+}
+
+/** Returns list of cells given cell is connected to via a semi
+    connection. */
+void VCCommands::CmdGetCellsConnectedToSemi(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(2);
+    HexPoint from = HtpUtil::MoveArg(cmd, 0);
+    HexColor color = HtpUtil::ColorArg(cmd, 1);
+    bitset_t pt = VCSetUtil::ConnectedTo(m_env.brd->Cons(color), 
+                                         m_env.brd->GetGroups(), from, 
+                                         VC::SEMI);
     cmd << HexPointUtil::ToString(pt);
 }
 
@@ -160,33 +197,59 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
 
 /** Prints cells in intersection of all connections between
     endpoints. */
-void VCCommands::CmdVCIntersection(HtpCommand& cmd)
+void VCCommands::CmdIntersectionFull(HtpCommand& cmd)
 {
-    cmd.CheckNuArg(4);
+    cmd.CheckNuArg(3);
     HexPoint from = HtpUtil::MoveArg(cmd, 0);
     HexPoint to = HtpUtil::MoveArg(cmd, 1);
     HexColor color = HtpUtil::ColorArg(cmd, 2);
-    VC::Type ctype = VCTypeArg(cmd, 3);
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
+    const VCList& lst = brd.Cons(color).GetList(VC::FULL, fcaptain, tcaptain);
+    bitset_t intersection = lst.HardIntersection();
+    cmd << HexPointUtil::ToString(intersection);
+}
+
+void VCCommands::CmdIntersectionSemi(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(3);
+    HexPoint from = HtpUtil::MoveArg(cmd, 0);
+    HexPoint to = HtpUtil::MoveArg(cmd, 1);
+    HexColor color = HtpUtil::ColorArg(cmd, 2);
+    HexBoard& brd = *m_env.brd;
+    HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
+    HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
+    const VCList& lst = brd.Cons(color).GetList(VC::SEMI, fcaptain, tcaptain);
     bitset_t intersection = lst.HardIntersection();
     cmd << HexPointUtil::ToString(intersection);
 }
 
 /** Prints cells in the union of connections between endpoints. */
-void VCCommands::CmdVCUnion(HtpCommand& cmd)
+void VCCommands::CmdUnionFull(HtpCommand& cmd)
 {
-    cmd.CheckNuArg(4);
+    cmd.CheckNuArg(3);
     HexPoint from = HtpUtil::MoveArg(cmd, 0);
     HexPoint to = HtpUtil::MoveArg(cmd, 1);
     HexColor color = HtpUtil::ColorArg(cmd, 2);
-    VC::Type ctype = VCTypeArg(cmd, 3);
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    const VCList& lst = brd.Cons(color).GetList(ctype, fcaptain, tcaptain);
+    const VCList& lst = brd.Cons(color).GetList(VC::FULL, fcaptain, tcaptain);
+    bitset_t un = lst.GetGreedyUnion(); // FIXME: shouldn't be greedy!!
+    cmd << HexPointUtil::ToString(un);
+}
+
+void VCCommands::CmdUnionSemi(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(3);
+    HexPoint from = HtpUtil::MoveArg(cmd, 0);
+    HexPoint to = HtpUtil::MoveArg(cmd, 1);
+    HexColor color = HtpUtil::ColorArg(cmd, 2);
+    HexBoard& brd = *m_env.brd;
+    HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
+    HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
+    const VCList& lst = brd.Cons(color).GetList(VC::SEMI, fcaptain, tcaptain);
     bitset_t un = lst.GetGreedyUnion(); // FIXME: shouldn't be greedy!!
     cmd << HexPointUtil::ToString(un);
 }

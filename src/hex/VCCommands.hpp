@@ -29,15 +29,18 @@ private:
 
     HexEnvironment& m_env;
         
-    VC::Type VCTypeArg(const HtpCommand& cmd, std::size_t number) const;
     void Register(GtpEngine& engine, const std::string& command,
                   GtpCallback<VCCommands>::Method method);
 
-    void CmdGetVCsBetween(HtpCommand& cmd);
-    void CmdGetCellsConnectedTo(HtpCommand& cmd);
+    void CmdGetBetweenFull(HtpCommand& cmd);
+    void CmdGetBetweenSemi(HtpCommand& cmd);
+    void CmdGetCellsConnectedToFull(HtpCommand& cmd);
+    void CmdGetCellsConnectedToSemi(HtpCommand& cmd);
     void CmdGetMustPlay(HtpCommand& cmd);
-    void CmdVCIntersection(HtpCommand& cmd);
-    void CmdVCUnion(HtpCommand& cmd);
+    void CmdIntersectionFull(HtpCommand& cmd);
+    void CmdIntersectionSemi(HtpCommand& cmd);
+    void CmdUnionFull(HtpCommand& cmd);
+    void CmdUnionSemi(HtpCommand& cmd);
     void CmdBuildStatic(HtpCommand& cmd);
     void CmdBuildIncremental(HtpCommand& cmd);
     void CmdUndoIncremental(HtpCommand& cmd);
