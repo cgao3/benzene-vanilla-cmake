@@ -49,6 +49,25 @@ void VCCommands::Register(GtpEngine& engine, const std::string& command,
 
 //----------------------------------------------------------------------------
 
+void VCCommands::AddAnalyzeCommands(HtpCommand& cmd)
+{
+    cmd << 
+        "vc/VC Between Cells Full/vc-between-cells-full %c %P\n"
+        "vc/VC Between Cells Semi/vc-between-cells-semi %c %P\n"
+        "plist/VC Connected To Full/vc-connected-to-full %c %P\n"
+        "plist/VC Connected To Semi/vc-connected-to-semi %c %P\n"
+        "inferior/VC Get Mustplay/vc-get-mustplay %m\n"
+        "plist/VC Intersection Full/vc-intersection-full %c %P\n"
+        "plist/VC Intersection Semi/vc-intersection-semi %c %P\n"
+        "plist/VC Union Full/vc-union-full %c %P\n"
+        "plist/VC Union Semi/vc-union-semi %c %P\n"
+        "inferior/VC Build/vc-build %m\n"
+        "inferior/VC Build Incremental/vc-build-incremental %m %p\n"
+        "inferior/VC Build Undo Incremental/vc-undo-incremental\n"
+        "string/VC Set Stats/vc-set-stats\n"
+        "string/VC Builder Stats/vc-builder-stats\n";
+}
+
 /** Builds VCs for both players.
     Displays ice info for the given color in the current
     board-state. */
@@ -101,9 +120,9 @@ void VCCommands::CmdUndoIncremental(HtpCommand& cmd)
 void VCCommands::CmdGetBetweenFull(HtpCommand& cmd)
 {
     cmd.CheckNuArg(3);
-    HexPoint from = HtpUtil::MoveArg(cmd, 0);
-    HexPoint to = HtpUtil::MoveArg(cmd, 1);
-    HexColor color = HtpUtil::ColorArg(cmd, 2);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexPoint from = HtpUtil::MoveArg(cmd, 1);
+    HexPoint to = HtpUtil::MoveArg(cmd, 2);
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
@@ -127,9 +146,9 @@ void VCCommands::CmdGetBetweenFull(HtpCommand& cmd)
 void VCCommands::CmdGetBetweenSemi(HtpCommand& cmd)
 {
     cmd.CheckNuArg(3);
-    HexPoint from = HtpUtil::MoveArg(cmd, 0);
-    HexPoint to = HtpUtil::MoveArg(cmd, 1);
-    HexColor color = HtpUtil::ColorArg(cmd, 2);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexPoint from = HtpUtil::MoveArg(cmd, 1);
+    HexPoint to = HtpUtil::MoveArg(cmd, 2);
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
@@ -154,8 +173,8 @@ void VCCommands::CmdGetBetweenSemi(HtpCommand& cmd)
 void VCCommands::CmdGetCellsConnectedToFull(HtpCommand& cmd)
 {
     cmd.CheckNuArg(2);
-    HexPoint from = HtpUtil::MoveArg(cmd, 0);
-    HexColor color = HtpUtil::ColorArg(cmd, 1);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexPoint from = HtpUtil::MoveArg(cmd, 1);
     bitset_t pt = VCSetUtil::ConnectedTo(m_env.brd->Cons(color), 
                                          m_env.brd->GetGroups(), from, 
                                          VC::FULL);
@@ -167,8 +186,8 @@ void VCCommands::CmdGetCellsConnectedToFull(HtpCommand& cmd)
 void VCCommands::CmdGetCellsConnectedToSemi(HtpCommand& cmd)
 {
     cmd.CheckNuArg(2);
-    HexPoint from = HtpUtil::MoveArg(cmd, 0);
-    HexColor color = HtpUtil::ColorArg(cmd, 1);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexPoint from = HtpUtil::MoveArg(cmd, 1);
     bitset_t pt = VCSetUtil::ConnectedTo(m_env.brd->Cons(color), 
                                          m_env.brd->GetGroups(), from, 
                                          VC::SEMI);
@@ -200,9 +219,9 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
 void VCCommands::CmdIntersectionFull(HtpCommand& cmd)
 {
     cmd.CheckNuArg(3);
-    HexPoint from = HtpUtil::MoveArg(cmd, 0);
-    HexPoint to = HtpUtil::MoveArg(cmd, 1);
-    HexColor color = HtpUtil::ColorArg(cmd, 2);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexPoint from = HtpUtil::MoveArg(cmd, 1);
+    HexPoint to = HtpUtil::MoveArg(cmd, 2);
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
@@ -214,9 +233,9 @@ void VCCommands::CmdIntersectionFull(HtpCommand& cmd)
 void VCCommands::CmdIntersectionSemi(HtpCommand& cmd)
 {
     cmd.CheckNuArg(3);
-    HexPoint from = HtpUtil::MoveArg(cmd, 0);
-    HexPoint to = HtpUtil::MoveArg(cmd, 1);
-    HexColor color = HtpUtil::ColorArg(cmd, 2);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexPoint from = HtpUtil::MoveArg(cmd, 1);
+    HexPoint to = HtpUtil::MoveArg(cmd, 2);
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
@@ -229,9 +248,9 @@ void VCCommands::CmdIntersectionSemi(HtpCommand& cmd)
 void VCCommands::CmdUnionFull(HtpCommand& cmd)
 {
     cmd.CheckNuArg(3);
-    HexPoint from = HtpUtil::MoveArg(cmd, 0);
-    HexPoint to = HtpUtil::MoveArg(cmd, 1);
-    HexColor color = HtpUtil::ColorArg(cmd, 2);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexPoint from = HtpUtil::MoveArg(cmd, 1);
+    HexPoint to = HtpUtil::MoveArg(cmd, 2);
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
@@ -243,9 +262,9 @@ void VCCommands::CmdUnionFull(HtpCommand& cmd)
 void VCCommands::CmdUnionSemi(HtpCommand& cmd)
 {
     cmd.CheckNuArg(3);
-    HexPoint from = HtpUtil::MoveArg(cmd, 0);
-    HexPoint to = HtpUtil::MoveArg(cmd, 1);
-    HexColor color = HtpUtil::ColorArg(cmd, 2);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexPoint from = HtpUtil::MoveArg(cmd, 1);
+    HexPoint to = HtpUtil::MoveArg(cmd, 2);
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);

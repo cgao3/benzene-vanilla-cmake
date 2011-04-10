@@ -26,6 +26,7 @@ public:
     /** @name Command Callbacks */
     // @{
 
+    void CmdAnalyzeCommands(HtpCommand& cmd);
     void MoHexParam(HtpCommand& cmd);
     void MoHexPolicyParam(HtpCommand& cmd);
     void SaveTree(HtpCommand& cmd);

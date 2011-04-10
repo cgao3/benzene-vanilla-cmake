@@ -90,6 +90,30 @@ void CommonHtpEngine::NewGame(int width, int height)
 
 //----------------------------------------------------------------------------
 
+void CommonHtpEngine::CmdAnalyzeCommands(HtpCommand& cmd)
+{
+    HexHtpEngine::CmdAnalyzeCommands(cmd);
+    cmd << 
+        "string/Benzene License/benzene-license\n"
+        "inferior/Compute Inferior/compute-inferior %m\n"
+        "inferior/Compute Vulnerable/compute-vulnerable %m\n"
+        "inferior/Compute Fillin/compute-fillin %m\n"
+        "inferior/Compute Reversible/compute-reversible %m\n"
+        "inferior/Compute Dominated/compute-dominated %m\n"
+        "inferior/Compute Dominated Cell/compute-dominated-cell %m\n"
+        "plist/Find Comb Decomp/find-comb-decomp %c\n"
+        "plist/Find Split Decomp/find-split-decomp %c\n"
+        "string/Encode Pattern/encode-pattern %P\n"
+        "group/Show Group/group-get %p\n"
+        "pspairs/Show TwoDistance/eval-twod %c\n"
+        "pspairs/Show Resist/eval-resist %c\n";
+    m_playerEnvCommands.AddAnalyzeCommands(cmd, "player");
+    m_solverEnvCommands.AddAnalyzeCommands(cmd, "solver");
+    m_vcCommands.AddAnalyzeCommands(cmd);
+    m_dfsSolverCommands.AddAnalyzeCommands(cmd);
+    m_dfpnSolverCommands.AddAnalyzeCommands(cmd);
+}
+
 /** Displays usage license. */
 void CommonHtpEngine::CmdLicense(HtpCommand& cmd)
 {

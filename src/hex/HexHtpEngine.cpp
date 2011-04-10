@@ -31,6 +31,8 @@ HexHtpEngine::HexHtpEngine(int boardsize)
     RegisterCmd("exec", &HexHtpEngine::CmdExec);
     RegisterCmd("final_score", &HexHtpEngine::CmdFinalScore);
     RegisterCmd("genmove", &HexHtpEngine::CmdGenMove);
+    RegisterCmd("hexgui-analyze_commands", 
+                &HexHtpEngine::CmdAnalyzeCommands);
     RegisterCmd("reg_genmove", &HexHtpEngine::CmdRegGenMove);    
 #if GTPENGINE_INTERRUPT
     RegisterCmd("gogui-interrupt", &HexHtpEngine::CmdInterrupt);
@@ -58,6 +60,18 @@ void HexHtpEngine::RegisterCmd(const std::string& name,
                                GtpCallback<HexHtpEngine>::Method method)
 {
     Register(name, new GtpCallback<HexHtpEngine>(this, method));
+}
+
+void HexHtpEngine::CmdAnalyzeCommands(GtpCommand& cmd)
+{
+    cmd.CheckArgNone();
+    cmd <<
+        "param/Game Param/param_game\n"
+        "plist/All Legal Moves/all_legal_moves %c\n"
+        "string/ShowBoard/showboard\n"
+        "string/BoardID/board_id\n"
+        "string/Final Score/final_score\n"
+        "varc/Reg GenMove/reg_genmove %c\n";
 }
 
 void HexHtpEngine::Play(HexColor color, HexPoint move)

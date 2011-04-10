@@ -50,6 +50,22 @@ void DfsCommands::Register(GtpEngine& engine, const std::string& command,
 
 //----------------------------------------------------------------------------
 
+void DfsCommands::AddAnalyzeCommands(HtpCommand& cmd)
+{
+    cmd <<
+        "param/DFS Param/param_dfs\n"
+        "param/DFS DB Param/param_dfs_db\n"
+        "string/DFS Solve State/dfs-solve-state %m\n"
+        "none/DFS Clear TT/dfs-clear-tt\n"
+        "plist/DFS Find Winning/dfs-solver-find-winning %m\n"
+        "string/DFS Get State Info/dfs-get-state %m\n"
+        "string/DFS Histogram/dfs-get-histogram %m\n"
+        "string/DFS PV/dfs-get-pv %m\n"
+        "none/DFS Open DB/dfs-open-db %r\n"
+        "none/DFS Close DB/dfs-close-db\n"
+        "string/DFS DB Stats/dfs-db-stat\n";
+}
+
 void DfsCommands::CmdParamSolverDB(HtpCommand& cmd)
 {
     SolverDBParameters& param = m_positions.Parameters();

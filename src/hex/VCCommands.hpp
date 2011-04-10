@@ -24,6 +24,8 @@ public:
 
     void Register(GtpEngine& engine);
 
+    void AddAnalyzeCommands(HtpCommand& cmd);
+    
 private:
     Game& m_game;
 

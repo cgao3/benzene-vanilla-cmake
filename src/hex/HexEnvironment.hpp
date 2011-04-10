@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file HexEnvironment.hpp
- */
+/** @file HexEnvironment.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef HEXENVIRONMENT_HPP
@@ -43,6 +42,8 @@ public:
     ~HexEnvironmentCommands();
 
     void Register(GtpEngine& engine, const std::string name);
+
+    void AddAnalyzeCommands(HtpCommand& cmd, const std::string& name);
 
 private:
 

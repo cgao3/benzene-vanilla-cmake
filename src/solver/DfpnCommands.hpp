@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file DfpnCommands.hpp
- */
+/** @file DfpnCommands.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef DFPNCOMMANDS_HPP
@@ -27,6 +26,8 @@ public:
                  DfpnStates& positions);
 
     void Register(GtpEngine& engine);
+
+    void AddAnalyzeCommands(HtpCommand& cmd);
 
 private:
     Game& m_game;

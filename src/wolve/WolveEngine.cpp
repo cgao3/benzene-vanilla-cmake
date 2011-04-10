@@ -97,6 +97,15 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
                             maxTime, score);
 }
 
+void WolveEngine::CmdAnalyzeCommands(HtpCommand& cmd)
+{
+    CommonHtpEngine::CmdAnalyzeCommands(cmd);
+    cmd <<
+        "param/Wolve Param/param_wolve\n"
+        "pspairs/Wolve Scores/wolve-scores\n"
+        "scores/Wolve Data/wolve-data\n";
+}
+
 /** Wolve parameters. */
 void WolveEngine::CmdParam(HtpCommand& cmd)
 {

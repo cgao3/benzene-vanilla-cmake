@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file DfsCommands.hpp
- */
+/** @file DfsCommands.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef SOLVERCOMMANDS_HPP
@@ -26,6 +25,8 @@ public:
                 DfsStates& positions);
 
     void Register(GtpEngine& engine);
+
+    void AddAnalyzeCommands(HtpCommand& cmd);
 
 private:
     Game& m_game;

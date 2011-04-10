@@ -48,6 +48,7 @@ public:
     // @{
     // The callback functions are documented in the cpp file
 
+    void CmdAnalyzeCommands(HtpCommand& cmd);
     void CmdLicense(HtpCommand& cmd);
     void CmdGroupGet(HtpCommand& cmd);
     void CmdHandbookAdd(HtpCommand& cmd);

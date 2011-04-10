@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------------
-/** @file HexEnvironment.cpp
- */
+/** @file HexEnvironment.cpp */
 //----------------------------------------------------------------------------
 
+#include <boost/format.hpp>
 #include "HexEnvironment.hpp"
 
 using namespace benzene;
@@ -65,6 +65,19 @@ void HexEnvironmentCommands::Register(GtpEngine& engine,
 {
     engine.Register(command, 
                     new GtpCallback<HexEnvironmentCommands>(this, method));
+}
+
+void HexEnvironmentCommands::AddAnalyzeCommands(HtpCommand& cmd,
+                                                const std::string& name)
+{
+    std::string capName(name);
+    capName[0] = std::toupper(name[0]);
+    cmd << (boost::format("param/%1% ICE Param/param_%2%_ice\n") 
+            % capName % name);
+    cmd << (boost::format("param/%1% VC Param/param_%2%_vc\n") 
+            % capName % name);
+    cmd << (boost::format("param/%1% Board Param/param_%2%_board\n") 
+            % capName % name);
 }
 
 void HexEnvironmentCommands::ParamICE(HtpCommand& cmd)

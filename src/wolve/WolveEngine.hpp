@@ -31,6 +31,7 @@ public:
     // @{
 
     // The callback functions are documented in the cpp file
+    void CmdAnalyzeCommands(HtpCommand& cmd);
     void CmdParam(HtpCommand& cmd);
     void CmdScores(HtpCommand& cmd);
     void CmdData(HtpCommand& cmd);

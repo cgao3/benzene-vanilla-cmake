@@ -55,6 +55,7 @@ public:
     // The callback functions are documented in the cpp file
 
     virtual void CmdAllLegalMoves(HtpCommand& cmd);
+    virtual void CmdAnalyzeCommands(HtpCommand& cmd);
     virtual void CmdBoardID(HtpCommand&);
     virtual void CmdClearBoard(HtpCommand& cmd);
     virtual void CmdExec(HtpCommand& cmd);

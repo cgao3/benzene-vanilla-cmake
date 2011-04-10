@@ -49,6 +49,24 @@ void DfpnCommands::Register(GtpEngine& engine, const std::string& command,
 
 //----------------------------------------------------------------------------
 
+void DfpnCommands::AddAnalyzeCommands(HtpCommand& cmd)
+{
+    cmd <<
+        "param/DFPN Param/param_dfpn\n"
+        "param/DFPN DB Param/param_dfpn_db\n"
+        "none/DFPN Clear TT/dfpn-clear-tt\n"
+        "string/DFPN Get Bounds/dfpn-get-bounds %m\n"
+        "string/DFPN Get State/dfpn-get-state %m\n"
+        "pspairs/DFPN Get Work/dfpn-get-work %m\n"
+        "string/DFPN Get PV/dfpn-get-pv %m\n"
+        "string/DFPN Solve State/dfpn-solve-state %m\n"
+        "plist/DFPN Find Winning/dfpn-solver-find-winning %m\n"
+        "none/DFPN Open DB/dfpn-open-db %r\n"
+        "none/DFPN Close DB/dfpn-close-db\n"
+        "string/DFPN DB Stats/dfpn-db-stat\n"
+        "string/DFPN Eval Info/dfpn-evaluation-info\n";
+}
+
 void DfpnCommands::CmdParamSolverDB(HtpCommand& cmd)
 {
     SolverDBParameters& param = m_positions.Parameters();

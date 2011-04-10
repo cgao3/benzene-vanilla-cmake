@@ -150,6 +150,19 @@ HexPoint MoHexEngine::DoSearch(HexColor color, double maxTime)
 
 //----------------------------------------------------------------------------
 
+void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
+{
+    CommonHtpEngine::CmdAnalyzeCommands(cmd);
+    cmd << 
+        "param/MoHex Param/param_mohex\n"
+        "param/MoHex Policy Param/param_mohex_policy\n"
+        "none/MoHex Save Tree/mohex-save-tree %w\n"
+        "none/MoHex Save Games/mohex-save-games %w\n"
+        "pspairs/MoHex Values/mohex-values\n"
+        "pspairs/MoHex Rave Values/mohex-rave-values\n"
+        "pspairs/MoHex Bounds/mohex-bounds\n";
+}
+
 void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
 {
     MoHexPlayoutPolicyConfig& config = m_player.SharedPolicy().Config();
