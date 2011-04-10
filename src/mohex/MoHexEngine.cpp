@@ -153,6 +153,7 @@ HexPoint MoHexEngine::DoSearch(HexColor color, double maxTime)
 void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
 {
     CommonHtpEngine::CmdAnalyzeCommands(cmd);
+    m_bookCommands.AddAnalyzeCommands(cmd);
     cmd << 
         "param/MoHex Param/param_mohex\n"
         "param/MoHex Policy Param/param_mohex_policy\n"

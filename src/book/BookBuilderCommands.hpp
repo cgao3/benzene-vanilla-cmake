@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file BookBuilderCommands.hpp
- */
+/** @file BookBuilderCommands.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef BOOKBUILDERCOMMANDS_HPP
@@ -27,8 +26,9 @@ public:
 
     void Register(GtpEngine& engine);
 
-private:
+    void AddAnalyzeCommands(HtpCommand& cmd);
 
+private:
     BookBuilder<PLAYER> m_bookBuilder;
     
     typedef BookBuilderCommands<PLAYER> BookBuilderType;
@@ -82,6 +82,18 @@ void BookBuilderCommands<PLAYER>::Register(GtpEngine& engine,
     engine.Register(command, new GtpCallback<BookBuilderType>(this, method));
 }
 
+template<class PLAYER>
+void BookBuilderCommands<PLAYER>::AddAnalyzeCommands(HtpCommand& cmd)
+{
+    BookCommands::AddAnalyzeCommands(cmd);
+    cmd << 
+        "none/Book Expand/book-expand %s\n"
+        "pspairs/Book Priorites/book-priorities\n"
+        "none/Book Refresh/book-refresh\n"
+        "none/Book Increase Width/book-increase-width\n"
+        "param/Book Builder Param/param_book_builder\n";
+}
+
 //----------------------------------------------------------------------------
 
 template<class PLAYER>
@@ -125,9 +137,7 @@ void BookBuilderCommands<PLAYER>::CmdParamBookBuilder(HtpCommand& cmd)
         throw HtpFailure("Expected 0 or 2 arguments.");
 }
 
-/** Expands the current node in the current opening book.
-    "book-expand [iterations]"
-*/
+/** Expands the current node in the current opening book. */
 template<class PLAYER>
 void BookBuilderCommands<PLAYER>::CmdBookExpand(HtpCommand& cmd)
 {

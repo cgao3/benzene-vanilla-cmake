@@ -46,6 +46,18 @@ void BookCommands::Register(GtpEngine& engine, const std::string& command,
     engine.Register(command, new GtpCallback<BookCommands>(this, method));
 }
 
+void BookCommands::AddAnalyzeCommands(HtpCommand& cmd)
+{
+    cmd << 
+        "none/Book Open/book-open %r\n"
+        "none/Book Close/book-close\n"
+        "string/Book Stats/book-stat\n"
+        "pspairs/Book Depths/book-depths\n"
+        "pspairs/Book Counts/book-counts\n"
+        "pspairs/Book Scores/book-scores\n"
+        "param/Book Param/param_book\n";  
+}
+
 //----------------------------------------------------------------------------
 
 /** Opens/Creates an opening book for the current boardsize.

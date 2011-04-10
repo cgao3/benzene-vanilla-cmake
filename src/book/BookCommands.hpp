@@ -1,6 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file BookCommands.hpp
- */
+/** @file BookCommands.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef BOOKCOMMANDS_HPP
@@ -27,6 +26,8 @@ public:
     ~BookCommands();
 
     void Register(GtpEngine& engine);
+
+    void AddAnalyzeCommands(HtpCommand& cmd);
 
 protected:
     Game& m_game;
