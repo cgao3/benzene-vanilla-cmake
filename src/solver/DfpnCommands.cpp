@@ -58,7 +58,7 @@ void DfpnCommands::AddAnalyzeCommands(HtpCommand& cmd)
         "string/DFPN Get Bounds/dfpn-get-bounds %m\n"
         "string/DFPN Get State/dfpn-get-state %m\n"
         "pspairs/DFPN Get Work/dfpn-get-work %m\n"
-        "string/DFPN Get PV/dfpn-get-pv %m\n"
+        "var/DFPN Get PV/dfpn-get-pv %m\n"
         "string/DFPN Solve State/dfpn-solve-state %m\n"
         "plist/DFPN Find Winning/dfpn-solver-find-winning %m\n"
         "none/DFPN Open DB/dfpn-open-db %r\n"

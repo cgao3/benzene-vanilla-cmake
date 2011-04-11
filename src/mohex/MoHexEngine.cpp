@@ -95,6 +95,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("param_mohex_policy", &MoHexEngine::MoHexPolicyParam);
     RegisterCmd("mohex-save-tree", &MoHexEngine::SaveTree);
     RegisterCmd("mohex-save-games", &MoHexEngine::SaveGames);
+    RegisterCmd("mohex-get-pv", &MoHexEngine::GetPV);
     RegisterCmd("mohex-values", &MoHexEngine::Values);
     RegisterCmd("mohex-rave-values", &MoHexEngine::RaveValues);
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
@@ -159,6 +160,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "param/MoHex Policy Param/param_mohex_policy\n"
         "none/MoHex Save Tree/mohex-save-tree %w\n"
         "none/MoHex Save Games/mohex-save-games %w\n"
+        "var/MoHex PV/mohex-get-pv %m\n"
         "pspairs/MoHex Values/mohex-values\n"
         "pspairs/MoHex Rave Values/mohex-rave-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n";
@@ -399,6 +401,15 @@ void MoHexEngine::RaveValues(HtpCommand& cmd)
         cmd << ' ' << static_cast<HexPoint>(p)
             << ' ' << std::fixed << std::setprecision(3) << child.RaveValue();
     }
+}
+
+void MoHexEngine::GetPV(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    std::vector<SgMove> seq;
+    search.FindBestSequence(seq);
+    for (std::size_t i = 0; i < seq.size(); ++i)
+        cmd << static_cast<HexPoint>(seq[i]) << ' ';
 }
 
 void MoHexEngine::Bounds(HtpCommand& cmd)
