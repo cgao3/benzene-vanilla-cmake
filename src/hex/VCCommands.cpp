@@ -41,14 +41,6 @@ void VCCommands::Register(GtpEngine& e)
     Register(e, "vc-builder-stats", &VCCommands::CmdBuilderStats);
 }
 
-void VCCommands::Register(GtpEngine& engine, const std::string& command,
-                          GtpCallback<VCCommands>::Method method)
-{
-    engine.Register(command, new GtpCallback<VCCommands>(this, method));
-}
-
-//----------------------------------------------------------------------------
-
 void VCCommands::AddAnalyzeCommands(HtpCommand& cmd)
 {
     cmd << 
@@ -64,9 +56,17 @@ void VCCommands::AddAnalyzeCommands(HtpCommand& cmd)
         "inferior/VC Build/vc-build %m\n"
         "inferior/VC Build Incremental/vc-build-incremental %m %p\n"
         "inferior/VC Build Undo Incremental/vc-undo-incremental\n"
-        "string/VC Set Stats/vc-set-stats\n"
-        "string/VC Builder Stats/vc-builder-stats\n";
+        "string/VC Set Stats/vc-set-stats %c\n"
+        "string/VC Builder Stats/vc-builder-stats %c\n";
 }
+
+void VCCommands::Register(GtpEngine& engine, const std::string& command,
+                          GtpCallback<VCCommands>::Method method)
+{
+    engine.Register(command, new GtpCallback<VCCommands>(this, method));
+}
+
+//----------------------------------------------------------------------------
 
 /** Builds VCs for both players.
     Displays ice info for the given color in the current
