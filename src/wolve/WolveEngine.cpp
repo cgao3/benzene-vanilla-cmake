@@ -51,6 +51,7 @@ WolveEngine::WolveEngine(int boardsize, WolvePlayer& player)
       m_cacheBook()
 {
     RegisterCmd("param_wolve", &WolveEngine::CmdParam);
+    RegisterCmd("wolve-get-pv", &WolveEngine::CmdGetPV);
     RegisterCmd("wolve-scores", &WolveEngine::CmdScores);
     RegisterCmd("wolve-data", &WolveEngine::CmdData);
 }
@@ -102,6 +103,7 @@ void WolveEngine::CmdAnalyzeCommands(HtpCommand& cmd)
     CommonHtpEngine::CmdAnalyzeCommands(cmd);
     cmd <<
         "param/Wolve Param/param_wolve\n"
+        "var/Wolve PV/wolve-get-pv\n"
         "pspairs/Wolve Scores/wolve-scores\n"
         "scores/Wolve Data/wolve-data\n";
 }
@@ -174,6 +176,16 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
     }
     else
         throw HtpFailure("Expected 0 or 2 arguments");
+}
+
+void WolveEngine::CmdGetPV(HtpCommand& cmd)
+{
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    const SgSearchHashTable* hashTable = m_player.HashTable();
+    std::vector<HexPoint> seq;
+    WolveSearchUtil::ExtractPVFromHashTable(state, *hashTable, seq);
+    for (std::size_t i = 0; i < seq.size(); ++i)
+        cmd << seq[i] << ' ';
 }
 
 /** Prints scores of moves. */
