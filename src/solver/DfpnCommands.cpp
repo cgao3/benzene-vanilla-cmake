@@ -111,7 +111,9 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             << "[string] widening_base "
             << m_solver.WideningBase() << '\n'
             << "[string] widening_factor "
-            << m_solver.WideningFactor() << '\n';
+            << m_solver.WideningFactor() << '\n'
+            << "[string] epsilon "
+            << m_solver.Epsilon() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -137,6 +139,14 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
                 m_solver.SetWideningFactor(value);
             else
                 throw GtpFailure() << "widening_factor must be in (0, 1]";
+        }
+        else if (name == "epsilon")
+        {
+            float value = cmd.Arg<float>(1);
+            if (0.0f <= value)
+                m_solver.SetEpsilon(value);
+            else
+                throw GtpFailure() << "epsilon cannot be negative";
         }
         else
             throw GtpFailure() << "Unknown parameter: " << name;

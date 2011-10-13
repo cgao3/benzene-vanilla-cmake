@@ -250,6 +250,7 @@ DfpnSolver::DfpnSolver()
       m_timelimit(0.0),
       m_wideningBase(1),
       m_wideningFactor(0.25f),
+      m_epsilon(0.0f),
       m_guiFx(),
       m_allEvaluation(-2.5, 2.0, 45),
       m_allSolvedEvaluation(-2.5, 2.0, 45),
@@ -533,7 +534,9 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
         DfpnBounds childMaxBounds;
         childMaxBounds.phi = maxBounds.delta 
             - (currentBounds.delta - childBounds.phi);
-        childMaxBounds.delta = std::min(maxBounds.phi, delta2 + 1);
+        childMaxBounds.delta =
+            std::min(maxBounds.phi,
+                     std::max(delta2 + 1, DfpnBoundType(delta2 * (1.0 + m_epsilon))));
         BenzeneAssert(childMaxBounds.GreaterThan(childBounds));
         if (delta2 != DfpnBounds::INFTY)
             m_deltaIncrease.Add(float(childMaxBounds.delta-childBounds.delta));

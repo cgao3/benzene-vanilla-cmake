@@ -475,7 +475,7 @@ public:
 
     /** See WideningBase() */
     void SetWideningBase(int wideningBase);
-
+    
     /** Widening factor affects what fraction of the moves to consider
         are looked at by the dfpn search (omitting losing moves).
         Must be in the range (0, 1], where 1 ensures no pruning. */
@@ -484,6 +484,14 @@ public:
     /** See WideningFactor() */
     void SetWideningFactor(float wideningFactor);
 
+    /** Epsilon is the epsilon used in 1+epsilon trick,
+     *  i.e. when setting bounds for a child MID call
+     *  delta2 * (1+epsilon) is used instead delta2 + 1 */
+    float Epsilon() const;
+    
+    /** See Epsilon() */
+    void SetEpsilon(float epsilon);
+    
     // @}
 
 private:
@@ -548,6 +556,9 @@ private:
 
     /** See WideningFactor() */
     float m_wideningFactor;
+
+    /** See Epsilon() */
+    float m_epsilon;
 
     /** Number of calls to CheckAbort() before we check the timer.
         This is to avoid expensive calls to SgTime::Get(). Try to scale
@@ -663,6 +674,16 @@ inline float DfpnSolver::WideningFactor() const
 inline void DfpnSolver::SetWideningFactor(float wideningFactor)
 {
     m_wideningFactor = wideningFactor;
+}
+
+inline float DfpnSolver::Epsilon() const
+{
+    return m_epsilon;
+}
+
+inline void DfpnSolver::SetEpsilon(float epsilon)
+{
+    m_epsilon = epsilon;
 }
 
 //----------------------------------------------------------------------------
