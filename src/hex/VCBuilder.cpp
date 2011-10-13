@@ -386,8 +386,25 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     // Nothing to do, so abort. 
     if ((semis.HardIntersection() & uncapturedSet).any())
         return;
+
     std::list<VC> added;
-    for (VCListIterator cur(semis, semis.Softlimit()); cur; ++cur) 
+
+    if (m_param.max_ors >= 16)
+    {
+        m_statistics->doOrs++;
+        if (DoOr(semis, fulls, added, m_log, *m_statistics))
+            m_statistics->goodOrs++;
+        for (VCListIterator cur(semis); cur; ++cur)
+            if (!cur->Processed())
+            {
+                cur->SetProcessed(true);
+                if (m_log)
+                    m_log->Push(ChangeLog<VC>::PROCESSED, *cur);
+            }
+        return;
+    }
+
+    for (VCListIterator cur(semis, semis.Softlimit()); cur; ++cur)
     {
         if (!cur->Processed()) 
         {
@@ -556,6 +573,185 @@ void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
             }
         }
     }
+}
+
+class VCOrCombiner
+{
+public:
+    VCOrCombiner(const VCList& semi_list,
+                 VCList& full_list,
+                 std::list<VC>& added,
+                 ChangeLog<VC>* log,
+                 VCBuilderStatistics& stats);
+
+        std::vector<bitset_t>
+        Search(bitset_t forbidden,
+               std::vector<bitset_t> filtered,
+               std::vector<bitset_t> old_semis,
+               std::vector<bitset_t> new_semis);
+
+private:
+    HexPoint m_x, m_y;
+    VCList& full_list;
+    std::list<VC>& added;
+    ChangeLog<VC>* log;
+    VCBuilderStatistics& stats;
+    
+    bitset_t Add(const std::vector<bitset_t>& old_semis,
+                 const std::vector<bitset_t>& new_semis);
+    bitset_t Intersect(const std::vector<bitset_t>& list) const;
+    std::vector<bitset_t> Filter(const std::vector<bitset_t>& list, size_t a) const;
+};
+
+VCOrCombiner::VCOrCombiner(const VCList& semi_list,
+                           VCList& full_list,
+                           std::list<VC>& added,
+                           ChangeLog<VC>* log,
+                           VCBuilderStatistics& stats)
+: m_x(semi_list.GetX()), m_y(semi_list.GetY()), full_list(full_list),
+  added(added), log(log), stats(stats)
+{}
+
+std::vector<bitset_t>
+VCOrCombiner::Search(bitset_t forbidden,
+                     std::vector<bitset_t> filtered,
+                     std::vector<bitset_t> old_semis,
+                     std::vector<bitset_t> new_semis)
+{
+    BenzeneAssert(!new_semis.empty());
+    std::vector<bitset_t> new_conn;
+    
+    bitset_t I_old = Intersect(old_semis);
+    bitset_t I_new = Intersect(new_semis);
+    bitset_t I = I_old & I_new;
+    
+    if (I.any())
+        return new_conn;
+    
+    if (filtered.empty())
+    {
+        bitset_t new_t = Add(old_semis, new_semis);
+        new_conn.push_back(new_t);
+        filtered.push_back(new_t);
+    }
+    
+    forbidden |= I_new;
+    
+    while (true)
+    {
+        size_t min_size = std::numeric_limits<size_t>::max();
+        bitset_t allowed;
+        for (size_t i = 0; i < filtered.size(); i++)
+        {
+            bitset_t A = filtered[i] - forbidden;
+            size_t size = A.count();
+            if (size < min_size)
+            {
+                min_size = size;
+                allowed = A;
+            }
+        }
+        
+        if (min_size == 0)
+            return new_conn;
+
+        size_t a = allowed._Find_first();
+        BenzeneAssert(a < allowed.size());
+        forbidden.set(a);
+        
+        std::vector<bitset_t> rec_new_conn =
+            Search(forbidden, Filter(filtered, a),
+                   Filter(old_semis, a), Filter(new_semis, a));
+        for (size_t i = 0; i < rec_new_conn.size(); i++)
+        {
+            bitset_t c = rec_new_conn[i];
+            filtered.push_back(c);
+            new_conn.push_back(c);
+        }
+    }
+}
+
+inline bitset_t VCOrCombiner::Add(const std::vector<bitset_t>& old_semis,
+                                  const std::vector<bitset_t>& new_semis)
+{
+    bitset_t U;
+    bitset_t I;
+    I.flip();
+    std::vector<bitset_t>::const_iterator i_old = old_semis.begin();
+    std::vector<bitset_t>::const_iterator i_new = new_semis.begin();
+
+    while (I.any())
+    {
+        BenzeneAssert(i_old != old_semis.end() || i_new != new_semis.end());
+        bitset_t next;
+        if (i_new != new_semis.end())
+        {
+            next = *i_new;
+            i_new++;
+        }
+        else
+        {
+            next = *i_old;
+            i_old++;
+        }
+        if (BitsetUtil::IsSubsetOf(I, next))
+            continue;
+        I &= next;
+        U |= next;
+    }
+    VC v(m_x, m_y, U, VC_RULE_OR);
+    stats.or_attempts++;
+    if (full_list.Add(v, log) == VCList::ADD_FAILED)
+        BenzeneAssert(false /* Enhanced OR should always succeed! */);
+    stats.or_successes++;
+    added.push_back(v);
+    return U;
+}
+
+inline bitset_t VCOrCombiner::Intersect(const std::vector<bitset_t>& set) const
+{
+    bitset_t I;
+    I.flip();
+    for (size_t i = 0; i < set.size(); i++)
+        I &= set[i];
+    return I;
+}
+
+inline std::vector<bitset_t>
+VCOrCombiner::Filter(const std::vector<bitset_t>& list, size_t a) const
+{
+    std::vector<bitset_t> res;
+    for (size_t i = 0; i < list.size(); i++)
+    {
+        bitset_t s = list[i];
+        if (!s[a])
+            res.push_back(s);
+    }
+    return res;
+}
+
+bool VCBuilder::DoOr(const VCList& semi_list,
+                     VCList& full_list,
+                     std::list<VC>& added,
+                     ChangeLog<VC>* log,
+                     VCBuilderStatistics& stats)
+{
+    std::vector<bitset_t> old_semis;
+    std::vector<bitset_t> new_semis;
+    for (VCListConstIterator cur(semi_list); cur; ++cur)
+        if (cur->Processed())
+            old_semis.push_back(cur->Carrier());
+        else
+            new_semis.push_back(cur->Carrier());
+    if (new_semis.empty())
+        return false;
+
+    std::vector<bitset_t> filtered;
+    for (VCListIterator cur(full_list); cur; ++cur)
+        filtered.push_back(cur->Carrier());
+    
+    VCOrCombiner combiner(semi_list, full_list, added, log, stats);
+    return !combiner.Search(bitset_t(), filtered, old_semis, new_semis).empty();
 }
 
 /** Runs over all subsets of size 2 to maxOrs of semis containing vc

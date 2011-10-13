@@ -243,6 +243,12 @@ private:
                AndRule rule, const VC& vc, const bitset_t& capturedSet,
                const VCList* old);
 
+    bool DoOr(const VCList& semi_list,
+              VCList& full_list,
+              std::list<VC>& added,
+              ChangeLog<VC>* log,
+              VCBuilderStatistics& stats);
+
     void DoSearch();
 
     void ProcessSemis(HexPoint xc, HexPoint yc);
