@@ -585,11 +585,7 @@ public:
                  ChangeLog<VC>* log,
                  VCBuilderStatistics& stats);
 
-        std::vector<bitset_t>
-        Search(bitset_t forbidden, bool captureX, bool captureY,
-               std::vector<bitset_t> filtered,
-               std::vector<bitset_t> old_semis,
-               std::vector<bitset_t> new_semis);
+    bool SearchResult() const;
 
 private:
     HexPoint m_x, m_y;
@@ -598,12 +594,16 @@ private:
     std::list<VC>& added;
     ChangeLog<VC>* log;
     VCBuilderStatistics& stats;
+    bool m_search_result;
+    mutable std::vector<bitset_t> set_mem;
+
+    int Search(bitset_t forbidden, bool captureX, bool captureY,
+               int new_semis, int new_semis_count, int old_semis_count,
+               int filtered_count);
     
-    bitset_t Add(const std::vector<bitset_t>& old_semis,
-                 const std::vector<bitset_t>& new_semis,
-                 bitset_t capturedSet);
-    bitset_t Intersect(const std::vector<bitset_t>& list) const;
-    std::vector<bitset_t> Filter(const std::vector<bitset_t>& list, size_t a) const;
+    bitset_t Intersect(int start, int count) const;
+    bitset_t Add(int start, int count, bitset_t capturedSet);
+    int Filter(int start, int count, size_t a) const;
 };
 
 VCOrCombiner::VCOrCombiner(bitset_t* captured_sets,
@@ -619,20 +619,52 @@ VCOrCombiner::VCOrCombiner(bitset_t* captured_sets,
     BenzeneAssert(0 <= m_y && m_y < BITSETSIZE);
     x_capture_set = captured_sets[m_x];
     y_capture_set = captured_sets[m_y];
+
+    int new_semis_count = 0;
+    for (VCListConstIterator cur(semi_list); cur; ++cur)
+        if (!cur->Processed())
+        {
+            set_mem.push_back(cur->Carrier());
+            new_semis_count++;
+        }
+    if (new_semis_count == 0)
+    {
+        m_search_result = false;
+        return;
+    }
+    
+    int old_semis_count = 0;
+    for (VCListConstIterator cur(semi_list); cur; ++cur)
+        if (cur->Processed())
+        {
+            set_mem.push_back(cur->Carrier());
+            old_semis_count++;
+        }
+    int filtered_count = 0;
+    for (VCListIterator cur(full_list); cur; ++cur)
+    {
+        set_mem.push_back(cur->Carrier());
+        filtered_count++;
+    }
+    m_search_result = Search(bitset_t(), true, true,
+                             0, new_semis_count, old_semis_count, filtered_count) > 0;
 }
 
-std::vector<bitset_t>
-VCOrCombiner::Search(bitset_t forbidden, bool captureX, bool captureY,
-                     std::vector<bitset_t> filtered,
-                     std::vector<bitset_t> old_semis,
-                     std::vector<bitset_t> new_semis)
+inline bool VCOrCombiner::SearchResult() const
 {
-    BenzeneAssert(!new_semis.empty());
-    std::vector<bitset_t> new_conn;
+    return m_search_result;
+}
+
+int VCOrCombiner::Search(bitset_t forbidden, bool captureX, bool captureY,
+                         int new_semis, int new_semis_count, int old_semis_count,
+                         int filtered_count)
+{
+    BenzeneAssert(new_semis_count > 0);
+    int old_semis = new_semis + new_semis_count;
     
-    bitset_t I_old = Intersect(old_semis);
-    bitset_t I_new = Intersect(new_semis);
-    bitset_t I = I_old & I_new;
+    bitset_t I_new = Intersect(new_semis, new_semis_count);
+    bitset_t I_old = Intersect(old_semis, old_semis_count);
+    bitset_t I = I_new & I_old;
     bitset_t capturedSet;
     if (captureX)
         capturedSet |= x_capture_set;
@@ -640,29 +672,37 @@ VCOrCombiner::Search(bitset_t forbidden, bool captureX, bool captureY,
         capturedSet |= y_capture_set;
     
     if (!BitsetUtil::IsSubsetOf(I, capturedSet))
-        return new_conn;
+    {
+        set_mem.resize(new_semis);
+        return 0;
+    }
     
-    if (filtered.empty())
+    int filtered = old_semis + old_semis_count;
+    int new_conn = filtered + filtered_count;
+    int new_conn_count = 0;
+
+    if (filtered_count == 0)
     {
         bitset_t minCapturedSet;
         if ((I & x_capture_set).any())
             minCapturedSet |= x_capture_set;
         if ((I & y_capture_set).any())
             minCapturedSet |= y_capture_set;
-        bitset_t new_t = Add(old_semis, new_semis, minCapturedSet);
-        new_conn.push_back(new_t);
-        filtered.push_back(new_t);
+        bitset_t new_t = Add(new_semis, new_semis_count + old_semis_count, minCapturedSet);
+        set_mem.push_back(new_t);
+        filtered_count++;
+        new_conn_count++;
     }
-    
+
     forbidden |= I_new;
     
     while (true)
     {
         size_t min_size = std::numeric_limits<size_t>::max();
         bitset_t allowed;
-        for (size_t i = 0; i < filtered.size(); i++)
+        for (int i = 0; i < filtered_count; i++)
         {
-            bitset_t A = filtered[i] - forbidden;
+            bitset_t A = set_mem[filtered + i] - forbidden;
             size_t size = A.count();
             if (size < min_size)
             {
@@ -672,52 +712,58 @@ VCOrCombiner::Search(bitset_t forbidden, bool captureX, bool captureY,
         }
         
         if (min_size == 0)
-            return new_conn;
+        {
+            for (int i = 0; i < new_conn_count; i++)
+                set_mem[new_semis + i] = set_mem[new_conn + i];
+            /* std::copy(set_mem.begin() + new_conn,
+                      set_mem.begin() + new_conn + new_conn_count,
+                      set_mem.begin() + new_semis); */
+            set_mem.resize(new_semis + new_conn_count);
+            return new_conn_count;
+        }
 
         size_t a = allowed._Find_first();
         BenzeneAssert(a < allowed.size());
         forbidden.set(a);
-        
-        std::vector<bitset_t> rec_new_conn =
+
+        int rec_new_semis = filtered + filtered_count;
+        int rec_new_semis_count = Filter(new_semis, new_semis_count, a);
+        int rec_old_semis_count = Filter(old_semis, old_semis_count, a);
+        int rec_filtered_count = Filter(filtered, filtered_count, a);
+        int rec_new_conn_count =
             Search(forbidden, captureX & !x_capture_set[a], captureY & !y_capture_set[a],
-                   Filter(filtered, a), Filter(old_semis, a), Filter(new_semis, a));
-        for (size_t i = 0; i < rec_new_conn.size(); i++)
-        {
-            bitset_t c = rec_new_conn[i];
-            filtered.push_back(c);
-            new_conn.push_back(c);
-        }
+                   rec_new_semis, rec_new_semis_count, rec_old_semis_count,
+                   rec_filtered_count);
+        filtered_count += rec_new_conn_count;
+        new_conn_count += rec_new_conn_count;
     }
 }
 
-inline bitset_t VCOrCombiner::Add(const std::vector<bitset_t>& old_semis,
-                                  const std::vector<bitset_t>& new_semis,
-                                  bitset_t capturedSet)
+inline bitset_t VCOrCombiner::Intersect(int start, int count) const
+{
+    bitset_t I;
+    I.flip();
+    for (int i = 0; i < count; i++)
+        I &= set_mem[start + i];
+    return I;
+}
+
+inline bitset_t VCOrCombiner::Add(int start, int count, bitset_t capturedSet)
 {
     bitset_t U = capturedSet;
     bitset_t I;
     I.flip();
-    std::vector<bitset_t>::const_iterator i_old = old_semis.begin();
-    std::vector<bitset_t>::const_iterator i_new = new_semis.begin();
-
-    while (!BitsetUtil::IsSubsetOf(I, capturedSet))
+    stats.or_attempts++;
+    for (int i = 0; ; i++)
     {
-        BenzeneAssert(i_old != old_semis.end() || i_new != new_semis.end());
-        bitset_t next;
-        if (i_new != new_semis.end())
-        {
-            next = *i_new;
-            i_new++;
-        }
-        else
-        {
-            next = *i_old;
-            i_old++;
-        }
+        BenzeneAssert(i < count);
+        bitset_t next = set_mem[start + i];
         if (BitsetUtil::IsSubsetOf(I, next))
             continue;
         I &= next;
         U |= next;
+        if (BitsetUtil::IsSubsetOf(I, capturedSet))
+            break;
     }
     VC v(m_x, m_y, U, VC_RULE_OR);
     stats.or_attempts++;
@@ -728,24 +774,17 @@ inline bitset_t VCOrCombiner::Add(const std::vector<bitset_t>& old_semis,
     return U;
 }
 
-inline bitset_t VCOrCombiner::Intersect(const std::vector<bitset_t>& set) const
+inline int VCOrCombiner::Filter(int start, int count, size_t a) const
 {
-    bitset_t I;
-    I.flip();
-    for (size_t i = 0; i < set.size(); i++)
-        I &= set[i];
-    return I;
-}
-
-inline std::vector<bitset_t>
-VCOrCombiner::Filter(const std::vector<bitset_t>& list, size_t a) const
-{
-    std::vector<bitset_t> res;
-    for (size_t i = 0; i < list.size(); i++)
+    int res = 0;
+    for (int i = 0; i < count; i++)
     {
-        bitset_t s = list[i];
+        bitset_t s = set_mem[start + i];
         if (!s[a])
-            res.push_back(s);
+        {
+            set_mem.push_back(s);
+            res++;
+        }
     }
     return res;
 }
@@ -756,23 +795,8 @@ bool VCBuilder::DoOr(const VCList& semi_list,
                      ChangeLog<VC>* log,
                      VCBuilderStatistics& stats)
 {
-    std::vector<bitset_t> old_semis;
-    std::vector<bitset_t> new_semis;
-    for (VCListConstIterator cur(semi_list); cur; ++cur)
-        if (cur->Processed())
-            old_semis.push_back(cur->Carrier());
-        else
-            new_semis.push_back(cur->Carrier());
-    if (new_semis.empty())
-        return false;
-
-    std::vector<bitset_t> filtered;
-    for (VCListIterator cur(full_list); cur; ++cur)
-        filtered.push_back(cur->Carrier());
-    
     VCOrCombiner combiner(m_capturedSet, semi_list, full_list, added, log, stats);
-    return !combiner.Search(bitset_t(), true, true,
-                            filtered, old_semis, new_semis).empty();
+    return combiner.SearchResult();
 }
 
 /** Runs over all subsets of size 2 to maxOrs of semis containing vc
