@@ -288,8 +288,7 @@ inline std::string DfpnData::Print() const
 
 inline bool DfpnData::IsBetterThan(const DfpnData& data) const
 {
-    SG_UNUSED(data);
-    return true;
+    return m_work > data.m_work;
 }
 
 inline bool DfpnData::IsValid() const
@@ -396,7 +395,7 @@ public:
 /** Hashtable used in dfpn search.  
     @ingroup dfpn
 */
-typedef SgHashTable<DfpnData> DfpnHashTable;
+typedef SgHashTable<DfpnData, 4> DfpnHashTable;
 
 /** Database of solved positions. 
     @ingroup dfpn
