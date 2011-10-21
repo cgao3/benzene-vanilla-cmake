@@ -35,21 +35,19 @@ public:
 private:
     void find_next_set_bit();
 
-    int m_index;
+    size_t m_index;
     bitset_t m_bitset;
 };
 
 inline BitsetIterator::BitsetIterator(const bitset_t& bs)
-    : m_index(0),
+    : m_index(bs._Find_first()),
       m_bitset(bs)
 {
-    find_next_set_bit();
 }
 
 inline void BitsetIterator::find_next_set_bit()
 {
-    while (m_index < FIRST_INVALID && !m_bitset.test(m_index))
-        ++m_index; 
+    m_index = m_bitset._Find_next(m_index);
 }
 
 inline HexPoint BitsetIterator::operator*()
@@ -59,7 +57,6 @@ inline HexPoint BitsetIterator::operator*()
 
 inline void BitsetIterator::operator++()
 {
-    ++m_index;
     find_next_set_bit();
 }
         
