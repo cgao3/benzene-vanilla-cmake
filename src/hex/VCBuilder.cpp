@@ -81,6 +81,7 @@ void VCBuilder::Build(VCSet& con, const Groups& groups,
     m_statistics = &m_statsForColor[m_color];
     m_semis_queue.Clear();
     m_fulls_queue.Clear();
+    memset(m_nbs, 0, sizeof(m_nbs));
 
     ComputeCapturedSets(patterns);
     AddBaseVCs();
@@ -104,7 +105,7 @@ void VCBuilder::AddBaseVCs()
             if (m_con->Add(vc, m_log))
             {
                 m_statistics->base_successes++;
-                m_fulls_queue.Push(vc);
+                PushFull(vc);
             }
         }
     }
@@ -133,7 +134,7 @@ void VCBuilder::AddPatternVCs()
             if (m_con->Add(vc, m_log))
             {
                 m_statistics->pattern_successes++;
-                m_fulls_queue.Push(vc);
+                PushFull(vc);
             }
         }
     }
@@ -183,6 +184,24 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
     Merge(oldGroups, added);
     if (m_param.use_patterns)
         AddPatternVCs();
+
+    memset(m_nbs, 0, sizeof(m_nbs));
+    HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
+    for (GroupIterator x(newGroups, not_other); x; ++x)
+    {
+        HexPoint xc = x->Captain();
+        if (m_groups->GetGroup(xc).Color() == !m_color)
+            continue;
+        for (GroupIterator y(newGroups, not_other); &*y != &*x; ++y)
+        {
+            HexPoint yc = y->Captain();
+            if (m_groups->GetGroup(yc).Color() == !m_color)
+                continue;
+            if (m_con->Exists(xc, yc, VC::FULL))
+                m_nbs[xc].set(yc);
+        }
+    }
+
     DoSearch();
 
     LogFine() << "  " << timer.GetTime() << "s to build vcs incrementally.\n" ;
@@ -290,7 +309,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
         {
             fullsOut->Add(*fullsIn, m_log);
             for (VCListConstIterator it(*fullsIn); it; ++it)
-                m_fulls_queue.Push(*it);
+                PushFull(*it);
         }
         for (std::list<VC>::iterator it = removed.begin(); 
              it != removed.end(); ++it) 
@@ -299,7 +318,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
             if (fullsOut->Add(v, m_log))
             {
                 m_statistics->shrunk0++;
-                m_fulls_queue.Push(v);
+                PushFull(v);
             }
         }
     }
@@ -349,7 +368,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
                 // already clobbered the intersections.
                 semisOut->RemoveSuperSetsOf(v.Carrier(), m_log, false);
                 m_statistics->upgraded++;
-                m_fulls_queue.Push(v);
+                PushFull(v);
             }
         }
     }
@@ -449,7 +468,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     }
 
     for (std::list<VC>::iterator it = added.begin(); it != added.end(); ++it)
-        m_fulls_queue.Push(*it);
+        PushFull(*it);
 }
 
 void VCBuilder::ProcessFulls(const VC& vc)
@@ -515,7 +534,6 @@ void VCBuilder::DoSearch()
 void VCBuilder::AndClosure(const VC& vc)
 {
     HexColor other = !m_color;
-    HexColorSet not_other = HexColorSetUtil::NotColor(other);
     HexPoint endp[2];
     endp[0] = m_groups->CaptainOf(vc.X());
     endp[1] = m_groups->CaptainOf(vc.Y());
@@ -525,31 +543,28 @@ void VCBuilder::AndClosure(const VC& vc)
     BenzeneAssert(endc[0] != other);
     BenzeneAssert(endc[1] != other);
     bitset_t vcCapturedSet = m_capturedSet[endp[0]] | m_capturedSet[endp[1]];
-    for (GroupIterator g(*m_groups, not_other); g; ++g) 
-    {
-        HexPoint z = g->Captain();
-        if (z == endp[0] || z == endp[1])
-            continue;
-        if (vc.Carrier().test(z))
-            continue;
-        bitset_t capturedSet = vcCapturedSet | m_capturedSet[z];
-        bitset_t uncapturedSet = capturedSet;
-        uncapturedSet.flip();
-        for (int i = 0; i < 2; i++)
-        {
-            int j = (i + 1) & 1;
-            if (m_param.and_over_edge || !HexPointUtil::isEdge(endp[i])) 
+    for (int i = 0; i < 2; i++)
+        if (m_param.and_over_edge || !HexPointUtil::isEdge(endp[i]))
+            for (BitsetIterator g(m_nbs[endp[i]]); g; ++g)
             {
+                HexPoint z = *g;
+                BenzeneAssert(z == m_groups->CaptainOf(z));
+                if (z == endp[0] || z == endp[1])
+                    continue;
+                if (vc.Carrier().test(z))
+                    continue;
+                bitset_t capturedSet = vcCapturedSet | m_capturedSet[z];
+                bitset_t uncapturedSet = capturedSet;
+                uncapturedSet.flip();
                 VCList* fulls = &m_con->GetList(VC::FULL, z, endp[i]);
                 if ((fulls->SoftIntersection() & vc.Carrier()
-                     & uncapturedSet).any())
+                    & uncapturedSet).any())
                     continue;
                 AndRule rule = (endc[i] == EMPTY) ? CREATE_SEMI : CREATE_FULL;
-                DoAnd(z, endp[i], endp[j], rule, vc, capturedSet, 
+                int j = (i + 1) & 1;
+                DoAnd(z, endp[i], endp[j], rule, vc, capturedSet,
                       &m_con->GetList(VC::FULL, z, endp[i]));
             }
-        }
-    }
 }
 
 /** Compares vc to each connection in the softlimit of the given list.
@@ -963,10 +978,19 @@ bool VCBuilder::AddNewFull(const VC& vc)
     {
         m_con->GetList(VC::SEMI, vc.X(), vc.Y())
             .RemoveSuperSetsOf(vc.Carrier(), m_log);
-        m_fulls_queue.Push(vc);
+        PushFull(vc);
         return true;
     }
     return false;
+}
+
+void VCBuilder::PushFull(const VC& vc)
+{
+    m_fulls_queue.Push(vc);
+    HexPoint x = m_groups->CaptainOf(vc.X());
+    HexPoint y = m_groups->CaptainOf(vc.Y());
+    m_nbs[x].set(y);
+    m_nbs[y].set(x);
 }
 
 /** Tries to add a new semi-connection.

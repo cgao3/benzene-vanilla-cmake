@@ -208,7 +208,7 @@ private:
     /** The types of VC to create when using the AND rule. */
     typedef enum { CREATE_FULL, CREATE_SEMI } AndRule;
 
-    class OrRule 
+    class OrRule
     {
     public:
         OrRule(const VCBuilder& builder) 
@@ -239,6 +239,8 @@ private:
     VCBuilderStatistics* m_statistics;
 
     const Groups* m_groups;
+
+    bitset_t m_nbs[BITSETSIZE];
 
     const StoneBoard* m_brd;
 
@@ -275,7 +277,9 @@ private:
     void ProcessFulls(const VC& vc);
 
     bool AddNewFull(const VC& vc);
-    
+
+    void PushFull(const VC& vc);
+
     bool AddNewSemi(const VC& vc);
 
     void LoadCapturedSetPatterns();
