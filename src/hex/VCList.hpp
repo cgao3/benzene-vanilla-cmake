@@ -150,12 +150,12 @@ public:
         Removed VCs are appended to out---note that the order
         of the vcs in out is the same as it was in the original list.
         Returns number of vcs removed. */
-    std::size_t RemoveAllContaining(HexPoint cell, std::list<VC>& out,
+    std::size_t RemoveAllContaining(HexPoint cell, std::vector<VC>& out,
                                     ChangeLog<VC>* log);
 
     /** Removes all VCs that intersect with b. 
         Removed VCs are stored in out. */
-    std::size_t RemoveAllContaining(const bitset_t& b, std::list<VC>& out,
+    std::size_t RemoveAllContaining(const bitset_t& b, std::vector<VC>& out,
                                     ChangeLog<VC>* log);
 
     /** Removes all VCs that intersect with b. */
@@ -176,7 +176,7 @@ protected:
 
     std::size_t m_softlimit;
 
-    std::list<VC> m_vcs;
+    mutable std::vector<VC> m_vcs;
 
     mutable bool m_dirtyIntersection;
 
@@ -288,50 +288,43 @@ public:
     bool boolean_test() const;
 
 private:
-    std::list<VC>& m_lst;
-
-    std::list<VC>::iterator m_it;
-
+    std::vector<VC>& m_lst;
     std::size_t m_max;
-
     std::size_t m_count;
 };
 
 inline VCListIterator::VCListIterator(VCList& lst)
     : m_lst(lst.m_vcs),
-      m_it(lst.m_vcs.begin()),
-      m_max(std::numeric_limits<std::size_t>::max()),
+      m_max(m_lst.size()),
       m_count(0)
 {
 }
 
 inline VCListIterator::VCListIterator(VCList& lst, std::size_t max)
     : m_lst(lst.m_vcs),
-      m_it(lst.m_vcs.begin()),
-      m_max(max),
+      m_max(std::min(max, m_lst.size())),
       m_count(0)
 {
 }
 
 inline VC& VCListIterator::operator*()
 {
-    return *m_it;
+    return m_lst[m_count];
 }
 
 inline VC* VCListIterator::operator->()
 {
-    return &(*m_it);
+    return &m_lst[m_count];
 }
 
 inline void VCListIterator::operator++()
 {
-    ++m_it;
     ++m_count;
 }
 
 inline bool VCListIterator::boolean_test() const
 {
-    return m_it != m_lst.end() && m_count < m_max;
+    return m_count < m_max;
 }
 
 //----------------------------------------------------------------------------
@@ -362,19 +355,14 @@ public:
     bool boolean_test() const;
 
 private:
-    const std::list<VC>& m_lst;
-
-    std::list<VC>::const_iterator m_it;
-
+    const std::vector<VC>& m_lst;
     std::size_t m_max;
-
     std::size_t m_count;
 };
 
 inline VCListConstIterator::VCListConstIterator(const VCList& lst)
     : m_lst(lst.m_vcs),
-      m_it(lst.m_vcs.begin()),
-      m_max(std::numeric_limits<std::size_t>::max()),
+      m_max(m_lst.size()),
       m_count(0)
 {
 }
@@ -382,31 +370,29 @@ inline VCListConstIterator::VCListConstIterator(const VCList& lst)
 inline VCListConstIterator::VCListConstIterator(const VCList& lst, 
                                                 std::size_t max)
     : m_lst(lst.m_vcs),
-      m_it(lst.m_vcs.begin()),
-      m_max(max),
+      m_max(std::min(max, m_lst.size())),
       m_count(0)
 {
 }
 
 inline const VC& VCListConstIterator::operator*() const
 {
-    return *m_it;
+    return m_lst[m_count];
 }
 
 inline const VC* VCListConstIterator::operator->() const
 {
-    return &(*m_it);
+    return &m_lst[m_count];
 }
 
 inline void VCListConstIterator::operator++()
 {
-    ++m_it;
     ++m_count;
 }
 
 inline bool VCListConstIterator::boolean_test() const
 {
-    return m_it != m_lst.end() && m_count < m_max;
+    return m_count < m_max;
 }
 
 //----------------------------------------------------------------------------

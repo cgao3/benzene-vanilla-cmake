@@ -303,7 +303,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
 
     // Shrink all 0-connections.
     {
-        std::list<VC> removed;
+        std::vector<VC> removed;
         fullsIn->RemoveAllContaining(added, removed, m_log);
         if (doingMerge)
         {
@@ -311,7 +311,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
             for (VCListConstIterator it(*fullsIn); it; ++it)
                 PushFull(*it);
         }
-        for (std::list<VC>::iterator it = removed.begin(); 
+        for (std::vector<VC>::iterator it = removed.begin();
              it != removed.end(); ++it) 
         {
             VC v = VC::ShrinkFull(*it, added, xout, yout);
@@ -324,7 +324,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     }
 
     // Shrink all 1-connections.
-    std::list<VC> removed;
+    std::vector<VC> removed;
     semisIn->RemoveAllContaining(added, removed, m_log);
     if (doingMerge)
     {   
@@ -333,7 +333,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     }
     // Shrink connections that touch played cells.
     // Do not upgrade during this step.
-    std::list<VC>::iterator it;
+    std::vector<VC>::iterator it;
     bool wasShrink = false;
     for (it = removed.begin(); it != removed.end(); ++it) 
     {
@@ -419,7 +419,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     if ((semis.HardIntersection() & uncapturedSet).any())
         return;
 
-    std::list<VC> added;
+    std::vector<VC> added;
 
     if (m_param.max_ors >= 16)
     {
@@ -467,7 +467,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
         }
     }
 
-    for (std::list<VC>::iterator it = added.begin(); it != added.end(); ++it)
+    for (std::vector<VC>::iterator it = added.begin(); it != added.end(); ++it)
         PushFull(*it);
 }
 
@@ -623,7 +623,7 @@ public:
     VCOrCombiner(bitset_t* captured_sets,
                  const VCList& semi_list,
                  VCList& full_list,
-                 std::list<VC>& added,
+                 std::vector<VC>& added,
                  ChangeLog<VC>* log,
                  VCBuilderStatistics& stats);
 
@@ -633,7 +633,7 @@ private:
     HexPoint m_x, m_y;
     bitset_t x_capture_set, y_capture_set;
     VCList& full_list;
-    std::list<VC>& added;
+    std::vector<VC>& added;
     ChangeLog<VC>* log;
     VCBuilderStatistics& stats;
     bool m_search_result;
@@ -651,7 +651,7 @@ private:
 VCOrCombiner::VCOrCombiner(bitset_t* captured_sets,
                            const VCList& semi_list,
                            VCList& full_list,
-                           std::list<VC>& added,
+                           std::vector<VC>& added,
                            ChangeLog<VC>* log,
                            VCBuilderStatistics& stats)
 : m_x(semi_list.GetX()), m_y(semi_list.GetY()), full_list(full_list),
@@ -833,7 +833,7 @@ inline int VCOrCombiner::Filter(int start, int count, size_t a) const
 
 bool VCBuilder::DoOr(const VCList& semi_list,
                      VCList& full_list,
-                     std::list<VC>& added,
+                     std::vector<VC>& added,
                      ChangeLog<VC>* log,
                      VCBuilderStatistics& stats)
 {
@@ -856,7 +856,7 @@ bool VCBuilder::DoOr(const VCList& semi_list,
 int VCBuilder::OrRule::operator()(const VC& vc, 
                                   const VCList* semi_list, 
                                   VCList* full_list, 
-                                  std::list<VC>& added, 
+                                  std::vector<VC>& added,
                                   int maxOrs,
                                   ChangeLog<VC>* log, 
                                   VCBuilderStatistics& stats)

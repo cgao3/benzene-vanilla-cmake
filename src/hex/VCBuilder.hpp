@@ -215,7 +215,7 @@ private:
             : m_builder(builder), m_semi(64), m_tail(64) {};
 
         int operator()(const VC& vc, const VCList* semi_list, 
-                       VCList* full_list, std::list<VC>& added, 
+                       VCList* full_list, std::vector<VC>& added,
                        int max_ors, ChangeLog<VC>* log, 
                        VCBuilderStatistics& stats);
     private:
@@ -266,7 +266,7 @@ private:
 
     bool DoOr(const VCList& semi_list,
               VCList& full_list,
-              std::list<VC>& added,
+              std::vector<VC>& added,
               ChangeLog<VC>* log,
               VCBuilderStatistics& stats);
 

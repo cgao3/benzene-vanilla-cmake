@@ -4,6 +4,7 @@
 
 #include "VCList.hpp"
 #include "ChangeLog.hpp"
+#include <algorithm>
 
 using namespace benzene;
 
@@ -35,9 +36,16 @@ std::string VCList::Dump() const
 
 bool VCList::IsSupersetOfAny(const bitset_t& bs) const
 {
-    for (VCListConstIterator it(*this); it; ++it)
-        if (BitsetUtil::IsSubsetOf(it->Carrier(), bs))
+    for (std::size_t i = 0; i < m_vcs.size(); ++i)
+        if (BitsetUtil::IsSubsetOf(m_vcs[i].Carrier(), bs))
+        {
+            // Move to front
+            VC v = m_vcs[i];
+            for (std::size_t j = i; j > 0; j--)
+                m_vcs[j] = m_vcs[j - 1];
+            m_vcs[0] = v;
             return true;
+        }
     return false;
 }
 
@@ -52,19 +60,20 @@ bool VCList::IsSubsetOfAny(const bitset_t& bs) const
 std::size_t VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
                                       bool dirtyIntersections)
 {
-    std::size_t count = 0;
-    for (std::list<VC>::iterator it = m_vcs.begin(); it != m_vcs.end();)
+    std::size_t j = 0;
+    std::size_t i = 0;
+    for (; i < m_vcs.size(); ++i)
     {
-        if (BitsetUtil::IsSubsetOf(bs, it->Carrier())) 
+        if (BitsetUtil::IsSubsetOf(bs, m_vcs[i].Carrier()))
         {
             if (log) 
-                log->Push(ChangeLog<VC>::REMOVE, *it);
-            it = m_vcs.erase(it);
-            ++count;
+                log->Push(ChangeLog<VC>::REMOVE, m_vcs[i]);
         } 
-        else 
-            ++it;
+        else
+            m_vcs[j++] = m_vcs[i];
     }
+    m_vcs.resize(j);
+    std::size_t count = i - j;
     if (count)
     {
         DirtyListUnions();
@@ -80,12 +89,8 @@ void VCList::ForcedAdd(const VC& vc)
 {
     BenzeneAssert((vc.X() == GetX() && vc.Y() == GetY()) ||
                   (vc.X() == GetY() && vc.Y() == GetX()));
-    std::list<VC>::iterator it;
-    unsigned count = 0;
-    for (it = m_vcs.begin(); it != m_vcs.end(); ++it, ++count)
-        if (*it > vc)
-            break;
-    it = m_vcs.insert(it, vc);
+    size_t count = m_vcs.size();
+    m_vcs.push_back(vc);
     DirtyListUnions();
     if (count < m_softlimit)
         m_softIntersection &= vc.Carrier();
@@ -96,33 +101,19 @@ VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
 {
     BenzeneAssert((vc.X() == GetX() && vc.Y() == GetY()) ||
                   (vc.X() == GetY() && vc.Y() == GetX()));
-    unsigned count = 0;
-    std::list<VC>::iterator it = m_vcs.begin();
-    for (; it != m_vcs.end(); ++it, ++count) 
-    {
-        if (*it > vc)
-            break;
-        if ((*it).IsSubsetOf(vc))
-            return ADD_FAILED;
-    }
-    if (log) 
+    if (IsSupersetOfAny(vc.Carrier()))
+        return ADD_FAILED;
+    if (log)
         log->Push(ChangeLog<VC>::ADD, vc);
-    it = m_vcs.insert(it, vc);
+    RemoveSuperSetsOf(vc.Carrier(), log);
+    std::size_t count = m_vcs.size();
+    m_vcs.push_back(vc);
     DirtyListUnions();
-    if (count < m_softlimit) 
-        m_softIntersection &= vc.Carrier();
-    m_hardIntersection &= vc.Carrier();
-    // Remove supersets of vc
-    for (++it; it != m_vcs.end();)
+    if (!m_dirtyIntersection)
     {
-        if (vc.IsSubsetOf(*it)) 
-        {
-            if (log) 
-                log->Push(ChangeLog<VC>::REMOVE, *it);
-            it = m_vcs.erase(it);
-        } 
-        else
-            ++it;
+        if (count < m_softlimit)
+            m_softIntersection &= vc.Carrier();
+        m_hardIntersection &= vc.Carrier();
     }
     return (count < m_softlimit) 
         ? ADDED_INSIDE_SOFT_LIMIT
@@ -145,18 +136,19 @@ std::size_t VCList::Add(const VCList& other, ChangeLog<VC>* log)
 
 bool VCList::Remove(const VC& vc, ChangeLog<VC>* log)
 {
-    std::list<VC>::iterator it = m_vcs.begin();
-    for (; it != m_vcs.end(); ++it)
-        if (vc == *it) 
-            break;
-    if (it == m_vcs.end())
-        return false;
-    if (log) 
-        log->Push(ChangeLog<VC>::REMOVE, *it);
-    it = m_vcs.erase(it);
-    DirtyListUnions();
-    DirtyListIntersections();
-    return true;
+    for (std::size_t i = 0; i < m_vcs.size(); ++i)
+        if (vc == m_vcs[i])
+        {
+            if (log)
+                log->Push(ChangeLog<VC>::REMOVE, m_vcs[i]);
+            for (std::size_t j = i + 1; j < m_vcs.size(); ++j)
+                m_vcs[j - 1] = m_vcs[j];
+            m_vcs.pop_back();
+            DirtyListUnions();
+            DirtyListIntersections();
+            return true;
+        }
+    return false;
 }
 
 //----------------------------------------------------------------------------
@@ -209,14 +201,24 @@ bitset_t VCList::GetGreedyUnion() const
 void VCList::ComputeIntersections() const
 {
     m_softIntersection.set();
-    std::list<VC>::const_iterator cur = m_vcs.begin();
-    std::list<VC>::const_iterator end = m_vcs.end();
-    // TODO: Abort loops early if intersection is empty?
-    for (std::size_t count = 0; count < Softlimit() && cur!=end; ++cur, ++count)
-        m_softIntersection &= cur->Carrier();
+    std::size_t i = 0;
+    for (; i < std::min(Softlimit(), m_vcs.size()); ++i)
+    {
+        m_softIntersection &= m_vcs[i].Carrier();
+        if (m_softIntersection.none())
+        {
+            m_hardIntersection.reset();
+            m_dirtyIntersection = false;
+            return;
+        }
+    }
     m_hardIntersection = m_softIntersection;
-    for (; cur != end; ++cur)
-        m_hardIntersection &= cur->Carrier();
+    for (; i < m_vcs.size(); ++i)
+    {
+        m_hardIntersection &= m_vcs[i].Carrier();
+        if (m_hardIntersection.none())
+            break;
+    }
     m_dirtyIntersection = false;
 }
 
@@ -236,25 +238,26 @@ bitset_t VCList::HardIntersection() const
 
 //----------------------------------------------------------------------------
 
-std::size_t VCList::RemoveAllContaining(HexPoint cell, std::list<VC>& out,
+std::size_t VCList::RemoveAllContaining(HexPoint cell, std::vector<VC>& out,
                                         ChangeLog<VC>* log)
 {
     if (!GetUnion().test(cell))
         return 0;
-    int count = 0;
-    for (std::list<VC>::iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
+    std::size_t j = 0;
+    std::size_t i = 0;
+    for (; i < m_vcs.size(); ++i)
     {
-        if (it->Carrier().test(cell)) 
+        if (m_vcs[i].Carrier().test(cell))
         {
-            out.push_back(*it);
+            out.push_back(m_vcs[i]);
             if (log) 
-                log->Push(ChangeLog<VC>::REMOVE, *it);
-            it = m_vcs.erase(it);
-            ++count;
+                log->Push(ChangeLog<VC>::REMOVE, m_vcs[i]);
         } 
         else
-            ++it;
+            m_vcs[j++] = m_vcs[i];
     }
+    m_vcs.resize(j);
+    size_t count = i - j;
     if (count > 0) 
     {
         DirtyListUnions();
@@ -263,25 +266,26 @@ std::size_t VCList::RemoveAllContaining(HexPoint cell, std::list<VC>& out,
     return count;
 }
 
-std::size_t VCList::RemoveAllContaining(const bitset_t& b, std::list<VC>& out,
+std::size_t VCList::RemoveAllContaining(const bitset_t& b, std::vector<VC>& out,
                                         ChangeLog<VC>* log)
 {
     if ((GetUnion() & b).none())
         return 0;
-    std::size_t count = 0;
-    for (std::list<VC>::iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
+    std::size_t j = 0;
+    std::size_t i = 0;
+    for (; i < m_vcs.size(); ++i)
     {
-        if ((it->Carrier() & b).any()) 
+        if ((m_vcs[i].Carrier() & b).any())
         {
-            out.push_back(*it);
+            out.push_back(m_vcs[i]);
             if (log)
-                log->Push(ChangeLog<VC>::REMOVE, *it);
-            it = m_vcs.erase(it);
-            ++count;
+                log->Push(ChangeLog<VC>::REMOVE, m_vcs[i]);
         }
         else
-            ++it;
+            m_vcs[j++] = m_vcs[i];
     }
+    m_vcs.resize(j);
+    size_t count = i - j;
     if (count > 0)
     {
         DirtyListUnions();
@@ -294,19 +298,20 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, ChangeLog<VC>* log)
 {
     if ((GetUnion() & b).none())
         return 0;
-    std::size_t count = 0;
-    for (std::list<VC>::iterator it = m_vcs.begin(); it != m_vcs.end(); ) 
+    std::size_t j = 0;
+    std::size_t i = 0;
+    for (; i < m_vcs.size(); ++i)
     {
-        if ((it->Carrier() & b).any()) 
+        if ((m_vcs[i].Carrier() & b).any())
         {
             if (log)
-                log->Push(ChangeLog<VC>::REMOVE, *it);
-            it = m_vcs.erase(it);
-            ++count;
-        } 
+                log->Push(ChangeLog<VC>::REMOVE, m_vcs[i]);
+        }
         else
-            ++it;
+            m_vcs[j++] = m_vcs[i];
     }
+    m_vcs.resize(j);
+    size_t count = i - j;
     if (count > 0)
     {
         DirtyListUnions();
@@ -323,16 +328,16 @@ bool VCList::operator==(const VCList& other) const
         return false;
     if (Size() != other.Size())
         return false;
-    VCListConstIterator us(*this);
-    VCListConstIterator them(other);
-    while (us)
+    std::vector<VC> us(m_vcs);
+    std::sort(us.begin(), us.end());
+    std::vector<VC> them(other.m_vcs);
+    std::sort(them.begin(), them.end());
+    for (std::size_t i = 0; i < us.size(); ++i)
     {
-        if (*us != *them) 
+        if (us[i] != them[i])
             return false;
-        if (us->Processed() != them->Processed()) 
+        if (us[i].Processed() != them[i].Processed())
             return false;
-        ++us;
-        ++them;
     }
     return true;
 }
@@ -343,16 +348,16 @@ bool VCList::operator!=(const VCList& other) const
         return true;
     if (Size() != other.Size())
         return true;
-    VCListConstIterator us(*this);
-    VCListConstIterator them(other);
-    while (us) 
+    std::vector<VC> us(m_vcs);
+    std::sort(us.begin(), us.end());
+    std::vector<VC> them(other.m_vcs);
+    std::sort(them.begin(), them.end());
+    for (std::size_t i = 0; i < us.size(); ++i)
     {
-        if (*us != *them) 
+        if (us[i] != them[i])
             return true;
-        if (us->Processed() != them->Processed()) 
+        if (us[i].Processed() != them[i].Processed())
             return true;
-        ++us;
-        ++them;
     }
     return false;
 }
