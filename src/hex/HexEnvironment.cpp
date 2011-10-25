@@ -147,11 +147,7 @@ void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
             << "[bool] use_non_edge_patterns "
             << param.use_non_edge_patterns << '\n'
             << "[string] max_ors "
-            << param.max_ors << '\n'
-            << "[string] softlimit_full "
-            << brd.Cons(BLACK).SoftLimit(VC::FULL) << '\n'
-            << "[string] softlimit_semi "
-            << brd.Cons(BLACK).SoftLimit(VC::SEMI) << '\n';
+            << param.max_ors << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -168,18 +164,6 @@ void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
             param.use_non_edge_patterns = cmd.Arg<bool>(1);
         else if (name == "max_ors")
             param.max_ors = cmd.ArgMin<int>(1, 1);
-        else if (name == "softlimit_full")
-        {
-            int limit = cmd.ArgMin<int>(1, 0);
-            brd.Cons(BLACK).SetSoftLimit(VC::FULL, limit);
-            brd.Cons(WHITE).SetSoftLimit(VC::FULL, limit);
-        }
-        else if (name == "softlimit_semi")
-        {
-            int limit = cmd.ArgMin<int>(1, 0);
-            brd.Cons(BLACK).SetSoftLimit(VC::SEMI, limit);
-            brd.Cons(WHITE).SetSoftLimit(VC::SEMI, limit);
-        }
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

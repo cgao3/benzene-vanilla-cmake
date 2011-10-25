@@ -128,17 +128,8 @@ void VCCommands::CmdGetBetweenFull(HtpCommand& cmd)
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     std::vector<VC> vc;
     brd.Cons(color).VCs(fcaptain, tcaptain, VC::FULL, vc);
-    const VCList& lst = brd.Cons(color).GetList(VC::FULL, fcaptain, tcaptain);
     cmd << '\n';
-    std::size_t i = 0;
-    for (; i < lst.Softlimit() && i < vc.size(); ++i) 
-        cmd << color << " " << vc.at(i) << '\n';
-    if (i >= vc.size())
-        return;
-    cmd << color << " " << fcaptain << " " << tcaptain << " ";
-    cmd << "softlimit ----------------------";
-    cmd << '\n';
-    for (; i < vc.size(); ++i)
+    for (std::size_t i = 0; i < vc.size(); ++i)
         cmd << color << " " << vc.at(i) << '\n';
 }
 
@@ -154,17 +145,8 @@ void VCCommands::CmdGetBetweenSemi(HtpCommand& cmd)
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     std::vector<VC> vc;
     brd.Cons(color).VCs(fcaptain, tcaptain, VC::SEMI, vc);
-    const VCList& lst = brd.Cons(color).GetList(VC::SEMI, fcaptain, tcaptain);
     cmd << '\n';
-    std::size_t i = 0;
-    for (; i < lst.Softlimit() && i < vc.size(); ++i) 
-        cmd << color << " " << vc.at(i) << '\n';
-    if (i >= vc.size())
-        return;
-    cmd << color << " " << fcaptain << " " << tcaptain << " ";
-    cmd << "softlimit ----------------------";
-    cmd << '\n';
-    for (; i < vc.size(); ++i)
+    for (std::size_t i = 0; i < vc.size(); ++i)
         cmd << color << " " << vc.at(i) << '\n';
 }
 
@@ -226,7 +208,7 @@ void VCCommands::CmdIntersectionFull(HtpCommand& cmd)
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(VC::FULL, fcaptain, tcaptain);
-    bitset_t intersection = lst.HardIntersection();
+    bitset_t intersection = lst.GetIntersection();
     cmd << HexPointUtil::ToString(intersection);
 }
 
@@ -240,7 +222,7 @@ void VCCommands::CmdIntersectionSemi(HtpCommand& cmd)
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     const VCList& lst = brd.Cons(color).GetList(VC::SEMI, fcaptain, tcaptain);
-    bitset_t intersection = lst.HardIntersection();
+    bitset_t intersection = lst.GetIntersection();
     cmd << HexPointUtil::ToString(intersection);
 }
 

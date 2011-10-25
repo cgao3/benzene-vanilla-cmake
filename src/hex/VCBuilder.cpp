@@ -416,7 +416,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     bitset_t uncapturedSet = capturedSet;
     uncapturedSet.flip();
     // Nothing to do, so abort. 
-    if ((semis.HardIntersection() & uncapturedSet).any())
+    if ((semis.GetIntersection() & uncapturedSet).any())
         return;
 
     std::vector<VC> added;
@@ -436,7 +436,7 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
     }
     else
     {
-        for (VCListIterator cur(semis, semis.Softlimit()); cur; ++cur)
+        for (VCListIterator cur(semis); cur; ++cur)
         {
             if (!cur->Processed())
             {
@@ -557,7 +557,7 @@ void VCBuilder::AndClosure(const VC& vc)
                 bitset_t uncapturedSet = capturedSet;
                 uncapturedSet.flip();
                 VCList* fulls = &m_con->GetList(VC::FULL, z, endp[i]);
-                if ((fulls->SoftIntersection() & vc.Carrier()
+                if ((fulls->GetIntersection() & vc.Carrier()
                     & uncapturedSet).any())
                     continue;
                 AndRule rule = (endc[i] == EMPTY) ? CREATE_SEMI : CREATE_FULL;
@@ -577,7 +577,7 @@ void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
 {
     if (old->Empty())
         return;
-    for (VCListConstIterator i(*old, old->Softlimit()); i; ++i) 
+    for (VCListConstIterator i(*old); i; ++i)
     {
         if (!i->Processed())
             continue;
@@ -843,7 +843,7 @@ inline bitset_t VCOrCombiner::Add(int start, int count, bitset_t capturedSet)
     }
     VC v(m_x, m_y, U, VC_RULE_OR);
     stats.or_attempts++;
-    if (full_list.Add(v, log) == VCList::ADD_FAILED)
+    if (!full_list.Add(v, log))
         BenzeneAssert(false /* Enhanced OR should always succeed! */);
     stats.or_successes++;
     added.push_back(v);
@@ -899,7 +899,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
         return 0;
     // Copy processed semis (unprocessed semis are not used here)
     m_semi.clear();
-    for (VCListConstIterator it(*semi_list, semi_list->Softlimit()); it; ++it)
+    for (VCListConstIterator it(*semi_list); it; ++it)
         if (it->Processed())
             m_semi.push_back(*it);
     if (m_semi.empty())
@@ -952,7 +952,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
             // needed here.
             VC v(full_list->GetX(), full_list->GetY(), ors[d], VC_RULE_OR);
             stats.or_attempts++;
-            if (full_list->Add(v, log) != VCList::ADD_FAILED) 
+            if (full_list->Add(v, log)) 
             {
                 count++;
                 stats.or_successes++;
@@ -971,7 +971,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
                 carrier |= m_builder.m_capturedSet[semi_list->GetY()];
             VC v(full_list->GetX(), full_list->GetY(), carrier, VC_RULE_OR);
             stats.or_attempts++;
-            if (full_list->Add(v, log) != VCList::ADD_FAILED) 
+            if (full_list->Add(v, log)) 
             {
                 ++count;
                 stats.or_successes++;
@@ -1007,8 +1007,7 @@ int VCBuilder::OrRule::operator()(const VC& vc,
 bool VCBuilder::AddNewFull(const VC& vc)
 {
     BenzeneAssert(vc.GetType() == VC::FULL);
-    VCList::AddResult result = m_con->Add(vc, m_log);
-    if (result != VCList::ADD_FAILED) 
+    if (m_con->Add(vc, m_log))
     {
         m_con->GetList(VC::SEMI, vc.X(), vc.Y())
             .RemoveSuperSetsOf(vc.Carrier(), m_log);
@@ -1045,8 +1044,7 @@ bool VCBuilder::AddNewSemi(const VC& vc)
     VCList* outSemi = &m_con->GetList(VC::SEMI, vc.X(), vc.Y());
     if (!outFull->IsSupersetOfAny(vc.Carrier())) 
     {
-        VCList::AddResult result = outSemi->Add(vc, m_log);
-        if (result != VCList::ADD_FAILED) 
+        if (outSemi->Add(vc, m_log)) 
         {
             m_semis_queue.Push(HexPointPair(vc.X(), vc.Y()));
             return true;

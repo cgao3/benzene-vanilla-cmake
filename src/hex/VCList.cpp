@@ -10,15 +10,13 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-VCList::VCList(HexPoint x, HexPoint y, std::size_t soft)
+VCList::VCList(HexPoint x, HexPoint y)
     : m_x(x), m_y(y), 
-      m_softlimit(soft),
       m_vcs(),
       m_dirtyIntersection(false),
       m_dirtyUnion(true)
 {
-    m_softIntersection.set();
-    m_hardIntersection.set();
+    m_intersection.set();
 }
 
 //----------------------------------------------------------------------------
@@ -58,7 +56,7 @@ bool VCList::IsSubsetOfAny(const bitset_t& bs) const
 }
 
 std::size_t VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
-                                      bool dirtyIntersections)
+                                      bool dirtyIntersection)
 {
     std::size_t j = 0;
     std::size_t i = 0;
@@ -77,8 +75,8 @@ std::size_t VCList::RemoveSuperSetsOf(const bitset_t& bs, ChangeLog<VC>* log,
     if (count)
     {
         DirtyListUnions();
-        if (dirtyIntersections)
-            DirtyListIntersections();
+        if (dirtyIntersection)
+            DirtyListIntersection();
     }
     return count;
 }
@@ -89,35 +87,25 @@ void VCList::ForcedAdd(const VC& vc)
 {
     BenzeneAssert((vc.X() == GetX() && vc.Y() == GetY()) ||
                   (vc.X() == GetY() && vc.Y() == GetX()));
-    size_t count = m_vcs.size();
     m_vcs.push_back(vc);
     DirtyListUnions();
-    if (count < m_softlimit)
-        m_softIntersection &= vc.Carrier();
-    m_hardIntersection &= vc.Carrier();
+    m_intersection &= vc.Carrier();
 }
 
-VCList::AddResult VCList::Add(const VC& vc, ChangeLog<VC>* log)
+bool VCList::Add(const VC& vc, ChangeLog<VC>* log)
 {
     BenzeneAssert((vc.X() == GetX() && vc.Y() == GetY()) ||
                   (vc.X() == GetY() && vc.Y() == GetX()));
     if (IsSupersetOfAny(vc.Carrier()))
-        return ADD_FAILED;
+        return false;
     if (log)
         log->Push(ChangeLog<VC>::ADD, vc);
     RemoveSuperSetsOf(vc.Carrier(), log);
-    std::size_t count = m_vcs.size();
     m_vcs.push_back(vc);
     DirtyListUnions();
     if (!m_dirtyIntersection)
-    {
-        if (count < m_softlimit)
-            m_softIntersection &= vc.Carrier();
-        m_hardIntersection &= vc.Carrier();
-    }
-    return (count < m_softlimit) 
-        ? ADDED_INSIDE_SOFT_LIMIT
-        : ADDED_INSIDE_HARD_LIMIT;
+        m_intersection &= vc.Carrier();
+    return true;
 }
 
 std::size_t VCList::Add(const VCList& other, ChangeLog<VC>* log)
@@ -145,7 +133,7 @@ bool VCList::Remove(const VC& vc, ChangeLog<VC>* log)
                 m_vcs[j - 1] = m_vcs[j];
             m_vcs.pop_back();
             DirtyListUnions();
-            DirtyListIntersections();
+            DirtyListIntersection();
             return true;
         }
     return false;
@@ -198,42 +186,23 @@ bitset_t VCList::GetGreedyUnion() const
 
 //----------------------------------------------------------------------------
 
-void VCList::ComputeIntersections() const
+void VCList::ComputeIntersection() const
 {
-    m_softIntersection.set();
-    std::size_t i = 0;
-    for (; i < std::min(Softlimit(), m_vcs.size()); ++i)
+    m_intersection.set();
+    for (std::size_t i = 0; i < m_vcs.size(); ++i)
     {
-        m_softIntersection &= m_vcs[i].Carrier();
-        if (m_softIntersection.none())
-        {
-            m_hardIntersection.reset();
-            m_dirtyIntersection = false;
-            return;
-        }
-    }
-    m_hardIntersection = m_softIntersection;
-    for (; i < m_vcs.size(); ++i)
-    {
-        m_hardIntersection &= m_vcs[i].Carrier();
-        if (m_hardIntersection.none())
+        m_intersection &= m_vcs[i].Carrier();
+        if (m_intersection.none())
             break;
     }
     m_dirtyIntersection = false;
 }
 
-bitset_t VCList::SoftIntersection() const
+bitset_t VCList::GetIntersection() const
 {
     if (m_dirtyIntersection)
-        ComputeIntersections();
-    return m_softIntersection;
-}
-
-bitset_t VCList::HardIntersection() const
-{
-    if (m_dirtyIntersection)
-        ComputeIntersections();
-    return m_hardIntersection;
+        ComputeIntersection();
+    return m_intersection;
 }
 
 //----------------------------------------------------------------------------
@@ -261,7 +230,7 @@ std::size_t VCList::RemoveAllContaining(HexPoint cell, std::vector<VC>& out,
     if (count > 0) 
     {
         DirtyListUnions();
-        DirtyListIntersections();
+        DirtyListIntersection();
     }
     return count;
 }
@@ -289,7 +258,7 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, std::vector<VC>& out,
     if (count > 0)
     {
         DirtyListUnions();
-        DirtyListIntersections();
+        DirtyListIntersection();
     }
     return count;
 }
@@ -315,7 +284,7 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, ChangeLog<VC>* log)
     if (count > 0)
     {
         DirtyListUnions();
-        DirtyListIntersections();
+        DirtyListIntersection();
     }
     return count;
 }
@@ -324,8 +293,6 @@ std::size_t VCList::RemoveAllContaining(const bitset_t& b, ChangeLog<VC>* log)
 
 bool VCList::operator==(const VCList& other) const
 {
-    if (m_softlimit != other.m_softlimit)
-        return false;
     if (Size() != other.Size())
         return false;
     std::vector<VC> us(m_vcs);
@@ -344,8 +311,6 @@ bool VCList::operator==(const VCList& other) const
 
 bool VCList::operator!=(const VCList& other) const
 {
-    if (m_softlimit != other.m_softlimit)
-        return true;
     if (Size() != other.Size())
         return true;
     std::vector<VC> us(m_vcs);

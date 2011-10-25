@@ -29,18 +29,12 @@ _BEGIN_BENZENE_NAMESPACE_
 class VCList
 {
 public:
-    /** Creates a list with given limits. */
-    VCList(HexPoint x, HexPoint y, std::size_t soft);
+    /** Creates a list. */
+    VCList(HexPoint x, HexPoint y);
 
     HexPoint GetX() const;
     
     HexPoint GetY() const;
-
-    /** Returns the soft limit. */
-    std::size_t Softlimit() const;
-    
-    /** See Softlimit() */
-    void SetSoftlimit(std::size_t limit);
 
     /** Empties the list. */
     void Clear();
@@ -68,25 +62,12 @@ public:
         only use this if you are for sure only removing supersets of a
         member of this list! */
     std::size_t RemoveSuperSetsOf(const bitset_t& vc, ChangeLog<VC>* log,
-                                  bool dirtyIntersections = true);
+                                  bool dirtyIntersection = true);
    
     //----------------------------------------------------------------------
     
     /** @name Adding connections */
     // @{
-
-    /** Return type for Add() methods. */
-    typedef enum 
-    { 
-        /** Add did not succeed, list is unchanged. */
-        ADD_FAILED = 0, 
-
-        /** Added connection within the soft limit. */
-        ADDED_INSIDE_SOFT_LIMIT = 1, 
-        
-        /** Add connection within the hard limit. */
-        ADDED_INSIDE_HARD_LIMIT = 2 
-    } AddResult;
 
     /** Adds vc to the list.  
         Requires a single pass over the entire list. The add will fail
@@ -94,7 +75,7 @@ public:
         of this vc that are already in the list are removed.
         Operations will be recorded in the log if log is not 0.
         @return true if the VC was added, false otherwise. */
-    AddResult Add(const VC& vc, ChangeLog<VC>* log);
+    bool Add(const VC& vc, ChangeLog<VC>* log);
 
     /** Adds the elements of other to list. 
         Returns number of vcs added. VCs are added as unprocessed.
@@ -127,13 +108,9 @@ public:
         board. */
     bitset_t GetGreedyUnion() const;
 
-    /** Returns soft limit intersection. 
+    /** Returns the intersection of all carriers in the list.
         If list is empty, the bitset will have all of its bits set. */
-    bitset_t SoftIntersection() const;
-
-    /** Returns hard-limit intersection. 
-        If list is empty, the bitset will have all of its bits set. */
-    bitset_t HardIntersection() const;
+    bitset_t GetIntersection() const;
 
     //----------------------------------------------------------------------
 
@@ -174,15 +151,11 @@ protected:
         
     HexPoint m_y;
 
-    std::size_t m_softlimit;
-
     mutable std::vector<VC> m_vcs;
 
     mutable bool m_dirtyIntersection;
 
-    mutable bitset_t m_softIntersection;
-
-    mutable bitset_t m_hardIntersection;
+    mutable bitset_t m_intersection;
 
     mutable bool m_dirtyUnion;
 
@@ -194,13 +167,13 @@ protected:
     void DirtyListUnions();
 
     /** Invalidates the list intersection. */
-    void DirtyListIntersections();
+    void DirtyListIntersection();
 
     /** Computes list unions in one pass: normal and greedy. */
     void ComputeUnions() const;
 
-    /** Computes list intersections in one pass: soft and hard. */
-    void ComputeIntersections() const;
+    /** Computes list intersection. */
+    void ComputeIntersection() const;
 
     friend class VCListIterator;
 
@@ -217,22 +190,6 @@ inline HexPoint VCList::GetY() const
     return m_y;
 }
 
-inline std::size_t VCList::Softlimit() const
-{
-    return m_softlimit;
-}
-
-inline void VCList::SetSoftlimit(std::size_t limit)
-{
-    if (limit != m_softlimit)
-    {
-        m_softlimit = limit;
-        m_dirtyIntersection = true;
-    }
-}
-
-/** @todo std::list::size() might be O(n):
-    keep track of size on our own? */
 inline std::size_t VCList::Size() const
 {
     return m_vcs.size();
@@ -248,7 +205,7 @@ inline void VCList::DirtyListUnions()
     m_dirtyUnion = true;
 }
 
-inline void VCList::DirtyListIntersections()
+inline void VCList::DirtyListIntersection()
 {
     m_dirtyIntersection = true;
 }
@@ -258,8 +215,7 @@ inline void VCList::Clear()
     m_vcs.clear();
     DirtyListUnions();
     m_dirtyIntersection = false;
-    m_softIntersection.set();
-    m_hardIntersection.set();
+    m_intersection.set();
 }
 
 //----------------------------------------------------------------------------
@@ -270,10 +226,6 @@ class VCListIterator : public SafeBool<VCListIterator>
 public:
     /** Creates iterator on a VCList. */
     explicit VCListIterator(VCList& lst);
-    
-    /** Creates iterator on a VCList.
-        Iterates until end of list or at most max elements. */
-    VCListIterator(VCList& lst, std::size_t max);
 
     /** Returns current VC. */
     VC& operator*();
@@ -289,20 +241,11 @@ public:
 
 private:
     std::vector<VC>& m_lst;
-    std::size_t m_max;
     std::size_t m_count;
 };
 
 inline VCListIterator::VCListIterator(VCList& lst)
     : m_lst(lst.m_vcs),
-      m_max(m_lst.size()),
-      m_count(0)
-{
-}
-
-inline VCListIterator::VCListIterator(VCList& lst, std::size_t max)
-    : m_lst(lst.m_vcs),
-      m_max(std::min(max, m_lst.size())),
       m_count(0)
 {
 }
@@ -324,7 +267,7 @@ inline void VCListIterator::operator++()
 
 inline bool VCListIterator::boolean_test() const
 {
-    return m_count < m_max;
+    return m_count < m_lst.size();
 }
 
 //----------------------------------------------------------------------------
@@ -337,10 +280,6 @@ class VCListConstIterator : public SafeBool<VCListConstIterator>
 public:
     /** Creates a constnat iterator on a VCList. */
     VCListConstIterator(const VCList& lst);
-
-    /** Creates a constant iterator on a VCList.
-        Iterates until end of list or at most max elements. */
-    VCListConstIterator(const VCList& lst, std::size_t max);
 
     /** Returns current VC. */
     const VC& operator*() const;
@@ -356,21 +295,11 @@ public:
 
 private:
     const std::vector<VC>& m_lst;
-    std::size_t m_max;
     std::size_t m_count;
 };
 
 inline VCListConstIterator::VCListConstIterator(const VCList& lst)
     : m_lst(lst.m_vcs),
-      m_max(m_lst.size()),
-      m_count(0)
-{
-}
-
-inline VCListConstIterator::VCListConstIterator(const VCList& lst, 
-                                                std::size_t max)
-    : m_lst(lst.m_vcs),
-      m_max(std::min(max, m_lst.size())),
       m_count(0)
 {
 }
@@ -392,7 +321,7 @@ inline void VCListConstIterator::operator++()
 
 inline bool VCListConstIterator::boolean_test() const
 {
-    return m_count < m_max;
+    return m_count < m_lst.size();
 }
 
 //----------------------------------------------------------------------------

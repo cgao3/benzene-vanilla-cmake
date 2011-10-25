@@ -16,8 +16,6 @@ VCSet::VCSet(const ConstBoard& brd, HexColor color)
     : m_brd(&brd), 
       m_color(color)
 {
-    int softlimit_full = 25;
-    int softlimit_semi = 50;
     // Create a list for each valid pair; also create lists
     // for pairs (x,x) for ease of use later on. These lists
     // between the same point will always be empty.
@@ -26,9 +24,9 @@ VCSet::VCSet(const ConstBoard& brd, HexColor color)
         for (BoardIterator x(m_brd->EdgesAndInterior()); x; ++x) 
         {
             m_vc[VC::FULL][*x][*y] = m_vc[VC::FULL][*y][*x] = 
-                new VCList(*y, *x, softlimit_full);
+                new VCList(*y, *x);
             m_vc[VC::SEMI][*x][*y] = m_vc[VC::SEMI][*y][*x] =
-                new VCList(*y, *x, softlimit_semi);
+                new VCList(*y, *x);
             if (*x == *y)
                 break;
         }
@@ -111,13 +109,6 @@ void VCSet::VCs(HexPoint x, HexPoint y, VC::Type type,
 }
 
 //----------------------------------------------------------------------------
-
-void VCSet::SetSoftLimit(VC::Type type, std::size_t limit)
-{
-    for (BoardIterator y(m_brd->EdgesAndInterior()); y; ++y)
-        for (BoardIterator x(m_brd->EdgesAndInterior()); *x != *y; ++x)
-            m_vc[type][*x][*y]->SetSoftlimit(limit);
-}
 
 void VCSet::Clear()
 {

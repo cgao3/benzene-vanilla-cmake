@@ -40,10 +40,6 @@ public:
     /** Returns the board the set is defined on. */
     const ConstBoard& Board() const;
 
-    /** Returns soft limit for the given type of VC. This affects
-        VCBuilder's performance! */
-    std::size_t SoftLimit(VC::Type) const;
-
     /** Returns the VCList between (x, y). */
     const VCList& GetList(VC::Type type, HexPoint x, HexPoint y) const;
     
@@ -69,9 +65,6 @@ public:
     /** @name Modifying methods */
     // @{
 
-    /** See SoftLimit() */
-    void SetSoftLimit(VC::Type, std::size_t limit);
-
     /** Clears the connections. */
     void Clear();
 
@@ -81,7 +74,7 @@ public:
 
         @see VCList::add()
     */
-    VCList::AddResult Add(const VC& vc, ChangeLog<VC>* log);
+    bool Add(const VC& vc, ChangeLog<VC>* log);
 
     /** Uses the given changelog to revert connections to state at 
         last marker in the changelog. Log will will have all entries
@@ -148,16 +141,9 @@ VCSet::GetList(VC::Type type, HexPoint x, HexPoint y)
 }
 
 inline 
-VCList::AddResult VCSet::Add(const VC& vc, ChangeLog<VC>* log)
+bool VCSet::Add(const VC& vc, ChangeLog<VC>* log)
 {
     return m_vc[vc.GetType()][vc.X()][vc.Y()]->Add(vc, log);
-}
-
-inline std::size_t VCSet::SoftLimit(VC::Type type) const
-{
-    return m_vc[type]
-        [HexPointUtil::colorEdge1(m_color)]
-        [HexPointUtil::colorEdge2(m_color)]->Softlimit();
 }
 
 //----------------------------------------------------------------------------
