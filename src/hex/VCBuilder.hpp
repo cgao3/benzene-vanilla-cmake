@@ -169,11 +169,11 @@ public:
 
 private:
     /** Queue of endpoint pairs that need processing. 
-        @ref workqueue */
-    class WorkQueue
+        @ref semisqueue */
+    class SemiEndsQueue
     {
     public:
-        WorkQueue();
+        SemiEndsQueue();
         bool Empty() const;
         const HexPointPair& Front() const;
         std::size_t Capacity() const;
@@ -187,7 +187,24 @@ private:
         std::vector<HexPointPair> m_array;
         bool m_seen[BITSETSIZE][BITSETSIZE];
     };
-    
+
+    class FullVCQueue
+    {
+    public:
+        FullVCQueue();
+        bool Empty() const;
+        const VC& Front() const;
+        std::size_t Capacity() const;
+
+        void Clear();
+        void Pop();
+        void Push(const VC& vc);
+
+    private:
+        std::size_t m_head;
+        std::vector<VC> m_array;
+    };
+
     /** The types of VC to create when using the AND rule. */
     typedef enum { CREATE_FULL, CREATE_SEMI } AndRule;
 
@@ -213,7 +230,9 @@ private:
 
     VCBuilderParam& m_param;
 
-    WorkQueue m_queue;
+    SemiEndsQueue m_semis_queue;
+
+    FullVCQueue m_fulls_queue;
 
     VCBuilderStatistics m_statsForColor[BLACK_AND_WHITE];
 
@@ -253,7 +272,7 @@ private:
 
     void ProcessSemis(HexPoint xc, HexPoint yc);
 
-    void ProcessFulls(HexPoint p1, HexPoint p2);
+    void ProcessFulls(const VC& vc);
 
     bool AddNewFull(const VC& vc);
     

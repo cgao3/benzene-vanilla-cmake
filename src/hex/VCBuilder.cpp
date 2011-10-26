@@ -79,7 +79,8 @@ void VCBuilder::Build(VCSet& con, const Groups& groups,
     m_log = 0;
     m_con->Clear();
     m_statistics = &m_statsForColor[m_color];
-    m_queue.Clear();
+    m_semis_queue.Clear();
+    m_fulls_queue.Clear();
 
     ComputeCapturedSets(patterns);
     AddBaseVCs();
@@ -103,7 +104,7 @@ void VCBuilder::AddBaseVCs()
             if (m_con->Add(vc, m_log))
             {
                 m_statistics->base_successes++;
-                m_queue.Push(std::make_pair(vc.X(), vc.Y()));
+                m_fulls_queue.Push(vc);
             }
         }
     }
@@ -132,7 +133,7 @@ void VCBuilder::AddPatternVCs()
             if (m_con->Add(vc, m_log))
             {
                 m_statistics->pattern_successes++;
-                m_queue.Push(std::make_pair(vc.X(), vc.Y()));
+                m_fulls_queue.Push(vc);
             }
         }
     }
@@ -175,7 +176,8 @@ void VCBuilder::Build(VCSet& con, const Groups& oldGroups,
     m_brd = &m_groups->Board();
     m_log = log;
     m_statistics = &m_statsForColor[m_color];
-    m_queue.Clear();
+    m_semis_queue.Clear();
+    m_fulls_queue.Clear();
 
     ComputeCapturedSets(patterns);
     Merge(oldGroups, added);
@@ -255,10 +257,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& affected,
             // captain, so no point merging old connections into
             // (captain, captain).
             if (cx != cy) 
-            {
-                m_queue.Push(std::make_pair(cx, cy));
                 MergeAndShrink(added, *x, *y, cx, cy);
-            }
         }
     }
 }
@@ -287,14 +286,21 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     {
         std::list<VC> removed;
         fullsIn->RemoveAllContaining(added, removed, m_log);
-        if (doingMerge) 
+        if (doingMerge)
+        {
             fullsOut->Add(*fullsIn, m_log);
+            for (VCListConstIterator it(*fullsIn); it; ++it)
+                m_fulls_queue.Push(*it);
+        }
         for (std::list<VC>::iterator it = removed.begin(); 
              it != removed.end(); ++it) 
         {
             VC v = VC::ShrinkFull(*it, added, xout, yout);
             if (fullsOut->Add(v, m_log))
+            {
                 m_statistics->shrunk0++;
+                m_fulls_queue.Push(v);
+            }
         }
     }
 
@@ -309,6 +315,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
     // Shrink connections that touch played cells.
     // Do not upgrade during this step.
     std::list<VC>::iterator it;
+    bool wasShrink = false;
     for (it = removed.begin(); it != removed.end(); ++it) 
     {
         if (!added.test(it->Key())) 
@@ -316,9 +323,16 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
             VC v = VC::ShrinkSemi(*it, added, xout, yout);
             // BUG: These could be supersets of fullsOut.
             if (semisOut->Add(v, m_log))
+            {
+                wasShrink = true;
                 m_statistics->shrunk1++;
+            }
         }
     }
+
+    if (doingMerge || wasShrink)
+        m_semis_queue.Push(HexPointPair(semisOut->GetX(), semisOut->GetY()));
+
     // Upgrade semis. Need to do this after shrinking to ensure
     // that we remove all sc supersets from semisOut.
     for (it = removed.begin(); it != removed.end(); ++it) 
@@ -335,6 +349,7 @@ void VCBuilder::MergeAndShrink(const bitset_t& added,
                 // already clobbered the intersections.
                 semisOut->RemoveSuperSetsOf(v.Carrier(), m_log, false);
                 m_statistics->upgraded++;
+                m_fulls_queue.Push(v);
             }
         }
     }
@@ -366,8 +381,6 @@ void VCBuilder::RemoveAllContaining(const Groups& oldGroups,
             std::size_t cur1 = m_con->GetList(VC::SEMI, xc, yc)
                 .RemoveAllContaining(bs, m_log);
             m_statistics->killed1 += cur1;
-            if (cur0 || cur1)
-                m_queue.Push(std::make_pair(xc, yc));
         }
     }
 }
@@ -401,46 +414,52 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
                 if (m_log)
                     m_log->Push(ChangeLog<VC>::PROCESSED, *cur);
             }
-        return;
     }
-
-    for (VCListIterator cur(semis, semis.Softlimit()); cur; ++cur)
+    else
     {
-        if (!cur->Processed()) 
+        for (VCListIterator cur(semis, semis.Softlimit()); cur; ++cur)
         {
-            m_statistics->doOrs++;
-            VC v = *cur;
-            if (m_orRule(*cur, &semis, &fulls, added, m_param.max_ors, 
-                         m_log, *m_statistics))
+            if (!cur->Processed())
             {
-                m_statistics->goodOrs++;
+                m_statistics->doOrs++;
+                VC v = *cur;
+                if (m_orRule(*cur, &semis, &fulls, added, m_param.max_ors,
+                            m_log, *m_statistics))
+                {
+                    m_statistics->goodOrs++;
+                }
+                BenzeneAssert(v == *cur);
+                cur->SetProcessed(true);
+                if (m_log)
+                    m_log->Push(ChangeLog<VC>::PROCESSED, *cur);
             }
-            BenzeneAssert(v == *cur);
-            cur->SetProcessed(true);
-            if (m_log)
-                m_log->Push(ChangeLog<VC>::PROCESSED, *cur);
+        }
+        // If no full exists, create one by unioning the entire list
+        if (fulls.Empty())
+        {
+            bitset_t carrier = m_param.use_greedy_union
+                ? semis.GetGreedyUnion()
+                : semis.GetUnion();
+            VC v(xc, yc, carrier | capturedSet, VC_RULE_ALL);
+            fulls.Add(v, m_log);
+            added.push_back(v);
+            // NOTE: No need to remove supersets of v from the semi
+            // list since there can be none!
         }
     }
-    // If no full exists, create one by unioning the entire list
-    if (fulls.Empty()) 
-    {
-        bitset_t carrier = m_param.use_greedy_union 
-            ? semis.GetGreedyUnion() 
-            : semis.GetUnion();
-        fulls.Add(VC(xc, yc, carrier | capturedSet, VC_RULE_ALL), m_log);
-        // NOTE: No need to remove supersets of v from the semi
-        // list since there can be none!
-    } 
+
+    for (std::list<VC>::iterator it = added.begin(); it != added.end(); ++it)
+        m_fulls_queue.Push(*it);
 }
 
-void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
+void VCBuilder::ProcessFulls(const VC& vc)
 {
-    VCList& fulls = m_con->GetList(VC::FULL, xc, yc);
-    for (VCListIterator cur(fulls, fulls.Softlimit()); cur; ++cur) 
+    VCList& fulls = m_con->GetList(VC::FULL, vc.X(), vc.Y());
+    VC* cur = fulls.FindInList(vc);
+    if (cur)
     {
-        if (!cur->Processed()) 
+        if (!cur->Processed())
         {
-            VC vc = *cur;
             AndClosure(*cur);
             BenzeneAssert(*cur == vc);
             cur->SetProcessed(true);
@@ -453,12 +472,25 @@ void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
 void VCBuilder::DoSearch()
 {
     bool winning_connection = false;
-    while (!m_queue.Empty()) 
+    while (true)
     {
-        HexPointPair pair = m_queue.Front();
-        m_queue.Pop();
-        ProcessSemis(pair.first, pair.second);
-        ProcessFulls(pair.first, pair.second);
+        if (m_fulls_queue.Empty())
+        {
+            if (m_semis_queue.Empty())
+                break;
+            else
+            {
+                HexPointPair pair = m_semis_queue.Front();
+                m_semis_queue.Pop();
+                ProcessSemis(pair.first, pair.second);
+            }
+        }
+        else
+        {
+            VC vc = m_fulls_queue.Front();
+            m_fulls_queue.Pop();
+            ProcessFulls(vc);
+        }
         if (m_param.abort_on_winning_connection && 
             m_con->Exists(HexPointUtil::colorEdge1(m_color),
                           HexPointUtil::colorEdge2(m_color),
@@ -468,14 +500,9 @@ void VCBuilder::DoSearch()
             break;
         }
     }        
-    BenzeneAssert(winning_connection || m_queue.Empty());
+    BenzeneAssert(winning_connection || (m_fulls_queue.Empty() && m_semis_queue.Empty()));
     if (winning_connection) 
         LogFine() << "Aborted on winning connection.\n";
-    // Process the side-to-side semi list to ensure we have a full if
-    // mustplay is empty.
-    // TODO: IS THIS STILL NEEDED?
-    ProcessSemis(m_groups->CaptainOf(HexPointUtil::colorEdge1(m_color)),
-                 m_groups->CaptainOf(HexPointUtil::colorEdge2(m_color)));
 }
 
 //----------------------------------------------------------------------------
@@ -936,8 +963,7 @@ bool VCBuilder::AddNewFull(const VC& vc)
     {
         m_con->GetList(VC::SEMI, vc.X(), vc.Y())
             .RemoveSuperSetsOf(vc.Carrier(), m_log);
-        if (result == VCList::ADDED_INSIDE_SOFT_LIMIT)
-            m_queue.Push(std::make_pair(vc.X(), vc.Y()));
+        m_fulls_queue.Push(vc);
         return true;
     }
     return false;
@@ -964,20 +990,7 @@ bool VCBuilder::AddNewSemi(const VC& vc)
         VCList::AddResult result = outSemi->Add(vc, m_log);
         if (result != VCList::ADD_FAILED) 
         {
-            if (outSemi->HardIntersection().none())
-            {
-                if (result == VCList::ADDED_INSIDE_SOFT_LIMIT) 
-                    m_queue.Push(std::make_pair(vc.X(), vc.Y()));
-                else if (outFull->Empty())
-                {
-                    bitset_t carrier = m_param.use_greedy_union 
-                        ? outSemi->GetGreedyUnion() 
-                        : outSemi->GetUnion();
-                    VC v(outFull->GetX(), outFull->GetY(), 
-                         carrier, VC_RULE_ALL);
-                    outFull->Add(v, m_log);
-                }
-            }
+            m_semis_queue.Push(HexPointPair(vc.X(), vc.Y()));
             return true;
         }
     }
@@ -1004,9 +1017,9 @@ std::string VCBuilderStatistics::ToString() const
 
 //----------------------------------------------------------------------------
 
-/** @page workqueue VCBuilder Work Queue
+/** @page semisqueue VCBuilder Work Queue
 
-    WorkQueue stores the endpoints of any VCLists that need further
+    SemiEndsQueue stores the endpoints of any VCLists that need further
     processing. Endpoints are pushed onto the back of the queue and
     popped off the front, in FIFO order. It also ensures only unique
     elements are added; that is, a list is added only once until it is
@@ -1031,41 +1044,41 @@ std::string VCBuilderStatistics::ToString() const
     significant as 1-3% of the total run-time, especially on smaller
     boards.
 */
-VCBuilder::WorkQueue::WorkQueue()
+VCBuilder::SemiEndsQueue::SemiEndsQueue()
     : m_head(0), 
       m_array(128)
 {
 }
 
-bool VCBuilder::WorkQueue::Empty() const
+bool VCBuilder::SemiEndsQueue::Empty() const
 {
     return m_head == m_array.size();
 }
 
-const HexPointPair& VCBuilder::WorkQueue::Front() const
+const HexPointPair& VCBuilder::SemiEndsQueue::Front() const
 {
     return m_array[m_head];
 }
 
-std::size_t VCBuilder::WorkQueue::Capacity() const
+std::size_t VCBuilder::SemiEndsQueue::Capacity() const
 {
     return m_array.capacity();
 }
 
-void VCBuilder::WorkQueue::Clear()
+void VCBuilder::SemiEndsQueue::Clear()
 {
     memset(m_seen, 0, sizeof(m_seen));
     m_array.clear();
     m_head = 0;
 }
 
-void VCBuilder::WorkQueue::Pop()
+void VCBuilder::SemiEndsQueue::Pop()
 {
     m_seen[Front().first][Front().second] = false;
     m_head++;
 }
 
-void VCBuilder::WorkQueue::Push(const HexPointPair& p)
+void VCBuilder::SemiEndsQueue::Push(const HexPointPair& p)
 {
     HexPoint a = std::min(p.first, p.second);
     HexPoint b = std::max(p.first, p.second);
@@ -1074,6 +1087,43 @@ void VCBuilder::WorkQueue::Push(const HexPointPair& p)
         m_seen[a][a] = true;
         m_array.push_back(std::make_pair(a, b));
     }
+}
+
+VCBuilder::FullVCQueue::FullVCQueue()
+: m_head(0),
+  m_array(128)
+{
+}
+
+bool VCBuilder::FullVCQueue::Empty() const
+{
+    return m_head == m_array.size();
+}
+
+const VC& VCBuilder::FullVCQueue::Front() const
+{
+    return m_array[m_head];
+}
+
+std::size_t VCBuilder::FullVCQueue::Capacity() const
+{
+    return m_array.capacity();
+}
+
+void VCBuilder::FullVCQueue::Clear()
+{
+    m_array.clear();
+    m_head = 0;
+}
+
+void VCBuilder::FullVCQueue::Pop()
+{
+    m_head++;
+}
+
+void VCBuilder::FullVCQueue::Push(const VC& vc)
+{
+    m_array.push_back(vc);
 }
 
 //----------------------------------------------------------------------------
