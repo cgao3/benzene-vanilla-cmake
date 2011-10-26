@@ -263,6 +263,7 @@ inline bool VC::Processed() const
 
 inline void VC::SetProcessed(bool flag)
 {
+    BenzeneAssert(flag != m_processed);
     m_processed = flag;
 }
 

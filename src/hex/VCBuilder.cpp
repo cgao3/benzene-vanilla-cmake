@@ -392,11 +392,13 @@ void VCBuilder::ProcessSemis(HexPoint xc, HexPoint yc)
         if (!cur->Processed()) 
         {
             m_statistics->doOrs++;
+            VC v = *cur;
             if (m_orRule(*cur, &semis, &fulls, added, m_param.max_ors, 
                          m_log, *m_statistics))
             {
                 m_statistics->goodOrs++;
             }
+            BenzeneAssert(v == *cur);
             cur->SetProcessed(true);
             if (m_log)
                 m_log->Push(ChangeLog<VC>::PROCESSED, *cur);
@@ -421,7 +423,9 @@ void VCBuilder::ProcessFulls(HexPoint xc, HexPoint yc)
     {
         if (!cur->Processed()) 
         {
+            VC vc = *cur;
             AndClosure(*cur);
+            BenzeneAssert(*cur == vc);
             cur->SetProcessed(true);
             if (m_log)
                 m_log->Push(ChangeLog<VC>::PROCESSED, *cur);

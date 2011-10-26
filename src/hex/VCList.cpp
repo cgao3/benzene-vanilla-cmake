@@ -135,7 +135,6 @@ std::size_t VCList::Add(const VCList& other, ChangeLog<VC>* log)
     for (VCListConstIterator it(other); it; ++it) 
     {
         VC v(GetX(), GetY(), it->Key(), it->Carrier(), it->Rule());
-        v.SetProcessed(false);
         if (this->Add(v, log))
             count++;
     }
