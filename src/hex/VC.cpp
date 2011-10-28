@@ -91,7 +91,8 @@ VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
 
 VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2, HexPoint key)
 {
-    BenzeneAssert((v1.Carrier() & v2.Carrier()).none());
+    BenzeneAssert(BitsetUtil::IsSubsetOf(v1.Carrier() & v2.Carrier(),
+                                     bitset_t().set(key)));
     return VC(x, y, key, (v1.Carrier() | v2.Carrier()).set(key), VC_RULE_AND);
 }
 
@@ -99,7 +100,7 @@ VC VC::AndVCs(HexPoint x, HexPoint y, const VC& v1, const VC& v2,
               const bitset_t& capturedSet, HexPoint key)
 {
     BenzeneAssert(BitsetUtil::IsSubsetOf(v1.Carrier() & v2.Carrier(),
-                                     capturedSet));
+                                     capturedSet | bitset_t().set(key)));
     return VC(x, y, key, (v1.Carrier() | v2.Carrier() | capturedSet).set(key), 
               VC_RULE_AND);
 }

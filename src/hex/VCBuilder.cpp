@@ -584,6 +584,7 @@ void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
         if (i->Carrier().test(to))
             continue;
         bitset_t intersection = i->Carrier() & vc.Carrier();
+        
         if (intersection.none())
         {
             if (rule == CREATE_FULL)
@@ -598,8 +599,25 @@ void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
                 if (AddNewSemi(VC::AndVCs(from, to, *i, vc, over)))
                     m_statistics->and_semi_successes++;
             }
+            continue;
         }
-        else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
+
+        if (rule == CREATE_FULL)
+        {
+            BitsetIterator it(intersection);
+            BenzeneAssert(it);
+            HexPoint key = *it;
+            ++it;
+            if (!it)
+            {
+                // interesection is a singleton, we still can create Semi VC
+                m_statistics->and_semi_attempts++;
+                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, key)))
+                    m_statistics->and_semi_successes++;
+            }
+        }
+        
+        if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
         {
             if (rule == CREATE_FULL)
             {
@@ -611,6 +629,22 @@ void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
             {
                 m_statistics->and_semi_attempts++;
                 if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, over)))
+                    m_statistics->and_semi_successes++;
+            }
+            continue;
+        }
+
+        if (rule == CREATE_FULL)
+        {
+            BitsetIterator it(intersection - capturedSet);
+            BenzeneAssert(it);
+            HexPoint key = *it;
+            ++it;
+            if (!it)
+            {
+                // interesection is a singleton, we still can create Semi VC
+                m_statistics->and_semi_attempts++;
+                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, key)))
                     m_statistics->and_semi_successes++;
             }
         }
