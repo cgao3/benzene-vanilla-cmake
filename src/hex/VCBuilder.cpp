@@ -592,7 +592,7 @@ inline void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
         return;
     for (VCListConstIterator i(*old); i; ++i)
     {
-        if (!i->Processed())
+        if (rule != CREATE_SEMI2 && !i->Processed())
             continue;
         if (i->Carrier().test(to))
             continue;

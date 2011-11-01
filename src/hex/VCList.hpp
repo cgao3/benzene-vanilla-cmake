@@ -222,6 +222,7 @@ inline void VCList::Clear()
     DirtyListUnions();
     m_dirtyIntersection = false;
     m_intersection.set();
+    m_keyfree_intersect.set();
 }
 
 //----------------------------------------------------------------------------
