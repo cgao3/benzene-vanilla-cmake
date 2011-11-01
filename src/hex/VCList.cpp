@@ -17,6 +17,7 @@ VCList::VCList(HexPoint x, HexPoint y)
       m_dirtyUnion(true)
 {
     m_intersection.set();
+    m_keyfree_intersect.set();
 }
 
 //----------------------------------------------------------------------------
@@ -89,7 +90,9 @@ void VCList::ForcedAdd(const VC& vc)
                   (vc.X() == GetY() && vc.Y() == GetX()));
     m_vcs.push_back(vc);
     DirtyListUnions();
-    m_intersection &= vc.Carrier();
+    bitset_t carrier = vc.Carrier();
+    m_intersection &= carrier;
+    m_keyfree_intersect &= carrier.reset(vc.Key());
 }
 
 bool VCList::Add(const VC& vc, ChangeLog<VC>* log)
@@ -104,7 +107,11 @@ bool VCList::Add(const VC& vc, ChangeLog<VC>* log)
     m_vcs.push_back(vc);
     DirtyListUnions();
     if (!m_dirtyIntersection)
-        m_intersection &= vc.Carrier();
+    {
+        bitset_t carrier = vc.Carrier();
+        m_intersection &= carrier;
+        m_keyfree_intersect &= carrier.reset(vc.Key());
+    }
     return true;
 }
 
@@ -189,9 +196,12 @@ bitset_t VCList::GetGreedyUnion() const
 void VCList::ComputeIntersection() const
 {
     m_intersection.set();
+    m_keyfree_intersect.set();
     for (std::size_t i = 0; i < m_vcs.size(); ++i)
     {
-        m_intersection &= m_vcs[i].Carrier();
+        bitset_t carrier = m_vcs[i].Carrier();
+        m_intersection &= carrier;
+        m_keyfree_intersect &= carrier.reset(m_vcs[i].Key());
         if (m_intersection.none())
             break;
     }
@@ -203,6 +213,13 @@ bitset_t VCList::GetIntersection() const
     if (m_dirtyIntersection)
         ComputeIntersection();
     return m_intersection;
+}
+
+bitset_t VCList::GetKeyfreeIntersect() const
+{
+    if (m_dirtyIntersection)
+        ComputeIntersection();
+    return m_keyfree_intersect;
 }
 
 //----------------------------------------------------------------------------

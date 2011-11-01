@@ -556,14 +556,27 @@ void VCBuilder::AndClosure(const VC& vc)
                 bitset_t capturedSet = vcCapturedSet | m_capturedSet[z];
                 bitset_t uncapturedSet = capturedSet;
                 uncapturedSet.flip();
-                VCList* fulls = &m_con->GetList(VC::FULL, z, endp[i]);
-                if ((fulls->GetIntersection() & vc.Carrier()
-                    & uncapturedSet).any())
-                    continue;
-                AndRule rule = (endc[i] == EMPTY) ? CREATE_SEMI : CREATE_FULL;
                 int j = (i + 1) & 1;
-                DoAnd(z, endp[i], endp[j], rule, vc, capturedSet,
-                      &m_con->GetList(VC::FULL, z, endp[i]));
+                VCList* fulls = &m_con->GetList(VC::FULL, z, endp[i]);
+                if (endc[i] == EMPTY)
+                {
+                    if ((fulls->GetIntersection() & vc.Carrier()
+                        & uncapturedSet).none())
+                        DoAnd(z, endp[i], endp[j], CREATE_SEMI, vc,
+                              capturedSet, fulls);
+                }
+                else
+                {
+                    if ((fulls->GetIntersection() & vc.Carrier()
+                        & uncapturedSet).count() <= 1)
+                        DoAnd(z, endp[i], endp[j], CREATE_FULL, vc,
+                              capturedSet, fulls);
+                    VCList* semis = &m_con->GetList(VC::SEMI, z, endp[i]);
+                    if ((semis->GetKeyfreeIntersect() & vc.Carrier()
+                        & uncapturedSet).none())
+                        DoAnd(z, endp[i], endp[j], CREATE_SEMI2, vc,
+                              capturedSet, semis);
+                }
             }
 }
 
@@ -571,7 +584,7 @@ void VCBuilder::AndClosure(const VC& vc)
     Creates a new connection if intersection is empty, or if the
     intersection is a subset of the captured set. Created connections
     are added with AddNewFull() or AddNewSemi(). */
-void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
+inline void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
                       AndRule rule, const VC& vc, const bitset_t& capturedSet, 
                       const VCList* old)
 {
@@ -584,69 +597,78 @@ void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
         if (i->Carrier().test(to))
             continue;
         bitset_t intersection = i->Carrier() & vc.Carrier();
-        
-        if (intersection.none())
+
+        switch (rule)
         {
-            if (rule == CREATE_FULL)
+        case CREATE_FULL:
             {
-                m_statistics->and_full_attempts++;
-                if (AddNewFull(VC::AndVCs(from, to, *i, vc)))
-                    m_statistics->and_full_successes++;
+                BitsetIterator it(intersection);
+                if (!it /* intersection is empty */)
+                {
+                    m_statistics->and_full_attempts++;
+                    if (AddNewFull(VC::AndVCs(from, to, *i, vc)))
+                        m_statistics->and_full_successes++;
+                    break;
+                }
+                HexPoint key = *it;
+                ++it;
+                if (!it /* intersection is singleton */)
+                {
+                    m_statistics->and_semi_attempts++;
+                    if (AddNewSemi(VC::AndVCs(from, to, *i, vc, key)))
+                        m_statistics->and_semi_successes++;
+                }
             }
-            else if (rule == CREATE_SEMI)
+            {
+                BitsetIterator it(intersection - capturedSet);
+                if (!it /* intersection is empty */)
+                {
+                    m_statistics->and_full_attempts++;
+                    if (AddNewFull(VC::AndVCs(from, to, *i, vc, capturedSet)))
+                        m_statistics->and_full_successes++;
+                    break;
+                }
+                HexPoint key = *it;
+                ++it;
+                if (!it /* intersection is singleton */)
+                {
+                    m_statistics->and_semi_attempts++;
+                    if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, key)))
+                        m_statistics->and_semi_successes++;
+                }
+            }
+            break;
+        case CREATE_SEMI:
+            if (intersection.none())
             {
                 m_statistics->and_semi_attempts++;
                 if (AddNewSemi(VC::AndVCs(from, to, *i, vc, over)))
                     m_statistics->and_semi_successes++;
             }
-            continue;
-        }
-
-        if (rule == CREATE_FULL)
-        {
-            BitsetIterator it(intersection);
-            BenzeneAssert(it);
-            HexPoint key = *it;
-            ++it;
-            if (!it)
-            {
-                // interesection is a singleton, we still can create Semi VC
-                m_statistics->and_semi_attempts++;
-                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, key)))
-                    m_statistics->and_semi_successes++;
-            }
-        }
-        
-        if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
-        {
-            if (rule == CREATE_FULL)
-            {
-                m_statistics->and_full_attempts++;
-                if (AddNewFull(VC::AndVCs(from, to, *i, vc, capturedSet)))
-                    m_statistics->and_full_successes++;
-            }
-            else if (rule == CREATE_SEMI)
+            else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
             {
                 m_statistics->and_semi_attempts++;
                 if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, over)))
                     m_statistics->and_semi_successes++;
             }
-            continue;
-        }
-
-        if (rule == CREATE_FULL)
-        {
-            BitsetIterator it(intersection - capturedSet);
-            BenzeneAssert(it);
-            HexPoint key = *it;
-            ++it;
-            if (!it)
+            break;
+        case CREATE_SEMI2:
+            intersection.reset(i->Key());
+            if (intersection.none())
             {
-                // interesection is a singleton, we still can create Semi VC
                 m_statistics->and_semi_attempts++;
-                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, key)))
+                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, i->Key())))
                     m_statistics->and_semi_successes++;
             }
+            else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
+            {
+                m_statistics->and_semi_attempts++;
+                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, i->Key())))
+                    m_statistics->and_semi_successes++;
+            }
+            break;
+        default:
+            BenzeneAssert(false);
         }
     }
 }

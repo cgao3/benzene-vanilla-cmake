@@ -112,6 +112,10 @@ public:
         If list is empty, the bitset will have all of its bits set. */
     bitset_t GetIntersection() const;
 
+    /** Returns the intersection of all carriers without keys in the list.
+     *        If list is empty, the bitset will have all of its bits set. */
+    bitset_t GetKeyfreeIntersect() const;
+
     //----------------------------------------------------------------------
 
     /** Returns pointer to occurance of VC in the list.
@@ -156,6 +160,8 @@ protected:
     mutable bool m_dirtyIntersection;
 
     mutable bitset_t m_intersection;
+
+    mutable bitset_t m_keyfree_intersect;
 
     mutable bool m_dirtyUnion;
 

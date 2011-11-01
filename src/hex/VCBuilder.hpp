@@ -206,7 +206,7 @@ private:
     };
 
     /** The types of VC to create when using the AND rule. */
-    typedef enum { CREATE_FULL, CREATE_SEMI } AndRule;
+    typedef enum { CREATE_FULL, CREATE_SEMI, CREATE_SEMI2 } AndRule;
 
     class OrRule
     {
