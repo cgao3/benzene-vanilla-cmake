@@ -205,9 +205,6 @@ private:
         std::vector<VC> m_array;
     };
 
-    /** The types of VC to create when using the AND rule. */
-    typedef enum { CREATE_FULL, CREATE_SEMI, CREATE_SEMI2 } AndRule;
-
     class OrRule
     {
     public:
@@ -260,9 +257,17 @@ private:
 
     void AndClosure(const VC& vc);
 
-    void DoAnd(HexPoint from, HexPoint over, HexPoint to,
-               AndRule rule, const VC& vc, const bitset_t& capturedSet,
-               const VCList* old);
+    void DoAndFEF(HexPoint from, HexPoint over, HexPoint to,
+                  const VC& vc, const bitset_t& capturedSet,
+                  const VCList* fulls);
+
+    void DoAndFOF(HexPoint from, HexPoint to,
+                  const VC& vc, const bitset_t& capturedSet,
+                  const VCList* fulls);
+
+    void DoAndFOS(HexPoint from, HexPoint to,
+                  const VC& vc, const bitset_t& capturedSet,
+                  const VCList* semis);
 
     bool DoOr(const VCList& semi_list,
               VCList& full_list,

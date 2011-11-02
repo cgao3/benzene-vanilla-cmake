@@ -544,131 +544,144 @@ void VCBuilder::AndClosure(const VC& vc)
     BenzeneAssert(endc[1] != other);
     bitset_t vcCapturedSet = m_capturedSet[endp[0]] | m_capturedSet[endp[1]];
     for (int i = 0; i < 2; i++)
-        if (m_param.and_over_edge || !HexPointUtil::isEdge(endp[i]))
-            for (BitsetIterator g(m_nbs[endp[i]]); g; ++g)
+    {
+        HexPoint z = endp[i];
+        if (!m_param.and_over_edge && HexPointUtil::isEdge(z))
+            continue;
+        for (BitsetIterator g(m_nbs[z]); g; ++g)
+        {
+            HexPoint x = *g;
+            BenzeneAssert(x == m_groups->CaptainOf(x));
+            if (x == endp[0] || x == endp[1])
+                continue;
+            if (vc.Carrier().test(x))
+                continue;
+            HexPoint y = endp[(i + 1) & 1];
+            bitset_t capturedSet = vcCapturedSet | m_capturedSet[x];
+            VCList* fulls = &m_con->GetList(VC::FULL, x, z);
+            if (endc[i] == EMPTY)
             {
-                HexPoint z = *g;
-                BenzeneAssert(z == m_groups->CaptainOf(z));
-                if (z == endp[0] || z == endp[1])
-                    continue;
-                if (vc.Carrier().test(z))
-                    continue;
-                bitset_t capturedSet = vcCapturedSet | m_capturedSet[z];
-                bitset_t uncapturedSet = capturedSet;
-                uncapturedSet.flip();
-                int j = (i + 1) & 1;
-                VCList* fulls = &m_con->GetList(VC::FULL, z, endp[i]);
-                if (endc[i] == EMPTY)
-                {
-                    if ((fulls->GetIntersection() & vc.Carrier()
-                        & uncapturedSet).none())
-                        DoAnd(z, endp[i], endp[j], CREATE_SEMI, vc,
-                              capturedSet, fulls);
-                }
-                else
-                {
-                    if ((fulls->GetIntersection() & vc.Carrier()
-                        & uncapturedSet).count() <= 1)
-                        DoAnd(z, endp[i], endp[j], CREATE_FULL, vc,
-                              capturedSet, fulls);
-                    VCList* semis = &m_con->GetList(VC::SEMI, z, endp[i]);
-                    if ((semis->GetKeyfreeIntersect() & vc.Carrier()
-                        & uncapturedSet).none())
-                        DoAnd(z, endp[i], endp[j], CREATE_SEMI2, vc,
-                              capturedSet, semis);
-                }
+                DoAndFEF(x, z, y, vc, capturedSet, fulls);
             }
+            else
+            {
+                DoAndFOF(x, y, vc, capturedSet, fulls);
+                VCList* semis = &m_con->GetList(VC::SEMI, x, z);
+                DoAndFOS(x, y, vc, capturedSet, semis);
+            }
+        }
+    }
 }
 
-/** Compares vc to each connection in the softlimit of the given list.
-    Creates a new connection if intersection is empty, or if the
-    intersection is a subset of the captured set. Created connections
-    are added with AddNewFull() or AddNewSemi(). */
-inline void VCBuilder::DoAnd(HexPoint from, HexPoint over, HexPoint to,
-                      AndRule rule, const VC& vc, const bitset_t& capturedSet, 
-                      const VCList* old)
+inline void VCBuilder::DoAndFEF(HexPoint x, HexPoint z, HexPoint y,
+                                const VC& vc,
+                                const bitset_t& capturedSet,
+                                const VCList* fulls)
 {
-    if (old->Empty())
+    if (!BitsetUtil::IsSubsetOf(fulls->GetIntersection() & vc.Carrier(),
+                                capturedSet))
         return;
-    for (VCListConstIterator i(*old); i; ++i)
+    for (VCListConstIterator i(*fulls); i; ++i)
     {
-        if (rule != CREATE_SEMI2 && !i->Processed())
+        if (!i->Processed())
             continue;
-        if (i->Carrier().test(to))
+        if (i->Carrier().test(y))
             continue;
         bitset_t intersection = i->Carrier() & vc.Carrier();
-
-        switch (rule)
+        if (intersection.none())
         {
-        case CREATE_FULL:
+            m_statistics->and_semi_attempts++;
+            if (AddNewSemi(VC::AndVCs(x, y, *i, vc, z)))
+                m_statistics->and_semi_successes++;
+        }
+        else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
+        {
+            m_statistics->and_semi_attempts++;
+            if (AddNewSemi(VC::AndVCs(x, y, *i, vc, capturedSet, z)))
+                m_statistics->and_semi_successes++;
+        }
+    }
+}
+
+inline void VCBuilder::DoAndFOF(HexPoint x, HexPoint y,
+                                const VC& vc,
+                                const bitset_t& capturedSet,
+                                const VCList* fulls)
+{
+    if (((fulls->GetIntersection() & vc.Carrier())
+         - capturedSet).count() > 1)
+        return;
+    for (VCListConstIterator i(*fulls); i; ++i)
+    {
+        if (!i->Processed())
+            continue;
+        if (i->Carrier().test(y))
+            continue;
+        bitset_t intersection = i->Carrier() & vc.Carrier();
+        {
+            BitsetIterator it(intersection);
+            if (!it /* intersection is empty */)
             {
-                BitsetIterator it(intersection);
-                if (!it /* intersection is empty */)
-                {
-                    m_statistics->and_full_attempts++;
-                    if (AddNewFull(VC::AndVCs(from, to, *i, vc)))
-                        m_statistics->and_full_successes++;
-                    break;
-                }
-                HexPoint key = *it;
-                ++it;
-                if (!it /* intersection is singleton */)
-                {
-                    m_statistics->and_semi_attempts++;
-                    if (AddNewSemi(VC::AndVCs(from, to, *i, vc, key)))
-                        m_statistics->and_semi_successes++;
-                }
+                m_statistics->and_full_attempts++;
+                if (AddNewFull(VC::AndVCs(x, y, *i, vc)))
+                    m_statistics->and_full_successes++;
+                continue;
             }
-            {
-                BitsetIterator it(intersection - capturedSet);
-                if (!it /* intersection is empty */)
-                {
-                    m_statistics->and_full_attempts++;
-                    if (AddNewFull(VC::AndVCs(from, to, *i, vc, capturedSet)))
-                        m_statistics->and_full_successes++;
-                    break;
-                }
-                HexPoint key = *it;
-                ++it;
-                if (!it /* intersection is singleton */)
-                {
-                    m_statistics->and_semi_attempts++;
-                    if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, key)))
-                        m_statistics->and_semi_successes++;
-                }
-            }
-            break;
-        case CREATE_SEMI:
-            if (intersection.none())
-            {
-                m_statistics->and_semi_attempts++;
-                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, over)))
-                    m_statistics->and_semi_successes++;
-            }
-            else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
+            HexPoint key = *it;
+            ++it;
+            if (!it /* intersection is singleyn */)
             {
                 m_statistics->and_semi_attempts++;
-                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, over)))
+                if (AddNewSemi(VC::AndVCs(x, y, *i, vc, key)))
                     m_statistics->and_semi_successes++;
             }
-            break;
-        case CREATE_SEMI2:
-            intersection.reset(i->Key());
-            if (intersection.none())
+        }
+        {
+            BitsetIterator it(intersection - capturedSet);
+            if (!it /* intersection is empty */)
+            {
+                m_statistics->and_full_attempts++;
+                if (AddNewFull(VC::AndVCs(x, y, *i, vc, capturedSet)))
+                    m_statistics->and_full_successes++;
+                continue;
+            }
+            HexPoint key = *it;
+            ++it;
+            if (!it /* intersection is singleyn */)
             {
                 m_statistics->and_semi_attempts++;
-                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, i->Key())))
+                if (AddNewSemi(VC::AndVCs(x, y, *i, vc, capturedSet, key)))
                     m_statistics->and_semi_successes++;
             }
-            else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
-            {
-                m_statistics->and_semi_attempts++;
-                if (AddNewSemi(VC::AndVCs(from, to, *i, vc, capturedSet, i->Key())))
-                    m_statistics->and_semi_successes++;
-            }
-            break;
-        default:
-            BenzeneAssert(false);
+        }
+    }
+}
+
+inline void VCBuilder::DoAndFOS(HexPoint x, HexPoint y,
+                                const VC& vc,
+                                const bitset_t& capturedSet,
+                                const VCList* semis)
+{
+    if (!BitsetUtil::IsSubsetOf(semis->GetKeyfreeIntersect() & vc.Carrier(),
+        capturedSet))
+        return;
+    for (VCListConstIterator i(*semis); i; ++i)
+    {
+        if (i->Carrier().test(y))
+            continue;
+        bitset_t intersection = i->Carrier() & vc.Carrier();
+        intersection.reset(i->Key());
+        if (intersection.none())
+        {
+            m_statistics->and_semi_attempts++;
+            if (AddNewSemi(VC::AndVCs(x, y, *i, vc, i->Key())))
+                m_statistics->and_semi_successes++;
+        }
+        else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
+        {
+            m_statistics->and_semi_attempts++;
+            if (AddNewSemi(VC::AndVCs(x, y, *i, vc, capturedSet, i->Key())))
+                m_statistics->and_semi_successes++;
         }
     }
 }
