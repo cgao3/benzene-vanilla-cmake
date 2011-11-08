@@ -79,6 +79,7 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     Search().SetRave(other.Search().Rave());
     Search().SetBiasTermConstant(other.Search().BiasTermConstant());
     Search().SetExpandThreshold(other.Search().ExpandThreshold());
+    Search().SetNumberPlayouts(other.Search().NumberPlayouts());
     Search().SetLiveGfxInterval(other.Search().LiveGfxInterval());
     SetMaxGames(other.MaxGames());
     SetMaxTime(other.MaxTime());

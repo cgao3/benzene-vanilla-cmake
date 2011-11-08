@@ -243,6 +243,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << KnowledgeThresholdToString(search.KnowledgeThreshold()) << '\n'
             << "[string] livegfx_interval "
             << search.LiveGfxInterval() << '\n'
+            << "[string] number_playouts_per_visit "
+            << search.NumberPlayouts() << '\n'
             << "[string] max_games "
             << m_player.MaxGames() << '\n'
             << "[string] max_memory "
@@ -317,6 +319,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         else if (name == "num_threads")
             search.SetNumberThreads(cmd.ArgMin<int>(1, 1));
 #endif
+        else if (name == "number_playouts_per_visit")
+            search.SetNumberPlayouts(cmd.ArgMin<int>(1, 1));
         else if (name == "playout_update_radius")
             search.SetPlayoutUpdateRadius(cmd.ArgMin<int>(1, 0));
         else if (name == "rave_weight_final")
