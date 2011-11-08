@@ -7,6 +7,7 @@
 #include "SgSearchValue.h"
 
 #include "BitsetIterator.hpp"
+#include "BoardUtil.hpp"
 #include "VCSet.hpp"
 #include "HexEval.hpp"
 #include "Misc.hpp"
@@ -90,11 +91,13 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
                                         +SgSearchValue::MIN_PROVEN_VALUE, &PV);
     if (m_search.GuiFx())
         WolveSearchUtil::DumpGuiFx(state, *m_hashTable);
-    BenzeneAssert(PV.Length() > 0);
-    HexPoint bestMove = static_cast<HexPoint>(PV[0]);
     LogInfo() << PrintStatistics(score, PV);
     outScore = score;
-    return bestMove;
+    if (PV.Length() > 0)
+        return static_cast<HexPoint>(PV[0]);
+    LogWarning() << "**** WolveSearch returned empty sequence!\n"
+		 << "**** Returning random move!\n";
+    return BoardUtil::RandomEmptyCell(state.Position());
 }
 
 std::string WolvePlayer::PrintStatistics(int score, const SgVector<SgMove>& pv)
