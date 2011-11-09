@@ -14,14 +14,10 @@ using namespace benzene;
 bitset_t VCUtil::GetMustplay(const HexBoard& brd, HexColor color)
 {
     HexColor other = !color;
-    HexPoint edge1 = HexPointUtil::colorEdge1(other);
-    HexPoint edge2 = HexPointUtil::colorEdge2(other);
-    if (brd.Cons(other).Exists(edge1, edge2, VC::FULL))
+    if (brd.Cons(other).FullExists())
         return EMPTY_BITSET;
-    const VCList& semi = brd.Cons(other).GetList(VC::SEMI, edge1, edge2);
-    bitset_t intersection = semi.GetIntersection();
-    intersection &= brd.GetPosition().GetEmpty(); // FIXME: need this line?
-    return intersection;
+    else
+        return brd.Cons(other).SemiIntersection();
 }
 
 //----------------------------------------------------------------------------

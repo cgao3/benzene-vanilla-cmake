@@ -281,7 +281,7 @@ void MoHexThreadState::StartSearch()
         m_state.reset(new HexState(brd.GetPosition(), BLACK));
         m_pastate.reset(new PatternState(m_state->Position()));
         m_vcBrd.reset(new HexBoard(brd.Width(), brd.Height(), 
-                                   brd.ICE(), brd.Builder().Parameters()));
+                                   brd.ICE(), brd.VCBuilderParameters()));
     }
     m_policy->InitializeForSearch();
 }

@@ -29,12 +29,10 @@ RingGodel.cpp \
 SequenceHash.cpp \
 StoneBoard.cpp \
 TwoDistance.cpp \
-VC.cpp \
-VCBuilder.cpp \
 VCCommands.cpp \
-VCList.cpp \
+VCOr.cpp \
 VCPattern.cpp \
-VCSet.cpp \
+VCS.cpp \
 VCUtil.cpp \
 ZobristHash.cpp
 
@@ -82,12 +80,10 @@ SequenceHash.hpp \
 StateDB.hpp \
 StoneBoard.hpp \
 TwoDistance.hpp \
-VC.hpp \
-VCBuilder.hpp \
 VCCommands.hpp \
-VCList.hpp \
+VCOr.hpp \
 VCPattern.hpp \
-VCSet.hpp \
+VCS.hpp \
 VCUtil.hpp \
 ZobristHashes.hpp \
 ZobristHash.hpp

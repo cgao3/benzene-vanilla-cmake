@@ -19,9 +19,6 @@ _BEGIN_BENZENE_NAMESPACE_
 /** Settings for VCBuilder. */
 struct VCBuilderParam
 {
-    /** Maximum number of VCs in the OR combining rule. */
-    int max_ors;
-
     /** Whether the and-rule can and over the edge or not.
         This results in many more connections. */
     bool and_over_edge;
@@ -33,13 +30,6 @@ struct VCBuilderParam
         cells. These can cause an explosion in the number of
         connections. */
     bool use_non_edge_patterns;
-
-    /** Whether to use the greedy union or not. 
-        @todo DOCUMENT GREEDY UNION! */
-    bool use_greedy_union;
-
-    /** Stop building VCs once a winning connection is constructed. */
-    bool abort_on_winning_connection;
 
     /** Constructor. */
     VCBuilderParam();

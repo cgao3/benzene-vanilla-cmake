@@ -126,11 +126,8 @@ void VCCommands::CmdGetBetweenFull(HtpCommand& cmd)
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    std::vector<VC> vc;
-    brd.Cons(color).VCs(fcaptain, tcaptain, VC::FULL, vc);
     cmd << '\n';
-    for (std::size_t i = 0; i < vc.size(); ++i)
-        cmd << color << " " << vc.at(i) << '\n';
+    brd.Cons(color).DumpFulls(cmd, fcaptain, tcaptain);
 }
 
 /** Returns list of VCs between two cells. */
@@ -143,11 +140,8 @@ void VCCommands::CmdGetBetweenSemi(HtpCommand& cmd)
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    std::vector<VC> vc;
-    brd.Cons(color).VCs(fcaptain, tcaptain, VC::SEMI, vc);
     cmd << '\n';
-    for (std::size_t i = 0; i < vc.size(); ++i)
-        cmd << color << " " << vc.at(i) << '\n';
+    brd.Cons(color).DumpSemis(cmd, fcaptain, tcaptain);
 }
 
 /** Returns list of cells given cell is connected to via a full
@@ -157,10 +151,7 @@ void VCCommands::CmdGetCellsConnectedToFull(HtpCommand& cmd)
     cmd.CheckNuArg(2);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexPoint from = HtpUtil::MoveArg(cmd, 1);
-    bitset_t pt = VCSetUtil::ConnectedTo(m_env.brd->Cons(color), 
-                                         m_env.brd->GetGroups(), from, 
-                                         VC::FULL);
-    cmd << HexPointUtil::ToString(pt);
+    cmd << HexPointUtil::ToString(m_env.brd->Cons(color).GetFullNbs(from));
 }
 
 /** Returns list of cells given cell is connected to via a semi
@@ -170,10 +161,7 @@ void VCCommands::CmdGetCellsConnectedToSemi(HtpCommand& cmd)
     cmd.CheckNuArg(2);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexPoint from = HtpUtil::MoveArg(cmd, 1);
-    bitset_t pt = VCSetUtil::ConnectedTo(m_env.brd->Cons(color), 
-                                         m_env.brd->GetGroups(), from, 
-                                         VC::SEMI);
-    cmd << HexPointUtil::ToString(pt);
+    cmd << HexPointUtil::ToString(m_env.brd->Cons(color).GetSemiNbs(from));
 }
 
 /** Prints the cells in the current mustplay. */
@@ -207,9 +195,8 @@ void VCCommands::CmdIntersectionFull(HtpCommand& cmd)
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    const VCList& lst = brd.Cons(color).GetList(VC::FULL, fcaptain, tcaptain);
-    bitset_t intersection = lst.GetIntersection();
-    cmd << HexPointUtil::ToString(intersection);
+    cmd << HexPointUtil::ToString(brd.Cons(color).
+            FullIntersection(fcaptain, tcaptain));
 }
 
 void VCCommands::CmdIntersectionSemi(HtpCommand& cmd)
@@ -221,9 +208,8 @@ void VCCommands::CmdIntersectionSemi(HtpCommand& cmd)
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    const VCList& lst = brd.Cons(color).GetList(VC::SEMI, fcaptain, tcaptain);
-    bitset_t intersection = lst.GetIntersection();
-    cmd << HexPointUtil::ToString(intersection);
+    cmd << HexPointUtil::ToString(brd.Cons(color).
+            SemiIntersection(fcaptain, tcaptain));
 }
 
 /** Prints cells in the union of connections between endpoints. */
@@ -236,9 +222,8 @@ void VCCommands::CmdUnionFull(HtpCommand& cmd)
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    const VCList& lst = brd.Cons(color).GetList(VC::FULL, fcaptain, tcaptain);
-    bitset_t un = lst.GetGreedyUnion(); // FIXME: shouldn't be greedy!!
-    cmd << HexPointUtil::ToString(un);
+    cmd << HexPointUtil::ToString(brd.Cons(color).
+            FullGreedyUnion(fcaptain, tcaptain));
 }
 
 void VCCommands::CmdUnionSemi(HtpCommand& cmd)
@@ -250,9 +235,8 @@ void VCCommands::CmdUnionSemi(HtpCommand& cmd)
     HexBoard& brd = *m_env.brd;
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
-    const VCList& lst = brd.Cons(color).GetList(VC::SEMI, fcaptain, tcaptain);
-    bitset_t un = lst.GetGreedyUnion(); // FIXME: shouldn't be greedy!!
-    cmd << HexPointUtil::ToString(un);
+    cmd << HexPointUtil::ToString(brd.Cons(color).
+            SemiGreedyUnion(fcaptain, tcaptain));
 }
 
 //----------------------------------------------------------------------------
@@ -271,10 +255,7 @@ void VCCommands::CmdSetInfo(HtpCommand& cmd)
         numBins = cmd.ArgMin<int>(2, 1);
     }
     HexBoard& brd = *m_env.brd;
-    VCSetStatistics stats 
-        = VCSetUtil::ComputeStatistics(brd.Cons(color), brd.GetGroups(),
-                                       maxConnections, numBins);
-    cmd << stats.Write();
+    brd.Cons(color).DumpDataStats(cmd, maxConnections, numBins);
 }
 
 /** Obtains statistics on connection set. */
@@ -283,8 +264,7 @@ void VCCommands::CmdBuilderStats(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = *m_env.brd;
-    VCBuilderStatistics stats = brd.Builder().Statistics(color);
-    cmd << stats.ToString();
+    brd.Cons(color).DumpBuildStats(cmd);
 }
 
 //----------------------------------------------------------------------------

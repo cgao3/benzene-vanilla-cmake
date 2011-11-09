@@ -91,11 +91,11 @@ void Decompositions::Initialize()
 bool Decompositions::Find(const HexBoard& brd, HexColor color,
                           bitset_t& captured)
 {
-    // If game is over or decided, don't do any work.
     HexPoint edge1 = HexPointUtil::colorEdge1(color);
     HexPoint edge2 = HexPointUtil::colorEdge2(color);
-    const VCSet& cons = brd.Cons(color);
-    if (brd.GetGroups().IsGameOver() || cons.Exists(edge1, edge2, VC::FULL)) 
+    // If game is over or decided, don't do any work.
+    const VCS& cons = brd.Cons(color);
+    if (brd.GetGroups().IsGameOver() || cons.FullExists())
     {
 	captured.reset();
 	return false;
@@ -134,7 +134,7 @@ bool Decompositions::Find(const HexBoard& brd, HexColor color,
     for (g1 = adjTo.begin(); g1 != adjTo.end(); ++g1) {
 	for (g2 = adjTo.begin(); g2 != g1; ++g2) {
 	    if ((g1->second & g2->second).count() < 2) continue;
-	    if (!cons.Exists(g1->first, g2->first, VC::FULL)) continue;
+	    if (!cons.FullExists(g1->first, g2->first)) continue;
 	    
 	    // This is such a pair, so at least one of the two is not an edge.
 	    // Find which color edges are not equal to either of these groups.
@@ -156,12 +156,12 @@ bool Decompositions::Find(const HexBoard& brd, HexColor color,
 	    
 	    // If the pair has a VC confined to these cells, then we have
 	    // a decomposition - return it.
-	    const VCList& vl = cons.GetList(VC::FULL, g1->first, g2->first);
-	    for (VCListConstIterator it(vl); it; ++it)
+            const std::vector<bitset_t>& vl = cons.GetFullCarriers(g1->first, g2->first);
+	    for (std::vector<bitset_t>::const_iterator it = vl.begin(); it != vl.end(); ++it)
             {
-		if (BitsetUtil::IsSubsetOf(it->Carrier(), decompArea)) 
+		if (BitsetUtil::IsSubsetOf(*it, decompArea))
                 {
-		    captured = it->Carrier();
+		    captured = *it;
 		    return true;
 		}
 	    }

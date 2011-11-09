@@ -22,13 +22,16 @@ HexBoard::HexBoard(int width, int height, const ICEngine& ice,
       m_ice(&ice),
       m_groups(),
       m_patterns(m_brd),
-      m_builder(param),
       m_use_vcs(true),
       m_use_ice(true),
       m_use_decompositions(true),
-      m_backup_ice_info(true)
+      m_backup_ice_info(true),
+      m_builder_param(param)
 {
-    Initialize();
+    GroupBuilder::Build(m_brd, m_groups);
+    for (BWIterator c; c; ++c)
+        m_cons[*c].reset(new VCS(*c));
+    ClearHistory();
 }
 
 /** @warning This is not very maintainable! How to make this
@@ -38,28 +41,19 @@ HexBoard::HexBoard(const HexBoard& other)
       m_ice(other.m_ice),
       m_groups(other.m_groups),
       m_patterns(m_brd),
-      m_builder(other.m_builder),
       m_history(other.m_history),
       m_inf(other.m_inf),
       m_use_vcs(other.m_use_vcs),
       m_use_ice(other.m_use_ice),
       m_use_decompositions(other.m_use_decompositions),
-      m_backup_ice_info(other.m_backup_ice_info)
+      m_backup_ice_info(other.m_backup_ice_info),
+      m_builder_param(other.m_builder_param)
 {
     m_patterns.CopyState(other.GetPatternState());
     for (BWIterator color; color; ++color)
     {
-        m_cons[*color].reset(new VCSet(*other.m_cons[*color]));
-        m_log[*color] = m_log[*color];
+        m_cons[*color].reset(new VCS(*other.m_cons[*color]));
     }
-}
-
-void HexBoard::Initialize()
-{
-    GroupBuilder::Build(m_brd, m_groups);
-    for (BWIterator c; c; ++c) 
-        m_cons[*c].reset(new VCSet(Const(), *c));
-    ClearHistory();
 }
 
 HexBoard::~HexBoard()
@@ -81,7 +75,7 @@ void HexBoard::ComputeInferiorCells(HexColor color_to_move)
 void HexBoard::BuildVCs()
 {
     for (BWIterator c; c; ++c)
-        m_builder.Build(*m_cons[*c], m_groups, m_patterns);
+        m_cons[*c]->Build(m_builder_param, m_groups, m_patterns);
 }
 
 void HexBoard::BuildVCs(const Groups& oldGroups, 
@@ -89,23 +83,14 @@ void HexBoard::BuildVCs(const Groups& oldGroups,
 {
     BenzeneAssert((added[BLACK] & added[WHITE]).none());
     for (BWIterator c; c; ++c)
-    {
-        ChangeLog<VC>* log = (use_changelog) ? &m_log[*c] : 0;
-        m_builder.Build(*m_cons[*c], oldGroups, m_groups, m_patterns, 
-                        added, log);
-    }
-}
-
-void HexBoard::MarkChangeLog()
-{
-    m_log[BLACK].Push(ChangeLog<VC>::MARKER, VC());
-    m_log[WHITE].Push(ChangeLog<VC>::MARKER, VC());
+        m_cons[*c]->Build(m_builder_param, oldGroups, m_groups, m_patterns,
+                        added, use_changelog);
 }
 
 void HexBoard::RevertVCs()
 {
     for (BWIterator c; c; ++c)
-        m_cons[*c]->Revert(m_log[*c]);
+        m_cons[*c]->Revert();
 }
 
 /** In non-terminal states, checks for combinatorial decomposition
@@ -162,7 +147,6 @@ void HexBoard::ComputeAll(HexColor color_to_move)
 
     if (m_use_vcs)
     {
-        m_builder.ClearStatistics();
         BuildVCs();
         HandleVCDecomposition(color_to_move, false);
     }
@@ -191,8 +175,6 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
 
     if (m_use_vcs)
     {
-        m_builder.ClearStatistics();
-        MarkChangeLog();
         BuildVCs(oldGroups, added, true);
         HandleVCDecomposition(!color, true);
     }
@@ -224,8 +206,6 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
 
     if (m_use_vcs)
     {
-        m_builder.ClearStatistics();
-        MarkChangeLog();
         BuildVCs(oldGroups, added, true);
         HandleVCDecomposition(color_to_move, true);
     }

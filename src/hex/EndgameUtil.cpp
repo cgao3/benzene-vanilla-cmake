@@ -122,20 +122,19 @@ void TightenMoveBitset(bitset_t& moveBitset, const InferiorCells& inf)
     subject to that restriction, tries to be a non-inferior move (using
     the member variables), and then to overlap as many other connections
     as possible. */
-HexPoint MostOverlappingMove(const std::vector<VC>& VClist,
+HexPoint MostOverlappingMove(const std::vector<bitset_t>& carriers,
                              const InferiorCells& inf)
 {
     bitset_t intersectSmallest;
     intersectSmallest.flip();
     
     // compute intersection of smallest until next one makes it empty
-    std::vector<VC>::const_iterator it;
-    for (it = VClist.begin(); it != VClist.end(); ++it) 
+    std::vector<bitset_t>::const_iterator it;
+    for (it = carriers.begin(); it != carriers.end(); ++it)
     {
-        bitset_t carrier = it->Carrier();
-        if ((carrier & intersectSmallest).none())
+        if ((*it & intersectSmallest).none())
 	    break;
-	intersectSmallest &= carrier;
+	intersectSmallest &= *it;
     }
     LogFine() << "Intersection of smallest set is:\n"
 	      << HexPointUtil::ToString(intersectSmallest) << '\n';
@@ -150,11 +149,10 @@ HexPoint MostOverlappingMove(const std::vector<VC>& VClist,
     // regards to other connections
     int numHits[BITSETSIZE];
     memset(numHits, 0, sizeof(numHits));
-    for (it = VClist.begin(); it != VClist.end(); ++it) 
+    for (it = carriers.begin(); it != carriers.end(); ++it)
     {
-	bitset_t carrier = it->Carrier();
 	for (int i = 0; i < BITSETSIZE; i++) 
-	    if (intersectSmallest.test(i) && carrier.test(i))
+	    if (intersectSmallest.test(i) && it->test(i))
 		numHits[i]++;
     }
     
@@ -182,26 +180,19 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
     BenzeneAssert(EndgameUtil::IsWonGame(brd, color));
 
     // If we have a winning SC, then play in the key of the smallest one
-    VC winningVC;
-    if (brd.Cons(color).SmallestVC(HexPointUtil::colorEdge1(color), 
-                                   HexPointUtil::colorEdge2(color), 
-                                   VC::SEMI, winningVC)) 
+    HexPoint semi_key = brd.Cons(color).SmallestSemiKey();
+    if (semi_key != INVALID_POINT)
     {
         LogInfo() << "Winning SC.\n";
-        return winningVC.Key();
+        return semi_key;
     }
     
     // If instead we have a winning VC, then play best move in its carrier set
-    if (brd.Cons(color).Exists(HexPointUtil::colorEdge1(color),
-                               HexPointUtil::colorEdge2(color),
-                               VC::FULL))
+    if (brd.Cons(color).FullExists())
     {
         LogFine() << "Winning VC.\n";
-        std::vector<VC> vcs;
-        brd.Cons(color).VCs(HexPointUtil::colorEdge1(color),
-                            HexPointUtil::colorEdge2(color),
-                            VC::FULL, vcs);
-	return MostOverlappingMove(vcs, brd.GetInferiorCells());
+        return MostOverlappingMove(brd.Cons(color).GetFullCarriers(),
+                                   brd.GetInferiorCells());
     }
     // Should never get here!
     BenzeneAssert(false);
@@ -215,20 +206,16 @@ HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
 
     // Determine if color's opponent has guaranteed win
     HexColor other = !color;
-    HexPoint otheredge1 = HexPointUtil::colorEdge1(other);
-    HexPoint otheredge2 = HexPointUtil::colorEdge2(other);
     
     LogInfo() << "Opponent has won; playing most blocking move.\n";
     
     /** Uses semi-connections. 
         @see @ref playingdeterminedstates 
     */
-    bool connected = brd.Cons(other).Exists(otheredge1, otheredge2, VC::SEMI);
-    std::vector<VC> vcs;
-    brd.Cons(other).VCs(otheredge1, otheredge2, 
-                        ((connected) ? VC::SEMI : VC::FULL), vcs);
-
-    return MostOverlappingMove(vcs, brd.GetInferiorCells());
+    return MostOverlappingMove(
+        brd.Cons(other).SemiExists() ?
+        brd.Cons(other).GetSemiCarriers() : brd.Cons(other).GetFullCarriers(),
+        brd.GetInferiorCells());
 }
 
 } // anonymous namespace
@@ -243,17 +230,15 @@ bool EndgameUtil::IsWonGame(const HexBoard& brd, HexColor color,
         proof = StonesInProof(brd, color);
         return true;
     }
-    VC vc;
-    const HexPoint edge1 = HexPointUtil::colorEdge1(color);
-    const HexPoint edge2 = HexPointUtil::colorEdge2(color);
-    if (brd.Cons(color).SmallestVC(edge1, edge2, VC::SEMI, vc))
+    bitset_t carrier;
+    if (brd.Cons(color).SmallestSemiCarrier(carrier))
     {        
-        proof = vc.Carrier() | StonesInProof(brd, color);
+        proof = carrier | StonesInProof(brd, color);
 	return true;
     }
-    if (brd.Cons(color).SmallestVC(edge1, edge2, VC::FULL, vc))
+    if (brd.Cons(color).SmallestFullCarrier(carrier))
     {
-        proof = vc.Carrier() | StonesInProof(brd, color);
+        proof = carrier | StonesInProof(brd, color);
 	return true;
     }
     return false;
@@ -267,12 +252,10 @@ bool EndgameUtil::IsLostGame(const HexBoard& brd, HexColor color,
         proof = StonesInProof(brd, !color);
         return true;
     }
-    VC vc;
-    if (brd.Cons(!color).SmallestVC(HexPointUtil::colorEdge1(!color),
-                                    HexPointUtil::colorEdge2(!color),
-                                    VC::FULL, vc))
+    bitset_t carrier;
+    if (brd.Cons(!color).SmallestFullCarrier(carrier))
     {
-        proof = vc.Carrier() | StonesInProof(brd, !color);
+        proof = carrier | StonesInProof(brd, !color);
 	return true;
     }
     if (ComputeConsiderSet(brd, color).none())

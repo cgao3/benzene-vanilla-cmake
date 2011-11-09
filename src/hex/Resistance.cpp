@@ -205,7 +205,7 @@ void AddAdjacent(HexColor color, const HexBoard& brd,
         {
             HexPoint cx = brd.GetGroups().CaptainOf(*x);
             HexPoint cy = brd.GetGroups().CaptainOf(*y);
-            if ((cx == cy) || brd.Cons(color).Exists(cx, cy, VC::FULL))
+            if ((cx == cy) || brd.Cons(color).FullExists(cx, cy))
             {
                 graph[*x][*y] = true;
                 graph[*y][*x] = true;
