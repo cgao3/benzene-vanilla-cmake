@@ -111,7 +111,7 @@ void Logger::Flush()
         long unsigned int self =
             reinterpret_cast<long unsigned int>(pthread_self());
 #else
-        long unsigned int self = pthread_self();
+        long unsigned int self = (long unsigned int)pthread_self();
 #endif
         stream << std::hex << std::setfill('0') 
                << std::setw(5) << ((self >> 8) & 0xfffff) << " " 
