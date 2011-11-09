@@ -2,7 +2,7 @@
 # Connects to a Hex program.
 #----------------------------------------------------------------------------
 
-import os, string, sys
+import os, string, sys, subprocess
 from random import randrange
 from select import select
 
@@ -22,7 +22,13 @@ class Program:
         self._verbose = verbose
         if self._verbose:
             print "Creating program:", command
-        self._stdin, self._stdout, self._stderr = os.popen3(command)
+        p = subprocess.Popen(command, shell=True,
+                             stdin=subprocess.PIPE, 
+                             stdout=subprocess.PIPE, 
+                             stderr=subprocess.PIPE);
+        (self._stdin, 
+         self._stdout, 
+         self._stderr) = (p.stdin, p.stdout, p.stderr)
         self._isDead = 0
         self._log = open(logName, "w")
         self._log.write("# " + self._command + "\n")
