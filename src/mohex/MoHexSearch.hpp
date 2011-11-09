@@ -116,18 +116,11 @@ public:
     bool KeepGames() const;
 
     /** Enables output of live graphics commands for HexGui.
-        See GoGuiGfx() and SetLiveGfxInterval() */
+        See GoGuiGfx() */
     void SetLiveGfx(bool enable);
 
     /** See SetLiveGfx(). */
     bool LiveGfx() const;
-
-    /** Sets interval for outputting of live graphics commands for HexGui.
-        See SetLiveGfx(). */
-    void SetLiveGfxInterval(int interval);
-
-    /** See SetLiveGfxInterval(). */
-    int LiveGfxInterval() const;
 
     /** Pattern-check radius to use during in-tree phase. */
     int TreeUpdateRadius() const;
@@ -155,9 +148,6 @@ private:
 
     /** See SetLiveGfx() */
     bool m_liveGfx;
-
-    /** See SetLiveGfxInterval() */
-    int m_liveGfxInterval;
 
     /** See TreeUpdateRadius() */
     int m_treeUpdateRadius;
@@ -216,11 +206,6 @@ inline bool MoHexSearch::LiveGfx() const
     return m_liveGfx;
 }
 
-inline int MoHexSearch::LiveGfxInterval() const
-{
-    return m_liveGfxInterval;
-}
-
 inline void MoHexSearch::SetKeepGames(bool enable)
 {
     m_keepGames = enable;
@@ -229,12 +214,6 @@ inline void MoHexSearch::SetKeepGames(bool enable)
 inline void MoHexSearch::SetLiveGfx(bool enable)
 {
     m_liveGfx = enable;
-}
-
-inline void MoHexSearch::SetLiveGfxInterval(int interval)
-{
-    SG_ASSERT(interval > 0);
-    m_liveGfxInterval = interval;
 }
 
 inline int MoHexSearch::TreeUpdateRadius() const

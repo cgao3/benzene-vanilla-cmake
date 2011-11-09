@@ -50,7 +50,6 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     : SgUctSearch(factory, maxMoves),
       m_keepGames(false),
       m_liveGfx(false),
-      m_liveGfxInterval(20000),
       m_treeUpdateRadius(2),
       m_playoutUpdateRadius(1),
       m_brd(0),
@@ -153,7 +152,7 @@ void MoHexSearch::OnStartSearch()
     int maxGameLength = size+10;
     SetMaxGameLength(maxGameLength);
     m_lastPositionSearched = m_brd->GetPosition();
-    m_nextLiveGfx = m_liveGfxInterval;
+    m_nextLiveGfx = 1000;
 }
 
 void MoHexSearch::SaveGames(const std::string& filename) const
@@ -176,7 +175,7 @@ void MoHexSearch::OnSearchIteration(SgUctValue gameNumber,
     SgUctSearch::OnSearchIteration(gameNumber, threadId, info);
     if (m_liveGfx && threadId == 0 && gameNumber > m_nextLiveGfx)
     {
-        m_nextLiveGfx = gameNumber + m_liveGfxInterval;
+        m_nextLiveGfx = gameNumber + Statistics().m_gamesPerSecond;
         std::ostringstream os;
         os << "gogui-gfx:\n";
         os << "uct\n";
