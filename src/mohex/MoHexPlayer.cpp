@@ -442,3 +442,23 @@ void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
 }
 
 //----------------------------------------------------------------------------
+
+void MoHexPlayer::FindTopMoves(int num, const HexState& state, 
+                               const Game& game, HexBoard& brd, 
+                               const bitset_t& given_to_consider,
+                               double maxTime, 
+                               std::vector<HexPoint>& moves,
+                               std::vector<double>& scores)
+{
+    bitset_t consider = given_to_consider;
+    while (consider.any() && num-- > 0)
+    {
+        double score;
+        HexPoint move = Search(state, game, brd, consider, maxTime, score);
+        consider.reset(move);
+        moves.push_back(move);
+        scores.push_back(score);
+    }
+}
+
+//----------------------------------------------------------------------------

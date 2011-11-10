@@ -99,6 +99,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-values", &MoHexEngine::Values);
     RegisterCmd("mohex-rave-values", &MoHexEngine::RaveValues);
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
+    RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
 }
 
 MoHexEngine::~MoHexEngine()
@@ -163,7 +164,8 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "var/MoHex PV/mohex-get-pv %m\n"
         "pspairs/MoHex Values/mohex-values\n"
         "pspairs/MoHex Rave Values/mohex-rave-values\n"
-        "pspairs/MoHex Bounds/mohex-bounds\n";
+        "pspairs/MoHex Bounds/mohex-bounds\n"
+        "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
 
 void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
@@ -426,6 +428,27 @@ void MoHexEngine::Bounds(HtpCommand& cmd)
         cmd << ' ' << static_cast<HexPoint>(p) 
             << ' ' << std::fixed << std::setprecision(3) << bound;
     }
+}
+
+void MoHexEngine::FindTopMoves(HtpCommand& cmd)
+{
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    int num = 5;
+    if (cmd.NuArg() >= 2)
+        num = cmd.ArgMin<int>(1, 1);
+    HexState state(m_game.Board(), color);
+    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
+    if (EndgameUtil::IsDeterminedState(brd, color))
+        throw HtpFailure() << "State is determined.\n";
+    bitset_t consider = EndgameUtil::MovesToConsider(brd, color);
+    std::vector<HexPoint> moves;
+    std::vector<double> scores;
+    m_player.FindTopMoves(num, state, m_game, brd, consider, 
+                          m_player.MaxTime(), moves, scores);
+    for (std::size_t i = 0; i < moves.size(); ++i)
+        cmd << ' ' << static_cast<HexPoint>(moves[i]) 
+            << ' ' << (i + 1) 
+            << '@' << std::fixed << std::setprecision(3) << scores[i];
 }
 
 //----------------------------------------------------------------------------

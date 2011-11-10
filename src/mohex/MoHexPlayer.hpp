@@ -39,6 +39,15 @@ public:
     /** Copy settings from other player. */
     void CopySettingsFrom(const MoHexPlayer& other);
 
+    /** Find the top moves in a position.
+        Performs multiple calls to Search(), removing the previous
+        move returned from the consider set. This gives a rough
+        ordering of the moves. */
+    void FindTopMoves(int num, const HexState& state, const Game& game, 
+                      HexBoard& brd, const bitset_t& given_to_consider,
+                      double maxTime, std::vector<HexPoint>& moves,
+                      std::vector<double>& scores);
+
     //-----------------------------------------------------------------------
 
     /** @name Parameters */
