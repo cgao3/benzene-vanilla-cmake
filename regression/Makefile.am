@@ -21,7 +21,6 @@ opening.tst \
 play.tst \
 README \
 settings-puzzle.htp \
-settings-vc.htp \
 vc.tst \
 sgf/endgame/close-endgame01.sgf \
 sgf/endgame/close-endgame02.sgf \
