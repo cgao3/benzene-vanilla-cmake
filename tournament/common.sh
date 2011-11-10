@@ -25,7 +25,7 @@ while true ; do
 done
 
 # Set default openings if user does not specify them
-if [ $OPENINGS == "" ]; then
+if [ "$OPENINGS" == "" ]; then
     OPENINGS="openings/"$SIZE"x"$SIZE"-all-1ply"
 fi
 
