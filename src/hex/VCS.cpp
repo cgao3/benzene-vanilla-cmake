@@ -258,7 +258,7 @@ inline bitset_t VCS::SemiList::GetIntersection() const
 }
 
 template <bool fulls_null>
-bool VCS::SemiList::TryAdd(bitset_t carrier, HexPoint key, AndList* fulls)
+inline bool VCS::SemiList::TryAdd(bitset_t carrier, HexPoint key, AndList* fulls)
 {
     AndList* &key_semis = m_lists[key];
     if (key_semis)
@@ -282,6 +282,10 @@ bool VCS::SemiList::TryAdd(bitset_t carrier, HexPoint key, AndList* fulls)
         key_semis = new AndList(carrier);
         m_keys.set(key);
     }
+    if (m_old.SupersetOfAny(carrier))
+        return true;
+    if (m_new.SupersetOfAny(carrier))
+        return true;
     m_old.RemoveSupersetsOf(carrier);
     m_new.RemoveSupersetsOf(carrier);
     m_new.Add(carrier);
@@ -302,7 +306,8 @@ inline void VCS::SemiList::RemoveSupersetsOf(bitset_t carrier)
 
 inline bool VCS::SemiList::TryQueue(bitset_t capturedSet)
 {
-    BenzeneAssert(m_new.Count() != 0);
+    if (m_new.Count() == 0)
+        return false;
     bool prev_queued = m_queued;
     m_queued = BitsetUtil::IsSubsetOf(m_intersection, capturedSet);
     return !prev_queued && m_queued;
@@ -454,6 +459,7 @@ void VCS::AddBaseVCs()
     {
         for (BitsetIterator y(x->Nbs() & m_brd->GetEmpty()); y; ++y)
         {
+            BenzeneAssert(*y == m_groups->CaptainOf(*y));
             m_statistics.base_attempts++;
             if (TryAddFull(x->Captain(), *y, EMPTY_BITSET))
                 m_statistics.base_successes++;
@@ -478,9 +484,14 @@ void VCS::AddPatternVCs()
             bitset_t carrier = pat.NotOpponent() - m_brd->GetColor(m_color);
             carrier.reset(pat.Endpoint(0));
             carrier.reset(pat.Endpoint(1));
+
+            HexPoint x = m_groups->CaptainOf(pat.Endpoint(0));
+            HexPoint y = m_groups->CaptainOf(pat.Endpoint(1));
+            if (x == y)
+                continue;
             
             m_statistics.pattern_attempts++;
-            if (TryAddFull(pat.Endpoint(0), pat.Endpoint(1), carrier))
+            if (TryAddFull(x, y, carrier))
                 m_statistics.pattern_successes++;
         }
     }
@@ -859,7 +870,7 @@ inline bool VCS::TryAndFullStoneFull(HexPoint x, HexPoint y,
 inline void VCS::AndFullStoneSemi(HexPoint x, HexPoint z, bitset_t carrier,
                                   bitset_t xzCapturedSet)
 {
-    for (BitsetIterator it(m_fulls[z].GetNbsSet().reset(x) - carrier); it; ++it)
+    for (BitsetIterator it(m_semis[z].GetNbsSet().reset(x) - carrier); it; ++it)
     {
         HexPoint y = *it;
         BenzeneAssert(y == m_groups->CaptainOf(y));
@@ -1097,9 +1108,14 @@ inline bool VCS::TryAddSemi(HexPoint x, HexPoint y, bitset_t carrier, HexPoint k
     }
     else if (!semis->TryAdd<fulls_null>(carrier, key, fulls))
         return false;
-    else if (semis->TryQueue(xyCapturedSet))
+    if (semis->TryQueue(xyCapturedSet))
         m_semis_or_queue.Push(Ends(x, y));
-    m_semis_and_queue.Push(Semi(x, y, carrier, key));
+    if ((m_brd->GetColor(x) != EMPTY &&
+         (m_param->and_over_edge || !HexPointUtil::isEdge(x)))
+        ||
+        (m_brd->GetColor(y) != EMPTY &&
+         (m_param->and_over_edge || !HexPointUtil::isEdge(y))))
+        m_semis_and_queue.Push(Semi(x, y, carrier, key));
     return true;
 }
 
