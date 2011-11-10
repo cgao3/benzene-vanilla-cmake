@@ -177,8 +177,7 @@ inline VCS::AndList::AndList(const std::vector<bitset_t>& carriers_list)
 
 inline void VCS::AndList::Add(bitset_t carrier)
 {
-    if (m_carriers.RemoveSupersetsOf(carrier))
-        m_processed.RemoveSupersetsOf(carrier);
+    RemoveSupersetsOf(carrier);
     m_carriers.Add(carrier);
 }
 
@@ -304,8 +303,9 @@ inline void VCS::SemiList::RemoveSupersetsOf(bitset_t carrier)
 inline bool VCS::SemiList::TryQueue(bitset_t capturedSet)
 {
     BenzeneAssert(m_new.Count() != 0);
+    bool prev_queued = m_queued;
     m_queued = BitsetUtil::IsSubsetOf(m_intersection, capturedSet);
-    return m_queued;
+    return !prev_queued && m_queued;
 }
 
 void VCS::SemiList::MarkAllOld()
@@ -992,7 +992,7 @@ void VCS::AndSemi(HexPoint x, HexPoint y, HexPoint key, bitset_t carrier)
 inline void VCS::AndSemi(HexPoint x, HexPoint z, HexPoint key, bitset_t carrier,
                          HexColor zcolor, bitset_t xzCapturedSet)
 {
-    if (zcolor != EMPTY)
+    if (zcolor == EMPTY)
         return;
     if (!m_param->and_over_edge && HexPointUtil::isEdge(z))
         return;
@@ -1024,14 +1024,16 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
              xy_fulls ? xy_fulls->GetAll().GetVec() : std::vector<bitset_t>(),
              m_capturedSet[x] | m_capturedSet[y]);
     xy_semis->MarkAllOld();
-    if (!new_fulls.empty())
+    if (new_fulls.empty())
+        return;
+    m_statistics.goodOrs++;
+    m_statistics.or_attempts += new_fulls.size();
+    m_statistics.or_successes += new_fulls.size();
+    if (!xy_fulls)
     {
-        m_statistics.goodOrs++;
-        m_statistics.or_attempts += new_fulls.size();
-        m_statistics.or_successes += new_fulls.size();
-    }
-    else if (!xy_fulls)
-    {
+        for (std::vector<bitset_t>::iterator it = new_fulls.begin();
+             it != new_fulls.end(); ++it)
+            m_fulls_and_queue.Push(Full(x, y, *it));
         xy_fulls = new AndList(new_fulls);
         m_fulls[x].Set(y, xy_fulls);
         m_fulls[y].Set(x, xy_fulls);
@@ -1040,7 +1042,10 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
     {
         for (std::vector<bitset_t>::iterator it = new_fulls.begin();
              it != new_fulls.end(); ++it)
+        {
             xy_fulls->Add(*it);
+            m_fulls_and_queue.Push(Full(x, y, *it));
+        }
     }
 }
 
@@ -1139,9 +1144,7 @@ bool VCS::SmallestSemiCarrier(bitset_t& carrier) const
     SemiList* semis = m_semis[m_edge1].Get(m_edge2);
     if (!semis)
         return false;
-    BenzeneAssert(semis->GetNew().Count() == 0);
-    if (semis->GetOld().Count() == 0)
-        return false;
+    bool res = false;
     size_t best = std::numeric_limits<size_t>::max();
     for (CarrierList::Iterator i(semis->GetOld()); i; ++i)
     {
@@ -1151,8 +1154,19 @@ bool VCS::SmallestSemiCarrier(bitset_t& carrier) const
             best = count;
             carrier = *i;
         }
+        res = true;
     }
-    return true;
+    for (CarrierList::Iterator i(semis->GetNew()); i; ++i)
+    {
+        size_t count = i->count();
+        if (count < best)
+        {
+            best = count;
+            carrier = *i;
+        }
+        res = true;
+    }
+    return res;
 }
 
 HexPoint VCS::SmallestSemiKey() const
@@ -1196,8 +1210,7 @@ bool VCS::SemiExists() const
     SemiList* semis = m_semis[m_edge1].Get(m_edge2);
     if (!semis)
         return false;
-    BenzeneAssert(semis->GetNew().Count() == 0);
-    return semis->GetOld().Count() != 0;
+    return semis->GetOld().Count() != 0 || semis->GetNew().Count() != 0;
 }
 
 static std::vector<bitset_t> empty_vec;
@@ -1215,13 +1228,15 @@ const std::vector<bitset_t>& VCS::GetFullCarriers() const
     return GetFullCarriers(m_edge1, m_edge2);
 }
 
-const std::vector<bitset_t>& VCS::GetSemiCarriers() const
+std::vector<bitset_t> VCS::GetSemiCarriers() const
 {
     SemiList* semis = m_semis[m_edge1].Get(m_edge2);
     if (!semis)
         return empty_vec;
-    BenzeneAssert(semis->GetNew().Count() == 0);
-    return semis->GetOld().GetVec();
+    std::vector<bitset_t> res(semis->GetOld().GetVec());
+    for (CarrierList::Iterator i(semis->GetNew()); i; ++i)
+        res.push_back(*i);
+    return res;
 }
 
 bitset_t VCS::GetFullNbs(HexPoint x) const

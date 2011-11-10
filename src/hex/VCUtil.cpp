@@ -17,7 +17,7 @@ bitset_t VCUtil::GetMustplay(const HexBoard& brd, HexColor color)
     if (brd.Cons(other).FullExists())
         return EMPTY_BITSET;
     else
-        return brd.Cons(other).SemiIntersection();
+        return brd.GetPosition().GetEmpty() & brd.Cons(other).SemiIntersection();
 }
 
 //----------------------------------------------------------------------------

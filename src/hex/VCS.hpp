@@ -108,7 +108,7 @@ public:
 
     /** @todo Needed for endgame play */
     const std::vector<bitset_t>& GetFullCarriers() const;
-    const std::vector<bitset_t>& GetSemiCarriers() const;
+    std::vector<bitset_t> GetSemiCarriers() const;
 
     bitset_t SemiIntersection() const;
     
