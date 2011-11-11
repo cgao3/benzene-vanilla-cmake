@@ -215,6 +215,8 @@ private:
 
         bool RemoveSupersetsOf(bitset_t carrier);
 
+        bool Contains(bitset_t carrier) const;
+
         const std::vector<bitset_t>& GetVec() const;
         int Count() const;
 
@@ -288,7 +290,9 @@ private:
         const CarrierList& ProcessedCarriers() const;
         void AddProcessed(bitset_t carrier);
         bool SupersetOfAny(bitset_t carrier) const;
-        
+
+        bool StillExists(bitset_t carrier) const;
+
         const CarrierList& GetAll() const;
     private:
         bitset_t m_processed_intersection;
@@ -390,8 +394,6 @@ private:
     void TestQueuesEmpty();
 
     void DoSearch();
-
-    void ProcessedFull(HexPoint x, HexPoint y, bitset_t carrier);
 
     void AndFull(HexPoint x, HexPoint y, bitset_t carrier);
     void AndFull(HexPoint x, HexPoint z, bitset_t carrier,

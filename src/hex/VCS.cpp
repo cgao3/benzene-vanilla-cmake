@@ -72,6 +72,14 @@ bool VCS::CarrierList::RemoveSupersetsOf(bitset_t carrier)
     return j < i;
 }
 
+bool VCS::CarrierList::Contains(bitset_t carrier) const
+{
+    for (Iterator i(*this); i; ++i)
+        if (*i == carrier)
+            return true;
+    return false;
+}
+
 inline const std::vector<bitset_t>& VCS::CarrierList::GetVec() const
 {
     return m_list;
@@ -217,6 +225,11 @@ inline void VCS::AndList::AddProcessed(bitset_t carrier)
 {
     m_processed.Add(carrier);
     m_processed_intersection &= carrier;
+}
+
+inline bool VCS::AndList::StillExists(bitset_t carrier) const
+{
+    return m_carriers.Contains(carrier);
 }
 
 inline const VCS::CarrierList& VCS::AndList::GetAll() const
@@ -592,6 +605,9 @@ void VCS::AndFull(HexPoint x, HexPoint y, bitset_t carrier)
     BenzeneAssert(x != y);
     BenzeneAssert(m_brd->GetColor(x) != !m_color);
     BenzeneAssert(m_brd->GetColor(y) != !m_color);
+
+    if (!m_fulls[x].Get(y)->StillExists(carrier))
+        return;
 
     bitset_t xyCapturedSet = m_capturedSet[x] | m_capturedSet[y];
     AndFull(x, y, carrier, m_brd->GetColor(y), xyCapturedSet);
@@ -992,7 +1008,10 @@ void VCS::AndSemi(HexPoint x, HexPoint y, HexPoint key, bitset_t carrier)
     BenzeneAssert(x != y);
     BenzeneAssert(m_brd->GetColor(x) != !m_color);
     BenzeneAssert(m_brd->GetColor(y) != !m_color);
-    
+
+    if (!m_semis[x].Get(y)->Get(key)->StillExists(carrier))
+        return;
+
     bitset_t xyCapturedSet = m_capturedSet[x] | m_capturedSet[y];
     AndSemi(x, y, key, carrier, m_brd->GetColor(y), xyCapturedSet);
     AndSemi(y, x, key, carrier, m_brd->GetColor(x), xyCapturedSet);
