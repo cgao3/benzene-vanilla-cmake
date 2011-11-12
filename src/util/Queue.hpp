@@ -11,19 +11,20 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Implements simple queue for vc builder.
-    Current implementation behaves like stack,
-    but it dosen't matter for vc builder. */
+/** Implements a simple queue. */
 template <class T>
 class Queue
 {
 private:
     std::vector<T> m_vec;
+    std::size_t m_idx;
 
 public:
+    Queue() : m_idx(0) { }
+
     bool IsEmpty() const
     {
-        return m_vec.empty();
+        return m_idx == m_vec.size();
     }
 
     void Push(const T& elem)
@@ -33,9 +34,7 @@ public:
 
     T Pop()
     {
-        T ret = m_vec.back();
-        m_vec.pop_back();
-        return ret;
+        return m_vec[m_idx++];
     }
 };
 
