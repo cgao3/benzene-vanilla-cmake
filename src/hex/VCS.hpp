@@ -9,6 +9,7 @@
 #include "SgStatistics.h"
 #include "Groups.hpp"
 #include "Hex.hpp"
+#include "BitsetMap.hpp"
 #include "PatternState.hpp"
 #include "Queue.hpp"
 
@@ -355,15 +356,12 @@ private:
         bitset_t m_processed_intersection;
     };
 
-    class SemiList : public CarrierList
+    class SemiList : public CarrierList, public BitsetMap<AndList>
     {
     public:
         SemiList(bitset_t carrier, HexPoint key);
         ~SemiList();
 
-        bitset_t GetKeySet() const;
-        AndList* Get(HexPoint key) const;
-        void Set(HexPoint key, AndList* list);
         void Add(bitset_t carrier);
 
         bitset_t GetIntersection() const;
@@ -375,30 +373,16 @@ private:
         void MarkAllProcessed();
 
     private:
-        bitset_t m_keys;
         bitset_t m_intersection;
-        AndList* m_lists[BITSETSIZE];
         bool m_queued;
     };
 
     template <class T>
-    class Nbs
+    class Nbs : public BitsetMap<T>
     {
     public:
-        Nbs();
         void Destroy(HexPoint x);
         void Reset(HexPoint x);
-
-        T* Get(HexPoint x) const;
-
-        void Set(HexPoint x, T* list);
-
-        bitset_t GetNbsSet() const;
-    private:
-        bitset_t m_set;
-        T* m_lists[BITSETSIZE];
-
-        void ClearLists();
     };
 
     class FullNbs : public Nbs<AndList>

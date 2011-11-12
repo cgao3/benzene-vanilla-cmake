@@ -39,6 +39,7 @@ ZobristHash.cpp
 noinst_HEADERS = \
 BenzenePlayer.hpp \
 BitsetIterator.hpp \
+BitsetMap.hpp \
 BoardIterator.hpp \
 BoardUtil.hpp \
 ConstBoard.hpp \
