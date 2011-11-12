@@ -44,7 +44,7 @@ inline void VCS::CarrierList::Add(bitset_t carrier)
     m_list.push_back(carrier);
 }
 
-bool VCS::CarrierList::SupersetOfAny(bitset_t carrier) const
+inline bool VCS::CarrierList::SupersetOfAny(bitset_t carrier) const
 {
     for (std::size_t i = 0; i < m_list.size(); ++i)
         if (BitsetUtil::IsSubsetOf(m_list[i], carrier))
@@ -59,7 +59,7 @@ bool VCS::CarrierList::SupersetOfAny(bitset_t carrier) const
         return false;
 }
 
-bool VCS::CarrierList::RemoveSupersetsOf(bitset_t carrier)
+inline bool VCS::CarrierList::RemoveSupersetsOf(bitset_t carrier)
 {
     std::size_t j = 0;
     std::size_t i = 0;
@@ -72,7 +72,7 @@ bool VCS::CarrierList::RemoveSupersetsOf(bitset_t carrier)
     return j < i;
 }
 
-bool VCS::CarrierList::Contains(bitset_t carrier) const
+inline bool VCS::CarrierList::Contains(bitset_t carrier) const
 {
     for (Iterator i(*this); i; ++i)
         if (*i == carrier)
