@@ -440,29 +440,37 @@ private:
         AndList* fulls;
         SemiList* semis;
         AndList* key_semis;
-        HexPoint key;
         bitset_t xz_carrier;
+        HexPoint key;
         bitset_t intersection;
         CarrierList::Iterator zy_iter;
 
         VCAnd(VCS& vcs, HexPoint x, HexPoint y, bitset_t capturedSet,
-              HexPoint key, bitset_t xz_carrier, AndList *zy_list)
-            : vcs(vcs), x(x), y(y), capturedSet(capturedSet), key(key),
-              xz_carrier(xz_carrier), zy_iter(zy_list->ProcessedCarriers())
-        { }
+              bitset_t xz_carrier, AndList *zy_list, HexPoint key = INVALID_POINT);
 
         template <class Func>
-        void Run(Func func)
-        {
-            func.template Apply<InitialState>(*this);
-        }
+        void Run(Func func);
+
+        template <class S, class Func>
+        void SemiRemoveSupersetsOf(bitset_t carrier, Func func);
+
+        template <class S, class FuncYes, class FuncNo>
+        void TryAddFull(bitset_t carrier, FuncYes funcYes, FuncNo funcNo);
 
         template <class S, class FuncYes, class FuncNo>
         void TryAddSemi(bitset_t carrier, FuncYes funcYes, FuncNo funcNo);
 
+        template <class S, class FuncYes, class FuncNo>
+        void TryAddSemi(bitset_t carrier, HexPoint new_key,
+                        FuncYes funcYes, FuncNo funcNo);
+
         VCAND_DEFFUNC(FEF)
         VCAND_DEFFUNC(FEFCaptured)
         VCAND_DEFFUNC(FEFNext)
+
+        VCAND_DEFFUNC(FSF)
+        VCAND_DEFFUNC(FSFCaptured)
+        VCAND_DEFFUNC(FSFNext)
     };
 
     void AndFull(HexPoint x, HexPoint y, bitset_t carrier);
