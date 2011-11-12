@@ -690,13 +690,13 @@ inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, Func func)
         }
         else
         {
-            if (key_semis->SupersetOfAny(carrier))
-                SWITCHTO(S);
             if (!S::fulls_null)
             {
                 if (fulls->SupersetOfAny(carrier))
                     SWITCHTO(S);
             }
+            if (key_semis->SupersetOfAny(carrier))
+                SWITCHTO(S);
             key_semis->Add(carrier);
         }
         semis->Add(carrier);
