@@ -308,6 +308,8 @@ private:
 
         bitset_t GetKeySet() const;
         AndList* Get(HexPoint key) const;
+        void Set(HexPoint key, AndList* list);
+        void Add(bitset_t carrier);
 
         template <bool fulls_null>
         bool TryAdd(bitset_t carrier, HexPoint key, AndList* fulls);
@@ -395,6 +397,74 @@ private:
 
     void DoSearch();
 
+    struct VCAnd
+    {
+
+    #define VCAND_DEFFUNC(__name)\
+        template <class S>\
+        void __name();\
+        struct Functor##__name\
+        {\
+            template <class S>\
+            void Apply(VCS::VCAnd& do_and)\
+            {\
+                do_and.__name<S>();\
+            }\
+        };
+        enum Pointer { P_NONE, P_NULL, P_SET };
+
+        template <Pointer fulls_p, Pointer semis_p, Pointer key_semis_p>
+        struct State
+        {
+            static const bool fulls_initialized = fulls_p != P_NONE;
+            static const bool fulls_null = fulls_p != P_SET;
+            static const bool semis_initialized = semis_p != P_NONE;
+            static const bool semis_null = semis_p != P_SET;
+            static const bool key_semis_initialized = key_semis_p != P_NONE;
+            static const bool key_semis_null = key_semis_p != P_SET;
+            typedef State<P_SET, semis_p, key_semis_p> FullsSet;
+            typedef State<P_NULL, semis_p, key_semis_p> FullsNull;
+            typedef State<fulls_p, P_SET, key_semis_p> SemisSet;
+            typedef State<fulls_p, P_NULL, key_semis_p> SemisNull;
+            typedef State<fulls_p, semis_p, P_SET> KeySemisSet;
+            typedef State<fulls_p, semis_p, P_NULL> KeySemisNull;
+            typedef State<fulls_p, semis_p, P_NONE> KeySemisReset;
+        };
+
+        typedef State<P_NONE, P_NONE, P_NONE> InitialState;
+
+        VCS& vcs;
+        HexPoint x;
+        HexPoint y;
+        bitset_t capturedSet;
+        AndList* fulls;
+        SemiList* semis;
+        AndList* key_semis;
+        HexPoint key;
+        bitset_t xz_carrier;
+        bitset_t intersection;
+        CarrierList::Iterator zy_iter;
+
+        VCAnd(VCS& vcs, HexPoint x, HexPoint y, bitset_t capturedSet,
+              HexPoint key, bitset_t xz_carrier, AndList *zy_list)
+            : vcs(vcs), x(x), y(y), capturedSet(capturedSet), key(key),
+              xz_carrier(xz_carrier), zy_iter(zy_list->ProcessedCarriers())
+        { }
+
+        template <class Func>
+        void Run(Func func)
+        {
+            func.template Apply<InitialState>(*this);
+        }
+
+        template <class S, class FuncYes, class FuncNo>
+        void TryAddSemi(bitset_t carrier, FuncYes funcYes, FuncNo funcNo);
+
+        VCAND_DEFFUNC(FEF)
+        VCAND_DEFFUNC(FEFCaptured)
+        VCAND_DEFFUNC(FEFNext)
+    };
+
     void AndFull(HexPoint x, HexPoint y, bitset_t carrier);
     void AndFull(HexPoint x, HexPoint z, bitset_t carrier,
                  HexColor zcolor, bitset_t xzCapturedSet);
@@ -409,20 +479,6 @@ private:
                           bitset_t xzCapturedSet);
     void AndFullEmptyFull(HexPoint x, HexPoint z, HexPoint y, bitset_t carrier,
                           bitset_t xyCapturedSet);
-    template <bool xy_fulls_null>
-    void AndFullEmptyFull(HexPoint x, HexPoint z, HexPoint y, bitset_t carrier,
-                          bitset_t xyCapturedSet,
-                          AndList* zy_fulls, AndList* xy_fulls);
-    template <bool xy_fulls_null, bool xy_semis_null>
-    void AndFullEmptyFullIterate(HexPoint x, HexPoint z, HexPoint y,
-                                 bitset_t carrier, bitset_t xyCapturedSet,
-                                 CarrierList::Iterator i,
-                                 AndList* xy_fulls, SemiList* xy_semis);
-    template <bool xy_fulls_null, bool xy_semis_null>
-    bool TryAndFullEmptyFull(HexPoint x, HexPoint z, HexPoint y,
-                             bitset_t xz_carrier, bitset_t zy_carrier,
-                             bitset_t xyCapturedSet,
-                             AndList* xy_fulls, SemiList* &xy_semis);
     
     void AndFullStoneFull(HexPoint x, HexPoint z, bitset_t carrier,
                           bitset_t xzCapturedSet);
