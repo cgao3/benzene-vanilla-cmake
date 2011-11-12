@@ -7,8 +7,7 @@ using namespace benzene;
 class VCOrCombiner
 {
 public:
-    VCOrCombiner(const CarrierList& new_semis,
-                 const CarrierList& old_semis,
+    VCOrCombiner(const CarrierList& semis,
                  const CarrierList& fulls,
                  bitset_t capturedSet);
     
@@ -27,22 +26,36 @@ private:
     int Filter(int start, int count, size_t a) const;
 };
 
-VCOrCombiner::VCOrCombiner(const CarrierList& new_semis,
-                           const CarrierList& old_semis,
+VCOrCombiner::VCOrCombiner(const CarrierList& semis,
                            const CarrierList& fulls,
                            bitset_t capturedSet)
     : m_capturedSet(capturedSet)
 {
-    m_mem.resize(new_semis.Count() + old_semis.Count() + fulls.Count());
+    m_mem.resize(semis.Count() + fulls.Count());
     size_t memidx = 0;
-    for (CarrierList::Iterator i(new_semis); i; ++i)
-        m_mem[memidx++] = i.Carrier();
-    for (CarrierList::Iterator i(old_semis); i; ++i)
-        m_mem[memidx++] = i.Carrier();
+    int new_semis_count = 0;
+    int old_semis_count = 0;
+    for (CarrierList::Iterator i(semis); i; ++i)
+        if (!i.Old())
+        {
+            m_mem[memidx++] = i.Carrier();
+            new_semis_count++;
+        }
+    if (!new_semis_count)
+    {
+        m_mem.clear();
+        return;
+    }
+    for (CarrierList::Iterator i(semis); i; ++i)
+        if (i.Old())
+        {
+            m_mem[memidx++] = i.Carrier();
+            old_semis_count++;
+        }
     for (CarrierList::Iterator i(fulls); i; ++i)
         m_mem[memidx++] = i.Carrier();;
     Search(bitset_t(), true,
-           0, new_semis.Count(), old_semis.Count(), fulls.Count());
+           0, new_semis_count, old_semis_count, fulls.Count());
 }
 
 inline vector<bitset_t> VCOrCombiner::SearchResult() const
@@ -168,13 +181,10 @@ inline int VCOrCombiner::Filter(int start, int count, size_t a) const
     return res;
 }
 
-vector<bitset_t> benzene::VCOr(const CarrierList& new_semis,
-                               const CarrierList& old_semis,
+vector<bitset_t> benzene::VCOr(const CarrierList& semis,
                                const CarrierList& fulls,
                                bitset_t capturedSet)
 {
-    if (new_semis.IsEmpty())
-        return vector<bitset_t>();
-    VCOrCombiner comb(new_semis, old_semis, fulls, capturedSet);
+    VCOrCombiner comb(semis, fulls, capturedSet);
     return comb.SearchResult();
 }
