@@ -156,12 +156,12 @@ bool Decompositions::Find(const HexBoard& brd, HexColor color,
 	    
 	    // If the pair has a VC confined to these cells, then we have
 	    // a decomposition - return it.
-            const std::vector<bitset_t>& vl = cons.GetFullCarriers(g1->first, g2->first);
-	    for (std::vector<bitset_t>::const_iterator it = vl.begin(); it != vl.end(); ++it)
+            for (CarrierList::Iterator it(cons.GetFullCarriers(g1->first, g2->first));
+                 it; ++it)
             {
-		if (BitsetUtil::IsSubsetOf(*it, decompArea))
+		if (BitsetUtil::IsSubsetOf(it.Carrier(), decompArea))
                 {
-		    captured = *it;
+		    captured = it.Carrier();
 		    return true;
 		}
 	    }

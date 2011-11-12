@@ -11,9 +11,11 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-std::vector<bitset_t> VCOr(const std::vector<bitset_t>& new_semis,
-                           const std::vector<bitset_t>& old_semis,
-                           const std::vector<bitset_t>& fulls,
+class CarrierList;
+
+std::vector<bitset_t> VCOr(const CarrierList& new_semis,
+                           const CarrierList& old_semis,
+                           const CarrierList& fulls,
                            bitset_t capturedSet);
 
 //----------------------------------------------------------------------------

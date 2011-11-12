@@ -122,19 +122,18 @@ void TightenMoveBitset(bitset_t& moveBitset, const InferiorCells& inf)
     subject to that restriction, tries to be a non-inferior move (using
     the member variables), and then to overlap as many other connections
     as possible. */
-HexPoint MostOverlappingMove(const std::vector<bitset_t>& carriers,
+HexPoint MostOverlappingMove(const CarrierList& carriers,
                              const InferiorCells& inf)
 {
     bitset_t intersectSmallest;
     intersectSmallest.flip();
     
     // compute intersection of smallest until next one makes it empty
-    std::vector<bitset_t>::const_iterator it;
-    for (it = carriers.begin(); it != carriers.end(); ++it)
+    for (CarrierList::Iterator it(carriers); it; ++it)
     {
-        if ((*it & intersectSmallest).none())
+        if ((it.Carrier() & intersectSmallest).none())
 	    break;
-	intersectSmallest &= *it;
+	intersectSmallest &= it.Carrier();
     }
     LogFine() << "Intersection of smallest set is:\n"
 	      << HexPointUtil::ToString(intersectSmallest) << '\n';
@@ -149,10 +148,10 @@ HexPoint MostOverlappingMove(const std::vector<bitset_t>& carriers,
     // regards to other connections
     int numHits[BITSETSIZE];
     memset(numHits, 0, sizeof(numHits));
-    for (it = carriers.begin(); it != carriers.end(); ++it)
+    for (CarrierList::Iterator it(carriers); it; ++it)
     {
 	for (int i = 0; i < BITSETSIZE; i++) 
-	    if (intersectSmallest.test(i) && it->test(i))
+	    if (intersectSmallest.test(i) && it.Carrier().test(i))
 		numHits[i]++;
     }
     

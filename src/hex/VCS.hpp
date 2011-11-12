@@ -37,6 +37,90 @@ struct VCBuilderParam
 
 //----------------------------------------------------------------------------
 
+class CarrierList
+{
+public:
+    CarrierList();
+    CarrierList(bitset_t carrier);
+    CarrierList(const std::vector<bitset_t>& list);
+    
+    void Add(bitset_t carrier);
+    bool SupersetOfAny(bitset_t carrier) const;
+    
+    bool RemoveSupersetsOf(bitset_t carrier);
+    
+    bool Contains(bitset_t carrier) const;
+    
+    int Count() const;
+    bool IsEmpty() const;
+    
+    bitset_t GetGreedyUnion() const;
+    bitset_t GetIntersection() const;
+    
+    void MoveAll(CarrierList& other);
+    
+    /** Iterates over a CarrierList. */
+    class Iterator : public SafeBool<Iterator>
+    {
+    public:
+        /** Creates iterator on a CarrierList. */
+        explicit Iterator(const CarrierList& lst);
+        
+        /** Returns current carrier. */
+        bitset_t Carrier() const;
+        
+        /** Moves to the next carrier. */
+        void operator++();
+        
+        /** Used by SafeBool. */
+        bool boolean_test() const;
+        
+    private:
+        const std::vector<bitset_t>& m_lst;
+        std::size_t m_index;
+    };
+    
+    friend class Iterator;
+    
+private:
+    mutable std::vector<bitset_t> m_list;
+};
+
+//----------------------------------------------------------------------------
+
+inline CarrierList::Iterator::Iterator(const CarrierList& lst)
+    : m_lst(lst.m_list),
+      m_index(0)
+{
+}
+
+inline bitset_t CarrierList::Iterator::Carrier() const
+{
+    return m_lst[m_index];
+}
+
+inline void CarrierList::Iterator::operator++()
+{
+    ++m_index;
+}
+
+inline bool CarrierList::Iterator::boolean_test() const
+{
+    return m_index < m_lst.size();
+}
+
+inline bool CarrierList::IsEmpty() const
+{
+    return m_list.empty();
+}
+
+inline int CarrierList::Count() const
+{
+    return int(m_list.size());
+}
+
+//----------------------------------------------------------------------------
+
 /** Stores, builds and operates on virtual connections. */
 class VCS
 {
@@ -107,14 +191,15 @@ public:
     bool SemiExists() const;
 
     /** @todo Needed for endgame play */
-    const std::vector<bitset_t>& GetFullCarriers() const;
-    std::vector<bitset_t> GetSemiCarriers() const;
+    const CarrierList& GetFullCarriers() const;
+    /** @todo FIXME */
+    CarrierList GetSemiCarriers() const;
 
     bitset_t SemiIntersection() const;
     
     /** @todo Needed for decomosition.
         Return rather CarrierList and supply it with iterator. */
-    const std::vector<bitset_t>& GetFullCarriers(HexPoint x, HexPoint y) const;
+    const CarrierList& GetFullCarriers(HexPoint x, HexPoint y) const;
 
     // @}
 
@@ -201,58 +286,6 @@ private:
         
         /** Dumps statistics to a string. */
         std::string ToString() const;
-    };
-
-    class CarrierList
-    {
-    public:
-        CarrierList();
-        CarrierList(bitset_t carrier);
-        CarrierList(const std::vector<bitset_t>& list);
-        
-        void Add(bitset_t carrier);
-        bool SupersetOfAny(bitset_t carrier) const;
-
-        bool RemoveSupersetsOf(bitset_t carrier);
-
-        bool Contains(bitset_t carrier) const;
-
-        const std::vector<bitset_t>& GetVec() const;
-        int Count() const;
-
-        bitset_t GetGreedyUnion() const;
-        bitset_t GetIntersection() const;
-
-        void MoveAll(CarrierList& other);
-        
-        /** Iterates over a CarrierList. */
-        class Iterator : public SafeBool<Iterator>
-        {
-        public:
-            /** Creates iterator on a CarrierList. */
-            explicit Iterator(const CarrierList& lst);
-            
-            /** Returns current carrier. */
-            bitset_t operator*() const;
-            
-            /** Allows access to current carrier's methods. */
-            const bitset_t* operator->() const;
-            
-            /** Moves to the next carrier. */
-            void operator++();
-            
-            /** Used by SafeBool. */
-            bool boolean_test() const;
-            
-        private:
-            const std::vector<bitset_t>& m_lst;
-            std::size_t m_index;
-        };
-
-        friend class Iterator;
-        
-    private:
-        mutable std::vector<bitset_t> m_list;
     };
     
     struct Ends

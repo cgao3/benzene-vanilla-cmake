@@ -1,4 +1,5 @@
 #include "VCOr.hpp"
+#include "VCS.hpp"
 
 using namespace std;
 using namespace benzene;
@@ -6,9 +7,9 @@ using namespace benzene;
 class VCOrCombiner
 {
 public:
-    VCOrCombiner(const vector<bitset_t>& new_semis,
-                 const vector<bitset_t>& old_semis,
-                 const vector<bitset_t>& fulls,
+    VCOrCombiner(const CarrierList& new_semis,
+                 const CarrierList& old_semis,
+                 const CarrierList& fulls,
                  bitset_t capturedSet);
     
     vector<bitset_t> SearchResult() const;
@@ -26,22 +27,22 @@ private:
     int Filter(int start, int count, size_t a) const;
 };
 
-VCOrCombiner::VCOrCombiner(const vector<bitset_t>& new_semis,
-                           const vector<bitset_t>& old_semis,
-                           const vector<bitset_t>& fulls,
+VCOrCombiner::VCOrCombiner(const CarrierList& new_semis,
+                           const CarrierList& old_semis,
+                           const CarrierList& fulls,
                            bitset_t capturedSet)
     : m_capturedSet(capturedSet)
 {
-    m_mem.resize(new_semis.size() + old_semis.size() + fulls.size());
+    m_mem.resize(new_semis.Count() + old_semis.Count() + fulls.Count());
     size_t memidx = 0;
-    for (size_t i = 0; i < new_semis.size(); i++)
-        m_mem[memidx++] = new_semis[i];
-    for (size_t i = 0; i < old_semis.size(); i++)
-        m_mem[memidx++] = old_semis[i];
-    for (size_t i = 0; i < fulls.size(); i++)
-        m_mem[memidx++] = fulls[i];
+    for (CarrierList::Iterator i(new_semis); i; ++i)
+        m_mem[memidx++] = i.Carrier();
+    for (CarrierList::Iterator i(old_semis); i; ++i)
+        m_mem[memidx++] = i.Carrier();
+    for (CarrierList::Iterator i(fulls); i; ++i)
+        m_mem[memidx++] = i.Carrier();;
     Search(bitset_t(), true,
-           0, int(new_semis.size()), int(old_semis.size()), int(fulls.size()));
+           0, new_semis.Count(), old_semis.Count(), fulls.Count());
 }
 
 inline vector<bitset_t> VCOrCombiner::SearchResult() const
@@ -167,12 +168,12 @@ inline int VCOrCombiner::Filter(int start, int count, size_t a) const
     return res;
 }
 
-vector<bitset_t> benzene::VCOr(const vector<bitset_t>& new_semis,
-                               const vector<bitset_t>& old_semis,
-                               const vector<bitset_t>& fulls,
+vector<bitset_t> benzene::VCOr(const CarrierList& new_semis,
+                               const CarrierList& old_semis,
+                               const CarrierList& fulls,
                                bitset_t capturedSet)
 {
-    if (new_semis.empty())
+    if (new_semis.IsEmpty())
         return vector<bitset_t>();
     VCOrCombiner comb(new_semis, old_semis, fulls, capturedSet);
     return comb.SearchResult();
