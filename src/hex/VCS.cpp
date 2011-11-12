@@ -270,42 +270,6 @@ inline bitset_t VCS::SemiList::GetIntersection() const
     return m_intersection;
 }
 
-template <bool fulls_null>
-inline bool VCS::SemiList::TryAdd(bitset_t carrier, HexPoint key, AndList* fulls)
-{
-    AndList* &key_semis = m_lists[key];
-    if (key_semis)
-    {
-        if (key_semis->SupersetOfAny(carrier))
-            return false;
-        if (!fulls_null)
-        {
-            if (fulls->SupersetOfAny(carrier))
-                return false;
-        }
-        key_semis->Add(carrier);
-    }
-    else
-    {
-        if (!fulls_null)
-        {
-            if (fulls->SupersetOfAny(carrier))
-                return false;
-        }
-        key_semis = new AndList(carrier);
-        m_keys.set(key);
-    }
-    if (m_old.SupersetOfAny(carrier))
-        return true;
-    if (m_new.SupersetOfAny(carrier))
-        return true;
-    m_old.RemoveSupersetsOf(carrier);
-    m_new.RemoveSupersetsOf(carrier);
-    m_new.Add(carrier);
-    m_intersection &= carrier;
-    return true;
-}
-
 inline void VCS::SemiList::Set(HexPoint key, AndList* list)
 {
     m_keys.set(key);
@@ -619,7 +583,7 @@ void VCS::DoSearch()
 // And rule stuff
 
 #define FUNC(__name) VCS::VCAnd::Functor##__name()
-#define CALL(__S,__name) return __name.template Apply<__S>(*this)
+#define SWITCHTO(__S) return func.template Apply<__S>(*this)
 
 inline VCS::VCAnd::VCAnd(VCS& vcs, HexPoint x, HexPoint y, bitset_t capturedSet,
                          bitset_t xz_carrier, AndList *zy_list, HexPoint key)
@@ -631,7 +595,7 @@ inline VCS::VCAnd::VCAnd(VCS& vcs, HexPoint x, HexPoint y, bitset_t capturedSet,
 template <class Func>
 inline void VCS::VCAnd::Run(Func func)
 {
-    CALL(InitialState, func);
+    SWITCHTO(InitialState);
 }
 
 template <class S, class Func>
@@ -641,27 +605,25 @@ inline void VCS::VCAnd::SemiRemoveSupersetsOf(bitset_t carrier, Func func)
     {
         semis = vcs.m_semis[x].Get(y);
         if (semis)
-            SemiRemoveSupersetsOf<typename S::SemisSet>(carrier, func);
+            return SemiRemoveSupersetsOf<typename S::SemisSet>(carrier, func);
         else
-            SemiRemoveSupersetsOf<typename S::SemisNull>(carrier, func);
-        return;
+            return SemiRemoveSupersetsOf<typename S::SemisNull>(carrier, func);
     }
     if (!S::semis_null)
         semis->RemoveSupersetsOf(carrier);
-    CALL(S, func);
+    SWITCHTO(S);
 }
 
-template <class S, class FuncYes, class FuncNo>
-inline void VCS::VCAnd::TryAddFull(bitset_t carrier, FuncYes funcYes, FuncNo funcNo)
+template <class S, class Func>
+inline void VCS::VCAnd::TryAddFull(bitset_t carrier, Func func)
 {
     if (!S::fulls_initialized)
     {
         fulls = vcs.m_fulls[x].Get(y);
         if (fulls)
-            TryAddFull<typename S::FullsSet>(carrier, funcYes, funcNo);
+            return TryAddFull<typename S::FullsSet>(carrier, func);
         else
-            TryAddFull<typename S::FullsNull>(carrier, funcYes, funcNo);
-        return;
+            return TryAddFull<typename S::FullsNull>(carrier, func);
     }
     if (S::fulls_null)
     {
@@ -669,31 +631,29 @@ inline void VCS::VCAnd::TryAddFull(bitset_t carrier, FuncYes funcYes, FuncNo fun
         vcs.m_fulls[y].Set(x, fulls);
     }
     else if (!fulls->TryAdd(carrier))
-        CALL(S, funcNo);
+        SWITCHTO(S);
     vcs.m_fulls_and_queue.Push(Full(x, y, carrier));
-    SemiRemoveSupersetsOf<typename S::FullsSet>(carrier, funcYes);
+    SemiRemoveSupersetsOf<typename S::FullsSet>(carrier, func);
 }
 
-template <class S, class FuncYes, class FuncNo>
-inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, FuncYes funcYes, FuncNo funcNo)
+template <class S, class Func>
+inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, Func func)
 {
     if (!S::semis_initialized)
     {
         semis = vcs.m_semis[x].Get(y);
         if (semis)
-            TryAddSemi<typename S::SemisSet>(carrier, funcYes, funcNo);
+            return TryAddSemi<typename S::SemisSet>(carrier, func);
         else
-            TryAddSemi<typename S::SemisNull>(carrier, funcYes, funcNo);
-        return;
+            return TryAddSemi<typename S::SemisNull>(carrier, func);
     }
     if (!S::fulls_initialized)
     {
         fulls = vcs.m_fulls[x].Get(y);
         if (fulls)
-            TryAddSemi<typename S::FullsSet>(carrier, funcYes, funcNo);
+            return TryAddSemi<typename S::FullsSet>(carrier, func);
         else
-            TryAddSemi<typename S::FullsNull>(carrier, funcYes, funcNo);
-        return;
+            return TryAddSemi<typename S::FullsNull>(carrier, func);
     }
     if (S::semis_null)
     {
@@ -701,7 +661,7 @@ inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, FuncYes funcYes, FuncNo fun
         if (!S::fulls_null)
         {
             if (fulls->SupersetOfAny(carrier))
-                CALL(S, funcNo);
+                SWITCHTO(S);
         }
         semis = vcs.m_semis[x].Add(y, carrier, key);
         vcs.m_semis[y].Set(x, semis);
@@ -713,10 +673,9 @@ inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, FuncYes funcYes, FuncNo fun
         {
             key_semis = semis->Get(key);
             if (key_semis)
-                TryAddSemi<typename S::KeySemisSet>(carrier, funcYes, funcNo);
+                return TryAddSemi<typename S::KeySemisSet>(carrier, func);
             else
-                TryAddSemi<typename S::KeySemisNull>(carrier, funcYes, funcNo);
-            return;
+                return TryAddSemi<typename S::KeySemisNull>(carrier, func);
         }
         vcs.m_statistics.and_semi_attempts++;
         if (S::key_semis_null)
@@ -724,7 +683,7 @@ inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, FuncYes funcYes, FuncNo fun
             if (!S::fulls_null)
             {
                 if (fulls->SupersetOfAny(carrier))
-                    CALL(S, funcNo);
+                    SWITCHTO(S);
             }
             key_semis = new AndList(carrier);
             semis->Set(key, key_semis);
@@ -732,11 +691,11 @@ inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, FuncYes funcYes, FuncNo fun
         else
         {
             if (key_semis->SupersetOfAny(carrier))
-                CALL(S, funcNo);
+                SWITCHTO(S);
             if (!S::fulls_null)
             {
                 if (fulls->SupersetOfAny(carrier))
-                    CALL(S, funcNo);
+                    SWITCHTO(S);
             }
             key_semis->Add(carrier);
         }
@@ -753,20 +712,20 @@ inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, FuncYes funcYes, FuncNo fun
         vcs.m_semis_and_queue.Push(Semi(x, y, carrier, key));
 
     vcs.m_statistics.and_semi_successes++;
-    CALL(typename S::SemisSet::KeySemisSet, funcYes);
+    SWITCHTO(typename S::SemisSet::KeySemisSet);
 }
 
-template <class S, class FuncYes, class FuncNo>
+template <class S, class Func>
 inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, HexPoint new_key,
-                            FuncYes funcYes, FuncNo funcNo)
+                                   Func func)
 {
     if (new_key != key)
     {
         key = new_key;
-        TryAddSemi<typename S::KeySemisReset>(carrier, funcYes, funcNo);
+        TryAddSemi<typename S::KeySemisReset>(carrier, func);
     }
     else
-        TryAddSemi<S>(carrier, funcYes, funcNo);
+        TryAddSemi<S>(carrier, func);
 }
 
 void VCS::AndFull(HexPoint x, HexPoint y, bitset_t carrier)
@@ -836,17 +795,10 @@ inline void VCS::VCAnd::FEF()
         return FEFNext<S>();
     intersection = xz_carrier & *zy_iter;
     if (intersection.none())
-        return TryAddSemi<S>((xz_carrier | *zy_iter).set(key),
-                             FUNC(FEFNext), FUNC(FEFNext));
-    FEFCaptured<S>();
-}
-
-template <class S>
-inline void VCS::VCAnd::FEFCaptured()
-{
-    if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
+        return TryAddSemi<S>((xz_carrier | *zy_iter).set(key), FUNC(FEFNext));
+    else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
         return TryAddSemi<S>((xz_carrier | *zy_iter | capturedSet).set(key),
-                             FUNC(FEFNext), FUNC(FEFNext));
+                             FUNC(FEFNext));
     FEFNext<S>();
 }
 
@@ -892,13 +844,12 @@ inline void VCS::VCAnd::FSF()
     intersection = xz_carrier & *zy_iter;
     BitsetIterator it(intersection);
     if (!it /* intersection is empty */)
-        return TryAddFull<S>(xz_carrier | *zy_iter,
-                                FUNC(FSFNext), FUNC(FSFNext));
+        return TryAddFull<S>(xz_carrier | *zy_iter, FUNC(FSFNext));
     HexPoint new_key = *it;
     ++it;
     if (!it /* intersection is singleton */)
         return TryAddSemi<S>(xz_carrier | *zy_iter, new_key,
-                             FUNC(FSFCaptured), FUNC(FSFCaptured));
+                             FUNC(FSFCaptured));
     FSFCaptured<S>();
 }
 
@@ -908,12 +859,12 @@ inline void VCS::VCAnd::FSFCaptured()
     BitsetIterator it(intersection - capturedSet);
     if (!it /* intersection is empty */)
         return TryAddFull<S>(xz_carrier | *zy_iter | capturedSet,
-                             FUNC(FSFNext), FUNC(FSFNext));
+                             FUNC(FSFNext));
     HexPoint new_key = *it;
     ++it;
     if (!it /* intersection is singleton */)
         return TryAddSemi<S>(xz_carrier | *zy_iter | capturedSet, new_key,
-                             FUNC(FSFNext), FUNC(FSFNext));
+                             FUNC(FSFNext));
     FSFNext<S>();
 }
 
@@ -959,87 +910,32 @@ inline void VCS::AndFullStoneSemi(HexPoint x, HexPoint y, HexPoint key,
     if (!BitsetUtil::IsSubsetOf((zy_list->GetIntersection() & carrier).reset(key),
         xyCapturedSet))
         return;
-    
-    AndList* xy_fulls = m_fulls[x].Get(y);
-    if (xy_fulls)
-        AndFullStoneSemi<false>(x, y, key, carrier, xyCapturedSet,
-                                zy_list, xy_fulls);
-    else
-        AndFullStoneSemi<true>(x, y, key, carrier, xyCapturedSet,
-                               zy_list, xy_fulls);
+
+    VCAnd vcAnd(*this, x, y, xyCapturedSet, carrier, zy_list, key);
+    vcAnd.Run(FUNC(FSS));
 }
 
-template <bool xy_fulls_null>
-inline void VCS::AndFullStoneSemi(HexPoint x, HexPoint y, HexPoint key,
-                                  bitset_t carrier, bitset_t xyCapturedSet,
-                                  AndList* zy_list, AndList* xy_fulls)
-{
-    SemiList* xy_semis = m_semis[x].Get(y);
-    CarrierList::Iterator i(zy_list->ProcessedCarriers());
-    if (xy_semis)
-        AndFullStoneSemiIterate<xy_fulls_null, false>
-                                (x, y, key, carrier, xyCapturedSet, i,
-                                 xy_fulls, xy_semis);
-    else
-        AndFullStoneSemiIterate<xy_fulls_null, true>
-                               (x, y, key, carrier, xyCapturedSet, i,
-                                xy_fulls, xy_semis);
-}
 
-template <bool xy_fulls_null, bool xy_semis_null>
-inline void VCS::AndFullStoneSemiIterate(HexPoint x, HexPoint y, HexPoint key,
-                                         bitset_t carrier, bitset_t xyCapturedSet,
-                                         CarrierList::Iterator i,
-                                         AndList* xy_fulls, SemiList* xy_semis)
+template <class S>
+inline void VCS::VCAnd::FSS()
 {
-    if (!i)
+    if (!zy_iter)
         return;
-    bool new_semi = TryAndFullStoneSemi<xy_fulls_null, xy_semis_null>
-                                       (x, y, key, carrier, *i, xyCapturedSet,
-                                        xy_fulls, xy_semis);
-    ++i;
-    if (xy_semis_null && !new_semi)
-        AndFullStoneSemiIterate<xy_fulls_null, true>
-                               (x, y, key, carrier, xyCapturedSet, i,
-                                xy_fulls, xy_semis);
-    else
-        AndFullStoneSemiIterate<xy_fulls_null, false>
-                               (x, y, key, carrier, xyCapturedSet, i,
-                                xy_fulls, xy_semis);
+    if (zy_iter->test(x))
+        return FSSNext<S>();
+    bitset_t intersection = (xz_carrier & *zy_iter).reset(key);
+    if (intersection.none())
+        return TryAddSemi<S>(xz_carrier | *zy_iter, FUNC(FSSNext));
+    else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
+        return TryAddSemi<S>(xz_carrier | *zy_iter | capturedSet, FUNC(FSSNext));
+    FSSNext<S>();
 }
 
-template <bool xy_fulls_null, bool xy_semis_null>
-inline bool VCS::TryAndFullStoneSemi(HexPoint x, HexPoint y, HexPoint key,
-                                     bitset_t xz_carrier, bitset_t zy_carrier,
-                                     bitset_t xyCapturedSet,
-                                     AndList* xy_fulls, SemiList* &xy_semis)
+template <class S>
+inline void VCS::VCAnd::FSSNext()
 {
-    if (zy_carrier.test(x))
-        return false;
-    bitset_t intersection = (xz_carrier & zy_carrier).reset(key);
-    if (intersection.none())
-    {
-        m_statistics.and_semi_attempts++;
-        if (TryAddSemi<xy_fulls_null, xy_semis_null>
-            (x, y, xz_carrier | zy_carrier, key,
-             xyCapturedSet, xy_fulls, xy_semis))
-        {
-            m_statistics.and_semi_successes++;
-            return true;
-        }
-    }
-    else if (BitsetUtil::IsSubsetOf(intersection, xyCapturedSet))
-    {
-        m_statistics.and_semi_attempts++;
-        if (TryAddSemi<xy_fulls_null, xy_semis_null>
-            (x, y, xz_carrier | zy_carrier | xyCapturedSet, key,
-             xyCapturedSet, xy_fulls, xy_semis))
-        {
-            m_statistics.and_semi_successes++;
-            return true;
-        }
-    }
-    return false;
+    ++zy_iter;
+    FSS<S>();
 }
 
 void VCS::AndSemi(HexPoint x, HexPoint y, HexPoint key, bitset_t carrier)
@@ -1120,18 +1016,10 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
     }
 }
 
-inline void VCS::SemiRemoveSupersetsOf(HexPoint x, HexPoint y, bitset_t carrier)
+inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
 {
-    SemiList* semis = m_semis[x].Get(y);
-    if (semis)
-        semis->RemoveSupersetsOf(carrier);
-}
-
-template <bool fulls_null>
-inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier,
-                            AndList* &fulls)
-{
-    if (fulls_null)
+    AndList* fulls = m_fulls[x].Get(y);
+    if (!fulls)
     {
         fulls = m_fulls[x].Add(y, carrier);
         m_fulls[y].Set(x, fulls);
@@ -1139,43 +1027,9 @@ inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier,
     else if (!fulls->TryAdd(carrier))
         return false;
     m_fulls_and_queue.Push(Full(x, y, carrier));
-    SemiRemoveSupersetsOf(x, y, carrier);
-    return true;
-}
-
-inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
-{
-    AndList* fulls = m_fulls[x].Get(y);
-    if (fulls)
-        return TryAddFull<false>(x, y, carrier, fulls);
-    else
-        return TryAddFull<true>(x, y, carrier, fulls);
-}
-
-template <bool fulls_null, bool semis_null>
-inline bool VCS::TryAddSemi(HexPoint x, HexPoint y, bitset_t carrier, HexPoint key,
-                            bitset_t xyCapturedSet, AndList* fulls, SemiList* &semis)
-{
-    if (semis_null)
-    {
-        if (!fulls_null)
-        {
-            if (fulls->SupersetOfAny(carrier))
-                return false;
-        }
-        semis = m_semis[x].Add(y, carrier, key);
-        m_semis[y].Set(x, semis);
-    }
-    else if (!semis->TryAdd<fulls_null>(carrier, key, fulls))
-        return false;
-    if (semis->TryQueue(xyCapturedSet))
-        m_semis_or_queue.Push(Ends(x, y));
-    if ((m_brd->GetColor(x) != EMPTY &&
-         (m_param->and_over_edge || !HexPointUtil::isEdge(x)))
-        ||
-        (m_brd->GetColor(y) != EMPTY &&
-         (m_param->and_over_edge || !HexPointUtil::isEdge(y))))
-        m_semis_and_queue.Push(Semi(x, y, carrier, key));
+    SemiList* semis = m_semis[x].Get(y);
+    if (semis)
+        semis->RemoveSupersetsOf(carrier);
     return true;
 }
 

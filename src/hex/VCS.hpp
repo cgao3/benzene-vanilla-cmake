@@ -311,9 +311,6 @@ private:
         void Set(HexPoint key, AndList* list);
         void Add(bitset_t carrier);
 
-        template <bool fulls_null>
-        bool TryAdd(bitset_t carrier, HexPoint key, AndList* fulls);
-
         bitset_t GetIntersection() const;
 
         void RemoveSupersetsOf(bitset_t carrier);
@@ -454,23 +451,24 @@ private:
         template <class S, class Func>
         void SemiRemoveSupersetsOf(bitset_t carrier, Func func);
 
-        template <class S, class FuncYes, class FuncNo>
-        void TryAddFull(bitset_t carrier, FuncYes funcYes, FuncNo funcNo);
+        template <class S, class Func>
+        void TryAddFull(bitset_t carrier, Func func);
 
-        template <class S, class FuncYes, class FuncNo>
-        void TryAddSemi(bitset_t carrier, FuncYes funcYes, FuncNo funcNo);
+        template <class S, class Func>
+        void TryAddSemi(bitset_t carrier, Func func);
 
-        template <class S, class FuncYes, class FuncNo>
-        void TryAddSemi(bitset_t carrier, HexPoint new_key,
-                        FuncYes funcYes, FuncNo funcNo);
+        template <class S, class Func>
+        void TryAddSemi(bitset_t carrier, HexPoint new_key, Func func);
 
         VCAND_DEFFUNC(FEF)
-        VCAND_DEFFUNC(FEFCaptured)
         VCAND_DEFFUNC(FEFNext)
 
         VCAND_DEFFUNC(FSF)
         VCAND_DEFFUNC(FSFCaptured)
         VCAND_DEFFUNC(FSFNext)
+        
+        VCAND_DEFFUNC(FSS)
+        VCAND_DEFFUNC(FSSNext)
     };
 
     void AndFull(HexPoint x, HexPoint y, bitset_t carrier);
@@ -492,21 +490,6 @@ private:
                           bitset_t xzCapturedSet);
     void AndFullStoneFull(HexPoint x, HexPoint z, HexPoint y,
                           bitset_t carrier, bitset_t xyCapturedSet);
-    template <bool xy_fulls_null>
-    void AndFullStoneFull(HexPoint x, HexPoint y,
-                          bitset_t carrier, bitset_t xyCapturedSet,
-                          AndList* zy_fulls, AndList* xy_fulls);
-    template <bool xy_fulls_null, bool xy_semis_null>
-    void AndFullStoneFullIterate(HexPoint x, HexPoint y,
-                                 bitset_t carrier, bitset_t xyCapturedSet,
-                                 CarrierList::Iterator i,
-                                 AndList* xy_fulls, SemiList* xy_semis);
-    template <bool xy_fulls_null, bool xy_semis_null>
-    bool TryAndFullStoneFull(HexPoint x, HexPoint y,
-                             bitset_t xz_carrier, bitset_t zy_carrier,
-                             bitset_t xyCapturedSet,
-                             AndList* &xy_fulls, SemiList* &xy_semis,
-                             bool &new_semi);
 
     void AndFullStoneSemi(HexPoint x, HexPoint z, bitset_t carrier,
                           bitset_t xzCapturedSet);
@@ -515,31 +498,11 @@ private:
     void AndFullStoneSemi(HexPoint x, HexPoint y, HexPoint key,
                           bitset_t carrier, bitset_t xyCapturedSet,
                           AndList* zy_list);
-    template <bool xy_fulls_null>
-    void AndFullStoneSemi(HexPoint x, HexPoint y, HexPoint key,
-                          bitset_t carrier, bitset_t xyCapturedSet,
-                          AndList* zy_list, AndList* xy_fulls);
-    template <bool xy_fulls_null, bool xy_semis_null>
-    void AndFullStoneSemiIterate(HexPoint x, HexPoint y, HexPoint key,
-                                 bitset_t carrier, bitset_t xyCapturedSet,
-                                 CarrierList::Iterator i,
-                                 AndList* xy_fulls, SemiList* xy_semis);
-    template <bool xy_fulls_null, bool xy_semis_null>
-    bool TryAndFullStoneSemi(HexPoint x, HexPoint y, HexPoint key,
-                             bitset_t xz_carrier, bitset_t zy_carrier,
-                             bitset_t xyCapturedSet,
-                             AndList* xy_fulls, SemiList* &xy_semis);
 
     void AndSemiStoneFull(HexPoint x, HexPoint z, HexPoint key,
                           bitset_t carrier, bitset_t xzCapturedSet);
 
-    template <bool fulls_null>
-    bool TryAddFull(HexPoint x, HexPoint y, bitset_t carrier, AndList* &fulls);
     bool TryAddFull(HexPoint x, HexPoint y, bitset_t carrier);
-    template <bool fulls_null, bool semis_null>
-    bool TryAddSemi(HexPoint x, HexPoint y, bitset_t carrier, HexPoint key,
-                    bitset_t xyCaptureSet, AndList* fulls, SemiList* &semis);
-    void SemiRemoveSupersetsOf(HexPoint x, HexPoint y, bitset_t carrier);
 };
 
 
