@@ -18,4 +18,3 @@ share \
 tools \
 tournament \
 src
-

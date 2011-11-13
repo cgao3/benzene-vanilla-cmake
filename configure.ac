@@ -135,6 +135,7 @@ Makefile
 regression/Makefile
 share/Makefile
 tools/Makefile
+tools/mergesgf/Makefile
 tournament/Makefile
 src/Makefile 
 src/util/Makefile 
