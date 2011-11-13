@@ -134,8 +134,6 @@ AC_OUTPUT([
 Makefile 
 regression/Makefile
 share/Makefile
-tools/Makefile
-tools/mergesgf/Makefile
 tournament/Makefile
 src/Makefile 
 src/util/Makefile 
@@ -148,4 +146,6 @@ src/wolve/Makefile
 src/mohex/Makefile
 src/benzenetest/Makefile
 src/test/Makefile
+tools/Makefile
+tools/mergesgf/Makefile
 ])

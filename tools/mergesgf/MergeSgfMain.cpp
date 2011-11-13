@@ -11,14 +11,14 @@
     mergesgf [-output merged.sgf] game.sgf [...]
 
     Description:
+    Statistics about the game results are computed and stored as a
+    comment in the nodes.
 
-    Merges SGF files to a single tree. The game-moves are transformed
-    into a normalized forms to merge rotated/mirrored openings into
-    the same subtree. Statistics about the game results are computed
-    and stored as a comment in the nodes.
+    NEED TO DO THE FOLLOWING: Merges SGF files to a single tree. The
+    game-moves are transformed into a normalized forms to merge
+    rotated/mirrored openings into the same subtree.
 
     Options:
-
     -output Filename for the resulting merged SGF file (default merged.sgf)
     -help   Print help and exit
  */
@@ -30,7 +30,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include "GoInit.h"
 #include "SgCmdLineOpt.h"
 #include "SgDebug.h"
 #include "SgException.h"
@@ -39,6 +38,10 @@
 #include "SgNode.h"
 #include "SgPoint.h"
 #include "SgStatistics.h"
+
+#include "Hex.hpp"
+#include "HexProp.hpp"
+#include "HexSgUtil.hpp"
 
 using namespace std;
 
@@ -139,7 +142,8 @@ void AddFile(Node* root, const string& filename)
         throw SgException("Games have different board sizes");
     bool blackWin = GetBlackWin(gameRoot);
     vector<SgPoint> moves = GetMoves(gameRoot);
-    moves = Normalize(moves);
+    // TODO: ACTUALLY DO THIS!!
+    //moves = Normalize(moves);
     AddMoves(root, moves, blackWin);
 }
 
@@ -249,6 +253,7 @@ bool IsCountGreater(const Node* node1, const Node* node2)
 
 vector<SgPoint> Normalize(const vector<SgPoint>& moves)
 {
+    // TODO: Convert this function to Hex!!
     SG_ASSERT(g_boardSize > 0);
     vector<SgPoint> result(moves);
     for (int rot = 0; rot < 8; ++rot)
@@ -292,7 +297,10 @@ void ParseOptions(int argc, char** argv)
 
 string PointToSgfString(SgPoint p)
 {
-    return SgPropUtil::PointToSgfString(p, g_boardSize, SG_PROPPOINTFMT_GO);
+    SG_ASSERT(g_boardSize > 0);
+    benzene::HexPoint hp 
+        = benzene::HexSgUtil::SgPointToHexPoint(p, g_boardSize);
+    return benzene::HexPointUtil::ToString(hp);
 }
 
 void SaveNode(ostream& out, const Node* node, SgBlackWhite toPlay,
@@ -330,7 +338,8 @@ void SaveNode(ostream& out, const Node* node, SgBlackWhite toPlay,
     for (size_t i = 0; i < children.size(); ++i)
     {
         const Node* childNode = children[i];
-        out << GetLabel(i) << " (" << SgWritePoint(childNode->m_move) << "): "
+        out << GetLabel(i) << " (" 
+            << PointToSgfString(childNode->m_move) << "): "
             << BlackWinsString(childNode) << '\n';
     }
     out << "]\n";
@@ -365,14 +374,13 @@ int main(int argc, char** argv)
     {
         ParseOptions(argc, argv);
         SgInit();
-        GoInit();
+        benzene::HexProp::Init();
         Node* root = new Node();
         for (vector<string>::const_iterator it = g_files.begin();
              it != g_files.end(); ++it)
             AddFile(root, *it);
         SaveTree(root);
         root->DeleteTree();
-        GoFini();
         SgFini();
     }
     catch (const SgException& e)

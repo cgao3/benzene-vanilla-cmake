@@ -15,6 +15,6 @@ doc/pages/mainpage.cpp
 SUBDIRS = \
 regression \
 share \
-tools \
 tournament \
-src
+src \
+tools
