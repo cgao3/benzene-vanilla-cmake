@@ -230,6 +230,14 @@ inline VCS::SemiList::SemiList(bitset_t carrier, HexPoint key)
     Put(key, new AndList(carrier));
 }
 
+inline VCS::SemiList::SemiList(const CarrierList& carrier_list,
+                               bitset_t intersection)
+    : CarrierList(carrier_list),
+      m_intersection(intersection),
+      m_queued(false)
+{
+}
+
 VCS::SemiList::~SemiList()
 {
     for (BitsetIterator it(Entries()); it; ++it)
@@ -454,12 +462,19 @@ void VCS::Build(VCBuilderParam& param,
                 const PatternState& patterns,
                 bitset_t added[BLACK_AND_WHITE], bool use_changelog)
 {
-    BenzeneAssert(false /* stub */);
+    if (use_changelog)
+    {
+        backups.push_back(Backup());
+        backups.back().Create(*this);
+    }
+    Build(param, newGroups, patterns);
 }
 
 void VCS::Revert()
 {
-    BenzeneAssert(false /* stub */);
+    Reset();
+    backups.back().Restore(*this);
+    backups.pop_back();
 }
 
 void VCS::Reset()
@@ -949,6 +964,103 @@ inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
     if (semis)
         semis->RemoveSupersetsOf(carrier);
     return true;
+}
+
+inline VCS::Backup::AndListEntry::AndListEntry(HexPoint point, const AndList* andList)
+    : point(point),
+      andList(new AndList(*andList))
+{
+}
+
+inline VCS::Backup::AndListEntry::~AndListEntry()
+{
+    if (andList)
+        delete andList;
+}
+
+inline VCS::Backup::FullsEntry::FullsEntry(HexPoint x)
+    : x(x)
+{
+}
+
+inline VCS::Backup::SemiListEntry::SemiListEntry(HexPoint y, const CarrierList& all_semis,
+                                                 bitset_t intersection)
+    : y(y),
+      all_semis(all_semis),
+      intersection(intersection)
+{
+}
+
+inline VCS::Backup::SemisEntry::SemisEntry(HexPoint x)
+    : x(x)
+{
+}
+
+inline void VCS::Backup::Create(VCS& vcs)
+{
+    vcs.TestQueuesEmpty();
+    for (int x = 0; x < BITSETSIZE; x++)
+    {
+        FullNbs& nbs = vcs.m_fulls[x];
+        if (nbs.Entries().none())
+            continue;
+        FullsEntry entry((HexPoint)x);
+        for (BitsetIterator y(nbs.Entries()); y; ++y)
+            entry.list.push_back(AndListEntry(*y, nbs[*y]));
+        fulls.push_back(entry);
+    }
+    for (int x = 0; x < BITSETSIZE; x++)
+    {
+        SemiNbs& nbs = vcs.m_semis[x];
+        if (nbs.Entries().none())
+            continue;
+        SemisEntry entry((HexPoint)x);
+        for (BitsetIterator y(nbs.Entries()); y; ++y)
+        {
+            SemiList* semi_list = nbs[*y];
+            SemiListEntry keys(*y, *semi_list, semi_list->GetIntersection());
+            for (BitsetIterator key(semi_list->Entries()); key; ++key)
+                keys.list.push_back(AndListEntry(*key, (*semi_list)[*key]));
+            entry.list.push_back(keys);
+        }
+        semis.push_back(entry);
+    }
+}
+
+inline void VCS::Backup::Restore(VCS& vcs)
+{
+    vcs.TestQueuesEmpty();
+    for (std::vector<FullsEntry>::iterator entry = fulls.begin();
+         entry != fulls.end(); ++entry)
+    {
+        FullNbs& nbs = vcs.m_fulls[entry->x];
+        for (std::vector<AndListEntry>::iterator i = entry->list.begin();
+             i != entry->list.end(); ++i)
+        {
+            HexPoint y = i->point;
+            nbs.Put(y, i->andList);
+            vcs.m_fulls[y].Put(entry->x, i->andList);
+            i->andList = 0;
+        }
+    }
+    for (std::vector<SemisEntry>::iterator entry = semis.begin();
+         entry != semis.end(); ++entry)
+    {
+        SemiNbs& nbs = vcs.m_semis[entry->x];
+        for (std::vector<SemiListEntry>::iterator i = entry->list.begin();
+            i != entry->list.end(); ++i)
+        {
+            SemiList* semi_list = new SemiList(i->all_semis, i->intersection);
+            for (std::vector<AndListEntry>::iterator k = i->list.begin();
+                 k != i->list.end(); ++k)
+            {
+                semi_list->Put(k->point, k->andList);
+                k->andList = 0;
+            }
+            nbs.Put(i->y, semi_list);
+            vcs.m_semis[i->y].Put(entry->x, semi_list);
+        }
+    }
 }
 
 bitset_t VCS::GetSmallestSemisUnion() const

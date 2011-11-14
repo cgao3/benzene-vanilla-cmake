@@ -360,6 +360,7 @@ private:
     {
     public:
         SemiList(bitset_t carrier, HexPoint key);
+        SemiList(const CarrierList& carrier_list, bitset_t intersection);
         ~SemiList();
 
         void Add(bitset_t carrier);
@@ -429,6 +430,9 @@ private:
     void TestQueuesEmpty();
 
     void DoSearch();
+
+    /** And rule staff */
+    // @{
 
     struct VCAnd
     {
@@ -515,8 +519,6 @@ private:
     void AndSemi(HexPoint x, HexPoint z, HexPoint key, bitset_t carrier,
                  HexColor zcolor, bitset_t xzCapturedSet);
 
-    void OrSemis(HexPoint x, HexPoint y);
-
     void AndFullEmptyFull(HexPoint x, HexPoint z, bitset_t carrier,
                           bitset_t xzCapturedSet);
     void AndFullEmptyFull(HexPoint x, HexPoint z, HexPoint y, bitset_t carrier,
@@ -538,9 +540,58 @@ private:
     void AndSemiStoneFull(HexPoint x, HexPoint z, HexPoint key,
                           bitset_t carrier, bitset_t xzCapturedSet);
 
-    bool TryAddFull(HexPoint x, HexPoint y, bitset_t carrier);
-};
+    // @}
 
+    void OrSemis(HexPoint x, HexPoint y);
+
+    bool TryAddFull(HexPoint x, HexPoint y, bitset_t carrier);
+
+    class Backup
+    {
+    public:
+        void Create(VCS& vcs);
+        void Restore(VCS& vcs);
+
+    private:
+        struct AndListEntry
+        {
+            AndListEntry(HexPoint point, const AndList* andList);
+            ~AndListEntry();
+            HexPoint point;
+            AndList* andList;
+        };
+
+        struct FullsEntry
+        {
+            FullsEntry(HexPoint x);
+            HexPoint x;
+            std::vector<AndListEntry> list;
+        };
+
+        struct SemiListEntry
+        {
+            SemiListEntry(HexPoint y, const CarrierList& all_semis,
+                          bitset_t intersection);
+            HexPoint y;
+            CarrierList all_semis;
+            bitset_t intersection;
+            std::vector<AndListEntry> list;
+        };
+
+        struct SemisEntry
+        {
+            SemisEntry(HexPoint x);
+            HexPoint x;
+            std::vector<SemiListEntry> list;
+        };
+
+        std::vector<FullsEntry> fulls;
+        std::vector<SemisEntry> semis;
+    };
+    friend class Backup;
+
+    std::vector<Backup> backups;
+};
 
 template <class Stream>
 void VCS::DumpFulls(Stream& os, HexPoint x, HexPoint y) const
