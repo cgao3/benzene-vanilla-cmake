@@ -355,9 +355,14 @@ void VCPattern::CreatePatterns(int width, int height)
                         empty.set(p);
                     }
                 }
-                VCPattern pat(st.endpoint, bp.endpoint, black, empty);
-                complete.push_back(pat);
-                numConstructed++;
+                // No point creating a pattern with adjacent
+                // endpoints, since the add will always fail.
+                if (!sb.Const().Adjacent(st.endpoint, bp.endpoint))
+                {
+                    VCPattern pat(st.endpoint, bp.endpoint, black, empty);
+                    complete.push_back(pat);
+                    numConstructed++;
+                }
                 onBoard = ShiftBuilderPattern(bp, DIR_EAST, sb);
                 col++;
             }
