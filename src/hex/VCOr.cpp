@@ -7,29 +7,28 @@ using namespace benzene;
 class VCOrCombiner
 {
 public:
-    VCOrCombiner(const CarrierList& semis,
-                 const CarrierList& fulls,
-                 bitset_t capturedSet);
-    
+    VCOrCombiner(const CarrierList& semis, const CarrierList& fulls,
+                 bitset_t xCapturedSet, bitset_t yCapturedSet);
+
     vector<bitset_t> SearchResult() const;
-    
+
 private:
-    bitset_t m_capturedSet;
+    bitset_t m_xCapturedSet;
+    bitset_t m_yCapturedSet;
     mutable std::vector<bitset_t> m_mem;
-    
-    int Search(bitset_t forbidden, bool can_capture,
+
+    int Search(bitset_t forbidden, bool captureX, bool captureY,
                int new_semis, int new_semis_count, int old_semis_count,
                int filtered_count);
-    
+
     bitset_t Intersect(int start, int count) const;
     bitset_t Add(int start, int count, bitset_t capturedSet);
     int Filter(int start, int count, size_t a) const;
 };
 
-VCOrCombiner::VCOrCombiner(const CarrierList& semis,
-                           const CarrierList& fulls,
-                           bitset_t capturedSet)
-    : m_capturedSet(capturedSet)
+VCOrCombiner::VCOrCombiner(const CarrierList& semis, const CarrierList& fulls,
+                           bitset_t xCapturedSet, bitset_t yCapturedSet)
+    : m_xCapturedSet(xCapturedSet), m_yCapturedSet(yCapturedSet)
 {
     m_mem.resize(semis.Count() + fulls.Count());
     size_t memidx = 0;
@@ -54,7 +53,7 @@ VCOrCombiner::VCOrCombiner(const CarrierList& semis,
         }
     for (CarrierList::Iterator i(fulls); i; ++i)
         m_mem[memidx++] = i.Carrier();;
-    Search(bitset_t(), true,
+    Search(bitset_t(), true, true,
            0, new_semis_count, old_semis_count, fulls.Count());
 }
 
@@ -63,38 +62,48 @@ inline vector<bitset_t> VCOrCombiner::SearchResult() const
     return m_mem;
 }
 
-int VCOrCombiner::Search(bitset_t forbidden, bool can_capture,
+int VCOrCombiner::Search(bitset_t forbidden, bool captureX, bool captureY,
                          int new_semis, int new_semis_count, int old_semis_count,
                          int filtered_count)
 {
     BenzeneAssert(new_semis_count > 0);
     int old_semis = new_semis + new_semis_count;
-    
+
     bitset_t I_new = Intersect(new_semis, new_semis_count);
     bitset_t I_old = Intersect(old_semis, old_semis_count);
     bitset_t I = I_new & I_old;
+    bitset_t capturedSet;
+    if (captureX)
+        capturedSet |= m_xCapturedSet;
+    if (captureY)
+        capturedSet |= m_yCapturedSet;
 
-    if (can_capture ? !BitsetUtil::IsSubsetOf(I, m_capturedSet) : I.any())
+    if (!BitsetUtil::IsSubsetOf(I, capturedSet))
     {
         m_mem.resize(new_semis);
         return 0;
     }
-    
+
     int filtered = old_semis + old_semis_count;
     int new_conn = filtered + filtered_count;
     int new_conn_count = 0;
-    
+
     if (filtered_count == 0)
     {
+        bitset_t minCapturedSet;
+        if ((I & m_xCapturedSet).any())
+            minCapturedSet |= m_xCapturedSet;
+        if ((I & m_yCapturedSet).any())
+            minCapturedSet |= m_yCapturedSet;
         bitset_t new_t = Add(new_semis, new_semis_count + old_semis_count,
-                             I.any() ? m_capturedSet : EMPTY_BITSET);
+                             minCapturedSet);
         m_mem.push_back(new_t);
         filtered_count++;
         new_conn_count++;
     }
-    
+
     forbidden |= I_new;
-    
+
     while (true)
     {
         size_t min_size = std::numeric_limits<size_t>::max();
@@ -109,7 +118,7 @@ int VCOrCombiner::Search(bitset_t forbidden, bool can_capture,
                 allowed = A;
             }
         }
-        
+
         if (min_size == 0)
         {
             for (int i = 0; i < new_conn_count; i++)
@@ -120,17 +129,17 @@ int VCOrCombiner::Search(bitset_t forbidden, bool can_capture,
             m_mem.resize(new_semis + new_conn_count);
             return new_conn_count;
         }
-        
+
         size_t a = allowed._Find_first();
         BenzeneAssert(a < allowed.size());
         forbidden.set(a);
-        
+
         int rec_new_semis = filtered + filtered_count;
         int rec_new_semis_count = Filter(new_semis, new_semis_count, a);
         int rec_old_semis_count = Filter(old_semis, old_semis_count, a);
         int rec_filtered_count = Filter(filtered, filtered_count, a);
         int rec_new_conn_count =
-        Search(forbidden, can_capture & !m_capturedSet[a],
+        Search(forbidden, captureX & !m_xCapturedSet[a], captureY & !m_yCapturedSet[a],
                rec_new_semis, rec_new_semis_count, rec_old_semis_count,
                rec_filtered_count);
         filtered_count += rec_new_conn_count;
@@ -181,10 +190,9 @@ inline int VCOrCombiner::Filter(int start, int count, size_t a) const
     return res;
 }
 
-vector<bitset_t> benzene::VCOr(const CarrierList& semis,
-                               const CarrierList& fulls,
-                               bitset_t capturedSet)
+vector<bitset_t> benzene::VCOr(const CarrierList& semis, const CarrierList& fulls,
+                               bitset_t xCapturedSet, bitset_t yCapturedSet)
 {
-    VCOrCombiner comb(semis, fulls, capturedSet);
+    VCOrCombiner comb(semis, fulls, xCapturedSet, yCapturedSet);
     return comb.SearchResult();
 }

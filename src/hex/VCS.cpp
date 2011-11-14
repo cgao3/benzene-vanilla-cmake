@@ -907,7 +907,7 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
     m_statistics.doOrs++;
     std::vector<bitset_t> new_fulls =
         VCOr(*xy_semis, xy_fulls ? *xy_fulls : CarrierList(),
-             m_capturedSet[x] | m_capturedSet[y]);
+             m_capturedSet[x], m_capturedSet[y]);
     xy_semis->MarkAllProcessed();
     if (new_fulls.empty())
         return;
