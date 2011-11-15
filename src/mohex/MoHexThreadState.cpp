@@ -167,7 +167,7 @@ void MoHexThreadState::Execute(SgMove sgmove)
     ExecuteMove(move, m_treeUpdateRadius);
     if (m_usingKnowledge)
     {
-        m_gameSequence.push_back(Move(m_state->ToPlay(), move));
+        m_gameSequence.push_back(Move(!m_state->ToPlay(), move));
         if(m_sharedData->stones.Get(SequenceHash::Hash(m_gameSequence), 
                                     m_state->Position()))
         {
