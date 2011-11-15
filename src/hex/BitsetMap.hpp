@@ -19,7 +19,9 @@ public:
     BitsetMap();
 
     T* operator[](HexPoint x) const;
+    T* Add(HexPoint x);
     void Put(HexPoint x, T* entry);
+    void Remove(HexPoint x);
 
     bitset_t Entries() const;
 
@@ -49,10 +51,25 @@ inline T* BitsetMap<T>::operator[](HexPoint x) const
 }
 
 template <class T>
+inline T* BitsetMap<T>::Add(HexPoint x)
+{
+    T* res = new T();
+    Put(x, res);
+    return res;
+}
+
+template <class T>
 inline void BitsetMap<T>::Put(HexPoint x, T* entry)
 {
     m_set.set(x);
     m_entries[x] = entry;
+}
+
+template <class T>
+inline void BitsetMap<T>::Remove(HexPoint x)
+{
+    m_set.reset(x);
+    m_entries[x] = 0;
 }
 
 template <class T>

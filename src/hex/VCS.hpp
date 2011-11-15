@@ -84,17 +84,21 @@ public:
     friend class Iterator;
 
     bitset_t GetGreedyUnion() const;
+    bool SupersetOfAny(bitset_t carrier) const;
+    bool RemoveSupersetsOfCheckAnyRemoved(const CarrierList& filter);
 
 protected:
     CarrierList(bitset_t carrier);
     CarrierList(const std::vector<bitset_t>& carriers_list);
 
     void AddNew(bitset_t carrier);
-    bool SupersetOfAny(bitset_t carrier) const;
 
     bool RemoveSupersetsOfCheckOldRemoved(bitset_t carrier);
     bool RemoveSupersetsOfCheckAnyRemoved(bitset_t carrier);
     void RemoveSupersetsOfUnchecked(bitset_t carrier);
+
+    size_t RemoveAllContaining(bitset_t set);
+    size_t RemoveAllContaining(bitset_t set, std::vector<bitset_t>& removed);
 
     bool TrySetOld(bitset_t carrier) const;
 
@@ -102,10 +106,15 @@ protected:
     bitset_t GetAllIntersection() const;
 
     void MarkAllOld();
+    void MarkAllNew();
+
+    void Clear();
 
 private:
     template <bool check_old>
     bool RemoveSupersetsOf(bitset_t carrier);
+    template <bool store_removed>
+    size_t RemoveAllContaining_(bitset_t set, std::vector<bitset_t>* removed);
     template <bool only_old>
     bitset_t GetIntersection() const;
 };
@@ -342,16 +351,20 @@ private:
     class AndList : public CarrierList
     {
     public:
+        AndList();
         AndList(bitset_t carrier);
         AndList(const std::vector<bitset_t>& carriers_list);
         bool TryAdd(bitset_t carrier);
+        bool TryAdd(bitset_t carrier, const CarrierList& filter);
         void Add(bitset_t carrier);
         bitset_t GetIntersection() const;
         void RemoveSupersetsOf(bitset_t carrier);
 
         bool TrySetProcessed(bitset_t carrier);
+        void MarkAllUnprocessed();
+        void CalcIntersection();
 
-        using CarrierList::SupersetOfAny;
+        using CarrierList::RemoveAllContaining;
     private:
         bitset_t m_processed_intersection;
     };
@@ -359,6 +372,7 @@ private:
     class SemiList : public CarrierList, public BitsetMap<AndList>
     {
     public:
+        SemiList();
         SemiList(bitset_t carrier, HexPoint key);
         SemiList(const CarrierList& carrier_list, bitset_t intersection);
         ~SemiList();
@@ -368,10 +382,12 @@ private:
         bitset_t GetIntersection() const;
 
         void RemoveSupersetsOf(bitset_t carrier);
+        bool RemoveSupersetsOf(const CarrierList& filter);
 
         bool TryQueue(bitset_t capturedSet);
 
         void MarkAllProcessed();
+        void CalcAllSemis();
 
     private:
         bitset_t m_intersection;
@@ -545,6 +561,24 @@ private:
     void OrSemis(HexPoint x, HexPoint y);
 
     bool TryAddFull(HexPoint x, HexPoint y, bitset_t carrier);
+
+    /** Incremental build staff */
+    // @{
+    void RemoveAllContaining(const Groups& oldGroups, bitset_t removed);
+    void Merge(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE]);
+    void MergeAndShrink(bitset_t added,
+                        bitset_t x_merged, bitset_t y_merged,
+                        HexPoint x, HexPoint y);
+    void MergeRemoveSelfEnds(bitset_t x_merged);
+    bool Shrink(bitset_t added, HexPoint x, HexPoint y, AndList* fulls);
+    bool Shrink(bitset_t added, HexPoint x, HexPoint y, AndList* semis,
+                const AndList* filter, HexPoint key);
+    bool Shrink(bitset_t added, HexPoint x, HexPoint y,
+                AndList* fulls, const CarrierList& list, size_t& stats);
+    bool Shrink(bitset_t added, HexPoint x, HexPoint y,
+                AndList* semis, const CarrierList& list,
+                const AndList* filter, HexPoint key);
+    // @}
 
     class Backup
     {

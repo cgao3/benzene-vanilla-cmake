@@ -58,7 +58,20 @@ inline bool CarrierList::SupersetOfAny(bitset_t carrier) const
             m_list[0] = c;
             return true;
         }
-        return false;
+    return false;
+}
+
+inline bool CarrierList::RemoveSupersetsOfCheckAnyRemoved(const CarrierList& filter)
+{
+    std::size_t j = 0;
+    std::size_t i = 0;
+    for (; i < m_list.size(); ++i)
+    {
+        if (!filter.SupersetOfAny(m_list[i].carrier))
+            m_list[j++] = m_list[i];
+    }
+    m_list.resize(j);
+    return j < i;
 }
 
 template <bool check_old>
@@ -82,6 +95,34 @@ inline bool CarrierList::RemoveSupersetsOf(bitset_t carrier)
         return check_old_res;
     else
         return j < i;
+}
+
+template <bool store_removed>
+inline size_t CarrierList::RemoveAllContaining_(bitset_t set,
+                                                std::vector<bitset_t>* removed)
+{
+    std::size_t j = 0;
+    std::size_t i = 0;
+    for (; i < m_list.size(); ++i)
+    {
+        if ((set & m_list[i].carrier).none())
+            m_list[j++] = m_list[i];
+        else if (store_removed)
+            removed->push_back(m_list[i].carrier);
+    }
+    m_list.resize(j);
+    return i - j;
+}
+
+inline size_t CarrierList::RemoveAllContaining(bitset_t set)
+{
+    return RemoveAllContaining_<false>(set, 0);
+}
+
+inline size_t CarrierList::RemoveAllContaining(bitset_t set,
+                                             std::vector<bitset_t>& removed)
+{
+    return RemoveAllContaining_<true>(set, &removed);
 }
 
 inline bool CarrierList::RemoveSupersetsOfCheckOldRemoved(bitset_t carrier)
@@ -147,10 +188,21 @@ inline bitset_t CarrierList::GetAllIntersection() const
     return GetIntersection<false>();
 }
 
-void CarrierList::MarkAllOld()
+inline void CarrierList::MarkAllOld()
 {
     for (std::size_t i = 0; i < m_list.size(); i++)
         m_list[i].old = true;
+}
+
+inline void CarrierList::MarkAllNew()
+{
+    for (std::size_t i = 0; i < m_list.size(); i++)
+        m_list[i].old = false;
+}
+
+inline void CarrierList::Clear()
+{
+    m_list.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -172,6 +224,11 @@ inline VCS::Semi::Semi(HexPoint x, HexPoint y, bitset_t carrier, HexPoint key)
 
 //----------------------------------------------------------------------------
 
+inline VCS::AndList::AndList()
+{
+    m_processed_intersection.set();
+}
+
 inline VCS::AndList::AndList(bitset_t carrier)
     : CarrierList(carrier)
 {
@@ -187,7 +244,7 @@ inline VCS::AndList::AndList(const std::vector<bitset_t>& carriers_list)
 inline void VCS::AndList::RemoveSupersetsOf(bitset_t carrier)
 {
     if (RemoveSupersetsOfCheckOldRemoved(carrier))
-        m_processed_intersection = GetOldIntersection();
+        CalcIntersection();
 }
 
 inline void VCS::AndList::Add(bitset_t carrier)
@@ -202,6 +259,14 @@ inline bool VCS::AndList::TryAdd(bitset_t carrier)
         return false;
     Add(carrier);
     return true;
+}
+
+inline bool VCS::AndList::TryAdd(bitset_t carrier, const CarrierList& filter)
+{
+    if (filter.SupersetOfAny(carrier))
+        return false;
+    else
+        return TryAdd(carrier);
 }
 
 inline bitset_t VCS::AndList::GetIntersection() const
@@ -220,7 +285,24 @@ inline bool VCS::AndList::TrySetProcessed(bitset_t carrier)
         return false;
 }
 
+inline void VCS::AndList::MarkAllUnprocessed()
+{
+    MarkAllNew();
+    CalcIntersection();
+}
+
+inline void VCS::AndList::CalcIntersection()
+{
+    m_processed_intersection = GetOldIntersection();
+}
+
 //----------------------------------------------------------------------------
+
+inline VCS::SemiList::SemiList()
+    : m_queued(false)
+{
+    m_intersection.set();
+}
 
 inline VCS::SemiList::SemiList(bitset_t carrier, HexPoint key)
     : CarrierList(carrier),
@@ -267,6 +349,14 @@ inline void VCS::SemiList::RemoveSupersetsOf(bitset_t carrier)
         (*this)[*it]->RemoveSupersetsOf(carrier);
 }
 
+inline bool VCS::SemiList::RemoveSupersetsOf(const CarrierList& filter)
+{
+    bool res = false;
+    for (BitsetIterator it(Entries()); it; ++it)
+        res |= (*this)[*it]->RemoveSupersetsOfCheckAnyRemoved(filter);
+    return res;
+}
+
 inline bool VCS::SemiList::TryQueue(bitset_t capturedSet)
 {
     bool prev_queued = m_queued;
@@ -278,6 +368,15 @@ void VCS::SemiList::MarkAllProcessed()
 {
     MarkAllOld();
     m_queued = false;
+}
+
+void VCS::SemiList::CalcAllSemis()
+{
+    Clear();
+    m_intersection.set();
+    for (BitsetIterator k(Entries()); k; ++k)
+        for (CarrierList::Iterator i(*(*this)[*k]); i; ++i)
+            Add(i.Carrier());
 }
 
 //----------------------------------------------------------------------------
@@ -381,6 +480,7 @@ void VCS::AddBaseVCs()
         {
             BenzeneAssert(*y == m_groups->CaptainOf(*y));
             m_statistics.base_attempts++;
+            BenzeneAssert(x->Captain() != *y);
             if (TryAddFull(x->Captain(), *y, EMPTY_BITSET))
                 m_statistics.base_successes++;
         }
@@ -462,12 +562,24 @@ void VCS::Build(VCBuilderParam& param,
                 const PatternState& patterns,
                 bitset_t added[BLACK_AND_WHITE], bool use_changelog)
 {
+    TestQueuesEmpty();
+    SgTimer timer;
+    m_param = &param;
+    m_groups = &newGroups;
+    m_brd = &m_groups->Board();
     if (use_changelog)
     {
         backups.push_back(Backup());
         backups.back().Create(*this);
     }
-    Build(param, newGroups, patterns);
+    m_statistics = Statistics();
+    ComputeCapturedSets(patterns);
+    Merge(oldGroups, added);
+    if (m_param->use_patterns)
+        AddPatternVCs();
+    DoSearch();
+
+    LogFine() << "  " << timer.GetTime() << "s to build vcs.\n";
 }
 
 void VCS::Revert()
@@ -485,6 +597,366 @@ void VCS::Reset()
         m_semis[i].Reset(HexPoint(i));
 
     m_statistics = Statistics();
+}
+
+/** @page mergeshrink Incremental Update Algorithm
+
+    The connection set is updated to the new state of the board in a
+    single pass. In this pass connections touched by opponent stones
+    are destroyed, connections touched by friendly stones are resized,
+    and connections in groups that are merged into larger groups are
+    merged into the proper connection lists. This entire process is
+    called the "merge".
+
+    Every list needs to be checked for shrinking. This entails
+    removing any cells from a connection's carrier that are now
+    occupied by friendly stones. Semi-connections that have their keys
+    played must be upgraded to full connections. */
+void VCS::Merge(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE])
+{
+    // Kill connections containing stones the opponent just played.
+    // NOTE: This *must* be done in the original state, not in the
+    // state with the newly added stones. If we are adding stones of
+    // both colors there could be two groups of our stones that are
+    // going to be merged, but we need to kill connections touching
+    // the opponent stones before we do so.
+    RemoveAllContaining(oldGroups, added[!m_color]);
+
+    bitset_t merged[BITSETSIZE];
+    HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
+    for (GroupIterator x(oldGroups, not_other); x; ++x)
+    {
+        HexPoint xc = x->Captain();
+        merged[m_groups->CaptainOf(xc)].set(xc);
+    }
+
+    for (GroupIterator x(*m_groups, not_other); x; ++x)
+    {
+        HexPoint xc = x->Captain();
+        MergeRemoveSelfEnds(merged[xc]);
+        for (GroupIterator y(*m_groups, not_other); &*y != &*x; ++y)
+        {
+            HexPoint yc = y->Captain();
+            MergeAndShrink(added[m_color], merged[xc], merged[yc], xc, yc);
+        }
+    }
+}
+
+/** Removes all connections whose intersection with given set is
+    non-empty. Any list that is modified is added to the queue, since
+    some unprocessed connections could have been brought under the
+    softlimit. */
+inline void VCS::RemoveAllContaining(const Groups& oldGroups,
+                                     bitset_t removed)
+{
+    // Use old groupset and delete old groups that are
+    // now the opponent's color.
+    HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
+    for (GroupIterator x(oldGroups, not_other); x; ++x)
+    {
+        HexPoint xc = x->Captain();
+        bool killed = m_groups->GetGroup(xc).Color() == !m_color;
+        for (GroupIterator y(oldGroups, not_other); &*y != &*x; ++y)
+        {
+            HexPoint yc = y->Captain();
+            AndList* fulls = m_fulls[xc][yc];
+            SemiList* semis = m_semis[xc][yc];
+            if (killed || m_groups->GetGroup(yc).Color() == !m_color)
+            {
+                if (fulls)
+                {
+                    delete fulls;
+                    m_fulls[xc].Remove(yc);
+                    m_fulls[yc].Remove(xc);
+                }
+                if (semis)
+                {
+                    delete semis;
+                    m_semis[xc].Remove(yc);
+                    m_semis[yc].Remove(xc);
+                }
+                continue;
+            }
+            if (fulls)
+            {
+                m_statistics.killed0 += fulls->RemoveAllContaining(removed);
+                if (fulls->IsEmpty())
+                {
+                    delete fulls;
+                    m_fulls[xc].Remove(yc);
+                    m_fulls[yc].Remove(xc);
+                }
+            }
+            if (semis)
+            {
+                size_t total_removed = 0;
+                for (BitsetIterator k(semis->Entries()); k; ++k)
+                {
+                    AndList* key_semis = (*semis)[*k];
+                    size_t r = key_semis->RemoveAllContaining(removed);
+                    m_statistics.killed1 += r;
+                    total_removed += r;
+                    if (key_semis->IsEmpty())
+                    {
+                        delete key_semis;
+                        semis->Remove(*k);
+                    }
+                }
+                if (semis->Entries().none())
+                {
+                    delete semis;
+                    m_semis[xc].Remove(yc);
+                    m_semis[yc].Remove(xc);
+                }
+                else if (total_removed)
+                    semis->CalcAllSemis();
+            }
+        }
+    }
+}
+
+inline void VCS::MergeRemoveSelfEnds(bitset_t x_merged)
+{
+    for (BitsetIterator x(x_merged); x; ++x)
+        for (BitsetIterator y(x_merged); *y <= *x; ++y)
+        {
+            AndList *fulls = m_fulls[*x][*y];
+            if (fulls)
+            {
+                delete fulls;
+                m_fulls[*x].Remove(*y);
+                m_fulls[*y].Remove(*x);
+            }
+            SemiList *semis = m_semis[*x][*y];
+            if (semis)
+            {
+                delete semis;
+                m_semis[*x].Remove(*y);
+                m_semis[*y].Remove(*x);
+            }
+        }
+}
+
+inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
+                        AndList* fulls)
+{
+    bool new_fulls = false;
+    std::vector<bitset_t> to_shrink;
+    fulls->RemoveAllContaining(added, to_shrink);
+    for (std::vector<bitset_t>::iterator it = to_shrink.begin();
+         it != to_shrink.end(); ++it)
+    {
+        bitset_t carrier = *it - added;
+        if (fulls->TryAdd(carrier))
+        {
+            m_statistics.shrunk0++;
+            m_fulls_and_queue.Push(Full(x, y, carrier));
+            new_fulls = true;
+        }
+    }
+    return new_fulls;
+}
+
+inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
+                        AndList* semis,
+                        const AndList* filter, HexPoint key)
+{
+    bool new_semis = false;
+    std::vector<bitset_t> to_shrink;
+    semis->RemoveAllContaining(added, to_shrink);
+    for (std::vector<bitset_t>::iterator it = to_shrink.begin();
+         it != to_shrink.end(); ++it)
+         {
+             bitset_t carrier = *it - added;
+             bool success;
+             if (filter)
+                 success = semis->TryAdd(carrier, *filter);
+             else
+                 success = semis->TryAdd(carrier);
+             if (success)
+             {
+                 m_statistics.shrunk1++;
+                 m_semis_and_queue.Push(Semi(x, y, carrier, key));
+                 new_semis = true;
+             }
+         }
+         return new_semis;
+}
+
+inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
+                        AndList* fulls, const CarrierList& list,
+                        size_t& stats)
+{
+    bool new_fulls = false;
+    for (CarrierList::Iterator i(list); i; ++i)
+    {
+        bitset_t carrier = i.Carrier() - added;
+        if (fulls->TryAdd(carrier))
+        {
+            stats++;
+            m_fulls_and_queue.Push(Full(x, y, carrier));
+            new_fulls = true;
+        }
+    }
+    return new_fulls;
+}
+
+inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
+                        AndList* semis, const CarrierList& list,
+                        const AndList* filter, HexPoint key)
+{
+    bool new_semis = false;
+    for (CarrierList::Iterator i(list); i; ++i)
+    {
+        bitset_t carrier = i.Carrier() - added;
+        bool success;
+        if (filter)
+            success = semis->TryAdd(carrier, *filter);
+        else
+            success = semis->TryAdd(carrier);
+        if (success)
+        {
+            m_statistics.shrunk1++;
+            m_semis_and_queue.Push(Semi(x, y, carrier, key));
+            new_semis = true;
+        }
+    }
+    return new_semis;
+}
+
+/** Merges and shrinks connections between the given endpoints. */
+void VCS::MergeAndShrink(bitset_t added,
+                         bitset_t x_merged, bitset_t y_merged,
+                         HexPoint x, HexPoint y)
+{
+    BenzeneAssert(x != y);
+    BenzeneAssert((x_merged & y_merged).none());
+
+    AndList* fulls = m_fulls[x][y];
+    SemiList* semis = m_semis[x][y];
+
+    bool new_fulls = false;
+
+    if (fulls)
+        // First shrink fulls wihtout merge
+        new_fulls |= Shrink(added, x, y, fulls);
+
+    // Collect and shrink all fulls including upgraded semis
+    for (BitsetIterator xi(x_merged); xi; ++xi)
+        for (BitsetIterator yi(y_merged); yi; ++yi)
+        {
+            // Merge and shrink fulls with merged ends
+            if (*xi != x || *yi != y)
+            {
+                AndList* merged_fulls = m_fulls[*xi][*yi];
+                if (merged_fulls)
+                {
+                    if (!fulls)
+                    {
+                        fulls = m_fulls[x].BitsetMap<AndList>::Add(y);
+                        m_fulls[y].Put(x, fulls);
+                    }
+                    new_fulls |= Shrink(added, x, y, fulls, *merged_fulls,
+                                        m_statistics.shrunk0);
+                    delete merged_fulls;
+                    m_fulls[*xi].Remove(*yi);
+                    m_fulls[*yi].Remove(*xi);
+                }
+            }
+
+            // Upgrade semis
+            SemiList* merged_semis = m_semis[*xi][*yi];
+            if (!merged_semis)
+                continue;
+            for (BitsetIterator k(merged_semis->Entries() & added); k; ++k)
+            {
+                AndList* key_semis = (*merged_semis)[*k];
+                if (!fulls)
+                {
+                    fulls = m_fulls[x].BitsetMap<AndList>::Add(y);
+                    m_fulls[y].Put(x, fulls);
+                }
+                new_fulls |= Shrink(added, x, y, fulls, *key_semis,
+                                    m_statistics.upgraded);
+                delete key_semis;
+                merged_semis->Remove(*k);
+            }
+        }
+
+    if (fulls)
+    {
+        if ((added.test(x) || added.test(y)))
+        {
+            for (CarrierList::Iterator i(*fulls); i; ++i)
+                if (i.Old())
+                    m_fulls_and_queue.Push(Full(x, y, i.Carrier()));
+                fulls->MarkAllUnprocessed();
+        }
+        else
+            fulls->CalcIntersection();
+    }
+
+    // Shrink semis
+    bool calc_all_semis = false;
+    if (semis)
+    {
+        if (new_fulls)
+            // Filter out semis which are supersets of new fulls
+            calc_all_semis |= semis->RemoveSupersetsOf(*fulls);
+        // Shrink semis without merge
+        for (BitsetIterator k(semis->Entries()); k; ++k)
+            calc_all_semis |= Shrink(added, x, y, (*semis)[*k], fulls, *k);
+    }
+
+    // Collect and shrink semis
+    for (BitsetIterator xi(x_merged); xi; ++xi)
+        for (BitsetIterator yi(y_merged); yi; ++yi)
+        {
+            if (*xi == x && *yi == y)
+                continue;
+            SemiList* merged_semis = m_semis[*xi][*yi];
+            if (!merged_semis)
+                continue;
+            if (!semis)
+            {
+                semis = m_semis[x].BitsetMap<SemiList>::Add(y);
+                m_semis[y].Put(x, semis);
+            }
+            for (BitsetIterator k(merged_semis->Entries()); k; ++k)
+            {
+                AndList* key_semis = (*semis)[*k];
+                if (!key_semis)
+                    key_semis = semis->BitsetMap<AndList>::Add(*k);
+                calc_all_semis |= Shrink(added, x, y, key_semis,
+                                         *(*merged_semis)[*k], fulls, *k);
+            }
+            delete merged_semis;
+            m_semis[*xi].Remove(*yi);
+            m_semis[*yi].Remove(*xi);
+        }
+
+    if (semis)
+        for (BitsetIterator k(semis->Entries()); k; ++k)
+        {
+            AndList* key_semis = (*semis)[*k];
+            if (added.test(x) || added.test(y))
+            {
+                for (CarrierList::Iterator i(*key_semis); i; ++i)
+                    if (i.Old())
+                        m_semis_and_queue.Push(Semi(x, y, i.Carrier(), *k));
+                key_semis->MarkAllUnprocessed();
+            }
+            else
+                key_semis->CalcIntersection();
+        }
+
+    // Recalculate all semis if needed
+    if (calc_all_semis)
+    {
+        semis->CalcAllSemis();
+        if (semis->TryQueue(m_capturedSet[x] | m_capturedSet[y]))
+            m_semis_or_queue.Push(Ends(x, y));
+    }
 }
 
 void VCS::DoSearch()
@@ -522,6 +994,7 @@ inline VCS::VCAnd::VCAnd(VCS& vcs, HexPoint x, HexPoint y, bitset_t capturedSet,
     : vcs(vcs), x(x), y(y), capturedSet(capturedSet),
       xz_carrier(xz_carrier), key(key), zy_iter(*zy_list)
 {
+    BenzeneAssert(x != y);
 }
 
 template <class Func>
@@ -916,6 +1389,7 @@ inline void VCS::AndSemiStoneFull(HexPoint x, HexPoint z, HexPoint key,
 
 void VCS::OrSemis(HexPoint x, HexPoint y)
 {
+    BenzeneAssert(x != y);
     SemiList* xy_semis = m_semis[x][y];
     BenzeneAssert(xy_semis);
     AndList *xy_fulls = m_fulls[x][y];
@@ -951,6 +1425,7 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
 
 inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
 {
+    BenzeneAssert(x != y);
     AndList* fulls = m_fulls[x][y];
     if (!fulls)
     {
