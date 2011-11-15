@@ -46,7 +46,7 @@ public:
 
     void SetMaxDepth(std::size_t max);
 
-    const SgSearchHashTable* HashTable() const;
+    SgSearchHashTable* HashTable();
 
     void SetHashTable(SgSearchHashTable* hash);
 
@@ -120,7 +120,7 @@ inline void WolvePlayer::SetMaxDepth(std::size_t max)
     m_maxDepth = max;
 }
 
-inline const SgSearchHashTable* WolvePlayer::HashTable() const
+inline SgSearchHashTable* WolvePlayer::HashTable()
 {
     return m_hashTable.get();
 }

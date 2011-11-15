@@ -54,6 +54,7 @@ WolveEngine::WolveEngine(int boardsize, WolvePlayer& player)
     RegisterCmd("wolve-get-pv", &WolveEngine::CmdGetPV);
     RegisterCmd("wolve-scores", &WolveEngine::CmdScores);
     RegisterCmd("wolve-data", &WolveEngine::CmdData);
+    RegisterCmd("wolve-clear-hash", &WolveEngine::CmdClearHash);
 }
 
 WolveEngine::~WolveEngine()
@@ -105,6 +106,7 @@ void WolveEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "param/Wolve Param/param_wolve\n"
         "var/Wolve PV/wolve-get-pv\n"
         "pspairs/Wolve Scores/wolve-scores\n"
+        "none/Wolve Clear Hashtable/wolve-clear-hash\n"
         "scores/Wolve Data/wolve-data\n";
 }
 
@@ -210,8 +212,19 @@ void WolveEngine::CmdData(HtpCommand& cmd)
         cmd << "[score=" << data.Value()
             << " bestMove=" << m_player.Search().MoveString(data.BestMove())
             << " isExact=" << data.IsExactValue()
+            << " isLower=" << data.IsOnlyLowerBound()
+            << " isUpper=" << data.IsOnlyUpperBound()
             << " depth=" << data.Depth()
             << ']';
+}
+
+void WolveEngine::CmdClearHash(HtpCommand& cmd)
+{
+    cmd.CheckArgNone();
+    SgSearchHashTable* hashTable = m_player.HashTable();
+    if (!hashTable)
+        throw HtpFailure("No hashtable!");
+    hashTable->Clear();
 }
 
 //----------------------------------------------------------------------------

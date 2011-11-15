@@ -36,6 +36,7 @@ public:
     void CmdGetPV(HtpCommand& cmd);
     void CmdScores(HtpCommand& cmd);
     void CmdData(HtpCommand& cmd);
+    void CmdClearHash(HtpCommand& cmd);
 
     // @} // @name
 

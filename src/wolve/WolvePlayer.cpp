@@ -88,7 +88,8 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     SgVector<SgMove> PV;
     int score = m_search.IteratedSearch(int(minDepth), int(maxDepth),
                                         -SgSearchValue::MIN_PROVEN_VALUE,
-                                        +SgSearchValue::MIN_PROVEN_VALUE, &PV);
+                                        +SgSearchValue::MIN_PROVEN_VALUE, &PV,
+                                        false);
     if (m_search.GuiFx())
         WolveSearchUtil::DumpGuiFx(state, *m_hashTable);
     LogInfo() << PrintStatistics(score, PV);
