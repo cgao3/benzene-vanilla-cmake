@@ -42,6 +42,7 @@ public:
         - @link CmdEncodePattern() @c encode-pattern @endlink
         - @link CmdEvalTwoDist() @c eval-twod @endlink
         - @link CmdEvalResist() @c eval-resist @endlink
+        - @link CmdEvalResistCells() @c eval-resist-cells @endlink
     */
 
     /** @name Command Callbacks */
@@ -63,6 +64,7 @@ public:
     void CmdEncodePattern(HtpCommand& cmd);
     void CmdEvalTwoDist(HtpCommand& cmd);
     void CmdEvalResist(HtpCommand& cmd);
+    void CmdEvalResistCells(HtpCommand& cmd);
 
     // @} // @name
 

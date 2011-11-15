@@ -67,6 +67,7 @@ CommonHtpEngine::CommonHtpEngine(int boardsize)
 
     RegisterCmd("eval-twod", &CommonHtpEngine::CmdEvalTwoDist);
     RegisterCmd("eval-resist", &CommonHtpEngine::CmdEvalResist);
+    RegisterCmd("eval-resist-cells", &CommonHtpEngine::CmdEvalResistCells);
 }
 
 CommonHtpEngine::~CommonHtpEngine()
@@ -106,7 +107,8 @@ void CommonHtpEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "string/Encode Pattern/encode-pattern %P\n"
         "group/Show Group/group-get %p\n"
         "pspairs/Show TwoDistance/eval-twod %c\n"
-        "pspairs/Show Resist/eval-resist %c\n";
+        "string/Show Resist/eval-resist %c\n"
+        "pspairs/Show Cell Energy/eval-resist-cells %c\n";
     m_playerEnvCommands.AddAnalyzeCommands(cmd, "player");
     m_solverEnvCommands.AddAnalyzeCommands(cmd, "solver");
     m_vcCommands.AddAnalyzeCommands(cmd);
@@ -483,7 +485,6 @@ void CommonHtpEngine::CmdEvalTwoDist(HtpCommand& cmd)
 void CommonHtpEngine::CmdEvalResist(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
-    HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = *m_pe.brd;
     Resistance resist;
     resist.Evaluate(brd);
@@ -491,6 +492,16 @@ void CommonHtpEngine::CmdEvalResist(HtpCommand& cmd)
         << " rew " << std::fixed << std::setprecision(3) << resist.Resist(WHITE)
         << " reb " << std::fixed << std::setprecision(3) 
         << resist.Resist(BLACK);
+}
+
+/** Displays resistance values for current state. */
+void CommonHtpEngine::CmdEvalResistCells(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    HexColor color = HtpUtil::ColorArg(cmd, 0);
+    HexBoard& brd = *m_pe.brd;
+    Resistance resist;
+    resist.Evaluate(brd);
     for (BoardIterator it(brd.Const().Interior()); it; ++it) 
     {
         if (brd.GetPosition().IsOccupied(*it)) 
