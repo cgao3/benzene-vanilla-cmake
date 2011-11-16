@@ -20,23 +20,14 @@ namespace {
 
 //----------------------------------------------------------------------------
 
-template<typename TYPE>
-void ParseDashSeparatedString(const std::string& str, std::vector<TYPE>& out)
+std::vector<std::size_t> PlyWidthsFromString(const std::string& val)
 {
-    // remove the '-' separators
-    std::string widths(str);
-    for (std::size_t i = 0; i < widths.size(); ++i)
-        if (widths[i] == '-') widths[i] = ' ';
-
-    // parse the ' ' separated widths
-    std::istringstream is;
-    is.str(widths);
-    while (is)
-    {
-        TYPE j;
-        if (is >> j)
-            out.push_back(j);
-    }
+    std::vector<std::size_t> v;
+    std::istringstream is(val);
+    std::size_t t;
+    while (is >> t)
+        v.push_back(t);
+    return v;
 }
 
 //----------------------------------------------------------------------------
@@ -136,7 +127,7 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             << "[bool] use_early_abort " 
             << m_player.UseEarlyAbort() << '\n'
             << "[string] ply_width " 
-            << MiscUtil::PrintVector(search.PlyWidth()) << '\n'
+            << "\"" << MiscUtil::PrintVector(search.PlyWidth()) << "\"\n"
             << "[string] max_depth "
             << m_player.MaxDepth() << '\n'
             << "[string] max_time "
@@ -158,8 +149,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             m_player.SetMaxTime(cmd.Arg<float>(1));
         else if (name == "ply_width")
         {
-            std::vector<std::size_t> plywidth;
-            ParseDashSeparatedString(cmd.Arg(1), plywidth);
+            std::vector<std::size_t> plywidth 
+                = PlyWidthsFromString(cmd.Arg(1));
             search.SetPlyWidth(plywidth);
         } 
         else if (name == "max_depth")
