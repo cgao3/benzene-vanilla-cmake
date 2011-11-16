@@ -383,7 +383,7 @@ void MoHexEngine::Values(HtpCommand& cmd)
         SgUctValue count = child.MoveCount();
         SgUctValue mean = 0.0;
         if (count > 0)
-            mean = child.Mean();
+            mean = search.InverseEval(child.Mean());
         cmd << ' ' << static_cast<HexPoint>(p)
             << ' ' << std::fixed << std::setprecision(3) << mean
             << '@' << static_cast<std::size_t>(count);
