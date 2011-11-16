@@ -47,8 +47,7 @@ void ParseDashSeparatedString(const std::string& str, std::vector<TYPE>& out)
 
 WolveEngine::WolveEngine(int boardsize, WolvePlayer& player)
     : CommonHtpEngine(boardsize),
-      m_player(player),
-      m_cacheBook()
+      m_player(player)
 {
     RegisterCmd("param_wolve", &WolveEngine::CmdParam);
     RegisterCmd("wolve-get-pv", &WolveEngine::CmdGetPV);
@@ -85,8 +84,6 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
     if (SwapCheck::PlaySwap(m_game, color))
         return SWAP_PIECES;
     HexState state(m_game.Board(), color);
-    if (m_cacheBook.Exists(state))
-        return m_cacheBook[state];
     double maxTime = TimeForMove(color);
     if (m_useParallelSolver)
     {
