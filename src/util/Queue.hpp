@@ -36,6 +36,12 @@ public:
     {
         return m_vec[m_idx++];
     }
+
+    void Clear()
+    {
+        m_idx = 0;
+        m_vec.clear();
+    }
 };
 
 //---------------------------------------------------------------------------
@@ -43,4 +49,3 @@ public:
 _END_BENZENE_NAMESPACE_
 
  #endif // QUEUE_HPP
- 

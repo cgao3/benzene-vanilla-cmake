@@ -982,6 +982,10 @@ void VCS::DoSearch()
             break;
     }
     TestQueuesEmpty();
+    m_fulls_and_queue.Clear();
+    m_semis_and_queue.Clear();
+    m_semis_or_queue.Clear();;
+    TestQueuesEmpty();
 }
 
 // And rule stuff
