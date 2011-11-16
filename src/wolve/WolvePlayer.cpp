@@ -54,7 +54,8 @@ WolvePlayer::WolvePlayer()
       m_minDepth(1),
       m_maxDepth(4),
       m_useTimeManagement(false),
-      m_useEarlyAbort(false)
+      m_useEarlyAbort(false),
+      m_ponder(false)
 {
 }
 

@@ -83,8 +83,13 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
     SG_UNUSED(useGameClock);
     if (SwapCheck::PlaySwap(m_game, color))
         return SWAP_PIECES;
-    HexState state(m_game.Board(), color);
     double maxTime = TimeForMove(color);
+    return DoSearch(color, maxTime);
+}
+
+HexPoint WolveEngine::DoSearch(HexColor color, double maxTime)
+{
+    HexState state(m_game.Board(), color);
     if (m_useParallelSolver)
     {
         PlayAndSolve ps(*m_pe.brd, *m_se.brd, m_player, m_dfpnSolver, 
@@ -95,6 +100,7 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
     return m_player.GenMove(state, m_game, m_pe.SyncBoard(m_game.Board()),
                             maxTime, score);
 }
+
 
 void WolveEngine::CmdAnalyzeCommands(HtpCommand& cmd)
 {
@@ -117,6 +123,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
         cmd << '\n'
             << "[bool] backup_ice_info "
             << search.BackupIceInfo() << '\n'
+            << "[bool] ponder "
+            << m_player.Ponder() << '\n'
             << "[bool] use_guifx "
             << search.GuiFx() << '\n'
             << "[bool] search_singleton "
@@ -144,6 +152,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
             search.SetBackupIceInfo(cmd.Arg<bool>(1));
+        else if (name == "ponder")
+            m_player.SetPonder(cmd.Arg<bool>(1));
         else if (name == "max_time")
             m_player.SetMaxTime(cmd.Arg<float>(1));
         else if (name == "ply_width")
@@ -235,14 +245,32 @@ void WolveEngine::CmdClearHash(HtpCommand& cmd)
 
 void WolveEngine::InitPonder()
 {
+    SgSetUserAbort(false);
 }
 
 void WolveEngine::Ponder()
 {
+    if (!m_player.Ponder())
+        return;
+    // Call DoSearch() after 0.2 seconds delay to avoid calls 
+    // in very short intervals between received commands
+    boost::xtime time;
+    boost::xtime_get(&time, boost::TIME_UTC);
+    for (int i = 0; i < 200; ++i)
+    {
+        if (SgUserAbort())
+            return;
+        time.nsec += 1000000; // 1 msec
+        boost::thread::sleep(time);
+    }
+    LogInfo() << "WolveEngine::Ponder: start\n";
+    // Search for at most 10 minutes
+    DoSearch(m_game.Board().WhoseTurn(), 600);
 }
 
 void WolveEngine::StopPonder()
 {
+    SgSetUserAbort(true);
 }
 
 #endif // GTPENGINE_PONDER

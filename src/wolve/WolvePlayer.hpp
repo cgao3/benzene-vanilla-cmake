@@ -64,6 +64,12 @@ public:
     /** See UseEarlyAbort() */
     void SetUseEarlyAbort(bool flag);
 
+    /** Searches while waiting for a command. */
+    bool Ponder() const;
+
+    /** See Ponder() */
+    void SetPonder(bool flag);
+
     // @}
 
 private: 
@@ -83,6 +89,9 @@ private:
 
     /** See UseEarlyAbort() */
     bool m_useEarlyAbort;
+
+    /** See Ponder() */
+    bool m_ponder;
 
     virtual HexPoint Search(const HexState& state, const Game& game,
                             HexBoard& brd, const bitset_t& consider,
@@ -160,6 +169,16 @@ inline bool WolvePlayer::UseEarlyAbort() const
 inline void WolvePlayer::SetUseEarlyAbort(bool f)
 {
     m_useEarlyAbort = f;
+}
+
+inline bool WolvePlayer::Ponder() const
+{
+    return m_ponder;
+}
+
+inline void WolvePlayer::SetPonder(bool flag)
+{
+    m_ponder = flag;
 }
 
 //----------------------------------------------------------------------------
