@@ -320,12 +320,6 @@ inline VCS::SemiList::SemiList(const CarrierList& carrier_list,
 {
 }
 
-VCS::SemiList::~SemiList()
-{
-    for (BitsetIterator it(Entries()); it; ++it)
-        delete (*this)[*it];
-}
-
 inline bitset_t VCS::SemiList::GetIntersection() const
 {
     return m_intersection;
@@ -379,41 +373,6 @@ void VCS::SemiList::CalcAllSemis()
             Add(i.Carrier());
 }
 
-//----------------------------------------------------------------------------
-
-template <class T>
-inline void VCS::Nbs<T>::Destroy(HexPoint x)
-{
-    for (BitsetIterator y(BitsetMap<T>::m_set); y; ++y)
-    {
-        if (*y > x)
-            break;
-        delete (*this)[*y];
-    }
-}
-
-template <class T>
-inline void VCS::Nbs<T>::Reset(HexPoint x)
-{
-    Destroy(x);
-    BitsetMap<T>::ClearEntries();
-    BitsetMap<T>::m_set.reset();
-}
-
-inline VCS::AndList* VCS::FullNbs::Add(HexPoint x, bitset_t carrier)
-{
-    AndList* fulls = new AndList(carrier);
-    Put(x, fulls);
-    return fulls;
-}
-
-inline VCS::SemiList* VCS::SemiNbs::Add(HexPoint x, bitset_t carrier, HexPoint key)
-{
-    SemiList* semis = new SemiList(carrier, key);
-    Put(x, semis);
-    return semis;
-}
-
 //---------------------------------------------------------------------------
 
 inline void VCS::TestQueuesEmpty()
@@ -460,14 +419,6 @@ VCS::VCS(const VCS& other)
       m_color(other.m_color)
 {
     BenzeneAssert(false /* TODO implement copy constructor */);
-}
-
-VCS::~VCS()
-{
-    for (int i = 0; i < BITSETSIZE; i++)
-        m_fulls[i].Destroy(HexPoint(i));
-    for (int i = 0; i < BITSETSIZE; i++)
-        m_semis[i].Destroy(HexPoint(i));
 }
 
 /** Computes the 0-connections defined by adjacency.*/
@@ -591,10 +542,8 @@ void VCS::Revert()
 
 void VCS::Reset()
 {
-    for (int i = 0; i < BITSETSIZE; i++)
-        m_fulls[i].Reset(HexPoint(i));
-    for (int i = 0; i < BITSETSIZE; i++)
-        m_semis[i].Reset(HexPoint(i));
+    m_fulls.Reset();
+    m_semis.Reset();
 
     m_statistics = Statistics();
 }
@@ -659,33 +608,19 @@ inline void VCS::RemoveAllContaining(const Groups& oldGroups,
         for (GroupIterator y(oldGroups, not_other); &*y != &*x; ++y)
         {
             HexPoint yc = y->Captain();
-            AndList* fulls = m_fulls[xc][yc];
-            SemiList* semis = m_semis[xc][yc];
             if (killed || m_groups->GetGroup(yc).Color() == !m_color)
             {
-                if (fulls)
-                {
-                    delete fulls;
-                    m_fulls[xc].Remove(yc);
-                    m_fulls[yc].Remove(xc);
-                }
-                if (semis)
-                {
-                    delete semis;
-                    m_semis[xc].Remove(yc);
-                    m_semis[yc].Remove(xc);
-                }
+                m_fulls.Delete(xc, yc);
+                m_semis.Delete(xc, yc);
                 continue;
             }
+            AndList* fulls = m_fulls[xc][yc];
+            SemiList* semis = m_semis[xc][yc];
             if (fulls)
             {
                 m_statistics.killed0 += fulls->RemoveAllContaining(removed);
                 if (fulls->IsEmpty())
-                {
-                    delete fulls;
-                    m_fulls[xc].Remove(yc);
-                    m_fulls[yc].Remove(xc);
-                }
+                    m_fulls.Delete(xc, yc, fulls);
             }
             if (semis)
             {
@@ -697,17 +632,10 @@ inline void VCS::RemoveAllContaining(const Groups& oldGroups,
                     m_statistics.killed1 += r;
                     total_removed += r;
                     if (key_semis->IsEmpty())
-                    {
-                        delete key_semis;
-                        semis->Remove(*k);
-                    }
+                        semis->Delete(*k);
                 }
                 if (semis->Entries().none())
-                {
-                    delete semis;
-                    m_semis[xc].Remove(yc);
-                    m_semis[yc].Remove(xc);
-                }
+                    m_semis.Delete(xc, yc, semis);
                 else if (total_removed)
                     semis->CalcAllSemis();
             }
@@ -720,20 +648,8 @@ inline void VCS::MergeRemoveSelfEnds(bitset_t x_merged)
     for (BitsetIterator x(x_merged); x; ++x)
         for (BitsetIterator y(x_merged); *y <= *x; ++y)
         {
-            AndList *fulls = m_fulls[*x][*y];
-            if (fulls)
-            {
-                delete fulls;
-                m_fulls[*x].Remove(*y);
-                m_fulls[*y].Remove(*x);
-            }
-            SemiList *semis = m_semis[*x][*y];
-            if (semis)
-            {
-                delete semis;
-                m_semis[*x].Remove(*y);
-                m_semis[*y].Remove(*x);
-            }
+            m_fulls.Delete(*x, *y);
+            m_semis.Delete(*x, *y);
         }
 }
 
@@ -852,15 +768,10 @@ void VCS::MergeAndShrink(bitset_t added,
                 if (merged_fulls)
                 {
                     if (!fulls)
-                    {
-                        fulls = m_fulls[x].BitsetMap<AndList>::Add(y);
-                        m_fulls[y].Put(x, fulls);
-                    }
+                        fulls = m_fulls.Put(x, y);
                     new_fulls |= Shrink(added, x, y, fulls, *merged_fulls,
                                         m_statistics.shrunk0);
-                    delete merged_fulls;
-                    m_fulls[*xi].Remove(*yi);
-                    m_fulls[*yi].Remove(*xi);
+                    m_fulls.Delete(*xi, *yi, merged_fulls);
                 }
             }
 
@@ -872,14 +783,10 @@ void VCS::MergeAndShrink(bitset_t added,
             {
                 AndList* key_semis = (*merged_semis)[*k];
                 if (!fulls)
-                {
-                    fulls = m_fulls[x].BitsetMap<AndList>::Add(y);
-                    m_fulls[y].Put(x, fulls);
-                }
+                    fulls = m_fulls.Put(x, y);
                 new_fulls |= Shrink(added, x, y, fulls, *key_semis,
                                     m_statistics.upgraded);
-                delete key_semis;
-                merged_semis->Remove(*k);
+                merged_semis->Delete(*k);
             }
         }
 
@@ -918,21 +825,16 @@ void VCS::MergeAndShrink(bitset_t added,
             if (!merged_semis)
                 continue;
             if (!semis)
-            {
-                semis = m_semis[x].BitsetMap<SemiList>::Add(y);
-                m_semis[y].Put(x, semis);
-            }
+                semis = m_semis.Put(x, y);
             for (BitsetIterator k(merged_semis->Entries()); k; ++k)
             {
                 AndList* key_semis = (*semis)[*k];
                 if (!key_semis)
-                    key_semis = semis->BitsetMap<AndList>::Add(*k);
+                    key_semis = semis->Put(*k);
                 calc_all_semis |= Shrink(added, x, y, key_semis,
                                          *(*merged_semis)[*k], fulls, *k);
             }
-            delete merged_semis;
-            m_semis[*xi].Remove(*yi);
-            m_semis[*yi].Remove(*xi);
+            m_semis.Delete(*xi, *yi, merged_semis);
         }
 
     if (semis)
@@ -1035,10 +937,7 @@ inline void VCS::VCAnd::TryAddFull(bitset_t carrier, Func func)
             return TryAddFull<typename S::FullsNull>(carrier, func);
     }
     if (S::fulls_null)
-    {
-        fulls = vcs.m_fulls[x].Add(y, carrier);
-        vcs.m_fulls[y].Put(x, fulls);
-    }
+        fulls = vcs.m_fulls.Put(x, y, new AndList(carrier));
     else if (!fulls->TryAdd(carrier))
         SWITCHTO(S);
     vcs.m_fulls_and_queue.Push(Full(x, y, carrier));
@@ -1072,8 +971,7 @@ inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, Func func)
             if (fulls->SupersetOfAny(carrier))
                 SWITCHTO(S);
         }
-        semis = vcs.m_semis[x].Add(y, carrier, key);
-        vcs.m_semis[y].Put(x, semis);
+        semis = vcs.m_semis.Put(x, y, new SemiList(carrier, key));
         key_semis = (*semis)[key];
     }
     else
@@ -1094,8 +992,7 @@ inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, Func func)
                 if (fulls->SupersetOfAny(carrier))
                     SWITCHTO(S);
             }
-            key_semis = new AndList(carrier);
-            semis->Put(key, key_semis);
+            key_semis = semis->Put(key, new AndList(carrier));
         }
         else
         {
@@ -1412,9 +1309,7 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
         for (std::vector<bitset_t>::iterator it = new_fulls.begin();
              it != new_fulls.end(); ++it)
             m_fulls_and_queue.Push(Full(x, y, *it));
-        xy_fulls = new AndList(new_fulls);
-        m_fulls[x].Put(y, xy_fulls);
-        m_fulls[y].Put(x, xy_fulls);
+        m_fulls.Put(x, y, new AndList(new_fulls));
     }
     else
     {
@@ -1432,10 +1327,7 @@ inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
     BenzeneAssert(x != y);
     AndList* fulls = m_fulls[x][y];
     if (!fulls)
-    {
-        fulls = m_fulls[x].Add(y, carrier);
-        m_fulls[y].Put(x, fulls);
-    }
+        fulls = m_fulls.Put(x, y, new AndList(carrier));
     else if (!fulls->TryAdd(carrier))
         return false;
     m_fulls_and_queue.Push(Full(x, y, carrier));
@@ -1451,7 +1343,7 @@ inline VCS::Backup::AndListEntry::AndListEntry(HexPoint point, const AndList* an
 {
 }
 
-inline VCS::Backup::AndListEntry::~AndListEntry()
+VCS::Backup::AndListEntry::~AndListEntry()
 {
     if (andList)
         delete andList;
@@ -1480,7 +1372,7 @@ inline void VCS::Backup::Create(VCS& vcs)
     vcs.TestQueuesEmpty();
     for (int x = 0; x < BITSETSIZE; x++)
     {
-        FullNbs& nbs = vcs.m_fulls[x];
+        const typename BitsetUPairMap<AndList>::Nbs& nbs = vcs.m_fulls[(HexPoint)x];
         if (nbs.Entries().none())
             continue;
         FullsEntry entry((HexPoint)x);
@@ -1490,7 +1382,7 @@ inline void VCS::Backup::Create(VCS& vcs)
     }
     for (int x = 0; x < BITSETSIZE; x++)
     {
-        SemiNbs& nbs = vcs.m_semis[x];
+        const typename BitsetUPairMap<SemiList>::Nbs& nbs = vcs.m_semis[(HexPoint)x];
         if (nbs.Entries().none())
             continue;
         SemisEntry entry((HexPoint)x);
@@ -1512,20 +1404,16 @@ inline void VCS::Backup::Restore(VCS& vcs)
     for (std::vector<FullsEntry>::iterator entry = fulls.begin();
          entry != fulls.end(); ++entry)
     {
-        FullNbs& nbs = vcs.m_fulls[entry->x];
         for (std::vector<AndListEntry>::iterator i = entry->list.begin();
              i != entry->list.end(); ++i)
         {
-            HexPoint y = i->point;
-            nbs.Put(y, i->andList);
-            vcs.m_fulls[y].Put(entry->x, i->andList);
+            vcs.m_fulls.Put(entry->x, i->point, i->andList);
             i->andList = 0;
         }
     }
     for (std::vector<SemisEntry>::iterator entry = semis.begin();
          entry != semis.end(); ++entry)
     {
-        SemiNbs& nbs = vcs.m_semis[entry->x];
         for (std::vector<SemiListEntry>::iterator i = entry->list.begin();
             i != entry->list.end(); ++i)
         {
@@ -1536,8 +1424,7 @@ inline void VCS::Backup::Restore(VCS& vcs)
                 semi_list->Put(k->point, k->andList);
                 k->andList = 0;
             }
-            nbs.Put(i->y, semi_list);
-            vcs.m_semis[i->y].Put(entry->x, semi_list);
+            vcs.m_semis.Put(entry->x, i->y, semi_list);
         }
     }
 }

@@ -172,9 +172,6 @@ public:
     /** Copy constructor. */
     VCS(const VCS& other);
 
-    /** Destructor. */
-    ~VCS();
-
     /* FIXME: Build should clear build statistics first */
 
     /** Computes connections from scratch. */
@@ -228,9 +225,8 @@ public:
 
     bool SemiExists() const;
 
-    /** @todo Needed for endgame play */
+    /** Needed for endgame play */
     const CarrierList& GetFullCarriers() const;
-    /** @todo FIXME */
     const CarrierList& GetSemiCarriers() const;
 
     bitset_t SemiIntersection() const;
@@ -375,7 +371,6 @@ private:
         SemiList();
         SemiList(bitset_t carrier, HexPoint key);
         SemiList(const CarrierList& carrier_list, bitset_t intersection);
-        ~SemiList();
 
         void Add(bitset_t carrier);
 
@@ -394,30 +389,8 @@ private:
         bool m_queued;
     };
 
-    template <class T>
-    class Nbs : public BitsetMap<T>
-    {
-    public:
-        void Destroy(HexPoint x);
-        void Reset(HexPoint x);
-    };
-
-    class FullNbs : public Nbs<AndList>
-    {
-    public:
-        /** Add new neighbor with given carrier */
-        AndList* Add(HexPoint x, bitset_t carrier);
-    };
-
-    class SemiNbs : public Nbs<SemiList>
-    {
-    public:
-        /** Add new neighbor with given carrier and key */
-        SemiList* Add(HexPoint x, bitset_t carrier, HexPoint key);
-    };
-
-    FullNbs m_fulls[BITSETSIZE];
-    SemiNbs m_semis[BITSETSIZE];
+    BitsetUPairMap<AndList> m_fulls;
+    BitsetUPairMap<SemiList> m_semis;
 
     Queue<Full> m_fulls_and_queue;
     Queue<Semi> m_semis_and_queue;
