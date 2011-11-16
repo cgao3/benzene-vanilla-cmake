@@ -1657,11 +1657,11 @@ const CarrierList& VCS::GetFullCarriers() const
     return GetFullCarriers(m_edge1, m_edge2);
 }
 
-CarrierList VCS::GetSemiCarriers() const
+const CarrierList& VCS::GetSemiCarriers() const
 {
     SemiList* semis = m_semis[m_edge1][m_edge2];
     if (!semis)
-        return CarrierList();
+        return empty_carrier_list;
     return *semis;
 }
 
@@ -1678,7 +1678,7 @@ bitset_t VCS::GetSemiNbs(HexPoint x) const
 bitset_t VCS::FullIntersection(HexPoint x, HexPoint y) const
 {
     AndList* fulls = m_fulls[x][y];
-    return fulls ? fulls->GetIntersection() : bitset_t().set();
+    return fulls ? fulls->GetAllIntersection() : bitset_t().set();
 }
 
 bitset_t VCS::FullGreedyUnion(HexPoint x, HexPoint y) const

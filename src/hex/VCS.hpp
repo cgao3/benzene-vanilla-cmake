@@ -86,6 +86,7 @@ public:
     bitset_t GetGreedyUnion() const;
     bool SupersetOfAny(bitset_t carrier) const;
     bool RemoveSupersetsOfCheckAnyRemoved(const CarrierList& filter);
+    bitset_t GetAllIntersection() const;
 
 protected:
     CarrierList(bitset_t carrier);
@@ -103,7 +104,6 @@ protected:
     bool TrySetOld(bitset_t carrier) const;
 
     bitset_t GetOldIntersection() const;
-    bitset_t GetAllIntersection() const;
 
     void MarkAllOld();
     void MarkAllNew();
@@ -231,7 +231,7 @@ public:
     /** @todo Needed for endgame play */
     const CarrierList& GetFullCarriers() const;
     /** @todo FIXME */
-    CarrierList GetSemiCarriers() const;
+    const CarrierList& GetSemiCarriers() const;
 
     bitset_t SemiIntersection() const;
 
