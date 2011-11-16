@@ -125,6 +125,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             << m_useParallelSolver << '\n'
             << "[bool] use_time_management "
             << m_player.UseTimeManagement() << '\n'
+            << "[bool] use_early_abort " 
+            << m_player.UseEarlyAbort() << '\n'
             << "[string] ply_width " 
             << MiscUtil::PrintVector(search.PlyWidth()) << '\n'
             << "[string] max_depth "
@@ -170,6 +172,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             m_useParallelSolver = cmd.Arg<bool>(1);
         else if (name == "use_time_management")
             m_player.SetUseTimeManagement(cmd.Arg<bool>(1));
+        else if (name == "use_early_abort")
+            m_player.SetUseEarlyAbort(cmd.Arg<bool>(1));
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

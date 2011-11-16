@@ -53,7 +53,8 @@ WolvePlayer::WolvePlayer()
       m_maxTime(180),
       m_minDepth(1),
       m_maxDepth(4),
-      m_useTimeManagement(false)
+      m_useTimeManagement(false),
+      m_useEarlyAbort(false)
 {
 }
 
@@ -73,7 +74,7 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     m_search.SetWorkBoard(&brd);
     m_search.SetHashTable(m_hashTable.get());
     m_search.SetToPlay(HexSgUtil::HexColorToSgColor(state.ToPlay()));
-    WolveSearchControl timeControl(maxTime);
+    WolveSearchControl timeControl(maxTime, m_useEarlyAbort);
     m_search.SetSearchControl(&timeControl);
     std::size_t minDepth = MinDepth();
     std::size_t maxDepth = MaxDepth();

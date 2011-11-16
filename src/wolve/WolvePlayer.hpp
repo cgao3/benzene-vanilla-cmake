@@ -56,6 +56,14 @@ public:
     /** See UseTimeManagement() */
     void SetUseTimeManagement(bool flag);
 
+    /** Estimates the time to search to the next ply based on the time
+        to search the previous ply, aborts the search if this estimate
+        exceeds the time remaining for the search. */
+    bool UseEarlyAbort() const;
+    
+    /** See UseEarlyAbort() */
+    void SetUseEarlyAbort(bool flag);
+
     // @}
 
 private: 
@@ -72,6 +80,9 @@ private:
 
     /** See UseTimeManagement() */
     bool m_useTimeManagement;
+
+    /** See UseEarlyAbort() */
+    bool m_useEarlyAbort;
 
     virtual HexPoint Search(const HexState& state, const Game& game,
                             HexBoard& brd, const bitset_t& consider,
@@ -138,6 +149,17 @@ inline bool WolvePlayer::UseTimeManagement() const
 inline void WolvePlayer::SetUseTimeManagement(bool flag)
 {
     m_useTimeManagement = flag;
+}
+
+
+inline bool WolvePlayer::UseEarlyAbort() const
+{
+    return m_useEarlyAbort;
+}
+    
+inline void WolvePlayer::SetUseEarlyAbort(bool f)
+{
+    m_useEarlyAbort = f;
 }
 
 //----------------------------------------------------------------------------

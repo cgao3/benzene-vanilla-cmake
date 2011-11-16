@@ -77,7 +77,7 @@ inline bool VariationInfo::IsBetterThan(const VariationInfo& other) const
 class WolveSearchControl : public SgSearchControl
 {
 public:
-    WolveSearchControl(double maxTime);
+    WolveSearchControl(double maxTime, bool useEarlyAbort);
 
     virtual ~WolveSearchControl();
 
@@ -88,6 +88,8 @@ public:
 
 private:
     double m_maxTime;
+
+    bool m_useEarlyAbort;
 
     double m_lastDepthFinishedAt;
 

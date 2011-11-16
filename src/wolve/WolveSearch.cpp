@@ -42,8 +42,9 @@ int ConvertToSgScore(HexEval score)
 
 //----------------------------------------------------------------------------
 
-WolveSearchControl::WolveSearchControl(double maxTime)
+WolveSearchControl::WolveSearchControl(double maxTime, bool useEarlyAbort)
     : m_maxTime(maxTime),
+      m_useEarlyAbort(useEarlyAbort),
       m_lastDepthFinishedAt(0.)
 {
 }
@@ -77,7 +78,7 @@ bool WolveSearchControl::StartNextIteration(int depth, double elapsedTime,
                   << "timeLeft=" << timeLeft << '\n';
         // Assume the next depth will take at least as long as the
         // last depth
-        if (timeSinceLast > timeLeft)
+        if (m_useEarlyAbort && timeSinceLast > timeLeft)
         {
             LogInfo() << "Insufficient time for next depth. Aborting...\n";
             return false;
