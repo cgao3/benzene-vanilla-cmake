@@ -19,7 +19,8 @@ using namespace benzene;
 VCBuilderParam::VCBuilderParam()
     : and_over_edge(false),
       use_patterns(true),
-      use_non_edge_patterns(true)
+      use_non_edge_patterns(true),
+      use_incremental_builds(false)
 {
 }
 
@@ -528,12 +529,23 @@ void VCS::Build(VCBuilderParam& param,
         backups.push_back(Backup());
         backups.back().Create(*this);
     }
-    bitset_t capturedSet[BITSETSIZE];
-    for (int i = 0; i < BITSETSIZE; i++)
-        capturedSet[i] = m_capturedSet[i];
-    m_statistics = Statistics();
-    ComputeCapturedSets(patterns);
-    Merge(oldGroups, capturedSet, added);
+
+    if (param.use_incremental_builds)
+    {
+        bitset_t capturedSet[BITSETSIZE];
+        for (int i = 0; i < BITSETSIZE; i++)
+            capturedSet[i] = m_capturedSet[i];
+        m_statistics = Statistics();
+        ComputeCapturedSets(patterns);
+        Merge(oldGroups, capturedSet, added);
+    }
+    else
+    {
+        Reset();
+        ComputeCapturedSets(patterns);
+        AddBaseVCs();
+    }
+
     if (m_param->use_patterns)
         AddPatternVCs();
     DoSearch();

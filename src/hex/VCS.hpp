@@ -32,6 +32,9 @@ struct VCBuilderParam
      *        connections. */
     bool use_non_edge_patterns;
 
+    /** Whether to use incremental builds */
+    bool use_incremental_builds;
+
     /** Constructor. */
     VCBuilderParam();
 };
