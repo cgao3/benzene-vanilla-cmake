@@ -6,6 +6,7 @@
 #define WOLVEENGINE_HPP
 
 #include "CommonHtpEngine.hpp"
+#include "CacheBook.hpp"
 #include "WolvePlayer.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -47,6 +48,10 @@ public:
 
 private:
     WolvePlayer& m_player;
+
+    CacheBook m_cacheBook;
+
+    bool m_useCacheBook;
 
     double TimeForMove(HexColor color);
 

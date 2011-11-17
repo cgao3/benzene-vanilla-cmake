@@ -38,7 +38,9 @@ std::vector<std::size_t> PlyWidthsFromString(const std::string& val)
 
 WolveEngine::WolveEngine(int boardsize, WolvePlayer& player)
     : CommonHtpEngine(boardsize),
-      m_player(player)
+      m_player(player),
+      m_cacheBook(),
+      m_useCacheBook(true)
 {
     RegisterCmd("param_wolve", &WolveEngine::CmdParam);
     RegisterCmd("wolve-get-pv", &WolveEngine::CmdGetPV);
@@ -74,6 +76,12 @@ HexPoint WolveEngine::GenMove(HexColor color, bool useGameClock)
     SG_UNUSED(useGameClock);
     if (SwapCheck::PlaySwap(m_game, color))
         return SWAP_PIECES;
+    HexState state(m_game.Board(), color);
+    if (m_useCacheBook && m_cacheBook.Exists(state))
+    {
+        LogInfo() << "Playing move from cache book.\n";
+        return m_cacheBook[state];
+    }
     double maxTime = TimeForMove(color);
     return DoSearch(color, maxTime);
 }
@@ -116,6 +124,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             << search.BackupIceInfo() << '\n'
             << "[bool] ponder "
             << m_player.Ponder() << '\n'
+            << "[bool] use_cache_book "
+            << m_useCacheBook << '\n'
             << "[bool] use_guifx "
             << search.GuiFx() << '\n'
             << "[bool] search_singleton "
@@ -173,6 +183,8 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
 	    else
 		m_player.SetHashTable(new SgSearchHashTable(1 << bits));
         }
+        else if (name == "use_cache_book")
+            m_useCacheBook = cmd.Arg<bool>(1);
         else if (name == "use_parallel_solver")
             m_useParallelSolver = cmd.Arg<bool>(1);
         else if (name == "use_time_management")
