@@ -127,7 +127,9 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
             << "[bool] use_early_abort " 
             << m_player.UseEarlyAbort() << '\n'
             << "[string] ply_width " 
-            << "\"" << MiscUtil::PrintVector(search.PlyWidth()) << "\"\n"
+            << search.PlyWidth() << '\n'
+            << "[string] specific_ply_widths \"" 
+            << MiscUtil::PrintVector(search.SpecificPlyWidths()) << "\"\n"
             << "[string] max_depth "
             << m_player.MaxDepth() << '\n'
             << "[string] max_time "
@@ -148,10 +150,12 @@ void WolveEngine::CmdParam(HtpCommand& cmd)
         else if (name == "max_time")
             m_player.SetMaxTime(cmd.Arg<float>(1));
         else if (name == "ply_width")
+            search.SetPlyWidth(cmd.ArgMin<std::size_t>(1, 1));
+        else if (name == "specific_ply_widths")
         {
             std::vector<std::size_t> plywidth 
                 = PlyWidthsFromString(cmd.Arg(1));
-            search.SetPlyWidth(plywidth);
+            search.SetSpecificPlyWidths(plywidth);
         } 
         else if (name == "max_depth")
             m_player.SetMaxDepth(cmd.ArgMin<std::size_t>(1, 1));

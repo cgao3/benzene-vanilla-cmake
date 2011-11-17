@@ -123,12 +123,20 @@ public:
     /** See RootMovesToConsider() */
     void SetRootMovesToConsider(const bitset_t& consider);
 
-    /** Number of moves to consider at each depth after move
-        ordering. */
-    const std::vector<std::size_t>& PlyWidth() const;
+    /** Number of moves to consider at all depths. 
+        If SpecificPlyWidths() is non-empty, this value is ignored. */
+    std::size_t PlyWidth() const;
 
     /** See PlyWidth() */
-    void SetPlyWidth(const std::vector<std::size_t>& width);
+    void SetPlyWidth(std::size_t width);
+
+    /** Moves to consider at each depth.
+        If non-empty, overrides PlyWidth() and enforces a maximum
+        depth to the search (set to the length of this vector). */
+    const std::vector<std::size_t>& SpecificPlyWidths() const;
+
+    /** See SpecificPlyWidth() */
+    void SetSpecificPlyWidths(const std::vector<std::size_t>& width);
 
     /** Board search will use.
         Caller retains ownership. */
@@ -197,8 +205,11 @@ private:
     /** Sequence of moves from the root. */
     MoveSequence m_sequence;
 
-    /** See PlyWidths() */
-    std::vector<std::size_t> m_plyWidth;
+    /** See PlyWidth() */
+    std::size_t m_plyWidth;
+
+    /** See SpecificPlyWidths() */
+    std::vector<std::size_t> m_specificPlyWidths;
 
     /** See RootMovesToConsider() */
     bitset_t m_rootMTC;
@@ -230,14 +241,25 @@ inline void WolveSearch::SetRootMovesToConsider(const bitset_t& consider)
     m_rootMTC = consider;
 }
 
-inline const std::vector<std::size_t>& WolveSearch::PlyWidth() const
+inline std::size_t WolveSearch::PlyWidth() const
 {
     return m_plyWidth;
 }
 
-inline void WolveSearch::SetPlyWidth(const std::vector<std::size_t>& width)
+inline void WolveSearch::SetPlyWidth(std::size_t width)
 {
     m_plyWidth = width;
+}
+
+inline const std::vector<std::size_t>& WolveSearch::SpecificPlyWidths() const
+{
+    return m_specificPlyWidths;
+}
+
+inline void WolveSearch::SetSpecificPlyWidths
+(const std::vector<std::size_t>& width)
+{
+    m_specificPlyWidths = width;
 }
 
 inline bool WolveSearch::BackupIceInfo() const

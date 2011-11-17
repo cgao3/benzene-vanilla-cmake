@@ -160,14 +160,12 @@ void WolveSearchUtil::DumpGuiFx(const HexState& state,
 
 WolveSearch::WolveSearch()
     : SgSearch(0),
+      m_plyWidth(15),
+      m_specificPlyWidths(),
       //m_varTT(16),           // 16bit variation trans-table
       m_backup_ice_info(true),
       m_useGuiFx(false)
 {
-    m_plyWidth.push_back(20);
-    m_plyWidth.push_back(20);
-    m_plyWidth.push_back(20);
-    m_plyWidth.push_back(20);
 }
 
 WolveSearch::~WolveSearch()
@@ -299,8 +297,9 @@ void WolveSearch::ComputeResistance(Resistance& resist)
     resist.Evaluate(groups, graphs);
 }
 
-/** Sorts moves in consider set and stores the best in outMoves. The
-    number of moves copied is equal to plyWidth[CurrentDepth()]. */
+/** Sorts moves in consider set and stores the best in outMoves.
+    The number of moves depends on PlyWidth() and SpecificPlyWidths().
+    See PlyWidth(), SpecificPlyWidth(). */
 void WolveSearch::OrderMoves(const bitset_t& consider,
                              const Resistance& resist,
                              SgVector<SgMove>& outMoves) const
@@ -313,10 +312,14 @@ void WolveSearch::OrderMoves(const bitset_t& consider,
     }
     // NOTE: To ensure we are deterministic, we must use stable_sort.
     stable_sort(mvsc.begin(), mvsc.end());
-    BenzeneAssert(std::size_t(CurrentDepth()) < m_plyWidth.size());
-    const std::size_t movesToCopy 
-        = std::min(mvsc.size(), m_plyWidth[CurrentDepth()]);
-    for (std::size_t i = 0; i < movesToCopy;  ++i)
+    std::size_t width = m_plyWidth;
+    if (0 < m_specificPlyWidths.size())
+    {
+        BenzeneAssert(std::size_t(CurrentDepth()) < m_plyWidth.size());
+        width = m_specificPlyWidths[CurrentDepth()];
+    }
+    const std::size_t movesToCopy = std::min(mvsc.size(), width);
+    for (std::size_t i = 0; i < movesToCopy; ++i)
         outMoves.PushBack(mvsc[i].second);
 }
 

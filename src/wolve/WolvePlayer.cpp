@@ -50,9 +50,9 @@ std::string PrintVector(const SgVector<SgMove>& vec)
 WolvePlayer::WolvePlayer()
     : BenzenePlayer(),
       m_hashTable(new SgSearchHashTable(1 << 20)),
-      m_maxTime(180),
+      m_maxTime(10),
       m_minDepth(1),
-      m_maxDepth(4),
+      m_maxDepth(99),
       m_useTimeManagement(false),
       m_useEarlyAbort(false),
       m_ponder(false)
@@ -79,11 +79,15 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     m_search.SetSearchControl(&timeControl);
     std::size_t minDepth = MinDepth();
     std::size_t maxDepth = MaxDepth();
-    if (maxDepth > m_search.PlyWidth().size())
+    if (!m_search.SpecificPlyWidths().empty())
     {
-        maxDepth = m_search.PlyWidth().size();
-        LogWarning() << "Max depth exceeds depth specified in ply_width!\n"
-                     << "Capping maxDepth to be safe.\n";
+        LogInfo() << "Using specific plywidths!!\n";
+        if (maxDepth > m_search.SpecificPlyWidths().size())
+        {
+            maxDepth = m_search.SpecificPlyWidths().size();
+            LogWarning() << "Max depth exceeds depth specified in ply_width!\n"
+                         << "Capping maxDepth to be safe.\n";
+        }
     }
     LogInfo() << "minDepth=" << minDepth << ' ' 
               << "maxDepth=" << maxDepth << '\n';
