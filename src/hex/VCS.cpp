@@ -364,6 +364,11 @@ void VCS::SemiList::MarkAllProcessed()
     m_queued = false;
 }
 
+void VCS::SemiList::MarkAllUnprocessed()
+{
+    MarkAllNew();
+}
+
 void VCS::SemiList::CalcAllSemis()
 {
     Clear();
@@ -523,9 +528,12 @@ void VCS::Build(VCBuilderParam& param,
         backups.push_back(Backup());
         backups.back().Create(*this);
     }
+    bitset_t capturedSet[BITSETSIZE];
+    for (int i = 0; i < BITSETSIZE; i++)
+        capturedSet[i] = m_capturedSet[i];
     m_statistics = Statistics();
     ComputeCapturedSets(patterns);
-    Merge(oldGroups, added);
+    Merge(oldGroups, capturedSet, added);
     if (m_param->use_patterns)
         AddPatternVCs();
     DoSearch();
@@ -561,7 +569,8 @@ void VCS::Reset()
     removing any cells from a connection's carrier that are now
     occupied by friendly stones. Semi-connections that have their keys
     played must be upgraded to full connections. */
-void VCS::Merge(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE])
+void VCS::Merge(const Groups& oldGroups, bitset_t* oldCapturedSet,
+                bitset_t added[BLACK_AND_WHITE])
 {
     // Kill connections containing stones the opponent just played.
     // NOTE: This *must* be done in the original state, not in the
@@ -586,7 +595,8 @@ void VCS::Merge(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE])
         for (GroupIterator y(*m_groups, not_other); &*y != &*x; ++y)
         {
             HexPoint yc = y->Captain();
-            MergeAndShrink(added[m_color], merged[xc], merged[yc], xc, yc);
+            MergeAndShrink(oldCapturedSet, added[m_color],
+                           merged[xc], merged[yc], xc, yc);
         }
     }
 }
@@ -741,7 +751,7 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
 }
 
 /** Merges and shrinks connections between the given endpoints. */
-void VCS::MergeAndShrink(bitset_t added,
+void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
                          bitset_t x_merged, bitset_t y_merged,
                          HexPoint x, HexPoint y)
 {
@@ -752,6 +762,9 @@ void VCS::MergeAndShrink(bitset_t added,
     SemiList* semis = m_semis[x][y];
 
     bool new_fulls = false;
+    bool newCaptureSet =
+        (oldCapturedSet[x] | oldCapturedSet[y]) !=
+        (m_capturedSet[x] | m_capturedSet[y]);
 
     if (fulls)
         // First shrink fulls wihtout merge
@@ -792,7 +805,7 @@ void VCS::MergeAndShrink(bitset_t added,
 
     if (fulls)
     {
-        if ((added.test(x) || added.test(y)))
+        if (added.test(x) || added.test(y) || newCaptureSet)
         {
             for (CarrierList::Iterator i(*fulls); i; ++i)
                 if (i.Old())
@@ -841,7 +854,7 @@ void VCS::MergeAndShrink(bitset_t added,
         for (BitsetIterator k(semis->Entries()); k; ++k)
         {
             AndList* key_semis = (*semis)[*k];
-            if (added.test(x) || added.test(y))
+            if (added.test(x) || added.test(y) || newCaptureSet)
             {
                 for (CarrierList::Iterator i(*key_semis); i; ++i)
                     if (i.Old())
@@ -854,8 +867,14 @@ void VCS::MergeAndShrink(bitset_t added,
 
     // Recalculate all semis if needed
     if (calc_all_semis)
-    {
         semis->CalcAllSemis();
+    bool anyCpatureSetChanged =
+        (oldCapturedSet[x] != m_capturedSet[x]) ||
+        (oldCapturedSet[y] != m_capturedSet[y]);
+    if (calc_all_semis || (semis && anyCpatureSetChanged))
+    {
+        if (anyCpatureSetChanged)
+            semis->MarkAllUnprocessed();
         if (semis->TryQueue(m_capturedSet[x] | m_capturedSet[y]))
             m_semis_or_queue.Push(Ends(x, y));
     }

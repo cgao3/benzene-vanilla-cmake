@@ -382,6 +382,7 @@ private:
         bool TryQueue(bitset_t capturedSet);
 
         void MarkAllProcessed();
+        void MarkAllUnprocessed();
         void CalcAllSemis();
 
     private:
@@ -538,8 +539,9 @@ private:
     /** Incremental build staff */
     // @{
     void RemoveAllContaining(const Groups& oldGroups, bitset_t removed);
-    void Merge(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE]);
-    void MergeAndShrink(bitset_t added,
+    void Merge(const Groups& oldGroups, bitset_t* oldCaptureSet,
+               bitset_t added[BLACK_AND_WHITE]);
+    void MergeAndShrink(bitset_t* oldCaptureSet, bitset_t added,
                         bitset_t x_merged, bitset_t y_merged,
                         HexPoint x, HexPoint y);
     void MergeRemoveSelfEnds(bitset_t x_merged);
