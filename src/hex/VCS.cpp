@@ -300,34 +300,33 @@ inline void VCS::AndList::CalcIntersection()
 
 //----------------------------------------------------------------------------
 
-inline VCS::SemiList::SemiList()
+inline VCS::OrList::OrList()
     : m_queued(false)
 {
     m_intersection.set();
 }
 
-inline VCS::SemiList::SemiList(bitset_t carrier, HexPoint key)
+inline VCS::OrList::OrList(bitset_t carrier)
     : CarrierList(carrier),
       m_intersection(carrier),
       m_queued(false)
 {
-    Put(key, new AndList(carrier));
 }
 
-inline VCS::SemiList::SemiList(const CarrierList& carrier_list,
-                               bitset_t intersection)
+inline VCS::OrList::OrList(const CarrierList& carrier_list,
+                           bitset_t intersection)
     : CarrierList(carrier_list),
       m_intersection(intersection),
       m_queued(false)
 {
 }
 
-inline bitset_t VCS::SemiList::GetIntersection() const
+inline bitset_t VCS::OrList::GetIntersection() const
 {
     return m_intersection;
 }
 
-inline void VCS::SemiList::Add(bitset_t carrier)
+inline void VCS::OrList::Add(bitset_t carrier)
 {
     if (SupersetOfAny(carrier))
         return;
@@ -336,11 +335,62 @@ inline void VCS::SemiList::Add(bitset_t carrier)
     m_intersection &= carrier;
 }
 
+inline bool VCS::OrList::RemoveSupersetsOf(bitset_t carrier)
+{
+    if (RemoveSupersetsOfCheckAnyRemoved(carrier))
+    {
+        m_intersection = GetAllIntersection();
+        return true;
+    }
+    else
+        return false;
+}
+
+inline bool VCS::OrList::TryQueue(bitset_t capturedSet)
+{
+    bool prev_queued = m_queued;
+    m_queued = BitsetUtil::IsSubsetOf(m_intersection, capturedSet);
+    return !prev_queued && m_queued;
+}
+
+void VCS::OrList::MarkAllProcessed()
+{
+    MarkAllOld();
+    m_queued = false;
+}
+
+void VCS::OrList::MarkAllUnprocessed()
+{
+    MarkAllNew();
+}
+
+void VCS::OrList::Clear()
+{
+    CarrierList::Clear();
+    m_intersection.set();
+}
+
+//---------------------------------------------------------------------------
+
+inline VCS::SemiList::SemiList()
+{
+}
+
+inline VCS::SemiList::SemiList(const CarrierList& carrier_list, bitset_t intersection)
+    : OrList(carrier_list, intersection)
+{
+}
+
+inline VCS::SemiList::SemiList(bitset_t carrier, HexPoint key)
+    : OrList(carrier)
+{
+    Put(key, new AndList(carrier));
+}
+
 inline void VCS::SemiList::RemoveSupersetsOf(bitset_t carrier)
 {
-    if (!RemoveSupersetsOfCheckAnyRemoved(carrier))
+    if (!OrList::RemoveSupersetsOf(carrier))
         return;
-    m_intersection = GetAllIntersection();
     for (BitsetIterator it(Entries()); it; ++it)
         (*this)[*it]->RemoveSupersetsOf(carrier);
 }
@@ -353,28 +403,9 @@ inline bool VCS::SemiList::RemoveSupersetsOf(const CarrierList& filter)
     return res;
 }
 
-inline bool VCS::SemiList::TryQueue(bitset_t capturedSet)
-{
-    bool prev_queued = m_queued;
-    m_queued = BitsetUtil::IsSubsetOf(m_intersection, capturedSet);
-    return !prev_queued && m_queued;
-}
-
-void VCS::SemiList::MarkAllProcessed()
-{
-    MarkAllOld();
-    m_queued = false;
-}
-
-void VCS::SemiList::MarkAllUnprocessed()
-{
-    MarkAllNew();
-}
-
 void VCS::SemiList::CalcAllSemis()
 {
     Clear();
-    m_intersection.set();
     for (BitsetIterator k(Entries()); k; ++k)
         for (CarrierList::Iterator i(*(*this)[*k]); i; ++i)
             Add(i.Carrier());

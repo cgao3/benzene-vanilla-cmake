@@ -374,29 +374,41 @@ private:
         bitset_t m_processed_intersection;
     };
 
-    class SemiList : public CarrierList, public BitsetMap<AndList>
+    class OrList : public CarrierList
     {
     public:
-        SemiList();
-        SemiList(bitset_t carrier, HexPoint key);
-        SemiList(const CarrierList& carrier_list, bitset_t intersection);
+        OrList();
+        OrList(bitset_t carrier);
+        OrList(const CarrierList& carrier_list, bitset_t intersection);
 
         void Add(bitset_t carrier);
 
         bitset_t GetIntersection() const;
 
-        void RemoveSupersetsOf(bitset_t carrier);
-        bool RemoveSupersetsOf(const CarrierList& filter);
+        bool RemoveSupersetsOf(bitset_t carrier);
 
         bool TryQueue(bitset_t capturedSet);
 
         void MarkAllProcessed();
         void MarkAllUnprocessed();
-        void CalcAllSemis();
+
+    protected:
+        void Clear();
 
     private:
         bitset_t m_intersection;
         bool m_queued;
+    };
+
+    class SemiList : public OrList, public BitsetMap<AndList>
+    {
+    public:
+        SemiList();
+        SemiList(bitset_t carrier, HexPoint key);
+        SemiList(const CarrierList& carrier_list, bitset_t intersection);
+        void RemoveSupersetsOf(bitset_t carrier);
+        bool RemoveSupersetsOf(const CarrierList& filter);
+        void CalcAllSemis();
     };
 
     BitsetUPairMap<AndList> m_fulls;
