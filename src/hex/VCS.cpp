@@ -20,7 +20,8 @@ VCBuilderParam::VCBuilderParam()
     : and_over_edge(false),
       use_patterns(true),
       use_non_edge_patterns(true),
-      use_incremental_builds(false)
+      incremental_builds(true),
+      threats(true)
 {
 }
 
@@ -530,7 +531,7 @@ void VCS::Build(VCBuilderParam& param,
         backups.back().Create(*this);
     }
 
-    if (param.use_incremental_builds)
+    if (param.incremental_builds)
     {
         bitset_t capturedSet[BITSETSIZE];
         for (int i = 0; i < BITSETSIZE; i++)
@@ -894,6 +895,7 @@ void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
 
 void VCS::DoSearch()
 {
+    bool do_threats = m_param->threats;
     while (true)
     {
         if (!m_fulls_and_queue.IsEmpty())
@@ -910,6 +912,11 @@ void VCS::DoSearch()
         {
             Ends p = m_semis_or_queue.Pop();
             OrSemis(p.x, p.y);
+        }
+        else if (do_threats)
+        {
+            ThreatSearch();
+            do_threats = false;
         }
         else
             break;
@@ -1366,6 +1373,271 @@ inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
     if (semis)
         semis->RemoveSupersetsOf(carrier);
     return true;
+}
+
+inline void VCS::TryAddThreat(HexPoint k1, HexPoint k2,
+                              AndList* threats, bitset_t carrier)
+{
+    BenzeneAssert(k1 != k2);
+    m_statistics.order2_attempts++;
+    if (m_edge_semis)
+    {
+        if (m_edge_semis->SupersetOfAny(carrier))
+            return;
+    }
+    if (!threats)
+        m_threats.Put(k1, k2, new AndList(carrier));
+    else if (!threats->TryAdd(carrier))
+        return;
+    m_statistics.order2_successes++;
+}
+
+inline void VCS::ThreatSearch()
+{
+    HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
+    bitset_t edgesCapturedSet = m_capturedSet[m_edge1] | m_capturedSet[m_edge2];
+    m_edge_semis = m_semis[m_edge1][m_edge2];
+    for (GroupIterator z(*m_groups, not_other); z; ++z)
+    {
+        HexPoint zc = z->Captain();
+        if (!HexPointUtil::isEdge(zc))
+            ThreatSearch(zc, m_brd->GetColor(zc), edgesCapturedSet | m_capturedSet[zc]);
+    }
+
+    for (int i = 0; i < BITSETSIZE; i++)
+    {
+        HexPoint k1 = HexPoint(i);
+        const typename BitsetUPairMap<AndList>::Nbs& k1_threats = m_threats[k1];
+        if (k1_threats.Entries().none())
+            continue;
+        AndList threats;
+        for (BitsetIterator k(k1_threats.Entries()); k; ++k)
+        {
+            for (CarrierList::Iterator i(*k1_threats[*k]); i; ++i)
+                threats.TryAdd(i.Carrier());
+        }
+
+        if (!BitsetUtil::IsSubsetOf(threats.GetIntersection(), edgesCapturedSet))
+            continue;
+        AndList* k1_semis = m_edge_semis ? (*m_edge_semis)[k1] : 0;
+        std::vector<bitset_t> new_semis =
+            VCOr(threats, k1_semis ? *k1_semis : CarrierList(),
+                 m_capturedSet[m_edge1], m_capturedSet[m_edge2], k1);
+        if (new_semis.empty())
+            continue;
+        if (!k1_semis)
+        {
+            if (m_edge_semis)
+                m_edge_semis = m_semis.Put(m_edge1, m_edge2);
+            k1_semis = m_edge_semis->Put(k1);
+        }
+        for (std::vector<bitset_t>::iterator it = new_semis.begin();
+             it != new_semis.end(); ++it)
+        {
+            k1_semis->Add(*it);
+            m_edge_semis->Add(*it);
+        }
+    }
+
+    m_threats.Reset();
+
+    if (!m_edge_semis)
+        return;
+
+    if (m_edge_semis->TryQueue(edgesCapturedSet))
+        m_semis_or_queue.Push(Ends(m_edge1, m_edge2));
+}
+
+inline void VCS::ThreatSearch(HexPoint z, HexColor zcolor, bitset_t capturedSet)
+{
+    AndList* fulls1 = m_fulls[m_edge1][z];
+    AndList* fulls2 = m_fulls[m_edge2][z];
+    SemiList* semis1 = m_semis[m_edge1][z];
+    SemiList* semis2 = m_semis[m_edge2][z];
+    if (fulls1)
+    {
+        if (fulls2)
+        {
+            if (zcolor == EMPTY)
+                ThreatSearch1(fulls1, fulls2, capturedSet, z);
+            else
+                ThreatSearch0(fulls1, fulls2, capturedSet);
+        }
+        if (semis2)
+        {
+            if (zcolor == EMPTY)
+                ThreatSearch2Semi(fulls1, semis2, capturedSet, z);
+            else
+                ThreatSearch1Semi(fulls1, semis2, capturedSet);
+        }
+    }
+    if (semis1)
+    {
+        if (fulls2)
+        {
+            if (zcolor == EMPTY)
+                ThreatSearch2Semi(fulls2, semis1, capturedSet, z);
+            else
+                ThreatSearch1Semi(fulls2, semis1, capturedSet);
+        }
+        if (semis2)
+        {
+            if (zcolor == EMPTY)
+                ThreatSearch2SemiSemi(semis1, semis2, capturedSet, z);
+            else
+                ThreatSearch2SemiSemi(semis1, semis2, capturedSet);
+        }
+    }
+}
+
+inline void VCS::ThreatSearch2SemiSemi(SemiList* semis1, SemiList* semis2,
+                                       bitset_t capturedSet, HexPoint k1)
+{
+    for (BitsetIterator k(semis1->Entries()); k; ++k)
+    {
+        BenzeneAssert(*k != k1);
+        AndList* list2 = (*semis2)[*k];
+        if (list2)
+            ThreatSearch2((*semis1)[*k], list2, capturedSet, k1, *k);
+    }
+}
+
+inline void VCS::ThreatSearch2SemiSemi(SemiList* semis1, SemiList* semis2,
+                                       bitset_t capturedSet)
+{
+    for (BitsetIterator k(semis1->Entries()); k; ++k)
+        ThreatSearch2Semi((*semis1)[*k], semis2, capturedSet, *k);
+}
+
+inline void VCS::ThreatSearch1Semi(AndList* fulls1, SemiList* semis2,
+                                   bitset_t capturedSet)
+{
+    for (BitsetIterator k(semis2->Entries()); k; ++k)
+        ThreatSearch1(fulls1, (*semis2)[*k], capturedSet, *k);
+}
+
+inline void VCS::ThreatSearch2Semi(AndList* fulls1, SemiList* semis2,
+                                   bitset_t capturedSet, HexPoint k1)
+{
+    for (BitsetIterator k(semis2->Entries()); k; ++k)
+        if (k1 == *k)
+            ThreatSearch1(fulls1, (*semis2)[*k], capturedSet, k1);
+        else
+            ThreatSearch2(fulls1, (*semis2)[*k], capturedSet, k1, *k);
+}
+
+inline void VCS::ThreatSearch0(AndList* list1, AndList* list2,
+                               bitset_t capturedSet)
+{
+    if (((list1->GetIntersection() & list2->GetIntersection())
+        - capturedSet).count() > 2)
+        return;
+    for (CarrierList::Iterator i(*list1); i; ++i)
+        ThreatSearch0(i.Carrier(), list2, capturedSet);
+}
+
+inline void VCS::ThreatSearch0(bitset_t carrier1, AndList* list2,
+                               bitset_t capturedSet)
+{
+    if (((carrier1 & list2->GetIntersection())
+        - capturedSet).count() > 2)
+        return;
+    for (CarrierList::Iterator i(*list2); i; ++i)
+        ThreatSearch0(carrier1, i.Carrier(), capturedSet);
+}
+
+inline void VCS::ThreatSearch0(bitset_t carrier1, bitset_t carrier2,
+                               bitset_t capturedSet)
+{
+    bitset_t intersection = carrier1 & carrier2;
+    bitset_t cunion = carrier1 | carrier2;
+    if (intersection.count() != 2)
+    {
+        intersection -= capturedSet;
+        if (intersection.count() != 2)
+            return;
+        cunion |= capturedSet;
+    }
+
+    BitsetIterator i(intersection);
+    HexPoint k1 = *i;
+    ++i;
+    HexPoint k2 = *i;
+    TryAddThreat(k1, k2, m_threats[k1][k2], cunion);
+}
+
+inline void VCS::ThreatSearch1(AndList* list1, AndList* list2,
+                               bitset_t capturedSet, HexPoint k1)
+{
+    if ((((list1->GetIntersection() & list2->GetIntersection())
+        - capturedSet)).reset(k1).count() > 1)
+        return;
+    for (CarrierList::Iterator i(*list1); i; ++i)
+        ThreatSearch1(i.Carrier().set(k1), list2, capturedSet, k1);
+}
+
+inline void VCS::ThreatSearch1(bitset_t carrier1, AndList* list2,
+                               bitset_t capturedSet, HexPoint k1)
+{
+    if ((((carrier1 & list2->GetIntersection())
+        - capturedSet)).reset(k1).count() > 1)
+        return;
+    for (CarrierList::Iterator i(*list2); i; ++i)
+        ThreatSearch1(carrier1, i.Carrier(), capturedSet, k1);
+}
+
+inline void VCS::ThreatSearch1(bitset_t carrier1, bitset_t carrier2,
+                               bitset_t capturedSet, HexPoint k1)
+{
+    bitset_t intersection = (carrier1 & carrier2).reset(k1);
+    bitset_t cunion = carrier1 | carrier2;
+    if (intersection.count() != 1)
+    {
+        intersection -= capturedSet;
+        if (intersection.count() != 1)
+            return;
+        cunion |= capturedSet;
+    }
+
+    BitsetIterator i(intersection);
+    HexPoint k2 = *i;
+    TryAddThreat(k1, k2, m_threats[k1][k2], cunion);
+}
+
+inline void VCS::ThreatSearch2(AndList* list1, AndList* list2,
+                               bitset_t capturedSet, HexPoint k1, HexPoint k2)
+{
+    if ((((list1->GetIntersection() & list2->GetIntersection())
+        - capturedSet)).reset(k1).reset(k2).any())
+        return;
+    for (CarrierList::Iterator i(*list1); i; ++i)
+        ThreatSearch2(i.Carrier().set(k1).set(k2), list2, capturedSet, k1, k2);
+}
+
+inline void VCS::ThreatSearch2(bitset_t carrier1, AndList* list2,
+                               bitset_t capturedSet, HexPoint k1, HexPoint k2)
+{
+    if ((((carrier1 & list2->GetIntersection())
+        - capturedSet)).reset(k1).reset(k2).any())
+        return;
+    for (CarrierList::Iterator i(*list2); i; ++i)
+        ThreatSearch2(carrier1, i.Carrier(), capturedSet, k1, k2);
+}
+
+inline void VCS::ThreatSearch2(bitset_t carrier1, bitset_t carrier2,
+                               bitset_t capturedSet, HexPoint k1, HexPoint k2)
+{
+    bitset_t intersection = (carrier1 & carrier2).reset(k1).reset(k2);
+    bitset_t cunion = carrier1 | carrier2;
+    if (intersection.any())
+    {
+        intersection -= capturedSet;
+        if (intersection.any())
+            return;
+        cunion |= capturedSet;
+    }
+
+    TryAddThreat(k1, k2, m_threats[k1][k2], cunion);
 }
 
 inline VCS::Backup::AndListEntry::AndListEntry(HexPoint point, const AndList* andList)

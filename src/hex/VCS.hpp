@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-/** @file VCSet.hpp */
+/** @file VCS.hpp */
 //----------------------------------------------------------------------------
 
 #ifndef VCS_HPP
@@ -32,8 +32,11 @@ struct VCBuilderParam
      *        connections. */
     bool use_non_edge_patterns;
 
-    /** Whether to use incremental builds */
-    bool use_incremental_builds;
+    /** Whether requests for incremental bulilds are done incrementally */
+    bool incremental_builds;
+
+    /** Whether try threats for more semis between edges */
+    bool threats;
 
     /** Constructor. */
     VCBuilderParam();
@@ -175,8 +178,6 @@ public:
     /** Copy constructor. */
     VCS(const VCS& other);
 
-    /* FIXME: Build should clear build statistics first */
-
     /** Computes connections from scratch. */
     void Build(VCBuilderParam& param,
                const Groups& groups, const PatternState& patterns);
@@ -234,8 +235,7 @@ public:
 
     bitset_t SemiIntersection() const;
 
-    /** @todo Needed for decomosition.
-        Return rather CarrierList and supply it with iterator. */
+    /** Needed for decomosition. */
     const CarrierList& GetFullCarriers(HexPoint x, HexPoint y) const;
 
     // @}
@@ -292,6 +292,12 @@ private:
 
         /** Semi-connections successfully added by and-rule. */
         std::size_t and_semi_successes;
+
+        /** Semi-connections built by and-rule. */
+        std::size_t order2_attempts;
+
+        /** Semi-connections successfully added by and-rule. */
+        std::size_t order2_successes;
 
         /** Full-connections built by or-rule. */
         std::size_t or_attempts;
@@ -539,6 +545,44 @@ private:
 
     bool TryAddFull(HexPoint x, HexPoint y, bitset_t carrier);
 
+    /** Threats */
+    // @{
+    BitsetUPairMap<AndList> m_threats;
+    SemiList *m_edge_semis;
+
+    void TryAddThreat(HexPoint k1, HexPoint k2,
+                      AndList* threats, bitset_t carrier);
+
+    void ThreatSearch();
+    void ThreatSearch(HexPoint z, HexColor zcolor, bitset_t capturedSet);
+    void ThreatSearch2SemiSemi(SemiList* semis1, SemiList* semis2,
+                               bitset_t capturedSet, HexPoint k1);
+    void ThreatSearch2SemiSemi(SemiList* semis1, SemiList* semis2,
+                               bitset_t capturedSet);
+    void ThreatSearch1Semi(AndList* fulls1, SemiList* semis2,
+                           bitset_t capturedSet);
+    void ThreatSearch2Semi(AndList* fulls1, SemiList* semis2,
+                           bitset_t capturedSet, HexPoint k1);
+    void ThreatSearch0(AndList* list1, AndList* list2,
+                       bitset_t capturedSet);
+    void ThreatSearch0(bitset_t carrier1, AndList* list2,
+                       bitset_t capturedSet);
+    void ThreatSearch0(bitset_t carrier1, bitset_t carrier2,
+                       bitset_t capturedSet);
+    void ThreatSearch1(AndList* list1, AndList* list2,
+                       bitset_t capturedSet, HexPoint k1);
+    void ThreatSearch1(bitset_t carrier1, AndList* list2,
+                       bitset_t capturedSet, HexPoint k1);
+    void ThreatSearch1(bitset_t carrier1, bitset_t carrier2,
+                       bitset_t capturedSet, HexPoint k1);
+    void ThreatSearch2(AndList* list1, AndList* list2,
+                       bitset_t capturedSet, HexPoint k1, HexPoint k2);
+    void ThreatSearch2(bitset_t carrier1, AndList* list2,
+                       bitset_t capturedSet, HexPoint k1, HexPoint k2);
+    void ThreatSearch2(bitset_t carrier1, bitset_t carrier2,
+                       bitset_t capturedSet, HexPoint k1, HexPoint k2);
+    // @}
+
     /** Incremental build staff */
     // @{
     void RemoveAllContaining(const Groups& oldGroups, bitset_t removed);
@@ -556,7 +600,6 @@ private:
     bool Shrink(bitset_t added, HexPoint x, HexPoint y,
                 AndList* semis, const CarrierList& list,
                 const AndList* filter, HexPoint key);
-    // @}
 
     class Backup
     {
@@ -603,6 +646,7 @@ private:
     friend class Backup;
 
     std::vector<Backup> backups;
+    // @}
 };
 
 template <class Stream>
