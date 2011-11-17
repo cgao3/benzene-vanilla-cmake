@@ -483,7 +483,11 @@ void MoHexEngine::Ponder()
     }
     LogInfo() << "MoHexEngine::Ponder: start\n";
     // Search for at most 10 minutes
+    // Force it to search even if root has a singleton consider set
+    bool oldSingleton = m_player.SearchSingleton();
+    m_player.SetSearchSingleton(true);
     DoSearch(m_game.Board().WhoseTurn(), 600);
+    m_player.SetSearchSingleton(oldSingleton);
 }
 
 void MoHexEngine::StopPonder()
