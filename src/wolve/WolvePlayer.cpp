@@ -33,14 +33,6 @@ std::string PrintSgScore(int score)
     return os.str();
 }
 
-std::string PrintVector(const SgVector<SgMove>& vec)
-{
-    std::ostringstream os;
-    for (int i = 0; i < vec.Length(); ++i)
-        os << (i > 0 ? " " : "") << static_cast<HexPoint>(vec[i]);
-    return os.str();
-}
-
 //----------------------------------------------------------------------------
 
 }
@@ -75,7 +67,8 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     m_search.SetWorkBoard(&brd);
     m_search.SetHashTable(m_hashTable.get());
     m_search.SetToPlay(HexSgUtil::HexColorToSgColor(state.ToPlay()));
-    WolveSearchControl timeControl(maxTime, m_useEarlyAbort);
+    SgVector<SgMove> PV;
+    WolveSearchControl timeControl(maxTime, m_useEarlyAbort, PV);
     m_search.SetSearchControl(&timeControl);
     std::size_t minDepth = MinDepth();
     std::size_t maxDepth = MaxDepth();
@@ -91,7 +84,6 @@ HexPoint WolvePlayer::Search(const HexState& state, const Game& game,
     }
     LogInfo() << "minDepth=" << minDepth << ' ' 
               << "maxDepth=" << maxDepth << '\n';
-    SgVector<SgMove> PV;
     int score = m_search.IteratedSearch(int(minDepth), int(maxDepth),
                                         -SgSearchValue::MIN_PROVEN_VALUE,
                                         +SgSearchValue::MIN_PROVEN_VALUE, &PV,
@@ -119,7 +111,7 @@ std::string WolvePlayer::PrintStatistics(int score, const SgVector<SgMove>& pv)
        << SgWriteLabel("Elapsed") << stats.TimeUsed() << '\n'
        << SgWriteLabel("Nodes/s") << stats.NumNodesPerSecond() << '\n'
        << SgWriteLabel("Score") << PrintSgScore(score) << '\n'
-       << SgWriteLabel("PV") << PrintVector(pv) << '\n'
+       << SgWriteLabel("PV") << WolveSearch::PrintPV(pv) << '\n'
        << '\n'; 
     if (m_hashTable.get()) 
         os << *m_hashTable << '\n';

@@ -77,7 +77,8 @@ inline bool VariationInfo::IsBetterThan(const VariationInfo& other) const
 class WolveSearchControl : public SgSearchControl
 {
 public:
-    WolveSearchControl(double maxTime, bool useEarlyAbort);
+    WolveSearchControl(double maxTime, bool useEarlyAbort,
+                       const SgVector<SgMove>& PV);
 
     virtual ~WolveSearchControl();
 
@@ -90,6 +91,8 @@ private:
     double m_maxTime;
 
     bool m_useEarlyAbort;
+
+    const SgVector<SgMove>& m_pv;
 
     double m_lastDepthFinishedAt;
 
@@ -195,6 +198,11 @@ public:
     void SetBackupIceInfo(bool enable);
 
     // @}
+
+    //-----------------------------------------------------------------------
+
+    /** Prints the vector. */
+    static std::string PrintPV(const SgVector<SgMove>& pv);
 
 private:
     HexBoard* m_brd;

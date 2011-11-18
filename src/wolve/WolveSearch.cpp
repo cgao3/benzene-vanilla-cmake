@@ -42,9 +42,11 @@ int ConvertToSgScore(HexEval score)
 
 //----------------------------------------------------------------------------
 
-WolveSearchControl::WolveSearchControl(double maxTime, bool useEarlyAbort)
+WolveSearchControl::WolveSearchControl(double maxTime, bool useEarlyAbort,
+                                       const SgVector<SgMove>& PV)
     : m_maxTime(maxTime),
       m_useEarlyAbort(useEarlyAbort),
+      m_pv(PV),
       m_lastDepthFinishedAt(0.)
 {
 }
@@ -72,10 +74,11 @@ bool WolveSearchControl::StartNextIteration(int depth, double elapsedTime,
     {
         const double timeLeft = m_maxTime - elapsedTime;
         const double timeSinceLast = elapsedTime - m_lastDepthFinishedAt;
-        LogInfo() << "WolveSearchControl::StartNextIteration:\n"
-                  << "elapsed=" << elapsedTime << ", "
-                  << "timeSinceLast=" << timeSinceLast << ", "
-                  << "timeLeft=" << timeLeft << '\n';
+        LogInfo() << WolveSearch::PrintPV(m_pv) << '\n'
+                  << std::fixed << std::setprecision(1)
+                  << "elapsed=" << elapsedTime << "s, "
+                  << "last=" << timeSinceLast << "s, "
+                  << "left=" << timeLeft << "s\n";
         // Assume the next depth will take at least as long as the
         // last depth
         if (m_useEarlyAbort && timeSinceLast > timeLeft)
@@ -322,5 +325,14 @@ void WolveSearch::OrderMoves(const bitset_t& consider,
     for (std::size_t i = 0; i < movesToCopy; ++i)
         outMoves.PushBack(mvsc[i].second);
 }
+
+std::string WolveSearch::PrintPV(const SgVector<SgMove>& vec)
+{
+    std::ostringstream os;
+    for (int i = 0; i < vec.Length(); ++i)
+        os << (i > 0 ? " " : "") << static_cast<HexPoint>(vec[i]);
+    return os.str();
+}
+
 
 //----------------------------------------------------------------------------
