@@ -40,9 +40,13 @@ class BitsetMap : public BitsetMapBase<T>
 public:
     void Delete(HexPoint x);
     ~BitsetMap();
+    void Reset();
     using BitsetMapBase<T>::At;
     using BitsetMapBase<T>::Remove;
     using BitsetMapBase<T>::Entries;
+private:
+    using BitsetMapBase<T>::ResetEntries;
+    void Destroy();
 };
 
 template <class T>
@@ -131,10 +135,23 @@ inline void BitsetMap<T>::Delete(HexPoint x)
 }
 
 template <class T>
-inline BitsetMap<T>::~BitsetMap()
+inline void BitsetMap<T>::Reset()
+{
+    Destroy();
+    ResetEntries();
+}
+
+template <class T>
+inline void BitsetMap<T>::Destroy()
 {
     for (BitsetIterator i(Entries()); i; ++i)
         delete At(*i);
+}
+
+template <class T>
+inline BitsetMap<T>::~BitsetMap()
+{
+    Destroy();
 }
 
 template <class T>

@@ -122,7 +122,7 @@ inline size_t CarrierList::RemoveAllContaining(bitset_t set)
 }
 
 inline size_t CarrierList::RemoveAllContaining(bitset_t set,
-                                             std::vector<bitset_t>& removed)
+                                               std::vector<bitset_t>& removed)
 {
     return RemoveAllContaining_<true>(set, &removed);
 }
@@ -263,14 +263,6 @@ inline bool VCS::AndList::TryAdd(bitset_t carrier)
     return true;
 }
 
-inline bool VCS::AndList::TryAdd(bitset_t carrier, const CarrierList& filter)
-{
-    if (filter.SupersetOfAny(carrier))
-        return false;
-    else
-        return TryAdd(carrier);
-}
-
 inline bitset_t VCS::AndList::GetIntersection() const
 {
     return m_processed_intersection;
@@ -326,20 +318,40 @@ inline bitset_t VCS::OrList::GetIntersection() const
     return m_intersection;
 }
 
-inline void VCS::OrList::Add(bitset_t carrier)
+inline bool VCS::OrList::TryAdd(bitset_t carrier)
 {
     if (SupersetOfAny(carrier))
-        return;
+        return false;
     RemoveSupersetsOfUnchecked(carrier);
     AddNew(carrier);
     m_intersection &= carrier;
+    return true;
+}
+
+inline bool VCS::OrList::TryAdd(bitset_t carrier, const CarrierList& filter)
+{
+    if (filter.SupersetOfAny(carrier))
+        return false;
+    else
+        return TryAdd(carrier);
 }
 
 inline bool VCS::OrList::RemoveSupersetsOf(bitset_t carrier)
 {
     if (RemoveSupersetsOfCheckAnyRemoved(carrier))
     {
-        m_intersection = GetAllIntersection();
+        CalcIntersection();
+        return true;
+    }
+    else
+        return false;
+}
+
+inline bool VCS::OrList::RemoveSupersetsOf(const CarrierList& filter)
+{
+    if (RemoveSupersetsOfCheckAnyRemoved(filter))
+    {
+        CalcIntersection();
         return true;
     }
     else
@@ -364,6 +376,11 @@ void VCS::OrList::MarkAllUnprocessed()
     MarkAllNew();
 }
 
+inline void VCS::OrList::CalcIntersection()
+{
+    m_intersection = GetAllIntersection();
+}
+
 void VCS::OrList::Clear()
 {
     CarrierList::Clear();
@@ -372,51 +389,9 @@ void VCS::OrList::Clear()
 
 //---------------------------------------------------------------------------
 
-inline VCS::SemiList::SemiList()
-{
-}
-
-inline VCS::SemiList::SemiList(const CarrierList& carrier_list, bitset_t intersection)
-    : OrList(carrier_list, intersection)
-{
-}
-
-inline VCS::SemiList::SemiList(bitset_t carrier, HexPoint key)
-    : OrList(carrier)
-{
-    Put(key, new AndList(carrier));
-}
-
-inline void VCS::SemiList::RemoveSupersetsOf(bitset_t carrier)
-{
-    if (!OrList::RemoveSupersetsOf(carrier))
-        return;
-    for (BitsetIterator it(Entries()); it; ++it)
-        (*this)[*it]->RemoveSupersetsOf(carrier);
-}
-
-inline bool VCS::SemiList::RemoveSupersetsOf(const CarrierList& filter)
-{
-    bool res = false;
-    for (BitsetIterator it(Entries()); it; ++it)
-        res |= (*this)[*it]->RemoveSupersetsOfCheckAnyRemoved(filter);
-    return res;
-}
-
-void VCS::SemiList::CalcAllSemis()
-{
-    Clear();
-    for (BitsetIterator k(Entries()); k; ++k)
-        for (CarrierList::Iterator i(*(*this)[*k]); i; ++i)
-            Add(i.Carrier());
-}
-
-//---------------------------------------------------------------------------
-
 inline void VCS::TestQueuesEmpty()
 {
     BenzeneAssert(m_fulls_and_queue.IsEmpty());
-    BenzeneAssert(m_semis_and_queue.IsEmpty());
     BenzeneAssert(m_semis_or_queue.IsEmpty());
 }
 
@@ -669,29 +644,18 @@ inline void VCS::RemoveAllContaining(const Groups& oldGroups,
                 continue;
             }
             AndList* fulls = m_fulls[xc][yc];
-            SemiList* semis = m_semis[xc][yc];
             if (fulls)
             {
                 m_statistics.killed0 += fulls->RemoveAllContaining(removed);
                 if (fulls->IsEmpty())
                     m_fulls.Delete(xc, yc, fulls);
             }
+            OrList* semis = m_semis[xc][yc];
             if (semis)
             {
-                size_t total_removed = 0;
-                for (BitsetIterator k(semis->Entries()); k; ++k)
-                {
-                    AndList* key_semis = (*semis)[*k];
-                    size_t r = key_semis->RemoveAllContaining(removed);
-                    m_statistics.killed1 += r;
-                    total_removed += r;
-                    if (key_semis->IsEmpty())
-                        semis->Delete(*k);
-                }
-                if (semis->Entries().none())
+                m_statistics.killed1 += semis->RemoveAllContaining(removed);
+                if (semis->IsEmpty())
                     m_semis.Delete(xc, yc, semis);
-                else if (total_removed)
-                    semis->CalcAllSemis();
             }
         }
     }
@@ -727,35 +691,31 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
     return new_fulls;
 }
 
-inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
-                        AndList* semis,
-                        const AndList* filter, HexPoint key)
+inline bool VCS::Shrink(bitset_t added, OrList* semis, const AndList* filter)
 {
     bool new_semis = false;
     std::vector<bitset_t> to_shrink;
     semis->RemoveAllContaining(added, to_shrink);
     for (std::vector<bitset_t>::iterator it = to_shrink.begin();
-         it != to_shrink.end(); ++it)
-         {
-             bitset_t carrier = *it - added;
-             bool success;
-             if (filter)
-                 success = semis->TryAdd(carrier, *filter);
-             else
-                 success = semis->TryAdd(carrier);
-             if (success)
-             {
-                 m_statistics.shrunk1++;
-                 m_semis_and_queue.Push(Semi(x, y, carrier, key));
-                 new_semis = true;
-             }
-         }
-         return new_semis;
+        it != to_shrink.end(); ++it)
+    {
+        bitset_t carrier = *it - added;
+        bool success;
+        if (filter)
+            success = semis->TryAdd(carrier, *filter);
+        else
+            success = semis->TryAdd(carrier);
+        if (success)
+        {
+            m_statistics.shrunk1++;
+            new_semis = true;
+        }
+    }
+    return new_semis;
 }
 
 inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
-                        AndList* fulls, const CarrierList& list,
-                        size_t& stats)
+                        AndList* fulls, const CarrierList& list)
 {
     bool new_fulls = false;
     for (CarrierList::Iterator i(list); i; ++i)
@@ -763,7 +723,7 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
         bitset_t carrier = i.Carrier() - added;
         if (fulls->TryAdd(carrier))
         {
-            stats++;
+            m_statistics.shrunk0++;
             m_fulls_and_queue.Push(Full(x, y, carrier));
             new_fulls = true;
         }
@@ -771,9 +731,8 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
     return new_fulls;
 }
 
-inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
-                        AndList* semis, const CarrierList& list,
-                        const AndList* filter, HexPoint key)
+inline bool VCS::Shrink(bitset_t added, OrList* semis, const CarrierList& list,
+                        const AndList* filter)
 {
     bool new_semis = false;
     for (CarrierList::Iterator i(list); i; ++i)
@@ -787,7 +746,6 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
         if (success)
         {
             m_statistics.shrunk1++;
-            m_semis_and_queue.Push(Semi(x, y, carrier, key));
             new_semis = true;
         }
     }
@@ -803,7 +761,7 @@ void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
     BenzeneAssert((x_merged & y_merged).none());
 
     AndList* fulls = m_fulls[x][y];
-    SemiList* semis = m_semis[x][y];
+    OrList* semis = m_semis[x][y];
 
     bool new_fulls = false;
     bool newCaptureSet =
@@ -814,7 +772,7 @@ void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
         // First shrink fulls wihtout merge
         new_fulls |= Shrink(added, x, y, fulls);
 
-    // Collect and shrink all fulls including upgraded semis
+    // Collect and shrink all fulls
     for (BitsetIterator xi(x_merged); xi; ++xi)
         for (BitsetIterator yi(y_merged); yi; ++yi)
         {
@@ -822,28 +780,12 @@ void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
             if (*xi != x || *yi != y)
             {
                 AndList* merged_fulls = m_fulls[*xi][*yi];
-                if (merged_fulls)
-                {
-                    if (!fulls)
-                        fulls = m_fulls.Put(x, y);
-                    new_fulls |= Shrink(added, x, y, fulls, *merged_fulls,
-                                        m_statistics.shrunk0);
-                    m_fulls.Delete(*xi, *yi, merged_fulls);
-                }
-            }
-
-            // Upgrade semis
-            SemiList* merged_semis = m_semis[*xi][*yi];
-            if (!merged_semis)
-                continue;
-            for (BitsetIterator k(merged_semis->Entries() & added); k; ++k)
-            {
-                AndList* key_semis = (*merged_semis)[*k];
+                if (!merged_fulls)
+                    continue;
                 if (!fulls)
                     fulls = m_fulls.Put(x, y);
-                new_fulls |= Shrink(added, x, y, fulls, *key_semis,
-                                    m_statistics.upgraded);
-                merged_semis->Delete(*k);
+                new_fulls |= Shrink(added, x, y, fulls, *merged_fulls);
+                m_fulls.Delete(*xi, *yi, merged_fulls);
             }
         }
 
@@ -861,15 +803,14 @@ void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
     }
 
     // Shrink semis
-    bool calc_all_semis = false;
+    bool new_semis = false;
     if (semis)
     {
         if (new_fulls)
             // Filter out semis which are supersets of new fulls
-            calc_all_semis |= semis->RemoveSupersetsOf(*fulls);
+            semis->RemoveSupersetsOf(*fulls);
         // Shrink semis without merge
-        for (BitsetIterator k(semis->Entries()); k; ++k)
-            calc_all_semis |= Shrink(added, x, y, (*semis)[*k], fulls, *k);
+        new_semis |= Shrink(added, semis, fulls);
     }
 
     // Collect and shrink semis
@@ -878,46 +819,25 @@ void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
         {
             if (*xi == x && *yi == y)
                 continue;
-            SemiList* merged_semis = m_semis[*xi][*yi];
+            OrList* merged_semis = m_semis[*xi][*yi];
             if (!merged_semis)
                 continue;
             if (!semis)
                 semis = m_semis.Put(x, y);
-            for (BitsetIterator k(merged_semis->Entries()); k; ++k)
-            {
-                AndList* key_semis = (*semis)[*k];
-                if (!key_semis)
-                    key_semis = semis->Put(*k);
-                calc_all_semis |= Shrink(added, x, y, key_semis,
-                                         *(*merged_semis)[*k], fulls, *k);
-            }
+            new_semis |= Shrink(added, semis, *merged_semis, fulls);
             m_semis.Delete(*xi, *yi, merged_semis);
         }
 
-    if (semis)
-        for (BitsetIterator k(semis->Entries()); k; ++k)
-        {
-            AndList* key_semis = (*semis)[*k];
-            if (added.test(x) || added.test(y) || newCaptureSet)
-            {
-                for (CarrierList::Iterator i(*key_semis); i; ++i)
-                    if (i.Old())
-                        m_semis_and_queue.Push(Semi(x, y, i.Carrier(), *k));
-                key_semis->MarkAllUnprocessed();
-            }
-            else
-                key_semis->CalcIntersection();
-        }
+    if (!semis)
+        return;
+    semis->CalcIntersection();
 
-    // Recalculate all semis if needed
-    if (calc_all_semis)
-        semis->CalcAllSemis();
-    bool anyCpatureSetChanged =
+    bool anyCaptureSetChanged =
         (oldCapturedSet[x] != m_capturedSet[x]) ||
         (oldCapturedSet[y] != m_capturedSet[y]);
-    if (calc_all_semis || (semis && anyCpatureSetChanged))
+    if (new_semis || anyCaptureSetChanged)
     {
-        if (anyCpatureSetChanged)
+        if (anyCaptureSetChanged)
             semis->MarkAllUnprocessed();
         if (semis->TryQueue(m_capturedSet[x] | m_capturedSet[y]))
             m_semis_or_queue.Push(Ends(x, y));
@@ -934,11 +854,6 @@ void VCS::DoSearch()
             Full vc = m_fulls_and_queue.Pop();
             AndFull(vc.x, vc.y, vc.carrier);
         }
-        else if (!m_semis_and_queue.IsEmpty())
-        {
-            Semi vc = m_semis_and_queue.Pop();
-            AndSemi(vc.x, vc.y, vc.key, vc.carrier);
-        }
         else if (!m_semis_or_queue.IsEmpty())
         {
             Ends p = m_semis_or_queue.Pop();
@@ -954,7 +869,6 @@ void VCS::DoSearch()
     }
     TestQueuesEmpty();
     m_fulls_and_queue.Clear();
-    m_semis_and_queue.Clear();
     m_semis_or_queue.Clear();;
     TestQueuesEmpty();
 }
@@ -965,9 +879,9 @@ void VCS::DoSearch()
 #define SWITCHTO(__S) return func.template Apply<__S>(*this)
 
 inline VCS::VCAnd::VCAnd(VCS& vcs, HexPoint x, HexPoint y, bitset_t capturedSet,
-                         bitset_t xz_carrier, AndList *zy_list, HexPoint key)
+                         bitset_t xz_carrier, CarrierList *zy_list)
     : vcs(vcs), x(x), y(y), capturedSet(capturedSet),
-      xz_carrier(xz_carrier), key(key), zy_iter(*zy_list)
+      xz_carrier(xz_carrier), zy_iter(*zy_list)
 {
     BenzeneAssert(x != y);
 }
@@ -1040,67 +954,25 @@ inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, Func func)
             if (fulls->SupersetOfAny(carrier))
                 SWITCHTO(S);
         }
-        semis = vcs.m_semis.Put(x, y, new SemiList(carrier, key));
-        key_semis = (*semis)[key];
+        semis = vcs.m_semis.Put(x, y, new OrList(carrier));
     }
     else
     {
-        if (!S::key_semis_initialized)
-        {
-            key_semis = (*semis)[key];
-            if (key_semis)
-                return TryAddSemi<typename S::KeySemisSet>(carrier, func);
-            else
-                return TryAddSemi<typename S::KeySemisNull>(carrier, func);
-        }
         vcs.m_statistics.and_semi_attempts++;
-        if (S::key_semis_null)
+        if (!S::fulls_null)
         {
-            if (!S::fulls_null)
-            {
-                if (fulls->SupersetOfAny(carrier))
-                    SWITCHTO(S);
-            }
-            key_semis = semis->Put(key, new AndList(carrier));
-        }
-        else
-        {
-            if (!S::fulls_null)
-            {
-                if (fulls->SupersetOfAny(carrier))
-                    SWITCHTO(S);
-            }
-            if (key_semis->SupersetOfAny(carrier))
+            if (fulls->SupersetOfAny(carrier))
                 SWITCHTO(S);
-            key_semis->Add(carrier);
         }
-        semis->Add(carrier);
+        if (!semis->TryAdd(carrier))
+            SWITCHTO(S);
     }
 
     if (semis->TryQueue(capturedSet))
         vcs.m_semis_or_queue.Push(Ends(x, y));
-    if ((vcs.m_brd->GetColor(x) != EMPTY &&
-        (vcs.m_param->and_over_edge || !HexPointUtil::isEdge(x)))
-        ||
-        (vcs.m_brd->GetColor(y) != EMPTY &&
-        (vcs.m_param->and_over_edge || !HexPointUtil::isEdge(y))))
-        vcs.m_semis_and_queue.Push(Semi(x, y, carrier, key));
 
     vcs.m_statistics.and_semi_successes++;
-    SWITCHTO(typename S::SemisSet::KeySemisSet);
-}
-
-template <class S, class Func>
-inline void VCS::VCAnd::TryAddSemi(bitset_t carrier, HexPoint new_key,
-                                   Func func)
-{
-    if (new_key != key)
-    {
-        key = new_key;
-        TryAddSemi<typename S::KeySemisReset>(carrier, func);
-    }
-    else
-        TryAddSemi<S>(carrier, func);
+    SWITCHTO(typename S::SemisSet);
 }
 
 void VCS::AndFull(HexPoint x, HexPoint y, bitset_t carrier)
@@ -1125,12 +997,9 @@ inline void VCS::AndFull(HexPoint x, HexPoint z, bitset_t carrier,
     if (!m_param->and_over_edge && HexPointUtil::isEdge(z))
         return;
     if (zcolor == EMPTY)
-        AndFullEmptyFull(x, z, carrier, xzCapturedSet);
+        AndFullEmptyFull(x, z, carrier.set(z), xzCapturedSet);
     else
-    {
         AndFullStoneFull(x, z, carrier, xzCapturedSet);
-        AndFullStoneSemi(x, z, carrier, xzCapturedSet);
-    }
 }
 
 inline void VCS::AndFullEmptyFull(HexPoint x, HexPoint z, bitset_t carrier,
@@ -1155,7 +1024,7 @@ inline void VCS::AndFullEmptyFull(HexPoint x, HexPoint z, HexPoint y,
         xyCapturedSet))
         return;
 
-    VCAnd vcAnd(*this, x, y, xyCapturedSet, carrier, zy_fulls, z);
+    VCAnd vcAnd(*this, x, y, xyCapturedSet, carrier, zy_fulls);
     vcAnd.Run(FUNC(FEF));
 }
 
@@ -1170,9 +1039,9 @@ inline void VCS::VCAnd::FEF()
         return FEFNext<S>();
     intersection = xz_carrier & zy_iter.Carrier();
     if (intersection.none())
-        return TryAddSemi<S>((xz_carrier | zy_iter.Carrier()).set(key), FUNC(FEFNext));
+        return TryAddSemi<S>(xz_carrier | zy_iter.Carrier(), FUNC(FEFNext));
     else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
-        return TryAddSemi<S>((xz_carrier | zy_iter.Carrier() | capturedSet).set(key),
+        return TryAddSemi<S>(xz_carrier | zy_iter.Carrier() | capturedSet,
                              FUNC(FEFNext));
     FEFNext<S>();
 }
@@ -1202,7 +1071,8 @@ inline void VCS::AndFullStoneFull(HexPoint x, HexPoint z, HexPoint y,
 {
     AndList* zy_fulls = m_fulls[z][y];
     BenzeneAssert(zy_fulls);
-    if (((zy_fulls->GetIntersection() & carrier) - xyCapturedSet).count() > 1)
+    if (!BitsetUtil::IsSubsetOf(zy_fulls->GetIntersection() & carrier,
+        xyCapturedSet))
         return;
 
     VCAnd vcAnd(*this, x, y, xyCapturedSet, carrier, zy_fulls);
@@ -1219,28 +1089,10 @@ inline void VCS::VCAnd::FSF()
     if (zy_iter.Carrier().test(x))
         return FSFNext<S>();
     intersection = xz_carrier & zy_iter.Carrier();
-    BitsetIterator it(intersection);
-    if (!it /* intersection is empty */)
+    if (intersection.none())
         return TryAddFull<S>(xz_carrier | zy_iter.Carrier(), FUNC(FSFNext));
-    HexPoint new_key = *it;
-    ++it;
-    if (!it /* intersection is singleton */)
-        return TryAddSemi<S>(xz_carrier | zy_iter.Carrier(), new_key,
-                             FUNC(FSFCaptured));
-    FSFCaptured<S>();
-}
-
-template <class S>
-inline void VCS::VCAnd::FSFCaptured()
-{
-    BitsetIterator it(intersection - capturedSet);
-    if (!it /* intersection is empty */)
+    else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
         return TryAddFull<S>(xz_carrier | zy_iter.Carrier() | capturedSet,
-                             FUNC(FSFNext));
-    HexPoint new_key = *it;
-    ++it;
-    if (!it /* intersection is singleton */)
-        return TryAddSemi<S>(xz_carrier | zy_iter.Carrier() | capturedSet, new_key,
                              FUNC(FSFNext));
     FSFNext<S>();
 }
@@ -1252,115 +1104,10 @@ inline void VCS::VCAnd::FSFNext()
     FSF<S>();
 }
 
-inline void VCS::AndFullStoneSemi(HexPoint x, HexPoint z, bitset_t carrier,
-                                  bitset_t xzCapturedSet)
-{
-    for (BitsetIterator it(m_semis[z].Entries().reset(x) - carrier); it; ++it)
-    {
-        HexPoint y = *it;
-        BenzeneAssert(y == m_groups->CaptainOf(y));
-        BenzeneAssert(x != y && z != y);
-        BenzeneAssert(!carrier.test(y));
-        AndFullStoneSemi(x, z, y, carrier, xzCapturedSet | m_capturedSet[y]);
-    }
-}
-
-inline void VCS::AndFullStoneSemi(HexPoint x, HexPoint z, HexPoint y,
-                                  bitset_t carrier, bitset_t xyCapturedSet)
-{
-    SemiList* zy_semis = m_semis[z][y];
-    BenzeneAssert(zy_semis);
-
-    for (BitsetIterator it(zy_semis->Entries()); it; ++it)
-    {
-        HexPoint key = *it;
-        AndFullStoneSemi(x, y, key, carrier, xyCapturedSet,
-                         (*zy_semis)[key]);
-    }
-}
-
-inline void VCS::AndFullStoneSemi(HexPoint x, HexPoint y, HexPoint key,
-                                  bitset_t carrier, bitset_t xyCapturedSet,
-                                  AndList* zy_list)
-{
-    BenzeneAssert(zy_list);
-    if (!BitsetUtil::IsSubsetOf((zy_list->GetIntersection() & carrier).reset(key),
-        xyCapturedSet))
-        return;
-
-    VCAnd vcAnd(*this, x, y, xyCapturedSet, carrier, zy_list, key);
-    vcAnd.Run(FUNC(FSS));
-}
-
-
-template <class S>
-inline void VCS::VCAnd::FSS()
-{
-    if (!zy_iter)
-        return;
-    if (!zy_iter.Old())
-        return FSSNext<S>();
-    if (zy_iter.Carrier().test(x))
-        return FSSNext<S>();
-    bitset_t intersection = (xz_carrier & zy_iter.Carrier()).reset(key);
-    if (intersection.none())
-        return TryAddSemi<S>(xz_carrier | zy_iter.Carrier(), FUNC(FSSNext));
-    else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
-        return TryAddSemi<S>(xz_carrier | zy_iter.Carrier() | capturedSet, FUNC(FSSNext));
-    FSSNext<S>();
-}
-
-template <class S>
-inline void VCS::VCAnd::FSSNext()
-{
-    ++zy_iter;
-    FSS<S>();
-}
-
-void VCS::AndSemi(HexPoint x, HexPoint y, HexPoint key, bitset_t carrier)
-{
-    BenzeneAssert(x == m_groups->CaptainOf(x));
-    BenzeneAssert(y == m_groups->CaptainOf(y));
-    BenzeneAssert(x != y);
-    BenzeneAssert(m_brd->GetColor(x) != !m_color);
-    BenzeneAssert(m_brd->GetColor(y) != !m_color);
-
-    if (!(*m_semis[x][y])[key]->TrySetProcessed(carrier))
-        return;
-
-    bitset_t xyCapturedSet = m_capturedSet[x] | m_capturedSet[y];
-    AndSemi(x, y, key, carrier, m_brd->GetColor(y), xyCapturedSet);
-    AndSemi(y, x, key, carrier, m_brd->GetColor(x), xyCapturedSet);
-}
-
-inline void VCS::AndSemi(HexPoint x, HexPoint z, HexPoint key, bitset_t carrier,
-                         HexColor zcolor, bitset_t xzCapturedSet)
-{
-    if (zcolor == EMPTY)
-        return;
-    if (!m_param->and_over_edge && HexPointUtil::isEdge(z))
-        return;
-    AndSemiStoneFull(x, z, key, carrier, xzCapturedSet);
-}
-
-inline void VCS::AndSemiStoneFull(HexPoint x, HexPoint z, HexPoint key,
-                                  bitset_t carrier, bitset_t xzCapturedSet)
-{
-    for (BitsetIterator it(m_fulls[z].Entries().reset(x) - carrier); it; ++it)
-    {
-        HexPoint y = *it;
-        BenzeneAssert(y == m_groups->CaptainOf(y));
-        BenzeneAssert(x != y && z != y);
-        BenzeneAssert(!carrier.test(y));
-        AndFullStoneSemi(x, y, key, carrier, xzCapturedSet | m_capturedSet[y],
-                         m_fulls[z][y]);
-    }
-}
-
 void VCS::OrSemis(HexPoint x, HexPoint y)
 {
     BenzeneAssert(x != y);
-    SemiList* xy_semis = m_semis[x][y];
+    OrList* xy_semis = m_semis[x][y];
     BenzeneAssert(xy_semis);
     AndList *xy_fulls = m_fulls[x][y];
     m_statistics.doOrs++;
@@ -1400,16 +1147,14 @@ inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
     else if (!fulls->TryAdd(carrier))
         return false;
     m_fulls_and_queue.Push(Full(x, y, carrier));
-    SemiList* semis = m_semis[x][y];
+    OrList* semis = m_semis[x][y];
     if (semis)
         semis->RemoveSupersetsOf(carrier);
     return true;
 }
 
-inline void VCS::TryAddThreat(HexPoint k1, HexPoint k2,
-                              AndList* threats, bitset_t carrier)
+inline void VCS::TryAddThreat(HexPoint key, OrList* threats, bitset_t carrier)
 {
-    BenzeneAssert(k1 != k2);
     m_statistics.order2_attempts++;
     if (m_edge_semis)
     {
@@ -1417,57 +1162,38 @@ inline void VCS::TryAddThreat(HexPoint k1, HexPoint k2,
             return;
     }
     if (!threats)
-        m_threats.Put(k1, k2, new AndList(carrier));
-    else if (!threats->TryAdd(carrier))
+        m_threats.Put(key, new OrList(carrier));
+    else if (threats->TryAdd(carrier))
         return;
     m_statistics.order2_successes++;
 }
 
 inline void VCS::ThreatSearch()
 {
-    HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
+    HexColorSet empty_color = HexColorSetUtil::Only(EMPTY);
     bitset_t edgesCapturedSet = m_capturedSet[m_edge1] | m_capturedSet[m_edge2];
     m_edge_semis = m_semis[m_edge1][m_edge2];
-    for (GroupIterator z(*m_groups, not_other); z; ++z)
+    for (GroupIterator z(*m_groups, empty_color); z; ++z)
     {
         HexPoint zc = z->Captain();
-        if (!HexPointUtil::isEdge(zc))
-            ThreatSearch(zc, m_brd->GetColor(zc), edgesCapturedSet | m_capturedSet[zc]);
+        ThreatSearch(zc, edgesCapturedSet | m_capturedSet[zc]);
     }
 
-    for (int i = 0; i < BITSETSIZE; i++)
+    for (BitsetIterator k(m_threats.Entries()); k; ++k)
     {
-        HexPoint k1 = HexPoint(i);
-        const typename BitsetUPairMap<AndList>::Nbs& k1_threats = m_threats[k1];
-        if (k1_threats.Entries().none())
+        OrList* threats = m_threats[*k];
+        if (!BitsetUtil::IsSubsetOf(threats->GetIntersection(), edgesCapturedSet))
             continue;
-        AndList threats;
-        for (BitsetIterator k(k1_threats.Entries()); k; ++k)
-        {
-            for (CarrierList::Iterator i(*k1_threats[*k]); i; ++i)
-                threats.TryAdd(i.Carrier());
-        }
-
-        if (!BitsetUtil::IsSubsetOf(threats.GetIntersection(), edgesCapturedSet))
-            continue;
-        AndList* k1_semis = m_edge_semis ? (*m_edge_semis)[k1] : 0;
         std::vector<bitset_t> new_semis =
-            VCOr(threats, k1_semis ? *k1_semis : CarrierList(),
-                 m_capturedSet[m_edge1], m_capturedSet[m_edge2], k1);
+            VCOr(*threats, m_edge_semis ? *m_edge_semis : CarrierList(),
+                 m_capturedSet[m_edge1], m_capturedSet[m_edge2], *k);
         if (new_semis.empty())
             continue;
-        if (!k1_semis)
-        {
-            if (!m_edge_semis)
-                m_edge_semis = m_semis.Put(m_edge1, m_edge2);
-            k1_semis = m_edge_semis->Put(k1);
-        }
+        if (!m_edge_semis)
+            m_edge_semis = m_semis.Put(m_edge1, m_edge2);
         for (std::vector<bitset_t>::iterator it = new_semis.begin();
              it != new_semis.end(); ++it)
-        {
-            k1_semis->Add(*it);
-            m_edge_semis->Add(*it);
-        }
+            m_edge_semis->TryAdd(*it);
     }
 
     m_threats.Reset();
@@ -1479,200 +1205,50 @@ inline void VCS::ThreatSearch()
         m_semis_or_queue.Push(Ends(m_edge1, m_edge2));
 }
 
-inline void VCS::ThreatSearch(HexPoint z, HexColor zcolor, bitset_t capturedSet)
+inline void VCS::ThreatSearch(HexPoint z, bitset_t capturedSet)
 {
     AndList* fulls1 = m_fulls[m_edge1][z];
     AndList* fulls2 = m_fulls[m_edge2][z];
-    SemiList* semis1 = m_semis[m_edge1][z];
-    SemiList* semis2 = m_semis[m_edge2][z];
-    if (fulls1)
-    {
-        if (fulls2)
-        {
-            if (zcolor == EMPTY)
-                ThreatSearch1(fulls1, fulls2, capturedSet, z);
-            else
-                ThreatSearch0(fulls1, fulls2, capturedSet);
-        }
-        if (semis2)
-        {
-            if (zcolor == EMPTY)
-                ThreatSearch2Semi(fulls1, semis2, capturedSet, z);
-            else
-                ThreatSearch1Semi(fulls1, semis2, capturedSet);
-        }
-    }
-    if (semis1)
-    {
-        if (fulls2)
-        {
-            if (zcolor == EMPTY)
-                ThreatSearch2Semi(fulls2, semis1, capturedSet, z);
-            else
-                ThreatSearch1Semi(fulls2, semis1, capturedSet);
-        }
-        if (semis2)
-        {
-            if (zcolor == EMPTY)
-                ThreatSearch2SemiSemi(semis1, semis2, capturedSet, z);
-            else
-                ThreatSearch2SemiSemi(semis1, semis2, capturedSet);
-        }
-    }
+    OrList* semis1 = m_semis[m_edge1][z];
+    OrList* semis2 = m_semis[m_edge2][z];
+    if (fulls1 && semis2)
+        ThreatSearch1(semis2, fulls1, capturedSet, z);
+    if (semis1 && fulls2)
+        ThreatSearch1(semis1, fulls2, capturedSet, z);
 }
 
-inline void VCS::ThreatSearch2SemiSemi(SemiList* semis1, SemiList* semis2,
-                                       bitset_t capturedSet, HexPoint k1)
+inline void VCS::ThreatSearch1(OrList* semis, AndList* fulls,
+                               bitset_t capturedSet, HexPoint k)
 {
-    for (BitsetIterator k(semis1->Entries()); k; ++k)
-    {
-        BenzeneAssert(*k != k1);
-        AndList* list2 = (*semis2)[*k];
-        if (list2)
-            ThreatSearch2((*semis1)[*k], list2, capturedSet, k1, *k);
-    }
-}
-
-inline void VCS::ThreatSearch2SemiSemi(SemiList* semis1, SemiList* semis2,
-                                       bitset_t capturedSet)
-{
-    for (BitsetIterator k(semis1->Entries()); k; ++k)
-        ThreatSearch2Semi((*semis1)[*k], semis2, capturedSet, *k);
-}
-
-inline void VCS::ThreatSearch1Semi(AndList* fulls1, SemiList* semis2,
-                                   bitset_t capturedSet)
-{
-    for (BitsetIterator k(semis2->Entries()); k; ++k)
-        ThreatSearch1(fulls1, (*semis2)[*k], capturedSet, *k);
-}
-
-inline void VCS::ThreatSearch2Semi(AndList* fulls1, SemiList* semis2,
-                                   bitset_t capturedSet, HexPoint k1)
-{
-    for (BitsetIterator k(semis2->Entries()); k; ++k)
-        if (k1 == *k)
-            ThreatSearch1(fulls1, (*semis2)[*k], capturedSet, k1);
-        else
-            ThreatSearch2(fulls1, (*semis2)[*k], capturedSet, k1, *k);
-}
-
-inline void VCS::ThreatSearch0(AndList* list1, AndList* list2,
-                               bitset_t capturedSet)
-{
-    if (((list1->GetIntersection() & list2->GetIntersection())
-        - capturedSet).count() > 2)
+    if (!BitsetUtil::IsSubsetOf(semis->GetIntersection() & fulls->GetIntersection(),
+                                capturedSet))
         return;
-    for (CarrierList::Iterator i(*list1); i; ++i)
-        ThreatSearch0(i.Carrier(), list2, capturedSet);
+    for (CarrierList::Iterator i(*semis); i; ++i)
+        ThreatSearch1(i.Carrier().set(k), fulls, capturedSet, k);
 }
 
-inline void VCS::ThreatSearch0(bitset_t carrier1, AndList* list2,
-                               bitset_t capturedSet)
+inline void VCS::ThreatSearch1(bitset_t carrier1, AndList* fulls,
+                               bitset_t capturedSet, HexPoint k)
 {
-    if (((carrier1 & list2->GetIntersection())
-        - capturedSet).count() > 2)
+    if (!BitsetUtil::IsSubsetOf(carrier1 & fulls->GetIntersection(),
+                                capturedSet))
         return;
-    for (CarrierList::Iterator i(*list2); i; ++i)
-        ThreatSearch0(carrier1, i.Carrier(), capturedSet);
-}
-
-inline void VCS::ThreatSearch0(bitset_t carrier1, bitset_t carrier2,
-                               bitset_t capturedSet)
-{
-    bitset_t intersection = carrier1 & carrier2;
-    bitset_t cunion = carrier1 | carrier2;
-    if (intersection.count() != 2)
-    {
-        intersection -= capturedSet;
-        if (intersection.count() != 2)
-            return;
-        cunion |= capturedSet;
-    }
-
-    BitsetIterator i(intersection);
-    HexPoint k1 = *i;
-    ++i;
-    HexPoint k2 = *i;
-    TryAddThreat(k1, k2, m_threats[k1][k2], cunion);
-}
-
-inline void VCS::ThreatSearch1(AndList* list1, AndList* list2,
-                               bitset_t capturedSet, HexPoint k1)
-{
-    if ((((list1->GetIntersection() & list2->GetIntersection())
-        - capturedSet)).reset(k1).count() > 1)
-        return;
-    for (CarrierList::Iterator i(*list1); i; ++i)
-        ThreatSearch1(i.Carrier().set(k1), list2, capturedSet, k1);
-}
-
-inline void VCS::ThreatSearch1(bitset_t carrier1, AndList* list2,
-                               bitset_t capturedSet, HexPoint k1)
-{
-    if ((((carrier1 & list2->GetIntersection())
-        - capturedSet)).reset(k1).count() > 1)
-        return;
-    for (CarrierList::Iterator i(*list2); i; ++i)
-        ThreatSearch1(carrier1, i.Carrier(), capturedSet, k1);
+    for (CarrierList::Iterator i(*fulls); i; ++i)
+        ThreatSearch1(carrier1, i.Carrier(), capturedSet, k);
 }
 
 inline void VCS::ThreatSearch1(bitset_t carrier1, bitset_t carrier2,
-                               bitset_t capturedSet, HexPoint k1)
+                               bitset_t capturedSet, HexPoint k)
 {
-    bitset_t intersection = (carrier1 & carrier2).reset(k1);
-    bitset_t cunion = carrier1 | carrier2;
-    if (intersection.count() != 1)
-    {
-        intersection -= capturedSet;
-        if (intersection.count() != 1)
-            return;
-        cunion |= capturedSet;
-    }
-
-    BitsetIterator i(intersection);
-    HexPoint k2 = *i;
-    TryAddThreat(k1, k2, m_threats[k1][k2], cunion);
+    bitset_t intersection = carrier1 & carrier2;
+    if (intersection.none())
+        TryAddThreat(k, m_threats[k], carrier1 | carrier2);
+    else if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
+        TryAddThreat(k, m_threats[k], carrier1 | carrier2 | capturedSet);
 }
 
-inline void VCS::ThreatSearch2(AndList* list1, AndList* list2,
-                               bitset_t capturedSet, HexPoint k1, HexPoint k2)
-{
-    if ((((list1->GetIntersection() & list2->GetIntersection())
-        - capturedSet)).reset(k1).reset(k2).any())
-        return;
-    for (CarrierList::Iterator i(*list1); i; ++i)
-        ThreatSearch2(i.Carrier().set(k1).set(k2), list2, capturedSet, k1, k2);
-}
-
-inline void VCS::ThreatSearch2(bitset_t carrier1, AndList* list2,
-                               bitset_t capturedSet, HexPoint k1, HexPoint k2)
-{
-    if ((((carrier1 & list2->GetIntersection())
-        - capturedSet)).reset(k1).reset(k2).any())
-        return;
-    for (CarrierList::Iterator i(*list2); i; ++i)
-        ThreatSearch2(carrier1, i.Carrier(), capturedSet, k1, k2);
-}
-
-inline void VCS::ThreatSearch2(bitset_t carrier1, bitset_t carrier2,
-                               bitset_t capturedSet, HexPoint k1, HexPoint k2)
-{
-    bitset_t intersection = (carrier1 & carrier2).reset(k1).reset(k2);
-    bitset_t cunion = carrier1 | carrier2;
-    if (intersection.any())
-    {
-        intersection -= capturedSet;
-        if (intersection.any())
-            return;
-        cunion |= capturedSet;
-    }
-
-    TryAddThreat(k1, k2, m_threats[k1][k2], cunion);
-}
-
-inline VCS::Backup::AndListEntry::AndListEntry(HexPoint point, const AndList* andList)
-    : point(point),
+inline VCS::Backup::AndListEntry::AndListEntry(HexPoint y, const AndList* andList)
+    : y(y),
       andList(new AndList(*andList))
 {
 }
@@ -1688,11 +1264,15 @@ inline VCS::Backup::FullsEntry::FullsEntry(HexPoint x)
 {
 }
 
-inline VCS::Backup::SemiListEntry::SemiListEntry(HexPoint y, const CarrierList& all_semis,
-                                                 bitset_t intersection)
+VCS::Backup::OrListEntry::~OrListEntry()
+{
+    if (orList)
+        delete orList;
+}
+
+inline VCS::Backup::OrListEntry::OrListEntry(HexPoint y, const OrList* orList)
     : y(y),
-      all_semis(all_semis),
-      intersection(intersection)
+      orList(new OrList(*orList))
 {
 }
 
@@ -1716,18 +1296,12 @@ inline void VCS::Backup::Create(VCS& vcs)
     }
     for (int x = 0; x < BITSETSIZE; x++)
     {
-        const typename BitsetUPairMap<SemiList>::Nbs& nbs = vcs.m_semis[(HexPoint)x];
+        const typename BitsetUPairMap<OrList>::Nbs& nbs = vcs.m_semis[(HexPoint)x];
         if (nbs.Entries().none())
             continue;
         SemisEntry entry((HexPoint)x);
         for (BitsetIterator y(nbs.Entries()); y; ++y)
-        {
-            SemiList* semi_list = nbs[*y];
-            SemiListEntry keys(*y, *semi_list, semi_list->GetIntersection());
-            for (BitsetIterator key(semi_list->Entries()); key; ++key)
-                keys.list.push_back(AndListEntry(*key, (*semi_list)[*key]));
-            entry.list.push_back(keys);
-        }
+            entry.list.push_back(OrListEntry(*y, nbs[*y]));
         semis.push_back(entry);
     }
 }
@@ -1741,24 +1315,18 @@ inline void VCS::Backup::Restore(VCS& vcs)
         for (std::vector<AndListEntry>::iterator i = entry->list.begin();
              i != entry->list.end(); ++i)
         {
-            vcs.m_fulls.Put(entry->x, i->point, i->andList);
+            vcs.m_fulls.Put(entry->x, i->y, i->andList);
             i->andList = 0;
         }
     }
     for (std::vector<SemisEntry>::iterator entry = semis.begin();
          entry != semis.end(); ++entry)
     {
-        for (std::vector<SemiListEntry>::iterator i = entry->list.begin();
+        for (std::vector<OrListEntry>::iterator i = entry->list.begin();
             i != entry->list.end(); ++i)
         {
-            SemiList* semi_list = new SemiList(i->all_semis, i->intersection);
-            for (std::vector<AndListEntry>::iterator k = i->list.begin();
-                 k != i->list.end(); ++k)
-            {
-                semi_list->Put(k->point, k->andList);
-                k->andList = 0;
-            }
-            vcs.m_semis.Put(entry->x, i->y, semi_list);
+            vcs.m_semis.Put(entry->x, i->y, i->orList);
+            i->orList = 0;
         }
     }
 }
@@ -1801,10 +1369,11 @@ int VCS::FullAdjacent(HexPoint x, HexPoint y) const
 
 bool VCS::SmallestSemiCarrier(bitset_t& carrier) const
 {
-    SemiList* semis = m_semis[m_edge1][m_edge2];
+    OrList* semis = m_semis[m_edge1][m_edge2];
     if (!semis)
         return false;
-    bool res = false;
+    if (semis->IsEmpty())
+        return false;
     size_t best = std::numeric_limits<size_t>::max();
     for (CarrierList::Iterator i(*semis); i; ++i)
     {
@@ -1814,32 +1383,42 @@ bool VCS::SmallestSemiCarrier(bitset_t& carrier) const
             best = count;
             carrier = i.Carrier();
         }
-        res = true;
     }
-    return res;
+    return true;
 }
 
 HexPoint VCS::SmallestSemiKey() const
 {
-    SemiList* semis = m_semis[m_edge1][m_edge2];
-    if (!semis)
+    bitset_t carrier;
+    if (!SmallestSemiCarrier(carrier))
         return INVALID_POINT;
-    size_t best = std::numeric_limits<size_t>::max();
-    HexPoint res = INVALID_POINT;
-    for (BitsetIterator it(semis->Entries()); it; ++it)
+    bitset_t edgesCapturedSet = m_capturedSet[m_edge1] | m_capturedSet[m_edge2];
+    for (BitsetIterator k(carrier); k; ++k)
     {
-        HexPoint key = *it;
-        for (CarrierList::Iterator i(*(*semis)[key]); i; ++i)
+        bitset_t capturedSet = edgesCapturedSet | m_capturedSet[*k];
+        if (!BitsetUtil::IsSubsetOf(capturedSet, carrier))
+            capturedSet.reset();
+        AndList* fulls1 = m_fulls[m_edge1][*k];
+        if (!fulls1)
+            continue;
+        AndList* fulls2 = m_fulls[m_edge2][*k];
+        if (!fulls2)
+            continue;
+        for (CarrierList::Iterator i(*fulls1); i; ++i)
         {
-            size_t count = i.Carrier().count();
-            if (count < best)
+            if (!BitsetUtil::IsSubsetOf(i.Carrier(), carrier))
+                continue;
+            for (CarrierList::Iterator j(*fulls2); j; ++j)
             {
-                best = count;
-                res = key;
+                if (!BitsetUtil::IsSubsetOf(j.Carrier(), carrier))
+                    continue;
+                if (BitsetUtil::IsSubsetOf(i.Carrier() & j.Carrier(),
+                                           capturedSet))
+                    return *k;
             }
         }
     }
-    return res;
+    BenzeneAssert(false /* always should find a key */);
 }
 
 bool VCS::FullExists(HexPoint x, HexPoint y) const
@@ -1857,7 +1436,7 @@ bool VCS::FullExists() const
 
 bool VCS::SemiExists() const
 {
-    SemiList* semis = m_semis[m_edge1][m_edge2];
+    OrList* semis = m_semis[m_edge1][m_edge2];
     if (!semis)
         return false;
     return !semis->IsEmpty();
@@ -1880,7 +1459,7 @@ const CarrierList& VCS::GetFullCarriers() const
 
 const CarrierList& VCS::GetSemiCarriers() const
 {
-    SemiList* semis = m_semis[m_edge1][m_edge2];
+    OrList* semis = m_semis[m_edge1][m_edge2];
     if (!semis)
         return empty_carrier_list;
     return *semis;
@@ -1910,7 +1489,7 @@ bitset_t VCS::FullGreedyUnion(HexPoint x, HexPoint y) const
 
 bitset_t VCS::SemiIntersection(HexPoint x, HexPoint y) const
 {
-    SemiList* semis = m_semis[x][y];
+    OrList* semis = m_semis[x][y];
     return semis ? semis->GetIntersection() : bitset_t().set();
 }
 
@@ -1921,6 +1500,6 @@ bitset_t VCS::SemiIntersection() const
 
 bitset_t VCS::SemiGreedyUnion(HexPoint x, HexPoint y) const
 {
-    SemiList* semis = m_semis[x][y];
+    OrList* semis = m_semis[x][y];
     return semis ? semis->GetGreedyUnion() : EMPTY_BITSET;
 }

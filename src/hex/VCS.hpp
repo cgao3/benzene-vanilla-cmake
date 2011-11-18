@@ -94,6 +94,9 @@ public:
     bool RemoveSupersetsOfCheckAnyRemoved(const CarrierList& filter);
     bitset_t GetAllIntersection() const;
 
+    size_t RemoveAllContaining(bitset_t set);
+    size_t RemoveAllContaining(bitset_t set, std::vector<bitset_t>& removed);
+
 protected:
     CarrierList(bitset_t carrier);
     CarrierList(const std::vector<bitset_t>& carriers_list);
@@ -103,9 +106,6 @@ protected:
     bool RemoveSupersetsOfCheckOldRemoved(bitset_t carrier);
     bool RemoveSupersetsOfCheckAnyRemoved(bitset_t carrier);
     void RemoveSupersetsOfUnchecked(bitset_t carrier);
-
-    size_t RemoveAllContaining(bitset_t set);
-    size_t RemoveAllContaining(bitset_t set, std::vector<bitset_t>& removed);
 
     bool TrySetOld(bitset_t carrier) const;
 
@@ -360,7 +360,6 @@ private:
         AndList(bitset_t carrier);
         AndList(const std::vector<bitset_t>& carriers_list);
         bool TryAdd(bitset_t carrier);
-        bool TryAdd(bitset_t carrier, const CarrierList& filter);
         void Add(bitset_t carrier);
         bitset_t GetIntersection() const;
         void RemoveSupersetsOf(bitset_t carrier);
@@ -368,8 +367,6 @@ private:
         bool TrySetProcessed(bitset_t carrier);
         void MarkAllUnprocessed();
         void CalcIntersection();
-
-        using CarrierList::RemoveAllContaining;
     private:
         bitset_t m_processed_intersection;
     };
@@ -381,16 +378,19 @@ private:
         OrList(bitset_t carrier);
         OrList(const CarrierList& carrier_list, bitset_t intersection);
 
-        void Add(bitset_t carrier);
+        bool TryAdd(bitset_t carrier);
+        bool TryAdd(bitset_t carrier, const CarrierList& filter);
 
         bitset_t GetIntersection() const;
 
         bool RemoveSupersetsOf(bitset_t carrier);
+        bool RemoveSupersetsOf(const CarrierList& filter);
 
         bool TryQueue(bitset_t capturedSet);
 
         void MarkAllProcessed();
         void MarkAllUnprocessed();
+        void CalcIntersection();
 
     protected:
         void Clear();
@@ -400,22 +400,10 @@ private:
         bool m_queued;
     };
 
-    class SemiList : public OrList, public BitsetMap<AndList>
-    {
-    public:
-        SemiList();
-        SemiList(bitset_t carrier, HexPoint key);
-        SemiList(const CarrierList& carrier_list, bitset_t intersection);
-        void RemoveSupersetsOf(bitset_t carrier);
-        bool RemoveSupersetsOf(const CarrierList& filter);
-        void CalcAllSemis();
-    };
-
     BitsetUPairMap<AndList> m_fulls;
-    BitsetUPairMap<SemiList> m_semis;
+    BitsetUPairMap<OrList> m_semis;
 
     Queue<Full> m_fulls_and_queue;
-    Queue<Semi> m_semis_and_queue;
     Queue<Ends> m_semis_or_queue;
 
     const StoneBoard* m_brd;
@@ -461,40 +449,33 @@ private:
         };
         enum Pointer { P_NONE, P_NULL, P_SET };
 
-        template <Pointer fulls_p, Pointer semis_p, Pointer key_semis_p>
+        template <Pointer fulls_p, Pointer semis_p>
         struct State
         {
             static const bool fulls_initialized = fulls_p != P_NONE;
             static const bool fulls_null = fulls_p != P_SET;
             static const bool semis_initialized = semis_p != P_NONE;
             static const bool semis_null = semis_p != P_SET;
-            static const bool key_semis_initialized = key_semis_p != P_NONE;
-            static const bool key_semis_null = key_semis_p != P_SET;
-            typedef State<P_SET, semis_p, key_semis_p> FullsSet;
-            typedef State<P_NULL, semis_p, key_semis_p> FullsNull;
-            typedef State<fulls_p, P_SET, key_semis_p> SemisSet;
-            typedef State<fulls_p, P_NULL, key_semis_p> SemisNull;
-            typedef State<fulls_p, semis_p, P_SET> KeySemisSet;
-            typedef State<fulls_p, semis_p, P_NULL> KeySemisNull;
-            typedef State<fulls_p, semis_p, P_NONE> KeySemisReset;
+            typedef State<P_SET, semis_p> FullsSet;
+            typedef State<P_NULL, semis_p> FullsNull;
+            typedef State<fulls_p, P_SET> SemisSet;
+            typedef State<fulls_p, P_NULL> SemisNull;
         };
 
-        typedef State<P_NONE, P_NONE, P_NONE> InitialState;
+        typedef State<P_NONE, P_NONE> InitialState;
 
         VCS& vcs;
         HexPoint x;
         HexPoint y;
         bitset_t capturedSet;
         AndList* fulls;
-        SemiList* semis;
-        AndList* key_semis;
+        OrList* semis;
         bitset_t xz_carrier;
-        HexPoint key;
         bitset_t intersection;
         CarrierList::Iterator zy_iter;
 
         VCAnd(VCS& vcs, HexPoint x, HexPoint y, bitset_t capturedSet,
-              bitset_t xz_carrier, AndList *zy_list, HexPoint key = INVALID_POINT);
+              bitset_t xz_carrier, CarrierList *zy_list);
 
         template <class Func>
         void Run(Func func);
@@ -508,26 +489,15 @@ private:
         template <class S, class Func>
         void TryAddSemi(bitset_t carrier, Func func);
 
-        template <class S, class Func>
-        void TryAddSemi(bitset_t carrier, HexPoint new_key, Func func);
-
         VCAND_DEFFUNC(FEF)
         VCAND_DEFFUNC(FEFNext)
 
         VCAND_DEFFUNC(FSF)
-        VCAND_DEFFUNC(FSFCaptured)
         VCAND_DEFFUNC(FSFNext)
-
-        VCAND_DEFFUNC(FSS)
-        VCAND_DEFFUNC(FSSNext)
     };
 
     void AndFull(HexPoint x, HexPoint y, bitset_t carrier);
     void AndFull(HexPoint x, HexPoint z, bitset_t carrier,
-                 HexColor zcolor, bitset_t xzCapturedSet);
-
-    void AndSemi(HexPoint x, HexPoint y, HexPoint key, bitset_t carrier);
-    void AndSemi(HexPoint x, HexPoint z, HexPoint key, bitset_t carrier,
                  HexColor zcolor, bitset_t xzCapturedSet);
 
     void AndFullEmptyFull(HexPoint x, HexPoint z, bitset_t carrier,
@@ -540,17 +510,6 @@ private:
     void AndFullStoneFull(HexPoint x, HexPoint z, HexPoint y,
                           bitset_t carrier, bitset_t xyCapturedSet);
 
-    void AndFullStoneSemi(HexPoint x, HexPoint z, bitset_t carrier,
-                          bitset_t xzCapturedSet);
-    void AndFullStoneSemi(HexPoint x, HexPoint z, HexPoint y,
-                          bitset_t carrier, bitset_t xyCapturedSet);
-    void AndFullStoneSemi(HexPoint x, HexPoint y, HexPoint key,
-                          bitset_t carrier, bitset_t xyCapturedSet,
-                          AndList* zy_list);
-
-    void AndSemiStoneFull(HexPoint x, HexPoint z, HexPoint key,
-                          bitset_t carrier, bitset_t xzCapturedSet);
-
     // @}
 
     void OrSemis(HexPoint x, HexPoint y);
@@ -559,40 +518,19 @@ private:
 
     /** Threats */
     // @{
-    BitsetUPairMap<AndList> m_threats;
-    SemiList *m_edge_semis;
+    BitsetMap<OrList> m_threats;
+    OrList* m_edge_semis;
 
-    void TryAddThreat(HexPoint k1, HexPoint k2,
-                      AndList* threats, bitset_t carrier);
+    void TryAddThreat(HexPoint key, OrList* threats, bitset_t carrier);
 
     void ThreatSearch();
-    void ThreatSearch(HexPoint z, HexColor zcolor, bitset_t capturedSet);
-    void ThreatSearch2SemiSemi(SemiList* semis1, SemiList* semis2,
-                               bitset_t capturedSet, HexPoint k1);
-    void ThreatSearch2SemiSemi(SemiList* semis1, SemiList* semis2,
-                               bitset_t capturedSet);
-    void ThreatSearch1Semi(AndList* fulls1, SemiList* semis2,
-                           bitset_t capturedSet);
-    void ThreatSearch2Semi(AndList* fulls1, SemiList* semis2,
-                           bitset_t capturedSet, HexPoint k1);
-    void ThreatSearch0(AndList* list1, AndList* list2,
-                       bitset_t capturedSet);
-    void ThreatSearch0(bitset_t carrier1, AndList* list2,
-                       bitset_t capturedSet);
-    void ThreatSearch0(bitset_t carrier1, bitset_t carrier2,
-                       bitset_t capturedSet);
-    void ThreatSearch1(AndList* list1, AndList* list2,
-                       bitset_t capturedSet, HexPoint k1);
-    void ThreatSearch1(bitset_t carrier1, AndList* list2,
-                       bitset_t capturedSet, HexPoint k1);
+    void ThreatSearch(HexPoint z, bitset_t capturedSet);
+    void ThreatSearch1(OrList* semis, AndList* fulls,
+                       bitset_t capturedSet, HexPoint k);
+    void ThreatSearch1(bitset_t carrier1, AndList* fulls,
+                       bitset_t capturedSet, HexPoint k);
     void ThreatSearch1(bitset_t carrier1, bitset_t carrier2,
-                       bitset_t capturedSet, HexPoint k1);
-    void ThreatSearch2(AndList* list1, AndList* list2,
-                       bitset_t capturedSet, HexPoint k1, HexPoint k2);
-    void ThreatSearch2(bitset_t carrier1, AndList* list2,
-                       bitset_t capturedSet, HexPoint k1, HexPoint k2);
-    void ThreatSearch2(bitset_t carrier1, bitset_t carrier2,
-                       bitset_t capturedSet, HexPoint k1, HexPoint k2);
+                       bitset_t capturedSet, HexPoint k);
     // @}
 
     /** Incremental build staff */
@@ -605,13 +543,11 @@ private:
                         HexPoint x, HexPoint y);
     void MergeRemoveSelfEnds(bitset_t x_merged);
     bool Shrink(bitset_t added, HexPoint x, HexPoint y, AndList* fulls);
-    bool Shrink(bitset_t added, HexPoint x, HexPoint y, AndList* semis,
-                const AndList* filter, HexPoint key);
+    bool Shrink(bitset_t added, OrList* semis, const AndList* filter);
     bool Shrink(bitset_t added, HexPoint x, HexPoint y,
-                AndList* fulls, const CarrierList& list, size_t& stats);
-    bool Shrink(bitset_t added, HexPoint x, HexPoint y,
-                AndList* semis, const CarrierList& list,
-                const AndList* filter, HexPoint key);
+                AndList* fulls, const CarrierList& list);
+    bool Shrink(bitset_t added, OrList* semis, const CarrierList& list,
+                const AndList* filter);
 
     class Backup
     {
@@ -622,9 +558,9 @@ private:
     private:
         struct AndListEntry
         {
-            AndListEntry(HexPoint point, const AndList* andList);
+            AndListEntry(HexPoint y, const AndList* andList);
             ~AndListEntry();
-            HexPoint point;
+            HexPoint y;
             AndList* andList;
         };
 
@@ -635,21 +571,19 @@ private:
             std::vector<AndListEntry> list;
         };
 
-        struct SemiListEntry
+        struct OrListEntry
         {
-            SemiListEntry(HexPoint y, const CarrierList& all_semis,
-                          bitset_t intersection);
+            OrListEntry(HexPoint y, const OrList* orList);
+            ~OrListEntry();
             HexPoint y;
-            CarrierList all_semis;
-            bitset_t intersection;
-            std::vector<AndListEntry> list;
+            OrList* orList;
         };
 
         struct SemisEntry
         {
             SemisEntry(HexPoint x);
             HexPoint x;
-            std::vector<SemiListEntry> list;
+            std::vector<OrListEntry> list;
         };
 
         std::vector<FullsEntry> fulls;
