@@ -545,6 +545,7 @@ void VCS::Build(VCBuilderParam& param,
         m_statistics = Statistics();
         ComputeCapturedSets(patterns);
         Merge(oldGroups, capturedSet, added);
+        m_threats.Reset();
     }
     else
     {
@@ -571,6 +572,7 @@ void VCS::Reset()
 {
     m_fulls.Reset();
     m_semis.Reset();
+    m_threats.Reset();
 
     m_statistics = Statistics();
 }
@@ -1196,8 +1198,6 @@ inline void VCS::ThreatSearch()
             m_edge_semis->TryAdd(*it);
     }
 
-    m_threats.Reset();
-
     if (!m_edge_semis)
         return;
 
@@ -1400,6 +1400,25 @@ HexPoint VCS::SmallestSemiKey() const
             }
         }
     }
+
+    BenzeneAssert(m_param->threats);
+    bitset_t capturedSet;
+    if (BitsetUtil::IsSubsetOf(m_capturedSet[m_edge1], carrier))
+        capturedSet |= m_capturedSet[m_edge1];
+    if (BitsetUtil::IsSubsetOf(m_capturedSet[m_edge2], carrier))
+        capturedSet |= m_capturedSet[m_edge2];
+    for (BitsetIterator k(carrier & m_threats.Entries()); k; ++k)
+    {
+        OrList* threats = m_threats[*k];
+        bitset_t intersection;
+        intersection.set();
+        for (CarrierList::Iterator i(*threats); i; ++i)
+            if (BitsetUtil::IsSubsetOf(i.Carrier(), carrier))
+                intersection &= i.Carrier();
+        if (BitsetUtil::IsSubsetOf(intersection, capturedSet))
+            return *k;
+    }
+
     BenzeneAssert(false /* always should find a key */);
 }
 
