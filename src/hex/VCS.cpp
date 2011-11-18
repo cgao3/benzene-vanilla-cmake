@@ -1274,7 +1274,7 @@ inline void VCS::Backup::Create(VCS& vcs)
     vcs.TestQueuesEmpty();
     for (int x = 0; x < BITSETSIZE; x++)
     {
-        const typename BitsetUPairMap<AndList>::Nbs& nbs = vcs.m_fulls[(HexPoint)x];
+        const BitsetUPairMap<AndList>::Nbs& nbs = vcs.m_fulls[(HexPoint)x];
         if (nbs.Entries().none())
             continue;
         FullsEntry entry((HexPoint)x);
@@ -1284,7 +1284,7 @@ inline void VCS::Backup::Create(VCS& vcs)
     }
     for (int x = 0; x < BITSETSIZE; x++)
     {
-        const typename BitsetUPairMap<OrList>::Nbs& nbs = vcs.m_semis[(HexPoint)x];
+        const BitsetUPairMap<OrList>::Nbs& nbs = vcs.m_semis[(HexPoint)x];
         if (nbs.Entries().none())
             continue;
         SemisEntry entry((HexPoint)x);
