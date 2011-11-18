@@ -1278,7 +1278,7 @@ inline void VCS::Backup::Create(VCS& vcs)
         if (nbs.Entries().none())
             continue;
         FullsEntry entry((HexPoint)x);
-        for (BitsetIterator y(nbs.Entries()); y; ++y)
+        for (BitsetIterator y(nbs.Entries()); *y <= x; ++y)
             entry.list.push_back(AndListEntry(*y, nbs[*y]));
         fulls.push_back(entry);
     }
@@ -1288,7 +1288,7 @@ inline void VCS::Backup::Create(VCS& vcs)
         if (nbs.Entries().none())
             continue;
         SemisEntry entry((HexPoint)x);
-        for (BitsetIterator y(nbs.Entries()); y; ++y)
+        for (BitsetIterator y(nbs.Entries()); *y <= x; ++y)
             entry.list.push_back(OrListEntry(*y, nbs[*y]));
         semis.push_back(entry);
     }
