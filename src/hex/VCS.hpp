@@ -559,7 +559,6 @@ private:
         struct AndListEntry
         {
             AndListEntry(HexPoint y, const AndList* andList);
-            ~AndListEntry();
             HexPoint y;
             AndList* andList;
         };
@@ -574,7 +573,6 @@ private:
         struct OrListEntry
         {
             OrListEntry(HexPoint y, const OrList* orList);
-            ~OrListEntry();
             HexPoint y;
             OrList* orList;
         };

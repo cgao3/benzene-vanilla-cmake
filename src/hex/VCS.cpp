@@ -1253,21 +1253,9 @@ inline VCS::Backup::AndListEntry::AndListEntry(HexPoint y, const AndList* andLis
 {
 }
 
-VCS::Backup::AndListEntry::~AndListEntry()
-{
-    if (andList)
-        delete andList;
-}
-
 inline VCS::Backup::FullsEntry::FullsEntry(HexPoint x)
     : x(x)
 {
-}
-
-VCS::Backup::OrListEntry::~OrListEntry()
-{
-    if (orList)
-        delete orList;
 }
 
 inline VCS::Backup::OrListEntry::OrListEntry(HexPoint y, const OrList* orList)
@@ -1314,20 +1302,14 @@ inline void VCS::Backup::Restore(VCS& vcs)
     {
         for (std::vector<AndListEntry>::iterator i = entry->list.begin();
              i != entry->list.end(); ++i)
-        {
             vcs.m_fulls.Put(entry->x, i->y, i->andList);
-            i->andList = 0;
-        }
     }
     for (std::vector<SemisEntry>::iterator entry = semis.begin();
          entry != semis.end(); ++entry)
     {
         for (std::vector<OrListEntry>::iterator i = entry->list.begin();
-            i != entry->list.end(); ++i)
-        {
+             i != entry->list.end(); ++i)
             vcs.m_semis.Put(entry->x, i->y, i->orList);
-            i->orList = 0;
-        }
     }
 }
 
