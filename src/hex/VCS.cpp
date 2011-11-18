@@ -1458,7 +1458,7 @@ inline void VCS::ThreatSearch()
             continue;
         if (!k1_semis)
         {
-            if (m_edge_semis)
+            if (!m_edge_semis)
                 m_edge_semis = m_semis.Put(m_edge1, m_edge2);
             k1_semis = m_edge_semis->Put(k1);
         }
