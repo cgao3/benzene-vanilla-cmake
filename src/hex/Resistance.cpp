@@ -29,7 +29,7 @@
 
 #include "Hex.hpp"
 #include "BitsetIterator.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 #include "Resistance.hpp"
 #include "Pattern.hpp"
 #include "HashedPatternSet.hpp"

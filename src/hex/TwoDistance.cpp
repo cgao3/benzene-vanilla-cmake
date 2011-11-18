@@ -5,7 +5,7 @@
 #include "Hex.hpp"
 #include "BitsetIterator.hpp"
 #include "TwoDistance.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 
 using namespace benzene;
 

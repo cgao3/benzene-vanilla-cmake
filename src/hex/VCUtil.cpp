@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------------
 
 #include "VCUtil.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 #include "HexBoard.hpp"
 #include "BoardUtil.hpp"
 

@@ -8,7 +8,7 @@
 #include "Decompositions.hpp"
 #include "BitsetIterator.hpp"
 #include "Groups.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 #include "HexBoard.hpp"
 #include "VCUtil.hpp"
 

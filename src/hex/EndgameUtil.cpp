@@ -5,7 +5,7 @@
 #include "EndgameUtil.hpp"
 #include "BitsetIterator.hpp"
 #include "BoardUtil.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 #include "VCUtil.hpp"
 
 using namespace benzene;

@@ -8,7 +8,7 @@
 
 #include "BitsetIterator.hpp"
 #include "BoardUtil.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 #include "HexEval.hpp"
 #include "Misc.hpp"
 #include "SequenceHash.hpp"

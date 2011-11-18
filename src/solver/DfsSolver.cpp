@@ -17,7 +17,7 @@
 #include "HexBoard.hpp"
 #include "ProofUtil.hpp"
 #include "Resistance.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 #include "VCUtil.hpp"
 
 #include <boost/scoped_ptr.hpp>

@@ -10,7 +10,7 @@
 
 #include "Hex.hpp"
 #include "HexBoard.hpp"
-#include "VC.hpp"
+#include "VCS.hpp"
 #include "DfsData.hpp"
 #include "SolverDB.hpp"
 #include "StateDB.hpp"

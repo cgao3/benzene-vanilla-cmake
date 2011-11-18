@@ -6,7 +6,7 @@
 #include "SgSearchValue.h"
 
 #include "BitsetIterator.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 #include "HexEval.hpp"
 #include "HexState.hpp"
 #include "EndgameUtil.hpp"
