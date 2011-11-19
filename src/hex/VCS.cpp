@@ -282,7 +282,7 @@ inline bool VCS::AndList::TrySetProcessed(bitset_t carrier)
 inline void VCS::AndList::MarkAllUnprocessed()
 {
     MarkAllNew();
-    CalcIntersection();
+    m_processed_intersection.set();
 }
 
 inline void VCS::AndList::CalcIntersection()
@@ -623,12 +623,12 @@ void VCS::Merge(const Groups& oldGroups, bitset_t* oldCapturedSet,
 }
 
 /** Removes all connections whose intersection with given set is
-    non-empty. Any list that is modified is added to the queue, since
-    some unprocessed connections could have been brought under the
-    softlimit. */
+    non-empty. */
 inline void VCS::RemoveAllContaining(const Groups& oldGroups,
                                      bitset_t removed)
 {
+    if (removed.none())
+        return;
     // Use old groupset and delete old groups that are
     // now the opponent's color.
     HexColorSet not_other = HexColorSetUtil::NotColor(!m_color);
@@ -648,16 +648,22 @@ inline void VCS::RemoveAllContaining(const Groups& oldGroups,
             AndList* fulls = m_fulls[xc][yc];
             if (fulls)
             {
-                m_statistics.killed0 += fulls->RemoveAllContaining(removed);
+                size_t count = fulls->RemoveAllContaining(removed);
+                m_statistics.killed0 += count;
                 if (fulls->IsEmpty())
                     m_fulls.Delete(xc, yc, fulls);
+                else if (count > 0)
+                    fulls->CalcIntersection();
             }
             OrList* semis = m_semis[xc][yc];
             if (semis)
             {
-                m_statistics.killed1 += semis->RemoveAllContaining(removed);
+                size_t count = semis->RemoveAllContaining(removed);
+                m_statistics.killed1 += count;
                 if (semis->IsEmpty())
                     m_semis.Delete(xc, yc, semis);
+                else if (count > 0)
+                    semis->CalcIntersection();
             }
         }
     }
@@ -679,6 +685,9 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
     bool new_fulls = false;
     std::vector<bitset_t> to_shrink;
     fulls->RemoveAllContaining(added, to_shrink);
+    if (to_shrink.empty())
+        return false;
+    fulls->CalcIntersection();
     for (std::vector<bitset_t>::iterator it = to_shrink.begin();
          it != to_shrink.end(); ++it)
     {
@@ -698,6 +707,9 @@ inline bool VCS::Shrink(bitset_t added, OrList* semis, const AndList* filter)
     bool new_semis = false;
     std::vector<bitset_t> to_shrink;
     semis->RemoveAllContaining(added, to_shrink);
+    if (to_shrink.empty())
+        return false;
+    semis->CalcIntersection();
     for (std::vector<bitset_t>::iterator it = to_shrink.begin();
         it != to_shrink.end(); ++it)
     {
@@ -762,6 +774,9 @@ void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
     BenzeneAssert(x != y);
     BenzeneAssert((x_merged & y_merged).none());
 
+    if (added.none())
+        return;
+
     AndList* fulls = m_fulls[x][y];
     OrList* semis = m_semis[x][y];
 
@@ -798,10 +813,8 @@ void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
             for (CarrierList::Iterator i(*fulls); i; ++i)
                 if (i.Old())
                     m_fulls_and_queue.Push(Full(x, y, i.Carrier()));
-                fulls->MarkAllUnprocessed();
+            fulls->MarkAllUnprocessed();
         }
-        else
-            fulls->CalcIntersection();
     }
 
     // Shrink semis
@@ -832,7 +845,6 @@ void VCS::MergeAndShrink(bitset_t* oldCapturedSet, bitset_t added,
 
     if (!semis)
         return;
-    semis->CalcIntersection();
 
     bool anyCaptureSetChanged =
         (oldCapturedSet[x] != m_capturedSet[x]) ||
