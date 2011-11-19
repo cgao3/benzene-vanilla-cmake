@@ -221,10 +221,10 @@ private:
 
     void RevertVCs();
 
-    void HandleVCDecomposition(HexColor color_to_move, bool use_changelog);
+    void HandleVCDecomposition(HexColor color_to_move);
 
     void AddStones(HexColor color, const bitset_t& played,
-                   HexColor color_to_move, bool use_changelog);
+                   HexColor color_to_move);
 
     void ClearHistory();
 

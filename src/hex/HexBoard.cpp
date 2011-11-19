@@ -96,7 +96,7 @@ void HexBoard::RevertVCs()
 /** In non-terminal states, checks for combinatorial decomposition
     with a vc using Decompositions::Find(). Plays the carrier using
     AddStones(). Loops until no more decompositions are found. */
-void HexBoard::HandleVCDecomposition(HexColor color_to_move, bool use_changelog)
+void HexBoard::HandleVCDecomposition(HexColor color_to_move)
 {
     if (!m_use_decompositions) 
         return;
@@ -118,7 +118,7 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move, bool use_changelog)
                 LogFine() << "Decomposition " << decompositions << ": for " 
 			  << *c << ".\n" << m_brd.Write(captured) << '\n';
             
-                AddStones(*c, captured, color_to_move, use_changelog);
+                AddStones(*c, captured, color_to_move);
                 m_inf.AddCaptured(*c, captured);
             
                 LogFine() << "After decomposition " << decompositions 
@@ -148,7 +148,7 @@ void HexBoard::ComputeAll(HexColor color_to_move)
     if (m_use_vcs)
     {
         BuildVCs();
-        HandleVCDecomposition(color_to_move, false);
+        HandleVCDecomposition(color_to_move);
     }
     LogFine() << timer.GetTime() << "s to compute all.\n";
 }
@@ -176,7 +176,7 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
     if (m_use_vcs)
     {
         BuildVCs(oldGroups, added, true);
-        HandleVCDecomposition(!color, true);
+        HandleVCDecomposition(!color);
     }
     LogFine() << timer.GetTime() << "s to play stones.\n";
 }
@@ -207,7 +207,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
     if (m_use_vcs)
     {
         BuildVCs(oldGroups, added, true);
-        HandleVCDecomposition(color_to_move, true);
+        HandleVCDecomposition(color_to_move);
     }
 
     LogFine() << timer.GetTime() << "s to play stones.\n";
@@ -219,7 +219,7 @@ void HexBoard::PlayStones(HexColor color, const bitset_t& played,
     onto stack, so a call to UndoMove() will undo these changes
     along with the last changes that changed the stack. */
 void HexBoard::AddStones(HexColor color, const bitset_t& played,
-                         HexColor color_to_move, bool use_changelog)
+                         HexColor color_to_move)
 {
     BenzeneAssert(BitsetUtil::IsSubsetOf(played, GetPosition().GetEmpty()));
     LogFine() << "Adding (" << color << ", "
@@ -241,7 +241,7 @@ void HexBoard::AddStones(HexColor color, const bitset_t& played,
     added[WHITE] = m_brd.GetColor(WHITE) - old_white;
 
     if (m_use_vcs)
-        BuildVCs(oldGroups, added, use_changelog); 
+        BuildVCs(oldGroups, added, false);
 
     LogFine() << timer.GetTime() << "s to add stones.\n";
 }
