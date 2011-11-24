@@ -90,7 +90,7 @@ namespace
     /** Returns the conductance between two cells by comparing their
         colors and whether they are connected or not. */
     double Conductance(const StoneBoard& brd, HexColor color, 
-                       HexPoint a, HexPoint b, bool connected,
+                       HexPoint a, HexPoint b, int connected,
                        const ConductanceValues& values)
     {
         if (!connected)
@@ -99,13 +99,18 @@ namespace
         HexColor ac = brd.GetColor(a);
         HexColor bc = brd.GetColor(b);
 
+        // Try one of these two functions
+        // Maybe something different than 4.0 is better
+        double c = 1.0 + std::sqrt((double) (connected-1)) / 4.0;
+        //double c = std::sqrt((double) connected);
+
         if (ac == EMPTY && bc == EMPTY)
-            return values.empty_to_empty;
+            return values.empty_to_empty / c;
         
         if (ac == color && bc == color)
-            return values.color_to_color;
+            return values.color_to_color / c;
         
-        return values.color_to_empty;
+        return values.color_to_empty / c;
     }
 }
 
@@ -205,10 +210,15 @@ void AddAdjacent(HexColor color, const HexBoard& brd,
         {
             HexPoint cx = brd.GetGroups().CaptainOf(*x);
             HexPoint cy = brd.GetGroups().CaptainOf(*y);
-            if ((cx == cy) || brd.Cons(color).FullExists(cx, cy))
+            int size = 0;
+            if (cx == cy)
+                size = 1;
+            else if (brd.Cons(color).FullExists(cx, cy))
+                size = 1 + (int)brd.Cons(color).FullIntersection(cx, cy).count();
+            if (size)
             {
-                graph[*x][*y] = true;
-                graph[*y][*x] = true;
+                graph[*x][*y] = size;
+                graph[*y][*x] = size;
             }
         }
     }
