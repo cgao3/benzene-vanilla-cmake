@@ -71,6 +71,27 @@ public:
     void Delete(HexPoint x, HexPoint y, T* xy_entry);
     void Delete(HexPoint x, HexPoint y);
 
+    class Backup
+    {
+    public:
+        void Create(BitsetUPairMap& map);
+        void Restore(BitsetUPairMap& map);
+    private:
+        struct TEntry
+        {
+            TEntry(HexPoint y, const T* t);
+            HexPoint y;
+            T* t;
+        };
+        struct NbsEntry
+        {
+            NbsEntry(HexPoint x);
+            HexPoint x;
+            std::vector<TEntry> entries;
+        };
+        std::vector<NbsEntry> data;
+    };
+
 private:
     Nbs m_xmap[BITSETSIZE];
 };
@@ -214,6 +235,44 @@ inline void BitsetUPairMap<T>::Delete(HexPoint x, HexPoint y)
     T* entry = m_xmap[x][y];
     if (entry)
         Delete(x, y, entry);
+}
+
+template <class T>
+inline BitsetUPairMap<T>::Backup::TEntry::TEntry(HexPoint y, const T* t)
+    : y(y), t(new T(*t))
+{
+}
+
+template <class T>
+inline BitsetUPairMap<T>::Backup::NbsEntry::NbsEntry(HexPoint x)
+    : x(x)
+{
+}
+
+template <class T>
+inline void BitsetUPairMap<T>::Backup::Create(BitsetUPairMap& map)
+{
+    for (int x = 0; x < BITSETSIZE; x++)
+    {
+        const Nbs& nbs = map[(HexPoint)x];
+        if (nbs.Entries().none())
+            continue;
+        NbsEntry entry((HexPoint)x);
+        for (BitsetIterator y(nbs.Entries()); *y <= x; ++y)
+            entry.entries.push_back(TEntry(*y, nbs[*y]));
+        data.push_back(entry);
+    }
+}
+
+template <class T>
+inline void BitsetUPairMap<T>::Backup::Restore(BitsetUPairMap& map)
+{
+    map.Reset();
+    for (typename std::vector<NbsEntry>::iterator entry = data.begin();
+         entry != data.end(); ++entry)
+        for (typename std::vector<TEntry>::iterator i = entry->entries.begin();
+            i != entry->entries.end(); ++i)
+            map.Put(entry->x, i->y, i->t);
 }
 
 //----------------------------------------------------------------------------

@@ -536,36 +536,8 @@ private:
         void Restore(VCS& vcs);
 
     private:
-        struct AndListEntry
-        {
-            AndListEntry(HexPoint y, const AndList* andList);
-            HexPoint y;
-            AndList* andList;
-        };
-
-        struct FullsEntry
-        {
-            FullsEntry(HexPoint x);
-            HexPoint x;
-            std::vector<AndListEntry> list;
-        };
-
-        struct OrListEntry
-        {
-            OrListEntry(HexPoint y, const OrList* orList);
-            HexPoint y;
-            OrList* orList;
-        };
-
-        struct SemisEntry
-        {
-            SemisEntry(HexPoint x);
-            HexPoint x;
-            std::vector<OrListEntry> list;
-        };
-
-        std::vector<FullsEntry> fulls;
-        std::vector<SemisEntry> semis;
+        BitsetUPairMap<AndList>::Backup fulls;
+        BitsetUPairMap<OrList>::Backup semis;
     };
     friend class Backup;
 

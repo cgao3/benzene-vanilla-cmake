@@ -561,7 +561,6 @@ void VCS::Build(VCBuilderParam& param,
 
 void VCS::Revert()
 {
-    Reset();
     backups.back().Restore(*this);
     backups.pop_back();
 }
@@ -1158,70 +1157,18 @@ inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
     return true;
 }
 
-inline VCS::Backup::AndListEntry::AndListEntry(HexPoint y, const AndList* andList)
-    : y(y),
-      andList(new AndList(*andList))
-{
-}
-
-inline VCS::Backup::FullsEntry::FullsEntry(HexPoint x)
-    : x(x)
-{
-}
-
-inline VCS::Backup::OrListEntry::OrListEntry(HexPoint y, const OrList* orList)
-    : y(y),
-      orList(new OrList(*orList))
-{
-}
-
-inline VCS::Backup::SemisEntry::SemisEntry(HexPoint x)
-    : x(x)
-{
-}
-
 inline void VCS::Backup::Create(VCS& vcs)
 {
     vcs.TestQueuesEmpty();
-    for (int x = 0; x < BITSETSIZE; x++)
-    {
-        const BitsetUPairMap<AndList>::Nbs& nbs = vcs.m_fulls[(HexPoint)x];
-        if (nbs.Entries().none())
-            continue;
-        FullsEntry entry((HexPoint)x);
-        for (BitsetIterator y(nbs.Entries()); *y <= x; ++y)
-            entry.list.push_back(AndListEntry(*y, nbs[*y]));
-        fulls.push_back(entry);
-    }
-    for (int x = 0; x < BITSETSIZE; x++)
-    {
-        const BitsetUPairMap<OrList>::Nbs& nbs = vcs.m_semis[(HexPoint)x];
-        if (nbs.Entries().none())
-            continue;
-        SemisEntry entry((HexPoint)x);
-        for (BitsetIterator y(nbs.Entries()); *y <= x; ++y)
-            entry.list.push_back(OrListEntry(*y, nbs[*y]));
-        semis.push_back(entry);
-    }
+    fulls.Create(vcs.m_fulls);
+    semis.Create(vcs.m_semis);
 }
 
 inline void VCS::Backup::Restore(VCS& vcs)
 {
     vcs.TestQueuesEmpty();
-    for (std::vector<FullsEntry>::iterator entry = fulls.begin();
-         entry != fulls.end(); ++entry)
-    {
-        for (std::vector<AndListEntry>::iterator i = entry->list.begin();
-             i != entry->list.end(); ++i)
-            vcs.m_fulls.Put(entry->x, i->y, i->andList);
-    }
-    for (std::vector<SemisEntry>::iterator entry = semis.begin();
-         entry != semis.end(); ++entry)
-    {
-        for (std::vector<OrListEntry>::iterator i = entry->list.begin();
-             i != entry->list.end(); ++i)
-            vcs.m_semis.Put(entry->x, i->y, i->orList);
-    }
+    fulls.Restore(vcs.m_fulls);
+    semis.Restore(vcs.m_semis);
 }
 
 bitset_t VCS::GetSmallestSemisUnion() const
