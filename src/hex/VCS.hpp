@@ -35,9 +35,6 @@ struct VCBuilderParam
     /** Whether requests for incremental bulilds are done incrementally */
     bool incremental_builds;
 
-    /** Whether try threats for more semis between edges */
-    bool threats;
-
     /** Constructor. */
     VCBuilderParam();
 };
@@ -515,23 +512,6 @@ private:
     void OrSemis(HexPoint x, HexPoint y);
 
     bool TryAddFull(HexPoint x, HexPoint y, bitset_t carrier);
-
-    /** Threats */
-    // @{
-    BitsetMap<OrList> m_threats;
-    OrList* m_edge_semis;
-
-    void TryAddThreat(HexPoint key, OrList* threats, bitset_t carrier);
-
-    void ThreatSearch();
-    void ThreatSearch(HexPoint z, bitset_t capturedSet);
-    void ThreatSearch1(OrList* semis, AndList* fulls,
-                       bitset_t capturedSet, HexPoint k);
-    void ThreatSearch1(bitset_t carrier1, AndList* fulls,
-                       bitset_t capturedSet, HexPoint k);
-    void ThreatSearch1(bitset_t carrier1, bitset_t carrier2,
-                       bitset_t capturedSet, HexPoint k);
-    // @}
 
     /** Incremental build staff */
     // @{
