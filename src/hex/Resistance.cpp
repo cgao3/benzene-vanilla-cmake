@@ -99,18 +99,13 @@ namespace
         HexColor ac = brd.GetColor(a);
         HexColor bc = brd.GetColor(b);
 
-        // Try one of these two functions
-        // Maybe something different than 4.0 is better
-        double c = 1.0 + std::sqrt((double) (connected-1)) / 4.0;
-        //double c = std::sqrt((double) connected);
-
         if (ac == EMPTY && bc == EMPTY)
-            return values.empty_to_empty / c;
+            return values.empty_to_empty / connected;
         
         if (ac == color && bc == color)
-            return values.color_to_color / c;
+            return values.color_to_color / connected;
         
-        return values.color_to_empty / c;
+        return values.color_to_empty / connected;
     }
 }
 
