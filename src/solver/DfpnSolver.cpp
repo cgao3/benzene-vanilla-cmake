@@ -752,7 +752,7 @@ void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
 {
     DfpnBounds boundsAll(DfpnBounds::INFTY, 0);
     BenzeneAssert(1 <= maxChildIndex && maxChildIndex <= childData.size());
-    for (std::size_t i = 0; i < maxChildIndex; ++i)
+    for (std::size_t i = 0; i < childData.size(); ++i)
     {
         const DfpnBounds& childBounds = childData[i].m_bounds;
         // Abort on losing child (a winning move)
@@ -761,7 +761,8 @@ void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
             DfpnBounds::SetToWinning(bounds);
             return;
         }
-        boundsAll.phi = std::min(boundsAll.phi, childBounds.delta);
+        if (i < maxChildIndex)
+            boundsAll.phi = std::min(boundsAll.phi, childBounds.delta);
         BenzeneAssert(childBounds.phi != DfpnBounds::INFTY);
         boundsAll.delta += childBounds.phi;
     }
