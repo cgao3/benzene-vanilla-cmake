@@ -163,8 +163,12 @@ private:
 
     boost::scoped_ptr<HexState> m_state;
 
+    boost::scoped_ptr<HexState> m_playoutStartState;
+
     /** Board used during search. */
     boost::scoped_ptr<PatternState> m_pastate;
+
+    boost::scoped_ptr<PatternState> m_playoutStartPatterns;
 
     /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vcBrd;
@@ -196,6 +200,8 @@ private:
 	Used for pattern-generated rollouts when call
 	MoHexSearchPolicy. */
     HexPoint m_lastMovePlayed;
+
+    HexPoint m_playoutStartLastMove;
 
     /** True at the start of a game until the first move is played. */
     bool m_atRoot;

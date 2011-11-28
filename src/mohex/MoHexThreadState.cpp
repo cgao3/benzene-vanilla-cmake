@@ -123,6 +123,7 @@ MoHexThreadState::MoHexThreadState(const unsigned int threadId,
     : SgUctThreadState(threadId, MoHexUtil::ComputeMaxNumMoves()),
       m_assertionHandler(*this),
       m_state(0),
+      m_playoutStartState(0),
       m_vcBrd(0),
       m_policy(0),
       m_sharedData(0),
@@ -279,7 +280,10 @@ void MoHexThreadState::StartSearch()
         || m_state->Position().Height() != brd.Height())
     {
         m_state.reset(new HexState(brd.GetPosition(), BLACK));
+        m_playoutStartState.reset(new HexState(brd.GetPosition(), BLACK));
         m_pastate.reset(new PatternState(m_state->Position()));
+        m_playoutStartPatterns.reset
+            (new PatternState(m_playoutStartState->Position()));
         m_vcBrd.reset(new HexBoard(brd.Width(), brd.Height(), 
                                    brd.ICE(), brd.Builder().Parameters()));
     }
@@ -294,6 +298,12 @@ void MoHexThreadState::TakeBackInTree(std::size_t nuMoves)
 void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
 {
     SG_UNUSED(nuMoves);
+    if (m_search.NumberPlayouts() > 1)
+    {
+        m_lastMovePlayed = m_playoutStartLastMove;
+        *m_state = *m_playoutStartState;
+        m_pastate->CopyState(*m_playoutStartPatterns);
+    }
 }
 
 SgBlackWhite MoHexThreadState::ToPlay() const
@@ -321,6 +331,13 @@ void MoHexThreadState::StartPlayouts()
     // during the transition from the tree phase to the playout phase.
     if (m_playoutUpdateRadius > m_treeUpdateRadius)
 	m_pastate->Update();
+    // If doing more than one playout make a backup of this state
+    if (m_search.NumberPlayouts() > 1)
+    {
+        m_playoutStartLastMove = m_lastMovePlayed;
+        *m_playoutStartState = *m_state;
+        m_playoutStartPatterns->CopyState(*m_pastate);
+    }
 }
 
 void MoHexThreadState::StartPlayout()
