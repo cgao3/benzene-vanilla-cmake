@@ -534,7 +534,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds, DfpnHistory& history)
         DfpnBounds childMaxBounds;
         childMaxBounds.phi = maxBounds.delta 
             - (currentBounds.delta - childBounds.phi);
-        childMaxBounds.delta =
+        childMaxBounds.delta = delta2 == DfpnBounds::INFTY ? maxBounds.phi :
             std::min(maxBounds.phi,
                      std::max(delta2 + 1, DfpnBoundType(delta2 * (1.0 + m_epsilon))));
         BenzeneAssert(childMaxBounds.GreaterThan(childBounds));

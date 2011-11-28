@@ -131,7 +131,7 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
 		m_tt.reset(new DfpnHashTable(1 << bits));
 	}
         else if (name == "widening_base")
-            m_solver.SetWideningBase(cmd.ArgMin<int>(1, 1));
+            m_solver.SetWideningBase(cmd.ArgMin<int>(1, 0));
         else if (name == "widening_factor")
         {
             float value = cmd.Arg<float>(1);
