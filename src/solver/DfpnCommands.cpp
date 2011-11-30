@@ -113,7 +113,11 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             << "[string] widening_factor "
             << m_solver.WideningFactor() << '\n'
             << "[string] epsilon "
-            << m_solver.Epsilon() << '\n';
+            << m_solver.Epsilon() << '\n'
+            << "[string] threads "
+            << m_solver.Threads() << '\n'
+            << "[string] thread_work "
+            << m_solver.ThreadWork() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -148,6 +152,10 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             else
                 throw GtpFailure() << "epsilon cannot be negative";
         }
+        else if (name == "threads")
+            m_solver.SetThreads(cmd.ArgMin<int>(1, 1));
+        else if (name == "thread_work")
+            m_solver.SetThreadWork(cmd.ArgMin<size_t>(1, 1));
         else
             throw GtpFailure() << "Unknown parameter: " << name;
     }

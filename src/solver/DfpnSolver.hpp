@@ -18,7 +18,7 @@
 #include "SolverDB.hpp"
 
 #include <limits>
-#include <boost/scoped_ptr.hpp>
+#include <boost/thread.hpp>
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -91,11 +91,14 @@ struct DfpnBounds
 
     /** Sets the bounds to (INFTY, 0). */
     static void SetToLosing(DfpnBounds& bounds);
+
+    /** Needed for some template functions. */
+    const DfpnBounds& GetBounds() const;
 };
 
 inline DfpnBounds::DfpnBounds()
-    : phi(INFTY), 
-      delta(INFTY)
+    : phi(1),
+      delta(1)
 {
 }
 
@@ -144,12 +147,42 @@ inline void DfpnBounds::SetToLosing(DfpnBounds& bounds)
     bounds.delta = 0;
 }
 
+inline const DfpnBounds& DfpnBounds::GetBounds() const
+{
+    return *this;
+}
+
 /** Extends global output operator for DfpnBounds. */
 inline std::ostream& operator<<(std::ostream& os, const DfpnBounds& bounds)
 {
     os << bounds.Print();
     return os;
 }
+
+//----------------------------------------------------------------------------
+
+/** Hash table for virtual bounds.
+    @ingroup dfpn
+ */
+class VirtualBoundsTT
+{
+public:
+    void Update(size_t depth, const HexState& state,
+                const DfpnBounds& bounds);
+    void Store(size_t depth, const HexState& state,
+               const DfpnBounds& bounds);
+    void Lookup(size_t depth, const HexState& state, DfpnBounds& bounds);
+    void Remove(size_t depth, const HexState& state);
+private:
+    struct Entry
+    {
+        SgHashCode hash;
+        size_t count;
+        DfpnBounds bounds;
+    };
+
+    std::vector<std::vector<Entry> > data;
+};
 
 //----------------------------------------------------------------------------
 
@@ -212,14 +245,12 @@ public:
 
     DfpnData();
 
-    DfpnData(const DfpnBounds& bounds, const DfpnChildren& children, 
-             HexPoint bestMove, size_t work, bitset_t maxProofSet,
-             float evaluationScore);
+    std::string Print() const;
 
-    ~DfpnData();
+    const DfpnBounds& GetBounds() const;
 
-    std::string Print() const; 
-    
+    void Validate();
+
     /** @name SgHashTable methods. */
     // @{
 
@@ -250,25 +281,8 @@ private:
 
 
 inline DfpnData::DfpnData()
-    : m_isValid(false)
-{
-}
-
-inline DfpnData::DfpnData(const DfpnBounds& bounds, 
-                          const DfpnChildren& children, 
-                          HexPoint bestMove, size_t work,
-                          bitset_t maxProofSet, float evaluationScore)
-    : m_bounds(bounds),
-      m_children(children),
-      m_bestMove(bestMove),
-      m_work(work),
-      m_maxProofSet(maxProofSet),
-      m_evaluationScore(evaluationScore),
-      m_isValid(true)
-{ 
-}
-
-inline DfpnData::~DfpnData()
+    : m_work(0),
+      m_isValid(false)
 {
 }
 
@@ -286,6 +300,11 @@ inline std::string DfpnData::Print() const
     return os.str();
 }
 
+inline const DfpnBounds& DfpnData::GetBounds() const
+{
+    return m_bounds;
+}
+
 inline bool DfpnData::IsBetterThan(const DfpnData& data) const
 {
     return m_work > data.m_work;
@@ -294,6 +313,11 @@ inline bool DfpnData::IsBetterThan(const DfpnData& data) const
 inline bool DfpnData::IsValid() const
 {
     return m_isValid;
+}
+
+inline void DfpnData::Validate()
+{
+    m_isValid = true;
 }
 
 inline void DfpnData::Invalidate()
@@ -491,7 +515,19 @@ public:
     
     /** See Epsilon() */
     void SetEpsilon(float epsilon);
-    
+
+    /** Number of threads used for search. */
+    int Threads() const;
+
+    /** See Threads() */
+    void SetThreads(int threads);
+
+    /** Maximum amount of work thread can spend for single assignment. */
+    size_t ThreadWork() const;
+
+    /** See ThreadWork() */
+    void SetThreadWork(size_t threadWork);
+
     // @}
 
 private:
@@ -535,11 +571,15 @@ private:
         void DoWrite();
     };
 
-    boost::scoped_ptr<HexState> m_state;
+    boost::thread_specific_ptr<HexState> m_state;
+    boost::thread_specific_ptr<HexBoard> m_workBoard;
+    boost::thread_specific_ptr<DfpnHistory> m_history;
 
-    HexBoard* m_workBoard;
+    boost::mutex m_descent_mutex;
+    boost::condition_variable m_nothingToSearch_cond;
 
     DfpnStates* m_positions;
+    VirtualBoundsTT m_vtt;
 
     std::vector<DfpnListener*> m_listener;
 
@@ -559,6 +599,12 @@ private:
 
     /** See Epsilon() */
     float m_epsilon;
+
+    /** See Threads() */
+    int m_threads;
+
+    /** See ThreadWork() */
+    size_t m_threadWork;
 
     /** Number of calls to CheckAbort() before we check the timer.
         This is to avoid expensive calls to SgTime::Get(). Try to scale
@@ -595,20 +641,66 @@ private:
 
     SgHistogram<float, std::size_t> m_losingEvaluation;
 
-    size_t MID(const DfpnBounds& n, DfpnHistory& history);
+public:
+    void RunThread(int index, const DfpnBounds& maxBounds,
+                   const HexState& state, HexBoard& board);
 
-    void SelectChild(std::size_t& bestIndex, DfpnBoundType& delta2, 
-                     const std::vector<DfpnData>& childrenDfpnBounds,
-                     size_t maxChildIndex) const;
+private:
+    struct DescentStack
+    {
+        DfpnChildren children;
+        std::vector<DfpnData> childrenData;
+        std::vector<DfpnBounds> virtualBounds;
+        std::size_t bestIndex;
+    };
 
-    void UpdateBounds(DfpnBounds& bounds, 
-                      const std::vector<DfpnData>& childBounds,
+    bool TryDescent(std::vector<DescentStack>& stack,
+                    DfpnData& data, DfpnBounds& vBounds,
+                    DfpnBounds maxBounds, DfpnBounds& midBounds);
+
+    void CreateHistory(std::vector<DescentStack>& stack);
+
+    void UpdateStatesBackward(std::vector<DescentStack>& stack,
+                              const DfpnData& data, size_t work);
+
+    size_t MID(const DfpnBounds& maxBounds, const size_t workBound,
+               DfpnData& data);
+
+    size_t CreateData(DfpnData& data);
+
+    void PruneChildren(DfpnChildren& children,
+                       std::vector<DfpnData>& childrenData,
+                       HexPoint bestMove, bitset_t maxProofSet);
+
+    void UpdateSolvedBestMove(DfpnData& data,
+                              const std::vector<DfpnData>& childrenData);
+
+    void UpdateStatsOnWin(const std::vector<DfpnData>& childrenData,
+                          size_t bestIndex, size_t work);
+
+    template <class T>
+    size_t SelectChild(DfpnBounds& childMaxBounds,
+                       const DfpnBounds& currentBounds,
+                       const std::vector<T>& childrenBounds,
+                       const DfpnBounds& maxBounds,
+                       size_t maxChildIndex);
+
+    template <class T>
+    void UpdateBounds(DfpnBounds& bounds,
+                      const std::vector<T>& childBounds,
                       size_t maxChildIndex) const;
 
     bool CheckAbort();
 
-    void LookupData(DfpnData& data, const DfpnChildren& children, 
+    void LookupData(DfpnData& data, const DfpnChildren& children,
                     std::size_t childIndex, HexState& state);
+
+    void LookupChildren(std::vector<DfpnData>& childrenData,
+                        const DfpnChildren& children);
+
+    void LookupChildren(size_t depth, std::vector<DfpnBounds>& virtualBounds,
+                        const std::vector<DfpnData>& childrenData,
+                        const DfpnChildren& children);
 
     bool TTRead(const HexState& state, DfpnData& data);
 
@@ -684,6 +776,26 @@ inline float DfpnSolver::Epsilon() const
 inline void DfpnSolver::SetEpsilon(float epsilon)
 {
     m_epsilon = epsilon;
+}
+
+inline int DfpnSolver::Threads() const
+{
+    return m_threads;
+}
+
+inline void DfpnSolver::SetThreads(int threads)
+{
+    m_threads = threads;
+}
+
+inline size_t DfpnSolver::ThreadWork() const
+{
+    return m_threadWork;
+}
+
+inline void DfpnSolver::SetThreadWork(size_t threadWork)
+{
+    m_threadWork = threadWork;
 }
 
 //----------------------------------------------------------------------------

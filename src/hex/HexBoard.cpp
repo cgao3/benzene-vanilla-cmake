@@ -50,9 +50,9 @@ HexBoard::HexBoard(const HexBoard& other)
       m_builder_param(other.m_builder_param)
 {
     m_patterns.CopyState(other.GetPatternState());
-    for (BWIterator color; color; ++color)
+    for (BWIterator c; c; ++c)
     {
-        m_cons[*color].reset(new VCS(*other.m_cons[*color]));
+        m_cons[*c].reset(new VCS(*c));
     }
 }
 
