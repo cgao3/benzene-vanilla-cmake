@@ -556,14 +556,16 @@ bool DfpnSolver::TryDescent(std::vector<DescentStack>& stack,
                                     maxBounds, maxChildIndex);
 
         sd->children.PlayMove(sd->bestIndex, *m_state);
-        found = TryDescent(stack, sd->childrenData[sd->bestIndex],
-                           sd->virtualBounds[sd->bestIndex],
+        DfpnData childData(sd->childrenData[sd->bestIndex]);
+        DfpnBounds childVBounds(sd->virtualBounds[sd->bestIndex]);
+        found = TryDescent(stack, childData, childVBounds,
                            childMaxBounds, midBounds);
+        sd = &stack[depth];
+        sd->virtualBounds[sd->bestIndex] = childVBounds;
+        sd->childrenData[sd->bestIndex] = childData;
         sd->children.UndoMove(sd->bestIndex, *m_state);
-        sd = &stack.back();
     }
 
-    stack.pop_back();
     m_vtt.Store(depth, *m_state, vBounds);
     return true;
 }
@@ -842,7 +844,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
         if (!maxBounds.GreaterThan(data.m_bounds))
             break;
 
-        if (work + data.m_work >= workBound)
+        if (work >= workBound)
             break;
 
         // Select most proving child
@@ -856,7 +858,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
             m_guiFx.PlayMove(m_state->ToPlay(), bestIndex);
         data.m_children.PlayMove(bestIndex, *m_state);
         m_history->Push(data.m_bestMove, currentHash);
-        work += MID(childMaxBounds, workBound - work - data.m_work,
+        work += MID(childMaxBounds, workBound - work,
                     childrenData[bestIndex]);
         m_history->Pop();
         data.m_children.UndoMove(bestIndex, *m_state);
