@@ -637,16 +637,17 @@ void DfpnSolver::RunThread(int index, const DfpnBounds& maxBounds,
         DfpnBounds midBounds;
 
         {
-            boost::unique_lock<boost::mutex> lock_descent(m_descent_mutex);
-
             DfpnData root_data;
-            TTRead(*m_state, root_data);
-            if (!maxBounds.GreaterThan(root_data.m_bounds))
-                return;
+            DfpnBounds root_vBound;
+            boost::unique_lock<boost::mutex> lock_descent(m_descent_mutex);
 
             while (!m_aborted)
             {
-                DfpnBounds root_vBound(root_data.m_bounds);
+                TTRead(*m_state, root_data);
+                if (!maxBounds.GreaterThan(root_data.m_bounds))
+                    return;
+
+                root_vBound = root_data.m_bounds;
                 m_vtt.Lookup(0, *m_state, root_vBound);
 
                 // descent for a node to explore
@@ -657,9 +658,18 @@ void DfpnSolver::RunThread(int index, const DfpnBounds& maxBounds,
                 if (!maxBounds.GreaterThan(root_data.m_bounds))
                     return;
 
+                LogDfpnThread() << "Thread " << index << ": wating\n";
                 m_nothingToSearch_cond.wait(lock_descent);
             }
         }
+
+        LogDfpnThread() << "Thread " << index << ':';
+        for (std::size_t i = 0; i < stack.size(); ++i)
+        {
+            DescentStack& sd = stack[i];
+            LogDfpnThread() << ' ' << sd.children.FirstMove(sd.bestIndex);
+        }
+        LogDfpnThread() << '\n';
 
         CreateHistory(stack);
         DfpnData data;

@@ -41,6 +41,9 @@ enum LogLevel
     */
     LOG_LEVEL_INFO = 800,
     
+    /** Message level used to see what is doing each thread in DFPN */
+    LOG_LEVEL_DFPN = 750,
+    
     /** Message level for configuration purposes. 
         Should be used to provide a variety of static configuration
 	information to assist in debugging.
@@ -182,6 +185,13 @@ inline Logger& LogFine()
 inline Logger& LogConfig()
 {
     Logger::Global().SetLevel(LOG_LEVEL_CONFIG);
+    return Logger::Global();
+}
+
+/** Similar to LogFine() */
+inline Logger& LogDfpnThread()
+{
+    Logger::Global().SetLevel(LOG_LEVEL_DFPN);
     return Logger::Global();
 }
 
