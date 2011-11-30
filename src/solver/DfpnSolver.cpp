@@ -520,6 +520,10 @@ bool DfpnSolver::TryDescent(std::vector<DescentStack>& stack,
     if (data.m_work < m_threadWork)
     {
         midBounds = maxBounds;
+        if (vBounds.phi <= vBounds.delta)
+            DfpnBounds::SetToWinning(vBounds);
+        else
+            DfpnBounds::SetToLosing(vBounds);
         m_vtt.Store(depth, *m_state, vBounds);
         return true;
     }
