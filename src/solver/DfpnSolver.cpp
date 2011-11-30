@@ -537,7 +537,7 @@ bool DfpnSolver::TryDescent(std::vector<DescentStack>& stack,
     LookupChildren(sd->childrenData, sd->children);
 
     sd->virtualBounds.resize(sd->children.Size());
-    LookupChildren(depth, sd->virtualBounds, sd->childrenData, sd->children);
+    LookupChildren(depth + 1, sd->virtualBounds, sd->childrenData, sd->children);
 
     size_t maxChildIndex = ComputeMaxChildIndex(sd->childrenData);
 
@@ -570,6 +570,7 @@ bool DfpnSolver::TryDescent(std::vector<DescentStack>& stack,
         sd->children.UndoMove(sd->bestIndex, *m_state);
     }
 
+    UpdateBounds(vBounds, sd->virtualBounds, maxChildIndex);
     m_vtt.Store(depth, *m_state, vBounds);
     return true;
 }
