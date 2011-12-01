@@ -380,22 +380,19 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
 
 class RunDfpnThread
 {
-    int index;
     DfpnSolver& solver;
     const DfpnBounds& maxBounds;
     const HexState& state;
     HexBoard& board;
 public:
-    RunDfpnThread(int index,
-                  DfpnSolver& solver, const DfpnBounds& maxBounds,
+    RunDfpnThread(DfpnSolver& solver, const DfpnBounds& maxBounds,
                   const HexState& state, HexBoard& board)
-        : index(index),
-          solver(solver), maxBounds(maxBounds), state(state), board(board)
+        : solver(solver), maxBounds(maxBounds), state(state), board(board)
     { }
 
     void operator()()
     {
-        solver.RunThread(index, maxBounds, state, board);
+        solver.RunThread(maxBounds, state, board);
     }
 };
 
@@ -437,7 +434,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
     boost::thread threads[m_threads];
     for (int i = 0; i < m_threads; i++)
     {
-        RunDfpnThread run(i, *this, maxBounds, state, board);
+        RunDfpnThread run(*this, maxBounds, state, board);
         threads[i] = boost::thread(run);
     }
     for (int i = 0; i < m_threads; i++)
@@ -510,6 +507,7 @@ void DfpnSolver::StoreVBounds(size_t depth, TopMidData* d)
 
 void DfpnSolver::RemoveVBounds(size_t depth, TopMidData* d)
 {
+    BenzeneAssert(d);
     m_vtt.Remove(depth, d->hash);
     d = d->parent;
     if (!d)
@@ -536,6 +534,19 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
             DfpnBounds::SetToLosing(vBounds);
         StoreVBounds(depth, &d);
         m_topmid_mutex.unlock();
+        {
+            std::vector<HexPoint> pv;
+            for (TopMidData* d = parent; d; d = d->parent)
+                pv.push_back(d->data.m_children.FirstMove(d->bestIndex));
+            reverse(pv.begin(), pv.end());
+            for (size_t i = 0; i < pv.size(); ++i)
+            {
+                if (i)
+                    LogDfpnThread() << ' ';
+                LogDfpnThread() << pv[i];
+            }
+            LogDfpnThread() << '\n';
+        }
         work += MID(maxBounds, m_threadWork, data);
         m_topmid_mutex.lock();
         RemoveVBounds(depth, &d);
@@ -619,7 +630,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     return work;
 }
 
-void DfpnSolver::RunThread(int index, const DfpnBounds& maxBounds,
+void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
                            const HexState& state, HexBoard& board)
 {
     m_state.reset(new HexState(state));
@@ -629,18 +640,21 @@ void DfpnSolver::RunThread(int index, const DfpnBounds& maxBounds,
     boost::unique_lock<boost::mutex> lock(m_topmid_mutex);
 
     DfpnData data;
-    TTRead(*m_state, data);
-    DfpnBounds vBounds(data.m_bounds);
-    m_vtt.Lookup(0, m_state->Hash(), vBounds);
+    DfpnBounds vBounds;
 
     while (true)
     {
+        TTRead(*m_state, data);
+        vBounds = data.m_bounds;
+        m_vtt.Lookup(0, m_state->Hash(), vBounds);
         TopMid(maxBounds, data, vBounds, 0);
         if (m_aborted || !maxBounds.GreaterThan(data.m_bounds))
             break;
-        LogDfpnThread() << "Thread " << index << ": wating\n";
+        LogDfpnThread() << "wating\n";
         m_nothingToSearch_cond.wait(lock);
     }
+
+    m_nothingToSearch_cond.notify_all();
 }
 
 size_t DfpnSolver::CreateData(DfpnData& data)

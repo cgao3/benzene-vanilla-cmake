@@ -639,7 +639,7 @@ private:
     SgHistogram<float, std::size_t> m_losingEvaluation;
 
 public:
-    void RunThread(int index, const DfpnBounds& maxBounds,
+    void RunThread(const DfpnBounds& maxBounds,
                    const HexState& state, HexBoard& board);
 
 private:
