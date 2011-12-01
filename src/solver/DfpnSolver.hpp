@@ -167,12 +167,9 @@ inline std::ostream& operator<<(std::ostream& os, const DfpnBounds& bounds)
 class VirtualBoundsTT
 {
 public:
-    void Update(size_t depth, const HexState& state,
-                const DfpnBounds& bounds);
-    void Store(size_t depth, const HexState& state,
-               const DfpnBounds& bounds);
-    void Lookup(size_t depth, const HexState& state, DfpnBounds& bounds);
-    void Remove(size_t depth, const HexState& state);
+    void Store(size_t depth, SgHashCode hash, const DfpnBounds& bounds);
+    void Lookup(size_t depth, SgHashCode hash, DfpnBounds& bounds);
+    void Remove(size_t depth, SgHashCode hash);
 private:
     struct Entry
     {
@@ -575,7 +572,7 @@ private:
     boost::thread_specific_ptr<HexBoard> m_workBoard;
     boost::thread_specific_ptr<DfpnHistory> m_history;
 
-    boost::mutex m_descent_mutex;
+    boost::mutex m_topmid_mutex;
     boost::condition_variable m_nothingToSearch_cond;
 
     DfpnStates* m_positions;
@@ -646,29 +643,37 @@ public:
                    const HexState& state, HexBoard& board);
 
 private:
-    struct DescentStack
+    struct TopMidData
     {
-        DfpnChildren children;
+        DfpnData& data;
+        DfpnBounds& vBounds;
+        SgHashCode hash;
         std::vector<DfpnData> childrenData;
         std::vector<DfpnBounds> virtualBounds;
         std::size_t bestIndex;
+        TopMidData* parent;
+
+        TopMidData(DfpnData& data, DfpnBounds& vBounds,
+                   SgHashCode hash, TopMidData* parent)
+            : data(data), vBounds(vBounds),
+              hash(hash), parent(parent)
+        { }
     };
 
-    bool TryDescent(std::vector<DescentStack>& stack,
-                    DfpnData& data, DfpnBounds& vBounds,
-                    DfpnBounds maxBounds, DfpnBounds& midBounds);
+    void StoreVBounds(size_t depth, TopMidData* d);
 
-    void CreateHistory(std::vector<DescentStack>& stack);
+    void RemoveVBounds(size_t depth, TopMidData* d);
 
-    void UpdateStatesBackward(std::vector<DescentStack>& stack,
-                              const DfpnData& data, size_t work);
+    size_t TopMid(const DfpnBounds& maxBounds,
+                  DfpnData& data, DfpnBounds& vBounds,
+                  TopMidData* parent);
 
     size_t MID(const DfpnBounds& maxBounds, const size_t workBound,
                DfpnData& data);
 
     size_t CreateData(DfpnData& data);
 
-    void PruneChildren(DfpnChildren& children,
+    bool PruneChildren(DfpnChildren& children,
                        std::vector<DfpnData>& childrenData,
                        HexPoint bestMove, bitset_t maxProofSet);
 
