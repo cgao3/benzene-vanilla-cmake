@@ -673,9 +673,8 @@ private:
 
     size_t CreateData(DfpnData& data);
 
-    bool PruneChildren(DfpnChildren& children,
-                       std::vector<DfpnData>& childrenData,
-                       HexPoint bestMove, bitset_t maxProofSet);
+    bitset_t ChildrenToPrune(DfpnChildren& children,
+                             HexPoint bestMove, bitset_t maxProofSet);
 
     void UpdateSolvedBestMove(DfpnData& data,
                               const std::vector<DfpnData>& childrenData);
@@ -718,10 +717,6 @@ private:
 
     size_t ComputeMaxChildIndex(const std::vector<DfpnData>&
                                 childrenData) const;
-
-    void DeleteChildren(DfpnChildren& children,
-                        std::vector<DfpnData>& childrenData,
-                        bitset_t deleteChildren) const;
 
     void NotifyListeners(const DfpnHistory& history, const DfpnData& data);
 };

@@ -45,6 +45,16 @@ void DfpnBounds::CheckConsistency() const
 }
 #endif
 
+template <class T>
+static inline void VecPrune(std::vector<T>& v, bitset_t what)
+{
+    size_t j = 0;
+    for (size_t i = 0; i < v.size(); ++i)
+        if (!what.test(i))
+            v[j++] = v[i];
+    v.resize(j);
+}
+
 //----------------------------------------------------------------------------
 
 void VirtualBoundsTT::Store(size_t depth, SgHashCode hash,
@@ -623,9 +633,17 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
         UpdateStatsOnWin(d.childrenData, d.bestIndex, data.m_work + work);
 
-        if (PruneChildren(data.m_children, d.childrenData, data.m_bestMove,
-                          d.childrenData[d.bestIndex].m_maxProofSet))
-            d.virtualBounds.resize(data.m_children.Size());
+        bitset_t toPrune =
+            ChildrenToPrune(data.m_children, data.m_bestMove,
+                            d.childrenData[d.bestIndex].m_maxProofSet);
+        if (toPrune.any())
+        {
+            VecPrune(data.m_children.m_children, toPrune);
+            VecPrune(d.childrenData, toPrune);
+            VecPrune(d.virtualBounds, toPrune);
+            if (m_useGuiFx && m_history->Depth() == 0)
+                m_guiFx.SetChildren(data.m_children, d.childrenData);
+        }
     } while (!CheckAbort());
 
     if (m_useGuiFx && depth == 0)
@@ -737,34 +755,17 @@ void DfpnSolver::UpdateStatsOnWin(const std::vector<DfpnData>& childrenData,
     m_totalWastedWork += work - childrenData[bestIndex].m_work;
 }
 
-bool DfpnSolver::PruneChildren(DfpnChildren& children,
-                               std::vector<DfpnData>& childrenData,
-                               HexPoint bestMove, bitset_t maxProofSet)
+bitset_t DfpnSolver::ChildrenToPrune(DfpnChildren& children,
+                                     HexPoint bestMove, bitset_t maxProofSet)
 {
-    // Shrink children list using knowledge of bestMove child's proof set.
-    // That is, if this child is losing, conclude what other children
-    // must also be losing (i.e. cannot interfere with the proof set
-    // that disproves this child).
-    // And of course if this child is winning, no need to explore
-    // these other siblings either.
-    /* @todo Perhaps track allChildren instead of recomputing? */
-    bitset_t allChildren;
-    for (std::vector<HexPoint>::iterator it = children.m_children.begin();
-         it != children.m_children.end(); ++it)
-        allChildren.set(*it);
-    bitset_t canPrune = allChildren - maxProofSet;
-    canPrune.reset(bestMove);
-    std::size_t pruneCount = canPrune.count();
-    if (pruneCount > 0)
-    {
-        m_prunedSiblingStats.Add(float(pruneCount));
-        DeleteChildren(children, childrenData, canPrune);
-        if (m_useGuiFx && m_history->Depth() == 0)
-            m_guiFx.SetChildren(children, childrenData);
-        return true;
-    }
-    else
-        return false;
+    bitset_t res;
+    maxProofSet.set(bestMove);
+    for (size_t i = 0; i < children.Size(); ++i)
+        if (!maxProofSet.test(children.FirstMove(i)))
+            res.set(i);
+    if (res.any())
+        m_prunedSiblingStats.Add(float(res.count()));
+    return res;
 }
 
 void DfpnSolver::UpdateSolvedBestMove(DfpnData& data,
@@ -870,8 +871,16 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 
         UpdateStatsOnWin(childrenData, bestIndex, data.m_work + work);
 
-        PruneChildren(data.m_children, childrenData, data.m_bestMove,
-                      childrenData[bestIndex].m_maxProofSet);
+        bitset_t toPrune =
+            ChildrenToPrune(data.m_children, data.m_bestMove,
+                            childrenData[bestIndex].m_maxProofSet);
+        if (toPrune.any())
+        {
+            VecPrune(data.m_children.m_children, toPrune);
+            VecPrune(childrenData, toPrune);
+            if (m_useGuiFx && m_history->Depth() == 0)
+                m_guiFx.SetChildren(data.m_children, childrenData);
+        }
     } while (!CheckAbort());
 
     if (m_useGuiFx && depth == 0)
@@ -914,35 +923,6 @@ size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<DfpnData>&
                 return i + 1;
     }
     return childrenData.size();
-}
-
-void DfpnSolver::DeleteChildren(DfpnChildren& children,
-                                std::vector<DfpnData>& childrenData,
-                                bitset_t deleteChildren) const
-{
-    BenzeneAssert(children.Size() == childrenData.size());
-    bitset_t deleted;
-    std::vector<HexPoint>::iterator it1 = children.m_children.begin();
-    std::vector<DfpnData>::iterator it2 = childrenData.begin();
-    while (it1 != children.m_children.end())
-    {
-        BenzeneAssert(it2 != childrenData.end());
-        if (deleteChildren.test(*it1))
-        {
-            BenzeneAssert(!deleted.test(*it1));
-            deleted.set(*it1);
-            it1 = children.m_children.erase(it1);
-            it2 = childrenData.erase(it2);
-        }
-        else
-        {
-            ++it1;
-            ++it2;
-        }
-    }
-    BenzeneAssert(children.Size() > 0);
-    BenzeneAssert(children.Size() == childrenData.size());
-    BenzeneAssert(deleteChildren == deleted);
 }
 
 void DfpnSolver::NotifyListeners(const DfpnHistory& history,
