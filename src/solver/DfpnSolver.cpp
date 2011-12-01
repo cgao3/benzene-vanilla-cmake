@@ -134,7 +134,7 @@ void DfpnChildren::UndoMove(std::size_t index, HexState& state) const
 */
 
 DfpnSolver::GuiFx::GuiFx()
-    : m_index(9999),
+    : m_move(INVALID_POINT),
       m_timeOfLastWrite(0.0),
       m_delay(1.0)
 {
@@ -147,21 +147,30 @@ void DfpnSolver::GuiFx::SetChildren(const DfpnChildren& children,
     m_data = data;
 }
 
-void DfpnSolver::GuiFx::PlayMove(HexColor color, std::size_t index)
+void DfpnSolver::GuiFx::PlayMove(HexColor color, HexPoint move)
 {
+    m_move = move;
     m_color = color;
-    m_index = index;
+}
+
+void DfpnSolver::GuiFx::PlayMove(HexPoint move)
+{
+    m_move = move;
 }
 
 void DfpnSolver::GuiFx::UndoMove()
 {
-    m_index = 9999;
+    m_move = INVALID_POINT;
 }
 
-void DfpnSolver::GuiFx::UpdateCurrentBounds(const DfpnBounds& bounds)
+void DfpnSolver::GuiFx::UpdateBounds(HexPoint move, const DfpnBounds& bounds)
 {
-    BenzeneAssert(m_index != 9999);
-    m_data[m_index].m_bounds = bounds;
+    for (std::size_t i = 0; i < m_children.Size(); ++i)
+        if (m_children.FirstMove(i) == move)
+        {
+            m_data[i].m_bounds = bounds;
+            break;
+        }
 }
 
 /** Always writes output. */
@@ -175,13 +184,9 @@ void DfpnSolver::GuiFx::WriteForced()
 void DfpnSolver::GuiFx::Write()
 {
     double currentTime = SgTime::Get();
-    if (m_indexAtLastWrite == m_index)
-    {
-        if (currentTime < m_timeOfLastWrite + m_delay)
-            return;
-    }
+    if (currentTime < m_timeOfLastWrite + m_delay)
+        return;
     m_timeOfLastWrite = currentTime;
-    m_indexAtLastWrite = m_index;
     DoWrite();
 }
 
@@ -192,10 +197,10 @@ void DfpnSolver::GuiFx::DoWrite()
     os << "gogui-gfx:\n";
     os << "dfpn\n";
     os << "VAR";
-    if (m_index != 9999)
+    if (m_move != INVALID_POINT)
     {
         os << ' ' << (m_color == BLACK ? 'B' : 'W')
-           << ' ' << m_children.FirstMove(m_index);
+           << ' ' << m_move;
     }
     os << '\n';
     os << "LABEL";
@@ -500,6 +505,11 @@ void DfpnSolver::StoreVBounds(size_t depth, TopMidData* d)
     d = d->parent;
     if (!d)
         return;
+    if (m_useGuiFx && depth == 1)
+    {
+        m_guiFx.PlayMove(d->data.m_children.FirstMove(d->bestIndex));
+        m_guiFx.Write();
+    }
     size_t maxChildIndex = ComputeMaxChildIndex(d->childrenData);
     UpdateBounds(d->vBounds, d->virtualBounds, maxChildIndex);
     StoreVBounds(depth - 1, d);
@@ -512,6 +522,12 @@ void DfpnSolver::RemoveVBounds(size_t depth, TopMidData* d)
     d = d->parent;
     if (!d)
         return;
+    if (m_useGuiFx && depth == 1)
+    {
+        m_guiFx.UndoMove();
+        m_guiFx.UpdateBounds(d->data.m_children.FirstMove(d->bestIndex),
+                             d->childrenData[d->bestIndex].m_bounds);
+    }
     size_t maxChildIndex = ComputeMaxChildIndex(d->childrenData);
     UpdateBounds(d->data.m_bounds, d->childrenData, maxChildIndex);
     RemoveVBounds(depth - 1, d);
@@ -588,10 +604,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         UpdateBounds(vBounds, d.virtualBounds, maxChildIndex);
 
         if (m_useGuiFx && depth == 1)
-        {
-            m_guiFx.UpdateCurrentBounds(data.m_bounds);
-            m_guiFx.Write();
-        }
+            m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
 
         if (!maxBounds.GreaterThan(vBounds))
             break;
@@ -607,9 +620,6 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
                        d.virtualBounds[d.bestIndex], &d);
         m_history->Pop();
         data.m_children.UndoMove(d.bestIndex, *m_state);
-
-        if (m_useGuiFx && depth == 0)
-            m_guiFx.UndoMove();
 
         UpdateStatsOnWin(d.childrenData, d.bestIndex, data.m_work + work);
 
@@ -685,7 +695,7 @@ size_t DfpnSolver::CreateData(DfpnData& data)
 
         if (m_useGuiFx && m_history->Depth() == 1)
         {
-            m_guiFx.UpdateCurrentBounds(data.m_bounds);
+            m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
             m_guiFx.Write();
         }
         data.m_bestMove = INVALID_POINT;
@@ -829,7 +839,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 
         if (m_useGuiFx && depth == 1)
         {
-            m_guiFx.UpdateCurrentBounds(data.m_bounds);
+            m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
             m_guiFx.Write();
         }
 
@@ -847,7 +857,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
         data.m_bestMove = data.m_children.FirstMove(bestIndex);
         // Recurse on best child
         if (m_useGuiFx && depth == 0)
-            m_guiFx.PlayMove(m_state->ToPlay(), bestIndex);
+            m_guiFx.PlayMove(m_state->ToPlay(), data.m_bestMove);
         data.m_children.PlayMove(bestIndex, *m_state);
         m_history->Push(data.m_bestMove, currentHash);
         work += MID(childMaxBounds, workBound - work,
