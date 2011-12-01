@@ -700,11 +700,11 @@ private:
                     std::size_t childIndex, HexState& state);
 
     void LookupChildren(std::vector<DfpnData>& childrenData,
-                        const DfpnChildren& children);
+                        const DfpnChildren& children, size_t exclude = 999);
 
     void LookupChildren(size_t depth, std::vector<DfpnBounds>& virtualBounds,
                         const std::vector<DfpnData>& childrenData,
-                        const DfpnChildren& children);
+                        const DfpnChildren& children, size_t exclude = 999);
 
     bool TTRead(const HexState& state, DfpnData& data);
 

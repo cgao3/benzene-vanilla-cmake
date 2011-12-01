@@ -600,11 +600,11 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     d.childrenData.resize(data.m_children.Size());
     d.virtualBounds.resize(data.m_children.Size());
 
+    LookupChildren(d.childrenData, data.m_children);
+    LookupChildren(depth + 1, d.virtualBounds,
+                   d.childrenData, data.m_children);
     do
     {
-        LookupChildren(d.childrenData, data.m_children);
-        LookupChildren(depth + 1, d.virtualBounds,
-                       d.childrenData, data.m_children);
         size_t maxChildIndex = ComputeMaxChildIndex(d.childrenData);
 
         if (m_useGuiFx && depth == 0)
@@ -632,6 +632,10 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         data.m_children.UndoMove(d.bestIndex, *m_state);
 
         UpdateStatsOnWin(d.childrenData, d.bestIndex, data.m_work + work);
+
+        LookupChildren(d.childrenData, data.m_children, d.bestIndex);
+        LookupChildren(depth + 1, d.virtualBounds,
+                       d.childrenData, data.m_children, d.bestIndex);
 
         bitset_t toPrune =
             ChildrenToPrune(data.m_children, data.m_bestMove,
@@ -825,11 +829,11 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
     ++m_numMIDcalls;
 
     std::vector<DfpnData> childrenData(data.m_children.Size());
+    LookupChildren(childrenData, data.m_children);
 
     SgHashCode currentHash = m_state->Hash();
     do
     {
-        LookupChildren(childrenData, data.m_children);
         // Index used for progressive widening
         size_t maxChildIndex = ComputeMaxChildIndex(childrenData);
 
@@ -870,6 +874,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
             m_guiFx.UndoMove();
 
         UpdateStatsOnWin(childrenData, bestIndex, data.m_work + work);
+
+        LookupChildren(childrenData, data.m_children, bestIndex);
 
         bitset_t toPrune =
             ChildrenToPrune(data.m_children, data.m_bestMove,
@@ -1014,24 +1020,26 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
 }
 
 void DfpnSolver::LookupChildren(std::vector<DfpnData>& childrenData,
-                                const DfpnChildren& children)
+                                const DfpnChildren& children, size_t exclude)
 {
     for (size_t i = 0; i < children.Size(); ++i)
-        LookupData(childrenData[i], children, i, *m_state);
+        if (i != exclude)
+            LookupData(childrenData[i], children, i, *m_state);
 }
 
 void DfpnSolver::LookupChildren(size_t depth,
                                 std::vector<DfpnBounds>& virtualBounds,
                                 const std::vector<DfpnData>& childrenData,
-                                const DfpnChildren& children)
+                                const DfpnChildren& children, size_t exclude)
 {
     for (size_t i = 0; i < children.Size(); ++i)
-    {
-        virtualBounds[i] = childrenData[i].GetBounds();
-        children.PlayMove(i, *m_state);
-        m_vtt.Lookup(depth, m_state->Hash(), virtualBounds[i]);
-        children.UndoMove(i, *m_state);
-    }
+        if (i != exclude)
+        {
+            virtualBounds[i] = childrenData[i].GetBounds();
+            children.PlayMove(i, *m_state);
+            m_vtt.Lookup(depth, m_state->Hash(), virtualBounds[i]);
+            children.UndoMove(i, *m_state);
+        }
 }
 
 bool DfpnSolver::TTRead(const HexState& state, DfpnData& data)
