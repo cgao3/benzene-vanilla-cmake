@@ -666,7 +666,7 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
         size_t work = TopMid(maxBounds, data, vBounds, 0, midCalled);
         if (m_aborted || !maxBounds.GreaterThan(data.m_bounds))
             break;
-        if (work == 0)
+        if (!midCalled)
         {
             LogDfpnThread() << "wating\n";
             if (m_useGuiFx)
@@ -674,7 +674,7 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
             m_nothingToSearch_cond.wait(lock);
         }
         else
-            m_nothingToSearch_cond.notify_one();
+            m_nothingToSearch_cond.notify_all();
     }
 
     m_nothingToSearch_cond.notify_all();
