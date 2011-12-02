@@ -454,7 +454,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
     }
 
     m_timer.Start();
-    boost::thread threads[m_threads];
+    std::vector<boost::thread> threads(m_threads);
     for (int i = 0; i < m_threads; i++)
     {
         RunDfpnThread run(*this, maxBounds, state, board);
