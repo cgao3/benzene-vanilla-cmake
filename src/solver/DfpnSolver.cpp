@@ -13,6 +13,7 @@
 #include "Resistance.hpp"
 
 #include <boost/filesystem/path.hpp>
+#include <boost/scoped_array.hpp>
 
 using namespace benzene;
 
