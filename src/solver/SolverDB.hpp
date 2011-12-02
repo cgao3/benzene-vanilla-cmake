@@ -10,7 +10,6 @@
 #include "BenzeneSolver.hpp"
 #include "HexState.hpp"
 #include <boost/concept_check.hpp>
-#include <boost/thread.hpp>
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -73,8 +72,6 @@ private:
     boost::scoped_ptr<DB>& m_database;
 
     SolverDBParameters m_param;
-
-    boost::mutex m_ht_mutex;
 
     bool UseDatabase() const;
 
@@ -148,10 +145,7 @@ bool SolverDB<HASH, DB, DATA>::Get(const HexState& state, DATA& data)
     if (UseDatabase() && state.Position().NumStones() <= m_param.m_maxStones)
         return m_database->Get(state, data);
     if (UseHashTable())
-    {
-        boost::lock_guard<boost::mutex> lock(m_ht_mutex);
         return m_hashTable->Lookup(state.Hash(), &data);
-    }
     return false;
 }
 
@@ -161,10 +155,7 @@ void SolverDB<HASH, DB, DATA>::Put(const HexState& state, const DATA& data)
     if (UseDatabase() && state.Position().NumStones() <= m_param.m_maxStones)
         m_database->Put(state, data);
     else if (UseHashTable())
-    {
-        boost::lock_guard<boost::mutex> lock(m_ht_mutex);
         m_hashTable->Store(state.Hash(), data);
-    }
 }
 
 //----------------------------------------------------------------------------

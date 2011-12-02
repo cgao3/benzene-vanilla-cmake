@@ -576,6 +576,7 @@ private:
 
     boost::mutex m_topmid_mutex;
     boost::condition_variable m_nothingToSearch_cond;
+    boost::shared_mutex m_tt_mutex;
 
     DfpnStates* m_positions;
     VirtualBoundsTT m_vtt;
@@ -705,9 +706,11 @@ private:
                         const std::vector<DfpnData>& childrenData,
                         const DfpnChildren& children);
 
-    bool TTRead(const HexState& state, DfpnData& data);
+    bool TTReadNoLock(const HexState& state, DfpnData& data);
 
     void TTWrite(const HexState& state, const DfpnData& data);
+
+    bool TTRead(const HexState& state, DfpnData& data);
 
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;

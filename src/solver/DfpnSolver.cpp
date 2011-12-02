@@ -1004,13 +1004,14 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
                             std::size_t childIndex, HexState& state)
 {
     children.PlayMove(childIndex, state);
-    TTRead(state, data);
+    TTReadNoLock(state, data);
     children.UndoMove(childIndex, state);
 }
 
 void DfpnSolver::LookupChildren(std::vector<DfpnData>& childrenData,
                                 const DfpnChildren& children)
 {
+    boost::shared_lock<boost::shared_mutex> lock(m_tt_mutex);
     for (size_t i = 0; i < children.Size(); ++i)
         LookupData(childrenData[i], children, i, *m_state);
 }
@@ -1029,7 +1030,7 @@ void DfpnSolver::LookupChildren(size_t depth,
     }
 }
 
-bool DfpnSolver::TTRead(const HexState& state, DfpnData& data)
+bool DfpnSolver::TTReadNoLock(const HexState& state, DfpnData& data)
 {
     return m_positions->Get(state, data);
 }
@@ -1037,7 +1038,14 @@ bool DfpnSolver::TTRead(const HexState& state, DfpnData& data)
 void DfpnSolver::TTWrite(const HexState& state, const DfpnData& data)
 {
     data.m_bounds.CheckConsistency();
+    boost::unique_lock<boost::shared_mutex> lock(m_tt_mutex);
     m_positions->Put(state, data);
+}
+
+bool DfpnSolver::TTRead(const HexState& state, DfpnData& data)
+{
+    boost::shared_lock<boost::shared_mutex> lock(m_tt_mutex);
+    return TTReadNoLock(state, data);
 }
 
 //----------------------------------------------------------------------------
