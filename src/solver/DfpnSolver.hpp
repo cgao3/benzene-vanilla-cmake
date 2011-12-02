@@ -667,7 +667,7 @@ private:
 
     size_t TopMid(const DfpnBounds& maxBounds,
                   DfpnData& data, DfpnBounds& vBounds,
-                  TopMidData* parent);
+                  TopMidData* parent, bool& midCalled);
 
     size_t MID(const DfpnBounds& maxBounds, const size_t workBound,
                DfpnData& data);

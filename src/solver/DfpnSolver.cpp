@@ -545,8 +545,9 @@ void DfpnSolver::StoreVBounds(size_t depth, TopMidData* d)
 
 size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
                           DfpnData& data, DfpnBounds& vBounds,
-                          TopMidData* parent)
+                          TopMidData* parent, bool& midCalled)
 {
+    BenzeneAssert(!midCalled);
     if (!maxBounds.GreaterThan(vBounds))
         return 0;
 
@@ -576,6 +577,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
             LogDfpnThread() << '\n';
         }
         work = MID(maxBounds, m_threadWork, data);
+        midCalled = true;
         m_topmid_mutex.lock();
     }
 
@@ -599,10 +601,10 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         if (m_useGuiFx && depth == 1)
             m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
 
-        if (work > 0 || CheckAbort())
+        if (midCalled)
             break;
 
-        if (!maxBounds.GreaterThan(vBounds))
+        if (!maxBounds.GreaterThan(vBounds)|| CheckAbort())
             break;
 
         DfpnBounds childMaxBounds;
@@ -612,7 +614,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         data.m_children.PlayMove(d.bestIndex, *m_state);
         m_history->Push(data.m_bestMove, d.hash);
         work += TopMid(childMaxBounds, d.childrenData[d.bestIndex],
-                       d.virtualBounds[d.bestIndex], &d);
+                       d.virtualBounds[d.bestIndex], &d, midCalled);
         m_history->Pop();
         data.m_children.UndoMove(d.bestIndex, *m_state);
 
@@ -660,7 +662,8 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
         TTRead(*m_state, data);
         vBounds = data.m_bounds;
         m_vtt.Lookup(0, m_state->Hash(), vBounds);
-        size_t work = TopMid(maxBounds, data, vBounds, 0);
+        bool midCalled = false;
+        size_t work = TopMid(maxBounds, data, vBounds, 0, midCalled);
         if (m_aborted || !maxBounds.GreaterThan(data.m_bounds))
             break;
         if (work == 0)
@@ -709,7 +712,7 @@ size_t DfpnSolver::CreateData(DfpnData& data)
             m_guiFx.Write();
         }
         data.m_bestMove = INVALID_POINT;
-        data.m_work = 1;
+        data.m_work = 0;
         data.m_evaluationScore = 0.0;
         return 1;
     }
@@ -810,7 +813,10 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
     if (!maxBounds.GreaterThan(data.m_bounds))
     {
         if (work)
+        {
+            data.m_work += work;
             TTWrite(*m_state, data);
+        }
         return work;
     }
 
