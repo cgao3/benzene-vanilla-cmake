@@ -932,6 +932,11 @@ void DfpnSolver::NotifyListeners(const DfpnHistory& history,
         m_listener[i]->StateSolved(history, data);
 }
 
+inline DfpnBoundType DfpnSolver::GetDeltaBound(DfpnBoundType delta) const
+{
+    return std::max(delta + 1, DfpnBoundType(delta * (1.0 + m_epsilon)));
+}
+
 template <class T>
 void DfpnSolver::SelectChild(size_t& bestIndex, DfpnBounds& childMaxBounds,
                              const DfpnBounds& currentBounds,
@@ -965,12 +970,21 @@ void DfpnSolver::SelectChild(size_t& bestIndex, DfpnBounds& childMaxBounds,
             break;
     }
     BenzeneAssert(delta1 < DfpnBounds::INFTY);
-    if (delta2 != DfpnBounds::INFTY)
-        delta2 = std::max(delta2 + 1, DfpnBoundType(delta2 * (1.0 + m_epsilon)));
-    childMaxBounds.delta = std::min(maxBounds.phi, delta2);
-
-    if (childrenBounds[bestIndex].GetBounds().delta >= childMaxBounds.delta)
-        bestIndex = cand;
+    bool useDelta2 = true;
+    if (cand != bestIndex)
+    {
+        childMaxBounds.delta = std::min(maxBounds.phi, GetDeltaBound(delta1));
+        if (childrenBounds[bestIndex].GetBounds().delta >= childMaxBounds.delta)
+            bestIndex = cand;
+        else
+            useDelta2 = false;
+    }
+    if (useDelta2)
+    {
+        childMaxBounds.delta =
+            delta2 < DfpnBounds::INFTY ? GetDeltaBound(delta2) : delta2;
+        childMaxBounds.delta = std::min(maxBounds.phi, childMaxBounds.delta);
+    }
 
     // Compute maximum bound for child
     const DfpnBounds childBounds(childrenBounds[bestIndex].GetBounds());

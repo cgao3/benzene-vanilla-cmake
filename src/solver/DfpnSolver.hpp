@@ -683,6 +683,8 @@ private:
     void UpdateStatsOnWin(const std::vector<DfpnData>& childrenData,
                           size_t bestIndex, size_t work);
 
+    DfpnBoundType GetDeltaBound(DfpnBoundType delta) const;
+
     template <class T>
     void SelectChild(size_t& bestIndex, DfpnBounds& childMaxBounds,
                      const DfpnBounds& currentBounds,
