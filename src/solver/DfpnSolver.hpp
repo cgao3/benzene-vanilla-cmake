@@ -197,6 +197,8 @@ public:
 
     HexPoint FirstMove(std::size_t index) const;
 
+    std::size_t MoveIndex(HexPoint x) const;
+
     void PlayMove(std::size_t index, HexState& state) const;
 
     void UndoMove(std::size_t index, HexState& state) const;
@@ -683,11 +685,10 @@ private:
                           size_t bestIndex, size_t work);
 
     template <class T>
-    size_t SelectChild(DfpnBounds& childMaxBounds,
-                       const DfpnBounds& currentBounds,
-                       const std::vector<T>& childrenBounds,
-                       const DfpnBounds& maxBounds,
-                       size_t maxChildIndex);
+    void SelectChild(size_t& bestIndex, DfpnBounds& childMaxBounds,
+                     const DfpnBounds& currentBounds,
+                     const std::vector<T>& childrenBounds,
+                     const DfpnBounds& maxBounds, size_t maxChildIndex);
 
     template <class T>
     void UpdateBounds(DfpnBounds& bounds,
@@ -700,11 +701,11 @@ private:
                     std::size_t childIndex, HexState& state);
 
     void LookupChildren(std::vector<DfpnData>& childrenData,
-                        const DfpnChildren& children, size_t exclude = 999);
+                        const DfpnChildren& children);
 
     void LookupChildren(size_t depth, std::vector<DfpnBounds>& virtualBounds,
                         const std::vector<DfpnData>& childrenData,
-                        const DfpnChildren& children, size_t exclude = 999);
+                        const DfpnChildren& children);
 
     bool TTRead(const HexState& state, DfpnData& data);
 

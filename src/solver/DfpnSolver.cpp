@@ -130,6 +130,14 @@ void DfpnChildren::UndoMove(std::size_t index, HexState& state) const
     state.UndoMove(m_children[index]);
 }
 
+std::size_t DfpnChildren::MoveIndex(HexPoint x) const
+{
+    for (std::size_t i = 0; i < m_children.size(); ++i)
+        if (m_children[i] == x)
+            return i;
+        return 0;
+}
+
 //----------------------------------------------------------------------------
 
 /** @page dfpnguifx Dfpn Progress Indication
@@ -456,6 +464,12 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
         threads[i].join();
     m_timer.Stop();
 
+    if (m_useGuiFx)
+    {
+        m_guiFx.UndoMove();
+        m_guiFx.WriteForced();
+    }
+
     SolverDBUtil::GetVariation(state, *m_positions, pv);
     HexColor winner = EMPTY;
     if (TTRead(state, data) && data.m_bounds.IsSolved())
@@ -532,14 +546,6 @@ void DfpnSolver::RemoveVBounds(size_t depth, TopMidData* d)
     d = d->parent;
     if (!d)
         return;
-    if (m_useGuiFx && depth == 1)
-    {
-        m_guiFx.UndoMove();
-        m_guiFx.UpdateBounds(d->data.m_children.FirstMove(d->bestIndex),
-                             d->childrenData[d->bestIndex].m_bounds);
-    }
-    size_t maxChildIndex = ComputeMaxChildIndex(d->childrenData);
-    UpdateBounds(d->data.m_bounds, d->childrenData, maxChildIndex);
     RemoveVBounds(depth - 1, d);
 }
 
@@ -547,12 +553,14 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
                           DfpnData& data, DfpnBounds& vBounds,
                           TopMidData* parent)
 {
+    if (!maxBounds.GreaterThan(vBounds))
+        return 0;
+
     size_t depth = m_history->Depth();
     size_t work = 0;
     TopMidData d(data, vBounds, m_state->Hash(), parent);
 
-    while (maxBounds.GreaterThan(vBounds) && !m_aborted &&
-           data.m_work < m_threadWork)
+    if (data.m_work < m_threadWork)
     {
         if (vBounds.phi <= vBounds.delta)
             DfpnBounds::SetToWinning(vBounds);
@@ -573,20 +581,12 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
             }
             LogDfpnThread() << '\n';
         }
-        work += MID(maxBounds, m_threadWork, data);
+        work = MID(maxBounds, m_threadWork, data);
         m_topmid_mutex.lock();
         RemoveVBounds(depth, &d);
-        m_nothingToSearch_cond.notify_all();
-        vBounds = data.m_bounds;
-        m_vtt.Lookup(depth, d.hash, vBounds);
     }
 
-    if (!data.IsValid())
-    {
-        work += CreateData(data);
-        vBounds = data.m_bounds;
-        m_vtt.Lookup(depth, d.hash, vBounds);
-    }
+    BenzeneAssert(data.IsValid());
 
     if (!maxBounds.GreaterThan(vBounds))
     {
@@ -595,7 +595,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         return work;
     }
 
-    ++m_numMIDcalls;
+    d.bestIndex = data.m_children.MoveIndex(data.m_bestMove);
 
     d.childrenData.resize(data.m_children.Size());
     d.virtualBounds.resize(data.m_children.Size());
@@ -603,26 +603,26 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     LookupChildren(d.childrenData, data.m_children);
     LookupChildren(depth + 1, d.virtualBounds,
                    d.childrenData, data.m_children);
-    do
-    {
+
+    while (true) {
         size_t maxChildIndex = ComputeMaxChildIndex(d.childrenData);
 
-        if (m_useGuiFx && depth == 0)
-            m_guiFx.SetChildren(data.m_children, d.childrenData);
-
         UpdateBounds(data.m_bounds, d.childrenData, maxChildIndex);
-        UpdateBounds(vBounds, d.virtualBounds, maxChildIndex);
 
         if (m_useGuiFx && depth == 1)
             m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
+
+        if (work > 0 || CheckAbort())
+            break;
+
+        UpdateBounds(vBounds, d.virtualBounds, maxChildIndex);
 
         if (!maxBounds.GreaterThan(vBounds))
             break;
 
         DfpnBounds childMaxBounds;
-        d.bestIndex = SelectChild(childMaxBounds, vBounds,
-                                  d.virtualBounds,
-                                  maxBounds, maxChildIndex);
+        SelectChild(d.bestIndex, childMaxBounds, vBounds,
+                    d.virtualBounds, maxBounds, maxChildIndex);
         data.m_bestMove = data.m_children.FirstMove(d.bestIndex);
         data.m_children.PlayMove(d.bestIndex, *m_state);
         m_history->Push(data.m_bestMove, d.hash);
@@ -633,25 +633,20 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
         UpdateStatsOnWin(d.childrenData, d.bestIndex, data.m_work + work);
 
-        LookupChildren(d.childrenData, data.m_children, d.bestIndex);
-        LookupChildren(depth + 1, d.virtualBounds,
-                       d.childrenData, data.m_children, d.bestIndex);
-
         bitset_t toPrune =
             ChildrenToPrune(data.m_children, data.m_bestMove,
                             d.childrenData[d.bestIndex].m_maxProofSet);
         if (toPrune.any())
         {
             VecPrune(data.m_children.m_children, toPrune);
+            d.bestIndex = data.m_children.MoveIndex(data.m_bestMove);
             VecPrune(d.childrenData, toPrune);
-            VecPrune(d.virtualBounds, toPrune);
-            if (m_useGuiFx && m_history->Depth() == 0)
+            if (work == 0)
+                VecPrune(d.virtualBounds, toPrune);
+            if (m_useGuiFx && depth == 0)
                 m_guiFx.SetChildren(data.m_children, d.childrenData);
         }
-    } while (!CheckAbort());
-
-    if (m_useGuiFx && depth == 0)
-        m_guiFx.WriteForced();
+    }
 
     UpdateSolvedBestMove(data, d.childrenData);
 
@@ -679,11 +674,16 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
         TTRead(*m_state, data);
         vBounds = data.m_bounds;
         m_vtt.Lookup(0, m_state->Hash(), vBounds);
-        TopMid(maxBounds, data, vBounds, 0);
+        size_t work = TopMid(maxBounds, data, vBounds, 0);
         if (m_aborted || !maxBounds.GreaterThan(data.m_bounds))
             break;
-        LogDfpnThread() << "wating\n";
-        m_nothingToSearch_cond.wait(lock);
+        if (work == 0)
+        {
+            LogDfpnThread() << "wating\n";
+            m_nothingToSearch_cond.wait(lock);
+        }
+        else
+            m_nothingToSearch_cond.notify_all();
     }
 
     m_nothingToSearch_cond.notify_all();
@@ -831,6 +831,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
     std::vector<DfpnData> childrenData(data.m_children.Size());
     LookupChildren(childrenData, data.m_children);
 
+    size_t bestIndex = data.m_children.MoveIndex(data.m_bestMove);
+
     SgHashCode currentHash = m_state->Hash();
     do
     {
@@ -856,9 +858,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 
         // Select most proving child
         DfpnBounds childMaxBounds;
-        size_t bestIndex = SelectChild(childMaxBounds, data.m_bounds,
-                                       childrenData,
-                                       maxBounds, maxChildIndex);
+        SelectChild(bestIndex, childMaxBounds, data.m_bounds,
+                    childrenData, maxBounds, maxChildIndex);
         data.m_bestMove = data.m_children.FirstMove(bestIndex);
         // Recurse on best child
         if (m_useGuiFx && depth == 0)
@@ -875,14 +876,13 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 
         UpdateStatsOnWin(childrenData, bestIndex, data.m_work + work);
 
-        LookupChildren(childrenData, data.m_children, bestIndex);
-
         bitset_t toPrune =
             ChildrenToPrune(data.m_children, data.m_bestMove,
                             childrenData[bestIndex].m_maxProofSet);
         if (toPrune.any())
         {
             VecPrune(data.m_children.m_children, toPrune);
+            bestIndex = data.m_children.MoveIndex(data.m_bestMove);
             VecPrune(childrenData, toPrune);
             if (m_useGuiFx && m_history->Depth() == 0)
                 m_guiFx.SetChildren(data.m_children, childrenData);
@@ -939,17 +939,17 @@ void DfpnSolver::NotifyListeners(const DfpnHistory& history,
 }
 
 template <class T>
-size_t DfpnSolver::SelectChild(DfpnBounds& childMaxBounds,
-                               const DfpnBounds& currentBounds,
-                               const std::vector<T>& childrenBounds,
-                               const DfpnBounds& maxBounds,
-                               size_t maxChildIndex)
+void DfpnSolver::SelectChild(size_t& bestIndex, DfpnBounds& childMaxBounds,
+                             const DfpnBounds& currentBounds,
+                             const std::vector<T>& childrenBounds,
+                             const DfpnBounds& maxBounds,
+                             size_t maxChildIndex)
 {
-    size_t bestIndex = 999999;
     DfpnBoundType delta2 = DfpnBounds::INFTY;
     DfpnBoundType delta1 = DfpnBounds::INFTY;
 
     BenzeneAssert(1 <= maxChildIndex && maxChildIndex <= childrenBounds.size());
+    size_t cand = bestIndex;
     for (size_t i = 0; i < maxChildIndex; ++i)
     {
         const DfpnBounds& child = childrenBounds[i].GetBounds();
@@ -959,7 +959,7 @@ size_t DfpnSolver::SelectChild(DfpnBounds& childMaxBounds,
         {
             delta2 = delta1;
             delta1 = child.delta;
-            bestIndex = i;
+            cand = i;
         }
         else if (child.delta < delta2)
         {
@@ -971,18 +971,19 @@ size_t DfpnSolver::SelectChild(DfpnBounds& childMaxBounds,
             break;
     }
     BenzeneAssert(delta1 < DfpnBounds::INFTY);
+    if (delta2 != DfpnBounds::INFTY)
+        delta2 = std::max(delta2 + 1, DfpnBoundType(delta2 * (1.0 + m_epsilon)));
+    childMaxBounds.delta = std::min(maxBounds.phi, delta2);
+
+    if (childrenBounds[bestIndex].GetBounds().delta >= childMaxBounds.delta)
+        bestIndex = cand;
 
     // Compute maximum bound for child
     const DfpnBounds childBounds(childrenBounds[bestIndex].GetBounds());
     childMaxBounds.phi = maxBounds.delta - (currentBounds.delta - childBounds.phi);
-    childMaxBounds.delta = delta2 ==
-        DfpnBounds::INFTY ? maxBounds.phi :
-            std::min(maxBounds.phi,
-                std::max(delta2 + 1, DfpnBoundType(delta2 * (1.0 + m_epsilon))));
     BenzeneAssert(childMaxBounds.GreaterThan(childBounds));
     if (delta2 != DfpnBounds::INFTY)
         m_deltaIncrease.Add(float(childMaxBounds.delta-childBounds.delta));
-    return bestIndex;
 }
 
 template <class T>
@@ -1020,26 +1021,24 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
 }
 
 void DfpnSolver::LookupChildren(std::vector<DfpnData>& childrenData,
-                                const DfpnChildren& children, size_t exclude)
+                                const DfpnChildren& children)
 {
     for (size_t i = 0; i < children.Size(); ++i)
-        if (i != exclude)
-            LookupData(childrenData[i], children, i, *m_state);
+        LookupData(childrenData[i], children, i, *m_state);
 }
 
 void DfpnSolver::LookupChildren(size_t depth,
                                 std::vector<DfpnBounds>& virtualBounds,
                                 const std::vector<DfpnData>& childrenData,
-                                const DfpnChildren& children, size_t exclude)
+                                const DfpnChildren& children)
 {
     for (size_t i = 0; i < children.Size(); ++i)
-        if (i != exclude)
-        {
-            virtualBounds[i] = childrenData[i].GetBounds();
-            children.PlayMove(i, *m_state);
-            m_vtt.Lookup(depth, m_state->Hash(), virtualBounds[i]);
-            children.UndoMove(i, *m_state);
-        }
+    {
+        virtualBounds[i] = childrenData[i].GetBounds();
+        children.PlayMove(i, *m_state);
+        m_vtt.Lookup(depth, m_state->Hash(), virtualBounds[i]);
+        children.UndoMove(i, *m_state);
+    }
 }
 
 bool DfpnSolver::TTRead(const HexState& state, DfpnData& data)
