@@ -169,7 +169,7 @@ class VirtualBoundsTT
 public:
     void Store(size_t depth, SgHashCode hash, const DfpnBounds& bounds);
     void Lookup(size_t depth, SgHashCode hash, DfpnBounds& bounds);
-    void Remove(size_t depth, SgHashCode hash);
+    void Remove(size_t depth, SgHashCode hash, const DfpnBounds& bounds);
 private:
     struct Entry
     {
@@ -663,8 +663,6 @@ private:
     };
 
     void StoreVBounds(size_t depth, TopMidData* d);
-
-    void RemoveVBounds(size_t depth, TopMidData* d);
 
     size_t TopMid(const DfpnBounds& maxBounds,
                   DfpnData& data, DfpnBounds& vBounds,

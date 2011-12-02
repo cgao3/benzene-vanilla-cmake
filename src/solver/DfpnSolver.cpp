@@ -94,7 +94,8 @@ void VirtualBoundsTT::Lookup(size_t depth, SgHashCode hash,
         }
 }
 
-void VirtualBoundsTT::Remove(size_t depth, SgHashCode hash)
+void VirtualBoundsTT::Remove(size_t depth, SgHashCode hash,
+                             const DfpnBounds& bounds)
 {
     std::vector<Entry>& level = data[depth];
     for (size_t i = 0; i < level.size(); ++i)
@@ -105,6 +106,8 @@ void VirtualBoundsTT::Remove(size_t depth, SgHashCode hash)
                 level[i] = level.back();
                 level.pop_back();
             }
+            else
+                level[i].bounds = bounds;
             return;
         }
 }
@@ -454,7 +457,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
     }
 
     m_timer.Start();
-    std::vector<boost::thread> threads(m_threads);
+    boost::scoped_array<boost::thread> threads(new boost::thread[m_threads]);
     for (int i = 0; i < m_threads; i++)
     {
         RunDfpnThread run(*this, maxBounds, state, board);
@@ -539,16 +542,6 @@ void DfpnSolver::StoreVBounds(size_t depth, TopMidData* d)
     StoreVBounds(depth - 1, d);
 }
 
-void DfpnSolver::RemoveVBounds(size_t depth, TopMidData* d)
-{
-    BenzeneAssert(d);
-    m_vtt.Remove(depth, d->hash);
-    d = d->parent;
-    if (!d)
-        return;
-    RemoveVBounds(depth - 1, d);
-}
-
 size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
                           DfpnData& data, DfpnBounds& vBounds,
                           TopMidData* parent)
@@ -583,17 +576,9 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         }
         work = MID(maxBounds, m_threadWork, data);
         m_topmid_mutex.lock();
-        RemoveVBounds(depth, &d);
     }
 
     BenzeneAssert(data.IsValid());
-
-    if (!maxBounds.GreaterThan(vBounds))
-    {
-        if (work)
-            TTWrite(*m_state, data);
-        return work;
-    }
 
     d.bestIndex = data.m_children.MoveIndex(data.m_bestMove);
 
@@ -608,14 +593,13 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         size_t maxChildIndex = ComputeMaxChildIndex(d.childrenData);
 
         UpdateBounds(data.m_bounds, d.childrenData, maxChildIndex);
+        UpdateBounds(vBounds, d.virtualBounds, maxChildIndex);
 
         if (m_useGuiFx && depth == 1)
             m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
 
         if (work > 0 || CheckAbort())
             break;
-
-        UpdateBounds(vBounds, d.virtualBounds, maxChildIndex);
 
         if (!maxBounds.GreaterThan(vBounds))
             break;
@@ -650,6 +634,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
     UpdateSolvedBestMove(data, d.childrenData);
 
+    m_vtt.Remove(depth, d.hash, vBounds);
     data.m_work += work;
     TTWrite(*m_state, data);
     if (data.m_bounds.IsSolved())
@@ -680,10 +665,12 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
         if (work == 0)
         {
             LogDfpnThread() << "wating\n";
+            if (m_useGuiFx)
+                m_guiFx.Write();
             m_nothingToSearch_cond.wait(lock);
         }
         else
-            m_nothingToSearch_cond.notify_all();
+            m_nothingToSearch_cond.notify_one();
     }
 
     m_nothingToSearch_cond.notify_all();
