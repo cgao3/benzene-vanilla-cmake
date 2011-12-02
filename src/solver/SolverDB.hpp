@@ -149,7 +149,7 @@ bool SolverDB<HASH, DB, DATA>::Get(const HexState& state, DATA& data)
         return m_database->Get(state, data);
     if (UseHashTable())
     {
-        boost::unique_lock<boost::mutex> lock(m_ht_mutex);
+        boost::lock_guard<boost::mutex> lock(m_ht_mutex);
         return m_hashTable->Lookup(state.Hash(), &data);
     }
     return false;
@@ -162,7 +162,7 @@ void SolverDB<HASH, DB, DATA>::Put(const HexState& state, const DATA& data)
         m_database->Put(state, data);
     else if (UseHashTable())
     {
-        boost::unique_lock<boost::mutex> lock(m_ht_mutex);
+        boost::lock_guard<boost::mutex> lock(m_ht_mutex);
         m_hashTable->Store(state.Hash(), data);
     }
 }
