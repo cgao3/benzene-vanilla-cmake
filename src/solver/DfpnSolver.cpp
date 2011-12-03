@@ -545,18 +545,21 @@ void DfpnSolver::StoreVBounds(size_t depth, TopMidData* d)
 
 size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
                           DfpnData& data, DfpnBounds& vBounds,
-                          TopMidData* parent, bool& midCalled)
+                          TopMidData* parent, bool& midCalled, bool sndPass)
 {
     BenzeneAssert(!midCalled);
-    if (!maxBounds.GreaterThan(vBounds))
+    if (!sndPass && !maxBounds.GreaterThan(vBounds))
         return 0;
 
     size_t depth = m_history->Depth();
     size_t work = 0;
     TopMidData d(data, vBounds, m_state->Hash(), parent);
 
-    if (data.m_work < m_threadWork)
+    if (data.m_work < m_threadWork &&
+        (depth != 0 || (data.m_work == 0)))
     {
+        if (depth == 0 && sndPass)
+            return 0;
         if (vBounds.phi <= vBounds.delta)
             DfpnBounds::SetToWinning(vBounds);
         else
@@ -576,7 +579,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
             }
             LogDfpnThread() << '\n';
         }
-        work = MID(maxBounds, m_threadWork, data);
+        work = MID(maxBounds, depth == 0 ? 1 : m_threadWork, data);
         midCalled = true;
         m_topmid_mutex.lock();
     }
@@ -596,7 +599,8 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         size_t maxChildIndex = ComputeMaxChildIndex(d.childrenData);
 
         UpdateBounds(data.m_bounds, d.childrenData, maxChildIndex);
-        UpdateBounds(vBounds, d.virtualBounds, maxChildIndex);
+        UpdateBounds(vBounds, d.virtualBounds,
+                     sndPass && !midCalled ? d.virtualBounds.size() : maxChildIndex);
 
         if (m_useGuiFx && depth == 1)
             m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
@@ -609,12 +613,13 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
         DfpnBounds childMaxBounds;
         SelectChild(d.bestIndex, childMaxBounds, vBounds,
-                    d.virtualBounds, maxBounds, maxChildIndex);
+                    d.virtualBounds, maxBounds,
+                    sndPass ? d.virtualBounds.size() : maxChildIndex);
         data.m_bestMove = data.m_children.FirstMove(d.bestIndex);
         data.m_children.PlayMove(d.bestIndex, *m_state);
         m_history->Push(data.m_bestMove, d.hash);
         work += TopMid(childMaxBounds, d.childrenData[d.bestIndex],
-                       d.virtualBounds[d.bestIndex], &d, midCalled);
+                       d.virtualBounds[d.bestIndex], &d, midCalled, sndPass);
         m_history->Pop();
         data.m_children.UndoMove(d.bestIndex, *m_state);
 
@@ -628,7 +633,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
             VecPrune(data.m_children.m_children, toPrune);
             d.bestIndex = data.m_children.MoveIndex(data.m_bestMove);
             VecPrune(d.childrenData, toPrune);
-            if (work == 0)
+            if (!midCalled)
                 VecPrune(d.virtualBounds, toPrune);
             if (m_useGuiFx && depth == 0)
                 m_guiFx.SetChildren(data.m_children, d.childrenData);
@@ -663,7 +668,9 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
         vBounds = data.m_bounds;
         m_vtt.Lookup(0, m_state->Hash(), vBounds);
         bool midCalled = false;
-        size_t work = TopMid(maxBounds, data, vBounds, 0, midCalled);
+        size_t work = TopMid(maxBounds, data, vBounds, 0, midCalled, false);
+        if (!midCalled)
+            work =  TopMid(maxBounds, data, vBounds, 0, midCalled, true);
         if (m_aborted || !maxBounds.GreaterThan(data.m_bounds))
             break;
         if (!midCalled)
