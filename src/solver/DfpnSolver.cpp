@@ -311,6 +311,7 @@ void DfpnData::Unpack(const byte* data)
         moves.push_back(p);
     }
     m_children.SetChildren(moves);
+    Validate();
 }
 
 void DfpnData::Rotate(const ConstBoard& brd)
@@ -446,7 +447,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
 
     // Skip search if already solved
     DfpnData data;
-    if (TTRead(state, data) && data.m_bounds.IsSolved())
+    if (DBRead(state, data) && data.m_bounds.IsSolved())
     {
         LogInfo() << "Already solved!\n";
         HexColor w = data.m_bounds.IsWinning()
@@ -476,7 +477,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
 
     SolverDBUtil::GetVariation(state, *m_positions, pv);
     HexColor winner = EMPTY;
-    if (TTRead(state, data) && data.m_bounds.IsSolved())
+    if (DBRead(state, data) && data.m_bounds.IsSolved())
         winner = data.m_bounds.IsWinning()
             ? state.ToPlay() : !state.ToPlay();
     PrintStatistics(winner, pv);
@@ -591,7 +592,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     d.childrenData.resize(data.m_children.Size());
     d.virtualBounds.resize(data.m_children.Size());
 
-    LookupChildren(d.childrenData, data.m_children);
+    LookupChildrenDB(d.childrenData, data.m_children);
     LookupChildren(depth + 1, d.virtualBounds,
                    d.childrenData, data.m_children);
 
@@ -644,7 +645,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
     m_vtt.Remove(depth, d.hash, vBounds);
     data.m_work += work;
-    TTWrite(*m_state, data);
+    DBWrite(*m_state, data);
     if (data.m_bounds.IsSolved())
         NotifyListeners(*m_history, data);
     return work;
@@ -664,13 +665,13 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
 
     while (true)
     {
-        TTRead(*m_state, data);
+        DBRead(*m_state, data);
         vBounds = data.m_bounds;
         m_vtt.Lookup(0, m_state->Hash(), vBounds);
         bool midCalled = false;
-        size_t work = TopMid(maxBounds, data, vBounds, 0, midCalled, false);
+        TopMid(maxBounds, data, vBounds, 0, midCalled, false);
         if (!midCalled)
-            work =  TopMid(maxBounds, data, vBounds, 0, midCalled, true);
+            TopMid(maxBounds, data, vBounds, 0, midCalled, true);
         if (m_aborted || !maxBounds.GreaterThan(data.m_bounds))
             break;
         if (!midCalled)
@@ -743,6 +744,7 @@ size_t DfpnSolver::CreateData(DfpnData& data)
     std::vector<HexPoint> sortedChildren;
     for (size_t i = 0; i < mvsc.size(); ++i)
         sortedChildren.push_back(mvsc[i].second);
+    data.m_bestMove = sortedChildren[0];
     data.m_children.SetChildren(sortedChildren);
     return 1;
 }
@@ -830,7 +832,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
     ++m_numMIDcalls;
 
     std::vector<DfpnData> childrenData(data.m_children.Size());
-    LookupChildren(childrenData, data.m_children);
+    LookupChildrenTT(childrenData, data.m_children);
 
     size_t bestIndex = data.m_children.MoveIndex(data.m_bestMove);
 
@@ -1027,7 +1029,7 @@ void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
     bounds = boundsAll;
 }
 
-void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children, 
+void DfpnSolver::LookupDataTT(DfpnData& data, const DfpnChildren& children, 
                             std::size_t childIndex, HexState& state)
 {
     children.PlayMove(childIndex, state);
@@ -1035,12 +1037,39 @@ void DfpnSolver::LookupData(DfpnData& data, const DfpnChildren& children,
     children.UndoMove(childIndex, state);
 }
 
-void DfpnSolver::LookupChildren(std::vector<DfpnData>& childrenData,
+bool DfpnSolver::LookupDataDB(DfpnData& data, const DfpnChildren& children,
+                              std::size_t childIndex, HexState& state)
+{
+    children.PlayMove(childIndex, state);
+    bool res = DBRead(state, data);
+    children.UndoMove(childIndex, state);
+    return res;
+}
+
+void DfpnSolver::LookupChildrenTT(std::vector<DfpnData>& childrenData,
                                 const DfpnChildren& children)
 {
     boost::shared_lock<boost::shared_mutex> lock(m_tt_mutex);
     for (size_t i = 0; i < children.Size(); ++i)
-        LookupData(childrenData[i], children, i, *m_state);
+        LookupDataTT(childrenData[i], children, i, *m_state);
+}
+
+void DfpnSolver::LookupChildrenDB(std::vector<DfpnData>& childrenData,
+                                  const DfpnChildren& children)
+{
+    std::vector<bool> dbRead(children.Size());
+    bool allRead = true;
+    for (size_t i = 0; i < children.Size(); ++i)
+    {
+        dbRead[i] = LookupDataDB(childrenData[i], children, i, *m_state);
+        allRead &= dbRead[i];
+    }
+    if (allRead)
+        return;
+    boost::shared_lock<boost::shared_mutex> lock(m_tt_mutex);
+    for (size_t i = 0; i < children.Size(); ++i)
+        if (!dbRead[i])
+            LookupDataTT(childrenData[i], children, i, *m_state);
 }
 
 void DfpnSolver::LookupChildren(size_t depth,
@@ -1059,20 +1088,35 @@ void DfpnSolver::LookupChildren(size_t depth,
 
 bool DfpnSolver::TTReadNoLock(const HexState& state, DfpnData& data)
 {
-    return m_positions->Get(state, data);
+    return m_positions->GetHT(state, data);
 }
 
 void DfpnSolver::TTWrite(const HexState& state, const DfpnData& data)
 {
     data.m_bounds.CheckConsistency();
     boost::unique_lock<boost::shared_mutex> lock(m_tt_mutex);
-    m_positions->Put(state, data);
+    m_positions->PutHT(state, data);
 }
 
 bool DfpnSolver::TTRead(const HexState& state, DfpnData& data)
 {
     boost::shared_lock<boost::shared_mutex> lock(m_tt_mutex);
     return TTReadNoLock(state, data);
+}
+
+void DfpnSolver::DBWrite(const HexState& state, const DfpnData& data)
+{
+    data.m_bounds.CheckConsistency();
+    if (m_positions->PutDB(state, data))
+        return;
+    TTWrite(state, data);
+}
+
+bool DfpnSolver::DBRead(const HexState& state, DfpnData& data)
+{
+    if (m_positions->GetDB(state, data))
+        return true;
+    return TTRead(state, data);
 }
 
 //----------------------------------------------------------------------------
@@ -1096,7 +1140,7 @@ void DfpnSolver::PropagateBackwards(const Game& game, DfpnStates& pos)
             break;
         std::vector<DfpnData> childrenData(data.m_children.Size());
         for (size_t i = 0; i < data.m_children.Size(); ++i)
-            LookupData(childrenData[i], data.m_children, i, state);
+            LookupDataDB(childrenData[i], data.m_children, i, state);
         size_t maxChildIndex = ComputeMaxChildIndex(childrenData);
         UpdateBounds(data.m_bounds, childrenData, maxChildIndex);
         pos.Put(state, data);

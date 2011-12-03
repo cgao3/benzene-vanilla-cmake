@@ -698,11 +698,17 @@ private:
 
     bool CheckAbort();
 
-    void LookupData(DfpnData& data, const DfpnChildren& children,
-                    std::size_t childIndex, HexState& state);
+    void LookupDataTT(DfpnData& data, const DfpnChildren& children,
+                      std::size_t childIndex, HexState& state);
 
-    void LookupChildren(std::vector<DfpnData>& childrenData,
-                        const DfpnChildren& children);
+    bool LookupDataDB(DfpnData& data, const DfpnChildren& children,
+                      std::size_t childIndex, HexState& state);
+
+    void LookupChildrenTT(std::vector<DfpnData>& childrenData,
+                          const DfpnChildren& children);
+
+    void LookupChildrenDB(std::vector<DfpnData>& childrenData,
+                          const DfpnChildren& children);
 
     void LookupChildren(size_t depth, std::vector<DfpnBounds>& virtualBounds,
                         const std::vector<DfpnData>& childrenData,
@@ -713,6 +719,10 @@ private:
     void TTWrite(const HexState& state, const DfpnData& data);
 
     bool TTRead(const HexState& state, DfpnData& data);
+
+    void DBWrite(const HexState& state, const DfpnData& data);
+
+    bool DBRead(const HexState& state, DfpnData& data);
 
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;

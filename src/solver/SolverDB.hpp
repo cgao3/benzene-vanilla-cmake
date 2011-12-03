@@ -52,6 +52,14 @@ public:
 
     ~SolverDB();
 
+    bool GetDB(const HexState& state, DATA& data);
+
+    bool PutDB(const HexState& state, const DATA& data);
+
+    bool GetHT(const HexState& state, DATA& data);
+
+    void PutHT(const HexState& state, const DATA& data);
+
     bool Get(const HexState& state, DATA& data);
 
     void Put(const HexState& state, const DATA& data);
@@ -140,22 +148,52 @@ bool SolverDB<HASH, DB, DATA>::UseHashTable() const
 }
 
 template<class HASH, class DB, class DATA>
-bool SolverDB<HASH, DB, DATA>::Get(const HexState& state, DATA& data)
+bool SolverDB<HASH, DB, DATA>::GetDB(const HexState& state, DATA& data)
 {
     if (UseDatabase() && state.Position().NumStones() <= m_param.m_maxStones)
         return m_database->Get(state, data);
+    return false;
+}
+
+template<class HASH, class DB, class DATA>
+bool SolverDB<HASH, DB, DATA>::PutDB(const HexState& state, const DATA& data)
+{
+    if (UseDatabase() && state.Position().NumStones() <= m_param.m_maxStones)
+    {
+        m_database->Put(state, data);
+        return true;
+    }
+    return false;
+}
+
+template<class HASH, class DB, class DATA>
+bool SolverDB<HASH, DB, DATA>::GetHT(const HexState& state, DATA& data)
+{
     if (UseHashTable())
         return m_hashTable->Lookup(state.Hash(), &data);
     return false;
 }
 
 template<class HASH, class DB, class DATA>
+void SolverDB<HASH, DB, DATA>::PutHT(const HexState& state, const DATA& data)
+{
+    if (UseHashTable())
+        m_hashTable->Store(state.Hash(), data);
+}
+
+template<class HASH, class DB, class DATA>
+bool SolverDB<HASH, DB, DATA>::Get(const HexState& state, DATA& data)
+{
+    if (!GetDB(state, data))
+        return GetHT(state, data);
+    return true;
+}
+
+template<class HASH, class DB, class DATA>
 void SolverDB<HASH, DB, DATA>::Put(const HexState& state, const DATA& data)
 {
-    if (UseDatabase() && state.Position().NumStones() <= m_param.m_maxStones)
-        m_database->Put(state, data);
-    else if (UseHashTable())
-        m_hashTable->Store(state.Hash(), data);
+    if (!PutDB(state, data))
+        PutHT(state, data);
 }
 
 //----------------------------------------------------------------------------
