@@ -1111,10 +1111,8 @@ bool DfpnSolver::TTRead(const HexState& state, DfpnData& data)
 
 void DfpnSolver::DBWrite(const HexState& state, const DfpnData& data)
 {
-    data.m_bounds.CheckConsistency();
-    if (m_positions->PutDB(state, data))
-        return;
     TTWrite(state, data);
+    m_positions->PutDB(state, data);
 }
 
 bool DfpnSolver::DBRead(const HexState& state, DfpnData& data)
