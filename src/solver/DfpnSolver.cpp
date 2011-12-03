@@ -583,6 +583,10 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         work = MID(maxBounds, depth == 0 ? 1 : m_threadWork, data);
         midCalled = true;
         m_topmid_mutex.lock();
+        vBounds = data.m_bounds;
+        m_vtt.Remove(depth, d.hash, data.m_bounds);
+        DBWrite(*m_state, data);
+        return work;
     }
 
     BenzeneAssert(data.IsValid());
@@ -596,7 +600,8 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     LookupChildren(depth + 1, d.virtualBounds,
                    d.childrenData, data.m_children);
 
-    while (true) {
+    while (true)
+    {
         size_t maxChildIndex = ComputeMaxChildIndex(d.childrenData);
 
         UpdateBounds(data.m_bounds, d.childrenData, maxChildIndex);
@@ -690,7 +695,7 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
 
 size_t DfpnSolver::CreateData(DfpnData& data)
 {
-    if (TTRead(*m_state, data))
+    if (data.IsValid())
         return 0;
 
     HexColor colorToMove = m_state->ToPlay();
