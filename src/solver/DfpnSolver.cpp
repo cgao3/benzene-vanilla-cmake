@@ -451,7 +451,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
     {
         LogInfo() << "Already solved!\n";
         HexColor w = data.m_bounds.IsWinning()
-            ? m_state->ToPlay() : !m_state->ToPlay();
+            ? state.ToPlay() : !state.ToPlay();
         SolverDBUtil::GetVariation(state, *m_positions, pv);
         LogInfo() << w << " wins!\n";
         LogInfo() << "PV: " << HexPointUtil::ToString(pv) << '\n';
