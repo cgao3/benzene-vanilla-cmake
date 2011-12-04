@@ -541,11 +541,13 @@ private:
         void SetChildren(const DfpnChildren& children,
                          const std::vector<DfpnData>& bounds);
 
-        void PlayMove(HexColor color, HexPoint move);
+        void SetFirstPlayer(HexColor color);
 
-        void PlayMove(HexPoint move);
+        void SetPV();
 
-        void UndoMove();
+        void SetPV(HexPoint move);
+
+        void SetPV(const std::vector<HexPoint>& pv);
 
         void UpdateBounds(HexPoint move, const DfpnBounds& bounds);
 
@@ -559,9 +561,15 @@ private:
 
         std::vector<DfpnData> m_data;
 
-        HexColor m_color;
+        HexColor m_firstColor;
 
-        HexPoint m_move;
+        std::vector<HexPoint> m_pvToWrite;
+
+        std::vector<HexPoint> m_pvCur;
+
+        bool m_pvDoShift;
+
+        size_t m_pvcommon;
 
         double m_timeOfLastWrite;
         

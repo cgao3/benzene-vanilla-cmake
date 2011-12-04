@@ -156,7 +156,7 @@ std::size_t DfpnChildren::MoveIndex(HexPoint x) const
 */
 
 DfpnSolver::GuiFx::GuiFx()
-    : m_move(INVALID_POINT),
+    : m_pvDoShift(false),
       m_timeOfLastWrite(0.0),
       m_delay(1.0)
 {
@@ -169,20 +169,34 @@ void DfpnSolver::GuiFx::SetChildren(const DfpnChildren& children,
     m_data = data;
 }
 
-void DfpnSolver::GuiFx::PlayMove(HexColor color, HexPoint move)
+void DfpnSolver::GuiFx::SetFirstPlayer(HexColor color)
 {
-    m_move = move;
-    m_color = color;
+    m_firstColor = color;
 }
 
-void DfpnSolver::GuiFx::PlayMove(HexPoint move)
+void DfpnSolver::GuiFx::SetPV()
 {
-    m_move = move;
+    SetPV(std::vector<HexPoint>());
 }
 
-void DfpnSolver::GuiFx::UndoMove()
+void DfpnSolver::GuiFx::SetPV(HexPoint move)
 {
-    m_move = INVALID_POINT;
+    SetPV(std::vector<HexPoint>(1, move));
+}
+
+void DfpnSolver::GuiFx::SetPV(const std::vector<HexPoint>& pv)
+{
+    if (m_pvDoShift)
+    {
+        m_pvToWrite = m_pvCur;
+        m_pvDoShift = false;
+    }
+    m_pvCur = pv;
+    std::size_t i = 0;
+    for (; i < std::min(m_pvToWrite.size(), pv.size()); ++i)
+        if (m_pvToWrite[i] != pv[i])
+            break;
+    m_pvToWrite.resize(i);
 }
 
 void DfpnSolver::GuiFx::UpdateBounds(HexPoint move, const DfpnBounds& bounds)
@@ -219,12 +233,16 @@ void DfpnSolver::GuiFx::DoWrite()
     os << "gogui-gfx:\n";
     os << "dfpn\n";
     os << "VAR";
-    if (m_move != INVALID_POINT)
+    HexColor color = m_firstColor;
+    for (std::size_t i = 0;
+         i < std::min(m_pvToWrite.size() + 1, m_pvCur.size()); ++i)
     {
-        os << ' ' << (m_color == BLACK ? 'B' : 'W')
-           << ' ' << m_move;
+        os << ' ' << (color == BLACK ? 'B' : 'W')
+           << ' ' << m_pvCur[i];
+        color = !color;
     }
     os << '\n';
+    m_pvDoShift = true;
     os << "LABEL";
     int numLosses = 0;
     for (std::size_t i = 0; i < m_children.Size(); ++i)
@@ -238,13 +256,16 @@ void DfpnSolver::GuiFx::DoWrite()
         else if (0 == m_data[i].m_bounds.delta)
             os << " W";
         else
-            os << ' ' << m_data[i].m_bounds.phi 
-               << ':' << m_data[i].m_bounds.delta;
+            os << ' ' << m_data[i].m_bounds.delta
+               << '@' << m_data[i].m_bounds.phi;
     }
     os << '\n';
     os << "TEXT ";
-    os << numLosses << '/' << m_children.Size() << " proven losses\n";
-    os << '\n';
+    os << numLosses << '/' << m_children.Size() << " proven losses, var:";
+    for (std::size_t i = 0;
+         i < std::min(m_pvToWrite.size() + 1, m_pvCur.size()); ++i)
+             os << ' ' << m_pvCur[i];
+    os << "\n\n";
     std::cout << os.str();
     std::cout.flush();
 }
@@ -459,6 +480,8 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
     }
 
     m_timer.Start();
+    if (m_useGuiFx)
+        m_guiFx.SetFirstPlayer(state.ToPlay());
     boost::scoped_array<boost::thread> threads(new boost::thread[m_threads]);
     for (int i = 0; i < m_threads; i++)
     {
@@ -471,7 +494,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
 
     if (m_useGuiFx)
     {
-        m_guiFx.UndoMove();
+        m_guiFx.SetPV();
         m_guiFx.WriteForced();
     }
 
@@ -534,11 +557,6 @@ void DfpnSolver::StoreVBounds(size_t depth, TopMidData* d)
     d = d->parent;
     if (!d)
         return;
-    if (m_useGuiFx && depth == 1)
-    {
-        m_guiFx.PlayMove(d->data.m_children.FirstMove(d->bestIndex));
-        m_guiFx.Write();
-    }
     size_t maxChildIndex = ComputeMaxChildIndex(d->childrenData);
     UpdateBounds(d->vBounds, d->virtualBounds, maxChildIndex);
     StoreVBounds(depth - 1, d);
@@ -572,6 +590,11 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
             for (TopMidData* d = parent; d; d = d->parent)
                 pv.push_back(d->data.m_children.FirstMove(d->bestIndex));
             reverse(pv.begin(), pv.end());
+            if (m_useGuiFx)
+            {
+                m_guiFx.SetPV(pv);
+                m_guiFx.Write();
+            }
             for (size_t i = 0; i < pv.size(); ++i)
             {
                 if (i)
@@ -871,7 +894,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
         data.m_bestMove = data.m_children.FirstMove(bestIndex);
         // Recurse on best child
         if (m_useGuiFx && depth == 0)
-            m_guiFx.PlayMove(m_state->ToPlay(), data.m_bestMove);
+            m_guiFx.SetPV(data.m_bestMove);
         data.m_children.PlayMove(bestIndex, *m_state);
         m_history->Push(data.m_bestMove, currentHash);
         work += MID(childMaxBounds, workBound - work,
@@ -880,7 +903,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
         data.m_children.UndoMove(bestIndex, *m_state);
 
         if (m_useGuiFx && depth == 0)
-            m_guiFx.UndoMove();
+            m_guiFx.SetPV();
 
         UpdateStatsOnWin(childrenData, bestIndex, data.m_work + work);
 
