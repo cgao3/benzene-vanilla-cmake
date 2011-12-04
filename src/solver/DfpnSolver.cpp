@@ -858,14 +858,12 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 
     int depth = m_history->Depth();
     size_t work = CreateData(data);
+    data.m_work += work;
 
     if (!maxBounds.GreaterThan(data.m_bounds))
     {
         if (work)
-        {
-            data.m_work += work;
             TTWrite(*m_state, data);
-        }
         return work;
     }
 
@@ -886,6 +884,12 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
             m_guiFx.SetChildren(data.m_children, childrenData);
 
         UpdateBounds(data.m_bounds, childrenData, maxChildIndex);
+
+        UpdateSolvedBestMove(data, childrenData);
+
+        if (data.m_bounds.IsSolved())
+            NotifyListeners(*m_history, data);
+        TTWrite(*m_state, data);
 
         if (m_useGuiFx && depth == 1)
         {
@@ -909,8 +913,10 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
             m_guiFx.SetPV(data.m_bestMove);
         data.m_children.PlayMove(bestIndex, *m_state);
         m_history->Push(data.m_bestMove, currentHash);
-        work += MID(childMaxBounds, workBound - work,
-                    childrenData[bestIndex]);
+        size_t childWork = MID(childMaxBounds, workBound - work,
+                               childrenData[bestIndex]);
+        work += childWork;
+        data.m_work += childWork;
         m_history->Pop();
         data.m_children.UndoMove(bestIndex, *m_state);
 
@@ -935,13 +941,6 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
     if (m_useGuiFx && depth == 0)
         m_guiFx.WriteForced();
 
-    UpdateSolvedBestMove(data, childrenData);
-
-    // Store search results and notify listeners
-    data.m_work += work;
-    TTWrite(*m_state, data);
-    if (data.m_bounds.IsSolved())
-        NotifyListeners(*m_history, data);
     return work;
 }
 
