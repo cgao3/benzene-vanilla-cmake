@@ -234,11 +234,13 @@ void DfpnSolver::GuiFx::DoWrite()
     os << "dfpn\n";
     os << "VAR";
     HexColor color = m_firstColor;
+    std::vector<std::size_t> pv_idx(BITSETSIZE, 0);
     for (std::size_t i = 0;
          i < std::min(m_pvToWrite.size() + 1, m_pvCur.size()); ++i)
     {
         os << ' ' << (color == BLACK ? 'B' : 'W')
            << ' ' << m_pvCur[i];
+        pv_idx[m_pvCur[i]] = i + 1;
         color = !color;
     }
     os << '\n';
@@ -247,24 +249,34 @@ void DfpnSolver::GuiFx::DoWrite()
     int numLosses = 0;
     for (std::size_t i = 0; i < m_children.Size(); ++i)
     {
+        size_t idx = pv_idx[m_children.FirstMove(i)];
         os << ' ' << m_children.FirstMove(i);
         if (0 == m_data[i].m_bounds.phi)
         {
             numLosses++;
             os << " L";
+            if (idx)
+                os << idx;
         }
         else if (0 == m_data[i].m_bounds.delta)
+        {
             os << " W";
+            if (idx)
+                os << idx;
+        }
         else
-            os << ' ' << m_data[i].m_bounds.delta
-               << '@' << m_data[i].m_bounds.phi;
+        {
+            os << ' ' << m_data[i].m_bounds.delta << '@';
+            if (idx)
+                os << idx;
+            os << '@' << m_data[i].m_bounds.phi;
+        }
     }
     os << '\n';
     os << "TEXT ";
     os << numLosses << '/' << m_children.Size() << " proven losses, var:";
-    for (std::size_t i = 0;
-         i < std::min(m_pvToWrite.size() + 1, m_pvCur.size()); ++i)
-             os << ' ' << m_pvCur[i];
+    for (std::size_t i = 0; i < m_pvCur.size(); ++i)
+        os << ' ' << m_pvCur[i];
     os << "\n\n";
     std::cout << os.str();
     std::cout.flush();
