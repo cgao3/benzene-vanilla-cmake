@@ -613,6 +613,8 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
                     LogDfpnThread() << ' ';
                 LogDfpnThread() << pv[i];
             }
+            if (sndPass)
+                LogDfpnThread() << " (2nd pass)";
             LogDfpnThread() << '\n';
         }
         work = MID(maxBounds, depth == 0 ? 1 : m_threadWork, data);
@@ -649,13 +651,32 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         if (midCalled)
             break;
 
-        if (!maxBounds.GreaterThan(vBounds)|| CheckAbort())
+        if (CheckAbort())
+            break;
+        if (sndPass)
+        {
+            if (vBounds.IsSolved() && !maxBounds.GreaterThan(data.m_bounds))
+                break;
+        }
+        else if (!maxBounds.GreaterThan(vBounds))
             break;
 
         DfpnBounds childMaxBounds;
-        SelectChild(d.bestIndex, childMaxBounds, vBounds,
-                    d.virtualBounds, maxBounds,
-                    sndPass ? d.virtualBounds.size() : maxChildIndex);
+        if (sndPass)
+        {
+            if (vBounds.IsSolved())
+                SelectChild(d.bestIndex, childMaxBounds, data.m_bounds,
+                            d.childrenData, maxBounds,
+                            d.childrenData.size());
+            else
+                SelectChild(d.bestIndex, childMaxBounds, vBounds,
+                            d.virtualBounds, maxBounds,
+                            d.virtualBounds.size());
+        }
+        else
+            SelectChild(d.bestIndex, childMaxBounds, vBounds,
+                        d.virtualBounds, maxBounds,
+                        maxChildIndex);
         data.m_bestMove = data.m_children.FirstMove(d.bestIndex);
         data.m_children.PlayMove(d.bestIndex, *m_state);
         m_history->Push(data.m_bestMove, d.hash);
