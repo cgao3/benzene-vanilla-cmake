@@ -579,10 +579,12 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
                           TopMidData* parent, bool& midCalled)
 {
     BenzeneAssert(!midCalled);
-    if (!maxBounds.GreaterThan(vBounds) && !maxBounds.GreaterThan(data.m_bounds))
-            return 0;
-
     size_t depth = m_history->Depth();
+    if (vBounds.IsSolved() && depth == 0)
+        return 0;
+    if (!maxBounds.GreaterThan(vBounds) && !maxBounds.GreaterThan(data.m_bounds))
+        return 0;
+
     size_t work = 0;
     TopMidData d(data, vBounds, m_state->Hash(), parent);
 
