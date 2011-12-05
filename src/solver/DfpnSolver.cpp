@@ -580,9 +580,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 {
     BenzeneAssert(!midCalled);
     size_t depth = m_history->Depth();
-    if (vBounds.IsSolved() && depth == 0)
-        return 0;
-    if (!maxBounds.GreaterThan(vBounds) && !maxBounds.GreaterThan(data.m_bounds))
+    if (!maxBounds.GreaterThan(vBounds))
         return 0;
 
     size_t work = 0;
@@ -646,23 +644,15 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         if (m_useGuiFx && depth == 1)
             m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
 
-        if (midCalled)
+        if (midCalled || !maxBounds.GreaterThan(vBounds))
             break;
 
         if (CheckAbort())
             break;
 
         DfpnBounds childMaxBounds;
-        if (!maxBounds.GreaterThan(vBounds))
-        {
-            if (!maxBounds.GreaterThan(data.m_bounds))
-                break;
-            SelectChild(d.bestIndex, childMaxBounds, data.m_bounds,
-                        d.childrenData, maxBounds, maxChildIndex);
-        }
-        else
-            SelectChild(d.bestIndex, childMaxBounds, vBounds,
-                        d.virtualBounds, maxBounds, virtualMaxChildIndex);
+        SelectChild(d.bestIndex, childMaxBounds, vBounds,
+                    d.virtualBounds, maxBounds, virtualMaxChildIndex);
 
         data.m_bestMove = data.m_children.FirstMove(d.bestIndex);
         data.m_children.PlayMove(d.bestIndex, *m_state);
