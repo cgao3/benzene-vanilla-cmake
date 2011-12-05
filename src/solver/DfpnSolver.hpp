@@ -694,6 +694,9 @@ private:
     DfpnBoundType GetDeltaBound(DfpnBoundType delta) const;
 
     template <class T>
+    size_t ComputeMaxChildIndex(const std::vector<T>& childrenBounds) const;
+
+    template <class T>
     void SelectChild(size_t& bestIndex, DfpnBounds& childMaxBounds,
                      const DfpnBounds& currentBounds,
                      const std::vector<T>& childrenBounds,
@@ -701,7 +704,7 @@ private:
 
     template <class T>
     void UpdateBounds(DfpnBounds& bounds,
-                      const std::vector<T>& childBounds,
+                      const std::vector<T>& childrenBounds,
                       size_t maxChildIndex) const;
 
     bool CheckAbort();
@@ -736,9 +739,6 @@ private:
                    const std::vector<DfpnBounds>& childBounds) const;
 
     void PrintStatistics(HexColor winner, const PointSequence& p) const;
-
-    size_t ComputeMaxChildIndex(const std::vector<DfpnData>&
-                                childrenData) const;
 
     void NotifyListeners(const DfpnHistory& history, const DfpnData& data);
 };

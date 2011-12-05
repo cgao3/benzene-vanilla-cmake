@@ -579,8 +579,13 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
                           TopMidData* parent, bool& midCalled, bool sndPass)
 {
     BenzeneAssert(!midCalled);
-    if (!sndPass && !maxBounds.GreaterThan(vBounds))
-        return 0;
+    if (!maxBounds.GreaterThan(vBounds))
+    {
+        if (!sndPass)
+            return 0;
+        if (!maxBounds.GreaterThan(data.m_bounds))
+            return 0;
+    }
 
     size_t depth = m_history->Depth();
     size_t work = 0;
@@ -640,10 +645,10 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     while (true)
     {
         size_t maxChildIndex = ComputeMaxChildIndex(d.childrenData);
-
         UpdateBounds(data.m_bounds, d.childrenData, maxChildIndex);
-        UpdateBounds(vBounds, d.virtualBounds,
-                     sndPass && !midCalled ? d.virtualBounds.size() : maxChildIndex);
+
+        size_t virtualMaxChildIndex = ComputeMaxChildIndex(d.virtualBounds);
+        UpdateBounds(vBounds, d.virtualBounds, virtualMaxChildIndex);
 
         if (m_useGuiFx && depth == 1)
             m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
@@ -653,30 +658,21 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
         if (CheckAbort())
             break;
-        if (sndPass)
-        {
-            if (vBounds.IsSolved() && !maxBounds.GreaterThan(data.m_bounds))
-                break;
-        }
-        else if (!maxBounds.GreaterThan(vBounds))
-            break;
 
         DfpnBounds childMaxBounds;
-        if (sndPass)
+        if (!maxBounds.GreaterThan(vBounds))
         {
-            if (vBounds.IsSolved())
-                SelectChild(d.bestIndex, childMaxBounds, data.m_bounds,
-                            d.childrenData, maxBounds,
-                            d.childrenData.size());
-            else
-                SelectChild(d.bestIndex, childMaxBounds, vBounds,
-                            d.virtualBounds, maxBounds,
-                            d.virtualBounds.size());
+            if (!sndPass)
+                break;
+            if (!maxBounds.GreaterThan(data.m_bounds))
+                break;
+            SelectChild(d.bestIndex, childMaxBounds, data.m_bounds,
+                        d.childrenData, maxBounds, maxChildIndex);
         }
         else
             SelectChild(d.bestIndex, childMaxBounds, vBounds,
-                        d.virtualBounds, maxBounds,
-                        maxChildIndex);
+                        d.virtualBounds, maxBounds, virtualMaxChildIndex);
+
         data.m_bestMove = data.m_children.FirstMove(d.bestIndex);
         data.m_children.PlayMove(d.bestIndex, *m_state);
         m_history->Push(data.m_bestMove, d.hash);
@@ -965,17 +961,18 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
     return work;
 }
 
-size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<DfpnData>&
-                                        childrenData) const
+template <class T>
+size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<T>&
+                                        childrenBounds) const
 {
-    BenzeneAssert(!childrenData.empty());
+    BenzeneAssert(!childrenBounds.empty());
 
     int numNonLosingChildren = 0;
-    for (size_t i = 0; i < childrenData.size(); ++i)
-        if (!childrenData[i].m_bounds.IsWinning())
+    for (size_t i = 0; i < childrenBounds.size(); ++i)
+        if (!childrenBounds[i].GetBounds().IsWinning())
             ++numNonLosingChildren;
     if (numNonLosingChildren < 2)
-        return childrenData.size();
+        return childrenBounds.size();
 
     // this needs experimenting!
     int childrenToLookAt = WideningBase() 
@@ -985,13 +982,13 @@ size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<DfpnData>&
     BenzeneAssert(childrenToLookAt >= 1);
 
     int numNonLosingSeen = 0;
-    for (size_t i = 0; i < childrenData.size(); ++i)
+    for (size_t i = 0; i < childrenBounds.size(); ++i)
     {
-        if (!childrenData[i].m_bounds.IsWinning())
+        if (!childrenBounds[i].GetBounds().IsWinning())
             if (++numNonLosingSeen == childrenToLookAt)
                 return i + 1;
     }
-    return childrenData.size();
+    return childrenBounds.size();
 }
 
 void DfpnSolver::NotifyListeners(const DfpnHistory& history,
@@ -1065,14 +1062,14 @@ void DfpnSolver::SelectChild(size_t& bestIndex, DfpnBounds& childMaxBounds,
 
 template <class T>
 void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
-                              const std::vector<T>& childData,
+                              const std::vector<T>& childrenBounds,
                               size_t maxChildIndex) const
 {
     DfpnBounds boundsAll(DfpnBounds::INFTY, 0);
-    BenzeneAssert(1 <= maxChildIndex && maxChildIndex <= childData.size());
-    for (std::size_t i = 0; i < childData.size(); ++i)
+    BenzeneAssert(1 <= maxChildIndex && maxChildIndex <= childrenBounds.size());
+    for (std::size_t i = 0; i < childrenBounds.size(); ++i)
     {
-        const DfpnBounds& childBounds = childData[i].GetBounds();
+        const DfpnBounds& childBounds = childrenBounds[i].GetBounds();
         // Abort on losing child (a winning move)
         if (childBounds.IsLosing())
         {
