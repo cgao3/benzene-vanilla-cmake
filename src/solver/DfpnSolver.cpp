@@ -701,6 +701,7 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
     DfpnData data;
     DfpnBounds vBounds;
 
+    bool wasWaiting = false;
     while (true)
     {
         DBRead(*m_state, data);
@@ -712,13 +713,18 @@ void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
             break;
         if (!midCalled)
         {
-            LogDfpnThread() << "wating\n";
+            if (!wasWaiting)
+                LogDfpnThread() << "waiting\n";
+            wasWaiting = true;
             if (m_useGuiFx)
                 m_guiFx.Write();
             m_nothingToSearch_cond.wait(lock);
         }
         else
+        {
             m_nothingToSearch_cond.notify_all();
+            wasWaiting = false;
+        }
     }
 
     m_nothingToSearch_cond.notify_all();
