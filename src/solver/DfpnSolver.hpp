@@ -53,7 +53,7 @@ struct DfpnBounds
     static const DfpnBoundType INFTY = 2000000000;
 
     /** Maximum amount of work. Must be less than INFTY. */ 
-    static const DfpnBoundType MAX_WORK = INFTY / 2;
+    static const DfpnBoundType MAX_WORK = INFTY - 1;
 
     /** Proof number.
         Estimated amount of work to prove this state winning. */
