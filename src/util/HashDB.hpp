@@ -83,6 +83,9 @@ public:
     /** Flush the db to disk. */
     void Flush();
 
+    /** Merge all data from another db. */
+    void Merge(HashDB<T>& other);
+
     /** Returns statistics of the berkeley db. */
     std::string BDBStatistics();
 
@@ -314,6 +317,36 @@ template<class T>
 void HashDB<T>::Flush()
 {
     m_db->sync(m_db, 0);
+}
+
+template<class T>
+void HashDB<T>::Merge(HashDB<T>& other)
+{
+    DBC* cursorp;
+    other.m_db->cursor(other.m_db, NULL, &cursorp, 0);
+
+    DBT key, data;
+    memset(&key, 0, sizeof(DBT));
+    memset(&data, 0, sizeof(DBT));
+
+    int ret;
+    while ((ret = cursorp->get(cursorp, &key, &data, DB_NEXT)) == 0)
+    {
+        if (key.size != sizeof(SgHashCode))
+            continue;
+        ret = m_db->put(m_db, NULL, &key, &data, DB_NOOVERWRITE);
+        if (ret != 0 && ret != DB_KEYEXIST) {
+            cursorp->close(0);
+            m_db->err(m_db, ret, "%s", m_filename.c_str());
+            throw BenzeneException("HashDB: error in Merge()!");
+        }
+    }
+    cursorp->close(cursorp);
+    if (ret != DB_NOTFOUND)
+    {
+        other.m_db->err(other.m_db, ret, "%s", m_filename.c_str());
+        throw BenzeneException("HashDB: error in Merge()!");
+    }
 }
 
 template<class T>

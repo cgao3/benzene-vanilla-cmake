@@ -37,6 +37,7 @@ void DfpnCommands::Register(GtpEngine& e)
     Register(e, "dfpn-solver-find-winning", &DfpnCommands::CmdFindWinning);
     Register(e, "dfpn-open-db", &DfpnCommands::CmdOpenDB);
     Register(e, "dfpn-close-db", &DfpnCommands::CmdCloseDB);
+    Register(e, "dfpn-merge-db", &DfpnCommands::CmdMergeDB);
     Register(e, "dfpn-db-stat", &DfpnCommands::CmdDBStat);
     Register(e, "dfpn-evaluation-info", &DfpnCommands::CmdEvaluationInfo);
 }
@@ -63,6 +64,7 @@ void DfpnCommands::AddAnalyzeCommands(HtpCommand& cmd)
         "plist/DFPN Find Winning/dfpn-solver-find-winning %m\n"
         "none/DFPN Open DB/dfpn-open-db %r\n"
         "none/DFPN Close DB/dfpn-close-db\n"
+        "none/DFPN Merge DB/dfpn-merge-db %r\n"
         "string/DFPN DB Stats/dfpn-db-stat\n"
         "string/DFPN Eval Info/dfpn-evaluation-info\n";
 }
@@ -319,6 +321,26 @@ void DfpnCommands::CmdCloseDB(HtpCommand& cmd)
     if (m_db.get() == 0)
         throw HtpFailure("No open database!\n");
     m_db.reset(0);
+}
+
+/** Merges a database into the current database.
+ *    Usage: "db-merge [filename]"
+ */
+void DfpnCommands::CmdMergeDB(HtpCommand& cmd)
+{
+    cmd.CheckNuArgLessEqual(3);
+    if (!m_db)
+        throw HtpFailure("No open database!\n");
+    std::string filename = cmd.Arg(0);
+    boost::scoped_ptr<DfpnDB> other_db;
+    try {
+        other_db.reset(new DfpnDB(filename));
+        m_db->Merge(*other_db);
+    }
+    catch (BenzeneException& e) {
+        other_db.reset(0);
+        throw HtpFailure() << "Error merging db: '" << e.what() << "'\n";
+    }
 }
 
 /** Prints database statistics. */

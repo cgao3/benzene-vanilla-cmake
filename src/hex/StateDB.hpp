@@ -103,6 +103,8 @@ public:
 
     std::string BDBStatistics();
 
+    void Merge(StateDB<T>& other);
+
 private:
     HashDB<T> m_db;
 
@@ -195,6 +197,12 @@ template<class T>
 std::string StateDB<T>::BDBStatistics()
 {
     return m_db.BDBStatistics();
+}
+
+template<class T>
+void StateDB<T>::Merge(StateDB<T>& other)
+{
+    m_db.Merge(other.m_db);
 }
 
 //----------------------------------------------------------------------------
