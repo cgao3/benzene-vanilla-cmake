@@ -330,12 +330,34 @@ void HashDB<T>::Merge(HashDB<T>& other)
     memset(&data, 0, sizeof(DBT));
 
     int ret;
+    size_t confilcts = 0;
+    size_t overwrites = 0;
     while ((ret = cursorp->c_get(cursorp, &key, &data, DB_NEXT)) == 0)
     {
         if (key.size != sizeof(SgHashCode))
             continue;
         ret = m_db->put(m_db, NULL, &key, &data, DB_NOOVERWRITE);
-        if (ret != 0 && ret != DB_KEYEXIST) {
+        if (ret == DB_KEYEXIST)
+        {
+            confilcts++;
+            T d;
+            d.Unpack(static_cast<byte*>(data.data));
+            T d_orig;
+            DBT key_orig = key;
+            DBT data_orig;
+            memset(&data_orig, 0, sizeof(data_orig));
+            ret = m_db->get(m_db, NULL, &key_orig, &data_orig, 0);
+            if (ret == 0)
+            {
+                d_orig.Unpack(static_cast<byte*>(data_orig.data));
+                if (d_orig.ReplaceBy(d))
+                {
+                    ret = m_db->put(m_db, NULL, &key_orig, &data, 0);
+                    overwrites++;
+                }
+            }
+        }
+        if (ret != 0) {
             cursorp->c_close(0);
             m_db->err(m_db, ret, "%s", m_filename.c_str());
             throw BenzeneException("HashDB: error in Merge()!");
@@ -347,6 +369,7 @@ void HashDB<T>::Merge(HashDB<T>& other)
         other.m_db->err(other.m_db, ret, "%s", m_filename.c_str());
         throw BenzeneException("HashDB: error in Merge()!");
     }
+    fprintf(stderr, "Merge: confilcts=%lu overwrites=%lu\n", confilcts, overwrites);
 }
 
 template<class T>

@@ -272,6 +272,8 @@ public:
 
     void Rotate(const ConstBoard& brd);
 
+    bool ReplaceBy(const DfpnData& data) const;
+
     // @}
 
 private:

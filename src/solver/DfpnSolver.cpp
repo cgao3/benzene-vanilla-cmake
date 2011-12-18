@@ -357,6 +357,13 @@ void DfpnData::Rotate(const ConstBoard& brd)
         moves[i] = BoardUtil::Rotate(brd, moves[i]);
 }
 
+bool DfpnData::ReplaceBy(const DfpnData& data) const
+{
+    if (m_bounds.IsSolved())
+        return false;
+    return m_work < data.m_work;
+}
+
 //----------------------------------------------------------------------------
 
 DfpnSolver::DfpnSolver()
