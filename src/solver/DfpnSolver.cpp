@@ -361,6 +361,8 @@ bool DfpnData::ReplaceBy(const DfpnData& data) const
 {
     if (m_bounds.IsSolved())
         return false;
+    if (data.m_bounds.IsSolved())
+        return true;
     return m_work < data.m_work;
 }
 
