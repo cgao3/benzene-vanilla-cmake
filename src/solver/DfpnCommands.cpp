@@ -108,8 +108,8 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             << m_solver.UseGuiFx() << '\n'
             << "[string] timelimit "
             << m_solver.Timelimit() << '\n'
-            << "[string] tt_bits "  
-            << ((m_tt.get() == 0) ? 0 : log2(m_tt->MaxHash())) << '\n'
+            << "[string] tt_size "
+            << ((m_tt.get() == 0) ? 0 : m_tt->MaxHash()) << '\n'
             << "[string] widening_base "
             << m_solver.WideningBase() << '\n'
             << "[string] widening_factor "
@@ -128,13 +128,13 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             m_solver.SetUseGuiFx(cmd.Arg<bool>(1));
         else if (name == "timelimit")
             m_solver.SetTimelimit(cmd.ArgMin<float>(1, 0.0));
-	else if (name == "tt_bits")
+	else if (name == "tt_size")
 	{
-	    int bits = cmd.ArgMin<int>(1, 0);
-	    if (bits == 0)
+	    int size = cmd.ArgMin<int>(1, 0);
+	    if (size == 0)
 		m_tt.reset(0);
 	    else
-		m_tt.reset(new DfpnHashTable(1 << bits));
+		m_tt.reset(new DfpnHashTable(size));
 	}
         else if (name == "widening_base")
             m_solver.SetWideningBase(cmd.ArgMin<int>(1, 0));
