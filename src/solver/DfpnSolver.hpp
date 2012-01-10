@@ -543,6 +543,9 @@ private:
         void SetChildren(const DfpnChildren& children,
                          const std::vector<DfpnData>& bounds);
 
+        void SetChildrenOnce(const DfpnChildren& children,
+                             const std::vector<DfpnData>& bounds);
+        
         void SetFirstPlayer(HexColor color);
 
         void SetPV();

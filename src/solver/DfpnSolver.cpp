@@ -169,6 +169,13 @@ void DfpnSolver::GuiFx::SetChildren(const DfpnChildren& children,
     m_data = data;
 }
 
+void DfpnSolver::GuiFx::SetChildrenOnce(const DfpnChildren& children,
+                                        const std::vector<DfpnData>& data)
+{
+    if (m_data.empty())
+        SetChildren(children, data);
+}
+
 void DfpnSolver::GuiFx::SetFirstPlayer(HexColor color)
 {
     m_firstColor = color;
@@ -644,6 +651,9 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
     while (true)
     {
+        if (m_useGuiFx && depth == 0)
+            m_guiFx.SetChildrenOnce(data.m_children, d.childrenData);
+
         size_t maxChildIndex = ComputeMaxChildIndex(d.childrenData);
         UpdateBounds(data.m_bounds, d.childrenData, maxChildIndex);
 
