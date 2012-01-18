@@ -734,11 +734,11 @@ private:
 
     bool TTReadNoLock(const HexState& state, DfpnData& data);
 
-    void TTWrite(const HexState& state, const DfpnData& data);
+    void TTWrite(const HexState& state, DfpnData& data);
 
     bool TTRead(const HexState& state, DfpnData& data);
 
-    void DBWrite(const HexState& state, const DfpnData& data);
+    void DBWrite(const HexState& state, DfpnData& data);
 
     bool DBRead(const HexState& state, DfpnData& data);
 

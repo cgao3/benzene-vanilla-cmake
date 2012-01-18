@@ -1165,14 +1165,17 @@ bool DfpnSolver::TTReadNoLock(const HexState& state, DfpnData& data)
     return m_positions->GetHT(state, data);
 }
 
-void DfpnSolver::TTWrite(const HexState& state, const DfpnData& data)
+void DfpnSolver::TTWrite(const HexState& state, DfpnData& data)
 {
     data.m_bounds.CheckConsistency();
     boost::upgrade_lock<boost::shared_mutex> lock(m_tt_mutex);
     DfpnData prev;
     bool hit = m_positions->GetHT(state, prev);
     if (hit && prev.m_bounds.IsSolved())
+    {
+        data = prev;
         return;
+    }
     boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
     m_positions->PutHT(state, data);
 }
@@ -1183,13 +1186,16 @@ bool DfpnSolver::TTRead(const HexState& state, DfpnData& data)
     return TTReadNoLock(state, data);
 }
 
-void DfpnSolver::DBWrite(const HexState& state, const DfpnData& data)
+void DfpnSolver::DBWrite(const HexState& state, DfpnData& data)
 {
     TTWrite(state, data);
     DfpnData prev;
     bool hit = m_positions->GetDB(state, prev);
     if (hit && prev.m_bounds.IsSolved())
+    {
+        data = prev;
         return;
+    }
     m_positions->PutDB(state, data);
 }
 
