@@ -590,6 +590,8 @@ private:
     boost::thread_specific_ptr<DfpnHistory> m_history;
 
     boost::mutex m_topmid_mutex;
+    boost::mutex m_abort_mutex;
+    boost::mutex m_listeners_mutex;
     boost::condition_variable m_nothingToSearch_cond;
     boost::shared_mutex m_tt_mutex;
 

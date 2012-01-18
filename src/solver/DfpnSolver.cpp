@@ -552,6 +552,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
 
 bool DfpnSolver::CheckAbort()
 {
+    boost::lock_guard<boost::mutex> lock(m_abort_mutex);
     if (!m_aborted)
     {
         if (SgUserAbort()) 
@@ -714,9 +715,9 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
     m_vtt.Remove(depth, d.hash, vBounds);
     data.m_work += work;
-    DBWrite(*m_state, data);
     if (data.m_bounds.IsSolved())
         NotifyListeners(*m_history, data);
+    DBWrite(*m_state, data);
     return work;
 }
 
@@ -896,7 +897,11 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
     if (!maxBounds.GreaterThan(data.m_bounds))
     {
         if (work)
+        {
+            if (data.m_bounds.IsSolved())
+                NotifyListeners(*m_history, data);
             TTWrite(*m_state, data);
+        }
         return work;
     }
 
@@ -1010,6 +1015,7 @@ size_t DfpnSolver::ComputeMaxChildIndex(const std::vector<T>&
 void DfpnSolver::NotifyListeners(const DfpnHistory& history,
                                  const DfpnData& data)
 {
+    boost::lock_guard<boost::mutex> lock(m_listeners_mutex);
     for (std::size_t i = 0; i < m_listener.size(); ++i)
         m_listener[i]->StateSolved(history, data);
 }
