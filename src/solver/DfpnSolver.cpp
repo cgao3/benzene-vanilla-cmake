@@ -162,6 +162,11 @@ DfpnSolver::GuiFx::GuiFx()
 {
 }
 
+void DfpnSolver::GuiFx::ClearChildren()
+{
+    m_data.clear();
+}
+
 void DfpnSolver::GuiFx::SetChildren(const DfpnChildren& children,
                                     const std::vector<DfpnData>& data)
 {
@@ -208,6 +213,8 @@ void DfpnSolver::GuiFx::SetPV(const std::vector<HexPoint>& pv)
 
 void DfpnSolver::GuiFx::UpdateBounds(HexPoint move, const DfpnBounds& bounds)
 {
+    if (m_data.empty())
+        return;
     for (std::size_t i = 0; i < m_children.Size(); ++i)
         if (m_children.FirstMove(i) == move)
         {
@@ -236,6 +243,8 @@ void DfpnSolver::GuiFx::Write()
 /** Writes progress indication. */
 void DfpnSolver::GuiFx::DoWrite()
 {
+    if (m_data.empty())
+        return;
     std::ostringstream os;
     os << "gogui-gfx:\n";
     os << "dfpn\n";
@@ -509,7 +518,10 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
 
     m_timer.Start();
     if (m_useGuiFx)
+    {
+        m_guiFx.ClearChildren();
         m_guiFx.SetFirstPlayer(state.ToPlay());
+    }
     boost::scoped_array<boost::thread> threads(new boost::thread[m_threads]);
     for (int i = 0; i < m_threads; i++)
     {

@@ -540,6 +540,8 @@ private:
 
         GuiFx();
 
+        void ClearChildren();
+
         void SetChildren(const DfpnChildren& children,
                          const std::vector<DfpnData>& bounds);
 
