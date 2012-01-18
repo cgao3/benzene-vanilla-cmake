@@ -673,14 +673,14 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         size_t virtualMaxChildIndex = ComputeMaxChildIndex(d.virtualBounds);
         UpdateBounds(vBounds, d.virtualBounds, virtualMaxChildIndex);
 
-        if (m_useGuiFx && depth == 1)
-            m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
-
         if (midCalled || !maxBounds.GreaterThan(vBounds))
             break;
 
         if (CheckAbort())
             break;
+
+        if (m_useGuiFx && depth == 1)
+            m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
 
         DfpnBounds childMaxBounds;
         SelectChild(d.bestIndex, childMaxBounds, vBounds,
@@ -718,6 +718,8 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     if (data.m_bounds.IsSolved())
         NotifyListeners(*m_history, data);
     DBWrite(*m_state, data);
+    if (m_useGuiFx && depth == 1)
+        m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
     return work;
 }
 
