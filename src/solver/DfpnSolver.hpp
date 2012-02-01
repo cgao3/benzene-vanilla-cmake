@@ -484,6 +484,13 @@ public:
     /** See UseGuiFx() */
     void SetUseGuiFx(bool enable);
 
+    /** For moves from pv display bounds at given depth
+        rather than at root. */
+    bool GuiFxDeepBounds() const;
+
+    /** See GuiFxDeepBounds() */
+    void SetGuiFxDeepBounds(bool enable);
+
     /** Maximum time search is allowed to run before aborting. 
         Set to 0 for no timelimit. */
     double Timelimit() const;
@@ -538,7 +545,7 @@ private:
     {
     public:
 
-        GuiFx();
+        GuiFx(const DfpnSolver& solver);
 
         void ClearChildren();
 
@@ -552,9 +559,9 @@ private:
 
         void SetPV();
 
-        void SetPV(HexPoint move);
+        void SetPV(HexPoint move, DfpnBounds bounds);
 
-        void SetPV(const std::vector<HexPoint>& pv);
+        void SetPV(const std::vector<std::pair<HexPoint, DfpnBounds> >& pv);
 
         void UpdateBounds(HexPoint move, const DfpnBounds& bounds);
 
@@ -563,16 +570,17 @@ private:
         void WriteForced();
 
     private:
-        
+        const DfpnSolver& m_solver;
+
         DfpnChildren m_children;
 
         std::vector<DfpnData> m_data;
 
         HexColor m_firstColor;
 
-        std::vector<HexPoint> m_pvToWrite;
+        std::vector<std::pair<HexPoint, DfpnBounds> > m_pvToWrite;
 
-        std::vector<HexPoint> m_pvCur;
+        std::vector<std::pair<HexPoint, DfpnBounds> > m_pvCur;
 
         bool m_pvDoShift;
 
@@ -604,6 +612,9 @@ private:
 
     /** See UseGuiFx() */
     bool m_useGuiFx;
+
+    /** See GuiFxDeepBounds() */
+    bool m_guiFxDeepBounds;
 
     /** See TimeLimit() */
     double m_timelimit;
@@ -757,6 +768,16 @@ inline void DfpnSolver::AddListener(DfpnListener& listener)
     if (std::find(m_listener.begin(), m_listener.end(), &listener)
         != m_listener.end())
         m_listener.push_back(&listener);
+}
+
+inline bool DfpnSolver::GuiFxDeepBounds() const
+{
+    return m_guiFxDeepBounds;
+}
+
+inline void DfpnSolver::SetGuiFxDeepBounds(bool enable)
+{
+    m_guiFxDeepBounds = enable;
 }
 
 inline bool DfpnSolver::UseGuiFx() const

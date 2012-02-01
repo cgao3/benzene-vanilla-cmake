@@ -155,8 +155,9 @@ std::size_t DfpnChildren::MoveIndex(HexPoint x) const
     search is stuck several ply deep.
 */
 
-DfpnSolver::GuiFx::GuiFx()
-    : m_pvDoShift(false),
+DfpnSolver::GuiFx::GuiFx(const DfpnSolver& solver)
+    : m_solver(solver),
+      m_pvDoShift(false),
       m_timeOfLastWrite(0.0),
       m_delay(1.0)
 {
@@ -188,15 +189,15 @@ void DfpnSolver::GuiFx::SetFirstPlayer(HexColor color)
 
 void DfpnSolver::GuiFx::SetPV()
 {
-    SetPV(std::vector<HexPoint>());
+    SetPV(std::vector<std::pair<HexPoint, DfpnBounds> >());
 }
 
-void DfpnSolver::GuiFx::SetPV(HexPoint move)
+void DfpnSolver::GuiFx::SetPV(HexPoint move, DfpnBounds bounds)
 {
-    SetPV(std::vector<HexPoint>(1, move));
+    SetPV(std::vector<std::pair<HexPoint, DfpnBounds> >(1, std::make_pair(move, bounds)));
 }
 
-void DfpnSolver::GuiFx::SetPV(const std::vector<HexPoint>& pv)
+void DfpnSolver::GuiFx::SetPV(const std::vector<std::pair<HexPoint, DfpnBounds> >& pv)
 {
     if (m_pvDoShift)
     {
@@ -206,7 +207,7 @@ void DfpnSolver::GuiFx::SetPV(const std::vector<HexPoint>& pv)
     m_pvCur = pv;
     std::size_t i = 0;
     for (; i < std::min(m_pvToWrite.size(), pv.size()); ++i)
-        if (m_pvToWrite[i] != pv[i])
+        if (m_pvToWrite[i].first != pv[i].first)
             break;
     m_pvToWrite.resize(i);
 }
@@ -249,14 +250,14 @@ void DfpnSolver::GuiFx::DoWrite()
     os << "gogui-gfx:\n";
     os << "dfpn\n";
     os << "VAR";
-    HexColor color = m_firstColor;
     std::vector<std::size_t> pv_idx(BITSETSIZE, 0);
+    HexColor color = m_firstColor;
     for (std::size_t i = 0;
          i < std::min(m_pvToWrite.size() + 1, m_pvCur.size()); ++i)
     {
         os << ' ' << (color == BLACK ? 'B' : 'W')
-           << ' ' << m_pvCur[i];
-        pv_idx[m_pvCur[i]] = i + 1;
+           << ' ' << m_pvCur[i].first;
+        pv_idx[m_pvCur[i].first] = i + 1;
         color = !color;
     }
     os << '\n';
@@ -267,14 +268,23 @@ void DfpnSolver::GuiFx::DoWrite()
     {
         size_t idx = pv_idx[m_children.FirstMove(i)];
         os << ' ' << m_children.FirstMove(i);
-        if (0 == m_data[i].m_bounds.phi)
+        DfpnBounds bounds;
+        if (idx && m_solver.GuiFxDeepBounds())
+        {
+            bounds = m_pvCur[idx - 1].second;
+            if ((idx & 1) == 0)
+                std::swap(bounds.phi, bounds.delta);
+        }
+        else
+            bounds = m_data[i].m_bounds;
+        if (0 == bounds.phi)
         {
             numLosses++;
             os << " L";
             if (idx)
                 os << idx;
         }
-        else if (0 == m_data[i].m_bounds.delta)
+        else if (0 == bounds.delta)
         {
             os << " W";
             if (idx)
@@ -282,17 +292,17 @@ void DfpnSolver::GuiFx::DoWrite()
         }
         else
         {
-            os << ' ' << m_data[i].m_bounds.delta << '@';
+            os << ' ' << bounds.delta << '@';
             if (idx)
                 os << idx;
-            os << '@' << m_data[i].m_bounds.phi;
+            os << '@' << bounds.phi;
         }
     }
     os << '\n';
     os << "TEXT ";
     os << numLosses << '/' << m_children.Size() << " proven losses, var:";
     for (std::size_t i = 0; i < m_pvCur.size(); ++i)
-        os << ' ' << m_pvCur[i];
+        os << ' ' << m_pvCur[i].first;
     os << "\n\n";
     std::cout << os.str();
     std::cout.flush();
@@ -387,13 +397,14 @@ bool DfpnData::ReplaceBy(const DfpnData& data) const
 DfpnSolver::DfpnSolver()
     : m_positions(0),
       m_useGuiFx(false),
+      m_guiFxDeepBounds(false),
       m_timelimit(0.0),
       m_wideningBase(1),
       m_wideningFactor(0.25f),
       m_epsilon(0.0f),
       m_threads(1),
       m_threadWork(1000),
-      m_guiFx(),
+      m_guiFx(*this),
       m_allEvaluation(-2.5, 2.0, 45),
       m_allSolvedEvaluation(-2.5, 2.0, 45),
       m_winningEvaluation(-2.5, 2.0, 45),
@@ -625,9 +636,10 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         StoreVBounds(depth, &d);
         m_topmid_mutex.unlock();
         {
-            std::vector<HexPoint> pv;
+            std::vector<std::pair<HexPoint, DfpnBounds> > pv;
             for (TopMidData* d = parent; d; d = d->parent)
-                pv.push_back(d->data.m_children.FirstMove(d->bestIndex));
+                pv.push_back(std::make_pair(d->data.m_children.FirstMove(d->bestIndex),
+                                            d->childrenData[d->bestIndex].GetBounds()));
             reverse(pv.begin(), pv.end());
             if (m_useGuiFx)
             {
@@ -638,7 +650,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
             {
                 if (i)
                     LogDfpnThread() << ' ';
-                LogDfpnThread() << pv[i];
+                LogDfpnThread() << pv[i].first;
             }
             LogDfpnThread() << '\n';
         }
@@ -950,7 +962,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
         data.m_bestMove = data.m_children.FirstMove(bestIndex);
         // Recurse on best child
         if (m_useGuiFx && depth == 0)
-            m_guiFx.SetPV(data.m_bestMove);
+            m_guiFx.SetPV(data.m_bestMove, childrenData[bestIndex].GetBounds());
         data.m_children.PlayMove(bestIndex, *m_state);
         m_history->Push(data.m_bestMove, currentHash);
         size_t childWork = MID(childMaxBounds, workBound - work,
