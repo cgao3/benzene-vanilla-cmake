@@ -159,7 +159,7 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
                 throw GtpFailure() << "epsilon cannot be negative";
         }
         else if (name == "threads")
-            m_solver.SetThreads(cmd.ArgMin<int>(1, 1));
+            m_solver.SetThreads(cmd.ArgMinMax<int>(1, 1, DFPN_MAX_THREADS));
         else if (name == "thread_work")
             m_solver.SetThreadWork(cmd.ArgMin<size_t>(1, 1));
         else

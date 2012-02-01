@@ -58,8 +58,8 @@ static inline void VecPrune(std::vector<T>& v, bitset_t what)
 
 //----------------------------------------------------------------------------
 
-void VirtualBoundsTT::Store(size_t depth, SgHashCode hash,
-                             const DfpnBounds& bounds)
+void VirtualBoundsTT::Store(int id, size_t depth, SgHashCode hash,
+                            const DfpnBounds& bounds)
 {
     if (depth >= data.size())
         data.resize(depth + 1);
@@ -69,14 +69,14 @@ void VirtualBoundsTT::Store(size_t depth, SgHashCode hash,
         for (size_t i = 0; i < level.size(); ++i)
             if (level[i].hash == hash)
             {
-                level[i].count++;
+                level[i].workers.set(id);
                 level[i].bounds = bounds;
                 return;
             }
     }
     Entry entry;
     entry.hash = hash;
-    entry.count = 1;
+    entry.workers.set(id);
     entry.bounds = bounds;
     data[depth].push_back(entry);
 }
@@ -95,20 +95,29 @@ void VirtualBoundsTT::Lookup(size_t depth, SgHashCode hash,
         }
 }
 
-void VirtualBoundsTT::Remove(size_t depth, SgHashCode hash,
-                             const DfpnBounds& bounds)
+void VirtualBoundsTT::Remove(int id, size_t depth, SgHashCode hash,
+                             const DfpnBounds& bounds, bool solved, bool *path_solved)
 {
     std::vector<Entry>& level = data[depth];
     for (size_t i = 0; i < level.size(); ++i)
         if (level[i].hash == hash)
         {
-            if (--level[i].count == 0)
+            level[i].workers.reset(id);
+            if (level[i].workers.none())
             {
                 level[i] = level.back();
                 level.pop_back();
             }
             else
+            {
                 level[i].bounds = bounds;
+                if (solved)
+                {
+                    for (int tid = 0; tid < DFPN_MAX_THREADS; tid++)
+                        if (level[i].workers[tid])
+                            path_solved[tid] = true;
+                }
+            }
             return;
         }
 }
@@ -478,18 +487,19 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
 class RunDfpnThread
 {
     DfpnSolver& solver;
+    int id;
     const DfpnBounds& maxBounds;
     const HexState& state;
     HexBoard& board;
 public:
-    RunDfpnThread(DfpnSolver& solver, const DfpnBounds& maxBounds,
+    RunDfpnThread(DfpnSolver& solver, int id, const DfpnBounds& maxBounds,
                   const HexState& state, HexBoard& board)
-        : solver(solver), maxBounds(maxBounds), state(state), board(board)
+        : solver(solver), id(id), maxBounds(maxBounds), state(state), board(board)
     { }
 
     void operator()()
     {
-        solver.RunThread(maxBounds, state, board);
+        solver.RunThread(id, maxBounds, state, board);
     }
 };
 
@@ -536,7 +546,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
     boost::scoped_array<boost::thread> threads(new boost::thread[m_threads]);
     for (int i = 0; i < m_threads; i++)
     {
-        RunDfpnThread run(*this, maxBounds, state, board);
+        RunDfpnThread run(*this, i, maxBounds, state, board);
         threads[i] = boost::thread(run);
     }
     for (int i = 0; i < m_threads; i++)
@@ -602,16 +612,16 @@ bool DfpnSolver::CheckAbort()
     return m_aborted;
 }
 
-void DfpnSolver::StoreVBounds(size_t depth, TopMidData* d)
+void DfpnSolver::StoreVBounds(int id, size_t depth, TopMidData* d)
 {
     BenzeneAssert(d);
-    m_vtt.Store(depth, d->hash, d->vBounds);
+    m_vtt.Store(id, depth, d->hash, d->vBounds);
     d = d->parent;
     if (!d)
         return;
     size_t maxChildIndex = ComputeMaxChildIndex(d->childrenData);
     UpdateBounds(d->vBounds, d->virtualBounds, maxChildIndex);
-    StoreVBounds(depth - 1, d);
+    StoreVBounds(id, depth - 1, d);
 }
 
 size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
@@ -633,7 +643,8 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
             DfpnBounds::SetToWinning(vBounds);
         else
             DfpnBounds::SetToLosing(vBounds);
-        StoreVBounds(depth, &d);
+        m_thread_path_solved[*m_thread_id] = false;
+        StoreVBounds(*m_thread_id, depth, &d);
         m_topmid_mutex.unlock();
         {
             std::vector<std::pair<HexPoint, DfpnBounds> > pv;
@@ -658,7 +669,8 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         midCalled = true;
         m_topmid_mutex.lock();
         vBounds = data.m_bounds;
-        m_vtt.Remove(depth, d.hash, data.m_bounds);
+        m_vtt.Remove(*m_thread_id, depth, d.hash, data.m_bounds,
+                     data.m_bounds.IsSolved(), m_thread_path_solved);
         DBWrite(*m_state, data);
         return work;
     }
@@ -688,7 +700,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         if (midCalled || !maxBounds.GreaterThan(vBounds))
             break;
 
-        if (CheckAbort())
+        if (m_thread_path_solved[*m_thread_id] || CheckAbort())
             break;
 
         if (m_useGuiFx && depth == 1)
@@ -725,7 +737,8 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
     UpdateSolvedBestMove(data, d.childrenData);
 
-    m_vtt.Remove(depth, d.hash, vBounds);
+    m_vtt.Remove(*m_thread_id, depth, d.hash, vBounds,
+                 data.m_bounds.IsSolved(), m_thread_path_solved);
     data.m_work += work;
     if (data.m_bounds.IsSolved())
         NotifyListeners(*m_history, data);
@@ -735,12 +748,13 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     return work;
 }
 
-void DfpnSolver::RunThread(const DfpnBounds& maxBounds,
+void DfpnSolver::RunThread(int id, const DfpnBounds& maxBounds,
                            const HexState& state, HexBoard& board)
 {
     m_state.reset(new HexState(state));
     m_workBoard.reset(new HexBoard(board));
     m_history.reset(new DfpnHistory());
+    m_thread_id.reset(new int(id));
 
     boost::unique_lock<boost::mutex> lock(m_topmid_mutex);
 

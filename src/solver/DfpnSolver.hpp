@@ -161,20 +161,23 @@ inline std::ostream& operator<<(std::ostream& os, const DfpnBounds& bounds)
 
 //----------------------------------------------------------------------------
 
+static const int DFPN_MAX_THREADS = 64;
+
 /** Hash table for virtual bounds.
     @ingroup dfpn
  */
 class VirtualBoundsTT
 {
 public:
-    void Store(size_t depth, SgHashCode hash, const DfpnBounds& bounds);
+    void Store(int id, size_t depth, SgHashCode hash, const DfpnBounds& bounds);
     void Lookup(size_t depth, SgHashCode hash, DfpnBounds& bounds);
-    void Remove(size_t depth, SgHashCode hash, const DfpnBounds& bounds);
+    void Remove(int id, size_t depth, SgHashCode hash, const DfpnBounds& bounds,
+                bool solved, bool *path_solved);
 private:
     struct Entry
     {
         SgHashCode hash;
-        size_t count;
+        std::bitset<DFPN_MAX_THREADS> workers;
         DfpnBounds bounds;
     };
 
@@ -596,6 +599,8 @@ private:
     boost::thread_specific_ptr<HexState> m_state;
     boost::thread_specific_ptr<HexBoard> m_workBoard;
     boost::thread_specific_ptr<DfpnHistory> m_history;
+    boost::thread_specific_ptr<int> m_thread_id;
+    bool m_thread_path_solved[DFPN_MAX_THREADS];
 
     boost::mutex m_topmid_mutex;
     boost::mutex m_abort_mutex;
@@ -670,7 +675,7 @@ private:
     SgHistogram<float, std::size_t> m_losingEvaluation;
 
 public:
-    void RunThread(const DfpnBounds& maxBounds,
+    void RunThread(int id, const DfpnBounds& maxBounds,
                    const HexState& state, HexBoard& board);
 
 private:
@@ -691,7 +696,7 @@ private:
         { }
     };
 
-    void StoreVBounds(size_t depth, TopMidData* d);
+    void StoreVBounds(int id, size_t depth, TopMidData* d);
 
     size_t TopMid(const DfpnBounds& maxBounds,
                   DfpnData& data, DfpnBounds& vBounds,
