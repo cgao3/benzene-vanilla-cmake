@@ -261,11 +261,14 @@ void DfpnSolver::GuiFx::DoWrite()
     os << "VAR";
     std::vector<int> pv_idx(BITSETSIZE, -1);
     std::vector<HexPoint> to_print;
+    int numLosses = 0;
     for (std::size_t i = 0; i < m_children.Size(); ++i)
     {
         HexPoint move = m_children.FirstMove(i);
         pv_idx[move] = 0;
         to_print.push_back(move);
+        if (m_data[i].m_bounds.IsWinning())
+            numLosses++;
     }
     HexColor color = m_firstColor;
     size_t pv_size = std::min(m_pvToWrite.size() + 1, m_pvCur.size());
@@ -282,7 +285,6 @@ void DfpnSolver::GuiFx::DoWrite()
     os << '\n';
     m_pvDoShift = true;
     os << "LABEL";
-    int numLosses = 0;
     for (size_t i = 0; i < to_print.size(); ++i)
     {
         os << ' ' << to_print[i];
@@ -298,7 +300,6 @@ void DfpnSolver::GuiFx::DoWrite()
             bounds = m_data[i].m_bounds;
         if (0 == bounds.phi)
         {
-            numLosses++;
             os << " L";
             if (idx)
                 os << idx;
