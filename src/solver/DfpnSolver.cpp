@@ -679,9 +679,9 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         midCalled = true;
         m_topmid_mutex.lock();
         vBounds = data.m_bounds;
+        DBWrite(*m_state, data);
         m_vtt.Remove(*m_thread_id, depth, d.hash, data.m_bounds,
                      data.m_bounds.IsSolved(), m_thread_path_solved);
-        DBWrite(*m_state, data);
         return work;
     }
 
@@ -710,7 +710,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
         if (midCalled || !maxBounds.GreaterThan(vBounds))
             break;
 
-        if (m_thread_path_solved[*m_thread_id] || CheckAbort())
+        if (CheckAbort())
             break;
 
         if (m_useGuiFx && depth == 1)
@@ -747,12 +747,12 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
     UpdateSolvedBestMove(data, d.childrenData);
 
-    m_vtt.Remove(*m_thread_id, depth, d.hash, vBounds,
-                 data.m_bounds.IsSolved(), m_thread_path_solved);
     data.m_work += work;
     if (data.m_bounds.IsSolved())
         NotifyListeners(*m_history, data);
     DBWrite(*m_state, data);
+    m_vtt.Remove(*m_thread_id, depth, d.hash, vBounds,
+                 data.m_bounds.IsSolved(), m_thread_path_solved);
     if (m_useGuiFx && depth == 1)
         m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
     return work;
@@ -1012,7 +1012,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
             if (m_useGuiFx && m_history->Depth() == 0)
                 m_guiFx.SetChildren(data.m_children, childrenData);
         }
-    } while (!CheckAbort());
+    } while (!m_thread_path_solved[*m_thread_id] && !CheckAbort());
 
     if (m_useGuiFx && depth == 0)
         m_guiFx.WriteForced();
