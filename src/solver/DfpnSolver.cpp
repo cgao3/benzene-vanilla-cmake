@@ -259,26 +259,36 @@ void DfpnSolver::GuiFx::DoWrite()
     os << "gogui-gfx:\n";
     os << "dfpn\n";
     os << "VAR";
-    std::vector<std::size_t> pv_idx(BITSETSIZE, 0);
+    std::vector<int> pv_idx(BITSETSIZE, -1);
+    std::vector<HexPoint> to_print;
+    for (std::size_t i = 0; i < m_children.Size(); ++i)
+    {
+        HexPoint move = m_children.FirstMove(i);
+        pv_idx[move] = 0;
+        to_print.push_back(move);
+    }
     HexColor color = m_firstColor;
-    for (std::size_t i = 0;
-         i < std::min(m_pvToWrite.size() + 1, m_pvCur.size()); ++i)
+    size_t pv_size = std::min(m_pvToWrite.size() + 1, m_pvCur.size());
+    for (std::size_t i = 0; i < pv_size; ++i)
     {
         os << ' ' << (color == BLACK ? 'B' : 'W')
            << ' ' << m_pvCur[i].first;
-        pv_idx[m_pvCur[i].first] = i + 1;
+        HexPoint move = m_pvCur[i].first;
+        if (pv_idx[move] < 0 && m_solver.GuiFxDeepBounds())
+            to_print.push_back(move);
+        pv_idx[move] = i + 1;
         color = !color;
     }
     os << '\n';
     m_pvDoShift = true;
     os << "LABEL";
     int numLosses = 0;
-    for (std::size_t i = 0; i < m_children.Size(); ++i)
+    for (size_t i = 0; i < to_print.size(); ++i)
     {
-        size_t idx = pv_idx[m_children.FirstMove(i)];
-        os << ' ' << m_children.FirstMove(i);
+        os << ' ' << to_print[i];
+        size_t idx = pv_idx[to_print[i]];
         DfpnBounds bounds;
-        if (idx && m_solver.GuiFxDeepBounds())
+        if (idx > 0 && m_solver.GuiFxDeepBounds())
         {
             bounds = m_pvCur[idx - 1].second;
             if ((idx & 1) == 0)
