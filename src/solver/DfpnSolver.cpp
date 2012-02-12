@@ -630,7 +630,7 @@ void DfpnSolver::StoreVBounds(int id, size_t depth, TopMidData* d)
     d = d->parent;
     if (!d)
         return;
-    size_t maxChildIndex = ComputeMaxChildIndex(d->childrenData);
+    size_t maxChildIndex = ComputeMaxChildIndex(d->virtualBounds);
     UpdateBounds(d->vBounds, d->virtualBounds, maxChildIndex);
     StoreVBounds(id, depth - 1, d);
 }
