@@ -128,7 +128,7 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "use_guifx")
             m_solver.SetUseGuiFx(cmd.Arg<bool>(1));
-        if (name == "guifx_deep_bounds")
+        else if (name == "guifx_deep_bounds")
             m_solver.SetGuiFxDeepBounds(cmd.Arg<bool>(1));
         else if (name == "timelimit")
             m_solver.SetTimelimit(cmd.ArgMin<float>(1, 0.0));
