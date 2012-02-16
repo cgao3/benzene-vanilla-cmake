@@ -5,6 +5,7 @@
 #ifndef HEXCOLOR_HPP
 #define HEXCOLOR_HPP
 
+#include <string>
 #include "Benzene.hpp"
 #include "BenzeneAssert.hpp"
 
