@@ -14,6 +14,8 @@
 
 #include <db.h>
 
+#include <boost/scoped_array.hpp>
+
 #include "SgHash.h"
 #include "SgTimer.h"
 #include "Benzene.hpp"
@@ -34,10 +36,11 @@ struct PackableConcept
         const T t;
         int size = t.PackedSize();
         size = 42;  // to avoid non-used warning
-        byte* d = t.Pack();
+        boost::scoped_array<byte> d(new byte[size]);
+        t.Pack(d.get());
 
         T a = t;
-        a.Unpack(d);
+        a.Unpack(d.get());
     }
 };
 
@@ -288,8 +291,10 @@ bool HashDB<T>::Put(SgHashCode hash, const T& d)
     key.data = &hash;
     key.size = sizeof(hash);
 
-    data.data = d.Pack();
     data.size = d.PackedSize();
+    boost::scoped_array<byte> arr(new byte[data.size]);
+    d.Pack(arr.get());
+    data.data = arr.get();
 
     int ret;
     if ((ret = m_db->put(m_db, NULL, &key, &data, 0)) != 0) {

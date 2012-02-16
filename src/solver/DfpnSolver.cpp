@@ -343,9 +343,8 @@ int DfpnData::PackedSize() const
         + sizeof(short) * (m_children.Size() + 1);
 }
 
-byte* DfpnData::Pack() const
+void DfpnData::Pack(byte* data) const
 {
-    static byte data[4096];
     byte* off = data;
     *reinterpret_cast<DfpnBounds*>(off) = m_bounds;
     off += sizeof(m_bounds);
@@ -367,7 +366,6 @@ byte* DfpnData::Pack() const
     off += sizeof(short);
     if (off - data != PackedSize())
         throw BenzeneException("Bad size!");
-    return data;
 }
 
 void DfpnData::Unpack(const byte* data)
@@ -1332,8 +1330,10 @@ void DfpnSolver::TtDump(DfpnStates& positions)
     for (DfpnHashTable::Iterator i(*positions.HashTable()); i; ++i)
     {
         os.write(reinterpret_cast<const char *>(&i->m_hash), sizeof(i->m_hash));
-        byte* data = i->m_data.Pack();
-        os.write(reinterpret_cast<const char *>(data), i->m_data.PackedSize());
+        int size = i->m_data.PackedSize();
+        boost::scoped_array<byte> data(new byte[size]);
+        i->m_data.Pack(data.get());
+        os.write(reinterpret_cast<const char *>(data.get()), size);
         if (os.bad())
             throw BenzeneException() << "Error writing to file '" << m_tt_bak_filename << "'\n";
         count++;

@@ -270,7 +270,7 @@ public:
 
     int PackedSize() const;
 
-    byte* Pack() const;
+    void Pack(byte* data) const;
 
     void Unpack(const byte* data);
 

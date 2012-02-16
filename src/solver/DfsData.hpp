@@ -66,7 +66,7 @@ struct DfsData
 
     int PackedSize() const;
 
-    byte* Pack() const;
+    void Pack(byte* t) const;
 
     void Unpack(const byte* t);
 
