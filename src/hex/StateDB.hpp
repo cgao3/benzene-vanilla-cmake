@@ -105,6 +105,10 @@ public:
 
     void Merge(StateDB<T>& other);
 
+    void Dump(std::ofstream& os);
+
+    void Restore(std::ifstream& is);
+
 private:
     HashDB<T> m_db;
 
@@ -203,6 +207,18 @@ template<class T>
 void StateDB<T>::Merge(StateDB<T>& other)
 {
     m_db.Merge(other.m_db);
+}
+
+template<class T>
+void StateDB<T>::Dump(std::ofstream& os)
+{
+    m_db.Dump(os);
+}
+
+template<class T>
+void StateDB<T>::Restore(std::ifstream& is)
+{
+    m_db.Restore(is);
 }
 
 //----------------------------------------------------------------------------

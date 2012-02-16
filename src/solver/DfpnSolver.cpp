@@ -16,6 +16,9 @@
 #include <boost/scoped_array.hpp>
 
 using namespace benzene;
+using namespace std;
+using namespace boost::gregorian;
+using namespace boost::posix_time;
 
 using std::ceil;
 
@@ -424,6 +427,12 @@ DfpnSolver::DfpnSolver()
       m_epsilon(0.0f),
       m_threads(1),
       m_threadWork(1000),
+      m_db_bak_filename("db.dump"),
+      m_db_bak_start(date(2012,2,11),hours(3)),
+      m_db_bak_period(hours(-48)),
+      m_tt_bak_filename("tt.dump"),
+      m_tt_bak_start(date(2012,2,11),hours(3)),
+      m_tt_bak_period(hours(-48)),
       m_guiFx(*this),
       m_allEvaluation(-2.5, 2.0, 45),
       m_allSolvedEvaluation(-2.5, 2.0, 45),
@@ -555,6 +564,7 @@ HexColor DfpnSolver::StartSearch(const HexState& state, HexBoard& board,
         m_guiFx.SetFirstPlayer(state.ToPlay());
     }
     boost::scoped_array<boost::thread> threads(new boost::thread[m_threads]);
+    TryDoBackups(true); // only adjust start time for next backup
     for (int i = 0; i < m_threads; i++)
     {
         RunDfpnThread run(*this, i, maxBounds, state, board);
@@ -767,14 +777,16 @@ void DfpnSolver::RunThread(int id, const DfpnBounds& maxBounds,
     m_history.reset(new DfpnHistory());
     m_thread_id.reset(new int(id));
 
-    boost::unique_lock<boost::mutex> lock(m_topmid_mutex);
-
     DfpnData data;
     DfpnBounds vBounds;
 
     bool wasWaiting = false;
     while (true)
     {
+        TryDoBackups();
+
+        boost::unique_lock<boost::mutex> lock(m_topmid_mutex);
+
         DBRead(*m_state, data);
         vBounds = data.m_bounds;
         m_vtt.Lookup(0, m_state->Hash(), vBounds);
@@ -1281,3 +1293,155 @@ void DfpnSolver::PropagateBackwards(const Game& game, DfpnStates& pos)
 
 //----------------------------------------------------------------------------
 
+void DfpnSolver::DbDump(DfpnStates& positions)
+{
+    if (!positions.UseDatabase())
+        throw BenzeneException("No open database!\n");
+    if (m_db_bak_filename.empty())
+        throw BenzeneException("Db backup filename is empty!\n");
+    ofstream os(m_db_bak_filename.c_str(), ios::out|ios::binary|ios::trunc);
+    if (!os.is_open())
+        throw BenzeneException() << "Error creating file '" << m_db_bak_filename << "'\n";
+    positions.Database()->Dump(os);
+}
+
+void DfpnSolver::DbRestore(DfpnStates& positions)
+{
+    if (!positions.UseDatabase())
+        throw BenzeneException("No open database!\n");
+    if (m_db_bak_filename.empty())
+        throw BenzeneException("Db backup filename is empty!\n");
+    ifstream is(m_db_bak_filename.c_str(), ios::in|ios::binary);
+    if (!is.is_open())
+        throw BenzeneException() << "Error opening file '" << m_db_bak_filename << "'\n";
+    positions.Database()->Restore(is);
+}
+
+void DfpnSolver::TtDump(DfpnStates& positions)
+{
+    SgTimer timer;
+    timer.Start();
+    if (!positions.UseHashTable())
+        throw BenzeneException("No tt used!\n");
+    if (m_tt_bak_filename.empty())
+        throw BenzeneException("Tt backup filename is empty!\n");
+    ofstream os(m_tt_bak_filename.c_str(), ios::out|ios::binary|ios::trunc);
+    if (!os.is_open())
+        throw BenzeneException() << "Error creating file '" << m_tt_bak_filename << "'\n";
+    size_t count = 0;
+    for (DfpnHashTable::Iterator i(*positions.HashTable()); i; ++i)
+    {
+        os.write(reinterpret_cast<const char *>(&i->m_hash), sizeof(i->m_hash));
+        byte* data = i->m_data.Pack();
+        os.write(reinterpret_cast<const char *>(data), i->m_data.PackedSize());
+        if (os.bad())
+            throw BenzeneException() << "Error writing to file '" << m_tt_bak_filename << "'\n";
+        count++;
+    }
+    timer.Stop();
+    LogDfpnThread()
+        << "Tt dump: #entries=" << count
+        << " time=" << timer.GetTime() << '\n';
+}
+
+void DfpnSolver::TtRestore(DfpnStates& positions)
+{
+    SgTimer timer;
+    timer.Start();
+    if (!positions.UseHashTable())
+        throw BenzeneException("No tt used!\n");
+    if (m_tt_bak_filename.empty())
+        throw BenzeneException("Tt backup filename is empty!\n");
+    ifstream is(m_tt_bak_filename.c_str(), ios::in|ios::binary|ios::ate);
+    if (!is.is_open())
+        throw BenzeneException() << "Error opening file '" << m_tt_bak_filename << "'\n";
+    ifstream::pos_type size = is.tellg();
+    is.seekg(0, ios::beg);
+    static const size_t SIZE = 1 << 20;
+    size_t pos = 0;
+    size_t in = 0;
+    size_t count = 0;
+    byte buf[2 * SIZE];
+    while (in > 0 || is.tellg() < size)
+    {
+        if (in < SIZE && is.tellg() < size)
+        {
+            if (pos > 0)
+            {
+                memmove(buf, buf + pos, in);
+                pos = 0;
+            }
+            size_t to_read = min(SIZE, size_t(size - is.tellg()));
+            is.read(reinterpret_cast<char *>(buf + in), to_read);
+            in += to_read;
+        }
+        SgHashCode k = *reinterpret_cast<SgHashCode*>(buf + pos);
+        pos += sizeof(k);
+        in -= sizeof(k);
+        DfpnData d;
+        d.Unpack(buf + pos);
+        positions.HashTable()->Store(k, d);
+        pos += d.PackedSize();
+        in -= d.PackedSize();
+        count++;
+    }
+    timer.Stop();
+    LogDfpnThread()
+        << "Tt restore: #entries=" << count
+        << " time=" << timer.GetTime() << '\n';
+}
+
+void DfpnSolver::TryDoBackups(bool adjust_start)
+{
+    boost::lock_guard<boost::mutex> lock(m_backup_mutex);
+    if (!m_db_bak_period.is_negative())
+    {
+        bool backup = false;
+        if (!adjust_start)
+        {
+            if (second_clock::local_time() >= m_db_bak_start)
+            {
+                backup = true;
+                try {
+                    boost::lock_guard<boost::mutex> dblock(m_topmid_mutex);
+                    BenzeneAssert(m_positions);
+                    DbDump(*m_positions);
+                } catch (BenzeneException& e) {
+                    LogSevere() << "DbDump(): " << e.what();
+                }
+            }
+        }
+        if (adjust_start || backup)
+        {
+            ptime t(second_clock::local_time());
+            while (m_db_bak_start < t)
+                m_db_bak_start += m_db_bak_period;
+        }
+    }
+    if (!m_tt_bak_period.is_negative())
+    {
+        bool backup = false;
+        if (!adjust_start)
+        {
+            if (second_clock::local_time() >= m_tt_bak_start)
+            {
+                backup = true;
+                try {
+                    boost::shared_lock<boost::shared_mutex> lock(m_tt_mutex);
+                    BenzeneAssert(m_positions);
+                    TtDump(*m_positions);
+                } catch (BenzeneException& e) {
+                    LogSevere() << "TtDump(): " << e.what();
+                }
+            }
+        }
+        if (adjust_start || backup)
+        {
+            ptime t(second_clock::local_time());
+            while (m_tt_bak_start < t)
+                m_tt_bak_start += m_tt_bak_period;
+        }
+    }
+}
+
+//----------------------------------------------------------------------------

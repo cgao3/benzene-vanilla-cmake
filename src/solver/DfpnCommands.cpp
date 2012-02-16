@@ -7,6 +7,7 @@
 #include "DfpnCommands.hpp"
 
 using namespace benzene;
+using namespace boost::posix_time;
 
 //----------------------------------------------------------------------------
 
@@ -38,6 +39,10 @@ void DfpnCommands::Register(GtpEngine& e)
     Register(e, "dfpn-open-db", &DfpnCommands::CmdOpenDB);
     Register(e, "dfpn-close-db", &DfpnCommands::CmdCloseDB);
     Register(e, "dfpn-merge-db", &DfpnCommands::CmdMergeDB);
+    Register(e, "dfpn-dump-db", &DfpnCommands::CmdDumpDB);
+    Register(e, "dfpn-restore-db", &DfpnCommands::CmdRestoreDB);
+    Register(e, "dfpn-dump-tt", &DfpnCommands::CmdDumpTT);
+    Register(e, "dfpn-restore-tt", &DfpnCommands::CmdRestoreTT);
     Register(e, "dfpn-db-stat", &DfpnCommands::CmdDBStat);
     Register(e, "dfpn-evaluation-info", &DfpnCommands::CmdEvaluationInfo);
 }
@@ -65,6 +70,10 @@ void DfpnCommands::AddAnalyzeCommands(HtpCommand& cmd)
         "none/DFPN Open DB/dfpn-open-db %r\n"
         "none/DFPN Close DB/dfpn-close-db\n"
         "none/DFPN Merge DB/dfpn-merge-db %r\n"
+        "none/DFPN Dump DB/dfpn-dump-db\n"
+        "none/DFPN Restore DB/dfpn-restore-db\n"
+        "none/DFPN Dump TT/dfpn-dump-tt\n"
+        "none/DFPN Restore TT/dfpn-restore-tt\n"
         "string/DFPN DB Stats/dfpn-db-stat\n"
         "string/DFPN Eval Info/dfpn-evaluation-info\n";
 }
@@ -121,7 +130,19 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             << "[string] threads "
             << m_solver.Threads() << '\n'
             << "[string] thread_work "
-            << m_solver.ThreadWork() << '\n';
+            << m_solver.ThreadWork() << '\n'
+            << "[string] db_bak_filename "
+            << m_solver.DbBakFilename() << '\n'
+            << "[string] db_bak_start "
+            << '"' << m_solver.DbBakStart() << '"' << '\n'
+            << "[string] db_bak_period "
+            << m_solver.DbBakPeriod() << '\n'
+            << "[string] tt_bak_filename "
+            << m_solver.TtBakFilename() << '\n'
+            << "[string] tt_bak_start "
+            << '"' << m_solver.TtBakStart() << '"' << '\n'
+            << "[string] tt_bak_period "
+            << m_solver.TtBakPeriod() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -162,6 +183,18 @@ void DfpnCommands::CmdParam(HtpCommand& cmd)
             m_solver.SetThreads(cmd.ArgMinMax<int>(1, 1, DFPN_MAX_THREADS));
         else if (name == "thread_work")
             m_solver.SetThreadWork(cmd.ArgMin<size_t>(1, 1));
+        else if (name == "db_bak_filename")
+            m_solver.SetDbBakFilename(cmd.Arg(1));
+        else if (name == "db_bak_start")
+            m_solver.SetDbBakStart(time_from_string(cmd.Arg(1)));
+        else if (name == "db_bak_period")
+            m_solver.SetDbBakPeriod(duration_from_string(cmd.Arg(1)));
+        else if (name == "tt_bak_filename")
+            m_solver.SetTtBakFilename(cmd.Arg(1));
+        else if (name == "tt_bak_start")
+            m_solver.SetTtBakStart(time_from_string(cmd.Arg(1)));
+        else if (name == "tt_bak_period")
+            m_solver.SetTtBakPeriod(duration_from_string(cmd.Arg(1)));
         else
             throw GtpFailure() << "Unknown parameter: " << name;
     }
@@ -344,6 +377,54 @@ void DfpnCommands::CmdMergeDB(HtpCommand& cmd)
     catch (BenzeneException& e) {
         other_db.reset(0);
         throw HtpFailure() << "Error merging db: '" << e.what() << "'\n";
+    }
+}
+
+/** Dumps db. */
+void DfpnCommands::CmdDumpDB(HtpCommand& cmd)
+{
+    UNUSED(cmd);
+    try {
+        m_solver.DbDump(m_positions);
+    }
+    catch (BenzeneException& e) {
+        throw HtpFailure() << e.what();
+    }
+}
+
+/** Restores db. */
+void DfpnCommands::CmdRestoreDB(HtpCommand& cmd)
+{
+    UNUSED(cmd);
+    try {
+        m_solver.DbRestore(m_positions);
+    }
+    catch (BenzeneException& e) {
+        throw HtpFailure() << e.what();
+    }
+}
+
+/** Dumps tt. */
+void DfpnCommands::CmdDumpTT(HtpCommand& cmd)
+{
+    UNUSED(cmd);
+    try {
+        m_solver.TtDump(m_positions);
+    }
+    catch (BenzeneException& e) {
+        throw HtpFailure() << e.what();
+    }
+}
+
+/** Restores tt. */
+void DfpnCommands::CmdRestoreTT(HtpCommand& cmd)
+{
+    UNUSED(cmd);
+    try {
+        m_solver.TtRestore(m_positions);
+    }
+    catch (BenzeneException& e) {
+        throw HtpFailure() << e.what();
     }
 }
 

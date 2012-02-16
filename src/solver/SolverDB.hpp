@@ -68,6 +68,10 @@ public:
 
     DB* Database();
 
+    bool UseDatabase() const;
+
+    bool UseHashTable() const;
+
     const SolverDBParameters& Parameters() const;
 
     SolverDBParameters& Parameters();
@@ -80,10 +84,6 @@ private:
     boost::scoped_ptr<DB>& m_database;
 
     SolverDBParameters m_param;
-
-    bool UseDatabase() const;
-
-    bool UseHashTable() const;
 
 };
 

@@ -19,6 +19,7 @@
 
 #include <limits>
 #include <boost/thread.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -466,6 +467,18 @@ public:
                          DfpnStates& positions, PointSequence& pv,
                          const DfpnBounds& maxBounds);
 
+    /** Does backup of db. */
+    void DbDump(DfpnStates& positions);
+
+    /** Restores db from backup. */
+    void DbRestore(DfpnStates& positions);
+
+    /** Does backup of tt. */
+    void TtDump(DfpnStates& positions);
+
+    /** Restores tt from backup. */
+    void TtRestore(DfpnStates& positions);
+
     void AddListener(DfpnListener& listener);
 
     /** Returns various histograms pertaining to the evaluation
@@ -539,6 +552,42 @@ public:
     /** See ThreadWork() */
     void SetThreadWork(size_t threadWork);
 
+    /** Name of backup file for db. */
+    std::string DbBakFilename() const;
+
+    /** See DbBakFilename() */
+    void SetDbBakFilename(std::string db_bak_filename);
+
+    /** First backup of db. */
+    boost::posix_time::ptime DbBakStart() const;
+
+    /** See DbBakStart() */
+    void SetDbBakStart(boost::posix_time::ptime db_bak_start);
+
+    /** Interval of doing backups of db. */
+    boost::posix_time::time_duration DbBakPeriod() const;
+
+    /** See DbBakPeriod() */
+    void SetDbBakPeriod(boost::posix_time::time_duration db_bak_period);
+
+    /** Name of backup file for tt. */
+    std::string TtBakFilename() const;
+
+    /** See TtBakFilename() */
+    void SetTtBakFilename(std::string tt_bak_filename);
+
+    /** First backup of tt. */
+    boost::posix_time::ptime TtBakStart() const;
+
+    /** See TtBakStart() */
+    void SetTtBakStart(boost::posix_time::ptime tt_bak_start);
+
+    /** Interval of doing backups of tt. */
+    boost::posix_time::time_duration TtBakPeriod() const;
+
+    /** See TtBakPeriod() */
+    void SetTtBakPeriod(boost::posix_time::time_duration tt_bak_period);
+
     // @}
 
 private:
@@ -605,6 +654,7 @@ private:
     boost::mutex m_topmid_mutex;
     boost::mutex m_abort_mutex;
     boost::mutex m_listeners_mutex;
+    boost::mutex m_backup_mutex;
     boost::condition_variable m_nothingToSearch_cond;
     boost::shared_mutex m_tt_mutex;
 
@@ -638,6 +688,24 @@ private:
 
     /** See ThreadWork() */
     size_t m_threadWork;
+
+    /** See DbBakFilename() */
+    std::string m_db_bak_filename;
+
+    /** See DbBakStart() */
+    boost::posix_time::ptime m_db_bak_start;
+
+    /** See DbBakPeriod() */
+    boost::posix_time::time_duration m_db_bak_period;
+
+    /** See TtBakFilename() */
+    std::string m_tt_bak_filename;
+
+    /** See TtBakStart() */
+    boost::posix_time::ptime m_tt_bak_start;
+
+    /** See TtBakPeriod() */
+    boost::posix_time::time_duration m_tt_bak_period;
 
     /** Number of calls to CheckAbort() before we check the timer.
         This is to avoid expensive calls to SgTime::Get(). Try to scale
@@ -760,6 +828,8 @@ private:
 
     bool DBRead(const HexState& state, DfpnData& data);
 
+    void TryDoBackups(bool adjust_start = false);
+
     void DumpGuiFx(const std::vector<HexPoint>& children,
                    const std::vector<DfpnBounds>& childBounds) const;
 
@@ -853,6 +923,66 @@ inline size_t DfpnSolver::ThreadWork() const
 inline void DfpnSolver::SetThreadWork(size_t threadWork)
 {
     m_threadWork = threadWork;
+}
+
+inline std::string DfpnSolver::DbBakFilename() const
+{
+    return m_db_bak_filename;
+}
+
+inline void DfpnSolver::SetDbBakFilename(std::string db_bak_filename)
+{
+    m_db_bak_filename = db_bak_filename;
+}
+
+inline boost::posix_time::ptime DfpnSolver::DbBakStart() const
+{
+    return m_db_bak_start;
+}
+
+inline void DfpnSolver::SetDbBakStart(boost::posix_time::ptime db_bak_start)
+{
+    m_db_bak_start = db_bak_start;
+}
+
+inline boost::posix_time::time_duration DfpnSolver::DbBakPeriod() const
+{
+    return m_db_bak_period;
+}
+
+inline void DfpnSolver::SetDbBakPeriod(boost::posix_time::time_duration db_bak_period)
+{
+    m_db_bak_period = db_bak_period;
+}
+
+inline std::string DfpnSolver::TtBakFilename() const
+{
+    return m_tt_bak_filename;
+}
+
+inline void DfpnSolver::SetTtBakFilename(std::string tt_bak_filename)
+{
+    m_tt_bak_filename = tt_bak_filename;
+}
+
+inline boost::posix_time::ptime DfpnSolver::TtBakStart() const
+{
+    return m_tt_bak_start;
+}
+
+inline void DfpnSolver::SetTtBakStart(boost::posix_time::ptime tt_bak_start)
+{
+    m_tt_bak_start = tt_bak_start;
+}
+
+inline boost::posix_time::time_duration DfpnSolver::TtBakPeriod() const
+{
+    return m_tt_bak_period;
+}
+
+inline void DfpnSolver::SetTtBakPeriod(boost::posix_time::time_duration tt_bak_period)
+{
+    m_tt_bak_period = tt_bak_period;
 }
 
 //----------------------------------------------------------------------------
