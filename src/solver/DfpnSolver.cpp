@@ -760,8 +760,9 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     if (data.m_bounds.IsSolved())
         NotifyListeners(*m_history, data);
     DBWrite(*m_state, data);
-    m_vtt.Remove(*m_thread_id, depth, d.hash, vBounds,
-                 data.m_bounds.IsSolved(), m_thread_path_solved);
+    if (midCalled)
+        m_vtt.Remove(*m_thread_id, depth, d.hash, vBounds,
+                     data.m_bounds.IsSolved(), m_thread_path_solved);
     if (m_useGuiFx && depth == 1)
         m_guiFx.UpdateBounds(m_history->LastMove(), data.m_bounds);
     return work;
