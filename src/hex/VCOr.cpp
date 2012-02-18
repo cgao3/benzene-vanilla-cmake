@@ -8,8 +8,7 @@ class VCOrCombiner
 {
 public:
     VCOrCombiner(const CarrierList& semis, const CarrierList& fulls,
-                 bitset_t xCapturedSet, bitset_t yCapturedSet,
-                 HexPoint key);
+                 bitset_t xCapturedSet, bitset_t yCapturedSet);
 
     vector<bitset_t> SearchResult() const;
 
@@ -28,8 +27,7 @@ private:
 };
 
 VCOrCombiner::VCOrCombiner(const CarrierList& semis, const CarrierList& fulls,
-                           bitset_t xCapturedSet, bitset_t yCapturedSet,
-                           HexPoint key)
+                           bitset_t xCapturedSet, bitset_t yCapturedSet)
     : m_xCapturedSet(xCapturedSet), m_yCapturedSet(yCapturedSet)
 {
     m_mem.resize(semis.Count() + fulls.Count());
@@ -55,18 +53,8 @@ VCOrCombiner::VCOrCombiner(const CarrierList& semis, const CarrierList& fulls,
         }
     for (CarrierList::Iterator i(fulls); i; ++i)
         m_mem[memidx++] = i.Carrier();
-    if (key != INVALID_POINT)
-    {
-        for (std::size_t i = 0; i < m_mem.size(); i++)
-            m_mem[i].reset(key);
-    }
     Search(bitset_t(), true, true,
            0, new_semis_count, old_semis_count, fulls.Count());
-    if (key != INVALID_POINT)
-    {
-        for (std::size_t i = 0; i < m_mem.size(); i++)
-            m_mem[i].set(key);
-    }
 }
 
 inline vector<bitset_t> VCOrCombiner::SearchResult() const
@@ -203,9 +191,8 @@ inline int VCOrCombiner::Filter(int start, int count, size_t a) const
 }
 
 vector<bitset_t> benzene::VCOr(const CarrierList& semis, const CarrierList& fulls,
-                               bitset_t xCapturedSet, bitset_t yCapturedSet,
-                               HexPoint key)
+                               bitset_t xCapturedSet, bitset_t yCapturedSet)
 {
-    VCOrCombiner comb(semis, fulls, xCapturedSet, yCapturedSet, key);
+    VCOrCombiner comb(semis, fulls, xCapturedSet, yCapturedSet);
     return comb.SearchResult();
 }
