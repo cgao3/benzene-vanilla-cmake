@@ -144,8 +144,10 @@ void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
             << param.use_non_edge_patterns << '\n'
             << "[bool] incremental_builds "
             << param.incremental_builds << '\n'
-            << "[bool] limit "
-            << param.limit << '\n';
+            << "[bool] limit_fulls "
+            << param.limit_fulls << '\n'
+            << "[bool] limit_or "
+            << param.limit_or << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -158,8 +160,10 @@ void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
             param.use_non_edge_patterns = cmd.Arg<bool>(1);
         else if (name == "incremental_builds")
             param.incremental_builds = cmd.Arg<bool>(1);
-        else if (name == "limit")
-            param.limit = cmd.Arg<bool>(1);
+        else if (name == "limit_fulls")
+            param.limit_fulls = cmd.Arg<bool>(1);
+        else if (name == "limit_or")
+            param.limit_or = cmd.Arg<bool>(1);
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

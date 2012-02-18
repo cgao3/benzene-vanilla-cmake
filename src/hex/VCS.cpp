@@ -21,7 +21,8 @@ VCBuilderParam::VCBuilderParam()
       use_patterns(true),
       use_non_edge_patterns(true),
       incremental_builds(true),
-      limit(false)
+      limit_fulls(true),
+      limit_or(true)
 {
 }
 
@@ -715,7 +716,7 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
          it != to_shrink.end(); ++it)
     {
         bitset_t carrier = *it - added;
-        if (fulls->TryAdd(carrier, m_param->limit))
+        if (fulls->TryAdd(carrier, m_param->limit_fulls))
         {
             m_statistics.shrunk0++;
             m_fulls_and_queue.Push(Full(x, y, carrier));
@@ -758,7 +759,7 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
     for (CarrierList::Iterator i(list); i; ++i)
     {
         bitset_t carrier = i.Carrier() - added;
-        if (fulls->TryAdd(carrier, m_param->limit))
+        if (fulls->TryAdd(carrier, m_param->limit_fulls))
         {
             m_statistics.shrunk0++;
             m_fulls_and_queue.Push(Full(x, y, carrier));
@@ -952,7 +953,7 @@ inline void VCS::VCAnd::TryAddFull(bitset_t carrier, Func func)
     }
     if (S::fulls_null)
         fulls = vcs.m_fulls.Put(x, y, new AndList(carrier));
-    else if (!fulls->TryAdd(carrier, vcs.m_param->limit))
+    else if (!fulls->TryAdd(carrier, vcs.m_param->limit_fulls))
         SWITCHTO(S);
     vcs.m_fulls_and_queue.Push(Full(x, y, carrier));
     SemiRemoveSupersetsOf<typename S::FullsSet>(carrier, func);
@@ -1142,7 +1143,7 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
     BenzeneAssert(xy_semis);
     AndList *xy_fulls = m_fulls[x][y];
     m_statistics.doOrs++;
-    std::vector<bitset_t> new_fulls = m_param->limit ?
+    std::vector<bitset_t> new_fulls = m_param->limit_or ?
         VCOr(*xy_semis, xy_fulls ? xy_fulls->GetAllIntersection() : bitset_t().set(),
              m_capturedSet[x], m_capturedSet[y]) :
         VCOr(*xy_semis, xy_fulls ? *xy_fulls : CarrierList(),
@@ -1157,7 +1158,7 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
         xy_fulls = m_fulls.Put(x, y, new AndList());
     for (std::vector<bitset_t>::iterator it = new_fulls.begin();
             it != new_fulls.end(); ++it)
-        if (xy_fulls->TryAdd(*it, m_param->limit))
+        if (xy_fulls->TryAdd(*it, m_param->limit_fulls))
             m_fulls_and_queue.Push(Full(x, y, *it));
 }
 
@@ -1225,7 +1226,7 @@ inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
     AndList* fulls = m_fulls[x][y];
     if (!fulls)
         fulls = m_fulls.Put(x, y, new AndList(carrier));
-    else if (!fulls->TryAdd(carrier, m_param->limit))
+    else if (!fulls->TryAdd(carrier, m_param->limit_fulls))
         return false;
     m_fulls_and_queue.Push(Full(x, y, carrier));
     OrList* semis = m_semis[x][y];

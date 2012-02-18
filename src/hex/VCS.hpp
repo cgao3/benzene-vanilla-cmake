@@ -37,7 +37,11 @@ struct VCBuilderParam
 
     /** Whether limits acceptance of new vcs to
      *  those which reduce intersection of vcs. */
-    bool limit;
+    bool limit_fulls;
+
+    /** Whether limits or rule to produce only such vcs
+     *  which reduce intersection of vcs. */
+    bool limit_or;
 
     /** Constructor. */
     VCBuilderParam();
