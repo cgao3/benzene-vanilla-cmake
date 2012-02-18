@@ -474,7 +474,7 @@ public:
     void DbRestore(DfpnStates& positions);
 
     /** Does backup of tt. */
-    void TtDump(DfpnStates& positions);
+    void TtDump(DfpnStates& positions, bool locked = false);
 
     /** Restores tt from backup. */
     void TtRestore(DfpnStates& positions);

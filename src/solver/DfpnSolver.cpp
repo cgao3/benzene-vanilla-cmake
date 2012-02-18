@@ -1315,7 +1315,7 @@ void DfpnSolver::DbRestore(DfpnStates& positions)
     positions.Database()->Restore(is);
 }
 
-void DfpnSolver::TtDump(DfpnStates& positions)
+void DfpnSolver::TtDump(DfpnStates& positions, bool locked)
 {
     SgTimer timer;
     timer.Start();
@@ -1323,20 +1323,29 @@ void DfpnSolver::TtDump(DfpnStates& positions)
         throw BenzeneException("No tt used!\n");
     if (m_tt_bak_filename.empty())
         throw BenzeneException("Tt backup filename is empty!\n");
+    if (locked)
+        m_tt_mutex.unlock_shared();
     ofstream os(m_tt_bak_filename.c_str(), ios::out|ios::binary|ios::trunc);
     if (!os.is_open())
         throw BenzeneException() << "Error creating file '" << m_tt_bak_filename << "'\n";
     size_t count = 0;
+    if (locked)
+        m_tt_mutex.lock_shared();
     for (DfpnHashTable::Iterator i(*positions.HashTable()); i; ++i)
     {
-        os.write(reinterpret_cast<const char *>(&i->m_hash), sizeof(i->m_hash));
+        SgHashCode k = i->m_hash;
         int size = i->m_data.PackedSize();
         boost::scoped_array<byte> data(new byte[size]);
         i->m_data.Pack(data.get());
+        if (locked)
+            m_tt_mutex.unlock_shared();
+        os.write(reinterpret_cast<const char *>(&k), sizeof(k));
         os.write(reinterpret_cast<const char *>(data.get()), size);
         if (os.bad())
             throw BenzeneException() << "Error writing to file '" << m_tt_bak_filename << "'\n";
         count++;
+        if (locked)
+            m_tt_mutex.lock_shared();
     }
     timer.Stop();
     LogDfpnThread()
@@ -1402,6 +1411,7 @@ void DfpnSolver::TryDoBackups(bool adjust_start)
             if (second_clock::local_time() >= m_db_bak_start)
             {
                 backup = true;
+                m_db_bak_start += m_db_bak_period;
                 try {
                     boost::lock_guard<boost::mutex> dblock(m_topmid_mutex);
                     BenzeneAssert(m_positions);
@@ -1426,10 +1436,11 @@ void DfpnSolver::TryDoBackups(bool adjust_start)
             if (second_clock::local_time() >= m_tt_bak_start)
             {
                 backup = true;
+                m_tt_bak_start += m_tt_bak_period;
                 try {
                     boost::shared_lock<boost::shared_mutex> lock(m_tt_mutex);
                     BenzeneAssert(m_positions);
-                    TtDump(*m_positions);
+                    TtDump(*m_positions, true);
                 } catch (BenzeneException& e) {
                     LogSevere() << "TtDump(): " << e.what();
                 }
