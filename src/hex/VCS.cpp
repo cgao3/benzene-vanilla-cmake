@@ -20,7 +20,8 @@ VCBuilderParam::VCBuilderParam()
     : and_over_edge(false),
       use_patterns(true),
       use_non_edge_patterns(true),
-      incremental_builds(true)
+      incremental_builds(true),
+      limit(false)
 {
 }
 

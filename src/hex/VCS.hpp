@@ -35,6 +35,10 @@ struct VCBuilderParam
     /** Whether requests for incremental bulilds are done incrementally */
     bool incremental_builds;
 
+    /** Whether limits acceptance of new vcs to
+     *  those which reduce intersection of vcs. */
+    bool limit;
+
     /** Constructor. */
     VCBuilderParam();
 };
