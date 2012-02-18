@@ -160,7 +160,7 @@ inline bitset_t VCOrCombiner::Add(int start, int count, bitset_t capturedSet)
 {
     bitset_t U = capturedSet;
     bitset_t I;
-    I.flip();
+    I.set();
     for (int i = 0; ; i++)
     {
         BenzeneAssert(i < count);

@@ -169,25 +169,33 @@ bitset_t CarrierList::GetGreedyUnion() const
     return U;
 }
 
-template <bool only_old>
-inline bitset_t CarrierList::GetIntersection() const
+inline bitset_t CarrierList::GetOldIntersection() const
 {
     bitset_t I;
     I.set();
     for (Iterator i(*this); i; ++i)
-        if (!only_old || i.Old())
+        if (i.Old())
             I &= i.Carrier();
     return I;
 }
 
-inline bitset_t CarrierList::GetOldIntersection() const
-{
-    return GetIntersection<true>();
-}
-
 inline bitset_t CarrierList::GetAllIntersection() const
 {
-    return GetIntersection<false>();
+    bitset_t I;
+    I.set();
+    for (Iterator i(*this); i; ++i)
+        I &= i.Carrier();
+    return I;
+}
+
+inline bitset_t CarrierList::GetNewIntersection() const
+{
+    bitset_t I;
+    I.set();
+    for (Iterator i(*this); i; ++i)
+        if (!i.Old())
+            I &= i.Carrier();
+    return I;
 }
 
 inline void CarrierList::MarkAllOld()
@@ -1134,7 +1142,9 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
     BenzeneAssert(xy_semis);
     AndList *xy_fulls = m_fulls[x][y];
     m_statistics.doOrs++;
-    std::vector<bitset_t> new_fulls =
+    std::vector<bitset_t> new_fulls = m_param->limit ?
+        VCOr(*xy_semis, xy_fulls ? xy_fulls->GetAllIntersection() : bitset_t().set(),
+             m_capturedSet[x], m_capturedSet[y]) :
         VCOr(*xy_semis, xy_fulls ? *xy_fulls : CarrierList(),
              m_capturedSet[x], m_capturedSet[y]);
     xy_semis->MarkAllProcessed();
@@ -1149,6 +1159,64 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
             it != new_fulls.end(); ++it)
         if (xy_fulls->TryAdd(*it, m_param->limit))
             m_fulls_and_queue.Push(Full(x, y, *it));
+}
+
+vector<bitset_t> benzene::VCOr(CarrierList semis, bitset_t cands,
+                               bitset_t xCapturedSet, bitset_t yCapturedSet)
+{
+    vector<bitset_t> res;
+    bitset_t capturedSet;
+    while (cands.any())
+    {
+        semis.RemoveSupersetsOfUnchecked(cands);
+        bitset_t I_new = semis.GetNewIntersection();
+        cands -= I_new;
+        if (cands.none())
+            break;
+
+        bitset_t I_old = semis.GetOldIntersection();
+        bitset_t I = I_new & I_old;
+
+        if (!BitsetUtil::IsSubsetOf(I, capturedSet))
+            capturedSet |= xCapturedSet;
+        if (!BitsetUtil::IsSubsetOf(I, capturedSet))
+            capturedSet |= yCapturedSet;
+        if (!BitsetUtil::IsSubsetOf(I, capturedSet))
+            break;
+
+        cands -= capturedSet;
+        if (cands.none())
+            break;
+
+        size_t a = cands._Find_first();
+
+        bitset_t I2;
+        I2.set();
+
+        for (CarrierList::Iterator i(semis); i; ++i)
+            if (!i.Carrier()[a])
+                I2 &= i.Carrier();
+
+        if (BitsetUtil::IsSubsetOf(I2, capturedSet))
+        {
+            bitset_t U = capturedSet;
+            I2.set();
+            for (CarrierList::Iterator i(semis); i; ++i)
+            {
+                if (i.Carrier()[a] || BitsetUtil::IsSubsetOf(I2, i.Carrier()))
+                    continue;
+                I2 &= i.Carrier();
+                U |= i.Carrier();
+                if (BitsetUtil::IsSubsetOf(I2, capturedSet))
+                    break;
+            }
+            res.push_back(U);
+            cands &= U;
+        }
+        else
+            cands.reset(a);
+    }
+    return res;
 }
 
 inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)

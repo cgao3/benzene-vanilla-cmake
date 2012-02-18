@@ -94,9 +94,13 @@ public:
     bool SupersetOfAny(bitset_t carrier) const;
     bool RemoveSupersetsOfCheckAnyRemoved(const CarrierList& filter);
     bitset_t GetAllIntersection() const;
+    bitset_t GetOldIntersection() const;
+    bitset_t GetNewIntersection() const;
 
     size_t RemoveAllContaining(bitset_t set);
     size_t RemoveAllContaining(bitset_t set, std::vector<bitset_t>& removed);
+
+    void RemoveSupersetsOfUnchecked(bitset_t carrier);
 
 protected:
     CarrierList(bitset_t carrier);
@@ -106,11 +110,8 @@ protected:
 
     bool RemoveSupersetsOfCheckOldRemoved(bitset_t carrier);
     bool RemoveSupersetsOfCheckAnyRemoved(bitset_t carrier);
-    void RemoveSupersetsOfUnchecked(bitset_t carrier);
 
     bool TrySetOld(bitset_t carrier) const;
-
-    bitset_t GetOldIntersection() const;
 
     void MarkAllOld();
     void MarkAllNew();
@@ -122,8 +123,6 @@ private:
     bool RemoveSupersetsOf(bitset_t carrier);
     template <bool store_removed>
     size_t RemoveAllContaining_(bitset_t set, std::vector<bitset_t>* removed);
-    template <bool only_old>
-    bitset_t GetIntersection() const;
 };
 
 //----------------------------------------------------------------------------
