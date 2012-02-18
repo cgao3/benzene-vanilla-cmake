@@ -360,10 +360,10 @@ private:
         AndList();
         AndList(bitset_t carrier);
         AndList(const std::vector<bitset_t>& carriers_list);
-        bool TryAdd(bitset_t carrier);
+        bool TryAdd(bitset_t carrier, bool limit);
         void Add(bitset_t carrier);
         bitset_t GetIntersection() const;
-        void RemoveSupersetsOf(bitset_t carrier);
+        bool RemoveSupersetsOf(bitset_t carrier);
 
         bool TrySetProcessed(bitset_t carrier);
         void MarkAllUnprocessed();

@@ -243,10 +243,14 @@ inline VCS::AndList::AndList(const std::vector<bitset_t>& carriers_list)
     m_processed_intersection.set();
 }
 
-inline void VCS::AndList::RemoveSupersetsOf(bitset_t carrier)
+inline bool VCS::AndList::RemoveSupersetsOf(bitset_t carrier)
 {
     if (RemoveSupersetsOfCheckOldRemoved(carrier))
+    {
         CalcIntersection();
+        return true;
+    }
+    return false;
 }
 
 inline void VCS::AndList::Add(bitset_t carrier)
@@ -255,10 +259,24 @@ inline void VCS::AndList::Add(bitset_t carrier)
     AddNew(carrier);
 }
 
-inline bool VCS::AndList::TryAdd(bitset_t carrier)
+inline bool VCS::AndList::TryAdd(bitset_t carrier, bool limit)
 {
     if (SupersetOfAny(carrier))
         return false;
+    if (limit)
+    {
+        if (RemoveSupersetsOf(carrier))
+        {
+            AddNew(carrier);
+            return true;
+        }
+        else if (!BitsetUtil::IsSubsetOf(GetAllIntersection(), carrier))
+        {
+            AddNew(carrier);
+            return true;
+        }
+        return false;
+    }
     Add(carrier);
     return true;
 }
@@ -689,7 +707,7 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
          it != to_shrink.end(); ++it)
     {
         bitset_t carrier = *it - added;
-        if (fulls->TryAdd(carrier))
+        if (fulls->TryAdd(carrier, m_param->limit))
         {
             m_statistics.shrunk0++;
             m_fulls_and_queue.Push(Full(x, y, carrier));
@@ -732,7 +750,7 @@ inline bool VCS::Shrink(bitset_t added, HexPoint x, HexPoint y,
     for (CarrierList::Iterator i(list); i; ++i)
     {
         bitset_t carrier = i.Carrier() - added;
-        if (fulls->TryAdd(carrier))
+        if (fulls->TryAdd(carrier, m_param->limit))
         {
             m_statistics.shrunk0++;
             m_fulls_and_queue.Push(Full(x, y, carrier));
@@ -926,7 +944,7 @@ inline void VCS::VCAnd::TryAddFull(bitset_t carrier, Func func)
     }
     if (S::fulls_null)
         fulls = vcs.m_fulls.Put(x, y, new AndList(carrier));
-    else if (!fulls->TryAdd(carrier))
+    else if (!fulls->TryAdd(carrier, vcs.m_param->limit))
         SWITCHTO(S);
     vcs.m_fulls_and_queue.Push(Full(x, y, carrier));
     SemiRemoveSupersetsOf<typename S::FullsSet>(carrier, func);
@@ -1126,21 +1144,11 @@ void VCS::OrSemis(HexPoint x, HexPoint y)
     m_statistics.or_attempts += new_fulls.size();
     m_statistics.or_successes += new_fulls.size();
     if (!xy_fulls)
-    {
-        for (std::vector<bitset_t>::iterator it = new_fulls.begin();
-             it != new_fulls.end(); ++it)
+        xy_fulls = m_fulls.Put(x, y, new AndList());
+    for (std::vector<bitset_t>::iterator it = new_fulls.begin();
+            it != new_fulls.end(); ++it)
+        if (xy_fulls->TryAdd(*it, m_param->limit))
             m_fulls_and_queue.Push(Full(x, y, *it));
-        m_fulls.Put(x, y, new AndList(new_fulls));
-    }
-    else
-    {
-        for (std::vector<bitset_t>::iterator it = new_fulls.begin();
-             it != new_fulls.end(); ++it)
-        {
-            xy_fulls->Add(*it);
-            m_fulls_and_queue.Push(Full(x, y, *it));
-        }
-    }
 }
 
 inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
@@ -1149,7 +1157,7 @@ inline bool VCS::TryAddFull(HexPoint x, HexPoint y, bitset_t carrier)
     AndList* fulls = m_fulls[x][y];
     if (!fulls)
         fulls = m_fulls.Put(x, y, new AndList(carrier));
-    else if (!fulls->TryAdd(carrier))
+    else if (!fulls->TryAdd(carrier, m_param->limit))
         return false;
     m_fulls_and_queue.Push(Full(x, y, carrier));
     OrList* semis = m_semis[x][y];
