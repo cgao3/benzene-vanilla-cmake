@@ -701,12 +701,17 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     d.childrenData.resize(data.m_children.Size());
     d.virtualBounds.resize(data.m_children.Size());
 
-    LookupChildrenDB(d.childrenData, data.m_children);
-    LookupChildren(depth + 1, d.virtualBounds,
-                   d.childrenData, data.m_children);
-
+    bool first = true;
     while (true)
     {
+        if (first || midCalled)
+        {
+            LookupChildrenDB(d.childrenData, data.m_children);
+            LookupChildren(depth + 1, d.virtualBounds,
+                        d.childrenData, data.m_children);
+            first = false;
+        }
+
         if (m_useGuiFx && depth == 0)
             m_guiFx.SetChildrenOnce(data.m_children, d.childrenData);
 
