@@ -177,12 +177,14 @@ DfpnSolver::GuiFx::GuiFx(const DfpnSolver& solver)
 
 void DfpnSolver::GuiFx::ClearChildren()
 {
+    boost::lock_guard<boost::mutex> lock(m_mutex);
     m_data.clear();
 }
 
 void DfpnSolver::GuiFx::SetChildren(const DfpnChildren& children,
                                     const std::vector<DfpnData>& data)
 {
+    boost::lock_guard<boost::mutex> lock(m_mutex);
     m_children = children;
     m_data = data;
 }
@@ -190,8 +192,12 @@ void DfpnSolver::GuiFx::SetChildren(const DfpnChildren& children,
 void DfpnSolver::GuiFx::SetChildrenOnce(const DfpnChildren& children,
                                         const std::vector<DfpnData>& data)
 {
+    boost::lock_guard<boost::mutex> lock(m_mutex);
     if (m_data.empty())
-        SetChildren(children, data);
+    {
+        m_children = children;
+        m_data = data;
+    }
 }
 
 void DfpnSolver::GuiFx::SetFirstPlayer(HexColor color)
@@ -211,6 +217,7 @@ void DfpnSolver::GuiFx::SetPV(HexPoint move, DfpnBounds bounds)
 
 void DfpnSolver::GuiFx::SetPV(const std::vector<std::pair<HexPoint, DfpnBounds> >& pv)
 {
+    boost::lock_guard<boost::mutex> lock(m_mutex);
     if (m_pvDoShift)
     {
         m_pvToWrite = m_pvCur;
@@ -226,6 +233,7 @@ void DfpnSolver::GuiFx::SetPV(const std::vector<std::pair<HexPoint, DfpnBounds> 
 
 void DfpnSolver::GuiFx::UpdateBounds(HexPoint move, const DfpnBounds& bounds)
 {
+    boost::lock_guard<boost::mutex> lock(m_mutex);
     if (m_data.empty())
         return;
     for (std::size_t i = 0; i < m_children.Size(); ++i)
@@ -256,6 +264,7 @@ void DfpnSolver::GuiFx::Write()
 /** Writes progress indication. */
 void DfpnSolver::GuiFx::DoWrite()
 {
+    boost::lock_guard<boost::mutex> lock(m_mutex);
     if (m_data.empty())
         return;
     std::ostringstream os;

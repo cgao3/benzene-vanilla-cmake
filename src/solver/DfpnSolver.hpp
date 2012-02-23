@@ -642,6 +642,8 @@ private:
         
         double m_delay;
 
+        boost::mutex m_mutex;
+
         void DoWrite();
     };
 
