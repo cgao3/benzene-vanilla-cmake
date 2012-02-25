@@ -1417,7 +1417,9 @@ void DfpnSolver::TtRestore(DfpnStates& positions)
 
 void DfpnSolver::TryDoBackups(bool adjust_start)
 {
-    boost::lock_guard<boost::mutex> lock(m_backup_mutex);
+    boost::unique_lock<boost::mutex> lock(m_backup_mutex, boost::try_to_lock);
+    if (!lock)
+        return;
     if (!m_db_bak_period.is_negative())
     {
         bool backup = false;
