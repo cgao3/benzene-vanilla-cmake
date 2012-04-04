@@ -8,7 +8,6 @@
 
 #include "BitsetIterator.hpp"
 #include "BoardUtil.hpp"
-#include "VCSet.hpp"
 #include "MoHexUtil.hpp"
 #include "MoHexPriorKnowledge.hpp"
 #include "MoHexSearch.hpp"
@@ -19,6 +18,17 @@
 #include "SequenceHash.hpp"
 
 using namespace benzene;
+
+extern int LocalPatterns_6PatternHit;
+extern int LocalPatterns_6PatternMiss;
+extern int LocalPatterns_12PatternHit;
+
+extern int GlobalPatterns_6PatternHit;
+extern int GlobalPatterns_6PatternMiss;
+extern int GlobalPatterns_12PatternHit;
+extern int GlobalPatterns_18PatternHit;
+extern int GlobalPatterns_BadPattern_Tree;
+extern int GlobalPatterns_BadPattern_Playout;
 
 //----------------------------------------------------------------------------
 
@@ -176,6 +186,17 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     for (std::size_t i = 0; i < sequence.size(); i++)
         os << " " << MoHexUtil::MoveString(sequence[i]);
     os << '\n';
+  
+    os << "LocalPatterns_6PatternHit          " << LocalPatterns_6PatternHit << "\n";
+    os << "LocalPatterns_6PatternMiss         " << LocalPatterns_6PatternMiss << "\n";
+    os << "LocalPatterns_12PatternHit         " << LocalPatterns_12PatternHit << "\n";
+
+    os << "GlobalPatterns_6PatternHit         " << GlobalPatterns_6PatternHit << "\n";
+    os << "GlobalPatterns_6PatternMiss        " << GlobalPatterns_6PatternMiss << "\n";
+    os << "GlobalPatterns_12PatternHit        " << GlobalPatterns_12PatternHit << "\n";
+    os << "GlobalPatterns_18PatternHit        " << GlobalPatterns_18PatternHit << "\n";
+    os << "GlobalPatterns_BadPattern_Tree     " << GlobalPatterns_BadPattern_Tree << "\n";
+    os << "GlobalPatterns_BadPattern_Playout  " << GlobalPatterns_BadPattern_Playout << "\n";
     LogInfo() << os.str() << '\n';
 
 #if 0
