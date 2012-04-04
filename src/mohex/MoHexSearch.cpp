@@ -58,7 +58,7 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
       m_root(0)
 {
     SetBiasTermConstant(0.0);
-    SetExpandThreshold(1);
+    SetExpandThreshold(2);
     {
         std::vector<SgUctValue> thresholds;
         thresholds.push_back(400);
