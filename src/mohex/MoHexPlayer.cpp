@@ -104,6 +104,9 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     Search().SetWeightRaveUpdates(other.Search().WeightRaveUpdates());
     Search().SetTreeUpdateRadius(other.Search().TreeUpdateRadius());
     Search().SetKnowledgeThreshold(other.Search().KnowledgeThreshold());
+    Search().SetVirtualLoss(other.Search().VirtualLoss());
+    Search().SetLazyDelete(other.Search().LazyDelete());
+    Search().SetProgressiveBiasConstant(other.Search().ProgressiveBiasConstant());
 }
 
 //----------------------------------------------------------------------------

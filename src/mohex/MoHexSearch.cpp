@@ -82,6 +82,7 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     SetRaveWeightInitial(1.0);
     SetRaveWeightFinal(20000.0);
     SetProgressiveBiasConstant(1.0f);
+    SetLazyDelete(true);
 }
 
 MoHexSearch::~MoHexSearch()

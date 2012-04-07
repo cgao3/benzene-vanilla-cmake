@@ -115,6 +115,8 @@ public:
     /** @name Virtual functions of SgUctThreadState */
     // @{
 
+    bool IsValidMove(SgMove move);
+
     void GameStart();
 
     void StartPlayouts();

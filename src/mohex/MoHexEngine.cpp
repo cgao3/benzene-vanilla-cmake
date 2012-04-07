@@ -215,6 +215,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
 #endif
             << "[bool] keep_games "
             << search.KeepGames() << '\n'
+            << "[bool] lazy_delete "
+            << search.LazyDelete() << '\n'
             << "[bool] perform_pre_search " 
             << m_player.PerformPreSearch() << '\n'
             << "[bool] ponder "
@@ -261,6 +263,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
 #endif
             << "[string] playout_update_radius "
             << search.PlayoutUpdateRadius() << '\n'
+            << "[string] progressive_bias "
+            << search.ProgressiveBiasConstant() << '\n'
             << "[string] randomize_rave_frequency "
             << search.RandomizeRaveFrequency() << '\n'
             << "[string] rave_weight_final "
@@ -275,6 +279,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
             m_player.SetBackupIceInfo(cmd.Arg<bool>(1));
+        else if (name == "lazy_delete")
+            search.SetLazyDelete(cmd.Arg<bool>(1));
 #if HAVE_GCC_ATOMIC_BUILTINS
         else if (name == "lock_free")
             search.SetLockFree(cmd.Arg<bool>(1));
@@ -321,6 +327,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetNumberPlayouts(cmd.ArgMin<int>(1, 1));
         else if (name == "playout_update_radius")
             search.SetPlayoutUpdateRadius(cmd.ArgMin<int>(1, 0));
+        else if (name == "progressive_bias")
+            search.SetProgressiveBiasConstant(cmd.ArgMin<float>(1, 0));
         else if (name == "rave_weight_final")
             search.SetRaveWeightFinal(cmd.ArgMin<float>(1, 0));
         else if (name == "rave_weight_initial")

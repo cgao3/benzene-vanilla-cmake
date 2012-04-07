@@ -249,7 +249,9 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
             & ComputeKnowledge(provenType);
         for (BitsetIterator it(moveset); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
-        return true;
+
+        // Truncate tree only if not using lazy delete
+        return !m_search.LazyDelete();
     }
     BenzeneAssert(false);
     return false;
@@ -309,6 +311,11 @@ void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
 SgBlackWhite MoHexThreadState::ToPlay() const
 {
     return MoHexUtil::ToSgBlackWhite(m_state->ToPlay());
+}
+
+bool MoHexThreadState::IsValidMove(SgMove move)
+{
+    return m_state->Position().IsEmpty(static_cast<HexPoint>(move));
 }
 
 void MoHexThreadState::GameStart()
