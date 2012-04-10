@@ -221,7 +221,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
             m_priorKnowledge.ProcessPosition(moves);
         return false;
     }
-    else if (count == 0)
+    else if (count <= 0)
     {
         // First time we have been to this node. If solid winning
         // chain exists then mark as proven and abort. Otherwise, mark
@@ -230,7 +230,8 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
             return false;
         for (BitsetIterator it(m_state->Position().GetEmpty()); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
-        m_priorKnowledge.ProcessPosition(moves);
+        if (count == 0)
+            m_priorKnowledge.ProcessPosition(moves);
         return false;
     }
     else
