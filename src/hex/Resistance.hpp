@@ -24,27 +24,27 @@ public:
 
     ~AdjacencyGraph();
     
-    std::vector<bool>& operator[](int n);
+    std::vector<int>& operator[](int n);
     
-    const std::vector<bool>& operator[](int n) const;
+    const std::vector<int>& operator[](int n) const;
 
 private:
-    std::vector< std::vector<bool> > m_adj;
+    std::vector< std::vector<int> > m_adj;
 };
 
 inline AdjacencyGraph::AdjacencyGraph()
-    : m_adj(BITSETSIZE, std::vector<bool>(BITSETSIZE, false))
+    : m_adj(BITSETSIZE, std::vector<int>(BITSETSIZE, 0))
 { }
 
 inline AdjacencyGraph::~AdjacencyGraph()
 { }
 
-inline std::vector<bool>& AdjacencyGraph::operator[](int n)
+inline std::vector<int>& AdjacencyGraph::operator[](int n)
 {
     return m_adj[n];
 }
 
-inline const std::vector<bool>& AdjacencyGraph::operator[](int n) const
+inline const std::vector<int>& AdjacencyGraph::operator[](int n) const
 {
     return m_adj[n];
 }

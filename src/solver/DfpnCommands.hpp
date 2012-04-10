@@ -56,6 +56,11 @@ private:
     void CmdGetPV(HtpCommand& cmd);
     void CmdOpenDB(HtpCommand& cmd);
     void CmdCloseDB(HtpCommand& cmd);
+    void CmdMergeDB(HtpCommand& cmd);
+    void CmdDumpDB(HtpCommand& cmd);
+    void CmdRestoreDB(HtpCommand& cmd);
+    void CmdDumpTT(HtpCommand& cmd);
+    void CmdRestoreTT(HtpCommand& cmd);
     void CmdDBStat(HtpCommand& cmd);
     void CmdEvaluationInfo(HtpCommand& cmd);
 };

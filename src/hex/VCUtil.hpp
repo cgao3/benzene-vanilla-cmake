@@ -8,7 +8,7 @@
 #include "Hex.hpp"
 #include "HexBoard.hpp"
 #include "StoneBoard.hpp"
-#include "VC.hpp"
+#include "VCS.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 

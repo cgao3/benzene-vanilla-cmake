@@ -19,12 +19,8 @@ int DfsData::PackedSize() const
             sizeof(m_bestMove));
 }
 
-/** @bug NOT THREADSAFE! */
-byte* DfsData::Pack() const
+void DfsData::Pack(byte* data) const
 {
-    // replace this to make it threadsafe
-    static byte data[256];
-    
     int index = 0;
     MiscUtil::WordToBytes(m_win, &data[index]);
     index += 4;
@@ -40,8 +36,6 @@ byte* DfsData::Pack() const
 
     MiscUtil::WordToBytes(m_bestMove, &data[index]);
     index += 4;
-
-    return data;
 }
 
 void DfsData::Unpack(const byte* data)

@@ -5,7 +5,7 @@
 #include "Hex.hpp"
 #include "BitsetIterator.hpp"
 #include "TwoDistance.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 
 using namespace benzene;
 
@@ -86,12 +86,11 @@ void TwoDistance::ComputeScore()
 
 bool TwoDistance::IsAdjacent(HexColor color, HexPoint p1, HexPoint p2)
 {
-    VC vc;
-    if (m_brd->Cons(color).SmallestVC(p1, p2, VC::FULL, vc)) {
-        switch(m_ntype) {
-        case ADJACENT: return vc.IsEmpty(); 
-        case  FULL_VC: return true;
-        }
+    int adj = m_brd->Cons(color).FullAdjacent(p1, p2);
+    switch(m_ntype)
+    {
+        case ADJACENT: return adj == 0;
+        case  FULL_VC: return adj > 0;
     }
     return false;
 }

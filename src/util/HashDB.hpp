@@ -7,14 +7,19 @@
 
 #include <boost/concept_check.hpp>
 
-#include <cstdio>
 #include <cstring>
+#include <iostream>
+#include <fstream>
 #include <string>
 
 #include <db.h>
 
+#include <boost/scoped_array.hpp>
+
 #include "SgHash.h"
+#include "SgTimer.h"
 #include "Benzene.hpp"
+#include "BenzeneAssert.hpp"
 #include "Types.hpp"
 #include "BenzeneException.hpp"
 
@@ -31,10 +36,11 @@ struct PackableConcept
         const T t;
         int size = t.PackedSize();
         size = 42;  // to avoid non-used warning
-        byte* d = t.Pack();
+        boost::scoped_array<byte> d(new byte[size]);
+        t.Pack(d.get());
 
         T a = t;
-        a.Unpack(d);
+        a.Unpack(d.get());
     }
 };
 
@@ -82,6 +88,15 @@ public:
 
     /** Flush the db to disk. */
     void Flush();
+
+    /** Merge all data from another db. */
+    void Merge(HashDB<T>& other);
+
+    /** Dumbs db to file. */
+    void Dump(std::ofstream& os);
+
+    /** Restore db from file. */
+    void Restore(std::ifstream& is);
 
     /** Returns statistics of the berkeley db. */
     std::string BDBStatistics();
@@ -276,8 +291,10 @@ bool HashDB<T>::Put(SgHashCode hash, const T& d)
     key.data = &hash;
     key.size = sizeof(hash);
 
-    data.data = d.Pack();
     data.size = d.PackedSize();
+    boost::scoped_array<byte> arr(new byte[data.size]);
+    d.Pack(arr.get());
+    data.data = arr.get();
 
     int ret;
     if ((ret = m_db->put(m_db, NULL, &key, &data, 0)) != 0) {
@@ -314,6 +331,146 @@ template<class T>
 void HashDB<T>::Flush()
 {
     m_db->sync(m_db, 0);
+}
+
+template<class T>
+void HashDB<T>::Merge(HashDB<T>& other)
+{
+    DBC* cursorp;
+    other.m_db->cursor(other.m_db, NULL, &cursorp, 0);
+
+    DBT key, data;
+    memset(&key, 0, sizeof(key));
+    memset(&data, 0, sizeof(data));
+
+    int ret;
+    size_t confilcts = 0;
+    size_t overwrites = 0;
+    size_t copied = 0;
+    while ((ret = cursorp->c_get(cursorp, &key, &data, DB_NEXT)) == 0)
+    {
+        if (key.size != sizeof(SgHashCode))
+            continue;
+        ret = m_db->put(m_db, NULL, &key, &data, DB_NOOVERWRITE);
+        if (ret == DB_KEYEXIST)
+        {
+            confilcts++;
+            T d;
+            d.Unpack(static_cast<byte*>(data.data));
+            T d_orig;
+            DBT key_orig = key;
+            DBT data_orig;
+            memset(&data_orig, 0, sizeof(data_orig));
+            ret = m_db->get(m_db, NULL, &key_orig, &data_orig, 0);
+            if (ret == 0)
+            {
+                d_orig.Unpack(static_cast<byte*>(data_orig.data));
+                if (d_orig.ReplaceBy(d))
+                {
+                    ret = m_db->put(m_db, NULL, &key_orig, &data, 0);
+                    overwrites++;
+                    copied++;
+                }
+            }
+        } else
+            copied++;
+        if (ret != 0) {
+            cursorp->c_close(0);
+            m_db->err(m_db, ret, "%s", m_filename.c_str());
+            throw BenzeneException("HashDB: error in Merge()!");
+        }
+    }
+    cursorp->c_close(cursorp);
+    if (ret != DB_NOTFOUND)
+    {
+        other.m_db->err(other.m_db, ret, "%s", m_filename.c_str());
+        throw BenzeneException("HashDB: error in Merge()!");
+    }
+    LogDfpnThread()
+        << "Db merge: copied=" << copied
+        << " confilcts=" << confilcts
+        << " overwrites=" << overwrites << '\n';
+}
+
+template<class T>
+void HashDB<T>::Dump(std::ofstream& os)
+{
+    SgTimer timer;
+    timer.Start();
+    Header header;
+    GetHeader(header);
+    os.write(reinterpret_cast<const char *>(&header), sizeof(header));
+
+    DBC* cursorp;
+    m_db->cursor(m_db, NULL, &cursorp, 0);
+
+    DBT key, data;
+    memset(&key, 0, sizeof(key));
+    memset(&data, 0, sizeof(data));
+
+    int ret;
+    size_t count = 0;
+    while ((ret = cursorp->c_get(cursorp, &key, &data, DB_NEXT)) == 0)
+    {
+        if (key.size != sizeof(SgHashCode))
+            continue;
+        os.write(reinterpret_cast<const char *>(key.data), key.size);
+        unsigned ds = unsigned(data.size);
+        os.write(reinterpret_cast<const char *>(&ds), sizeof(ds));
+        os.write(reinterpret_cast<const char *>(data.data), data.size);
+        count++;
+    }
+    cursorp->c_close(cursorp);
+    if (ret != DB_NOTFOUND)
+    {
+        m_db->err(m_db, ret, "%s", m_filename.c_str());
+        throw BenzeneException("HashDB: error in Dump()!");
+    }
+    timer.Stop();
+    LogDfpnThread()
+        << "Db dump: #entries=" << count
+        << " time=" << timer.GetTime() << '\n';
+}
+
+template<class T>
+void HashDB<T>::Restore(std::ifstream& is)
+{
+    SgTimer timer;
+    timer.Start();
+    Header header;
+    is.read(reinterpret_cast<char *>(&header), sizeof(header));
+    PutHeader(header);
+
+    DBT key, data;
+    memset(&key, 0, sizeof(key));
+    memset(&data, 0, sizeof(data));
+
+    size_t count = 0;
+    while (true)
+    {
+        SgHashCode k;
+        is.read(reinterpret_cast<char *>(&k), sizeof(k));
+        if (is.eof())
+            break;
+        key.size = sizeof(k);
+        key.data = &k;
+        unsigned ds;
+        is.read(reinterpret_cast<char *>(&ds), sizeof(ds));
+        data.size = ds;
+        byte d[4096];
+        is.read(reinterpret_cast<char *>(d), data.size);
+        data.data = d;
+        int ret;
+        if ((ret = m_db->put(m_db, NULL, &key, &data, 0)) != 0) {
+            m_db->err(m_db, ret, "%s", m_filename.c_str());
+            throw BenzeneException("HashDB: error in Restore()!");
+        }
+        count++;
+    }
+    timer.Stop();
+    LogDfpnThread()
+        << "Db restore: #entries=" << count
+        << " time=" << timer.GetTime() << '\n';
 }
 
 template<class T>

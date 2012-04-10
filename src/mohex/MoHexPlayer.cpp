@@ -8,6 +8,7 @@
 
 #include "BitsetIterator.hpp"
 #include "BoardUtil.hpp"
+#include "VCS.hpp"
 #include "MoHexUtil.hpp"
 #include "MoHexPriorKnowledge.hpp"
 #include "MoHexSearch.hpp"

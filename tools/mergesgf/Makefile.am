@@ -11,6 +11,7 @@ mergesgf_LDADD = \
 $(FUEGO_BUILD)/smartgame/libfuego_smartgame.a \
 $(FUEGO_BUILD)/gtpengine/libfuego_gtpengine.a \
 $(BOOST_FILESYSTEM_LIB) \
+$(BOOST_PROGRAM_OPTIONS_LIB) \
 $(BOOST_SYSTEM_LIB) \
 $(BOOST_THREAD_LIB)
 

@@ -15,7 +15,7 @@
 #include "DfsSolver.hpp"
 #include "SwapCheck.hpp"
 #include "TwoDistance.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 #include "VCUtil.hpp"
 
 using namespace benzene;

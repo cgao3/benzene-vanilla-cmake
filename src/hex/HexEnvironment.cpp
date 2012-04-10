@@ -132,54 +132,38 @@ void HexEnvironmentCommands::ParamICE(HtpCommand& cmd)
 void HexEnvironmentCommands::ParamVC(HtpCommand& cmd)
 {
     HexBoard& brd = *m_env.brd; 
-    VCBuilderParam& param = brd.Builder().Parameters();
+    VCBuilderParam& param = brd.VCBuilderParameters();
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
-            << "[bool] abort_on_winning_connection "
-            << param.abort_on_winning_connection << '\n'
             << "[bool] and_over_edge "
             << param.and_over_edge << '\n'
-            << "[bool] use_greedy_union "
-            << param.use_greedy_union << '\n'
             << "[bool] use_patterns "
             << param.use_patterns << '\n'
             << "[bool] use_non_edge_patterns "
             << param.use_non_edge_patterns << '\n'
-            << "[string] max_ors "
-            << param.max_ors << '\n'
-            << "[string] softlimit_full "
-            << brd.Cons(BLACK).SoftLimit(VC::FULL) << '\n'
-            << "[string] softlimit_semi "
-            << brd.Cons(BLACK).SoftLimit(VC::SEMI) << '\n';
+            << "[bool] incremental_builds "
+            << param.incremental_builds << '\n'
+            << "[bool] limit_fulls "
+            << param.limit_fulls << '\n'
+            << "[bool] limit_or "
+            << param.limit_or << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
-        if (name == "abort_on_winning_connection")
-            param.abort_on_winning_connection = cmd.Arg<bool>(1);
-        else if (name == "and_over_edge")
+        if (name == "and_over_edge")
             param.and_over_edge = cmd.Arg<bool>(1);
-        else if (name == "use_greedy_union")
-            param.use_greedy_union = cmd.Arg<bool>(1);
         else if (name == "use_patterns")
             param.use_patterns = cmd.Arg<bool>(1);
         else if (name == "use_non_edge_patterns")
             param.use_non_edge_patterns = cmd.Arg<bool>(1);
-        else if (name == "max_ors")
-            param.max_ors = cmd.ArgMin<int>(1, 1);
-        else if (name == "softlimit_full")
-        {
-            int limit = cmd.ArgMin<int>(1, 0);
-            brd.Cons(BLACK).SetSoftLimit(VC::FULL, limit);
-            brd.Cons(WHITE).SetSoftLimit(VC::FULL, limit);
-        }
-        else if (name == "softlimit_semi")
-        {
-            int limit = cmd.ArgMin<int>(1, 0);
-            brd.Cons(BLACK).SetSoftLimit(VC::SEMI, limit);
-            brd.Cons(WHITE).SetSoftLimit(VC::SEMI, limit);
-        }
+        else if (name == "incremental_builds")
+            param.incremental_builds = cmd.Arg<bool>(1);
+        else if (name == "limit_fulls")
+            param.limit_fulls = cmd.Arg<bool>(1);
+        else if (name == "limit_or")
+            param.limit_or = cmd.Arg<bool>(1);
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

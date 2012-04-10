@@ -14,7 +14,7 @@
 #include "HexState.hpp"
 #include "MoHexPriorKnowledge.hpp"
 #include "Move.hpp"
-#include "VC.hpp"
+#include "VCS.hpp"
 
 #include <boost/scoped_ptr.hpp>
 

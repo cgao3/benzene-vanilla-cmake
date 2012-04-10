@@ -100,7 +100,14 @@ struct _Base_bitset
 	for (size_t __i = 0; __i < _Nw; __i++)
             _M_w[__i] ^= __x._M_w[__i];
     }
-
+    
+    void
+    _M_do_sub(const _Base_bitset<_Nw>& __x)
+    {
+        for (size_t __i = 0; __i < _Nw; __i++)
+            _M_w[__i] &= ~__x._M_w[__i];
+    }
+    
     void
     _M_do_left_shift(size_t __shift);
     
@@ -362,7 +369,11 @@ struct _Base_bitset<1>
     void
     _M_do_xor(const _Base_bitset<1>& __x)
     { _M_w ^= __x._M_w; }
-
+    
+    void
+    _M_do_sub(const _Base_bitset<1>& __x)
+    { _M_w &= ~__x._M_w; }
+    
     void
     _M_do_left_shift(size_t __shift)
     { _M_w <<= __shift; }
@@ -498,7 +509,11 @@ struct _Base_bitset<0>
     void
     _M_do_xor(const _Base_bitset<0>&)
     { }
-
+    
+    void
+    _M_do_sub(const _Base_bitset<0>&)
+    { }
+    
     void
     _M_do_left_shift(size_t)
     { }
@@ -805,7 +820,14 @@ public:
 	this->_M_do_xor(__rhs);
 	return *this;
     }
-
+    
+    benzene_bitset<_Nb>&
+    operator-=(const benzene_bitset<_Nb>& __rhs)
+    {
+        this->_M_do_sub(__rhs);
+        return *this;
+    }
+    
     /////////////////////////////////////////////////
     // added by broderic
     bool is_subset_of(const benzene_bitset<_Nb>& __rhs) const
@@ -1219,6 +1241,15 @@ operator^(const benzene_bitset<_Nb>& __x, const benzene_bitset<_Nb>& __y)
 {
     benzene_bitset<_Nb> __result(__x);
     __result ^= __y;
+    return __result;
+}
+
+template <size_t _Nb>
+inline benzene_bitset<_Nb>
+operator-(const benzene_bitset<_Nb>& __x, const benzene_bitset<_Nb>& __y)
+{
+    benzene_bitset<_Nb> __result(__x);
+    __result -= __y;
     return __result;
 }
 //@}

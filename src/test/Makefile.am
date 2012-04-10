@@ -14,6 +14,7 @@ benzene_unittest_SOURCES = \
 ../hex/test/BitsetIteratorTest.cpp \
 ../hex/test/BoardIteratorTest.cpp \
 ../hex/test/BoardUtilTest.cpp \
+../hex/test/CarrierListTest.cpp \
 ../hex/test/ConstBoardTest.cpp \
 ../hex/test/DecompositionsTest.cpp \
 ../hex/test/EndgameUtilTest.cpp \
@@ -29,9 +30,6 @@ benzene_unittest_SOURCES = \
 ../hex/test/SequenceHashTest.cpp \
 ../hex/test/StateDBTest.cpp \
 ../hex/test/StoneBoardTest.cpp \
-../hex/test/VCListTest.cpp \
-../hex/test/VCSetTest.cpp \
-../hex/test/VCTest.cpp \
 ../hex/test/VCUtilTest.cpp \
 ../hex/test/ZobristHashTest.cpp \
 ../test/TestMain.cpp

@@ -19,6 +19,7 @@ benzenetest_LDADD = \
 $(FUEGO_BUILD)/smartgame/libfuego_smartgame.a \
 $(FUEGO_BUILD)/gtpengine/libfuego_gtpengine.a \
 $(DB_LIBS) \
+$(BOOST_DATE_TIME_LIB) \
 $(BOOST_FILESYSTEM_LIB) \
 $(BOOST_PROGRAM_OPTIONS_LIB) \
 $(BOOST_SYSTEM_LIB) \

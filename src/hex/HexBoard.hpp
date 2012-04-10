@@ -8,7 +8,7 @@
 #include <boost/scoped_ptr.hpp>
 
 #include "ChangeLog.hpp"
-#include "VCBuilder.hpp"
+#include "VCS.hpp"
 #include "Hex.hpp"
 #include "ICEngine.hpp"
 #include "PatternState.hpp"
@@ -66,6 +66,9 @@ public:
     /** See BackupIceInfo() */
     void SetBackupIceInfo(bool enable);
 
+    /** Returns parameters for VC builder */
+    VCBuilderParam& VCBuilderParameters();
+
     // @}
 
     //-----------------------------------------------------------------------
@@ -118,16 +121,10 @@ public:
     PatternState& GetPatternState();
 
     /** Returns the connection set for color. */
-    const VCSet& Cons(HexColor color) const;
+    const VCS& Cons(HexColor color) const;
 
     /** Returns the connection set for color. */
-    VCSet& Cons(HexColor color);
-
-    /** Returns the connection builder for this board. */
-    VCBuilder& Builder();
-
-    /** Returns the connection builder for this board. */
-    const VCBuilder& Builder() const;
+    VCS& Cons(HexColor color);
 
     //-----------------------------------------------------------------------
     
@@ -183,14 +180,8 @@ private:
 
     PatternState m_patterns;
 
-    /** Builder used to compute virtual connections. */
-    VCBuilder m_builder;
-
     /** Connection sets for black and white. */
-    boost::scoped_ptr<VCSet> m_cons[BLACK_AND_WHITE];
-
-    /** The vc changelogs for both black and white. */
-    ChangeLog<VC> m_log[BLACK_AND_WHITE];
+    boost::scoped_ptr<VCS> m_cons[BLACK_AND_WHITE];
 
     /** History stack. */
     std::vector<History> m_history;
@@ -210,6 +201,8 @@ private:
     /** See BackupIceInfo() */
     bool m_backup_ice_info;
 
+    VCBuilderParam& m_builder_param;
+
     // @}
     
     //-----------------------------------------------------------------------
@@ -219,8 +212,6 @@ private:
         often. */
     void operator=(const HexBoard& other);
 
-    void Initialize();
-
     void ComputeInferiorCells(HexColor color_to_move);
 
     void BuildVCs();
@@ -228,14 +219,12 @@ private:
     void BuildVCs(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE],
                   bool use_changelog);
 
-    void MarkChangeLog();
-
     void RevertVCs();
 
-    void HandleVCDecomposition(HexColor color_to_move, bool use_changelog);
+    void HandleVCDecomposition(HexColor color_to_move);
 
     void AddStones(HexColor color, const bitset_t& played,
-                   HexColor color_to_move, bool use_changelog);
+                   HexColor color_to_move);
 
     void ClearHistory();
 
@@ -294,24 +283,14 @@ inline PatternState& HexBoard::GetPatternState()
     return m_patterns;
 }
 
-inline const VCSet& HexBoard::Cons(HexColor color) const
+inline const VCS& HexBoard::Cons(HexColor color) const
 {
     return *m_cons[color].get();
 }
 
-inline VCSet& HexBoard::Cons(HexColor color)
+inline VCS& HexBoard::Cons(HexColor color)
 {
     return *m_cons[color].get();
-}
-
-inline VCBuilder& HexBoard::Builder()
-{
-    return m_builder;
-}
-
-inline const VCBuilder& HexBoard::Builder() const
-{
-    return m_builder;
 }
 
 inline bool HexBoard::UseVCs() const
@@ -352,6 +331,11 @@ inline bool HexBoard::BackupIceInfo() const
 inline void HexBoard::SetBackupIceInfo(bool enable)
 {
     m_backup_ice_info = enable;
+}
+
+inline VCBuilderParam& HexBoard::VCBuilderParameters()
+{
+    return m_builder_param;
 }
 
 inline int HexBoard::Width() const

@@ -16,7 +16,6 @@ BenzeneException.hpp \
 BenzeneProgram.hpp \
 Benzene.hpp \
 Bitset.hpp \
-ChangeLog.hpp \
 Digraph.hpp \
 HashDB.hpp \
 HashMap.hpp \
@@ -25,6 +24,7 @@ Logger.hpp \
 lssolve.h \
 mat.hpp \
 Misc.hpp \
+Queue.hpp \
 SafeBool.hpp \
 SortedSequence.hpp \
 TransTable.hpp \

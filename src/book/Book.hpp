@@ -32,7 +32,7 @@ public:
 
     int PackedSize() const;
 
-    byte* Pack() const;
+    void Pack(byte* t) const;
 
     void Unpack(const byte* t);
 
@@ -63,14 +63,14 @@ inline int HexBookNode::PackedSize() const
     return sizeof(HexBookNode);
 }
 
-inline byte* HexBookNode::Pack() const
+inline void HexBookNode::Pack(byte* t) const
 {
-    return (byte*)this;
+    *reinterpret_cast<HexBookNode*>(t) = *this;
 }
 
 inline void HexBookNode::Unpack(const byte* t)
 {
-    *this = *(const HexBookNode*)t;
+    *this = *reinterpret_cast<const HexBookNode*>(t);
 }
 
 inline void HexBookNode::Rotate(const ConstBoard& brd)

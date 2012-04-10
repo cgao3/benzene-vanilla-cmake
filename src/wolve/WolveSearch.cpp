@@ -6,7 +6,7 @@
 #include "SgSearchValue.h"
 
 #include "BitsetIterator.hpp"
-#include "VCSet.hpp"
+#include "VCS.hpp"
 #include "HexEval.hpp"
 #include "HexState.hpp"
 #include "EndgameUtil.hpp"
@@ -316,9 +316,9 @@ void WolveSearch::OrderMoves(const bitset_t& consider,
     // NOTE: To ensure we are deterministic, we must use stable_sort.
     stable_sort(mvsc.begin(), mvsc.end());
     std::size_t width = m_plyWidth;
-    if (0 < m_specificPlyWidths.size())
+    if (CurrentDepth() < m_specificPlyWidths.size())
     {
-        BenzeneAssert(std::size_t(CurrentDepth()) < m_plyWidth.size());
+        BenzeneAssert(std::size_t(CurrentDepth()) < m_specificPlyWidths.size());
         width = m_specificPlyWidths[CurrentDepth()];
     }
     const std::size_t movesToCopy = std::min(mvsc.size(), width);

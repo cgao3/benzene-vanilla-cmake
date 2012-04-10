@@ -130,7 +130,8 @@ void Logger::Flush()
 bool LogLevelUtil::IsValidLevel(LogLevel level)
 {
     if (level == LOG_LEVEL_ALL || level == LOG_LEVEL_FINER 
-        || level == LOG_LEVEL_FINE || level == LOG_LEVEL_CONFIG 
+        || level == LOG_LEVEL_FINE || level == LOG_LEVEL_CONFIG
+        || level == LOG_LEVEL_DFPN
         || level == LOG_LEVEL_INFO || level == LOG_LEVEL_WARNING 
         || level == LOG_LEVEL_SEVERE || level == LOG_LEVEL_OFF)
         return true;
@@ -143,6 +144,7 @@ std::string LogLevelUtil::toString(LogLevel level)
     if (level == LOG_LEVEL_FINER) return "finer";
     if (level == LOG_LEVEL_FINE) return "fine";
     if (level == LOG_LEVEL_CONFIG) return "config";
+    if (level == LOG_LEVEL_DFPN) return "dfpn";
     if (level == LOG_LEVEL_INFO) return "info";
     if (level == LOG_LEVEL_WARNING) return "warning";
     if (level == LOG_LEVEL_SEVERE) return "severe";
@@ -154,6 +156,7 @@ LogLevel LogLevelUtil::fromString(std::string level)
     if (level == "all") return LOG_LEVEL_ALL;
     if (level == "finer") return LOG_LEVEL_FINER;
     if (level == "fine") return LOG_LEVEL_FINE;
+    if (level == "dfpn") return LOG_LEVEL_DFPN;
     if (level == "config") return LOG_LEVEL_CONFIG;
     if (level == "info") return LOG_LEVEL_INFO;
     if (level == "warning") return LOG_LEVEL_WARNING;
