@@ -4,7 +4,7 @@ import os, sys, getopt, re, string
 
 #----------------------------------------------------------------------------
 
-def listAsymmetries(filename):
+def listAsymmetries(filename, verbose):
     print "Analyzing: ", filename
     f = open(filename, "r")
     line1 = f.readline()
@@ -24,7 +24,9 @@ def listAsymmetries(filename):
         line2 = f.readline()
         linenum = linenum + 1
     
-    print "Stolen games:"
+    if verbose:
+        print "Stolen games:"
+
     while ((line1 != "") and (line2 != "")):
         array1 = string.split(line1, "\t")
         gamenum1 = array1[0]
@@ -59,11 +61,12 @@ def listAsymmetries(filename):
         if (bres1 != bres2):
             if (bres1 == "B+"):
                 p1steals = p1steals + 1
-                print "Games " + str(gamenum1) + ", " + str(gamenum2) + " - P1"
+                if verbose:
+                    print "Games " + str(gamenum1) + ", " + str(gamenum2) + " - P1"
             elif (bres1 == "W+"):
                 p2steals = p2steals + 1
-                print "Games " + str(gamenum1) + ", " + str(gamenum2) + " - P2"
-            
+                if verbose:
+                    print "Games " + str(gamenum1) + ", " + str(gamenum2) + " - P2"
             numsteals = numsteals + 1
         
         line1 = f.readline()
@@ -93,10 +96,11 @@ def usage():
 
 def main():
     resfile = ""
-    
+    verbose = False
+
     try:
-        options = "f:"
-        longOptions = ["file="]
+        options = "vf:"
+        longOptions = ["file=","verbose"]
         opts, args = getopt.getopt(sys.argv[1:], options, longOptions)
     except getopt.GetoptError:
         usage()
@@ -104,10 +108,12 @@ def main():
     for o, v in opts:
         if o in ("--file", "-f"):
             resfile = v
-    
+        if o in ("--verbose", "-v"):
+            verbose = True
+
     if (resfile == ""):
         usage()
     
-    listAsymmetries(resfile)
+    listAsymmetries(resfile, verbose)
     
 main()
