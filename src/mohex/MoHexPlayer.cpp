@@ -95,6 +95,7 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     SetMaxTime(other.MaxTime());
     SetPerformPreSearch(other.PerformPreSearch());
     SetUseTimeManagement(other.UseTimeManagement());
+    SetReuseSubtree(other.ReuseSubtree());
     Search().SetMaxNodes(other.Search().MaxNodes());
     Search().SetNumberThreads(other.Search().NumberThreads());
     Search().SetPlayoutUpdateRadius(other.Search().PlayoutUpdateRadius());
