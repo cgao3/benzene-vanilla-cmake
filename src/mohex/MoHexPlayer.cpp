@@ -72,7 +72,7 @@ MoHexPlayer::MoHexPlayer()
       m_max_games(99999999),
       m_max_time(10),
       m_useTimeManagement(false),
-      m_reuse_subtree(false),
+      m_reuse_subtree(true),
       m_ponder(false),
       m_performPreSearch(true)
 {
