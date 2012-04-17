@@ -4,14 +4,10 @@
     @note Use SG_ASSERT so that the assertion handler is used to dump
     the state of each thread when an assertion fails.
 
-    @bug Running with assertions and a non-zero knowledge threshold in
-    lock-free mode will cause some assertions to fail. In particular,
-    the way we handle terminal states (by deleting all children) can
-    cause SgUctChildIterator to discover it has no children (in
-    SgUctSearch::UpdateRaveValues and SgUctSearch::SelectChild) which
-    it asserts is not true. It is also possible for threads to play
-    into filled-in cells during the in-tree phase.
-*/
+    @bug Running with assertions, and a non-zero knowledge threshold
+    in lock-free mode will cause some assertions to fail: it is
+    possible for threads to play into filled-in cells during the
+    in-tree phase. */
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -224,12 +220,14 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
     else if (count <= 0)
     {
         // First time we have been to this node. If solid winning
-        // chain exists then mark as proven and abort. Otherwise, mark
+        // chain exists then mark as proven and abort. Otherwise,
         // every empty cell is a valid move.
         if (IsProvenState(*m_state, provenType))
             return false;
         for (BitsetIterator it(m_state->Position().GetEmpty()); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
+        // If count is negative, then we are not actually expanding
+        // this node, so do not compute prior knowledge.
         if (count == 0)
             m_priorKnowledge.ProcessPosition(moves);
         return false;
@@ -239,18 +237,18 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         // Re-visiting this state after a certain number of playouts.
         // If VC-win exists then mark as proven; otherwise, prune
         // moves outside of mustplay and store fillin. We must
-        // truncate the child subtrees because of the fillin.
+        // truncate the child subtrees because of the fillin if lazy
+        // delete is not on.
         BenzeneAssert(m_usingKnowledge);
         if (TRACK_KNOWLEDGE)
         {
             SgHashCode hash(SequenceHash::Hash(m_gameSequence));
-            LogInfo() << m_threadId << ": " << hash << '\n';
+            LogInfo() << m_threadId << ": know:  " << hash << '\n';
         }
         bitset_t moveset = m_state->Position().GetEmpty() 
             & ComputeKnowledge(provenType);
         for (BitsetIterator it(moveset); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
-
         // Truncate tree only if not using lazy delete
         return !m_search.LazyDelete();
     }
