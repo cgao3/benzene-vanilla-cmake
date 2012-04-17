@@ -363,6 +363,10 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
         if (TRACK_KNOWLEDGE)
             LogInfo() << "cached: " << hash << ", " 
                       << SequenceHash::Hash(m_gameSequence) << '\n';
+
+        m_state->Position() = data.position;
+        m_pastate->Update();
+
         return data.consider;
     }
     if (TRACK_KNOWLEDGE)
@@ -390,6 +394,10 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     data.consider = EndgameUtil::MovesToConsider(*m_vcBrd, m_state->ToPlay());
     data.position = m_vcBrd->GetPosition();
     m_sharedData->stateData.Add(m_state->Hash(), data);
+
+    m_state->Position() = data.position;
+    m_pastate->Update();
+
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"
                   << "Recomputed state:" << '\n' << data.position << '\n'
