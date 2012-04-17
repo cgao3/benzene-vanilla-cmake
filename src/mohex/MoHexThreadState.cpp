@@ -166,8 +166,7 @@ void MoHexThreadState::Execute(SgMove sgmove)
     {
         m_gameSequence.push_back(Move(!m_state->ToPlay(), move));
         MoHexSharedData::StateData data;
-        if(m_sharedData->stateData
-           .Get(SequenceHash::Hash(m_gameSequence), data))
+        if(m_sharedData->stateData.Get(m_state->Hash(), data))
         {
             m_state->Position() = data.position;
             m_pastate->Update();
@@ -242,11 +241,6 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         // truncate the child subtrees because of the fillin if lazy
         // delete is not on.
         BenzeneAssert(m_usingKnowledge);
-        if (TRACK_KNOWLEDGE)
-        {
-            SgHashCode hash(SequenceHash::Hash(m_gameSequence));
-            LogInfo() << m_threadId << ": know:  " << hash << '\n';
-        }
         bitset_t moveset = m_state->Position().GetEmpty() 
             & ComputeKnowledge(provenType);
         for (BitsetIterator it(moveset); it; ++it)
@@ -361,6 +355,19 @@ void MoHexThreadState::EndPlayout()
     data. Sets provenType if state is determined by VCs. */
 bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
 {
+    provenType = SG_NOT_PROVEN;
+    SgHashCode hash = m_state->Hash();
+    MoHexSharedData::StateData data;
+    if (m_sharedData->stateData.Get(hash, data))
+    {
+        if (TRACK_KNOWLEDGE)
+            LogInfo() << "cached: " << hash << ", " 
+                      << SequenceHash::Hash(m_gameSequence) << '\n';
+        return data.consider;
+    }
+    if (TRACK_KNOWLEDGE)
+        LogInfo() << "know: " << hash << ", " 
+                  << SequenceHash::Hash(m_gameSequence) << '\n';
     m_vcBrd->GetPosition().SetPosition(m_state->Position());
     m_vcBrd->ComputeAll(m_state->ToPlay());
     if (EndgameUtil::IsDeterminedState(*m_vcBrd, m_state->ToPlay()))
@@ -380,15 +387,13 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
         // search will never decend past this node again.
         return m_state->Position().GetEmpty();
     }
-    provenType = SG_NOT_PROVEN;
-    MoHexSharedData::StateData data;
     data.consider = EndgameUtil::MovesToConsider(*m_vcBrd, m_state->ToPlay());
     data.position = m_vcBrd->GetPosition();
-    m_sharedData->stateData.Add(SequenceHash::Hash(m_gameSequence), data);
+    m_sharedData->stateData.Add(m_state->Hash(), data);
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"
                   << "Recomputed state:" << '\n' << data.position << '\n'
-                  << "Consider:" << m_vcBrd->Write(data.consider) << '\n';
+                  << "Consider:" << data.position.Write(data.consider) << '\n';
     return data.consider;
 }
     

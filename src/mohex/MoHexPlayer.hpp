@@ -134,8 +134,7 @@ protected:
                                MoHexSharedData& newData);
 
     void CopyKnowledgeData(const SgUctTree& tree, const SgUctNode& node,
-                           HexColor color, MoveSequence& sequence,
-                           const MoHexSharedData& oldData,
+                           HexState& state, const MoHexSharedData& oldData,
                            MoHexSharedData& newData) const;
 };
 

@@ -376,17 +376,18 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
     // cannot reuse the tree (since the root is given its knowledge
     // and using this knowledge would require pruning the trees under
     // the root's children). 
+    // FIXME: NO LONGER TRUE WITH LAZY DELETE!!!
     if (!samePosition)
     {
-        MoHexSharedData::StateData oldState;
-        if (!oldData.stateData.Get(SequenceHash::Hash(newSequence), oldState))
+        MoHexSharedData::StateData oldDataState;
+        if (!oldData.stateData.Get(newState.Hash(), oldDataState))
         {
             LogInfo() << "ReuseSubtree: No knowledge for state in old tree.\n";
             return 0;
         }
         // Check that the old knowledge is equal to the new knowledge
         // in the would-be root node.
-        if (!(oldState.position == newPosition))
+        if (!(oldDataState.position == newPosition))
         {
             LogInfo() << "Old fillin data does not match data for new root!\n";
             return 0;
@@ -428,9 +429,8 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
         LogInfo() << "MoHexPlayer: Reusing " << newTreeNodes
                   << " nodes (" << reusePercent << "%)\n";
 
-        MoveSequence moveSequence = newSequence;
-        CopyKnowledgeData(tree, tree.Root(), newData.rootState.ToPlay(),
-                          moveSequence, oldData, newData);
+        HexState state(newState);
+        CopyKnowledgeData(tree, tree.Root(), state, oldData, newData);
         float kReuse = float(newData.stateData.Count()) 
             / float(oldData.stateData.Count());
         int kReusePercent = static_cast<int>(100 * kReuse);
@@ -444,27 +444,29 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
 
 void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
                                     const SgUctNode& node,
-                                    HexColor color, MoveSequence& sequence,
+                                    HexState& state, 
                                     const MoHexSharedData& oldData,
                                     MoHexSharedData& newData) const
 {
     // This check will fail in the root if we are reusing the
     // entire tree, so only do it when not in the root.
-    if (sequence != oldData.gameSequence)
+    if (state != oldData.rootState)
     {
-        SgHashCode hash = SequenceHash::Hash(sequence);
+        const SgHashCode hash = state.Hash();
         MoHexSharedData::StateData data;
         if (!oldData.stateData.Get(hash, data))
             return;
+        //LogInfo() << "copied " << hash << '\n';
         newData.stateData.Add(hash, data);
     }
     if (!node.HasChildren())
         return;
     for (SgUctChildIterator it(tree, node); it; ++it)
     {
-        sequence.push_back(Move(color, static_cast<HexPoint>((*it).Move())));
-        CopyKnowledgeData(tree, *it, !color, sequence, oldData, newData);
-        sequence.pop_back();
+        const HexPoint move = static_cast<HexPoint>((*it).Move());
+        state.PlayMove(move);
+        CopyKnowledgeData(tree, *it, state, oldData, newData);
+        state.UndoMove(move);
     }
 }
 
