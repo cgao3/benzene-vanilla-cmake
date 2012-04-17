@@ -27,6 +27,12 @@ class MoHexSearch;
 /** Data shared among all threads. */
 struct MoHexSharedData
 {
+    struct StateData
+    {
+        StoneBoard position;
+        bitset_t consider;
+    };
+
     /** Moves from begining of game leading to this position. */
     MoveSequence gameSequence;
 
@@ -37,13 +43,13 @@ struct MoHexSharedData
     bitset_t rootConsider;
 
     /** Stores fillin information for states in the tree. */
-    HashMap<StoneBoard> stones;
+    HashMap<StateData> stateData;
 
     explicit MoHexSharedData(int fillinMapBits);
 };
 
 inline MoHexSharedData::MoHexSharedData(int fillinMapBits)
-    : stones(fillinMapBits)
+    : stateData(fillinMapBits)
 { 
 }
 

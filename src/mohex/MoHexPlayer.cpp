@@ -378,15 +378,15 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
     // the root's children). 
     if (!samePosition)
     {
-        StoneBoard oldPosition;
-        if (!oldData.stones.Get(SequenceHash::Hash(newSequence), oldPosition))
+        MoHexSharedData::StateData oldState;
+        if (!oldData.stateData.Get(SequenceHash::Hash(newSequence), oldState))
         {
             LogInfo() << "ReuseSubtree: No knowledge for state in old tree.\n";
             return 0;
         }
         // Check that the old knowledge is equal to the new knowledge
         // in the would-be root node.
-        if (!(oldPosition == newPosition))
+        if (!(oldState.position == newPosition))
         {
             LogInfo() << "Old fillin data does not match data for new root!\n";
             return 0;
@@ -431,11 +431,11 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
         MoveSequence moveSequence = newSequence;
         CopyKnowledgeData(tree, tree.Root(), newData.rootState.ToPlay(),
                           moveSequence, oldData, newData);
-        float kReuse = float(newData.stones.Count()) 
-            / float(oldData.stones.Count());
+        float kReuse = float(newData.stateData.Count()) 
+            / float(oldData.stateData.Count());
         int kReusePercent = static_cast<int>(100 * kReuse);
         LogInfo() << "MoHexPlayer: Reusing " 
-                  << newData.stones.Count() << " knowledge states ("
+                  << newData.stateData.Count() << " knowledge states ("
                   << kReusePercent << "%)\n";
         return &tree;
     }
@@ -453,10 +453,10 @@ void MoHexPlayer::CopyKnowledgeData(const SgUctTree& tree,
     if (sequence != oldData.gameSequence)
     {
         SgHashCode hash = SequenceHash::Hash(sequence);
-        StoneBoard stones;
-        if (!oldData.stones.Get(hash, stones))
+        MoHexSharedData::StateData data;
+        if (!oldData.stateData.Get(hash, data))
             return;
-        newData.stones.Add(hash, stones);
+        newData.stateData.Add(hash, data);
     }
     if (!node.HasChildren())
         return;

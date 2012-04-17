@@ -165,9 +165,11 @@ void MoHexThreadState::Execute(SgMove sgmove)
     if (m_usingKnowledge)
     {
         m_gameSequence.push_back(Move(!m_state->ToPlay(), move));
-        if(m_sharedData->stones.Get(SequenceHash::Hash(m_gameSequence), 
-                                    m_state->Position()))
+        MoHexSharedData::StateData data;
+        if(m_sharedData->stateData
+           .Get(SequenceHash::Hash(m_gameSequence), data))
         {
+            m_state->Position() = data.position;
             m_pastate->Update();
         }
     }
@@ -361,12 +363,6 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
 {
     m_vcBrd->GetPosition().SetPosition(m_state->Position());
     m_vcBrd->ComputeAll(m_state->ToPlay());
-    // Consider set will be all empty cells if state is a determined
-    // state (can't compute consider set in this case and we cannot
-    // delete the children as this will cause a race condition in the
-    // parent class).
-    // Consider set is the set of moves to consider otherwise.
-    bitset_t consider;
     if (EndgameUtil::IsDeterminedState(*m_vcBrd, m_state->ToPlay()))
     {
         HexColor winner = m_state->ToPlay();
@@ -379,20 +375,21 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
         if (DEBUG_KNOWLEDGE)
             LogInfo() << "Found win for " << winner << ":\n"
                       << *m_vcBrd << '\n';
+        // Set the consider set to be all empty cells: doesn't really
+        // matter since we are marking it as a proven node, so the
+        // search will never decend past this node again.
         return m_state->Position().GetEmpty();
     }
-    else
-    {
-        provenType = SG_NOT_PROVEN;
-        consider = EndgameUtil::MovesToConsider(*m_vcBrd, m_state->ToPlay());
-    }
-    m_sharedData->stones.Add(SequenceHash::Hash(m_gameSequence), 
-                             m_vcBrd->GetPosition());
+    provenType = SG_NOT_PROVEN;
+    MoHexSharedData::StateData data;
+    data.consider = EndgameUtil::MovesToConsider(*m_vcBrd, m_state->ToPlay());
+    data.position = m_vcBrd->GetPosition();
+    m_sharedData->stateData.Add(SequenceHash::Hash(m_gameSequence), data);
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"
-                  << "Recomputed state:" << '\n' << m_state->Position() << '\n'
-                  << "Consider:" << m_vcBrd->Write(consider) << '\n';
-    return consider;
+                  << "Recomputed state:" << '\n' << data.position << '\n'
+                  << "Consider:" << m_vcBrd->Write(data.consider) << '\n';
+    return data.consider;
 }
     
 //----------------------------------------------------------------------------
