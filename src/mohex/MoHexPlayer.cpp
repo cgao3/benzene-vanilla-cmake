@@ -178,16 +178,28 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
         os << ' ' << MoHexUtil::MoveString(sequence[i]);
     os << '\n';
     os << m_shared_policy.Statistics().ToString() << '\n';  
-    os << "LocalPatterns_6PatternHit          " << LocalPatterns_6PatternHit << "\n";
-    os << "LocalPatterns_6PatternMiss         " << LocalPatterns_6PatternMiss << "\n";
-    os << "LocalPatterns_12PatternHit         " << LocalPatterns_12PatternHit << "\n";
+    if (m_search.ProgressiveBiasConstant() > 0.0f) 
+    {
+        os << "LocalPatterns_6PatternHit          " 
+           << LocalPatterns_6PatternHit << "\n";
+        os << "LocalPatterns_6PatternMiss         " 
+           << LocalPatterns_6PatternMiss << "\n";
+        os << "LocalPatterns_12PatternHit         " 
+           << LocalPatterns_12PatternHit << "\n";
 
-    os << "GlobalPatterns_6PatternHit         " << GlobalPatterns_6PatternHit << "\n";
-    os << "GlobalPatterns_6PatternMiss        " << GlobalPatterns_6PatternMiss << "\n";
-    os << "GlobalPatterns_12PatternHit        " << GlobalPatterns_12PatternHit << "\n";
-    os << "GlobalPatterns_18PatternHit        " << GlobalPatterns_18PatternHit << "\n";
-    os << "GlobalPatterns_BadPattern_Tree     " << GlobalPatterns_BadPattern_Tree << "\n";
-    os << "GlobalPatterns_BadPattern_Playout  " << GlobalPatterns_BadPattern_Playout << "\n";
+        os << "GlobalPatterns_6PatternHit         " 
+           << GlobalPatterns_6PatternHit << "\n";
+        os << "GlobalPatterns_6PatternMiss        " 
+           << GlobalPatterns_6PatternMiss << "\n";
+        os << "GlobalPatterns_12PatternHit        " 
+           << GlobalPatterns_12PatternHit << "\n";
+        os << "GlobalPatterns_18PatternHit        " 
+           << GlobalPatterns_18PatternHit << "\n";
+        os << "GlobalPatterns_BadPattern_Tree     " 
+           << GlobalPatterns_BadPattern_Tree << "\n";
+        os << "GlobalPatterns_BadPattern_Playout  " << 
+            GlobalPatterns_BadPattern_Playout << "\n";
+    }
     LogInfo() << os.str() << '\n';
 
 #if 0

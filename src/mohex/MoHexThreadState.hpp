@@ -132,6 +132,10 @@ public:
 
     const StoneBoard& Board() const;
 
+    MoHexSearch& Search();
+
+    const MoHexSearch& Search() const;
+
     MoHexSearchPolicy* Policy();
 
     bool IsInPlayout() const;
@@ -206,6 +210,16 @@ private:
 inline const StoneBoard& MoHexThreadState::Board() const
 {
     return m_state->Position();
+}
+
+inline MoHexSearch& MoHexThreadState::Search()
+{
+    return m_search;
+}
+
+inline const MoHexSearch& MoHexThreadState::Search() const
+{
+    return m_search;
 }
 
 inline MoHexSearchPolicy* MoHexThreadState::Policy()

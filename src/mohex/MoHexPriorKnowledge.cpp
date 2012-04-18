@@ -5,6 +5,7 @@
 #include "SgSystem.h"
 #include "MoHexThreadState.hpp"
 #include "MoHexPriorKnowledge.hpp"
+#include "MoHexSearch.hpp"
 
 using namespace benzene;
 
@@ -25,6 +26,9 @@ MoHexPriorKnowledge::~MoHexPriorKnowledge()
 
 void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
 {
+    if (m_state.Search().ProgressiveBiasConstant() == 0.0f)
+        return;
+
     double TotalGamma = 0;
     double MoveGamma[BITSETSIZE];
     for (std::size_t i = 0; i < moves.size(); ++i)
@@ -44,7 +48,7 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
     {
         double gamma = MoveGamma[(int)moves[i].m_move];
         double prob = gamma / TotalGamma;
-        moves[i].m_prior = prob;
+        moves[i].m_prior = (float)prob;
 	moves[i].m_raveValue = 0.5f;
 	moves[i].m_raveCount = 8;
     }
