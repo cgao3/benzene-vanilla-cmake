@@ -130,7 +130,9 @@ void MoHexPlayoutPolicy::InitializeForSearch()
 
 void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
-    BitsetUtil::BitsetToVector(brd.GetEmpty(), m_moves);
+    m_moves.clear();
+    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+        m_moves.push_back(*it);
     ShuffleVector(m_moves, m_random);
 }
 
@@ -182,9 +184,6 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state,
 {
     const StoneBoard& brd = state.Position();
     const HexColor toPlay = state.ToPlay();
-    HexPoint p[6];
-    for (int i = 0; i < 6; ++i)
-        p[i] = brd.Const().PointInDir(lastMove, (HexDirection)i);
     // State machine: s is number of cells matched.
     // In clockwise order, need to match CEC, where C is the color to
     // play and E is an empty cell. We start at a random direction and
@@ -200,7 +199,8 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state,
     for (int j = 0; j < 8; ++j)
     {
         const int i = (j + k) % 6;
-        bool mine = brd.IsColor(p[i], toPlay);
+        const HexPoint p = brd.Const().PointInDir(lastMove, (HexDirection)i);
+        const bool mine = brd.IsColor(p, toPlay);
         if (s == 0)
         {
             if (mine) s = 1;
@@ -208,11 +208,11 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state,
         else if (s == 1)
         {
             if (mine) s = 1;
-            else if (brd.IsColor(p[i], !toPlay)) s = 0;
+            else if (brd.IsColor(p, !toPlay)) s = 0;
             else 
             {
                 s = 2;
-                ret = p[i];
+                ret = p;
             }
         }
         else if (s == 2)
