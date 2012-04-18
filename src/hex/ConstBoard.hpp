@@ -111,6 +111,9 @@ public:
     /** Returns the distance between two valid HexPoints. */
     int Distance(HexPoint x, HexPoint y) const;
 
+    /** Returns point in given direction. */
+    HexPoint PointInDir(HexPoint point, HexDirection dir) const;
+
     //------------------------------------------------------------------------
 
     /** Returns iterator to the interior board cells. */
@@ -175,6 +178,10 @@ private:
     /** Neigbour lists for each location and radius. */
     std::vector<HexPoint> m_neighbours[BITSETSIZE][Pattern::MAX_EXTENSION+1];
 
+    /** Precomputed set of points in each direction.
+        Only computed for interior cells. */
+    HexPoint m_pointInDir[BITSETSIZE][6];
+
     //------------------------------------------------------------------------
 
     /** Constructs a square board. */
@@ -195,6 +202,8 @@ private:
     void CreateIterators();
 
     void ComputeValid();
+
+    void ComputePointInDir();
 };
 
 inline int ConstBoard::Width() const
@@ -289,6 +298,12 @@ inline bool ConstBoard::operator==(const ConstBoard& other) const
 inline bool ConstBoard::operator!=(const ConstBoard& other) const
 {
     return !operator==(other);
+}
+
+inline HexPoint ConstBoard::PointInDir(HexPoint point, HexDirection dir) const
+{
+    BenzeneAssert(IsInterior(point));
+    return m_pointInDir[point][dir];
 }
 
 //----------------------------------------------------------------------------

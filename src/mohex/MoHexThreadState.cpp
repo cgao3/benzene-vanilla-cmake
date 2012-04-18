@@ -18,7 +18,6 @@
 #include "BitsetIterator.hpp"
 #include "MoHexPlayoutPolicy.hpp"
 #include "MoHexUtil.hpp"
-#include "PatternState.hpp"
 #include "EndgameUtil.hpp"
 #include "SequenceHash.hpp"
 
@@ -114,8 +113,7 @@ void MoHexThreadState::AssertionHandler::Run()
 //----------------------------------------------------------------------------
 
 MoHexThreadState::MoHexThreadState(const unsigned int threadId,
-                                   MoHexSearch& sch, int treeUpdateRadius,
-                                   int playoutUpdateRadius)
+                                   MoHexSearch& sch)
     : SgUctThreadState(threadId, MoHexUtil::ComputeMaxNumMoves()),
       m_assertionHandler(*this),
       m_state(0),
@@ -125,8 +123,6 @@ MoHexThreadState::MoHexThreadState(const unsigned int threadId,
       m_sharedData(0),
       m_priorKnowledge(*this),
       m_search(sch),
-      m_treeUpdateRadius(treeUpdateRadius),
-      m_playoutUpdateRadius(playoutUpdateRadius),
       m_isInPlayout(false)
 {
 }
@@ -161,7 +157,7 @@ SgUctValue MoHexThreadState::Evaluate()
 void MoHexThreadState::Execute(SgMove sgmove)
 {
     HexPoint move = static_cast<HexPoint>(sgmove);
-    ExecuteMove(move, m_treeUpdateRadius);
+    ExecuteMove(move);
     if (m_usingKnowledge)
     {
         m_gameSequence.push_back(Move(!m_state->ToPlay(), move));
@@ -169,17 +165,16 @@ void MoHexThreadState::Execute(SgMove sgmove)
         if(m_sharedData->stateData.Get(m_state->Hash(), data))
         {
             m_state->Position() = data.position;
-            m_pastate->Update();
         }
     }
 }
 
 void MoHexThreadState::ExecutePlayout(SgMove sgmove)
 {
-    ExecuteMove(static_cast<HexPoint>(sgmove), m_playoutUpdateRadius);
+    ExecuteMove(static_cast<HexPoint>(sgmove));
 }
 
-void MoHexThreadState::ExecuteMove(HexPoint cell, int updateRadius)
+void MoHexThreadState::ExecuteMove(HexPoint cell)
 {
     // Lock-free mode: It is possible we are playing into a filled-in
     // cell during the in-tree phase. This can occur if the thread
@@ -193,12 +188,7 @@ void MoHexThreadState::ExecuteMove(HexPoint cell, int updateRadius)
     // needlessly.
     // TODO: Handle case when assertions are on.
     SG_ASSERT(m_state->Position().IsEmpty(cell));
-    SG_ASSERT(m_pastate->UpdateRadius() == updateRadius);
     m_state->PlayMove(cell);
-    if (updateRadius == 1)
-	m_pastate->UpdateRingGodel(cell);
-    else
-	m_pastate->Update(cell);
     m_lastMovePlayed = cell;
     m_atRoot = false;
 }
@@ -257,8 +247,7 @@ SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
     skipRaveUpdate = false;
     if (GameOver(m_state->Position()))
         return SG_NULLMOVE;
-    SgPoint move = m_policy->GenerateMove(*m_pastate, m_state->ToPlay(),
-                                          m_lastMovePlayed);
+    SgPoint move = m_policy->GenerateMove(*m_state, m_lastMovePlayed);
     SG_ASSERT(move != SG_NULLMOVE);
     return move;
 }
@@ -278,9 +267,6 @@ void MoHexThreadState::StartSearch()
     {
         m_state.reset(new HexState(brd.GetPosition(), BLACK));
         m_playoutStartState.reset(new HexState(brd.GetPosition(), BLACK));
-        m_pastate.reset(new PatternState(m_state->Position()));
-        m_playoutStartPatterns.reset
-            (new PatternState(m_playoutStartState->Position()));
         m_vcBrd.reset(new HexBoard(brd.Width(), brd.Height(), 
                                    brd.ICE(), brd.VCBuilderParameters()));
     }
@@ -299,7 +285,6 @@ void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
     {
         m_lastMovePlayed = m_playoutStartLastMove;
         *m_state = *m_playoutStartState;
-        m_pastate->CopyState(*m_playoutStartPatterns);
     }
 }
 
@@ -320,25 +305,16 @@ void MoHexThreadState::GameStart()
     m_gameSequence = m_sharedData->gameSequence;
     m_lastMovePlayed = LastMoveFromHistory(m_gameSequence);
     *m_state = m_sharedData->rootState;
-    m_pastate->SetUpdateRadius(m_treeUpdateRadius);
-    m_pastate->Update();
 }
 
 void MoHexThreadState::StartPlayouts()
 {
     m_isInPlayout = true;
-    m_pastate->SetUpdateRadius(m_playoutUpdateRadius);
-    // Playout radius should normally be no bigger than tree radius,
-    // but if it is, we need to do an extra update for each playout
-    // during the transition from the tree phase to the playout phase.
-    if (m_playoutUpdateRadius > m_treeUpdateRadius)
-	m_pastate->Update();
     // If doing more than one playout make a backup of this state
     if (m_search.NumberPlayouts() > 1)
     {
         m_playoutStartLastMove = m_lastMovePlayed;
         *m_playoutStartState = *m_state;
-        m_playoutStartPatterns->CopyState(*m_pastate);
     }
 }
 
@@ -365,7 +341,6 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
                       << SequenceHash::Hash(m_gameSequence) << '\n';
 
         m_state->Position() = data.position;
-        m_pastate->Update();
 
         return data.consider;
     }
@@ -396,7 +371,6 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     m_sharedData->stateData.Add(m_state->Hash(), data);
 
     m_state->Position() = data.position;
-    m_pastate->Update();
 
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"

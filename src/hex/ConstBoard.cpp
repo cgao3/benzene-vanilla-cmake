@@ -127,6 +127,7 @@ void ConstBoard::Init()
     CreateIterators();
     ComputeValid();
     ComputeNeighbours();
+    ComputePointInDir();
 }
 
 void ConstBoard::ComputePointList()
@@ -242,6 +243,29 @@ void ConstBoard::ComputeNeighbours()
     for (BoardIterator i(EdgesAndInterior()); i; ++i) 
         for (int r = 1; r <= Pattern::MAX_EXTENSION; r++) 
             m_neighbours[*i][r].push_back(INVALID_POINT);
+}
+
+void ConstBoard::ComputePointInDir()
+{
+    for (BoardIterator it(Interior()); it; ++it)
+    {
+        const HexPoint& p = *it;
+        for (int i = 0; i < 6; ++i)
+        {
+            HexPoint n = BoardUtil::PointInDir(*this, p, (HexDirection)i);
+            // Handle obtuse corner: for some reason the obtuse corner
+            // is not an edge...
+            if (!HexPointUtil::isEdge(n) && !HexPointUtil::isInteriorCell(n))
+            {
+                if (HexPointUtil::isInteriorCell
+                    (BoardUtil::PointInDir(*this, p, DIR_SOUTH)))
+                    n = NORTH;
+                else 
+                    n = SOUTH;
+            }
+            m_pointInDir[p][i] = n;            
+        }
+    }
 }
 
 //----------------------------------------------------------------------------

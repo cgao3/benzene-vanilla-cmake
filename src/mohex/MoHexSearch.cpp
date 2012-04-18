@@ -16,7 +16,6 @@
 #include "MoHexSearch.hpp"
 #include "MoHexThreadState.hpp"
 #include "MoHexUtil.hpp"
-#include "PatternState.hpp"
 
 using namespace benzene;
 
@@ -37,9 +36,7 @@ HexThreadStateFactory::Create(unsigned int threadId, const SgUctSearch& search)
     SgUctSearch& srch = const_cast<SgUctSearch&>(search);
     MoHexSearch& hexSearch = dynamic_cast<MoHexSearch&>(srch);
     LogInfo() << "Creating thread " << threadId << '\n';
-    MoHexThreadState* state = new MoHexThreadState(threadId, hexSearch,
-                                         hexSearch.TreeUpdateRadius(),
-                                         hexSearch.PlayoutUpdateRadius());
+    MoHexThreadState* state = new MoHexThreadState(threadId, hexSearch);
     state->SetPolicy(new MoHexPlayoutPolicy(m_shared_policy));
     return state;
 }
@@ -50,8 +47,6 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     : SgUctSearch(factory, maxMoves),
       m_keepGames(false),
       m_liveGfx(false),
-      m_treeUpdateRadius(2),
-      m_playoutUpdateRadius(1),
       m_brd(0),
       m_fillinMapBits(16),
       m_sharedData(new MoHexSharedData(m_fillinMapBits)),

@@ -98,13 +98,11 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     SetReuseSubtree(other.ReuseSubtree());
     Search().SetMaxNodes(other.Search().MaxNodes());
     Search().SetNumberThreads(other.Search().NumberThreads());
-    Search().SetPlayoutUpdateRadius(other.Search().PlayoutUpdateRadius());
     Search().SetRandomizeRaveFrequency
         (other.Search().RandomizeRaveFrequency());
     Search().SetRaveWeightFinal(other.Search().RaveWeightFinal());
     Search().SetRaveWeightInitial(other.Search().RaveWeightInitial());
     Search().SetWeightRaveUpdates(other.Search().WeightRaveUpdates());
-    Search().SetTreeUpdateRadius(other.Search().TreeUpdateRadius());
     Search().SetKnowledgeThreshold(other.Search().KnowledgeThreshold());
     Search().SetVirtualLoss(other.Search().VirtualLoss());
     Search().SetLazyDelete(other.Search().LazyDelete());
@@ -161,8 +159,6 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     m_search.SetSharedData(data);
 
     brd.GetPatternState().ClearPatternCheckStats();
-    int old_radius = brd.GetPatternState().UpdateRadius();
-    brd.GetPatternState().SetUpdateRadius(m_search.TreeUpdateRadius());
 
     // Do the search
     std::vector<SgMove> sequence;
@@ -171,28 +167,17 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     score = m_search.Search(m_max_games, maxTime, sequence,
                             rootFilter, initTree, 0);
 
-    brd.GetPatternState().SetUpdateRadius(old_radius);
-
     // Output stats
     std::ostringstream os;
     os << '\n';
-#if COLLECT_PATTERN_STATISTICS
-    {
-        MoHexState& thread0 
-            = dynamic_cast<MoHexState&>(m_search.ThreadState(0));
-        MoHexPolicy* policy = dynamic_cast<MoHexPolicy*>(thread0.Policy());
-        if (policy)
-            os << policy->DumpStatistics() << '\n';
-    }
-#endif
     os << "Elapsed Time   " << totalElapsed.GetTime() << "s\n";
     m_search.WriteStatistics(os);
     os << "Score          " << std::setprecision(2) << score << "\n"
        << "Sequence      ";
     for (std::size_t i = 0; i < sequence.size(); i++)
-        os << " " << MoHexUtil::MoveString(sequence[i]);
+        os << ' ' << MoHexUtil::MoveString(sequence[i]);
     os << '\n';
-  
+    os << m_shared_policy.Statistics().ToString() << '\n';  
     os << "LocalPatterns_6PatternHit          " << LocalPatterns_6PatternHit << "\n";
     os << "LocalPatterns_6PatternMiss         " << LocalPatterns_6PatternMiss << "\n";
     os << "LocalPatterns_12PatternHit         " << LocalPatterns_12PatternHit << "\n";

@@ -14,13 +14,6 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-/** Whether statistics on patterns should be collected or not. 
-    Only use if debugging the policy as collecting the statistics greatly
-    impacts performance. */
-#define COLLECT_PATTERN_STATISTICS 0
-
-//----------------------------------------------------------------------------
-
 /** Configuration options for policies. */
 struct MoHexPlayoutPolicyConfig
 {
@@ -30,20 +23,12 @@ struct MoHexPlayoutPolicyConfig
     /** Percent chance to check for pattern moves. */
     int patternCheckPercent;
 
-    /** Play learned responses. */    
-    bool responseHeuristic;
-
-    /** Threshold at which the reponse heuristic is used. */
-    std::size_t responseThreshold;
-
     MoHexPlayoutPolicyConfig();
 };
 
 inline MoHexPlayoutPolicyConfig::MoHexPlayoutPolicyConfig()
     : patternHeuristic(true),
-      patternCheckPercent(100),
-      responseHeuristic(false),
-      responseThreshold(100)
+      patternCheckPercent(100)
 {
 }
 
@@ -58,11 +43,9 @@ struct MoHexPlayoutPolicyStatistics
 
     std::size_t patternMoves;
 
-    std::map<const Pattern*, size_t> patternCounts[BLACK_AND_WHITE];
-
-    std::map<const Pattern*, size_t> patternPicked[BLACK_AND_WHITE];
-
     MoHexPlayoutPolicyStatistics();
+
+    std::string ToString() const;
 };
 
 inline MoHexPlayoutPolicyStatistics::MoHexPlayoutPolicyStatistics()
@@ -82,15 +65,6 @@ public:
 
     ~MoHexSharedPolicy();
 
-    /** Loads patterns from shared directory. */
-    void LoadPatterns();
-
-    /** Returns set of patterns used to guide playouts. */
-    const HashedPatternSet& HashedPlayPatterns(HexColor color) const;
-
-    /** Returns set of patterns used to guide playouts. */
-    const PatternSet& PlayPatterns(HexColor color) const;
-
     /** Returns reference to configuration settings controlling all
         policies. */
     MoHexPlayoutPolicyConfig& Config();
@@ -99,14 +73,15 @@ public:
         controlling all policies. */
     const MoHexPlayoutPolicyConfig& Config() const;
 
+    /** Returns the collected statistics. */
+    MoHexPlayoutPolicyStatistics& Statistics();
+
+    const MoHexPlayoutPolicyStatistics& Statistics() const;
+
 private:
     MoHexPlayoutPolicyConfig m_config;
-
-    std::vector<Pattern> m_patterns[BLACK_AND_WHITE];
-
-    HashedPatternSet m_hashPatterns[BLACK_AND_WHITE];
-
-    void LoadPlayPatterns();
+    
+    MoHexPlayoutPolicyStatistics m_statistics;
 };
 
 inline MoHexPlayoutPolicyConfig& MoHexSharedPolicy::Config()
@@ -119,15 +94,14 @@ inline const MoHexPlayoutPolicyConfig& MoHexSharedPolicy::Config() const
     return m_config;
 }
 
-inline const PatternSet& MoHexSharedPolicy::PlayPatterns(HexColor color) const
+inline MoHexPlayoutPolicyStatistics& MoHexSharedPolicy::Statistics()
 {
-    return m_patterns[color];
+    return m_statistics;
 }
 
-inline const HashedPatternSet& 
-MoHexSharedPolicy::HashedPlayPatterns(HexColor color) const
+inline const MoHexPlayoutPolicyStatistics& MoHexSharedPolicy::Statistics() const
 {
-    return m_hashPatterns[color];
+    return m_statistics;
 }
 
 //----------------------------------------------------------------------------
@@ -139,13 +113,12 @@ class MoHexPlayoutPolicy : public MoHexSearchPolicy
 {
 public:
     /** Creates a policy. */
-    MoHexPlayoutPolicy(const MoHexSharedPolicy* shared);
+    MoHexPlayoutPolicy(MoHexSharedPolicy* shared);
 
     ~MoHexPlayoutPolicy();
 
     /** Generates a move. */
-    HexPoint GenerateMove(PatternState& pastate, HexColor color, 
-                          HexPoint lastMove);
+    HexPoint GenerateMove(const HexState& state, HexPoint lastMove);
 
     /** Initializes for fast playing of moves during playout.
         Must be called before any calls to GenerateMove(). */
@@ -153,61 +126,18 @@ public:
 
     void InitializeForSearch();
 
-    void AddResponse(HexColor toPlay, HexPoint lastMove, HexPoint response);
-
-#if COLLECT_PATTERN_STATISTICS    
-    /** Returns a string containing formatted statistics
-        information. */
-    std::string DumpStatistics();
-
-    /** Returns the collected statistics. */
-    const MoHexPlayoutPolicyStatistics& Statistics() const;
-#endif
-
 private:
-    static const int MAX_VOTES = 1024;
-
-    const MoHexSharedPolicy* m_shared;
+    MoHexSharedPolicy* m_shared;
 
     std::vector<HexPoint> m_moves;
-
-    std::vector<HexPoint> m_response[BLACK_AND_WHITE][BITSETSIZE];
 
     /** Generator for this policy. */
     SgRandom m_random;
 
-#if COLLECT_PATTERN_STATISTICS
-    MoHexPlayoutPolicyStatistics m_statistics;
-#endif
-
-    HexPoint PickRandomPatternMove(const PatternState& pastate, 
-                                   const HashedPatternSet& patterns, 
-                                   HexColor toPlay, 
-                                   HexPoint lastMove);
-
-    HexPoint GeneratePatternMove(const PatternState& pastate, HexColor color, 
-                                 HexPoint lastMove);
-
-    HexPoint GenerateResponseMove(HexColor toPlay, HexPoint lastMove,
-                                  const StoneBoard& brd);
+    HexPoint GeneratePatternMove(const HexState& state, HexPoint lastMove);
 
     HexPoint GenerateRandomMove(const StoneBoard& brd);
 };
-
-inline void MoHexPlayoutPolicy::AddResponse(HexColor toPlay, HexPoint lastMove,
-                                      HexPoint response)
-{
-    if (m_shared->Config().responseHeuristic)
-        m_response[toPlay][lastMove].push_back(response);
-}
-
-#if COLLECT_PATTERN_STATISTICS
-inline const MoHexPlayoutPolicyStatistics& 
-MoHexPlayoutPolicy::Statistics() const
-{
-    return m_statistics;
-}
-#endif
 
 //----------------------------------------------------------------------------
 

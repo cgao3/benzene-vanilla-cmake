@@ -64,8 +64,7 @@ public:
 
     /** Generates a move in the random playout phase of
         MoHexSearch. */
-    virtual HexPoint GenerateMove(PatternState& pastate, HexColor color, 
-                                  HexPoint lastMove) = 0;
+    virtual HexPoint GenerateMove(const HexState& state, HexPoint lastMove) = 0;
 
     virtual void InitializeForPlayout(const StoneBoard& brd) = 0;
 
@@ -81,12 +80,8 @@ public:
     /** Constructor.
         @param threadId The number of the thread. Needed for passing to
         constructor of SgUctThreadState.
-        @param sch Parent Search object.
-        @param treeUpdateRadius Pattern matching radius in tree.
-        @param playoutUpdateRadius Pattern matching radius in playouts.
-    */
-    MoHexThreadState(const unsigned int threadId, MoHexSearch& sch,
-                int treeUpdateRadius, int playoutUpdateRadius);
+        @param sch Parent Search object. */
+    MoHexThreadState(const unsigned int threadId, MoHexSearch& sch);
 
     virtual ~MoHexThreadState();
 
@@ -137,8 +132,6 @@ public:
 
     const StoneBoard& Board() const;
 
-    const PatternState& GetPatternState() const;
-
     MoHexSearchPolicy* Policy();
 
     bool IsInPlayout() const;
@@ -173,11 +166,6 @@ private:
 
     boost::scoped_ptr<HexState> m_playoutStartState;
 
-    /** Board used during search. */
-    boost::scoped_ptr<PatternState> m_pastate;
-
-    boost::scoped_ptr<PatternState> m_playoutStartPatterns;
-
     /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vcBrd;
 
@@ -192,12 +180,6 @@ private:
     /** Parent search object. */
     MoHexSearch& m_search;
    
-    /** See MoHexSearch::TreeUpdateRadius() */
-    int m_treeUpdateRadius;
-
-    /** See MoHexSearch::PlayoutUpdateRadius() */
-    int m_playoutUpdateRadius;
-
     /** True if in playout phase. */
     bool m_isInPlayout;
 
@@ -218,17 +200,12 @@ private:
 
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
 
-    void ExecuteMove(HexPoint cell, int updateRadius);
+    void ExecuteMove(HexPoint cell);
 };
 
 inline const StoneBoard& MoHexThreadState::Board() const
 {
     return m_state->Position();
-}
-
-inline const PatternState& MoHexThreadState::GetPatternState() const
-{
-    return *m_pastate;
 }
 
 inline MoHexSearchPolicy* MoHexThreadState::Policy()

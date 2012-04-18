@@ -11,7 +11,6 @@
 #include "SgUctSearch.h"
 
 #include "MoHexThreadState.hpp"
-#include "PatternState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -122,18 +121,6 @@ public:
     /** See SetLiveGfx(). */
     bool LiveGfx() const;
 
-    /** Pattern-check radius to use during in-tree phase. */
-    int TreeUpdateRadius() const;
-
-    /** See TreeUpdateRadius(). */
-    void SetTreeUpdateRadius(int radius);
-    
-    /** Pattern-check radius to use during playout phase. */
-    int PlayoutUpdateRadius() const;
-    
-    /** See PlayoutUpdateRadius(). */
-    void SetPlayoutUpdateRadius(int radius);
-
     /** Size of the map of fillin states. */
     int FillinMapBits() const;
 
@@ -148,12 +135,6 @@ private:
 
     /** See SetLiveGfx() */
     bool m_liveGfx;
-
-    /** See TreeUpdateRadius() */
-    int m_treeUpdateRadius;
-
-    /** See PlayoutUpdateRadius() */
-    int m_playoutUpdateRadius;
 
     /** Nothing is done to this board. 
         We do not own this pointer. Threads will create their own
@@ -214,26 +195,6 @@ inline void MoHexSearch::SetKeepGames(bool enable)
 inline void MoHexSearch::SetLiveGfx(bool enable)
 {
     m_liveGfx = enable;
-}
-
-inline int MoHexSearch::TreeUpdateRadius() const
-{
-    return m_treeUpdateRadius;
-}
-
-inline void MoHexSearch::SetTreeUpdateRadius(int radius)
-{
-    m_treeUpdateRadius = radius;
-}
-    
-inline int MoHexSearch::PlayoutUpdateRadius() const
-{
-    return m_playoutUpdateRadius;
-}
-    
-inline void MoHexSearch::SetPlayoutUpdateRadius(int radius)
-{
-    m_playoutUpdateRadius = radius;
 }
 
 inline void MoHexSearch::SetSharedData(MoHexSharedData& data)

@@ -177,11 +177,7 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
             << "pattern_check_percent "
             << config.patternCheckPercent << '\n'
             << "pattern_heuristic "
-            << config.patternHeuristic << '\n'
-            << "response_heuristic "
-            << config.responseHeuristic << '\n'
-            << "response_threshold "
-            << config.responseThreshold << '\n';
+            << config.patternHeuristic << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -190,10 +186,6 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
             config.patternCheckPercent = cmd.ArgMinMax<int>(1, 0, 100);
         else if (name == "pattern_heuristic")
             config.patternHeuristic = cmd.Arg<bool>(1);
-        else if (name == "response_heuristic")
-            config.responseHeuristic = cmd.Arg<bool>(1);
-        else if (name == "response_threshold")
-            config.responseThreshold = cmd.ArgMin<std::size_t>(1, 0);
         else
             throw HtpFailure("Unknown option!");
     }
@@ -261,8 +253,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << "[string] num_threads "
             << search.NumberThreads() << '\n'
 #endif
-            << "[string] playout_update_radius "
-            << search.PlayoutUpdateRadius() << '\n'
             << "[string] progressive_bias "
             << search.ProgressiveBiasConstant() << '\n'
             << "[string] randomize_rave_frequency "
@@ -270,9 +260,7 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << "[string] rave_weight_final "
             << search.RaveWeightFinal() << '\n'
             << "[string] rave_weight_initial "
-            << search.RaveWeightInitial() << '\n'
-            << "[string] tree_update_radius " 
-            << search.TreeUpdateRadius() << '\n';
+            << search.RaveWeightInitial() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -325,8 +313,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
 #endif
         else if (name == "number_playouts_per_visit")
             search.SetNumberPlayouts(cmd.ArgMin<int>(1, 1));
-        else if (name == "playout_update_radius")
-            search.SetPlayoutUpdateRadius(cmd.ArgMin<int>(1, 0));
         else if (name == "progressive_bias")
             search.SetProgressiveBiasConstant(cmd.ArgMin<float>(1, 0));
         else if (name == "rave_weight_final")
@@ -335,8 +321,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetRaveWeightInitial(cmd.ArgMin<float>(1, 0));
         else if (name == "weight_rave_updates")
             search.SetWeightRaveUpdates(cmd.Arg<bool>(1));
-        else if (name == "tree_update_radius")
-            search.SetTreeUpdateRadius(cmd.ArgMin<int>(1, 0));
         else if (name == "search_singleton")
             m_player.SetSearchSingleton(cmd.Arg<bool>(1));
         else if (name == "use_parallel_solver")
