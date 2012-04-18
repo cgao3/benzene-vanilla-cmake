@@ -20,6 +20,7 @@
 #include "SgTimer.h"
 #include "Benzene.hpp"
 #include "BenzeneAssert.hpp"
+#include "Logger.hpp"
 #include "Types.hpp"
 #include "BenzeneException.hpp"
 
