@@ -1106,8 +1106,9 @@ operator!=(const benzene_bitset<_Nb>& __rhs) const
 bool
 test(size_t __position) const
 {
-    if (__position >= _Nb)
-        throw BenzeneException("benzene_bitset::test");
+    BenzeneAssert(__position < _Nb);
+    //if (__position >= _Nb)
+    //    throw BenzeneException("benzene_bitset::test");
     return _Unchecked_test(__position);
 }
 
