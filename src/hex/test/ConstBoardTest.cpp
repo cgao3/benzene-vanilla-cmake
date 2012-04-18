@@ -346,6 +346,38 @@ BOOST_AUTO_TEST_CASE(ConstBoard_DistanceAndAdjacency)
     BOOST_CHECK_EQUAL(cb->Distance(HEX_CELL_F4, HEX_CELL_K11), 12);
 }
 
+BOOST_AUTO_TEST_CASE(ConstBoard_PointInDir)
+{
+    BOOST_REQUIRE(MAX_WIDTH >= 8 && MAX_HEIGHT >= 8);
+    ConstBoard* cb = &ConstBoard::Get(8, 8);
+
+    // check an interior cell
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_EAST), HEX_CELL_C2);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_NORTH_EAST), HEX_CELL_C1);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_NORTH), HEX_CELL_B1);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_WEST), HEX_CELL_A2);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_SOUTH_WEST), HEX_CELL_A3);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_SOUTH), HEX_CELL_B3);
+
+    // check acute corner
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_NORTH_EAST), NORTH);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_NORTH), NORTH);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_WEST), WEST);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_SOUTH_WEST), WEST);
+
+    // check obtuse corner
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_NORTH), NORTH);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_EAST), EAST);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_SOUTH), HEX_CELL_H2);
+    // Top right obtuse corner set to be part of NORTH
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_NORTH_EAST), NORTH);
+
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_WEST), WEST);
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH), SOUTH);
+    // Bottom left obtuse corner set to be part of SOUTH
+    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH_WEST), SOUTH);
+}
+
 }
 
 //---------------------------------------------------------------------------
