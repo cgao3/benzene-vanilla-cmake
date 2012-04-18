@@ -316,7 +316,7 @@ void WolveSearch::OrderMoves(const bitset_t& consider,
     // NOTE: To ensure we are deterministic, we must use stable_sort.
     stable_sort(mvsc.begin(), mvsc.end());
     std::size_t width = m_plyWidth;
-    if (CurrentDepth() < m_specificPlyWidths.size())
+    if (CurrentDepth() < (int)m_specificPlyWidths.size())
     {
         BenzeneAssert(std::size_t(CurrentDepth()) < m_specificPlyWidths.size());
         width = m_specificPlyWidths[CurrentDepth()];

@@ -13,8 +13,7 @@ _BEGIN_BENZENE_NAMESPACE_
 //----------------------------------------------------------------------------
 
 /** Groups a HexBoard, ICEngine, and VCBuilderParam objects,
-    which correspond to a set of parameters that can be changed.
-*/
+    which correspond to a set of parameters that can be changed. */
 struct HexEnvironment
 {
     HexEnvironment(int width, int height);

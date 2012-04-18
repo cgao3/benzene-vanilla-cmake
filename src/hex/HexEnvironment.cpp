@@ -71,7 +71,7 @@ void HexEnvironmentCommands::AddAnalyzeCommands(HtpCommand& cmd,
                                                 const std::string& name)
 {
     std::string capName(name);
-    capName[0] = std::toupper(name[0]);
+    capName[0] = (char)std::toupper(name[0]);
     cmd << (boost::format("param/%1% ICE Param/param_%2%_ice\n") 
             % capName % name);
     cmd << (boost::format("param/%1% VC Param/param_%2%_vc\n") 

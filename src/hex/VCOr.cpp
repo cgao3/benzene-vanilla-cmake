@@ -158,6 +158,7 @@ inline bitset_t VCOrCombiner::Intersect(int start, int count) const
 
 inline bitset_t VCOrCombiner::Add(int start, int count, bitset_t capturedSet)
 {
+    UNUSED(count);
     bitset_t U = capturedSet;
     bitset_t I;
     I.set();

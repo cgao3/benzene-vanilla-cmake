@@ -291,7 +291,7 @@ void DfpnSolver::GuiFx::DoWrite()
         HexPoint move = m_pvCur[i].first;
         if (pv_idx[move] < 0 && m_solver.GuiFxDeepBounds())
             to_print.push_back(move);
-        pv_idx[move] = i + 1;
+        pv_idx[move] = (int)(i + 1);
         color = !color;
     }
     os << '\n';

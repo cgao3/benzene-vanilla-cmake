@@ -555,24 +555,34 @@ private:
 template <class Stream>
 void VCS::DumpFulls(Stream& os, HexPoint x, HexPoint y) const
 {
+    UNUSED(os);
+    UNUSED(x);
+    UNUSED(y);
     BenzeneAssert(false /* stub */);
 }
 
 template <class Stream>
 void VCS::DumpSemis(Stream& os, HexPoint x, HexPoint y) const
 {
+    UNUSED(os);
+    UNUSED(x);
+    UNUSED(y);
     BenzeneAssert(false /* stub */);
 }
 
 template <class Stream>
 void VCS::DumpDataStats(Stream& os, int maxConnections, int numBins) const
 {
+    UNUSED(os);
+    UNUSED(maxConnections);
+    UNUSED(numBins);
     BenzeneAssert(false /* stub */);
 }
 
 template <class Stream>
 void VCS::DumpBuildStats(Stream& os) const
 {
+    UNUSED(os);
     BenzeneAssert(false /* stub */);
 }
 
