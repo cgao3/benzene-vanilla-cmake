@@ -138,20 +138,13 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
                                           HexPoint lastMove)
 {
     HexPoint move = INVALID_POINT;
-    bool pattern_move = false;
     const MoHexPlayoutPolicyConfig& config = m_shared->Config();
     MoHexPlayoutPolicyStatistics& stats = m_shared->Statistics();
-
     // Patterns applied probabilistically (if heuristic is turned on)
     if (config.patternHeuristic 
         && PercentChance(config.patternCheckPercent, m_random))
     {
         move = GeneratePatternMove(state, lastMove);
-        if (move != INVALID_POINT) 
-        {
-            //LogInfo() << state.Position().Write() << '\n'
-            //          << lastMove << ' ' << move << '\n';
-        }
     }
     // Select random move if no move was selected by the heuristics
     if (move == INVALID_POINT) 
@@ -160,10 +153,7 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
         move = GenerateRandomMove(state.Position());
     } 
     else 
-    {
-	pattern_move = true;
         stats.patternMoves++;
-    }
     BenzeneAssert(state.Position().IsEmpty(move));
     stats.totalMoves++;
     return move;
