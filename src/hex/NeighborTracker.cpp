@@ -11,6 +11,7 @@ using namespace benzene;
 
 void NeighborTracker::Init(const Groups& groups)
 {
+    m_groups.Clear();
     for (GroupIterator g(groups); g; ++g) 
         for (BitsetIterator m(g->Members()); m; ++m)
             m_groups.UnionGroups(*m, g->Captain());
@@ -27,9 +28,10 @@ void NeighborTracker::Play(const HexColor color, const HexPoint x,
         if (brd.GetColor(*n) == color) 
         {
             HexPoint cn = static_cast<HexPoint>(m_groups.GetRoot(*n));
+            HexPoint cx = static_cast<HexPoint>(m_groups.GetRoot(x));
             HexPoint captain = static_cast<HexPoint>
-                (m_groups.UnionGroups(x, cn));
-            HexPoint other = (captain == x) ? cn : x;
+                (m_groups.UnionGroups(cx, cn));
+            HexPoint other = (captain == cx) ? cn : cx;
             m_empty_nbs[captain] |= m_empty_nbs[other];
         }
     }
