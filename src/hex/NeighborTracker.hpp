@@ -17,7 +17,9 @@ class NeighborTracker
 public:
     void Init(const Groups& groups);
 
-    bool GameOver(const HexColor toPlay) const;
+    HexColor GetWinner() const;
+
+    bool GameOver() const;
 
     void Play(const HexColor color, const HexPoint x, 
               const StoneBoard& brd);

@@ -37,6 +37,22 @@ void NeighborTracker::Play(const HexColor color, const HexPoint x,
     }
 }
 
+HexColor NeighborTracker::GetWinner() const
+{
+    if (m_groups.GetRoot(HexPointUtil::colorEdge1(BLACK)) == 
+        m_groups.GetRoot(HexPointUtil::colorEdge2(BLACK)))
+        return BLACK;
+    if (m_groups.GetRoot(HexPointUtil::colorEdge1(WHITE)) == 
+        m_groups.GetRoot(HexPointUtil::colorEdge2(WHITE)))
+        return WHITE;
+    return EMPTY;
+}
+
+bool NeighborTracker::GameOver() const
+{
+    return GetWinner() != EMPTY;
+}
+
 bitset_t NeighborTracker::Threats(const HexColor color) const
 {
     HexPoint e1 = static_cast<HexPoint>
