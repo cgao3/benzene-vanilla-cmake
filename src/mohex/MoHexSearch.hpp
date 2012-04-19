@@ -11,6 +11,7 @@
 #include "SgUctSearch.h"
 
 #include "MoHexThreadState.hpp"
+#include "MoHexPatterns.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -89,6 +90,8 @@ public:
 
     const MoHexSharedData& SharedData() const;
 
+    const MoHexPatterns& GlobalPatterns() const;
+
     /** @see SetKeepGames()
         @throws SgException if KeepGames() was false at last invocation of
         StartSearch() */
@@ -155,6 +158,8 @@ private:
 
     SgUctValue m_nextLiveGfx;
 
+    MoHexPatterns m_globalPatterns;
+
     /** Not implemented */
     MoHexSearch(const MoHexSearch& search);
 
@@ -220,6 +225,11 @@ inline int MoHexSearch::FillinMapBits() const
 inline void MoHexSearch::SetFillinMapBits(int bits)
 {
     m_fillinMapBits = bits;
+}
+
+inline const MoHexPatterns& MoHexSearch::GlobalPatterns() const
+{
+    return m_globalPatterns;
 }
 
 //----------------------------------------------------------------------------

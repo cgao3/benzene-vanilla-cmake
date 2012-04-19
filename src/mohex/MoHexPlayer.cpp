@@ -20,17 +20,6 @@
 
 using namespace benzene;
 
-extern int LocalPatterns_6PatternHit;
-extern int LocalPatterns_6PatternMiss;
-extern int LocalPatterns_12PatternHit;
-
-extern int GlobalPatterns_6PatternHit;
-extern int GlobalPatterns_6PatternMiss;
-extern int GlobalPatterns_12PatternHit;
-extern int GlobalPatterns_18PatternHit;
-extern int GlobalPatterns_BadPattern_Tree;
-extern int GlobalPatterns_BadPattern_Playout;
-
 //----------------------------------------------------------------------------
 
 namespace {
@@ -179,27 +168,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     os << '\n';
     os << m_shared_policy.Statistics().ToString() << '\n';  
     if (m_search.ProgressiveBiasConstant() > 0.0f) 
-    {
-        os << "LocalPatterns_6PatternHit          " 
-           << LocalPatterns_6PatternHit << "\n";
-        os << "LocalPatterns_6PatternMiss         " 
-           << LocalPatterns_6PatternMiss << "\n";
-        os << "LocalPatterns_12PatternHit         " 
-           << LocalPatterns_12PatternHit << "\n";
-
-        os << "GlobalPatterns_6PatternHit         " 
-           << GlobalPatterns_6PatternHit << "\n";
-        os << "GlobalPatterns_6PatternMiss        " 
-           << GlobalPatterns_6PatternMiss << "\n";
-        os << "GlobalPatterns_12PatternHit        " 
-           << GlobalPatterns_12PatternHit << "\n";
-        os << "GlobalPatterns_18PatternHit        " 
-           << GlobalPatterns_18PatternHit << "\n";
-        os << "GlobalPatterns_BadPattern_Tree     " 
-           << GlobalPatterns_BadPattern_Tree << "\n";
-        os << "GlobalPatterns_BadPattern_Playout  " << 
-            GlobalPatterns_BadPattern_Playout << "\n";
-    }
+        os << m_search.GlobalPatterns().GetStatistics().ToString() << '\n';
     LogInfo() << os.str() << '\n';
 
 #if 0

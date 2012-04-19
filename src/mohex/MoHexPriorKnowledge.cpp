@@ -9,10 +9,6 @@
 
 using namespace benzene;
 
-extern double GlobalPatterns_GetGammaFromBoard(const StoneBoard& board, 
-                                               HexPoint point, HexColor toPlay,
-                                               bool *isBadPattern);
-
 //----------------------------------------------------------------------------
 
 MoHexPriorKnowledge::MoHexPriorKnowledge(const MoHexThreadState& state) 
@@ -31,14 +27,14 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
 
     double TotalGamma = 0;
     double MoveGamma[BITSETSIZE];
+    const MoHexPatterns& patterns = m_state.Search().GlobalPatterns();
     for (std::size_t i = 0; i < moves.size(); ++i)
     {
         bool isBadPattern;
-        double gamma 
-            = GlobalPatterns_GetGammaFromBoard(m_state.Board(), 
-                                               HexPoint(moves[i].m_move),
-                                               m_state.GetColorToPlay(), 
-                                               &isBadPattern);
+        double gamma = patterns.GetGammaFromBoard(m_state.Board(), 
+                                                  HexPoint(moves[i].m_move),
+                                                  m_state.GetColorToPlay(), 
+                                                  &isBadPattern);
 	MoveGamma[(int)moves[i].m_move] = gamma;
         TotalGamma += gamma;
     }

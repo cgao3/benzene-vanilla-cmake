@@ -3,6 +3,7 @@ bin_PROGRAMS = mohex
 mohex_SOURCES = \
 MoHexEngine.cpp \
 MoHexMain.cpp \
+MoHexPatterns.cpp \
 MoHexPlayer.cpp \
 MoHexPlayoutPolicy.cpp \
 MoHexPriorKnowledge.cpp \
@@ -13,6 +14,7 @@ MoHexUtil.cpp
 
 noinst_HEADERS = \
 MoHexEngine.hpp \
+MoHexPatterns.hpp \
 MoHexPlayer.hpp \
 MoHexPlayoutPolicy.hpp \
 MoHexPriorKnowledge.hpp \

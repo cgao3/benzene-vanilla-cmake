@@ -50,7 +50,8 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
       m_brd(0),
       m_fillinMapBits(16),
       m_sharedData(new MoHexSharedData(m_fillinMapBits)),
-      m_root(0)
+      m_root(0),
+      m_globalPatterns()
 {
     SetBiasTermConstant(0.0);
     SetExpandThreshold(2);
@@ -79,6 +80,10 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     SetProgressiveBiasConstant(1.0f);
     SetLazyDelete(true);
     SetVirtualLoss(true);
+
+    MoHexPatterns::InitializeDirection();
+    MoHexPatterns::InitializeZobrist();
+    m_globalPatterns.ReadPatterns("mohex-global-pattern-gamma.txt");
 }
 
 MoHexSearch::~MoHexSearch()
