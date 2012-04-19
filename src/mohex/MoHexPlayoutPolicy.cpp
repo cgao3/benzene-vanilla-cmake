@@ -102,7 +102,8 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
     const MoHexPlayoutPolicyConfig& config = m_shared->Config();
     MoHexPlayoutPolicyStatistics& stats = m_shared->Statistics();
     // Patterns applied probabilistically (if heuristic is turned on)
-    if (config.patternHeuristic 
+    if (lastMove != INVALID_POINT 
+        && config.patternHeuristic 
         && PercentChance(config.patternCheckPercent, m_random))
     {
         move = GeneratePatternMove(state, lastMove);

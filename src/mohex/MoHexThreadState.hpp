@@ -130,7 +130,10 @@ public:
 
     //-----------------------------------------------------------------------
 
-    const StoneBoard& Board() const;
+    /** Used by MoHexEngine to play some playouts directly. */
+    void StartPlayout(const HexState& state, HexPoint lastMovePlayed);
+
+    const HexState& State() const;
 
     MoHexSearch& Search();
 
@@ -207,9 +210,9 @@ private:
     void ExecuteMove(HexPoint cell);
 };
 
-inline const StoneBoard& MoHexThreadState::Board() const
+inline const HexState& MoHexThreadState::State() const
 {
-    return m_state->Position();
+    return *m_state;
 }
 
 inline MoHexSearch& MoHexThreadState::Search()

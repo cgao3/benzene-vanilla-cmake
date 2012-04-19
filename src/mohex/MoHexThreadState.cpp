@@ -323,6 +323,21 @@ void MoHexThreadState::StartPlayout()
     m_policy->InitializeForPlayout(m_state->Position());
 }
 
+void MoHexThreadState::StartPlayout(const HexState& state,
+                                    HexPoint lastMovePlayed)
+{
+    const StoneBoard& brd = state.Position();
+    if (!m_state.get() 
+        || m_state->Position().Width() != brd.Width() 
+        || m_state->Position().Height() != brd.Height())
+    {
+        m_state.reset(new HexState(state));
+    }
+    *m_state = state;
+    m_lastMovePlayed = lastMovePlayed;
+    StartPlayout();
+}
+
 void MoHexThreadState::EndPlayout()
 {
 }

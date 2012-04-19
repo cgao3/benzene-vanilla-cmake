@@ -9,6 +9,7 @@
 #include "MoHexPlayer.hpp"
 #include "PlayAndSolve.hpp"
 #include "SwapCheck.hpp"
+#include "NeighborTracker.hpp"
 
 using namespace benzene;
 
@@ -99,6 +100,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-values", &MoHexEngine::Values);
     RegisterCmd("mohex-rave-values", &MoHexEngine::RaveValues);
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
+    RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
 }
 
@@ -165,6 +167,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "pspairs/MoHex Values/mohex-values\n"
         "pspairs/MoHex Rave Values/mohex-rave-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
+        "gfx/MoHex Cell Stats/mohex-cell-stats\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
 
@@ -419,6 +422,60 @@ void MoHexEngine::Bounds(HtpCommand& cmd)
         SgUctValue bound = search.GetBound(search.Rave(), tree.Root(), child);
         cmd << ' ' << static_cast<HexPoint>(p) 
             << ' ' << std::fixed << std::setprecision(3) << bound;
+    }
+}
+
+void MoHexEngine::CellStats(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    MoHexThreadState* thread 
+        = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
+    if (!thread)
+        throw HtpFailure() << "Thread not a MoHexThreadState!";
+
+    const int NUM_PLAYOUTS = 10000;
+    float won[BITSETSIZE];
+    memset(won, 0, sizeof(won));
+    
+    for (int i = 0; i < NUM_PLAYOUTS; ++i)
+    {
+        HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+        HexPoint lastMovePlayed = INVALID_POINT;
+        thread->StartPlayout(state, lastMovePlayed);
+
+        Groups groups;
+        GroupBuilder::Build(state.Position(), groups);
+        NeighborTracker nbs;
+        nbs.Init(groups);
+
+        bool skipRaveUpdate;
+        const HexState& threadState = thread->State();
+        while (!nbs.GameOver())
+        {
+            SgMove move = thread->GeneratePlayoutMove(skipRaveUpdate);
+            if (move == SG_NULLMOVE)
+                break;
+            nbs.Play(threadState.ToPlay(), (HexPoint)move, 
+                     threadState.Position());
+            thread->ExecutePlayout(move);
+        }
+        HexEval score = thread->Evaluate();
+        HexColor winner = nbs.GetWinner();
+        for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
+            if (threadState.Position().GetColor(*p) == winner)
+                won[*p]++;
+    }
+
+    cmd << "INFLUENCE ";
+    for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
+    {
+        float v = won[*p] / NUM_PLAYOUTS;
+        // zoom into [0.2, 0.8]
+        v = 0.5f + (v - 0.5f) / (0.8f - 0.2f);
+        if (v < 0.0f) v = 0.0f;
+        if (v > 1.0f) v = 1.0f;
+        cmd << ' ' << static_cast<HexPoint>(*p) 
+            << ' ' << std::fixed << std::setprecision(3) << v;
     }
 }
 

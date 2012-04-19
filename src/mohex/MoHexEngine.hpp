@@ -35,6 +35,7 @@ public:
     void Values(HtpCommand& cmd);
     void RaveValues(HtpCommand& cmd);
     void Bounds(HtpCommand& cmd);
+    void CellStats(HtpCommand& cmd);
     void FindTopMoves(HtpCommand& cmd);
 
     // @} // @name
