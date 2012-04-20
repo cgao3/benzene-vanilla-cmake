@@ -72,8 +72,10 @@ MoHexSharedPolicy::~MoHexSharedPolicy()
 
 //----------------------------------------------------------------------------
 
-MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared)
-    : m_shared(shared)
+MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
+                                       uint8_t* colorArray)
+    : m_shared(shared),
+      m_color(colorArray)
 {
 }
 
@@ -91,7 +93,14 @@ void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
     m_moves.clear();
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
+    {
         m_moves.push_back(*it);
+        m_color[*it] = EMPTY;
+    }
+    for (BitsetIterator it(brd.GetBlack()); it; ++it)
+        m_color[*it] = BLACK;
+    for (BitsetIterator it(brd.GetWhite()); it; ++it)
+        m_color[*it] = WHITE;
     ShuffleVector(m_moves, m_random);
 }
 
@@ -126,14 +135,17 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
 /** Selects random move among the empty cells on the board. */
 HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const StoneBoard& brd)
 {
+    UNUSED(brd);
     HexPoint ret = INVALID_POINT;
     while (true) 
     {
 	BenzeneAssert(!m_moves.empty());
         ret = m_moves.back();
         m_moves.pop_back();
-        if (brd.IsEmpty(ret))
+        if (m_color[ret] == EMPTY)
             break;
+        //if (brd.IsEmpty(ret))
+        //  break;
     }
     return ret;
 }
@@ -142,16 +154,13 @@ HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const StoneBoard& brd)
 HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state, 
                                                  HexPoint lastMove)
 {
-    const StoneBoard& brd = state.Position();
+    const ConstBoard& brd = state.Position().Const();
     const HexColor toPlay = state.ToPlay();
     // State machine: s is number of cells matched.
     // In clockwise order, need to match CEC, where C is the color to
     // play and E is an empty cell. We start at a random direction and
     // stop at first match, which handles the case of multiple bridge
     // patterns occuring at once.
-    // We use 'brd.IsColor(cell, color)' because it is a single 
-    // bitset check. brd.IsEmpty() will check against two bitsets,
-    // so we avoid calling that here.
     // TODO: speed this up?
     int s = 0;
     const int k = m_random.Int(6);
@@ -159,8 +168,8 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state,
     for (int j = 0; j < 8; ++j)
     {
         const int i = (j + k) % 6;
-        const HexPoint p = brd.Const().PointInDir(lastMove, (HexDirection)i);
-        const bool mine = brd.IsColor(p, toPlay);
+        const HexPoint p = brd.PointInDir(lastMove, (HexDirection)i);
+        const bool mine = m_color[p] == toPlay;
         if (s == 0)
         {
             if (mine) s = 1;
@@ -168,8 +177,8 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state,
         else if (s == 1)
         {
             if (mine) s = 1;
-            else if (brd.IsColor(p, !toPlay)) s = 0;
-            else 
+            else if (m_color[p] == !toPlay) s = 0;
+            else
             {
                 s = 2;
                 ret = p;

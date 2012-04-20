@@ -36,8 +36,8 @@ HexThreadStateFactory::Create(unsigned int threadId, const SgUctSearch& search)
     SgUctSearch& srch = const_cast<SgUctSearch&>(search);
     MoHexSearch& hexSearch = dynamic_cast<MoHexSearch&>(srch);
     LogInfo() << "Creating thread " << threadId << '\n';
-    MoHexThreadState* state = new MoHexThreadState(threadId, hexSearch);
-    state->SetPolicy(new MoHexPlayoutPolicy(m_shared_policy));
+    MoHexThreadState* state = new MoHexThreadState(threadId, hexSearch,
+                                                   m_shared_policy);
     return state;
 }
 

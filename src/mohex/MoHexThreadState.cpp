@@ -16,7 +16,8 @@
 
 #include "BoardUtil.hpp"
 #include "BitsetIterator.hpp"
-#include "MoHexPlayoutPolicy.hpp"
+#include "MoHexSearch.hpp"
+#include "MoHexThreadState.hpp"
 #include "MoHexUtil.hpp"
 #include "EndgameUtil.hpp"
 #include "SequenceHash.hpp"
@@ -113,13 +114,14 @@ void MoHexThreadState::AssertionHandler::Run()
 //----------------------------------------------------------------------------
 
 MoHexThreadState::MoHexThreadState(const unsigned int threadId,
-                                   MoHexSearch& sch)
+                                   MoHexSearch& sch, 
+                                   MoHexSharedPolicy* sharedPolicy)
     : SgUctThreadState(threadId, MoHexUtil::ComputeMaxNumMoves()),
       m_assertionHandler(*this),
       m_state(0),
       m_playoutStartState(0),
       m_vcBrd(0),
-      m_policy(0),
+      m_policy(sharedPolicy, m_colorArray),
       m_sharedData(0),
       m_priorKnowledge(*this),
       m_search(sch),
@@ -129,11 +131,6 @@ MoHexThreadState::MoHexThreadState(const unsigned int threadId,
 
 MoHexThreadState::~MoHexThreadState()
 {
-}
-
-void MoHexThreadState::SetPolicy(MoHexSearchPolicy* policy)
-{
-    m_policy.reset(policy);
 }
 
 std::string MoHexThreadState::Dump() const
@@ -171,6 +168,7 @@ void MoHexThreadState::Execute(SgMove sgmove)
 
 void MoHexThreadState::ExecutePlayout(SgMove sgmove)
 {
+    m_colorArray[sgmove] = m_state->ToPlay();
     ExecuteMove(static_cast<HexPoint>(sgmove));
 }
 
@@ -247,7 +245,7 @@ SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
     skipRaveUpdate = false;
     if (GameOver(m_state->Position()))
         return SG_NULLMOVE;
-    SgPoint move = m_policy->GenerateMove(*m_state, m_lastMovePlayed);
+    SgPoint move = m_policy.GenerateMove(*m_state, m_lastMovePlayed);
     SG_ASSERT(move != SG_NULLMOVE);
     return move;
 }
@@ -270,7 +268,7 @@ void MoHexThreadState::StartSearch()
         m_vcBrd.reset(new HexBoard(brd.Width(), brd.Height(), 
                                    brd.ICE(), brd.VCBuilderParameters()));
     }
-    m_policy->InitializeForSearch();
+    m_policy.InitializeForSearch();
 }
 
 void MoHexThreadState::TakeBackInTree(std::size_t nuMoves)
@@ -320,7 +318,7 @@ void MoHexThreadState::StartPlayouts()
 
 void MoHexThreadState::StartPlayout()
 {
-    m_policy->InitializeForPlayout(m_state->Position());
+    m_policy.InitializeForPlayout(m_state->Position());
 }
 
 void MoHexThreadState::StartPlayout(const HexState& state,

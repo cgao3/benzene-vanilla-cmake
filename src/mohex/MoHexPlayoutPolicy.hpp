@@ -8,7 +8,7 @@
 #include "SgSystem.h"
 #include "SgRandom.h"
 
-#include "MoHexSearch.hpp"
+#include "HexState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -109,11 +109,11 @@ inline const MoHexPlayoutPolicyStatistics& MoHexSharedPolicy::Statistics() const
 /** Generates moves during the random playout phase of UCT search.
     Uses local configuration and pattern data in MoHexSharedPolicy.
     Everything in this class must be thread-safe. */
-class MoHexPlayoutPolicy : public MoHexSearchPolicy
+class MoHexPlayoutPolicy
 {
 public:
     /** Creates a policy. */
-    MoHexPlayoutPolicy(MoHexSharedPolicy* shared);
+    MoHexPlayoutPolicy(MoHexSharedPolicy* shared, uint8_t* colorArray);
 
     ~MoHexPlayoutPolicy();
 
@@ -128,6 +128,8 @@ public:
 
 private:
     MoHexSharedPolicy* m_shared;
+
+    uint8_t* m_color;
 
     std::vector<HexPoint> m_moves;
 

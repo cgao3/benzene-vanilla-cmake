@@ -13,6 +13,7 @@
 #include "HexBoard.hpp"
 #include "HexState.hpp"
 #include "MoHexPriorKnowledge.hpp"
+#include "MoHexPlayoutPolicy.hpp"
 #include "Move.hpp"
 #include "VCS.hpp"
 
@@ -55,24 +56,6 @@ inline MoHexSharedData::MoHexSharedData(int fillinMapBits)
 
 //----------------------------------------------------------------------------
 
-/** Interface for policies controlling move generation in the random
-    play-out phase of MoHexSearch. */
-class MoHexSearchPolicy
-{
-public:
-    virtual ~MoHexSearchPolicy() { };
-
-    /** Generates a move in the random playout phase of
-        MoHexSearch. */
-    virtual HexPoint GenerateMove(const HexState& state, HexPoint lastMove) = 0;
-
-    virtual void InitializeForPlayout(const StoneBoard& brd) = 0;
-
-    virtual void InitializeForSearch() = 0;
-};
-
-//----------------------------------------------------------------------------
-
 /** Thread state for MoHexSearch. */
 class MoHexThreadState : public SgUctThreadState
 {
@@ -81,7 +64,8 @@ public:
         @param threadId The number of the thread. Needed for passing to
         constructor of SgUctThreadState.
         @param sch Parent Search object. */
-    MoHexThreadState(const unsigned int threadId, MoHexSearch& sch);
+    MoHexThreadState(const unsigned int threadId, MoHexSearch& sch,
+                     MoHexSharedPolicy* sharedPolicy);
 
     virtual ~MoHexThreadState();
 
@@ -139,16 +123,12 @@ public:
 
     const MoHexSearch& Search() const;
 
-    MoHexSearchPolicy* Policy();
+    MoHexPlayoutPolicy& Policy();
 
     bool IsInPlayout() const;
 
     std::string Dump() const;
 
-    /** Sets policy (takes control of pointer) and deletes the old
-        one, if it existed. */
-    void SetPolicy(MoHexSearchPolicy* policy);
-    
     HexPoint GetLastMovePlayed() const;
 
     HexColor GetColorToPlay() const;
@@ -176,8 +156,10 @@ private:
     /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vcBrd;
 
+    uint8_t m_colorArray[BITSETSIZE];
+
     /** Playout policy. */
-    boost::scoped_ptr<MoHexSearchPolicy> m_policy;
+    MoHexPlayoutPolicy m_policy;
 
     /** Data shared between threads. */
     MoHexSharedData* m_sharedData;
@@ -195,7 +177,7 @@ private:
 
     /** Keeps track of last playout move made.
 	Used for pattern-generated rollouts when call
-	MoHexSearchPolicy. */
+	MoHexPlayoutPolicy. */
     HexPoint m_lastMovePlayed;
 
     HexPoint m_playoutStartLastMove;
@@ -225,9 +207,9 @@ inline const MoHexSearch& MoHexThreadState::Search() const
     return m_search;
 }
 
-inline MoHexSearchPolicy* MoHexThreadState::Policy()
+inline MoHexPlayoutPolicy& MoHexThreadState::Policy()
 {
-    return m_policy.get();
+    return m_policy;
 }
 
 inline bool MoHexThreadState::IsInPlayout() const
