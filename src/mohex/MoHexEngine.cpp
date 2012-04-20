@@ -459,7 +459,6 @@ void MoHexEngine::CellStats(HtpCommand& cmd)
                      threadState.Position());
             thread->ExecutePlayout(move);
         }
-        HexEval score = thread->Evaluate();
         HexColor winner = nbs.GetWinner();
         for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
             if (threadState.Position().GetColor(*p) == winner)
