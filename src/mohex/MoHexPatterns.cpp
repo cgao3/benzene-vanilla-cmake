@@ -6,7 +6,6 @@
 #include "SgHash.h"
 #include "Misc.hpp"
 #include "MoHexPatterns.hpp"
-#include "BoardUtil.hpp"
 
 using namespace benzene;
 
@@ -137,98 +136,69 @@ uint64_t MoHexPatterns::ComputeKey(int size, int pattern[])
 }
 
 inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12, 
-                                           uint64_t *key_18, int size, 
+                                           uint64_t *key_18, const int size, 
                                            const StoneBoard& board, 
-                                           HexPoint point, 
-                                           HexColor toPlay) const
+                                           const HexPoint point, 
+                                           const HexColor toPlay) const
 {
     *key_6 = 0;
     *key_12 = 0;
     *key_18 = 0;
-
+    const ConstBoard& cbrd = board.Const();
     for (int i = 1; i <= 6; i++)
     {
-	HexPoint n = BoardUtil::PointInDir(board.Const(), point, 
-                                           m_direction[i]);
-        if (! HexPointUtil::isEdge(n))
+	const HexPoint n = cbrd.PointInDir(point, m_direction[i], toPlay);
+        const HexColor color = board.GetColor(n);
+        if (FIRST_CELL <= n) // interior cell
 	{
-	    if (!HexPointUtil::isInteriorCell(n))
-	    {
-		*key_6 ^= m_zobrist[(int)toPlay][i][5];
-		continue;
-	    }
-	    if (board.GetColor(n) == EMPTY)
-	    {
+	    if (color == EMPTY)
 	 	*key_6 ^= m_zobrist[(int)toPlay][i][0];
-	    }
-	    else if (board.GetColor(n) == toPlay)
-	    {
+	    else if (color == toPlay)
 		*key_6 ^= m_zobrist[(int)toPlay][i][1];
-	    }
-	    else if (board.GetColor(n) == !toPlay)
-	    {
+	    else
 		*key_6 ^= m_zobrist[(int)toPlay][i][2];
-	    }
 	}
-	else
+	else // edge
 	{
-	    if (board.GetColor(n) == toPlay)
-	    {
+	    if (color == toPlay)
 		*key_6 ^= m_zobrist[(int)toPlay][i][3];
-	    }
-	    else if (board.GetColor(n) == !toPlay)
-	    {
+	    else
 		*key_6 ^= m_zobrist[(int)toPlay][i][4];
-	    }
 	}
-
     }
 
     if (size >= 12)
     {
 	*key_12 = *key_6;
-
 	for (int i = 1; i <= 6; i++)
 	{
-	    HexPoint n = BoardUtil::PointInDir(board.Const(), point, 
-                                               m_direction[i]);
-	    if (HexPointUtil::isEdge(n))
+	    const HexPoint n = cbrd.PointInDir(point, m_direction[i], toPlay);
+	    if (n < FIRST_CELL) // edge
 	    {
 	        if (board.GetColor(n) == toPlay)
 		    *key_12 ^= m_zobrist[(int)toPlay][i + 6][3];
-	        else if (board.GetColor(n) == !toPlay)
+	        else
 		    *key_12 ^= m_zobrist[(int)toPlay][i + 6][4];
 	    }
 	    else
 	    {
-		if (! HexPointUtil::isInteriorCell(n))
+		const HexPoint m 
+                    = cbrd.PointInDir(n, m_direction[i + 6], toPlay);
+                const HexColor color = board.GetColor(m);
+		if (FIRST_CELL <= m) // interior
 		{
-		    *key_12 ^= m_zobrist[(int)toPlay][i + 6][5];
-		    continue;
-		}
-		
-		HexPoint m = BoardUtil::PointInDir(board.Const(), n, 
-                                                m_direction[i + 6]);
-		
-		if (! HexPointUtil::isEdge(m))
-		{
-		    if (! HexPointUtil::isInteriorCell(m))
-		    {
-			*key_12 ^= m_zobrist[(int)toPlay][i + 6][5];
-			continue;
-		    }
-		    if (board.GetColor(m) == EMPTY)
+		    if (color == EMPTY)
 			*key_12 ^= m_zobrist[(int)toPlay][i + 6][0];
-		    else if (board.GetColor(m) == toPlay)
+		    else if (color == toPlay)
 		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][1];
-		    else if (board.GetColor(m) == !toPlay)
+		    else
 		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][2];
 		}
-		else
+		else // edge
 		{
-		    if (board.GetColor(m) == toPlay)
+		    if (color == toPlay)
 		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][3];
-		    else if (board.GetColor(m) == !toPlay)
+		    else 
 		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][4];
 		}
 	    }
@@ -240,50 +210,33 @@ inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12,
 	*key_18 = *key_12;
 	for (int i = 1; i <= 6; i++)
 	{
-	    HexPoint n = BoardUtil::PointInDir(board.Const(), point, 
-                                               m_direction[i]);
-	    if (HexPointUtil::isEdge(n))
+	    const HexPoint n = cbrd.PointInDir(point, m_direction[i], toPlay);
+	    if (n < FIRST_CELL) // edge
 	    {
 		if (board.GetColor(n) == toPlay)
 		    *key_18 ^= m_zobrist[(int)toPlay][i + 12][3];
-		else if (board.GetColor(n) == !toPlay)
+		else
 		    *key_18 ^= m_zobrist[(int)toPlay][i + 12][4];
 	    }
-	    else
+	    else // interior
 	    {
-		if (! HexPointUtil::isInteriorCell(n))
+		const HexPoint m 
+                    = cbrd.PointInDir(n, m_direction[i + 12], toPlay);
+                const HexColor color = board.GetColor(m);
+                if (FIRST_CELL <= m) // interior
 		{
-		    *key_18 ^= m_zobrist[(int)toPlay][i + 12][5];
-		    continue;
-		}
-
-		HexPoint m = BoardUtil::PointInDir(board.Const(), n, 
-                                                   m_direction[i + 12]);
-	    
-	    	if (! HexPointUtil::isEdge(m))
-		{
-		    if (! HexPointUtil::isInteriorCell(m))
-		    {
-		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][5];
-		        continue;
-		    }
-
-		    if (board.GetColor(m) == EMPTY)
+		    if (color == EMPTY)
 		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][0];
-		
-		    else if (board.GetColor(m) == toPlay)
+		    else if (color == toPlay)
 		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][1];
-		    
-		    else if (board.GetColor(m) == !toPlay)
+		    else
 		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][2];
-		
 		}
-	        else
+	        else // edge
 		{
-		    if (board.GetColor(m) == toPlay)
+		    if (color == toPlay)
 		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][3];
-	
-	 	    else if (board.GetColor(m) == !toPlay)
+	 	    else
 		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][4];
 		}
             }
@@ -393,7 +346,12 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 
 	int size = (int)strlen(temp);
 	for (int i = 1; i <= size; i++)
-	    pattern[i] = (int)temp[i - 1] -48;
+        {
+            if (temp[i-1] == '5'){
+                temp[i-1] = '3';
+            }
+	    pattern[i] = (int)temp[i - 1] - 48;
+        }
 
  	Count[size]++;
 

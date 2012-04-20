@@ -61,9 +61,9 @@ private:
     mutable Statistics m_stats;
 
     void GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12, 
-                         uint64_t *key_18, int size, 
+                         uint64_t *key_18, const int size, 
                          const StoneBoard& board, 
-                         HexPoint point, HexColor toPlay) const;
+                         const HexPoint point, const HexColor toPlay) const;
     double QueryHashtable(uint64_t key, bool *isBadPattern) const;
     bool InsertHashTable(uint64_t key, double gamma, bool bad); 
 };
