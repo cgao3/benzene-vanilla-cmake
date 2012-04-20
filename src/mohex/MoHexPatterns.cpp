@@ -67,7 +67,7 @@ void MoHexPatterns::InitializeZobrist()
 {
     int old_seed = SgRandom::Global().Seed();
     SgRandom::Global().SetSeed(1);
-    for (int i = 0; i < MAX_INDEX; i++) 
+    for (size_t i = 0; i < MAX_INDEX; i++) 
 	for (int j = 0; j < 6; j++) 
         {
             uint64_t a = SgRandom::Global().Int();
@@ -367,9 +367,9 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 
     std::ifstream ins;
     std::string fname = MiscUtil::OpenFile(filename, ins);
-    FILE *stream = fopen(fname.c_str(),"r");
+    FILE *stream = fopen(fname.c_str(), "r");
     if (stream == NULL)
-        throw BenzeneException() << "Failed to read '" << fname << "'\n";
+        throw BenzeneException() << "Failed to open '" << fname << "'\n";
 
     double gamma;
     int A;
@@ -378,17 +378,19 @@ void MoHexPatterns::ReadPatterns(std::string filename)
     int pattern[MAX_INDEX];
     int Count[MAX_INDEX] = {0};
 
-    fscanf(stream,"%d\n", &A);
+    if (!fscanf(stream,"%d\n", &A))
+        throw BenzeneException() << "Error parsing number of patterns\n";
 
     size_t badPatternCount = 0;
     double LargestGamma = 0;
     double SmallestGamma = 9999.0f;
     size_t HashTableEntryCount = 0;
 
-    while (! feof(stream))
+    while (!feof(stream))
     {
-        fscanf(stream,"%lf %d %d", &gamma, &W, &A);
-	fscanf(stream,"%s\n", temp);
+        if (fscanf(stream, " %lf %d %d %s ", &gamma, &W, &A, temp) != 4)
+            throw BenzeneException() << "Error parsing pattern\n";
+
 	int size = (int)strlen(temp);
 	for (int i = 1; i <= size; i++)
 	    pattern[i] = (int)temp[i - 1] -48;
@@ -420,7 +422,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
     }
 
     LogInfo() << "GlobalPatterns:\n";
-    for (int i = 0; i < MAX_INDEX; i++)
+    for (size_t i = 0; i < MAX_INDEX; i++)
 	if (Count[i] > 0)
 	    LogInfo() << "size " << i << "         =  " << Count[i] << '\n';
     LogInfo() << "HashTableEntryCount  = " << HashTableEntryCount << '\n';
