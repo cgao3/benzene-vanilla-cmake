@@ -25,8 +25,8 @@ std::string MoHexPatterns::Statistics::ToString() const
         
 //----------------------------------------------------------------------------
 
-uint64_t  MoHexPatterns::m_zobrist[2][100][6];
-HexDirection MoHexPatterns::m_direction[100];
+uint64_t  MoHexPatterns::m_zobrist[2][MoHexPatterns::MAX_INDEX][6];
+HexDirection MoHexPatterns::m_direction[MoHexPatterns::MAX_INDEX];
 
 MoHexPatterns::MoHexPatterns()
     : m_table(new Data[TABLE_SIZE])
@@ -67,8 +67,8 @@ void MoHexPatterns::InitializeZobrist()
 {
     int old_seed = SgRandom::Global().Seed();
     SgRandom::Global().SetSeed(1);
-    for (int i = 0; i <= 100; i++) 
-	for (int j = 0; j <= 5; j++) 
+    for (int i = 0; i < MAX_INDEX; i++) 
+	for (int j = 0; j < 6; j++) 
         {
             uint64_t a = SgRandom::Global().Int();
             uint64_t b = SgRandom::Global().Int();
@@ -76,7 +76,7 @@ void MoHexPatterns::InitializeZobrist()
         }
     SgRandom::SetSeed(old_seed);    
 
-    for (int i = 0; i <= 5; i++)
+    for (int i = 0; i < 6; i++)
     {
 	m_zobrist[1][13][i] = m_zobrist[0][15][i];
 	m_zobrist[1][ 7][i] = m_zobrist[0][11][i];
@@ -84,7 +84,7 @@ void MoHexPatterns::InitializeZobrist()
 	m_zobrist[1][ 9][i] = m_zobrist[0][ 9][i];
 	m_zobrist[1][ 1][i] = m_zobrist[0][ 3][i];
 	m_zobrist[1][ 2][i] = m_zobrist[0][ 5][i];
-        m_zobrist[1][ 8][i] = m_zobrist[0][12 ][i];
+        m_zobrist[1][ 8][i] = m_zobrist[0][12][i];
 	m_zobrist[1][15][i] = m_zobrist[0][13][i];
 	m_zobrist[1][ 3][i] = m_zobrist[0][ 1][i];
 	m_zobrist[1][ 4][i] = m_zobrist[0][ 6][i];
@@ -92,7 +92,7 @@ void MoHexPatterns::InitializeZobrist()
 	m_zobrist[1][11][i] = m_zobrist[0][ 7][i];
 	m_zobrist[1][ 5][i] = m_zobrist[0][ 2][i];
         m_zobrist[1][ 6][i] = m_zobrist[0][ 4][i];
-	m_zobrist[1][10][i] = m_zobrist[0][10 ][i];
+	m_zobrist[1][10][i] = m_zobrist[0][10][i];
 	m_zobrist[1][17][i] = m_zobrist[0][14][i];
 	m_zobrist[1][12][i] = m_zobrist[0][ 8][i];
 	m_zobrist[1][18][i] = m_zobrist[0][16][i];
@@ -100,7 +100,7 @@ void MoHexPatterns::InitializeZobrist()
 }
 
 
-void MoHexPatterns::Rotate(int pattern[100])
+void MoHexPatterns::Rotate(int pattern[])
 {
     int temp = pattern[1];
 
@@ -128,7 +128,7 @@ void MoHexPatterns::Rotate(int pattern[100])
     pattern[14] = temp;
 }
 
-uint64_t MoHexPatterns::ComputeKey(int size, int pattern[100])
+uint64_t MoHexPatterns::ComputeKey(int size, int pattern[])
 {
     uint64_t key = 0;
     for (int i = 1; i <= size; i++)
@@ -375,8 +375,8 @@ void MoHexPatterns::ReadPatterns(std::string filename)
     int A;
     int W;
     char temp[128];
-    int pattern[100];
-    int Count[100] = {0};
+    int pattern[MAX_INDEX];
+    int Count[MAX_INDEX] = {0};
 
     fscanf(stream,"%d\n", &A);
 
@@ -420,7 +420,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
     }
 
     LogInfo() << "GlobalPatterns:\n";
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < MAX_INDEX; i++)
 	if (Count[i] > 0)
 	    LogInfo() << "size " << i << "         =  " << Count[i] << '\n';
     LogInfo() << "HashTableEntryCount  = " << HashTableEntryCount << '\n';

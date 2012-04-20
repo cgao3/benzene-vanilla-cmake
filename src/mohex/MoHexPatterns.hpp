@@ -42,11 +42,12 @@ public:
 
 private:
     static const size_t TABLE_SIZE = 1 << 20;
-    static uint64_t  m_zobrist[2][100][6];
-    static HexDirection m_direction[100];
+    static const size_t MAX_INDEX = 20;
+    static uint64_t  m_zobrist[2][MAX_INDEX][6];
+    static HexDirection m_direction[MAX_INDEX];
 
-    static void Rotate(int pattern[100]);
-    static uint64_t ComputeKey(int size, int pattern[100]);
+    static void Rotate(int pattern[]);
+    static uint64_t ComputeKey(int size, int pattern[]);
 
     struct Data
     {
@@ -63,7 +64,6 @@ private:
                          uint64_t *key_18, int size, 
                          const StoneBoard& board, 
                          HexPoint point, HexColor toPlay) const;
-
     double QueryHashtable(uint64_t key, bool *isBadPattern) const;
     bool InsertHashTable(uint64_t key, double gamma, bool bad); 
 };
