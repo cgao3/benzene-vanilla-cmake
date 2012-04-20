@@ -119,7 +119,7 @@ void MoHexEngine::RegisterCmd(const std::string& name,
 double MoHexEngine::TimeForMove(HexColor color)
 {
     if (m_player.UseTimeManagement())
-        return m_game.TimeRemaining(color) * 0.08;
+        return m_game.TimeRemaining(color) * 0.12;
     return m_player.MaxTime();
 }
 

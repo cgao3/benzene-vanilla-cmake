@@ -133,10 +133,8 @@ void ConstBoard::Init()
 void ConstBoard::ComputePointList()
 {
     /** @note There are several pieces of code that rely on the fact
-        points are visited in the order (a1,b1,...,a2,b2,...,etc)
-        (StoneBoard::GetBoardID() is one).  Do not change this order
-        unless you know what you are doing!!.
-    */
+        points are visited in the order (a1,b1,...,a2,b2,...,etc) Do
+        not change this order unless you know what you are doing!!. */
     for (int p = FIRST_SPECIAL; p < FIRST_CELL; ++p) 
         m_points.push_back(static_cast<HexPoint>(p));
 

@@ -25,7 +25,6 @@ HexHtpEngine::HexHtpEngine(int boardsize)
       m_onLittleGolem(false)
 {
     RegisterCmd("all_legal_moves", &HexHtpEngine::CmdAllLegalMoves);
-    RegisterCmd("board_id", &HexHtpEngine::CmdBoardID);
     RegisterCmd("boardsize", &HexHtpEngine::CmdNewGame);
     RegisterCmd("clear_board", &HexHtpEngine::CmdClearBoard);
     RegisterCmd("exec", &HexHtpEngine::CmdExec);
@@ -69,7 +68,6 @@ void HexHtpEngine::CmdAnalyzeCommands(GtpCommand& cmd)
         "param/Game Param/param_game\n"
         "plist/All Legal Moves/all_legal_moves %c\n"
         "string/ShowBoard/showboard\n"
-        "string/BoardID/board_id\n"
         "string/Final Score/final_score\n"
         "varc/Reg GenMove/reg_genmove %c\n";
 }
@@ -253,13 +251,6 @@ void HexHtpEngine::CmdShowboard(HtpCommand& cmd)
 {
     cmd << '\n';
     cmd << m_game.Board();
-}
-
-/** Outputs BoardID of current position. */
-void HexHtpEngine::CmdBoardID(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(0);
-    cmd << m_game.Board().GetBoardIDString();
 }
 
 /** Displays time left for both players or given player. */

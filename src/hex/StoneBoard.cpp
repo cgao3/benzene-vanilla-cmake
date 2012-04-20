@@ -234,48 +234,6 @@ void StoneBoard::MirrorBoard()
 
 //----------------------------------------------------------------------------
 
-BoardID StoneBoard::GetBoardID() const
-{
-    /** Packs each interior cell into 2 bits.
-        @note Assumes all valid HexColors lie between [0,2]. */
-    std::size_t n = (Width() * Height() + 3) / 4 * 4;
-
-    /** @note When this code was written, the cells were iterated over
-        in the order (a1, b1, c1, ..., a2, b2, c2, ... , etc). Any
-        changes to the order in Interior() will break all existing
-        databases that use BoardID as a lookup, unless this method is
-        updated to always compute in the above order. */
-    std::size_t i = 0;
-    std::vector<byte> val(n, 0);
-    bitset_t played = GetPlayed();
-    for (BoardIterator p(Const().Interior()); p; ++p, ++i) 
-        val[i] = (played.test(*p)) 
-            ? static_cast<byte>(GetColor(*p))
-            : static_cast<byte>(EMPTY);
-
-    BoardID id;
-    for (i = 0; i < n; i += 4)
-        id.push_back(static_cast<byte>(val[i] 
-                                       + (val[i+1] << 2)
-                                       + (val[i+2] << 4)
-                                       + (val[i+3] << 6)));
-    return id;
-}
-
-std::string StoneBoard::GetBoardIDString() const
-{
-    std::string hexval[16] = {"0", "1", "2", "3", "4", "5", "6", "7",
-			      "8", "9", "a", "b", "c", "d", "e", "f"};
-    BoardID brdID = GetBoardID();
-    std::string idString;
-    for (std::size_t i = 0; i < brdID.size(); ++i) {
-	byte b = brdID[i];
-	idString += hexval[((b >> 4) & 0xF)];
-	idString += hexval[b & 0x0F];
-    }
-    return idString;
-}
-
 void StoneBoard::SetPosition(const StoneBoard& brd)
 {
     StartNewGame();
@@ -290,36 +248,6 @@ void StoneBoard::SetPositionOnlyPlayed(const StoneBoard& brd)
     SetColor(BLACK, brd.GetBlack() & brd.GetPlayed());
     SetColor(WHITE, brd.GetWhite() & brd.GetPlayed());
     SetPlayed(brd.GetPlayed());
-}
-
-void StoneBoard::SetPosition(const BoardID& id)
-{
-    std::size_t n = (Width() * Height() + 3) / 4 * 4;
-    BenzeneAssert(id.size() == n / 4);
-
-    std::vector<byte> val(n, 0);
-    for (std::size_t i = 0; i < n; i += 4) 
-    {
-        byte packed = id[i/4];
-        val[i] = packed & 0x3;
-        val[i+1] = (packed >> 2) & 0x3;
-        val[i+2] = (packed >> 4) & 0x3;
-        val[i+3] = (packed >> 6) & 0x3;
-    }
-
-    /** @note This depends on the order defined by Interior().
-        See note in implementation of GetBoardID(). */
-    StartNewGame();
-    std::size_t i = 0;
-    for (BoardIterator p(Const().Interior()); p; ++p, ++i) 
-    {
-        HexColor color = static_cast<HexColor>(val[i]);
-        if (color == BLACK || color == WHITE)
-            PlayMove(color, *p);
-    }
-
-    ComputeHash();
-    MarkAsDirty();
 }
 
 void StoneBoard::SetPosition(const std::string& str)

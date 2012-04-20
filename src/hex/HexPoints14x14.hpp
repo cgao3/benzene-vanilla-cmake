@@ -1,3 +1,6 @@
+//----------------------------------------------------------------------------
+/** @file HexPoints14x14.hpp */
+//----------------------------------------------------------------------------
 
 #ifndef HEXPOINT14x14_HPP
 #define HEXPOINT14x14_HPP
@@ -7,10 +10,8 @@
     See ConstBoard for an example board layout.
 
     @note The order of these points if very important. There are
-    several pieces of code that rely on this ordering
-    (StoneBoard::GetBoardID() is one of them). Change this only if you
-    know what you are doing!
-*/
+    several pieces of code that rely on this ordering. Change this
+    only if you know what you are doing! */
 typedef enum
 {
     /** Dummy point. */

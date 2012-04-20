@@ -13,12 +13,6 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //---------------------------------------------------------------------------
 
-/** Packed representation of a board-state. Useful for storing
-    board positions in databases, opening books, etc. */
-typedef std::vector<byte> BoardID;
-
-//---------------------------------------------------------------------------
-
 /** Tracks played stone information.
 
     Each cell on the board is assigned a HexColor, and so every cell
@@ -29,7 +23,7 @@ typedef std::vector<byte> BoardID;
     in a game; that is, not a fill-in move. This means it is possible
     for a cell to be BLACK or WHITE and not played.  Played stones
     contribute to the board hash and id, unplayed stones do not.     
-    @see Hash(), GetBoardID(), setPlayed(). 
+    @see Hash(), setPlayed(). 
 */
 class StoneBoard
 {
@@ -75,14 +69,6 @@ public:
         Hash(). */
     SgHashCode Hash(HexColor toPlay) const;
 
-    /** Returns BoardID for the current board state, looking only at
-        the played cells. */
-    BoardID GetBoardID() const;
-
-    /** Returns BoardID as a string. 
-        @todo Moves this out of here? */
-    std::string GetBoardIDString() const;
-
     //-----------------------------------------------------------------------
 
     /** Number of played stones on the interior of the board. 
@@ -112,15 +98,6 @@ public:
     std::string Write(const bitset_t& b) const;
 
     //-----------------------------------------------------------------------
-
-    /** Sets the board to the state encoded by id. 
-        Note this state will have no unplayed stones, so the code:
-        @code
-            brd.SetPosition(brd.GetBoardID());
-        @endcode
-        will remove all unplayed stones.
-    */
-    void SetPosition(const BoardID& id);
 
     /** Copies state of brd into this board. */
     void SetPosition(const StoneBoard& brd);
@@ -207,7 +184,7 @@ public:
     
     //-----------------------------------------------------------------------
 
-    /** @name Methods not modifying Hash() or BoardID() */
+    /** @name Methods not modifying Hash() */
     // @{
 
     /** Adds the cells in b as stones of color. Does not modify
@@ -230,7 +207,7 @@ public:
 
     //-----------------------------------------------------------------------
 
-    /** @name Methods modifying Hash() and BoardID() */
+    /** @name Methods modifying Hash() */
     // @{
 
     /** Clears the board and plays the edge stones. */

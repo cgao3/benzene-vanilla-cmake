@@ -422,41 +422,6 @@ BOOST_AUTO_TEST_CASE(StoneBoard_SetStateString)
 
 //---------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(StoneBoard_BoardID)
-{
-    BOOST_REQUIRE(MAX_WIDTH >= 2 && MAX_HEIGHT >= 2);
-
-    // check each color is encoded/decoded correctly
-    // on a 1x1 board. 
-    for (ColorIterator color; color; ++color) 
-    {
-        StoneBoard b1(1, 1);
-        StoneBoard b2(1, 1);
-
-        if (*color != EMPTY)
-            b1.PlayMove(*color, HEX_CELL_A1);
-
-        BoardID id = b1.GetBoardID();
-        BOOST_CHECK_EQUAL(id.size(), 1u);
-    
-        b2.SetPosition(id);
-        BOOST_CHECK(b1 == b2);
-    }
-
-    // check a 5x3 state
-    {
-        std::string str("B..W."
-                         ".WB.."
-                          "BW..W");
-        StoneBoard b1(5, 3, str);
-        StoneBoard b2(5, 3);
-        BoardID id = b1.GetBoardID();
-        BOOST_CHECK_EQUAL(id.size(), 4u);
-        b2.SetPosition(id);
-        BOOST_CHECK(b1 == b2);
-    }
-}
-
 }
 
 //---------------------------------------------------------------------------

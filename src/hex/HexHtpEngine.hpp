@@ -31,7 +31,6 @@ public:
 
     /** @page hexhtpenginecommands HexHtpEngine Commands
         - @link CmdAllLegalMoves() @c all_legal_moves @endlink
-        - @link CmdBoardID() @c board_id @endlink
         - @link CmdClearBoard() @c clear_board @endlink
         - @link CmdExec() @c exec @endlink
         - @link CmdFinalScore() @c final_score @endlink
@@ -56,7 +55,6 @@ public:
 
     virtual void CmdAllLegalMoves(HtpCommand& cmd);
     virtual void CmdAnalyzeCommands(HtpCommand& cmd);
-    virtual void CmdBoardID(HtpCommand&);
     virtual void CmdClearBoard(HtpCommand& cmd);
     virtual void CmdExec(HtpCommand& cmd);
     virtual void CmdFinalScore(HtpCommand& cmd);
