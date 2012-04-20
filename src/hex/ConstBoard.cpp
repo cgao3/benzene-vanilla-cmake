@@ -253,17 +253,24 @@ void ConstBoard::ComputePointInDir()
         for (int i = 0; i < 6; ++i)
         {
             HexPoint n = BoardUtil::PointInDir(*this, p, (HexDirection)i);
-            // Handle obtuse corner: for some reason the obtuse corner
-            // is not an edge...
             if (!HexPointUtil::isEdge(n) && !HexPointUtil::isInteriorCell(n))
             {
-                if (HexPointUtil::isInteriorCell
-                    (BoardUtil::PointInDir(*this, p, DIR_SOUTH)))
-                    n = NORTH;
+                if (BoardUtil::PointInDir(*this, p, DIR_EAST) == EAST)
+                {
+                    m_pointInDir[0][p][i] = NORTH;
+                    m_pointInDir[1][p][i] = EAST;
+                }
                 else 
-                    n = SOUTH;
+                {
+                    m_pointInDir[0][p][i] = SOUTH;
+                    m_pointInDir[1][p][i] = WEST;
+                }
             }
-            m_pointInDir[p][i] = n;            
+            else 
+            {
+                m_pointInDir[0][p][i] = n;
+                m_pointInDir[1][p][i] = n;
+            }
         }
     }
 }
