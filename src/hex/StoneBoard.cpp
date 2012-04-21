@@ -79,36 +79,13 @@ bool StoneBoard::IsLegal(HexPoint cell) const
     return GetLegal().test(cell);
 }
 
-BoardIterator StoneBoard::Stones(HexColorSet colorset) const
-{
-    if (!m_stones_calculated) 
-    {
-        for (int i = 0; i < NUM_COLOR_SETS; ++i)
-        {
-            m_stones_list[i].clear();
-            for (BoardIterator p(Const().EdgesAndInterior()); p; ++p) 
-                if (HexColorSetUtil::InSet(GetColor(*p), (HexColorSet)i))
-                    m_stones_list[i].push_back(*p);
-            m_stones_list[i].push_back(INVALID_POINT);
-        }
-        m_stones_calculated = true;
-    }
-    return BoardIterator(m_stones_list[colorset]);
-}
-
 //----------------------------------------------------------------------------
-
-void StoneBoard::MarkAsDirty()
-{
-    m_stones_calculated = false;
-}
 
 void StoneBoard::AddColor(HexColor color, const bitset_t& b)
 {
     BenzeneAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] |= b;
     BenzeneAssert(IsBlackWhiteDisjoint());
-    if (b.any()) MarkAsDirty();
 }
 
 void StoneBoard::RemoveColor(HexColor color, const bitset_t& b)
@@ -116,23 +93,19 @@ void StoneBoard::RemoveColor(HexColor color, const bitset_t& b)
     BenzeneAssert(HexColorUtil::isBlackWhite(color));
     m_stones[color] = m_stones[color] - b;
     BenzeneAssert(IsBlackWhiteDisjoint());
-    if (b.any()) MarkAsDirty();
 }
 
 void StoneBoard::SetColor(HexColor color, HexPoint cell)
 {
     BenzeneAssert(HexColorUtil::isValidColor(color));
     BenzeneAssert(Const().IsValid(cell));
-
     if (color == EMPTY) {
-	for (BWIterator it; it; ++it)
-	    m_stones[*it].reset(cell);
+        m_stones[BLACK].reset(cell);
+        m_stones[WHITE].reset(cell);
     } else {
         m_stones[color].set(cell);
         BenzeneAssert(IsBlackWhiteDisjoint());
     }
-
-    MarkAsDirty();
 }
 
 void StoneBoard::SetColor(HexColor color, const bitset_t& bs)
@@ -140,18 +113,14 @@ void StoneBoard::SetColor(HexColor color, const bitset_t& bs)
     /** @todo Should we make this support EMPTY color too? */
     BenzeneAssert(HexColorUtil::isBlackWhite(color));
     BenzeneAssert(Const().IsValid(bs));
-
     m_stones[color] = bs;
     BenzeneAssert(IsBlackWhiteDisjoint());
-
-    MarkAsDirty();
 }
 
 void StoneBoard::SetPlayed(const bitset_t& played)
 {
     m_played = played;
     ComputeHash();
-    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------------
@@ -173,7 +142,6 @@ void StoneBoard::StartNewGame()
         PlayMove(*it, HexPointUtil::colorEdge2(*it));
     }
     ComputeHash();
-    MarkAsDirty();
 }
 
 void StoneBoard::PlayMove(HexColor color, HexPoint cell)
@@ -185,8 +153,6 @@ void StoneBoard::PlayMove(HexColor color, HexPoint cell)
     if (Const().IsLocation(cell))
         m_hash.Update(color, cell);
     SetColor(color, cell);
-
-    MarkAsDirty();
 }
 
 void StoneBoard::UndoMove(HexPoint cell)
@@ -199,8 +165,6 @@ void StoneBoard::UndoMove(HexPoint cell)
     if (Const().IsLocation(cell))
         m_hash.Update(color, cell);
     SetColor(EMPTY, cell);
-
-    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------------
@@ -211,7 +175,6 @@ void StoneBoard::RotateBoard()
     for (BWIterator it; it; ++it)
         m_stones[*it] = BoardUtil::Rotate(Const(), m_stones[*it]);
     ComputeHash();
-    MarkAsDirty();
 }
 
 bool StoneBoard::IsSelfRotation() const
@@ -229,7 +192,6 @@ void StoneBoard::MirrorBoard()
     for (BWIterator it; it; ++it)
         m_stones[*it] = BoardUtil::Mirror(Const(), m_stones[*it]);
     ComputeHash();
-    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------------
@@ -286,7 +248,6 @@ void StoneBoard::SetPosition(const std::string& str)
         }
     }
     ComputeHash();
-    MarkAsDirty();
 }
 
 //----------------------------------------------------------------------------

@@ -198,18 +198,23 @@ namespace
 void AddAdjacent(HexColor color, const HexBoard& brd,
                  AdjacencyGraph& graph)
 {
-    HexColorSet not_other = HexColorSetUtil::ColorOrEmpty(color);
-    for (BoardIterator x(brd.GetPosition().Stones(not_other)); x; ++x) 
+    const StoneBoard& bd = brd.GetPosition();
+    for (BoardIterator x(brd.Const().EdgesAndInterior()); x; ++x)
     {
-        for (BoardIterator y(brd.GetPosition().Stones(not_other)); *y!=*x; ++y) 
+        if (bd.GetColor(*x) == !color)
+            continue;
+        for (BoardIterator y(brd.Const().EdgesAndInterior()); *y!=*x; ++y) 
         {
+            if (bd.GetColor(*y) == !color)
+                continue;
             HexPoint cx = brd.GetGroups().CaptainOf(*x);
             HexPoint cy = brd.GetGroups().CaptainOf(*y);
             int size = 0;
             if (cx == cy)
                 size = 1;
             else if (brd.Cons(color).FullExists(cx, cy))
-                size = 1 + (int)brd.Cons(color).FullIntersection(cx, cy).count();
+                size = 1 + (int)brd.Cons(color)
+                    .FullIntersection(cx, cy).count();
             if (size)
             {
                 graph[*x][*y] = size;

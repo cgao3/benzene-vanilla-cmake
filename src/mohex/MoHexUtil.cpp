@@ -9,6 +9,8 @@
 #include "SgUctSearch.h"
 
 #include "MoHexUtil.hpp"
+#include "BitsetIterator.hpp"
+
 #include <iomanip>
 #include <iostream>
 
@@ -158,15 +160,15 @@ void MoHexUtil::SaveTree(const SgUctTree& tree, const StoneBoard& brd,
 {
     out << "(;FF[4]GM[11]SZ[" << brd.Width() << "]\n";
     out << ";AB";
-    for (BoardIterator it(brd.Stones(BLACK)); it; ++it)
+    for (BitsetIterator it(brd.GetBlack()); it; ++it)
         out << '[' << *it << ']';
     out << '\n';
     out << "AW";
-    for (BoardIterator it(brd.Stones(WHITE)); it; ++it)
+    for (BitsetIterator it(brd.GetWhite()); it; ++it)
         out << '[' << *it << ']';
     out << '\n';
     out << "AE";
-    for (BoardIterator it(brd.Stones(EMPTY)); it; ++it)
+    for (BitsetIterator it(brd.GetEmpty()); it; ++it)
         out << '[' << *it << ']';
     out << '\n';
     out << "PL[" << (toPlay == SG_BLACK ? "B" : "W") << "]\n";
