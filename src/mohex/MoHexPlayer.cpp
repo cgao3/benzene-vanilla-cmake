@@ -301,9 +301,9 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
 {
     // Must have knowledge on to reuse subtrees, since root has fillin
     // knowledge which affects the tree below.
-    if (m_search.KnowledgeThreshold().empty())
+    if (m_search.KnowledgeThreshold().empty() && !m_search.LazyDelete())
     {
-        LogInfo() << "ReuseSubtree: knowledge is off.\n";
+        LogInfo() << "ReuseSubtree: both knowledge and lazy delete are off.\n";
         return 0;
     }
     // Board size must be the same. This also catches the case where
@@ -341,22 +341,29 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
     // If no old knowledge for the new root in the old tree, then we
     // cannot reuse the tree (since the root is given its knowledge
     // and using this knowledge would require pruning the trees under
-    // the root's children). 
-    // FIXME: NO LONGER TRUE WITH LAZY DELETE!!!
+    // the root's children) unless lazy delete is on. 
     if (!samePosition)
     {
         MoHexSharedData::StateData oldDataState;
-        if (!oldData.stateData.Get(newState.Hash(), oldDataState))
+        if (oldData.stateData.Get(newState.Hash(), oldDataState))
         {
-            LogInfo() << "ReuseSubtree: No knowledge for state in old tree.\n";
-            return 0;
-        }
-        // Check that the old knowledge is equal to the new knowledge
-        // in the would-be root node.
-        if (!(oldDataState.position == newPosition))
+            // Check that the old knowledge is equal to the new knowledge
+            // in the would-be root node.
+            if (!(oldDataState.position == newPosition))
+            {
+                LogInfo() << "ReuseSubtree: Old fillin data does not match "
+                    "data for new root!\n";
+                return 0;
+            }
+        } 
+        else 
         {
-            LogInfo() << "Old fillin data does not match data for new root!\n";
-            return 0;
+            if (!m_search.LazyDelete())
+            {
+                LogInfo() << "ReuseSubtree: No knowledge for state in old tree "
+                    "and lazy delete is off.\n";
+                return 0;
+            }
         }
     }
 
@@ -397,8 +404,10 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
 
         HexState state(newState);
         CopyKnowledgeData(tree, tree.Root(), state, oldData, newData);
-        float kReuse = float(newData.stateData.Count()) 
-            / float(oldData.stateData.Count());
+        float kReuse = (oldData.stateData.Count() > 0) 
+            ? float(newData.stateData.Count()) 
+              / float(oldData.stateData.Count())
+            : 0.0f;
         int kReusePercent = static_cast<int>(100 * kReuse);
         LogInfo() << "MoHexPlayer: Reusing " 
                   << newData.stateData.Count() << " knowledge states ("
