@@ -113,12 +113,15 @@ class MoHexPlayoutPolicy
 {
 public:
     /** Creates a policy. */
-    MoHexPlayoutPolicy(MoHexSharedPolicy* shared, uint8_t* colorArray);
+    MoHexPlayoutPolicy(MoHexSharedPolicy* shared);
 
     ~MoHexPlayoutPolicy();
 
     /** Generates a move. */
     HexPoint GenerateMove(const HexState& state, HexPoint lastMove);
+
+    /** Plays move move. */
+    void PlayMove(HexPoint move, HexColor toPlay);
 
     /** Initializes for fast playing of moves during playout.
         Must be called before any calls to GenerateMove(). */
@@ -129,7 +132,7 @@ public:
 private:
     MoHexSharedPolicy* m_shared;
 
-    uint8_t* m_color;
+    uint8_t m_color[BITSETSIZE];
 
     std::vector<HexPoint> m_moves;
 

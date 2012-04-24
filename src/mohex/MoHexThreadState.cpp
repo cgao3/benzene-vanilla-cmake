@@ -121,7 +121,7 @@ MoHexThreadState::MoHexThreadState(const unsigned int threadId,
       m_state(0),
       m_playoutStartState(0),
       m_vcBrd(0),
-      m_policy(sharedPolicy, m_colorArray),
+      m_policy(sharedPolicy),
       m_sharedData(0),
       m_priorKnowledge(*this),
       m_search(sch),
@@ -167,7 +167,7 @@ void MoHexThreadState::Execute(SgMove sgmove)
 
 void MoHexThreadState::ExecutePlayout(SgMove sgmove)
 {
-    m_colorArray[sgmove] = m_state->ToPlay();
+    m_policy.PlayMove(static_cast<HexPoint>(sgmove), m_state->ToPlay());
     ExecuteMove(static_cast<HexPoint>(sgmove));
 }
 

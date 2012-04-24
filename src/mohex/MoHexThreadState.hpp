@@ -156,8 +156,6 @@ private:
     /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vcBrd;
 
-    uint8_t m_colorArray[BITSETSIZE];
-    
     /** Playout policy. */
     MoHexPlayoutPolicy m_policy;
 

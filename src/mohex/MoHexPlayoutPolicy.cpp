@@ -72,10 +72,8 @@ MoHexSharedPolicy::~MoHexSharedPolicy()
 
 //----------------------------------------------------------------------------
 
-MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
-                                       uint8_t* colorArray)
-    : m_shared(shared),
-      m_color(colorArray)
+MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared)
+    : m_shared(shared)
 {
 }
 
@@ -127,7 +125,14 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
         stats.patternMoves++;
     BenzeneAssert(state.Position().IsEmpty(move));
     stats.totalMoves++;
+
+    
     return move;
+}
+
+void MoHexPlayoutPolicy::PlayMove(HexPoint move, HexColor toPlay)
+{
+    m_color[move] = toPlay;
 }
 
 //--------------------------------------------------------------------------
