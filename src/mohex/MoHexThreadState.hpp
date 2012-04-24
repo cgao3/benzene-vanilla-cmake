@@ -157,7 +157,7 @@ private:
     boost::scoped_ptr<HexBoard> m_vcBrd;
 
     uint8_t m_colorArray[BITSETSIZE];
-
+    
     /** Playout policy. */
     MoHexPlayoutPolicy m_policy;
 
@@ -171,9 +171,6 @@ private:
    
     /** True if in playout phase. */
     bool m_isInPlayout;
-
-    /** Moves played the game plus moves in tree. */
-    MoveSequence m_gameSequence;
 
     /** Keeps track of last playout move made.
 	Used for pattern-generated rollouts when call

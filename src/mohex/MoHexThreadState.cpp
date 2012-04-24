@@ -157,7 +157,6 @@ void MoHexThreadState::Execute(SgMove sgmove)
     ExecuteMove(move);
     if (m_usingKnowledge)
     {
-        m_gameSequence.push_back(Move(!m_state->ToPlay(), move));
         MoHexSharedData::StateData data;
         if(m_sharedData->stateData.Get(m_state->Hash(), data))
         {
@@ -300,8 +299,7 @@ void MoHexThreadState::GameStart()
 {
     m_atRoot = true;
     m_isInPlayout = false;
-    m_gameSequence = m_sharedData->gameSequence;
-    m_lastMovePlayed = LastMoveFromHistory(m_gameSequence);
+    m_lastMovePlayed = LastMoveFromHistory(m_sharedData->gameSequence);
     *m_state = m_sharedData->rootState;
 }
 
@@ -350,16 +348,12 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     if (m_sharedData->stateData.Get(hash, data))
     {
         if (TRACK_KNOWLEDGE)
-            LogInfo() << "cached: " << hash << ", " 
-                      << SequenceHash::Hash(m_gameSequence) << '\n';
-
+            LogInfo() << "cached: " << hash << '\n';
         m_state->Position() = data.position;
-
         return data.consider;
     }
     if (TRACK_KNOWLEDGE)
-        LogInfo() << "know: " << hash << ", " 
-                  << SequenceHash::Hash(m_gameSequence) << '\n';
+        LogInfo() << "know: " << hash << '\n';
     m_vcBrd->GetPosition().SetPosition(m_state->Position());
     m_vcBrd->ComputeAll(m_state->ToPlay());
     if (EndgameUtil::IsDeterminedState(*m_vcBrd, m_state->ToPlay()))
