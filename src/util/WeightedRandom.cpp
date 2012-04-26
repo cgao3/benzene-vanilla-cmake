@@ -1,5 +1,9 @@
 //----------------------------------------------------------------------------
-/** @file WeightedRandom.cpp */
+/** @file WeightedRandom.cpp 
+
+    Implementation inspired by the weighted random selection used in
+    Castro (https://github.com/tewalds/castro/).
+*/
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
@@ -11,8 +15,7 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-WeightedRandom::WeightedRandom(int size, SgRandom& random)
-    : m_random(random)
+WeightedRandom::WeightedRandom(int size)
 {
     if (size > 256) size = 512;
     else if (size > 128) size = 256;
@@ -28,12 +31,12 @@ void WeightedRandom::Clear()
         m_weights[i] = 0.0f;
 }
 
-void WeightedRandom::InitWeight(int p, float w)
+float& WeightedRandom::operator[](int p)
 {
-    m_weights[p + m_size] = w;
+    return m_weights[p + m_size];
 }
 
-void WeightedRandom::SetWeight(int p, float w)
+void WeightedRandom::SetWeightAndUpdate(int p, float w)
 {
     p += m_size;
     m_weights[p] = w;
@@ -52,11 +55,11 @@ float WeightedRandom::Total() const
     return m_weights[1];
 }
 
-int WeightedRandom::Choose()
+int WeightedRandom::Choose(SgRandom& random)
 {
     int i;
     do {
-        float r = m_random.Float(m_weights[1]);
+        float r = random.Float(m_weights[1]);
         i = 2;
         while (i < m_size)
         {
