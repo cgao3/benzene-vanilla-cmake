@@ -7,7 +7,8 @@ BenzeneProgram.cpp \
 Bitset.cpp \
 Logger.cpp \
 lssolve.cpp \
-Misc.cpp
+Misc.cpp \
+WeightedRandom.cpp
 
 noinst_HEADERS = \
 AtomicMemory.hpp \
@@ -30,7 +31,8 @@ SortedSequence.hpp \
 TransTable.hpp \
 Types.hpp \
 UnionFind.hpp \
-vec.hpp
+vec.hpp \
+WeightedRandom.hpp
 
 libutil_a_CPPFLAGS = \
 $(BOOST_CPPFLAGS) \
