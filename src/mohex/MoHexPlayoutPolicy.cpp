@@ -73,7 +73,8 @@ MoHexSharedPolicy::~MoHexSharedPolicy()
 //----------------------------------------------------------------------------
 
 MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared)
-    : m_shared(shared)
+    : m_shared(shared),
+      m_weights(BITSETSIZE)
 {
 }
 
@@ -89,17 +90,18 @@ void MoHexPlayoutPolicy::InitializeForSearch()
 
 void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
-    m_moves.clear();
+    m_weights.Clear();
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
     {
-        m_moves.push_back(*it);
         m_color[*it] = EMPTY;
+        m_weights[*it] = 1.0f;
     }
     for (BitsetIterator it(brd.GetBlack()); it; ++it)
         m_color[*it] = BLACK;
     for (BitsetIterator it(brd.GetWhite()); it; ++it)
         m_color[*it] = WHITE;
-    ShuffleVector(m_moves, m_random);
+    m_weights.Build();
+    //LogInfo() << brd.Write() << "\nTotal() " << m_weights.Total() << '\n';
 }
 
 HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state, 
@@ -125,13 +127,13 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
         stats.patternMoves++;
     BenzeneAssert(state.Position().IsEmpty(move));
     stats.totalMoves++;
-
     
     return move;
 }
 
 void MoHexPlayoutPolicy::PlayMove(HexPoint move, HexColor toPlay)
 {
+    m_weights.SetWeightAndUpdate(move, 0.0f);
     m_color[move] = toPlay;
 }
 
@@ -141,17 +143,12 @@ void MoHexPlayoutPolicy::PlayMove(HexPoint move, HexColor toPlay)
 HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const StoneBoard& brd)
 {
     UNUSED(brd);
-    HexPoint ret = INVALID_POINT;
-    while (true) 
-    {
-	BenzeneAssert(!m_moves.empty());
-        ret = m_moves.back();
-        m_moves.pop_back();
-        if (m_color[ret] == EMPTY)
-            break;
-        //if (brd.IsEmpty(ret))
-        //  break;
-    }
+    BenzeneAssert(m_weights.Total() >= 0.99f);
+    if (m_weights.Total() < 1)
+        throw BenzeneException() << "Total() < 1!!\n";
+    HexPoint ret = static_cast<HexPoint>(m_weights.Choose(m_random));
+    if (m_color[ret] != EMPTY)
+        throw BenzeneException() << "Weighted move not empty!\n";
     return ret;
 }
 

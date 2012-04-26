@@ -9,6 +9,7 @@
 #include "SgRandom.h"
 
 #include "HexState.hpp"
+#include "WeightedRandom.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -134,10 +135,10 @@ private:
 
     uint8_t m_color[BITSETSIZE];
 
-    std::vector<HexPoint> m_moves;
-
     /** Generator for this policy. */
     SgRandom m_random;
+
+    WeightedRandom m_weights;
 
     HexPoint GeneratePatternMove(const HexState& state, HexPoint lastMove);
 
