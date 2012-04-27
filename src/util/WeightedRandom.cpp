@@ -19,7 +19,11 @@ WeightedRandom::WeightedRandom(int size)
 {
     if (size > 256) size = 512;
     else if (size > 128) size = 256;
-    else size = 128;
+    else if (size > 64) size = 128;
+    else if (size > 32) size = 64;
+    else if (size > 16) size = 32;
+    else if (size > 8) size = 16;
+    else size = 8;
     m_size = size;
     m_weights.resize(2 * m_size);
     Clear();

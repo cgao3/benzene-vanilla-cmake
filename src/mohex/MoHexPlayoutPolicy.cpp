@@ -6,6 +6,7 @@
 #include "SgRandom.h"
 #include "SgHash.h"
 #include "MoHexPlayoutPolicy.hpp"
+#include "MoHexPatterns.hpp"
 #include "Misc.hpp"
 #include "PatternState.hpp"
 #include "BoardUtil.hpp"
@@ -119,9 +120,30 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
     {
         //move = GeneratePatternMove(state, lastMove);
 
-        
-
-
+        bool isBad;
+        WeightedRandom localGamma(8);
+        HexPoint localMove[8];
+        const StoneBoard& brd = state.Position();
+        int i = 0;
+        //LogInfo() << brd.Write() << '\n' << "lastMove=" << lastMove << '\n';
+        for (BoardIterator n(brd.Const().Nbs(lastMove)); n; ++n, ++i)
+        {
+            if (brd.GetColor(*n) == EMPTY)
+            {
+                localMove[i] = *n;
+                localGamma[i] = m_localPatterns.GetGammaFromBoard
+                    (brd, 6, *n, state.ToPlay(), &isBad);
+                //LogInfo() << "i=" << i << " move=" << localMove[i]
+                //          << " gamma[i]=" << localGamma[i] << '\n';
+            }            
+        }
+        localGamma.Build();
+        if (m_random.Float(m_weights.Total() + localGamma.Total()) < 
+            localGamma.Total())
+        {
+            move = localMove[ localGamma.Choose(m_random) ];
+            //LogInfo() << "Local! move=" << move << '\n';
+        }
     }
     // Select random move if no move was selected by the heuristics
     if (move == INVALID_POINT) 
