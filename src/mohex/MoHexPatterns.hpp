@@ -30,7 +30,7 @@ public:
 
     void ReadPatterns(std::string filename);
 
-    double GetGammaFromBoard(const StoneBoard& board, 
+    double GetGammaFromBoard(const StoneBoard& board, int size, 
                              HexPoint point, HexColor toPlay,
                              bool *isBadPattern) const;
 
