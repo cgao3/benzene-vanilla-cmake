@@ -13,6 +13,8 @@
 
 _BEGIN_BENZENE_NAMESPACE_
 
+class MoHexPatterns;
+
 //----------------------------------------------------------------------------
 
 /** Configuration options for policies. */
@@ -114,7 +116,8 @@ class MoHexPlayoutPolicy
 {
 public:
     /** Creates a policy. */
-    MoHexPlayoutPolicy(MoHexSharedPolicy* shared);
+    MoHexPlayoutPolicy(MoHexSharedPolicy* shared, 
+                       const MoHexPatterns& localPatterns);
 
     ~MoHexPlayoutPolicy();
 
@@ -139,6 +142,8 @@ private:
     SgRandom m_random;
 
     WeightedRandom m_weights;
+
+    const MoHexPatterns& m_localPatterns;
 
     HexPoint GeneratePatternMove(const HexState& state, HexPoint lastMove);
 

@@ -72,9 +72,11 @@ MoHexSharedPolicy::~MoHexSharedPolicy()
 
 //----------------------------------------------------------------------------
 
-MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared)
+MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
+                                       const MoHexPatterns& localPatterns)
     : m_shared(shared),
-      m_weights(BITSETSIZE)
+      m_weights(BITSETSIZE),
+      m_localPatterns(localPatterns)
 {
 }
 
@@ -115,7 +117,11 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
         && config.patternHeuristic 
         && PercentChance(config.patternCheckPercent, m_random))
     {
-        move = GeneratePatternMove(state, lastMove);
+        //move = GeneratePatternMove(state, lastMove);
+
+        
+
+
     }
     // Select random move if no move was selected by the heuristics
     if (move == INVALID_POINT) 
