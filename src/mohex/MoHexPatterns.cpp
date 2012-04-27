@@ -244,25 +244,32 @@ inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12,
     }
 }
 
-double MoHexPatterns::GetGammaFromBoard(const StoneBoard& board, 
+double MoHexPatterns::GetGammaFromBoard(const StoneBoard& board, int size,
                                         HexPoint point, HexColor toPlay,
                                         bool *isBadPattern) const
 {
     *isBadPattern = false;
     double gamma = 1.0f;
     uint64_t key_6, key_12, key_18;
-    GetKeyFromBoard(&key_6, &key_12, &key_18, 12, board, point, toPlay);
-    gamma = QueryHashtable(key_12, isBadPattern);
-    if (gamma == 1.0f)
+    GetKeyFromBoard(&key_6, &key_12, &key_18, size, board, point, toPlay);
+    switch(size)
     {
+    case 12:
+        gamma = QueryHashtable(key_12, isBadPattern);
+        if (gamma != 1.0f)
+        {
+            m_stats.hit12++;
+            break;
+        }
+        m_stats.miss12++;
+
+    case 6:
         gamma = QueryHashtable(key_6, isBadPattern);
         if (gamma == 1.0f)
             m_stats.miss6++;
         else   
             m_stats.hit6++;
     }
-    else
-        m_stats.hit12++;
     return gamma;
 }
 

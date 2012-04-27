@@ -32,7 +32,7 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
     {
         bool isBadPattern;
         const HexState& state = m_state.State();
-        double gamma = patterns.GetGammaFromBoard(state.Position(),
+        double gamma = patterns.GetGammaFromBoard(state.Position(), 12,
                                                   HexPoint(moves[i].m_move),
                                                   state.ToPlay(),
                                                   &isBadPattern);
