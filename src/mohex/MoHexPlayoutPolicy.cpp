@@ -131,10 +131,15 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
             if (brd.GetColor(*n) == EMPTY)
             {
                 localMove[i] = *n;
-                localGamma[i] = m_localPatterns.GetGammaFromBoard
+                
+                float gamma = m_localPatterns.GetGammaFromBoard
                     (brd, 6, *n, state.ToPlay(), &isBad);
-                //LogInfo() << "i=" << i << " move=" << localMove[i]
-                //          << " gamma[i]=" << localGamma[i] << '\n';
+                if (gamma != 1.0f) 
+                {
+                    localGamma[i] = gamma;
+                    //LogInfo() << "i=" << i << " move=" << localMove[i]
+                    //          << " gamma[i]=" << localGamma[i] << '\n';
+                }
             }            
         }
         localGamma.Build();
