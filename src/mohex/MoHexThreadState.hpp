@@ -135,7 +135,7 @@ public:
 
     HexPoint GetLastMovePlayed() const;
 
-    HexColor GetColorToPlay() const;
+    HexColor ColorToPlay() const;
 
 private:
     /** Assertion handler to dump the state of a MoHexThreadState. */
@@ -190,6 +190,8 @@ private:
 
     bool m_usingKnowledge;
 
+    HexColor m_toPlay;
+
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
 
     void ExecuteMove(HexPoint cell);
@@ -225,9 +227,9 @@ inline HexPoint MoHexThreadState::GetLastMovePlayed() const
     return m_lastMovePlayed;
 }
 
-inline HexColor MoHexThreadState::GetColorToPlay() const
+inline HexColor MoHexThreadState::ColorToPlay() const
 {
-    return m_state->ToPlay();
+    return m_toPlay;
 }
 
 //----------------------------------------------------------------------------

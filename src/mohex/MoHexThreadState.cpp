@@ -119,7 +119,7 @@ std::string MoHexThreadState::Dump() const
 /** CURRENTLY NOT USED */
 SgBlackWhite MoHexThreadState::ToPlay() const
 {
-    return MoHexUtil::ToSgBlackWhite(m_state->ToPlay());
+    return MoHexUtil::ToSgBlackWhite(ColorToPlay());
 }
 
 /** Used in LazyDelete(). */
@@ -134,7 +134,7 @@ bool MoHexThreadState::IsValidMove(SgMove move)
 SgUctValue MoHexThreadState::Evaluate()
 {
     SG_ASSERT(m_board.GameOver());
-    SgUctValue score = (m_board.GetWinner() == m_state->ToPlay()) ? 1.0 : 0.0;
+    SgUctValue score = (m_board.GetWinner() == ColorToPlay()) ? 1.0 : 0.0;
     return score;
 }
 
@@ -168,6 +168,7 @@ void MoHexThreadState::GameStart()
     m_lastMovePlayed = LastMoveFromHistory(m_sharedData->gameSequence);
     *m_state = m_sharedData->rootState;
     m_board = m_sharedData->rootBoard;
+    m_toPlay = m_state->ToPlay();
 }
 
 /** Execute tree move. */
@@ -200,8 +201,9 @@ void MoHexThreadState::ExecuteMove(HexPoint cell)
     // needlessly.
     // TODO: Handle case when assertions are on.
     SG_ASSERT(m_state->Position().IsEmpty(cell));
-    m_board.PlayMove(cell, m_state->ToPlay());
+    m_board.PlayMove(cell, ColorToPlay());
     m_state->PlayMove(cell);
+    m_toPlay = m_state->ToPlay();
     m_lastMovePlayed = cell;
     m_atRoot = false;
 }
@@ -226,7 +228,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         // First time we have been to this node. If solid winning
         // chain exists then mark as proven and abort. Otherwise,
         // every empty cell is a valid move.
-        if (IsProvenState(m_board, m_state->ToPlay(), provenType))
+        if (IsProvenState(m_board, ColorToPlay(), provenType))
             return false;
         for (BitsetIterator it(m_state->Position().GetEmpty()); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
@@ -273,14 +275,14 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     if (TRACK_KNOWLEDGE)
         LogInfo() << "know: " << hash << '\n';
     m_vcBrd->GetPosition().SetPosition(m_state->Position());
-    m_vcBrd->ComputeAll(m_state->ToPlay());
-    if (EndgameUtil::IsDeterminedState(*m_vcBrd, m_state->ToPlay()))
+    m_vcBrd->ComputeAll(ColorToPlay());
+    if (EndgameUtil::IsDeterminedState(*m_vcBrd, ColorToPlay()))
     {
-        HexColor winner = m_state->ToPlay();
+        HexColor winner = ColorToPlay();
         provenType = SG_PROVEN_WIN;
-        if (EndgameUtil::IsLostGame(*m_vcBrd, m_state->ToPlay()))
+        if (EndgameUtil::IsLostGame(*m_vcBrd, ColorToPlay()))
         {
-            winner = !m_state->ToPlay();
+            winner = !ColorToPlay();
             provenType = SG_PROVEN_LOSS;
         }
         if (DEBUG_KNOWLEDGE)
@@ -291,7 +293,7 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
         // search will never decend past this node again.
         return m_state->Position().GetEmpty();
     }
-    data.consider = EndgameUtil::MovesToConsider(*m_vcBrd, m_state->ToPlay());
+    data.consider = EndgameUtil::MovesToConsider(*m_vcBrd, ColorToPlay());
     data.position = m_vcBrd->GetPosition();
     data.board.SetPosition(data.position);
     m_sharedData->stateData.Add(m_state->Hash(), data);
@@ -322,6 +324,7 @@ void MoHexThreadState::StartPlayouts()
         m_playoutStartLastMove = m_lastMovePlayed;
         *m_playoutStartState = *m_state;
         m_playoutStartBoard = m_board;
+        m_toPlay = m_state->ToPlay();
     }
 }
 
@@ -344,6 +347,7 @@ void MoHexThreadState::StartPlayout(const HexState& state,
         m_state.reset(new HexState(state));
     }
     *m_state = state;
+    m_toPlay = m_state->ToPlay();
     m_lastMovePlayed = lastMovePlayed;
     StartPlayout();
 }
@@ -368,7 +372,7 @@ SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
 
 void MoHexThreadState::ExecutePlayout(SgMove sgmove)
 {
-    m_policy.PlayMove(static_cast<HexPoint>(sgmove), m_state->ToPlay());
+    m_policy.PlayMove(static_cast<HexPoint>(sgmove), ColorToPlay());
     ExecuteMove(static_cast<HexPoint>(sgmove));
 }
 
@@ -385,6 +389,7 @@ void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
         m_lastMovePlayed = m_playoutStartLastMove;
         *m_state = *m_playoutStartState;
         m_board = m_playoutStartBoard;
+        m_toPlay = m_state->ToPlay();
     }
 }
 
