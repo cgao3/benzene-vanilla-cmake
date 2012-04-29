@@ -116,14 +116,61 @@ std::string MoHexThreadState::Dump() const
     return os.str();
 }
 
+/** CURRENTLY NOT USED */
+SgBlackWhite MoHexThreadState::ToPlay() const
+{
+    return MoHexUtil::ToSgBlackWhite(m_state->ToPlay());
+}
+
+/** Used in LazyDelete(). */
+bool MoHexThreadState::IsValidMove(SgMove move)
+{
+    return m_state->Position().IsEmpty(static_cast<HexPoint>(move));
+}
+
+/** Evaluate state.
+    Called during tree-phase (at terminal nodes) and at the end of
+    each playout. */
 SgUctValue MoHexThreadState::Evaluate()
 {
-    const StoneBoard& pos = m_state->Position();
-    SG_ASSERT(m_board.GameOver(pos));
+    SG_ASSERT(m_board.GameOver());
     SgUctValue score = (m_board.GetWinner() == m_state->ToPlay()) ? 1.0 : 0.0;
     return score;
 }
 
+//----------------------------------------------------------------------------
+
+void MoHexThreadState::StartSearch()
+{
+    LogInfo() << "StartSearch()[" << m_threadId <<"]\n";
+    m_usingKnowledge = !m_search.KnowledgeThreshold().empty();
+    m_sharedData = &m_search.SharedData();
+    // TODO: Fix the interface to HexBoard so this can be constant!
+    // The problem is that VCBuilder (which is inside of HexBoard)
+    // expects a non-const reference to a VCBuilderParam object.
+    HexBoard& brd = const_cast<HexBoard&>(m_search.Board());
+    if (!m_state.get() 
+        || m_state->Position().Width() != brd.Width() 
+        || m_state->Position().Height() != brd.Height())
+    {
+        m_state.reset(new HexState(brd.GetPosition(), BLACK));
+        m_playoutStartState.reset(new HexState(brd.GetPosition(), BLACK));
+        m_vcBrd.reset(new HexBoard(brd.Width(), brd.Height(), 
+                                   brd.ICE(), brd.VCBuilderParameters()));
+    }
+    m_policy.InitializeForSearch();
+}
+
+void MoHexThreadState::GameStart()
+{
+    m_atRoot = true;
+    m_isInPlayout = false;
+    m_lastMovePlayed = LastMoveFromHistory(m_sharedData->gameSequence);
+    *m_state = m_sharedData->rootState;
+    m_board = m_sharedData->rootBoard;
+}
+
+/** Execute tree move. */
 void MoHexThreadState::Execute(SgMove sgmove)
 {
     HexPoint move = static_cast<HexPoint>(sgmove);
@@ -137,12 +184,6 @@ void MoHexThreadState::Execute(SgMove sgmove)
             m_board = data.board;
         }
     }
-}
-
-void MoHexThreadState::ExecutePlayout(SgMove sgmove)
-{
-    m_policy.PlayMove(static_cast<HexPoint>(sgmove), m_state->ToPlay());
-    ExecuteMove(static_cast<HexPoint>(sgmove));
 }
 
 void MoHexThreadState::ExecuteMove(HexPoint cell)
@@ -214,110 +255,6 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
     return false;
 }
 
-SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
-{
-    skipRaveUpdate = false;
-    const ConstBoard& cbrd = m_board.Const();
-    //if (m_board.GameOver())
-    if (m_board.NumMoves() == cbrd.Width() * cbrd.Height())
-        return SG_NULLMOVE;
-    SgPoint move = m_policy.GenerateMove(*m_state, m_lastMovePlayed);
-    SG_ASSERT(move != SG_NULLMOVE);
-    return move;
-}
-
-void MoHexThreadState::StartSearch()
-{
-    LogInfo() << "StartSearch()[" << m_threadId <<"]\n";
-    m_usingKnowledge = !m_search.KnowledgeThreshold().empty();
-    m_sharedData = &m_search.SharedData();
-    // TODO: Fix the interface to HexBoard so this can be constant!
-    // The problem is that VCBuilder (which is inside of HexBoard)
-    // expects a non-const reference to a VCBuilderParam object.
-    HexBoard& brd = const_cast<HexBoard&>(m_search.Board());
-    if (!m_state.get() 
-        || m_state->Position().Width() != brd.Width() 
-        || m_state->Position().Height() != brd.Height())
-    {
-        m_state.reset(new HexState(brd.GetPosition(), BLACK));
-        m_playoutStartState.reset(new HexState(brd.GetPosition(), BLACK));
-        m_vcBrd.reset(new HexBoard(brd.Width(), brd.Height(), 
-                                   brd.ICE(), brd.VCBuilderParameters()));
-    }
-    m_policy.InitializeForSearch();
-}
-
-void MoHexThreadState::TakeBackInTree(std::size_t nuMoves)
-{
-    SG_UNUSED(nuMoves);
-}
-
-void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
-{
-    SG_UNUSED(nuMoves);
-    if (m_search.NumberPlayouts() > 1)
-    {
-        m_lastMovePlayed = m_playoutStartLastMove;
-        *m_state = *m_playoutStartState;
-        m_board = m_playoutStartBoard;
-    }
-}
-
-SgBlackWhite MoHexThreadState::ToPlay() const
-{
-    return MoHexUtil::ToSgBlackWhite(m_state->ToPlay());
-}
-
-bool MoHexThreadState::IsValidMove(SgMove move)
-{
-    return m_state->Position().IsEmpty(static_cast<HexPoint>(move));
-}
-
-void MoHexThreadState::GameStart()
-{
-    m_atRoot = true;
-    m_isInPlayout = false;
-    m_lastMovePlayed = LastMoveFromHistory(m_sharedData->gameSequence);
-    *m_state = m_sharedData->rootState;
-    m_board = m_sharedData->rootBoard;
-}
-
-void MoHexThreadState::StartPlayouts()
-{
-    m_isInPlayout = true;
-    // If doing more than one playout make a backup of this state
-    if (m_search.NumberPlayouts() > 1)
-    {
-        m_playoutStartLastMove = m_lastMovePlayed;
-        *m_playoutStartState = *m_state;
-        m_playoutStartBoard = m_board;
-    }
-}
-
-void MoHexThreadState::StartPlayout()
-{
-    m_policy.InitializeForPlayout(m_state->Position());
-}
-
-void MoHexThreadState::StartPlayout(const HexState& state,
-                                    HexPoint lastMovePlayed)
-{
-    const StoneBoard& brd = state.Position();
-    if (!m_state.get() 
-        || m_state->Position().Width() != brd.Width() 
-        || m_state->Position().Height() != brd.Height())
-    {
-        m_state.reset(new HexState(state));
-    }
-    *m_state = state;
-    m_lastMovePlayed = lastMovePlayed;
-    StartPlayout();
-}
-
-void MoHexThreadState::EndPlayout()
-{
-}
-
 /** Computes moves to consider and stores fillin in the shared
     data. Sets provenType if state is determined by VCs. */
 bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
@@ -368,5 +305,87 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
                   << "Consider:" << data.position.Write(data.consider) << '\n';
     return data.consider;
 }
+
+void MoHexThreadState::TakeBackInTree(std::size_t nuMoves)
+{
+    SG_UNUSED(nuMoves);
+}
     
+//----------------------------------------------------------------------------
+
+void MoHexThreadState::StartPlayouts()
+{
+    m_isInPlayout = true;
+    if (m_search.NumberPlayouts() > 1)
+    {
+        // If doing more than one playout make a backup of this state
+        m_playoutStartLastMove = m_lastMovePlayed;
+        *m_playoutStartState = *m_state;
+        m_playoutStartBoard = m_board;
+    }
+}
+
+void MoHexThreadState::StartPlayout()
+{
+    m_policy.InitializeForPlayout(m_state->Position());
+}
+
+/** Called by MoHexEngine.
+    Not called by SgUctSearch; used by MoHexEngine to perform playouts
+    directly for debugging, visualization, etc. */
+void MoHexThreadState::StartPlayout(const HexState& state,
+                                    HexPoint lastMovePlayed)
+{
+    const StoneBoard& brd = state.Position();
+    if (!m_state.get() 
+        || m_state->Position().Width() != brd.Width() 
+        || m_state->Position().Height() != brd.Height())
+    {
+        m_state.reset(new HexState(state));
+    }
+    *m_state = state;
+    m_lastMovePlayed = lastMovePlayed;
+    StartPlayout();
+}
+
+SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
+{
+    skipRaveUpdate = false;
+    const ConstBoard& cbrd = m_board.Const();
+
+    // Uncomment line below to stop playout when win detected.
+    // if (m_board.GameOver())
+    //     return SG_NULLMOVE;
+
+    // Stop when board is filled.
+    if (m_board.NumMoves() == cbrd.Width() * cbrd.Height())
+        return SG_NULLMOVE;
+
+    SgPoint move = m_policy.GenerateMove(*m_state, m_lastMovePlayed);
+    SG_ASSERT(move != SG_NULLMOVE);
+    return move;
+}
+
+void MoHexThreadState::ExecutePlayout(SgMove sgmove)
+{
+    m_policy.PlayMove(static_cast<HexPoint>(sgmove), m_state->ToPlay());
+    ExecuteMove(static_cast<HexPoint>(sgmove));
+}
+
+void MoHexThreadState::EndPlayout()
+{
+}
+
+void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
+{
+    SG_UNUSED(nuMoves);
+    if (m_search.NumberPlayouts() > 1)
+    {
+        // If doing more than 1 playout, restore state at start of playout
+        m_lastMovePlayed = m_playoutStartLastMove;
+        *m_state = *m_playoutStartState;
+        m_board = m_playoutStartBoard;
+    }
+}
+
 //----------------------------------------------------------------------------
