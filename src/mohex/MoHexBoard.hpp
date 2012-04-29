@@ -9,6 +9,8 @@
 #include <boost/static_assert.hpp>
 #include "ConstBoard.hpp"
 
+class SgRandom;
+
 _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
@@ -35,6 +37,10 @@ public:
     HexColor GetWinner() const;
 
     int NumMoves() const;
+
+    HexPoint SaveBridge(const HexPoint lastMove, const HexColor toPlay,
+                        SgRandom& random) const;
+
 
     std::string Write() const;
 
@@ -103,6 +109,48 @@ inline int MoHexBoard::NumMoves() const
 
 //----------------------------------------------------------------------------
 
+inline HexPoint MoHexBoard::SaveBridge(const HexPoint lastMove, 
+                                       const HexColor toPlay,
+                                       SgRandom& random) const
+{
+    // State machine: s is number of cells matched.
+    // In clockwise order, need to match CEC, where C is the color to
+    // play and E is an empty cell. We start at a random direction and
+    // stop at first match, which handles the case of multiple bridge
+    // patterns occuring at once.
+    // TODO: speed this up?
+    int s = 0;
+    const int start = random.Int(6);
+    HexPoint ret = INVALID_POINT;
+    for (int j = 0; j < 8; ++j)
+    {
+        const int i = (j + start) % 6;
+        const HexPoint p = Const().PointInDir(lastMove, (HexDirection)i);
+        const bool mine = GetColor(p) == toPlay;
+        if (s == 0)
+        {
+            if (mine) s = 1;
+        }
+        else if (s == 1)
+        {
+            if (mine) s = 1;
+            else if (GetColor(p) == !toPlay) s = 0;
+            else
+            {
+                s = 2;
+                ret = p;
+            }
+        }
+        else if (s == 2)
+        {
+            if (mine) return ret; // matched!!
+            else s = 0;
+        }
+    }
+    return INVALID_POINT;
+}
+
+//----------------------------------------------------------------------------
 
 _END_BENZENE_NAMESPACE_
 

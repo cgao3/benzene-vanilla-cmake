@@ -121,7 +121,6 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
     BenzeneAssert(m_board.GetColor(move) == EMPTY);
     stats.totalMoves++;
 
-    
     return move;
 }
 
@@ -151,43 +150,7 @@ HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const StoneBoard& brd)
 HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state, 
                                                  HexPoint lastMove)
 {
-    const ConstBoard& brd = state.Position().Const();
-    const HexColor toPlay = state.ToPlay();
-    // State machine: s is number of cells matched.
-    // In clockwise order, need to match CEC, where C is the color to
-    // play and E is an empty cell. We start at a random direction and
-    // stop at first match, which handles the case of multiple bridge
-    // patterns occuring at once.
-    // TODO: speed this up?
-    int s = 0;
-    const int k = m_random.Int(6);
-    HexPoint ret = INVALID_POINT;
-    for (int j = 0; j < 8; ++j)
-    {
-        const int i = (j + k) % 6;
-        const HexPoint p = brd.PointInDir(lastMove, (HexDirection)i);
-        const bool mine = m_board.GetColor(p) == toPlay;
-        if (s == 0)
-        {
-            if (mine) s = 1;
-        }
-        else if (s == 1)
-        {
-            if (mine) s = 1;
-            else if (m_board.GetColor(p) == !toPlay) s = 0;
-            else
-            {
-                s = 2;
-                ret = p;
-            }
-        }
-        else if (s == 2)
-        {
-            if (mine) return ret; // matched!!
-            else s = 0;
-        }
-    }
-    return INVALID_POINT;
+    return m_board.SaveBridge(lastMove, state.ToPlay(), m_random);
 }
 
 //----------------------------------------------------------------------------
