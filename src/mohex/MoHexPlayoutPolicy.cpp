@@ -72,8 +72,10 @@ MoHexSharedPolicy::~MoHexSharedPolicy()
 
 //----------------------------------------------------------------------------
 
-MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared)
-    : m_shared(shared)
+MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
+                                       MoHexBoard& board)
+    : m_shared(shared),
+      m_board(board)
 {
 }
 
@@ -91,14 +93,7 @@ void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
     m_moves.clear();
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
-    {
         m_moves.push_back(*it);
-        m_color[*it] = EMPTY;
-    }
-    for (BitsetIterator it(brd.GetBlack()); it; ++it)
-        m_color[*it] = BLACK;
-    for (BitsetIterator it(brd.GetWhite()); it; ++it)
-        m_color[*it] = WHITE;
     ShuffleVector(m_moves, m_random);
 }
 
@@ -123,7 +118,7 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
     } 
     else 
         stats.patternMoves++;
-    BenzeneAssert(state.Position().IsEmpty(move));
+    BenzeneAssert(m_board.GetColor(move) == EMPTY);
     stats.totalMoves++;
 
     
@@ -132,7 +127,6 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
 
 void MoHexPlayoutPolicy::PlayMove(HexPoint move, HexColor toPlay)
 {
-    m_color[move] = toPlay;
 }
 
 //--------------------------------------------------------------------------
@@ -147,10 +141,8 @@ HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const StoneBoard& brd)
 	BenzeneAssert(!m_moves.empty());
         ret = m_moves.back();
         m_moves.pop_back();
-        if (m_color[ret] == EMPTY)
+        if (m_board.GetColor(ret) == EMPTY)
             break;
-        //if (brd.IsEmpty(ret))
-        //  break;
     }
     return ret;
 }
@@ -174,7 +166,7 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state,
     {
         const int i = (j + k) % 6;
         const HexPoint p = brd.PointInDir(lastMove, (HexDirection)i);
-        const bool mine = m_color[p] == toPlay;
+        const bool mine = m_board.GetColor(p) == toPlay;
         if (s == 0)
         {
             if (mine) s = 1;
@@ -182,7 +174,7 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state,
         else if (s == 1)
         {
             if (mine) s = 1;
-            else if (m_color[p] == !toPlay) s = 0;
+            else if (m_board.GetColor(p) == !toPlay) s = 0;
             else
             {
                 s = 2;

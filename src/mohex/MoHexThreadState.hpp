@@ -12,6 +12,7 @@
 #include "HashMap.hpp"
 #include "HexBoard.hpp"
 #include "HexState.hpp"
+#include "MoHexBoard.hpp"
 #include "MoHexPriorKnowledge.hpp"
 #include "MoHexPlayoutPolicy.hpp"
 #include "Move.hpp"
@@ -30,6 +31,7 @@ struct MoHexSharedData
 {
     struct StateData
     {
+        MoHexBoard board;
         StoneBoard position;
         bitset_t consider;
     };
@@ -42,6 +44,8 @@ struct MoHexSharedData
 
     /** Set of moves to consider from the root. */
     bitset_t rootConsider;
+
+    MoHexBoard rootBoard;
 
     /** Stores fillin information for states in the tree. */
     HashMap<StateData> stateData;
@@ -155,6 +159,10 @@ private:
 
     /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vcBrd;
+
+    MoHexBoard m_board;
+
+    MoHexBoard m_playoutStartBoard;
 
     /** Playout policy. */
     MoHexPlayoutPolicy m_policy;

@@ -135,7 +135,8 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     data.gameSequence = game.History();
     data.rootState = HexState(brd.GetPosition(), color);
     data.rootConsider = consider;
-    
+    data.rootBoard.SetPosition(brd.GetPosition());
+
     // Reuse the old subtree
     SgUctTree* initTree = 0;
     if (m_reuse_subtree)

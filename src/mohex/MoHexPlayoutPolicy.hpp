@@ -9,6 +9,7 @@
 #include "SgRandom.h"
 
 #include "HexState.hpp"
+#include "MoHexBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -113,7 +114,8 @@ class MoHexPlayoutPolicy
 {
 public:
     /** Creates a policy. */
-    MoHexPlayoutPolicy(MoHexSharedPolicy* shared);
+    MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
+                       MoHexBoard& board);
 
     ~MoHexPlayoutPolicy();
 
@@ -132,7 +134,7 @@ public:
 private:
     MoHexSharedPolicy* m_shared;
 
-    uint8_t m_color[BITSETSIZE];
+    MoHexBoard& m_board;
 
     std::vector<HexPoint> m_moves;
 

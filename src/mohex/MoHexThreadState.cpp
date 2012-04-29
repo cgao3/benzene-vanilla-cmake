@@ -36,41 +36,14 @@ static const bool TRACK_KNOWLEDGE = false;
 namespace
 {
 
-/** Returns true if board is entirely filled. */
-bool GameOver(const StoneBoard& brd)
-{
-    return brd.GetEmpty().none();
-}
-
-/** Determines the winner of a filled-in board. */
-HexColor GetWinner(const StoneBoard& brd)
-{
-    SG_ASSERT(GameOver(brd));
-    if (BoardUtil::ConnectedOnBitset(brd.Const(), brd.GetColor(BLACK), 
-                                     NORTH, SOUTH))
-        return BLACK;
-    return WHITE;
-}
-
-/** Returns winner if there is one. Returns EMPTY if no winner. */
-HexColor CheckIfWinner(const StoneBoard& brd)
-{
-    if (BoardUtil::ConnectedOnBitset(brd.Const(), brd.GetColor(BLACK), 
-                                     NORTH, SOUTH))
-        return BLACK;
-    if (BoardUtil::ConnectedOnBitset(brd.Const(), brd.GetColor(WHITE),
-                                     EAST, WEST))
-        return WHITE;
-    return EMPTY;
-}
-
 /** Returns true if game is over and sets provenType appropriately. */
-bool IsProvenState(const HexState& state, SgUctProvenType& provenType)
+bool IsProvenState(const MoHexBoard& board, HexColor toPlay, 
+                   SgUctProvenType& provenType)
 {
-    HexColor winner = CheckIfWinner(state.Position());
+    HexColor winner = board.GetWinner();
     if (winner != EMPTY)
     {
-        provenType = (winner == state.ToPlay())
+        provenType = (winner == toPlay)
             ? SG_PROVEN_WIN : SG_PROVEN_LOSS;
         return true;
     }
@@ -121,7 +94,7 @@ MoHexThreadState::MoHexThreadState(const unsigned int threadId,
       m_state(0),
       m_playoutStartState(0),
       m_vcBrd(0),
-      m_policy(sharedPolicy),
+      m_policy(sharedPolicy, m_board),
       m_sharedData(0),
       m_priorKnowledge(*this),
       m_search(sch),
@@ -146,8 +119,8 @@ std::string MoHexThreadState::Dump() const
 SgUctValue MoHexThreadState::Evaluate()
 {
     const StoneBoard& pos = m_state->Position();
-    SG_ASSERT(GameOver(pos));
-    SgUctValue score = (GetWinner(pos) == m_state->ToPlay()) ? 1.0 : 0.0;
+    SG_ASSERT(m_board.GameOver(pos));
+    SgUctValue score = (m_board.GetWinner() == m_state->ToPlay()) ? 1.0 : 0.0;
     return score;
 }
 
@@ -161,6 +134,7 @@ void MoHexThreadState::Execute(SgMove sgmove)
         if(m_sharedData->stateData.Get(m_state->Hash(), data))
         {
             m_state->Position() = data.position;
+            m_board = data.board;
         }
     }
 }
@@ -185,6 +159,7 @@ void MoHexThreadState::ExecuteMove(HexPoint cell)
     // needlessly.
     // TODO: Handle case when assertions are on.
     SG_ASSERT(m_state->Position().IsEmpty(cell));
+    m_board.PlayMove(cell, m_state->ToPlay());
     m_state->PlayMove(cell);
     m_lastMovePlayed = cell;
     m_atRoot = false;
@@ -210,7 +185,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         // First time we have been to this node. If solid winning
         // chain exists then mark as proven and abort. Otherwise,
         // every empty cell is a valid move.
-        if (IsProvenState(*m_state, provenType))
+        if (IsProvenState(m_board, m_state->ToPlay(), provenType))
             return false;
         for (BitsetIterator it(m_state->Position().GetEmpty()); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
@@ -242,7 +217,8 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
 SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
 {
     skipRaveUpdate = false;
-    if (GameOver(m_state->Position()))
+    //if (m_board.GameOver())
+    if (m_state->Position().GetEmpty().none())
         return SG_NULLMOVE;
     SgPoint move = m_policy.GenerateMove(*m_state, m_lastMovePlayed);
     SG_ASSERT(move != SG_NULLMOVE);
@@ -282,6 +258,7 @@ void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
     {
         m_lastMovePlayed = m_playoutStartLastMove;
         *m_state = *m_playoutStartState;
+        m_board = m_playoutStartBoard;
     }
 }
 
@@ -301,6 +278,7 @@ void MoHexThreadState::GameStart()
     m_isInPlayout = false;
     m_lastMovePlayed = LastMoveFromHistory(m_sharedData->gameSequence);
     *m_state = m_sharedData->rootState;
+    m_board = m_sharedData->rootBoard;
 }
 
 void MoHexThreadState::StartPlayouts()
@@ -311,6 +289,7 @@ void MoHexThreadState::StartPlayouts()
     {
         m_playoutStartLastMove = m_lastMovePlayed;
         *m_playoutStartState = *m_state;
+        m_playoutStartBoard = m_board;
     }
 }
 
@@ -350,6 +329,7 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
         if (TRACK_KNOWLEDGE)
             LogInfo() << "cached: " << hash << '\n';
         m_state->Position() = data.position;
+        m_board = data.board;
         return data.consider;
     }
     if (TRACK_KNOWLEDGE)
@@ -375,9 +355,11 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     }
     data.consider = EndgameUtil::MovesToConsider(*m_vcBrd, m_state->ToPlay());
     data.position = m_vcBrd->GetPosition();
+    data.board.SetPosition(data.position);
     m_sharedData->stateData.Add(m_state->Hash(), data);
 
     m_state->Position() = data.position;
+    m_board = data.board;
 
     if (DEBUG_KNOWLEDGE)
         LogInfo() << "===================================\n"
