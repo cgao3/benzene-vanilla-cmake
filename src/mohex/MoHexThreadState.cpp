@@ -92,7 +92,6 @@ MoHexThreadState::MoHexThreadState(const unsigned int threadId,
     : SgUctThreadState(threadId, MoHexUtil::ComputeMaxNumMoves()),
       m_assertionHandler(*this),
       m_state(0),
-      m_playoutStartState(0),
       m_vcBrd(0),
       m_policy(sharedPolicy, m_board),
       m_sharedData(0),
@@ -111,8 +110,12 @@ std::string MoHexThreadState::Dump() const
     std::ostringstream os;
     os << "MoHexThreadState[" << m_threadId << "] ";
     if (m_isInPlayout) 
+    {
         os << "[playout] ";
-    os << "board:" << m_state->Position();
+        os << "board: " << m_board.Write();
+    } 
+    else
+        os << "board:" << m_state->Position().Write();
     return os.str();
 }
 
@@ -122,7 +125,7 @@ SgBlackWhite MoHexThreadState::ToPlay() const
     return MoHexUtil::ToSgBlackWhite(ColorToPlay());
 }
 
-/** Used in LazyDelete(). */
+/** Called by LazyDelete() during tree phase. */
 bool MoHexThreadState::IsValidMove(SgMove move)
 {
     return m_state->Position().IsEmpty(static_cast<HexPoint>(move));
@@ -154,7 +157,6 @@ void MoHexThreadState::StartSearch()
         || m_state->Position().Height() != brd.Height())
     {
         m_state.reset(new HexState(brd.GetPosition(), BLACK));
-        m_playoutStartState.reset(new HexState(brd.GetPosition(), BLACK));
         m_vcBrd.reset(new HexBoard(brd.Width(), brd.Height(), 
                                    brd.ICE(), brd.VCBuilderParameters()));
     }
@@ -174,21 +176,8 @@ void MoHexThreadState::GameStart()
 /** Execute tree move. */
 void MoHexThreadState::Execute(SgMove sgmove)
 {
-    HexPoint move = static_cast<HexPoint>(sgmove);
-    ExecuteMove(move);
-    if (m_usingKnowledge)
-    {
-        MoHexSharedData::StateData data;
-        if(m_sharedData->stateData.Get(m_state->Hash(), data))
-        {
-            m_state->Position() = data.position;
-            m_board = data.board;
-        }
-    }
-}
+    HexPoint cell = static_cast<HexPoint>(sgmove);
 
-void MoHexThreadState::ExecuteMove(HexPoint cell)
-{
     // Lock-free mode: It is possible we are playing into a filled-in
     // cell during the in-tree phase. This can occur if the thread
     // happens upon this state after fillin was published but before
@@ -206,6 +195,16 @@ void MoHexThreadState::ExecuteMove(HexPoint cell)
     m_toPlay = m_state->ToPlay();
     m_lastMovePlayed = cell;
     m_atRoot = false;
+
+    if (m_usingKnowledge)
+    {
+        MoHexSharedData::StateData data;
+        if(m_sharedData->stateData.Get(m_state->Hash(), data))
+        {
+            m_state->Position() = data.position;
+            m_board = data.board;
+        }
+    }
 }
 
 bool MoHexThreadState::GenerateAllMoves(SgUctValue count, 
@@ -322,9 +321,7 @@ void MoHexThreadState::StartPlayouts()
     {
         // If doing more than one playout make a backup of this state
         m_playoutStartLastMove = m_lastMovePlayed;
-        *m_playoutStartState = *m_state;
         m_playoutStartBoard = m_board;
-        m_toPlay = m_state->ToPlay();
     }
 }
 
@@ -365,15 +362,19 @@ SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
     if (m_board.NumMoves() == cbrd.Width() * cbrd.Height())
         return SG_NULLMOVE;
 
-    SgPoint move = m_policy.GenerateMove(*m_state, m_lastMovePlayed);
+    SgPoint move = m_policy.GenerateMove(ColorToPlay(), m_lastMovePlayed);
     SG_ASSERT(move != SG_NULLMOVE);
     return move;
 }
 
 void MoHexThreadState::ExecutePlayout(SgMove sgmove)
 {
-    m_policy.PlayMove(static_cast<HexPoint>(sgmove), ColorToPlay());
-    ExecuteMove(static_cast<HexPoint>(sgmove));
+    HexPoint cell = static_cast<HexPoint>(sgmove);
+    SG_ASSERT(m_board.GetColor(cell) == EMPTY);
+    m_policy.PlayMove(cell, ColorToPlay());
+    m_board.PlayMove(cell, ColorToPlay());
+    m_lastMovePlayed = cell;
+    m_toPlay = !m_toPlay;
 }
 
 void MoHexThreadState::EndPlayout()
@@ -387,7 +388,6 @@ void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
     {
         // If doing more than 1 playout, restore state at start of playout
         m_lastMovePlayed = m_playoutStartLastMove;
-        *m_state = *m_playoutStartState;
         m_board = m_playoutStartBoard;
         m_toPlay = m_state->ToPlay();
     }

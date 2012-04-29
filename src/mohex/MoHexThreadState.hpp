@@ -155,8 +155,6 @@ private:
 
     boost::scoped_ptr<HexState> m_state;
 
-    boost::scoped_ptr<HexState> m_playoutStartState;
-
     /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vcBrd;
 
@@ -193,8 +191,6 @@ private:
     HexColor m_toPlay;
 
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
-
-    void ExecuteMove(HexPoint cell);
 };
 
 inline const HexState& MoHexThreadState::State() const

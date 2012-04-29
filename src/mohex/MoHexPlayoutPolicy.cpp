@@ -97,8 +97,8 @@ void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
     ShuffleVector(m_moves, m_random);
 }
 
-HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state, 
-                                          HexPoint lastMove)
+HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay, 
+                                          const HexPoint lastMove)
 {
     HexPoint move = INVALID_POINT;
     const MoHexPlayoutPolicyConfig& config = m_shared->Config();
@@ -108,13 +108,13 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
         && config.patternHeuristic 
         && PercentChance(config.patternCheckPercent, m_random))
     {
-        move = GeneratePatternMove(state, lastMove);
+        move = GeneratePatternMove(toPlay, lastMove);
     }
     // Select random move if no move was selected by the heuristics
     if (move == INVALID_POINT) 
     {
 	stats.randomMoves++;
-        move = GenerateRandomMove(state.Position());
+        move = GenerateRandomMove();
     } 
     else 
         stats.patternMoves++;
@@ -124,16 +124,17 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
     return move;
 }
 
-void MoHexPlayoutPolicy::PlayMove(HexPoint move, HexColor toPlay)
+void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 {
+    UNUSED(move);
+    UNUSED(toPlay);
 }
 
 //--------------------------------------------------------------------------
 
 /** Selects random move among the empty cells on the board. */
-HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const StoneBoard& brd)
+HexPoint MoHexPlayoutPolicy::GenerateRandomMove()
 {
-    UNUSED(brd);
     HexPoint ret = INVALID_POINT;
     while (true) 
     {
@@ -147,10 +148,10 @@ HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const StoneBoard& brd)
 }
 
 /** Checks the save-bridge pattern. */
-HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state, 
-                                                 HexPoint lastMove)
+HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexColor toPlay,
+                                                 const HexPoint lastMove)
 {
-    return m_board.SaveBridge(lastMove, state.ToPlay(), m_random);
+    return m_board.SaveBridge(lastMove, toPlay, m_random);
 }
 
 //----------------------------------------------------------------------------

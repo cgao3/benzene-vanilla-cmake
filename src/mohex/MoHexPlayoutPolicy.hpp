@@ -120,10 +120,10 @@ public:
     ~MoHexPlayoutPolicy();
 
     /** Generates a move. */
-    HexPoint GenerateMove(const HexState& state, HexPoint lastMove);
+    HexPoint GenerateMove(const HexColor toPlay, const HexPoint lastMove);
 
     /** Plays move move. */
-    void PlayMove(HexPoint move, HexColor toPlay);
+    void PlayMove(const HexPoint move, const HexColor toPlay);
 
     /** Initializes for fast playing of moves during playout.
         Must be called before any calls to GenerateMove(). */
@@ -141,9 +141,9 @@ private:
     /** Generator for this policy. */
     SgRandom m_random;
 
-    HexPoint GeneratePatternMove(const HexState& state, HexPoint lastMove);
+    HexPoint GeneratePatternMove(const HexColor toPlay, HexPoint lastMove);
 
-    HexPoint GenerateRandomMove(const StoneBoard& brd);
+    HexPoint GenerateRandomMove();
 };
 
 //----------------------------------------------------------------------------
