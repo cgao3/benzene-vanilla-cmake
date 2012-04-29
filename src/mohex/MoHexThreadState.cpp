@@ -143,6 +143,21 @@ SgUctValue MoHexThreadState::Evaluate()
 
 //----------------------------------------------------------------------------
 
+/** @page mohextree MoHex Tree Phase
+    
+    Both m_board (a MoHexBoard) and m_state (a HexState) are played
+    into during the in-tree phase. If a knowledge node is encountered
+    m_board and m_state are overwritten with the data from the
+    knowledge hashtable.
+
+    m_state is used only to feed m_vcBrd->ComputeAll() (during a
+    knowledge computation) and to initialize the playout policy at the
+    start of a playout (it's easy to grab the empty cells from a
+    StoneBoard). If MoHexBoard is given these capabilities, then
+    m_state can be done away with entirely.
+ */
+
+/** Initialize for a new search. */
 void MoHexThreadState::StartSearch()
 {
     LogInfo() << "StartSearch()[" << m_threadId <<"]\n";
@@ -314,6 +329,14 @@ void MoHexThreadState::TakeBackInTree(std::size_t nuMoves)
     
 //----------------------------------------------------------------------------
 
+/** @page mohexplayouts MoHex Playout Phase
+
+    Playouts are initialized from m_state (for quick access to the set
+    of empty cells), but played entirely on m_board. Hence m_state
+    does not change during a playout. 
+ */
+
+/** Initialize for a set set of playouts. */
 void MoHexThreadState::StartPlayouts()
 {
     m_isInPlayout = true;
