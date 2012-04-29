@@ -83,9 +83,24 @@ void MoHexBoard::PlayMove(HexPoint cell, HexColor toPlay)
 {
     m_numMoves++;
     SetColor(cell, toPlay);
+
+#if TRACK_LAST_MOVE_FOR_SAVE_BRIDGE
+    m_lastMove = cell;
+    m_emptyNbs = 0;
+    m_oppNbs = 0;
+#endif
+
     for (BoardIterator n(m_const->Nbs(cell)); n; ++n)
+    {
         if (GetColor(*n) == toPlay)
             Merge(cell, *n);
+#if TRACK_LAST_MOVE_FOR_SAVE_BRIDGE
+        else if (GetColor(*n) == !toPlay)
+            m_oppNbs++;
+        else
+            m_emptyNbs++;
+#endif
+    }
 }
 
 //----------------------------------------------------------------------------
