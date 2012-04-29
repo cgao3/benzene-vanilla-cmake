@@ -22,6 +22,8 @@ MoHexBoard::~MoHexBoard()
 
 void MoHexBoard::Clear()
 {
+    m_numMoves = 0;
+
     m_cell[NORTH].color = BLACK;
     m_cell[NORTH].parent = NORTH;
 
@@ -79,6 +81,7 @@ void MoHexBoard::Merge(HexPoint c1, HexPoint c2)
 
 void MoHexBoard::PlayMove(HexPoint cell, HexColor toPlay)
 {
+    m_numMoves++;
     SetColor(cell, toPlay);
     for (BoardIterator n(m_const->Nbs(cell)); n; ++n)
         if (GetColor(*n) == toPlay)

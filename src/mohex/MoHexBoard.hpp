@@ -22,10 +22,6 @@ public:
 
     void SetPosition(const StoneBoard& pos);
 
-    void SetConstBoard(const ConstBoard& brd);
-
-    void SetColor(HexPoint cell, HexColor color);
-
     void PlayMove(HexPoint cell, HexColor toPlay);
 
     void Clear();
@@ -37,6 +33,8 @@ public:
     bool GameOver() const;
 
     HexColor GetWinner() const;
+
+    int NumMoves() const;
 
     std::string Write() const;
 
@@ -56,6 +54,10 @@ private:
     const ConstBoard* m_const;
     Cell m_cell[BITSETSIZE];
 
+    int8_t m_numMoves;
+
+    void SetConstBoard(const ConstBoard& brd);
+    void SetColor(HexPoint cell, HexColor color);
     HexPoint Parent(HexPoint c) const;
     void Merge(HexPoint c1, HexPoint c2);
 };
@@ -92,6 +94,11 @@ inline HexColor MoHexBoard::GetWinner() const
     if (m_cell[WEST].parent == EAST)
         return WHITE;
     return EMPTY;
+}
+
+inline int MoHexBoard::NumMoves() const
+{
+    return m_numMoves;
 }
 
 //----------------------------------------------------------------------------

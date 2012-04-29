@@ -217,8 +217,9 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
 SgMove MoHexThreadState::GeneratePlayoutMove(bool& skipRaveUpdate)
 {
     skipRaveUpdate = false;
+    const ConstBoard& cbrd = m_board.Const();
     //if (m_board.GameOver())
-    if (m_state->Position().GetEmpty().none())
+    if (m_board.NumMoves() == cbrd.Width() * cbrd.Height())
         return SG_NULLMOVE;
     SgPoint move = m_policy.GenerateMove(*m_state, m_lastMovePlayed);
     SG_ASSERT(move != SG_NULLMOVE);
