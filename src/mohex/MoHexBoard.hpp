@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include <boost/static_assert.hpp>
-#include "ConstBoard.hpp"
+#include "StoneBoard.hpp"
 
 class SgRandom;
 
@@ -46,6 +46,8 @@ public:
 
     int NumMoves() const;
 
+    HexPoint Parent(HexPoint c) const;
+
     HexPoint SaveBridge(const HexPoint lastMove, const HexColor toPlay,
                         SgRandom& random) const;
 
@@ -78,7 +80,6 @@ private:
 
     void SetConstBoard(const ConstBoard& brd);
     void SetColor(HexPoint cell, HexColor color);
-    HexPoint Parent(HexPoint c) const;
     void Merge(HexPoint c1, HexPoint c2);
 };
 
