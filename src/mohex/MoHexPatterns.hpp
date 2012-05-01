@@ -5,7 +5,7 @@
 #ifndef MOHEXPATTERNS_HPP
 #define MOHEXPATTERNS_HPP
 
-#include "StoneBoard.hpp"
+#include "MoHexBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -30,7 +30,7 @@ public:
 
     void ReadPatterns(std::string filename);
 
-    double GetGammaFromBoard(const StoneBoard& board, int size, 
+    double GetGammaFromBoard(const MoHexBoard& board, int size, 
                              HexPoint point, HexColor toPlay,
                              bool *isBadPattern) const;
 
@@ -62,7 +62,7 @@ private:
 
     void GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12, 
                          uint64_t *key_18, const int size, 
-                         const StoneBoard& board, 
+                         const MoHexBoard& board, 
                          const HexPoint point, const HexColor toPlay) const;
     double QueryHashtable(uint64_t key, bool *isBadPattern) const;
     bool InsertHashTable(uint64_t key, double gamma, bool bad); 

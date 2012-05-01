@@ -137,7 +137,7 @@ uint64_t MoHexPatterns::ComputeKey(int size, int pattern[])
 
 inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12, 
                                            uint64_t *key_18, const int size, 
-                                           const StoneBoard& board, 
+                                           const MoHexBoard& board, 
                                            const HexPoint point, 
                                            const HexColor toPlay) const
 {
@@ -244,7 +244,7 @@ inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12,
     }
 }
 
-double MoHexPatterns::GetGammaFromBoard(const StoneBoard& board, int size,
+double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
                                         HexPoint point, HexColor toPlay,
                                         bool *isBadPattern) const
 {

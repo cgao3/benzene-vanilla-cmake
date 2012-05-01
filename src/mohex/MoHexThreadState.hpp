@@ -123,6 +123,8 @@ public:
 
     const HexState& State() const;
 
+    const MoHexBoard& GetMoHexBoard() const;
+
     MoHexSearch& Search();
 
     const MoHexSearch& Search() const;
@@ -226,6 +228,11 @@ inline HexPoint MoHexThreadState::GetLastMovePlayed() const
 inline HexColor MoHexThreadState::ColorToPlay() const
 {
     return m_toPlay;
+}
+
+inline const MoHexBoard& MoHexThreadState::GetMoHexBoard() const
+{
+    return m_board;
 }
 
 //----------------------------------------------------------------------------
