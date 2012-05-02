@@ -256,16 +256,19 @@ void ConstBoard::ComputePointInDir()
             {
                 if (BoardUtil::PointInDir(*this, p, DIR_EAST) == EAST)
                 {   // top right obtuse corner
-                    m_pointInDir[p][i] = NORTH;
+                    m_pointInDir[0][p][i] = NORTH;
+                    m_pointInDir[1][p][i] = EAST;
                 }
                 else 
                 {   // bottem left obtuse corner
-                    m_pointInDir[p][i] = SOUTH;
+                    m_pointInDir[0][p][i] = SOUTH;
+                    m_pointInDir[1][p][i] = WEST;
                 }
             }
             else 
             {
-                m_pointInDir[p][i] = n;
+                m_pointInDir[0][p][i] = n;
+                m_pointInDir[1][p][i] = n;
             }
         }
     }

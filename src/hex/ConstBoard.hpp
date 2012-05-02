@@ -114,6 +114,8 @@ public:
     /** Returns point in given direction. */
     HexPoint PointInDir(HexPoint point, HexDirection dir) const;
 
+    HexPoint PointInDir(HexPoint point, HexDirection dir, HexColor toPlay) const;
+
     /** Returns point in given pattern direction. 
         Obtuse corner is NORTH if in top right corner, and
         SOUTH if in bottom left. Use this version if you don't
@@ -193,7 +195,7 @@ private:
 
     /** Precomputed set of points in each direction.
         Only computed for interior cells. */
-    HexPoint m_pointInDir[BITSETSIZE][6];
+    HexPoint m_pointInDir[2][BITSETSIZE][6];
 
     /** Precomputed set of pattern points. */
     HexPoint m_patternPoint[2][BITSETSIZE][20];
@@ -321,7 +323,14 @@ inline bool ConstBoard::operator!=(const ConstBoard& other) const
 inline HexPoint ConstBoard::PointInDir(HexPoint point, HexDirection dir) const
 {
     BenzeneAssert(IsInterior(point));
-    return m_pointInDir[point][dir];
+    return m_pointInDir[0][point][dir];
+}
+
+inline HexPoint ConstBoard::PointInDir(HexPoint point, HexDirection dir,
+                                       HexColor colorOfObtuse) const
+{
+    BenzeneAssert(IsInterior(point));
+    return m_pointInDir[colorOfObtuse][point][dir];
 }
 
 inline HexPoint ConstBoard::PatternPoint(HexPoint point, int dir) const

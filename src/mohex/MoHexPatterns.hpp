@@ -64,6 +64,12 @@ private:
                          uint64_t *key_18, const int size, 
                          const MoHexBoard& board, 
                          const HexPoint point, const HexColor toPlay) const;
+
+    void GetKeyFromBoardOld(uint64_t *key_6, uint64_t *key_12, 
+                         uint64_t *key_18, const int size, 
+                         const MoHexBoard& board, 
+                         const HexPoint point, const HexColor toPlay) const;
+
     double QueryHashtable(uint64_t key, bool *isBadPattern) const;
     bool InsertHashTable(uint64_t key, double gamma, bool bad); 
 };

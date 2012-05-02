@@ -218,6 +218,117 @@ inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12,
     }
 }
 
+#if 0
+inline void MoHexPatterns::GetKeyFromBoardOld(uint64_t *key_6, uint64_t *key_12, 
+                                           uint64_t *key_18, const int size, 
+                                           const MoHexBoard& board, 
+                                           const HexPoint point, 
+                                           const HexColor toPlay) const
+{
+    *key_6 = 0;
+    *key_12 = 0;
+    *key_18 = 0;
+    const ConstBoard& cbrd = board.Const();
+    for (int i = 1; i <= 6; i++)
+    {
+	const HexPoint n = cbrd.PointInDir(point, m_direction[i], toPlay);
+        const HexColor color = board.GetColor(n);
+        if (FIRST_CELL <= n) // interior cell
+	{
+	    if (color == EMPTY)
+	 	*key_6 ^= m_zobrist[(int)toPlay][i][0];
+	    else if (color == toPlay)
+		*key_6 ^= m_zobrist[(int)toPlay][i][1];
+	    else
+		*key_6 ^= m_zobrist[(int)toPlay][i][2];
+	}
+	else // edge
+	{
+	    if (color == toPlay)
+		*key_6 ^= m_zobrist[(int)toPlay][i][3];
+	    else
+		*key_6 ^= m_zobrist[(int)toPlay][i][4];
+	}
+    }
+
+    if (size >= 12)
+    {
+	*key_12 = *key_6;
+	for (int i = 1; i <= 6; i++)
+	{
+	    const HexPoint n = cbrd.PointInDir(point, m_direction[i], toPlay);
+	    if (n < FIRST_CELL) // edge
+	    {
+	        if (board.GetColor(n) == toPlay)
+		    *key_12 ^= m_zobrist[(int)toPlay][i + 6][3];
+	        else
+		    *key_12 ^= m_zobrist[(int)toPlay][i + 6][4];
+	    }
+	    else
+	    {
+		const HexPoint m 
+                    = cbrd.PointInDir(n, m_direction[i + 6], toPlay);
+                const HexColor color = board.GetColor(m);
+		if (FIRST_CELL <= m) // interior
+		{
+		    if (color == EMPTY)
+			*key_12 ^= m_zobrist[(int)toPlay][i + 6][0];
+		    else if (color == toPlay)
+		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][1];
+		    else
+		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][2];
+		}
+		else // edge
+		{
+		    if (color == toPlay)
+		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][3];
+		    else 
+		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][4];
+		}
+	    }
+	}
+    }
+   
+    if (size >= 18)
+    {
+	*key_18 = *key_12;
+	for (int i = 1; i <= 6; i++)
+	{
+	    const HexPoint n = cbrd.PointInDir(point, m_direction[i], toPlay);
+	    if (n < FIRST_CELL) // edge
+	    {
+		if (board.GetColor(n) == toPlay)
+		    *key_18 ^= m_zobrist[(int)toPlay][i + 12][3];
+		else
+		    *key_18 ^= m_zobrist[(int)toPlay][i + 12][4];
+	    }
+	    else // interior
+	    {
+		const HexPoint m 
+                    = cbrd.PointInDir(n, m_direction[i + 12], toPlay);
+                const HexColor color = board.GetColor(m);
+                if (FIRST_CELL <= m) // interior
+		{
+		    if (color == EMPTY)
+		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][0];
+		    else if (color == toPlay)
+		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][1];
+		    else
+		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][2];
+		}
+	        else // edge
+		{
+		    if (color == toPlay)
+		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][3];
+	 	    else
+		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][4];
+		}
+            }
+	}
+    }
+}
+#endif
+
 double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
                                         HexPoint point, HexColor toPlay,
                                         bool *isBadPattern) const
@@ -225,7 +336,24 @@ double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
     *isBadPattern = false;
     double gamma = 1.0f;
     uint64_t key_6, key_12, key_18;
+
     GetKeyFromBoard(&key_6, &key_12, &key_18, size, board, point, toPlay);
+
+#if 0
+    {
+        uint64_t key_6a, key_12a, key_18a;
+        GetKeyFromBoardOld(&key_6a, &key_12a, &key_18a, size, board, point, toPlay);        
+        if ((key_6a != key_6) ||
+            (key_12a != key_12))
+        {
+            LogInfo() << board.Write() << "p=" << point << '\n';
+            LogInfo() << key_6a << ' ' << key_6 << '\n';
+            LogInfo() << key_12a << ' ' << key_12 << '\n';
+            throw BenzeneException("Keys differ!\n");
+        }
+    }
+#endif
+
     switch(size)
     {
     case 12:
