@@ -322,25 +322,8 @@ void ConstBoard::ComputePatternPoints()
         const HexPoint& p = *it;
         for (int i = 1; i <= 6; ++i)
         {
-            HexPoint n = BoardUtil::PointInDir(*this, p, (HexDirection)dir[i]);
-            if (!HexPointUtil::isEdge(n) && !HexPointUtil::isInteriorCell(n))
-            {
-                if (BoardUtil::PointInDir(*this, p, DIR_EAST) == EAST)
-                {   // top right obtuse corner
-                    m_patternPoint[0][p][i] = NORTH;
-                    m_patternPoint[1][p][i] = EAST;
-                }
-                else 
-                {   // bottem left obtuse corner
-                    m_patternPoint[0][p][i] = SOUTH;
-                    m_patternPoint[1][p][i] = WEST;
-                }
-            }
-            else 
-            {
-                m_patternPoint[0][p][i] = n;
-                m_patternPoint[1][p][i] = n;
-            }
+            m_patternPoint[0][p][i] = m_pointInDir[0][p][ dir[i] ];
+            m_patternPoint[1][p][i] = m_pointInDir[1][p][ dir[i] ];
         }
     }
 
