@@ -111,18 +111,21 @@ public:
     /** Returns the distance between two valid HexPoints. */
     int Distance(HexPoint x, HexPoint y) const;
 
-    /** Returns point in given direction. 
+    /** Returns point in given direction. */
+    HexPoint PointInDir(HexPoint point, HexDirection dir) const;
+
+    /** Returns point in given pattern direction. 
         Obtuse corner is NORTH if in top right corner, and
         SOUTH if in bottom left. Use this version if you don't
         care what color the obtuse corner is. */
-    HexPoint PointInDir(HexPoint point, HexDirection dir) const;
+    HexPoint PatternPoint(HexPoint point, int dir) const;
 
-    /** Returns point in given direction.  
+    /** Returns point in given pattern direction.  
         Color of obtuse corner is equal to colorOfObtuse. For example:
         If in top right corner: equal to NORTH when colorOfObtuse is
         BLACK and EAST when it is WHITE. */
-    HexPoint PointInDir(HexPoint point, HexDirection dir, 
-                        HexColor colorOfObtuse) const;
+    HexPoint PatternPoint(HexPoint point, int dir, 
+                          HexColor colorOfObtuse) const;
 
     //------------------------------------------------------------------------
 
@@ -190,7 +193,10 @@ private:
 
     /** Precomputed set of points in each direction.
         Only computed for interior cells. */
-    HexPoint m_pointInDir[2][BITSETSIZE][6];
+    HexPoint m_pointInDir[BITSETSIZE][6];
+
+    /** Precomputed set of pattern points. */
+    HexPoint m_patternPoint[2][BITSETSIZE][20];
 
     //------------------------------------------------------------------------
 
@@ -214,6 +220,8 @@ private:
     void ComputeValid();
 
     void ComputePointInDir();
+
+    void ComputePatternPoints();
 };
 
 inline int ConstBoard::Width() const
@@ -313,14 +321,20 @@ inline bool ConstBoard::operator!=(const ConstBoard& other) const
 inline HexPoint ConstBoard::PointInDir(HexPoint point, HexDirection dir) const
 {
     BenzeneAssert(IsInterior(point));
-    return m_pointInDir[0][point][dir];
+    return m_pointInDir[point][dir];
 }
 
-inline HexPoint ConstBoard::PointInDir(HexPoint point, HexDirection dir, 
-                                       HexColor colorOfObtuse) const
+inline HexPoint ConstBoard::PatternPoint(HexPoint point, int dir) const
 {
     BenzeneAssert(IsInterior(point));
-    return m_pointInDir[colorOfObtuse][point][dir];
+    return m_patternPoint[0][point][dir];
+}
+
+inline HexPoint ConstBoard::PatternPoint(HexPoint point, int dir, 
+                                         HexColor colorOfObtuse) const
+{
+    BenzeneAssert(IsInterior(point));
+    return m_patternPoint[colorOfObtuse][point][dir];
 }
 
 //----------------------------------------------------------------------------

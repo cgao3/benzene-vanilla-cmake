@@ -348,36 +348,106 @@ BOOST_AUTO_TEST_CASE(ConstBoard_DistanceAndAdjacency)
 
 BOOST_AUTO_TEST_CASE(ConstBoard_PointInDir)
 {
+     BOOST_REQUIRE(MAX_WIDTH >= 8 && MAX_HEIGHT >= 8);
+     ConstBoard* cb = &ConstBoard::Get(8, 8);
+ 
+     // check an interior cell
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_EAST), HEX_CELL_C2);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_NORTH_EAST),HEX_CELL_C1);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_NORTH), HEX_CELL_B1);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_WEST), HEX_CELL_A2);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_SOUTH_WEST),HEX_CELL_A3);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_SOUTH), HEX_CELL_B3);
+
+     // check acute corner
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_NORTH_EAST), NORTH);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_NORTH), NORTH);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_WEST), WEST);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_SOUTH_WEST), WEST);
+ 
+     // check obtuse corner
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_NORTH), NORTH);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_EAST), EAST);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_SOUTH), HEX_CELL_H2);
+     // Top right obtuse corner set to be part of NORTH
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_NORTH_EAST), NORTH);
+ 
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_WEST), WEST);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH), SOUTH);
+     // Bottom left obtuse corner set to be part of SOUTH
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH_WEST), SOUTH);
+}
+
+BOOST_AUTO_TEST_CASE(ConstBoard_PatternPoint)
+{
     BOOST_REQUIRE(MAX_WIDTH >= 8 && MAX_HEIGHT >= 8);
     ConstBoard* cb = &ConstBoard::Get(8, 8);
 
     // check an interior cell
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_EAST), HEX_CELL_C2);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_NORTH_EAST), HEX_CELL_C1);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_NORTH), HEX_CELL_B1);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_WEST), HEX_CELL_A2);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_SOUTH_WEST), HEX_CELL_A3);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_B2, DIR_SOUTH), HEX_CELL_B3);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4,  1), HEX_CELL_D3);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4,  2), HEX_CELL_E3);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4,  3), HEX_CELL_C4);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4,  4), HEX_CELL_E4);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4,  5), HEX_CELL_C5);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4,  6), HEX_CELL_D5);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4,  7), HEX_CELL_E2);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4,  8), HEX_CELL_F3);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4,  9), HEX_CELL_C3);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4, 10), HEX_CELL_E5);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4, 11), HEX_CELL_B5);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_D4, 12), HEX_CELL_C6);
 
+    // check an interior cell close to an edge
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2,  1), HEX_CELL_B1);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2,  2), HEX_CELL_C1);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2,  3), HEX_CELL_A2);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2,  4), HEX_CELL_C2);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2,  5), HEX_CELL_A3);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2,  6), HEX_CELL_B3);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2,  7), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2,  8), HEX_CELL_D1);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2,  9), HEX_CELL_A1);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2, 10), HEX_CELL_C3);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2, 11), WEST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_B2, 12), HEX_CELL_A4);
+    
     // check acute corner
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_NORTH_EAST), NORTH);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_NORTH), NORTH);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_WEST), WEST);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A1, DIR_SOUTH_WEST), WEST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1,  1), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1,  2), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1,  3), WEST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1,  4), HEX_CELL_B1);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1,  5), WEST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1,  6), HEX_CELL_A2);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1,  7), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1,  8), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1,  9), WEST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1, 10), HEX_CELL_B2);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1, 11), WEST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A1, 12), WEST);
 
     // check obtuse corner
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_NORTH), NORTH);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_EAST), EAST);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_SOUTH), HEX_CELL_H2);
-    // Top right obtuse corner set to be part of NORTH
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_NORTH_EAST), NORTH);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_NORTH_EAST, WHITE), EAST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1,  1), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1,  2), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1,  3), HEX_CELL_G1);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1,  4), EAST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1,  5), HEX_CELL_G2);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1,  6), HEX_CELL_H2);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1,  7), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1,  8), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1,  9), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1, 10), EAST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1, 11), HEX_CELL_F2);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1, 12), HEX_CELL_G3);
 
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_WEST), WEST);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH), SOUTH);
+    // Top right obtuse corner set to be part of NORTH
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1, 2), NORTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_H1, 2, WHITE), EAST);
+
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A8, 3), WEST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A8, 6), SOUTH);
     // Bottom left obtuse corner set to be part of SOUTH
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH_WEST), SOUTH);
-    BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH_WEST, WHITE), WEST);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A8, 5), SOUTH);
+    BOOST_CHECK_EQUAL(cb->PatternPoint(HEX_CELL_A8, 5, WHITE), WEST);
 }
 
 }

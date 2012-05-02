@@ -147,7 +147,7 @@ inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12,
     const ConstBoard& cbrd = board.Const();
     for (int i = 1; i <= 6; i++)
     {
-	const HexPoint n = cbrd.PointInDir(point, m_direction[i], toPlay);
+	const HexPoint n = cbrd.PatternPoint(point, (HexDirection)i, toPlay);
         const HexColor color = board.GetColor(n);
         if (FIRST_CELL <= n) // interior cell
 	{
@@ -166,81 +166,55 @@ inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12,
 		*key_6 ^= m_zobrist[(int)toPlay][i][4];
 	}
     }
-
-    if (size >= 12)
+    if (size < 12)
+        return;
+    
+    *key_12 = *key_6;
+    for (int i = 7; i <= 12; i++)
     {
-	*key_12 = *key_6;
-	for (int i = 1; i <= 6; i++)
-	{
-	    const HexPoint n = cbrd.PointInDir(point, m_direction[i], toPlay);
-	    if (n < FIRST_CELL) // edge
-	    {
-	        if (board.GetColor(n) == toPlay)
-		    *key_12 ^= m_zobrist[(int)toPlay][i + 6][3];
-	        else
-		    *key_12 ^= m_zobrist[(int)toPlay][i + 6][4];
-	    }
-	    else
-	    {
-		const HexPoint m 
-                    = cbrd.PointInDir(n, m_direction[i + 6], toPlay);
-                const HexColor color = board.GetColor(m);
-		if (FIRST_CELL <= m) // interior
-		{
-		    if (color == EMPTY)
-			*key_12 ^= m_zobrist[(int)toPlay][i + 6][0];
-		    else if (color == toPlay)
-		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][1];
-		    else
-		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][2];
-		}
-		else // edge
-		{
-		    if (color == toPlay)
-		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][3];
-		    else 
-		        *key_12 ^= m_zobrist[(int)toPlay][i + 6][4];
-		}
-	    }
-	}
+        const HexPoint n = cbrd.PatternPoint(point, (HexDirection)i, toPlay);
+        const HexColor color = board.GetColor(n);
+        if (FIRST_CELL <= n) // interior cell
+        {
+            if (color == EMPTY)
+                *key_12 ^= m_zobrist[(int)toPlay][i][0];
+            else if (color == toPlay)
+                *key_12 ^= m_zobrist[(int)toPlay][i][1];
+            else
+                *key_12 ^= m_zobrist[(int)toPlay][i][2];
+        }
+        else // edge
+        {
+            if (color == toPlay)
+                *key_12 ^= m_zobrist[(int)toPlay][i][3];
+            else
+                *key_12 ^= m_zobrist[(int)toPlay][i][4];
+        }
     }
-   
-    if (size >= 18)
+    if (size < 18)
+        return;
+
+    *key_18 = *key_12;
+    for (int i = 13; i <= 18; i++)
     {
-	*key_18 = *key_12;
-	for (int i = 1; i <= 6; i++)
-	{
-	    const HexPoint n = cbrd.PointInDir(point, m_direction[i], toPlay);
-	    if (n < FIRST_CELL) // edge
-	    {
-		if (board.GetColor(n) == toPlay)
-		    *key_18 ^= m_zobrist[(int)toPlay][i + 12][3];
-		else
-		    *key_18 ^= m_zobrist[(int)toPlay][i + 12][4];
-	    }
-	    else // interior
-	    {
-		const HexPoint m 
-                    = cbrd.PointInDir(n, m_direction[i + 12], toPlay);
-                const HexColor color = board.GetColor(m);
-                if (FIRST_CELL <= m) // interior
-		{
-		    if (color == EMPTY)
-		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][0];
-		    else if (color == toPlay)
-		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][1];
-		    else
-		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][2];
-		}
-	        else // edge
-		{
-		    if (color == toPlay)
-		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][3];
-	 	    else
-		        *key_18 ^= m_zobrist[(int)toPlay][i + 12][4];
-		}
-            }
-	}
+        const HexPoint n = cbrd.PatternPoint(point, (HexDirection)i, toPlay);
+        const HexColor color = board.GetColor(n);
+        if (FIRST_CELL <= n) // interior cell
+        {
+            if (color == EMPTY)
+                *key_18 ^= m_zobrist[(int)toPlay][i][0];
+            else if (color == toPlay)
+                *key_18 ^= m_zobrist[(int)toPlay][i][1];
+            else
+                *key_18 ^= m_zobrist[(int)toPlay][i][2];
+        }
+        else // edge
+        {
+            if (color == toPlay)
+                *key_18 ^= m_zobrist[(int)toPlay][i][3];
+            else
+                *key_18 ^= m_zobrist[(int)toPlay][i][4];
+        }
     }
 }
 
