@@ -65,6 +65,7 @@ public:
     void CmdEvalTwoDist(HtpCommand& cmd);
     void CmdEvalResist(HtpCommand& cmd);
     void CmdEvalResistCells(HtpCommand& cmd);
+    void CmdAddFillinToSgf(HtpCommand& cmd);
 
     // @} // @name
 
