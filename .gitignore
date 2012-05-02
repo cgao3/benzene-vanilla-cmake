@@ -22,6 +22,7 @@ src/wolve/wolve
 src/benzenetest/benzenetest
 src/test/benzene_unittest
 src/stamp-h1
+tools/mergesgf/mergesgf
 Makefile
 TAGS
 .deps
@@ -33,3 +34,6 @@ TAGS
 *.pyc
 *~
 *.htp
+mohex.*
+wolve.*
+tournament/jobs
