@@ -371,11 +371,13 @@ BOOST_AUTO_TEST_CASE(ConstBoard_PointInDir)
      BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_SOUTH), HEX_CELL_H2);
      // Top right obtuse corner set to be part of NORTH
      BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_NORTH_EAST), NORTH);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_H1, DIR_NORTH_EAST, WHITE), EAST);
  
      BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_WEST), WEST);
      BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH), SOUTH);
      // Bottom left obtuse corner set to be part of SOUTH
      BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH_WEST), SOUTH);
+     BOOST_CHECK_EQUAL(cb->PointInDir(HEX_CELL_A8, DIR_SOUTH_WEST, WHITE), WEST);
 }
 
 BOOST_AUTO_TEST_CASE(ConstBoard_PatternPoint)
