@@ -135,11 +135,11 @@ uint64_t MoHexPatterns::ComputeKey(int size, int pattern[])
     return key;
 }
 
-inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12, 
-                                           uint64_t *key_18, const int size, 
-                                           const MoHexBoard& board, 
-                                           const HexPoint point, 
-                                           const HexColor toPlay) const
+inline void MoHexPatterns
+::GetKeyFromBoardBlackToPlay(uint64_t *key_6, uint64_t *key_12, 
+                             uint64_t *key_18, const int size, 
+                             const MoHexBoard& board, 
+                             const HexPoint point) const
 {
     *key_6 = 0;
     *key_12 = 0;
@@ -147,24 +147,21 @@ inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12,
     const ConstBoard& cbrd = board.Const();
     for (int i = 1; i <= 6; i++)
     {
-	const HexPoint n = cbrd.PatternPoint(point, (HexDirection)i, toPlay);
-        const HexColor color = board.GetColor(n);
-        if (FIRST_CELL <= n) // interior cell
-	{
-	    if (color == EMPTY)
-	 	*key_6 ^= m_zobrist[(int)toPlay][i][0];
-	    else if (color == toPlay)
-		*key_6 ^= m_zobrist[(int)toPlay][i][1];
-	    else
-		*key_6 ^= m_zobrist[(int)toPlay][i][2];
-	}
-	else // edge
-	{
-	    if (color == toPlay)
-		*key_6 ^= m_zobrist[(int)toPlay][i][3];
-	    else
-		*key_6 ^= m_zobrist[(int)toPlay][i][4];
-	}
+	const HexPoint n = cbrd.PatternPoint(point, i, BLACK);
+        switch(board.GetColor(n))
+        {
+        case EMPTY: 
+            *key_6 ^= m_zobrist[BLACK][i][0];
+            break;
+
+        case BLACK:
+            *key_6 ^= m_zobrist[BLACK][i][ 1 + (FIRST_CELL <= n ? 0: 2) ];    
+            break;
+
+        case WHITE:
+            *key_6 ^= m_zobrist[BLACK][i][ 2 + (FIRST_CELL <= n ? 0: 2) ];
+            break;
+        }
     }
     if (size < 12)
         return;
@@ -172,24 +169,22 @@ inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12,
     *key_12 = *key_6;
     for (int i = 7; i <= 12; i++)
     {
-        const HexPoint n = cbrd.PatternPoint(point, (HexDirection)i, toPlay);
-        const HexColor color = board.GetColor(n);
-        if (FIRST_CELL <= n) // interior cell
+        const HexPoint n = cbrd.PatternPoint(point, i, BLACK);
+        switch(board.GetColor(n))
         {
-            if (color == EMPTY)
-                *key_12 ^= m_zobrist[(int)toPlay][i][0];
-            else if (color == toPlay)
-                *key_12 ^= m_zobrist[(int)toPlay][i][1];
-            else
-                *key_12 ^= m_zobrist[(int)toPlay][i][2];
+        case EMPTY: 
+            *key_12 ^= m_zobrist[BLACK][i][0];
+            break;
+
+        case BLACK:
+            *key_12 ^= m_zobrist[BLACK][i][ 1 + (FIRST_CELL <= n ? 0: 2) ];    
+            break;
+
+        case WHITE:
+            *key_12 ^= m_zobrist[BLACK][i][ 2 + (FIRST_CELL <= n ? 0: 2) ];
+            break;
         }
-        else // edge
-        {
-            if (color == toPlay)
-                *key_12 ^= m_zobrist[(int)toPlay][i][3];
-            else
-                *key_12 ^= m_zobrist[(int)toPlay][i][4];
-        }
+
     }
     if (size < 18)
         return;
@@ -197,28 +192,114 @@ inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12,
     *key_18 = *key_12;
     for (int i = 13; i <= 18; i++)
     {
-        const HexPoint n = cbrd.PatternPoint(point, (HexDirection)i, toPlay);
-        const HexColor color = board.GetColor(n);
-        if (FIRST_CELL <= n) // interior cell
+        const HexPoint n = cbrd.PatternPoint(point, i, BLACK);
+        switch(board.GetColor(n))
         {
-            if (color == EMPTY)
-                *key_18 ^= m_zobrist[(int)toPlay][i][0];
-            else if (color == toPlay)
-                *key_18 ^= m_zobrist[(int)toPlay][i][1];
-            else
-                *key_18 ^= m_zobrist[(int)toPlay][i][2];
-        }
-        else // edge
-        {
-            if (color == toPlay)
-                *key_18 ^= m_zobrist[(int)toPlay][i][3];
-            else
-                *key_18 ^= m_zobrist[(int)toPlay][i][4];
+        case EMPTY: 
+            *key_18 ^= m_zobrist[BLACK][i][0];
+            break;
+
+        case BLACK:
+            *key_18 ^= m_zobrist[BLACK][i][ 1 + (FIRST_CELL <= n ? 0: 2) ];    
+            break;
+
+        case WHITE:
+            *key_18 ^= m_zobrist[BLACK][i][ 2 + (FIRST_CELL <= n ? 0: 2) ];
+            break;
         }
     }
 }
 
-#if 0
+inline void MoHexPatterns
+::GetKeyFromBoardWhiteToPlay(uint64_t *key_6, uint64_t *key_12, 
+                             uint64_t *key_18, const int size, 
+                             const MoHexBoard& board, 
+                             const HexPoint point) const
+{
+    *key_6 = 0;
+    *key_12 = 0;
+    *key_18 = 0;
+    const ConstBoard& cbrd = board.Const();
+    for (int i = 1; i <= 6; i++)
+    {
+	const HexPoint n = cbrd.PatternPoint(point, i, WHITE);
+        switch(board.GetColor(n))
+        {
+        case EMPTY: 
+            *key_6 ^= m_zobrist[WHITE][i][0];
+            break;
+
+        case BLACK:
+            *key_6 ^= m_zobrist[WHITE][i][ 2 + (FIRST_CELL <= n ? 0: 2) ];    
+            break;
+
+        case WHITE:
+            *key_6 ^= m_zobrist[WHITE][i][ 1 + (FIRST_CELL <= n ? 0: 2) ];
+            break;
+        }
+    }
+    if (size < 12)
+        return;
+    
+    *key_12 = *key_6;
+    for (int i = 7; i <= 12; i++)
+    {
+        const HexPoint n = cbrd.PatternPoint(point, i, WHITE);
+        switch(board.GetColor(n))
+        {
+        case EMPTY: 
+            *key_12 ^= m_zobrist[WHITE][i][0];
+            break;
+
+        case BLACK:
+            *key_12 ^= m_zobrist[WHITE][i][ 2 + (FIRST_CELL <= n ? 0: 2) ];    
+            break;
+
+        case WHITE:
+            *key_12 ^= m_zobrist[WHITE][i][ 1 + (FIRST_CELL <= n ? 0: 2) ];
+            break;
+        }
+
+    }
+    if (size < 18)
+        return;
+
+    *key_18 = *key_12;
+    for (int i = 13; i <= 18; i++)
+    {
+        const HexPoint n = cbrd.PatternPoint(point, i, WHITE);
+        switch(board.GetColor(n))
+        {
+        case EMPTY: 
+            *key_18 ^= m_zobrist[WHITE][i][0];
+            break;
+
+        case BLACK:
+            *key_18 ^= m_zobrist[WHITE][i][ 2 + (FIRST_CELL <= n ? 0: 2) ];    
+            break;
+
+        case WHITE:
+            *key_18 ^= m_zobrist[WHITE][i][ 1 + (FIRST_CELL <= n ? 0: 2) ];
+            break;
+        }
+    }
+}
+
+inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12, 
+                                           uint64_t *key_18, const int size, 
+                                           const MoHexBoard& board, 
+                                           const HexPoint point, 
+                                           const HexColor toPlay) const
+{
+    if (toPlay == BLACK)
+        GetKeyFromBoardBlackToPlay(key_6, key_12, key_18, size, 
+                                   board, point);
+    else
+        GetKeyFromBoardWhiteToPlay(key_6, key_12, key_18, size,
+                                   board, point);
+}
+
+#if 1
 inline void MoHexPatterns::GetKeyFromBoardOld(uint64_t *key_6, uint64_t *key_12, 
                                            uint64_t *key_18, const int size, 
                                            const MoHexBoard& board, 
@@ -339,7 +420,7 @@ double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
 
     GetKeyFromBoard(&key_6, &key_12, &key_18, size, board, point, toPlay);
 
-#if 0
+#if 1
     {
         uint64_t key_6a, key_12a, key_18a;
         GetKeyFromBoardOld(&key_6a, &key_12a, &key_18a, size, board, point, toPlay);        
