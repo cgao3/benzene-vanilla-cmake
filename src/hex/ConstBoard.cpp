@@ -128,6 +128,7 @@ void ConstBoard::Init()
     ComputeValid();
     ComputeNeighbours();
     ComputePointInDir();
+    ComputePatternPoints();
 }
 
 void ConstBoard::ComputePointList()
@@ -254,12 +255,12 @@ void ConstBoard::ComputePointInDir()
             if (!HexPointUtil::isEdge(n) && !HexPointUtil::isInteriorCell(n))
             {
                 if (BoardUtil::PointInDir(*this, p, DIR_EAST) == EAST)
-                {
+                {   // top right obtuse corner
                     m_pointInDir[0][p][i] = NORTH;
                     m_pointInDir[1][p][i] = EAST;
                 }
                 else 
-                {
+                {   // bottem left obtuse corner
                     m_pointInDir[0][p][i] = SOUTH;
                     m_pointInDir[1][p][i] = WEST;
                 }
@@ -269,6 +270,93 @@ void ConstBoard::ComputePointInDir()
                 m_pointInDir[0][p][i] = n;
                 m_pointInDir[1][p][i] = n;
             }
+        }
+    }
+}
+
+void ConstBoard::ComputePatternPoints()
+{
+    const static int dir[] = 
+        { DIR_NORTH,        // ignored!
+
+          DIR_NORTH,
+          DIR_NORTH_EAST,
+          DIR_WEST,
+          DIR_EAST,
+          DIR_SOUTH_WEST,
+          DIR_SOUTH,
+
+          2,               // relative to i - 6
+          4,
+          1,
+          6,
+          3,
+          5,
+
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        };
+#if 0
+          DIR_NORTH_EAST,  // relative to i - 6
+          DIR_EAST,
+          DIR_NORTH,
+          DIR_SOUTH,
+          DIR_WEST,
+          DIR_SOUTH_WEST,
+
+          DIR_NORTH,       // relative to i - 12
+          DIR_NORTH_EAST,
+          DIR_WEST,
+          DIR_EAST,
+          DIR_SOUTH_WEST,
+          DIR_SOUTH
+        };
+#endif 
+
+    for (BoardIterator it(Interior()); it; ++it)
+    {
+        const HexPoint& p = *it;
+        for (int i = 1; i <= 6; ++i)
+        {
+            m_patternPoint[0][p][i] = m_pointInDir[0][p][ dir[i] ];
+            m_patternPoint[1][p][i] = m_pointInDir[1][p][ dir[i] ];
+        }
+    }
+
+    for (BoardIterator it(Interior()); it; ++it)
+    {
+        const HexPoint& p = *it;
+        for (int i = 1; i <= 6; ++i) 
+        {
+            for (int c = 0; c < 2; ++c)
+            {
+                HexPoint n = m_patternPoint[c][p][i];
+                if (n < FIRST_CELL) // edge
+                    m_patternPoint[c][p][i + 6] = n;
+                else
+                {
+                    const HexPoint m = m_patternPoint[c][n][ dir[i + 6] ];
+                    m_patternPoint[c][p][i + 6] = m;
+                }
+	    }
+        }
+        for (int i = 1; i <= 6; ++i) 
+        {
+            for (int c = 0; c < 2; ++c)
+            {
+                HexPoint n = m_patternPoint[c][p][i];
+                if (n < FIRST_CELL) // edge
+                    m_patternPoint[c][p][i + 12] = n;
+                else
+                {
+                    const HexPoint m = m_patternPoint[c][n][ dir[i + 12] ];
+                    m_patternPoint[c][p][i + 12] = m;
+                }
+	    }
         }
     }
 }

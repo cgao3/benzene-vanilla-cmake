@@ -99,6 +99,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-get-pv", &MoHexEngine::GetPV);
     RegisterCmd("mohex-values", &MoHexEngine::Values);
     RegisterCmd("mohex-rave-values", &MoHexEngine::RaveValues);
+    RegisterCmd("mohex-prior-values", &MoHexEngine::PriorValues);
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
     RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
@@ -165,7 +166,8 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "none/MoHex Save Games/mohex-save-games %w\n"
         "var/MoHex PV/mohex-get-pv %m\n"
         "pspairs/MoHex Values/mohex-values\n"
-        "pspairs/MoHex Rave Values/mohex-rave-values\n"
+        "gfx/MoHex Rave Values/mohex-rave-values\n"
+        "gfx/MoHex Prior Values/mohex-prior-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
         "gfx/MoHex Cell Stats/mohex-cell-stats\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
@@ -177,17 +179,13 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
-            << "pattern_check_percent "
-            << config.patternCheckPercent << '\n'
             << "pattern_heuristic "
             << config.patternHeuristic << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
-        if (name == "pattern_check_percent")
-            config.patternCheckPercent = cmd.ArgMinMax<int>(1, 0, 100);
-        else if (name == "pattern_heuristic")
+        if (name == "pattern_heuristic")
             config.patternHeuristic = cmd.Arg<bool>(1);
         else
             throw HtpFailure("Unknown option!");
@@ -226,6 +224,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << m_useParallelSolver << '\n'
             << "[bool] use_rave "
             << search.Rave() << '\n'
+            << "[bool] use_root_data "
+            << m_player.UseRootData() << '\n'
             << "[bool] use_time_management "
             << m_player.UseTimeManagement() << '\n'
             << "[bool] weight_rave_updates "
@@ -286,6 +286,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetLiveGfx(cmd.Arg<bool>(1));
         else if (name == "use_rave")
             search.SetRave(cmd.Arg<bool>(1));
+        else if (name == "use_root_data")
+            m_player.SetUseRootData(cmd.Arg<bool>(1));
         else if (name == "randomize_rave_frequency")
             search.SetRandomizeRaveFrequency(cmd.ArgMin<int>(1, 0));
         else if (name == "reuse_subtree")
@@ -389,6 +391,7 @@ void MoHexEngine::RaveValues(HtpCommand& cmd)
 {
     MoHexSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
+    cmd << "INFLUENCE ";
     for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
     {
         const SgUctNode& child = *it;
@@ -397,6 +400,22 @@ void MoHexEngine::RaveValues(HtpCommand& cmd)
             continue;
         cmd << ' ' << static_cast<HexPoint>(p)
             << ' ' << std::fixed << std::setprecision(3) << child.RaveValue();
+    }
+}
+
+void MoHexEngine::PriorValues(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    const SgUctTree& tree = search.Tree();
+    cmd << "INFLUENCE ";
+    for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
+    {
+        const SgUctNode& child = *it;
+        SgPoint p = child.Move();
+        if (p == SG_PASS)
+            continue;
+        cmd << ' ' << static_cast<HexPoint>(p)
+            << ' ' << std::fixed << std::setprecision(3) << child.Prior();
     }
 }
 

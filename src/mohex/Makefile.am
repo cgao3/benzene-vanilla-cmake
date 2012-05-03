@@ -1,6 +1,7 @@
 bin_PROGRAMS = mohex
 
 mohex_SOURCES = \
+MoHexBoard.cpp \
 MoHexEngine.cpp \
 MoHexMain.cpp \
 MoHexPatterns.cpp \
@@ -13,6 +14,7 @@ MoHexThreadState.cpp \
 MoHexUtil.cpp
 
 noinst_HEADERS = \
+MoHexBoard.hpp \
 MoHexEngine.hpp \
 MoHexPatterns.hpp \
 MoHexPlayer.hpp \

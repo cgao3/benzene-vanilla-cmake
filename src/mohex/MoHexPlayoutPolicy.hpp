@@ -8,8 +8,8 @@
 #include "SgSystem.h"
 #include "SgRandom.h"
 
-#include "HexState.hpp"
 #include "WeightedRandom.hpp"
+#include "MoHexBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
 
@@ -23,15 +23,11 @@ struct MoHexPlayoutPolicyConfig
     /** Generate pattern moves. */
     bool patternHeuristic;
 
-    /** Percent chance to check for pattern moves. */
-    int patternCheckPercent;
-
     MoHexPlayoutPolicyConfig();
 };
 
 inline MoHexPlayoutPolicyConfig::MoHexPlayoutPolicyConfig()
-    : patternHeuristic(true),
-      patternCheckPercent(100)
+    : patternHeuristic(true)
 {
 }
 
@@ -117,15 +113,16 @@ class MoHexPlayoutPolicy
 public:
     /** Creates a policy. */
     MoHexPlayoutPolicy(MoHexSharedPolicy* shared, 
+                       MoHexBoard& board,
                        const MoHexPatterns& localPatterns);
 
     ~MoHexPlayoutPolicy();
 
     /** Generates a move. */
-    HexPoint GenerateMove(const HexState& state, HexPoint lastMove);
+    HexPoint GenerateMove(const HexColor toPlay, const HexPoint lastMove);
 
     /** Plays move move. */
-    void PlayMove(HexPoint move, HexColor toPlay);
+    void PlayMove(const HexPoint move, const HexColor toPlay);
 
     /** Initializes for fast playing of moves during playout.
         Must be called before any calls to GenerateMove(). */
@@ -136,7 +133,7 @@ public:
 private:
     MoHexSharedPolicy* m_shared;
 
-    uint8_t m_color[BITSETSIZE];
+    MoHexBoard& m_board;
 
     /** Generator for this policy. */
     SgRandom m_random;
@@ -145,9 +142,9 @@ private:
 
     const MoHexPatterns& m_localPatterns;
 
-    HexPoint GeneratePatternMove(const HexState& state, HexPoint lastMove);
+    HexPoint GeneratePatternMove(const HexColor toPlay, HexPoint lastMove);
 
-    HexPoint GenerateRandomMove(const StoneBoard& brd);
+    HexPoint GenerateRandomMove();
 };
 
 //----------------------------------------------------------------------------

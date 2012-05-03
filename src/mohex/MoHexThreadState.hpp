@@ -12,6 +12,7 @@
 #include "HashMap.hpp"
 #include "HexBoard.hpp"
 #include "HexState.hpp"
+#include "MoHexBoard.hpp"
 #include "MoHexPriorKnowledge.hpp"
 #include "MoHexPlayoutPolicy.hpp"
 #include "Move.hpp"
@@ -30,6 +31,7 @@ struct MoHexSharedData
 {
     struct StateData
     {
+        MoHexBoard board;
         StoneBoard position;
         bitset_t consider;
     };
@@ -42,6 +44,8 @@ struct MoHexSharedData
 
     /** Set of moves to consider from the root. */
     bitset_t rootConsider;
+
+    MoHexBoard rootBoard;
 
     /** Stores fillin information for states in the tree. */
     HashMap<StateData> stateData;
@@ -119,6 +123,8 @@ public:
 
     const HexState& State() const;
 
+    const MoHexBoard& GetMoHexBoard() const;
+
     MoHexSearch& Search();
 
     const MoHexSearch& Search() const;
@@ -131,7 +137,7 @@ public:
 
     HexPoint GetLastMovePlayed() const;
 
-    HexColor GetColorToPlay() const;
+    HexColor ColorToPlay() const;
 
 private:
     /** Assertion handler to dump the state of a MoHexThreadState. */
@@ -151,10 +157,12 @@ private:
 
     boost::scoped_ptr<HexState> m_state;
 
-    boost::scoped_ptr<HexState> m_playoutStartState;
-
     /** Board used to compute knowledge. */
     boost::scoped_ptr<HexBoard> m_vcBrd;
+
+    MoHexBoard m_board;
+
+    MoHexBoard m_playoutStartBoard;
 
     /** Playout policy. */
     MoHexPlayoutPolicy m_policy;
@@ -182,9 +190,9 @@ private:
 
     bool m_usingKnowledge;
 
-    bitset_t ComputeKnowledge(SgUctProvenType& provenType);
+    HexColor m_toPlay;
 
-    void ExecuteMove(HexPoint cell);
+    bitset_t ComputeKnowledge(SgUctProvenType& provenType);
 };
 
 inline const HexState& MoHexThreadState::State() const
@@ -217,9 +225,14 @@ inline HexPoint MoHexThreadState::GetLastMovePlayed() const
     return m_lastMovePlayed;
 }
 
-inline HexColor MoHexThreadState::GetColorToPlay() const
+inline HexColor MoHexThreadState::ColorToPlay() const
 {
-    return m_state->ToPlay();
+    return m_toPlay;
+}
+
+inline const MoHexBoard& MoHexThreadState::GetMoHexBoard() const
+{
+    return m_board;
 }
 
 //----------------------------------------------------------------------------

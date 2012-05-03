@@ -94,6 +94,12 @@ public:
     /** See PerformPreSearch() */
     void SetPerformPreSearch(bool flag);
 
+    /** Whether to use fillin and consider set in root state. */
+    bool UseRootData() const;
+
+    /** See UseRootData() */
+    void SetUseRootData(bool use);
+
     // @}
 
 protected:
@@ -118,7 +124,11 @@ protected:
     /** See Ponder() */
     bool m_ponder;
 
+    /** See PerformPreSearch() */
     bool m_performPreSearch;
+
+    /** See UseRootData() */
+    bool m_useRootData;
     
     /** Generates a move in the given gamestate using uct. */
     HexPoint Search(const HexState& state, const Game& game,
@@ -231,6 +241,16 @@ inline bool MoHexPlayer::PerformPreSearch() const
 inline void MoHexPlayer::SetPerformPreSearch(bool flag)
 {
     m_performPreSearch = flag;
+}
+
+inline bool MoHexPlayer::UseRootData() const
+{
+    return m_useRootData;
+}
+
+inline void MoHexPlayer::SetUseRootData(bool use)
+{
+    m_useRootData = use;
 }
 
 //----------------------------------------------------------------------------

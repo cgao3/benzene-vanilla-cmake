@@ -15,37 +15,6 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
-namespace {
-
-//----------------------------------------------------------------------------
-
-/** Shuffle a vector with the given random number generator. 
-    @todo Refactor this out somewhere. */
-template<typename T>
-void ShuffleVector(std::vector<T>& v, SgRandom& random)
-{
-    for (int i = static_cast<int>(v.size() - 1); i > 0; --i) 
-    {
-        int j = random.Int(i+1);
-        std::swap(v[i], v[j]);
-    }
-}
-
-/** Returns true 'percent' of the time. */
-bool PercentChance(int percent, SgRandom& random)
-{
-    if (percent >= 100) 
-        return true;
-    unsigned int threshold = random.PercentageThreshold(percent);
-    return random.RandomEvent(threshold);
-}
-
-//----------------------------------------------------------------------------
-
-} // annonymous namespace
-
-//----------------------------------------------------------------------------
-
 std::string MoHexPlayoutPolicyStatistics::ToString() const
 {
     std::ostringstream os;
@@ -74,8 +43,10 @@ MoHexSharedPolicy::~MoHexSharedPolicy()
 //----------------------------------------------------------------------------
 
 MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
+                                       MoHexBoard& board, 
                                        const MoHexPatterns& localPatterns)
     : m_shared(shared),
+      m_board(board),
       m_weights(BITSETSIZE),
       m_localPatterns(localPatterns)
 {
@@ -95,45 +66,32 @@ void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
     m_weights.Clear();
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
-    {
-        m_color[*it] = EMPTY;
         m_weights[*it] = 1.0f;
-    }
-    for (BitsetIterator it(brd.GetBlack()); it; ++it)
-        m_color[*it] = BLACK;
-    for (BitsetIterator it(brd.GetWhite()); it; ++it)
-        m_color[*it] = WHITE;
     m_weights.Build();
     //LogInfo() << brd.Write() << "\nTotal() " << m_weights.Total() << '\n';
 }
 
-HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state, 
-                                          HexPoint lastMove)
+HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay, 
+                                          const HexPoint lastMove)
 {
     HexPoint move = INVALID_POINT;
     const MoHexPlayoutPolicyConfig& config = m_shared->Config();
     MoHexPlayoutPolicyStatistics& stats = m_shared->Statistics();
-    // Patterns applied probabilistically (if heuristic is turned on)
-    if (lastMove != INVALID_POINT 
-        && config.patternHeuristic 
-        && PercentChance(config.patternCheckPercent, m_random))
+    if (lastMove != INVALID_POINT && config.patternHeuristic)
     {
-        //move = GeneratePatternMove(state, lastMove);
-
         bool isBad;
         WeightedRandom localGamma(8);
         HexPoint localMove[8];
-        const StoneBoard& brd = state.Position();
+        const ConstBoard& cbrd = m_board.Const();
         int i = 0;
         //LogInfo() << brd.Write() << '\n' << "lastMove=" << lastMove << '\n';
-        for (BoardIterator n(brd.Const().Nbs(lastMove)); n; ++n, ++i)
+        for (BoardIterator n(cbrd.Nbs(lastMove)); n; ++n, ++i)
         {
-            if (brd.GetColor(*n) == EMPTY)
+            if (m_board.GetColor(*n) == EMPTY)
             {
                 localMove[i] = *n;
-                
                 float gamma = m_localPatterns.GetGammaFromBoard
-                    (brd, 6, *n, state.ToPlay(), &isBad);
+                    (m_board, 6, *n, toPlay, &isBad);
                 if (gamma != 1.0f) 
                 {
                     localGamma[i] = gamma;
@@ -149,83 +107,46 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexState& state,
             move = localMove[ localGamma.Choose(m_random) ];
             //LogInfo() << "Local! move=" << move << '\n';
         }
+        //move = GeneratePatternMove(toPlay, lastMove);
     }
-    // Select random move if no move was selected by the heuristics
     if (move == INVALID_POINT) 
     {
 	stats.randomMoves++;
-        move = GenerateRandomMove(state.Position());
+        move = GenerateRandomMove();
     } 
     else 
         stats.patternMoves++;
-    BenzeneAssert(state.Position().IsEmpty(move));
+
     stats.totalMoves++;
-    
+    BenzeneAssert(m_board.GetColor(move) == EMPTY);
     return move;
 }
 
-void MoHexPlayoutPolicy::PlayMove(HexPoint move, HexColor toPlay)
+void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 {
+    UNUSED(toPlay);
     m_weights.SetWeightAndUpdate(move, 0.0f);
-    m_color[move] = toPlay;
 }
 
 //--------------------------------------------------------------------------
 
 /** Selects random move among the empty cells on the board. */
-HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const StoneBoard& brd)
+HexPoint MoHexPlayoutPolicy::GenerateRandomMove()
 {
-    UNUSED(brd);
     BenzeneAssert(m_weights.Total() >= 0.99f);
     if (m_weights.Total() < 1)
         throw BenzeneException() << "Total() < 1!!\n";
     HexPoint ret = static_cast<HexPoint>(m_weights.Choose(m_random));
-    if (m_color[ret] != EMPTY)
+    if (m_board.GetColor(ret) != EMPTY)
         throw BenzeneException() << "Weighted move not empty!\n";
     return ret;
 }
 
 /** Checks the save-bridge pattern. */
-HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexState& state, 
-                                                 HexPoint lastMove)
+HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexColor toPlay,
+                                                 const HexPoint lastMove)
 {
-    const ConstBoard& brd = state.Position().Const();
-    const HexColor toPlay = state.ToPlay();
-    // State machine: s is number of cells matched.
-    // In clockwise order, need to match CEC, where C is the color to
-    // play and E is an empty cell. We start at a random direction and
-    // stop at first match, which handles the case of multiple bridge
-    // patterns occuring at once.
-    // TODO: speed this up?
-    int s = 0;
-    const int k = m_random.Int(6);
-    HexPoint ret = INVALID_POINT;
-    for (int j = 0; j < 8; ++j)
-    {
-        const int i = (j + k) % 6;
-        const HexPoint p = brd.PointInDir(lastMove, (HexDirection)i);
-        const bool mine = m_color[p] == toPlay;
-        if (s == 0)
-        {
-            if (mine) s = 1;
-        }
-        else if (s == 1)
-        {
-            if (mine) s = 1;
-            else if (m_color[p] == !toPlay) s = 0;
-            else
-            {
-                s = 2;
-                ret = p;
-            }
-        }
-        else if (s == 2)
-        {
-            if (mine) return ret; // matched!!
-            else s = 0;
-        }
-    }
-    return INVALID_POINT;
+    return m_board.SaveBridge(lastMove, toPlay, m_random);
 }
 
 //----------------------------------------------------------------------------

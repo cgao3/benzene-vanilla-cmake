@@ -68,6 +68,9 @@ CommonHtpEngine::CommonHtpEngine(int boardsize)
     RegisterCmd("eval-twod", &CommonHtpEngine::CmdEvalTwoDist);
     RegisterCmd("eval-resist", &CommonHtpEngine::CmdEvalResist);
     RegisterCmd("eval-resist-cells", &CommonHtpEngine::CmdEvalResistCells);
+
+    RegisterCmd("add-fillin-to-sgf", &CommonHtpEngine::CmdAddFillinToSgf);
+
 }
 
 CommonHtpEngine::~CommonHtpEngine()
@@ -108,7 +111,8 @@ void CommonHtpEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "group/Show Group/group-get %p\n"
         "pspairs/Show TwoDistance/eval-twod %c\n"
         "string/Show Resist/eval-resist %c\n"
-        "pspairs/Show Cell Energy/eval-resist-cells %c\n";
+        "pspairs/Show Cell Energy/eval-resist-cells %c\n"
+        "none/Add Fillin to Sgf/add-fillin-to-sgf %f %f\n";
     m_playerEnvCommands.AddAnalyzeCommands(cmd, "player");
     m_solverEnvCommands.AddAnalyzeCommands(cmd, "solver");
     m_vcCommands.AddAnalyzeCommands(cmd);
@@ -512,6 +516,63 @@ void CommonHtpEngine::CmdEvalResistCells(HtpCommand& cmd)
         cmd << " " << *it << " " 
             << std::fixed << std::setprecision(3) << energy;
     }
+}
+
+//----------------------------------------------------------------------------
+
+void CommonHtpEngine::CmdAddFillinToSgf(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(2);
+    std::string filename = cmd.Arg(0);
+    std::string outFilename = cmd.Arg(1);
+    std::ifstream file(filename.c_str());
+    if (!file)
+        throw HtpFailure() << "cannot load file";
+    SgGameReader sgreader(file, 11);
+    SgNode* root = sgreader.ReadGame(); 
+    if (root == 0)
+        throw HtpFailure() << "cannot load file";
+    sgreader.PrintWarnings(std::cerr);
+
+    int size = root->GetIntProp(SG_PROP_SIZE);
+    NewGame(size, size);
+    const StoneBoard& brd = m_game.Board();
+    if (HexSgUtil::NodeHasSetupInfo(root)) 
+    {
+        LogWarning() << "Root has setup info!\n";
+        SetPosition(root);
+    }
+    // Build VCs in each position
+    SgNode* cur = root;
+    HexColor toPlay = FIRST_TO_PLAY;
+    for (int mn = 0; ;)
+    {
+        cur = cur->NodeInDirection(SgNode::NEXT);
+        if (!cur) 
+            break;
+        if (HexSgUtil::NodeHasSetupInfo(cur))
+        {
+            SetPosition(cur);
+            continue;
+        } 
+        else if (!cur->HasNodeMove())
+            continue;
+
+        HexColor color = HexSgUtil::SgColorToHexColor(cur->NodePlayer());
+        HexPoint point = HexSgUtil::SgPointToHexPoint(cur->NodeMove(), 
+                                                      brd.Height());
+        Play(color, point);
+        toPlay = !toPlay;
+
+        HexBoard& brd = m_pe.SyncBoard(m_game.Board());
+        brd.ComputeAll(toPlay);
+        HexSgUtil::SetPositionInNode(cur, brd.GetPosition(), toPlay);
+
+        ++mn;
+    }
+
+    if (!HexSgUtil::WriteSgf(root, outFilename.c_str(), size))
+        throw HtpFailure() << "Error writing '" << outFilename << "'!";
 }
 
 //----------------------------------------------------------------------------

@@ -46,7 +46,7 @@ void BenzeneProgram::PrintStartupMessage()
 {
     std::cerr <<
         m_name << " " << m_version << " " << m_date << "\n"
-        "Copyright (C) 2007-2011 by the authors of the Benzene project.\n"
+        "Copyright (C) 2007-2012 by the authors of the Benzene project.\n"
         "This program comes with ABSOLUTELY NO WARRANTY. This is\n"
         "free software and you are welcome to redistribute it under\n"
         "certain conditions. Type `benzene-license' for details.\n\n";

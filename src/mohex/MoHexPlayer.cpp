@@ -63,7 +63,8 @@ MoHexPlayer::MoHexPlayer()
       m_useTimeManagement(false),
       m_reuse_subtree(true),
       m_ponder(false),
-      m_performPreSearch(true)
+      m_performPreSearch(true),
+      m_useRootData(true)
 {
 }
 
@@ -85,6 +86,7 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     SetPerformPreSearch(other.PerformPreSearch());
     SetUseTimeManagement(other.UseTimeManagement());
     SetReuseSubtree(other.ReuseSubtree());
+    SetUseRootData(other.UseRootData());
     Search().SetMaxNodes(other.Search().MaxNodes());
     Search().SetNumberThreads(other.Search().NumberThreads());
     Search().SetRandomizeRaveFrequency
@@ -133,9 +135,21 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     // Create the initial state data
     MoHexSharedData data(m_search.FillinMapBits());
     data.gameSequence = game.History();
-    data.rootState = HexState(brd.GetPosition(), color);
-    data.rootConsider = consider;
-    
+    if (UseRootData())
+    {
+        data.rootConsider = consider;
+        data.rootState = HexState(brd.GetPosition(), color);
+        data.rootBoard.SetPosition(brd.GetPosition());
+    }
+    else
+    {
+        const StoneBoard& pos = game.Board();
+        data.rootConsider = pos.GetEmpty();
+        data.rootState = HexState(pos, color);
+        data.rootBoard.SetPosition(pos);
+    }
+    LogInfo() << data.rootState.Position().Write(data.rootConsider) << '\n';
+
     // Reuse the old subtree
     SgUctTree* initTree = 0;
     if (m_reuse_subtree)
@@ -279,7 +293,6 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
     }
 
     BenzeneAssert(consider.any());
-    LogInfo() << "Moves to consider:\n" << brd.Write(consider) << '\n';
     return false;
 }
 
