@@ -60,17 +60,14 @@ private:
 
     mutable Statistics m_stats;
 
-    void GetKeyFromBoard(uint64_t *key_6, uint64_t *key_12, 
-                         uint64_t *key_18, const int size, 
+    void GetKeyFromBoard(uint64_t *key, const int size, 
                          const MoHexBoard& board, 
                          const HexPoint point, const HexColor toPlay) const;
 
-    void GetKeyFromBoardBlackToPlay(uint64_t *key_6, uint64_t *key_12, 
-                                    uint64_t *key_18, const int size, 
+    void GetKeyFromBoardBlackToPlay(uint64_t *key, const int size, 
                                     const MoHexBoard& board, 
                                     const HexPoint point) const;
-    void GetKeyFromBoardWhiteToPlay(uint64_t *key_6, uint64_t *key_12, 
-                                    uint64_t *key_18, const int size, 
+    void GetKeyFromBoardWhiteToPlay(uint64_t *key, const int size, 
                                     const MoHexBoard& board, 
                                     const HexPoint point) const;
     void GetKeyFromBoardOld(uint64_t *key_6, uint64_t *key_12, 
