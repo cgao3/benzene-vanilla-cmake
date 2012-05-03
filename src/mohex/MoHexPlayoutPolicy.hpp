@@ -21,15 +21,11 @@ struct MoHexPlayoutPolicyConfig
     /** Generate pattern moves. */
     bool patternHeuristic;
 
-    /** Percent chance to check for pattern moves. */
-    int patternCheckPercent;
-
     MoHexPlayoutPolicyConfig();
 };
 
 inline MoHexPlayoutPolicyConfig::MoHexPlayoutPolicyConfig()
-    : patternHeuristic(true),
-      patternCheckPercent(100)
+    : patternHeuristic(true)
 {
 }
 

@@ -179,17 +179,13 @@ void MoHexEngine::MoHexPolicyParam(HtpCommand& cmd)
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
-            << "pattern_check_percent "
-            << config.patternCheckPercent << '\n'
             << "pattern_heuristic "
             << config.patternHeuristic << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
-        if (name == "pattern_check_percent")
-            config.patternCheckPercent = cmd.ArgMinMax<int>(1, 0, 100);
-        else if (name == "pattern_heuristic")
+        if (name == "pattern_heuristic")
             config.patternHeuristic = cmd.Arg<bool>(1);
         else
             throw HtpFailure("Unknown option!");

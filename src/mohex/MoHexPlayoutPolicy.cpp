@@ -30,15 +30,6 @@ void ShuffleVector(std::vector<T>& v, SgRandom& random)
     }
 }
 
-/** Returns true 'percent' of the time. */
-bool PercentChance(int percent, SgRandom& random)
-{
-    if (percent >= 100) 
-        return true;
-    unsigned int threshold = random.PercentageThreshold(percent);
-    return random.RandomEvent(threshold);
-}
-
 //----------------------------------------------------------------------------
 
 } // annonymous namespace
@@ -103,14 +94,10 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
     HexPoint move = INVALID_POINT;
     const MoHexPlayoutPolicyConfig& config = m_shared->Config();
     MoHexPlayoutPolicyStatistics& stats = m_shared->Statistics();
-    // Patterns applied probabilistically (if heuristic is turned on)
-    if (lastMove != INVALID_POINT 
-        && config.patternHeuristic 
-        && PercentChance(config.patternCheckPercent, m_random))
+    if (lastMove != INVALID_POINT && config.patternHeuristic)
     {
         move = GeneratePatternMove(toPlay, lastMove);
     }
-    // Select random move if no move was selected by the heuristics
     if (move == INVALID_POINT) 
     {
 	stats.randomMoves++;
@@ -118,9 +105,9 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
     } 
     else 
         stats.patternMoves++;
-    BenzeneAssert(m_board.GetColor(move) == EMPTY);
-    stats.totalMoves++;
 
+    stats.totalMoves++;
+    BenzeneAssert(m_board.GetColor(move) == EMPTY);
     return move;
 }
 
