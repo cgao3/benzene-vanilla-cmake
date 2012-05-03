@@ -228,6 +228,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << m_useParallelSolver << '\n'
             << "[bool] use_rave "
             << search.Rave() << '\n'
+            << "[bool] use_root_data "
+            << m_player.UseRootData() << '\n'
             << "[bool] use_time_management "
             << m_player.UseTimeManagement() << '\n'
             << "[bool] weight_rave_updates "
@@ -288,6 +290,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetLiveGfx(cmd.Arg<bool>(1));
         else if (name == "use_rave")
             search.SetRave(cmd.Arg<bool>(1));
+        else if (name == "use_root_data")
+            m_player.SetUseRootData(cmd.Arg<bool>(1));
         else if (name == "randomize_rave_frequency")
             search.SetRandomizeRaveFrequency(cmd.ArgMin<int>(1, 0));
         else if (name == "reuse_subtree")
