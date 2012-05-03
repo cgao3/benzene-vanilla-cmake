@@ -141,8 +141,9 @@ inline void MoHexPatterns
                              const HexPoint point) const
 {
     key[0] = key[1] = key[2] = 0;
+    static const int sizes[] = { 6, 12, 18, 9999 };
     const ConstBoard& cbrd = board.Const();
-    for (int i = 1, r = 0; r < 3; ++r)
+    for (int i = 1, r = 0; ; )
     {
         for (int j = 0; j < 6; ++i, ++j)
         {
@@ -154,7 +155,7 @@ inline void MoHexPatterns
                 break;
                 
             case BLACK:
-                key[r] ^= m_zobrist[BLACK][i][ 1 + (FIRST_CELL <= n ? 0: 2) ];    
+                key[r] ^= m_zobrist[BLACK][i][ 1 + (FIRST_CELL <= n ? 0: 2) ];  
                 break;
                 
             case WHITE:
@@ -162,10 +163,9 @@ inline void MoHexPatterns
                 break;
             }
         }
-        if (size < (r + 2) * 6)
+        if (size < sizes[++r])
             break;
-
-        key[r + 1] = key[r];
+        key[r] = key[r - 1];
     }
 }
 
@@ -175,8 +175,9 @@ inline void MoHexPatterns
                              const HexPoint point) const
 {
     key[0] = key[1] = key[2] = 0;
+    static const int sizes[] = { 6, 12, 18, 9999 };
     const ConstBoard& cbrd = board.Const();
-    for (int i = 1, r = 0; r < 3; ++r)
+    for (int i = 1, r = 0; ; )
     {
         for (int j = 0; j < 6; ++i, ++j)
         {
@@ -188,7 +189,7 @@ inline void MoHexPatterns
                 break;
                 
             case BLACK:
-                key[r] ^= m_zobrist[WHITE][i][ 2 + (FIRST_CELL <= n ? 0: 2) ];    
+                key[r] ^= m_zobrist[WHITE][i][ 2 + (FIRST_CELL <= n ? 0: 2) ];
                 break;
                 
             case WHITE:
@@ -196,9 +197,9 @@ inline void MoHexPatterns
                 break;
             }
         }
-        if (size < (r + 2) * 6)
+        if (size < sizes[++r])
             break;
-        key[r + 1] = key[r];
+        key[r] = key[r - 1];
     }
 }
 
