@@ -34,6 +34,7 @@ public:
     void GetPV(HtpCommand& cmd);
     void Values(HtpCommand& cmd);
     void RaveValues(HtpCommand& cmd);
+    void PriorValues(HtpCommand& cmd);
     void Bounds(HtpCommand& cmd);
     void CellStats(HtpCommand& cmd);
     void FindTopMoves(HtpCommand& cmd);
