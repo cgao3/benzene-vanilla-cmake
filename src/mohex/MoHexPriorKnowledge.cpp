@@ -35,9 +35,8 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
                                                   HexPoint(moves[i].m_move),
                                                   m_state.ColorToPlay(),
                                                   &isBadPattern);
-        if (isBadPattern) // && moves.size() > 1)
+        if (isBadPattern && moves.size() > 1)
         {
-            LogInfo() << "SDLKJFSDF\n";
             // prune bad patterns, but don't let set go empty
             std::swap(moves[i], moves.back());
             moves.pop_back();
