@@ -249,7 +249,17 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         // If count is negative, then we are not actually expanding
         // this node, so do not compute prior knowledge.
         if (count == 0)
+        {
+            size_t oldSize = moves.size();
             m_priorKnowledge.ProcessPosition(moves);
+            if (moves.size() < oldSize)
+            {
+                bitset_t bs;
+                for (size_t i = 0; i < moves.size(); ++i)
+                    bs.set(moves[i].m_move);
+                LogInfo() << m_state->Position().Write(bs) << '\n';
+            }
+        }
         return false;
     }
     else

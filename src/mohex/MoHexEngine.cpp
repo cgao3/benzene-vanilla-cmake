@@ -10,6 +10,7 @@
 #include "PlayAndSolve.hpp"
 #include "SwapCheck.hpp"
 #include "NeighborTracker.hpp"
+#include "Misc.hpp"
 
 using namespace benzene;
 
@@ -103,6 +104,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
     RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
+    RegisterCmd("mohex-mark-prunable", &MoHexEngine::MarkPrunablePatterns);
 }
 
 MoHexEngine::~MoHexEngine()
@@ -516,6 +518,76 @@ void MoHexEngine::FindTopMoves(HtpCommand& cmd)
         cmd << ' ' << static_cast<HexPoint>(moves[i]) 
             << ' ' << (i + 1) 
             << '@' << std::fixed << std::setprecision(3) << scores[i];
+}
+
+//----------------------------------------------------------------------------
+
+void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(2);
+    std::string infile = cmd.Arg(0);
+    std::string outfile = cmd.Arg(1);
+    std::vector<Pattern> infpat;
+    HashedPatternSet hashpat;
+    std::ifstream ifile;
+    MiscUtil::OpenFile("mohex-prior-prune.txt", ifile);
+    Pattern::LoadPatternsFromStream(ifile, infpat);
+    hashpat.Hash(infpat);
+    LogInfo() << "Parsed " << infpat.size() << " pruning patterns.\n";
+
+    std::ifstream f(infile.c_str());
+    std::ofstream of(outfile.c_str());
+    std::string line;
+    if (!std::getline(f, line)) 
+        throw HtpFailure("Empty file");
+    of << line << '\n';
+
+    StoneBoard brd(11);
+    const ConstBoard& cbrd = brd.Const();
+    PatternState pastate(brd);
+    while (f.good()) 
+    {
+        if (!std::getline(f, line)) 
+            break;
+        if (line.size() < 5)
+            continue;
+        std::string pattern, gamma;
+        std::istringstream ifs(line);
+        ifs >> gamma;
+        ifs >> pattern; // skip w
+        ifs >> pattern; // skip a
+        ifs >> pattern;
+
+        int size = (int)pattern.size();
+        brd.StartNewGame();
+        for (int i = 0; i < size; ++i)
+        {
+            HexPoint p = cbrd.PatternPoint(HEX_CELL_F6, i);
+            if (pattern[i] == '1' || pattern[i] == '3' || pattern[i] == '5')
+                brd.SetColor(BLACK, p);
+            else if (pattern[i] == '2' || pattern[i] == '4')
+                brd.SetColor(WHITE, p);
+        }
+        pastate.Update();
+        
+        PatternHits hits;
+        pastate.MatchOnCell(hashpat, HEX_CELL_F6, 
+                            PatternState::STOP_AT_FIRST_HIT, hits);
+
+        bool bad = false;
+        if (hits.size() > 0)
+        {
+            bad = true;
+            LogInfo() << brd.Write() << '\n';
+            LogInfo() << "MAAATCCCHH!\n";
+            LogInfo() << "gamma=" << gamma << '\n';
+        }
+
+        line[line.size() - 1] = ' ';
+        of << line << "       " << bad << '\n';
+    }
+    of.close();
+    f.close();
 }
 
 //----------------------------------------------------------------------------

@@ -443,10 +443,12 @@ void MoHexPatterns::ReadPatterns(std::string filename)
     double LargestGamma = 0;
     double SmallestGamma = 9999.0f;
     size_t HashTableEntryCount = 0;
+    int bad;
 
     while (!feof(stream))
     {
-        if (fscanf(stream, " %lf %d %d %s ", &gamma, &W, &A, temp) != 4)
+        if (fscanf(stream, " %lf %d %d %s %d ", 
+                   &gamma, &W, &A, temp, &bad) != 5)
             throw BenzeneException() << "Error parsing pattern\n";
 
 	int size = (int)strlen(temp);
@@ -465,18 +467,14 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 	if (gamma < SmallestGamma)
 	    SmallestGamma = gamma;
 
-        bool bad = false;
-        if ((A >= 10000 && W == 0) ||
-            (A >= 10000 && (double)W / (double)A <= 0.0001))
-        {
-            bad = true;
-            badPatternCount++;
-        }
-
 	for (int i = 1; i <= 6; i++)
 	{
-	    if (InsertHashTable(ComputeKey(size, pattern), gamma, bad))
+	    if (InsertHashTable(ComputeKey(size, pattern), gamma, (bool)bad))
+            {
 	        HashTableEntryCount++;
+                if (bad)
+                    badPatternCount++;
+            }
             if (HashTableEntryCount > TABLE_SIZE / 4)
                 throw BenzeneException("Table too small!\n");
 	    for (int j = 1; j <= 3; j++)
