@@ -77,6 +77,11 @@ private:
 
     double QueryHashtable(uint64_t key, bool *isBadPattern) const;
     bool InsertHashTable(uint64_t key, double gamma, bool bad); 
+
+    static std::string ShowPattern6(const int p[], const int e[]);
+    static std::string ShowPattern12(const int p[], const int e[]);
+    static std::string ShowPattern(int size, const int p[], const int e[]);
+
 };
 
 inline MoHexPatterns::Statistics MoHexPatterns::GetStatistics() const

@@ -127,6 +127,90 @@ void MoHexPatterns::Rotate(int pattern[])
     pattern[14] = temp;
 }
 
+std::string MoHexPatterns::ShowPattern6(const int p[], const int e[])
+{
+    static const int index[] = { -1,  1, -1,  2, -1, -2, 
+                                  3, -1, -4, -1,  4, -2, 
+                                 -1,  5, -1,  6, -1, -2, 
+                                 -3 }; 
+    std::ostringstream os;
+    os << '\n';
+    for (int i = 0; ; ++i) 
+    {
+        LogInfo() << i << '\n';
+        if (index[i] == -3)
+            break;
+        else if (index[i] == -2)
+            os << '\n';
+        else if (index[i] == -1)
+            os << ' ';
+        else if (index[i] == -4)
+            os << '+';
+        else
+        {
+            switch(p[index[i]])
+            {
+            case 0: os << '+'; break;
+                //case 1: os << (e[index[i]] ? 'B' : 'b'); break;
+                //case 2: os << (e[index[i]] ? 'W' : 'w'); break;
+            case 1: os << 'b'; break;
+            case 2: os << 'w'; break;
+            case 3: os << '#'; break;
+            case 4: os << '%'; break;
+            default: os << '!'; break;
+            }
+        }
+    }
+    return os.str();
+}
+
+std::string MoHexPatterns::ShowPattern12(const int p[], const int e[])
+{
+    static const int index[] = { -1, -1, -1,  7, -1, -1, -1, -2,
+                                  9, -1,  1, -1,  2, -1,  8, -2, 
+                                 -1,  3, -1, -4, -1,  4, -1, -2, 
+                                 11, -1,  5, -1,  6, -1, 10, -2, 
+                                 -1, -1, -1, 12, -1, -1, -1, -2,
+                                 -3 }; 
+    std::ostringstream os;
+    os << '\n';
+    for (int i = 0; ; ++i) 
+    {
+        if (index[i] == -3)
+            break;
+        else if (index[i] == -2)
+            os << '\n';
+        else if (index[i] == -1)
+            os << ' ';
+        else if (index[i] == -4)
+            os << '+';
+        else
+        {
+            switch(p[index[i]])
+            {
+            case 0: os << '+'; break;
+                //case 1: os << (e[index[i]] ? 'B' : 'b'); break;
+                //case 2: os << (e[index[i]] ? 'W' : 'w'); break;
+            case 1: os << 'b'; break;
+            case 2: os << 'w'; break;
+            case 3: os << '#'; break;
+            case 4: os << '%'; break;
+            default: os << '!'; break;
+            }
+        }
+    }
+    return os.str();
+}
+
+std::string MoHexPatterns::ShowPattern(int size, const int p[], const int e[])
+{
+    if (size == 6)
+        return ShowPattern6(p, e);
+    else if (size == 12)
+        return ShowPattern12(p, e);
+    return "-";
+}
+
 uint64_t MoHexPatterns::ComputeKey(int size, int pattern[])
 {
     uint64_t key = 0;
@@ -434,6 +518,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
     int W;
     char temp[128];
     int pattern[MAX_INDEX];
+    int edge[MAX_INDEX];
     int Count[MAX_INDEX] = {0};
 
     if (!fscanf(stream,"%d\n", &A))
@@ -447,8 +532,14 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 
     while (!feof(stream))
     {
+#if 0
         if (fscanf(stream, " %lf %d %d %s %d ", 
                    &gamma, &W, &A, temp, &bad) != 5)
+            throw BenzeneException() << "Error parsing pattern\n";
+#endif
+
+        if (fscanf(stream, " %lf %d %d %s ", 
+                   &gamma, &W, &A, temp, &bad) != 4)
             throw BenzeneException() << "Error parsing pattern\n";
 
 	int size = (int)strlen(temp);
@@ -458,6 +549,14 @@ void MoHexPatterns::ReadPatterns(std::string filename)
                 temp[i-1] = '3';
             }
 	    pattern[i] = (int)temp[i - 1] - 48;
+        }
+
+        //LogInfo() << "FUCK\n" << bad << '\n' << size << '\n';
+        
+        bad = 0;
+        if (bad)
+        {
+            LogInfo() << ShowPattern(size, pattern, edge) << '\n';
         }
 
  	Count[size]++;

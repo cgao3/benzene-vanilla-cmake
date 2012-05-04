@@ -583,8 +583,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
             LogInfo() << "gamma=" << gamma << '\n';
         }
 
-        line[line.size() - 1] = ' ';
-        of << line << "       " << bad << '\n';
+        of << line << "        " << bad << '\n';
     }
     of.close();
     f.close();
