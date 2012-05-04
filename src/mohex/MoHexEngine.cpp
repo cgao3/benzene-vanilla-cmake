@@ -560,12 +560,13 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
 
         int size = (int)pattern.size();
         brd.StartNewGame();
-        for (int i = 0; i < size; ++i)
+        for (int i = 1; i <= size; ++i)
         {
             HexPoint p = cbrd.PatternPoint(HEX_CELL_F6, i);
-            if (pattern[i] == '1' || pattern[i] == '3' || pattern[i] == '5')
+            char pi = pattern[i - 1];
+            if (pi == '1' || pi == '3' || pi == '5')
                 brd.SetColor(BLACK, p);
-            else if (pattern[i] == '2' || pattern[i] == '4')
+            else if (pi == '2' || pi == '4')
                 brd.SetColor(WHITE, p);
         }
         pastate.Update();
