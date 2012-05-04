@@ -536,12 +536,11 @@ void MoHexPatterns::ReadPatterns(std::string filename)
         if (fscanf(stream, " %lf %d %d %s %d ", 
                    &gamma, &W, &A, temp, &bad) != 5)
             throw BenzeneException() << "Error parsing pattern\n";
-#endif
-
+#else
         if (fscanf(stream, " %lf %d %d %s ", 
                    &gamma, &W, &A, temp, &bad) != 4)
             throw BenzeneException() << "Error parsing pattern\n";
-
+#endif
 	int size = (int)strlen(temp);
 	for (int i = 1; i <= size; i++)
         {
@@ -551,9 +550,6 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 	    pattern[i] = (int)temp[i - 1] - 48;
         }
 
-        //LogInfo() << "FUCK\n" << bad << '\n' << size << '\n';
-        
-        bad = 0;
         if (bad)
         {
             LogInfo() << ShowPattern(size, pattern, edge) << '\n';
