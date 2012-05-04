@@ -250,15 +250,15 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         // this node, so do not compute prior knowledge.
         if (count == 0)
         {
-            size_t oldSize = moves.size();
+            //size_t oldSize = moves.size();
             m_priorKnowledge.ProcessPosition(moves);
-            if (moves.size() < oldSize)
-            {
-                bitset_t bs;
-                for (size_t i = 0; i < moves.size(); ++i)
-                    bs.set(moves[i].m_move);
-                LogInfo() << m_state->Position().Write(bs) << '\n';
-            }
+            //if (moves.size() < oldSize)
+            // {
+            //     bitset_t bs;
+            //     for (size_t i = 0; i < moves.size(); ++i)
+            //         bs.set(moves[i].m_move);
+            //     LogInfo() << m_state->Position().Write(bs) << '\n';
+            // }
         }
         return false;
     }
