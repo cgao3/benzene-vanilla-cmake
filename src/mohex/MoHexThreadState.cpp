@@ -234,14 +234,14 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         for (BitsetIterator it(m_sharedData->rootConsider); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
         if (count == 0)
-            m_priorKnowledge.ProcessPosition(moves);
+            m_priorKnowledge.ProcessPosition(moves, false);
         return false;
     }
     else if (count <= 0)
     {
         // First time we have been to this node. If solid winning
         // chain exists then mark as proven and abort. Otherwise,
-        // every empty cell is a valid move.
+        // every empty cell is a potentially valid move.
         if (IsProvenState(m_board, ColorToPlay(), provenType))
             return false;
         for (BitsetIterator it(m_state->Position().GetEmpty()); it; ++it)
@@ -251,7 +251,14 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         if (count == 0)
         {
             //size_t oldSize = moves.size();
-            m_priorKnowledge.ProcessPosition(moves);
+            m_priorKnowledge.ProcessPosition(moves, true);
+            if (moves.empty())
+            {
+                provenType = SG_PROVEN_LOSS;
+                //LogInfo() << m_state->Position() << '\n'
+                //          << "winner=" << !ColorToPlay() << '\n';
+                
+            }
             //if (moves.size() < oldSize)
             // {
             //     bitset_t bs;

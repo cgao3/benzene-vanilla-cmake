@@ -20,7 +20,8 @@ MoHexPriorKnowledge::~MoHexPriorKnowledge()
 {
 }
 
-void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
+void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
+                                          const bool doPruning)
 {
     if (m_state.Search().ProgressiveBiasConstant() == 0.0f)
         return;
@@ -35,9 +36,9 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
                                                   HexPoint(moves[i].m_move),
                                                   m_state.ColorToPlay(),
                                                   &type);
-        if (type && moves.size() > 1)
+        if (doPruning && type == 1)
         {
-            // prune bad patterns, but don't let set go empty
+            // prune bad patterns
             std::swap(moves[i], moves.back());
             moves.pop_back();
         }

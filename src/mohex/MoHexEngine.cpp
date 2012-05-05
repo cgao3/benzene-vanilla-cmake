@@ -527,13 +527,22 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
     cmd.CheckNuArg(2);
     std::string infile = cmd.Arg(0);
     std::string outfile = cmd.Arg(1);
-    std::vector<Pattern> infpat;
-    HashedPatternSet hashpat;
+    std::vector<Pattern> infpat, prune, dom;
+    HashedPatternSet hprune, hdom;
     std::ifstream ifile;
     MiscUtil::OpenFile("mohex-prior-prune.txt", ifile);
     Pattern::LoadPatternsFromStream(ifile, infpat);
-    hashpat.Hash(infpat);
-    LogInfo() << "Parsed " << infpat.size() << " pruning patterns.\n";
+    for (size_t i = 0; i < infpat.size(); ++i)
+    {
+        if (infpat[i].GetType() == Pattern::DOMINATED)
+            dom.push_back(infpat[i]);
+        else
+            prune.push_back(infpat[i]);
+    }
+    LogInfo() << "Parsed " << prune.size() << " pruning patterns, "
+              << dom.size() << " domination patterns.\n";
+    hprune.Hash(prune);
+    hdom.Hash(dom);
 
     std::ifstream f(infile.c_str());
     std::ofstream of(outfile.c_str());
@@ -574,16 +583,25 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
         }
         pastate.Update();
         
-        PatternHits hits;
-        pastate.MatchOnCell(hashpat, HEX_CELL_F6, 
-                            PatternState::STOP_AT_FIRST_HIT, hits);
-
         type = 0;
+        PatternHits hits;
+        pastate.MatchOnCell(hprune, HEX_CELL_F6, 
+                            PatternState::STOP_AT_FIRST_HIT, hits);
         if (hits.size() > 0)
+            type = 1;
+        else 
         {
-            type = 1;;
+            pastate.MatchOnCell(hdom, HEX_CELL_F6, 
+                                PatternState::STOP_AT_FIRST_HIT, hits);
+            if (hits.size() > 0)
+                type = 2;
+        }
+        if (type > 0) 
+        {
             LogInfo() << brd.Write() << '\n';
-            LogInfo() << "gamma=" << gamma << " type=" << type << '\n';
+            LogInfo() << "gamma=" << gamma 
+                      << " pat=" << hits[0].GetPattern()->GetName() 
+                      << " type=" << type << '\n';
         }
 
         of << std::setw(16) << std::fixed << std::setprecision(6) << gamma 
