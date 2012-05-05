@@ -32,7 +32,7 @@ public:
 
     double GetGammaFromBoard(const MoHexBoard& board, int size, 
                              HexPoint point, HexColor toPlay,
-                             bool *isBadPattern) const;
+                             int* type) const;
 
     Statistics GetStatistics() const;
 
@@ -53,7 +53,7 @@ private:
     {
         uint64_t key;
         double gamma;
-        bool bad;
+        int type;
     };
 
     Data* m_table;
@@ -75,8 +75,8 @@ private:
                             const MoHexBoard& board, 
                             const HexPoint point, const HexColor toPlay) const;
 
-    double QueryHashtable(uint64_t key, bool *isBadPattern) const;
-    bool InsertHashTable(uint64_t key, double gamma, bool bad); 
+    double QueryHashtable(uint64_t key, int *type) const;
+    bool InsertHashTable(uint64_t key, double gamma, int type); 
 
     static std::string ShowPattern6(const int p[], const int e[]);
     static std::string ShowPattern12(const int p[], const int e[]);

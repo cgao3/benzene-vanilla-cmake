@@ -411,9 +411,9 @@ inline void MoHexPatterns::GetKeyFromBoardOld(uint64_t *key_6, uint64_t *key_12,
 
 double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
                                         HexPoint point, HexColor toPlay,
-                                        bool *isBadPattern) const
+                                        int* type) const
 {
-    *isBadPattern = false;
+    *type = 0;
     double gamma = 1.0f;
     uint64_t key[3];
 
@@ -437,7 +437,7 @@ double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
     switch(size)
     {
     case 12:
-        gamma = QueryHashtable(key[1], isBadPattern);
+        gamma = QueryHashtable(key[1], type);
         if (gamma != 1.0f)
         {
             m_stats.hit12++;
@@ -446,7 +446,7 @@ double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
         m_stats.miss12++;
 
     case 6:
-        gamma = QueryHashtable(key[0], isBadPattern);
+        gamma = QueryHashtable(key[0], type);
         if (gamma == 1.0f)
             m_stats.miss6++;
         else   
@@ -455,9 +455,9 @@ double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
     return gamma;
 }
 
-double MoHexPatterns::QueryHashtable(uint64_t key, bool *isBadPattern) const
+double MoHexPatterns::QueryHashtable(uint64_t key, int *type) const
 {
-    *isBadPattern = false;
+    *type = 0;
     const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
     uint64_t index = key & mask;
     for (;;)
@@ -466,7 +466,7 @@ double MoHexPatterns::QueryHashtable(uint64_t key, bool *isBadPattern) const
 	    return 1.0f;
 	else if (m_table[index].key == key)
 	{
-            *isBadPattern = m_table[index].bad;
+            *type = m_table[index].type;
 	    return m_table[index].gamma;
 	}
         index++;
@@ -475,7 +475,7 @@ double MoHexPatterns::QueryHashtable(uint64_t key, bool *isBadPattern) const
     return 1.0f;
 }
 
-bool MoHexPatterns::InsertHashTable(uint64_t key, double gamma, bool bad)
+bool MoHexPatterns::InsertHashTable(uint64_t key, double gamma, int type)
 {
     const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
     uint64_t index = key & mask;
@@ -485,7 +485,7 @@ bool MoHexPatterns::InsertHashTable(uint64_t key, double gamma, bool bad)
 	{
             m_table[index].key = key;
             m_table[index].gamma = gamma;
-            m_table[index].bad = bad;
+            m_table[index].type = type;
 	    return true;
 	}
 	else if (m_table[index].key == key)
@@ -504,7 +504,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
     {
         m_table[i].key = 0;
         m_table[i].gamma = 1.0f;
-        m_table[i].bad = false;
+        m_table[i].type = 0;
     }
 
     std::ifstream ins;
@@ -524,21 +524,21 @@ void MoHexPatterns::ReadPatterns(std::string filename)
     if (!fscanf(stream,"%d\n", &A))
         throw BenzeneException() << "Error parsing number of patterns\n";
 
-    size_t badPatternCount = 0;
+    size_t prunableCount = 0;
     double LargestGamma = 0;
     double SmallestGamma = 9999.0f;
     size_t HashTableEntryCount = 0;
-    int bad;
+    int type;
 
     while (!feof(stream))
     {
 #if 1
         if (fscanf(stream, " %lf %d %d %s %d ", 
-                   &gamma, &W, &A, temp, &bad) != 5)
+                   &gamma, &W, &A, temp, &type) != 5)
             throw BenzeneException() << "Error parsing pattern\n";
 #else
         if (fscanf(stream, " %lf %d %d %s ", 
-                   &gamma, &W, &A, temp, &bad) != 4)
+                   &gamma, &W, &A, temp) != 4)
             throw BenzeneException() << "Error parsing pattern\n";
 #endif
 	int size = (int)strlen(temp);
@@ -550,7 +550,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 	    pattern[i] = (int)temp[i - 1] - 48;
         }
 
-        if (bad)
+        if (type)
         {
             //LogInfo() << ShowPattern(size, pattern, edge) << '\n';
         }
@@ -564,11 +564,11 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 
 	for (int i = 1; i <= 6; i++)
 	{
-	    if (InsertHashTable(ComputeKey(size, pattern), gamma, (bool)bad))
+	    if (InsertHashTable(ComputeKey(size, pattern), gamma, type))
             {
 	        HashTableEntryCount++;
-                if (bad)
-                    badPatternCount++;
+                if (type)
+                    prunableCount++;
             }
             if (HashTableEntryCount > TABLE_SIZE / 4)
                 throw BenzeneException("Table too small!\n");
@@ -582,7 +582,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 	if (Count[i] > 0)
 	    LogInfo() << "size " << i << "         =  " << Count[i] << '\n';
     LogInfo() << "HashTableEntryCount  = " << HashTableEntryCount << '\n';
-    LogInfo() << "BadPatternCount      = " << badPatternCount << '\n';
+    LogInfo() << "PrunableCount        = " << prunableCount << '\n';
     LogInfo() << "LargestGamma         = " << LargestGamma << '\n';
     LogInfo() << "SmallestGamma        = " << SmallestGamma << '\n';
     fclose(stream);

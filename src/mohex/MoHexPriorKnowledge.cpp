@@ -30,12 +30,12 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves)
     const MoHexPatterns& patterns = m_state.Search().GlobalPatterns();
     for (std::size_t i = 0; i < moves.size(); )
     {
-        bool isBadPattern;
+        int type;
         double gamma = patterns.GetGammaFromBoard(m_state.GetMoHexBoard(), 12,
                                                   HexPoint(moves[i].m_move),
                                                   m_state.ColorToPlay(),
-                                                  &isBadPattern);
-        if (isBadPattern && moves.size() > 1)
+                                                  &type);
+        if (type && moves.size() > 1)
         {
             // prune bad patterns, but don't let set go empty
             std::swap(moves[i], moves.back());
