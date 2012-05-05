@@ -29,9 +29,13 @@ p1Wins = Statistics()
 p1WinsBlack = Statistics()
 p1WinsWhite = Statistics()
 
-def analyzeTourney(fname, longOpening, maxvalid, showTable, timeLimit):
+def analyzeTourney(fname, longOpening, maxvalid, showTable, plotScore,
+                   timeLimit):
     print "Analyzing: \'" + fname + "\'..."
     
+    if plotScore:
+        pf = open("plot.dat", "w")
+
     f = open(fname, "r")
     line = f.readline()
     linenum = 1
@@ -97,6 +101,9 @@ def analyzeTourney(fname, longOpening, maxvalid, showTable, timeLimit):
 
                 gamelen.add(float(length))
                 p1Wins.add(valueForP1)
+                if (plotScore):
+                    print >> pf, str(p1Wins.count()) + "\t" + str(p1Wins.mean()) + "\t" + str(p1Wins.stderror())
+
                 if (progs[0] == black):
                     p1WinsBlack.add(valueForP1)
                 else:
@@ -129,6 +136,8 @@ def analyzeTourney(fname, longOpening, maxvalid, showTable, timeLimit):
         line = f.readline()
         linenum = linenum+1
     f.close()
+    if (plotScore):
+        pf.close()
 
     print ""
     for p in progs:
@@ -218,11 +227,12 @@ def main():
     timeLimit = 123456.789
     longOpening = False
     showTable = False
+    plotScore = False
     resfile = ""
     
     try:
         options = "clr:sf:"
-        longOptions = ["count=","long","showTable","file=","time="]
+        longOptions = ["count=","long","showTable","plot","file=","time="]
         opts, args = getopt.getopt(sys.argv[1:], options, longOptions)
     except getopt.GetoptError:
         usage()
@@ -236,12 +246,15 @@ def main():
             timeLimit = float(v)
         elif o in ("--long"):
             longOpening = True
+        elif o in ("--plot"):
+            plotScore = True
         elif o in ("--showTable"):
             showTable = True
     
     if (resfile == ""):
         usage()
     
-    analyzeTourney(resfile, longOpening, count, showTable, timeLimit)
+    analyzeTourney(resfile, longOpening, count, showTable, 
+                   plotScore, timeLimit)
     
 main()
