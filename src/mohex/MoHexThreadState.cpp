@@ -234,7 +234,10 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         for (BitsetIterator it(m_sharedData->rootConsider); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
         if (count == 0)
+        {
+            m_sharedData->treeStatistics.priorPositions++;
             m_priorKnowledge.ProcessPosition(moves, false);
+        }
         return false;
     }
     else if (count <= 0)
@@ -250,15 +253,19 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         // this node, so do not compute prior knowledge.
         if (count == 0)
         {
-            //size_t oldSize = moves.size();
+            size_t oldSize = moves.size();
+            m_sharedData->treeStatistics.priorPositions++;
+            m_sharedData->treeStatistics.priorMoves += oldSize;
             m_priorKnowledge.ProcessPosition(moves, true);
             if (moves.empty())
             {
+                m_sharedData->treeStatistics.priorPrunedToLoss++;
                 provenType = SG_PROVEN_LOSS;
                 //LogInfo() << m_state->Position() << '\n'
                 //          << "winner=" << !ColorToPlay() << '\n';
-                
             }
+            m_sharedData->treeStatistics.priorMovesAfterPrune += moves.size();
+
             //if (moves.size() < oldSize)
             // {
             //     bitset_t bs;

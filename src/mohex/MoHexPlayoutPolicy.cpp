@@ -40,11 +40,11 @@ std::string MoHexPlayoutPolicyStatistics::ToString() const
 {
     std::ostringstream os;
     os << "Playout Statistics:\n"
-       << "Total          " << totalMoves << '\n'
-       << "Pattern        " << patternMoves << " ("
+       << "Total               " << totalMoves << '\n'
+       << "Pattern             " << patternMoves << " ("
        << std::setprecision(3) << double(patternMoves) * 100.0 
         / double(totalMoves) << "%)\n" 
-       << "Random         " << randomMoves << " ("
+       << "Random              " << randomMoves << " ("
        << std::setprecision(3) << double(randomMoves) * 100.0 
         / double(totalMoves) << "%)";
     return os.str();

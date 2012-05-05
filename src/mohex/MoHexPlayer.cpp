@@ -180,6 +180,7 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     for (std::size_t i = 0; i < sequence.size(); i++)
         os << ' ' << MoHexUtil::MoveString(sequence[i]);
     os << '\n';
+    os << m_search.SharedData().treeStatistics.ToString() << '\n';
     os << m_shared_policy.Statistics().ToString() << '\n';  
     if (m_search.ProgressiveBiasConstant() > 0.0f) 
         os << m_search.GlobalPatterns().GetStatistics().ToString() << '\n';

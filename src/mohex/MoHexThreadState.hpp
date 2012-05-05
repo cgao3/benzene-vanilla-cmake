@@ -36,6 +36,45 @@ struct MoHexSharedData
         bitset_t consider;
     };
 
+    struct TreeStatistics
+    {
+        std::size_t priorMoves;
+        std::size_t priorMovesAfterPrune;
+        std::size_t priorPositions;
+        std::size_t priorPrunedToLoss;
+
+        TreeStatistics() : priorMoves(0), 
+                           priorMovesAfterPrune(0),
+                           priorPositions(0),
+                           priorPrunedToLoss(0) 
+        { }
+
+        void Clear() 
+        { 
+            priorMoves = 0; 
+            priorMovesAfterPrune = 0;
+            priorPositions = 0;
+            priorPrunedToLoss = 0;
+        }
+
+        std::string ToString() const
+        {
+            std::ostringstream os;
+            os << "Tree Statistics:\n"
+ 
+               << "Prior Positions     " << priorPositions << '\n'
+               << "Pruned To Loss      " << priorPrunedToLoss << " ("
+               << std::setprecision(3) << double(priorPrunedToLoss) * 100.0 
+                / double(priorPositions) << "%)\n"
+                
+               << "Prior Avg Moves     " << std::setprecision(3)
+               << (double)priorMoves / (double)priorPositions << '\n'
+               << "Prior After Prune   " << std::setprecision(3) 
+               << (double)priorMovesAfterPrune / (double)priorPositions;
+            return os.str();
+        }
+    };
+
     /** Moves from begining of game leading to this position. */
     MoveSequence gameSequence;
 
@@ -50,6 +89,8 @@ struct MoHexSharedData
     /** Stores fillin information for states in the tree. */
     HashMap<StateData> stateData;
 
+    TreeStatistics treeStatistics;
+    
     explicit MoHexSharedData(int fillinMapBits);
 };
 
