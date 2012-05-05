@@ -551,12 +551,15 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
             break;
         if (line.size() < 5)
             continue;
+        int type;
+        size_t w, a;
         std::string pattern, gamma;
         std::istringstream ifs(line);
         ifs >> gamma;
-        ifs >> pattern; // skip w
-        ifs >> pattern; // skip a
+        ifs >> w;
+        ifs >> a;
         ifs >> pattern;
+        ifs >> type;
 
         int size = (int)pattern.size();
         brd.StartNewGame();
@@ -575,16 +578,19 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
         pastate.MatchOnCell(hashpat, HEX_CELL_F6, 
                             PatternState::STOP_AT_FIRST_HIT, hits);
 
-        bool bad = false;
+        type = 0;
         if (hits.size() > 0)
         {
-            bad = true;
+            type = 1;;
             LogInfo() << brd.Write() << '\n';
-            LogInfo() << "MAAATCCCHH!\n";
-            LogInfo() << "gamma=" << gamma << '\n';
+            LogInfo() << "gamma=" << gamma << " type=" << type << '\n';
         }
 
-        of << line << "        " << bad << '\n';
+        of << std::setw(16) << std::fixed << std::setprecision(6) << gamma 
+           << std::setw(11) << w 
+           << std::setw(11) << a
+           << std::setw(19) << pattern
+           << std::setw(11) << type << '\n';
     }
     of.close();
     f.close();
