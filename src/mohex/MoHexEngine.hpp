@@ -38,6 +38,7 @@ public:
     void Bounds(HtpCommand& cmd);
     void CellStats(HtpCommand& cmd);
     void FindTopMoves(HtpCommand& cmd);
+    void SelfPlay(HtpCommand& cmd);
     void MarkPrunablePatterns(HtpCommand& cmd);
 
     // @} // @name

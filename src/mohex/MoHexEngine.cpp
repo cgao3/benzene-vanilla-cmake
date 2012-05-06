@@ -5,6 +5,7 @@
 #include "SgSystem.h"
 
 #include "BitsetIterator.hpp"
+#include "BoardUtil.hpp"
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
 #include "PlayAndSolve.hpp"
@@ -104,6 +105,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
     RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
+    RegisterCmd("mohex-self-play", &MoHexEngine::SelfPlay);
     RegisterCmd("mohex-mark-prunable", &MoHexEngine::MarkPrunablePatterns);
 }
 
@@ -172,6 +174,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "gfx/MoHex Prior Values/mohex-prior-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
         "gfx/MoHex Cell Stats/mohex-cell-stats\n"
+        "none/MoHex Self Play/mohex-self-play\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
 
@@ -518,6 +521,38 @@ void MoHexEngine::FindTopMoves(HtpCommand& cmd)
         cmd << ' ' << static_cast<HexPoint>(moves[i]) 
             << ' ' << (i + 1) 
             << '@' << std::fixed << std::setprecision(3) << scores[i];
+}
+
+void MoHexEngine::SelfPlay(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    std::size_t numGames = cmd.ArgMin<size_t>(0, 1);
+    StoneBoard board(m_game.Board());
+    Game game(board);
+    HexState state(board.Width());
+    for (size_t i = 0; i < numGames; ++i)
+    {
+        LogInfo() << "*********** Game " << (i + 1) << " ***********\n";
+        game.NewGame();
+        state.Position() = game.Board();
+        state.SetToPlay(BLACK);
+        
+        HexPoint firstMove = BoardUtil::RandomEmptyCell(state.Position());
+        game.PlayMove(state.ToPlay(), firstMove);
+        state.PlayMove(firstMove);
+
+        while (true)
+        {
+            double score;
+            HexPoint move = m_player.GenMove(state, game,
+                                             m_pe.SyncBoard(state.Position()),
+                                             m_player.MaxTime(), score);
+            if (HexEvalUtil::IsWinOrLoss(score))
+                break;
+            game.PlayMove(state.ToPlay(), move);
+            state.PlayMove(move);
+        }
+    }    
 }
 
 //----------------------------------------------------------------------------
