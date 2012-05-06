@@ -39,23 +39,21 @@ struct MoHexSharedData
     struct TreeStatistics
     {
         std::size_t priorMoves;
-        std::size_t priorMovesAfterPrune;
+        std::size_t priorMovesAfter;
         std::size_t priorPositions;
-        std::size_t priorPrunedToLoss;
+        std::size_t priorProven;
+        std::size_t knowPositions;
+        std::size_t knowProven;
+        std::size_t knowMovesAfter;
 
         TreeStatistics() : priorMoves(0), 
-                           priorMovesAfterPrune(0),
+                           priorMovesAfter(0),
                            priorPositions(0),
-                           priorPrunedToLoss(0) 
+                           priorProven(0),
+                           knowPositions(0),
+                           knowProven(0),
+                           knowMovesAfter(0)
         { }
-
-        void Clear() 
-        { 
-            priorMoves = 0; 
-            priorMovesAfterPrune = 0;
-            priorPositions = 0;
-            priorPrunedToLoss = 0;
-        }
 
         std::string ToString() const
         {
@@ -63,14 +61,17 @@ struct MoHexSharedData
             os << "Tree Statistics:\n"
  
                << "Prior Positions     " << priorPositions << '\n'
-               << "Pruned To Loss      " << priorPrunedToLoss << " ("
-               << std::setprecision(3) << double(priorPrunedToLoss) * 100.0 
-                / double(priorPositions) << "%)\n"
-                
+               << "Prior Proven        " << priorProven << '\n'                
                << "Prior Avg Moves     " << std::setprecision(3)
                << (double)priorMoves / (double)priorPositions << '\n'
-               << "Prior After Prune   " << std::setprecision(3) 
-               << (double)priorMovesAfterPrune / (double)priorPositions;
+               << "Prior Avg After     " << std::setprecision(3) 
+               << (double)priorMovesAfter / (double)priorPositions << '\n'
+
+               << "Know Positions      " << knowPositions << '\n'
+               << "Know Proven         " << knowProven << '\n'
+               << "Know Avg After      "  << std::setprecision(3) 
+               << (double)knowMovesAfter / (double)knowPositions;
+                
             return os.str();
         }
     };

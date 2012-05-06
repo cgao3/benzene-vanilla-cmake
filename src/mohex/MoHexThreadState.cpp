@@ -259,12 +259,12 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
             m_priorKnowledge.ProcessPosition(moves, true);
             if (moves.empty())
             {
-                m_sharedData->treeStatistics.priorPrunedToLoss++;
+                m_sharedData->treeStatistics.priorProven++;
                 provenType = SG_PROVEN_LOSS;
                 //LogInfo() << m_state->Position() << '\n'
                 //          << "winner=" << !ColorToPlay() << '\n';
             }
-            m_sharedData->treeStatistics.priorMovesAfterPrune += moves.size();
+            m_sharedData->treeStatistics.priorMovesAfter += moves.size();
 
             //if (moves.size() < oldSize)
             // {
@@ -312,6 +312,7 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     }
     if (TRACK_KNOWLEDGE)
         LogInfo() << "know: " << hash << '\n';
+    m_sharedData->treeStatistics.knowPositions++;
     m_vcBrd->GetPosition().SetPosition(m_state->Position());
     m_vcBrd->ComputeAll(ColorToPlay());
     if (EndgameUtil::IsDeterminedState(*m_vcBrd, ColorToPlay()))
@@ -323,6 +324,7 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
             winner = !ColorToPlay();
             provenType = SG_PROVEN_LOSS;
         }
+        m_sharedData->treeStatistics.knowProven++;
         if (DEBUG_KNOWLEDGE)
             LogInfo() << "Found win for " << winner << ":\n"
                       << *m_vcBrd << '\n';
@@ -335,6 +337,7 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     data.position = m_vcBrd->GetPosition();
     data.board.SetPosition(data.position);
     m_sharedData->stateData.Add(m_state->Hash(), data);
+    m_sharedData->treeStatistics.knowMovesAfter += data.consider.count();
 
     m_state->Position() = data.position;
     m_board = data.board;
