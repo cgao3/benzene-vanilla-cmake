@@ -31,6 +31,10 @@ static const bool DEBUG_KNOWLEDGE = false;
     Use to see what threads are doing knowledge computations. */
 static const bool TRACK_KNOWLEDGE = false;
 
+/** Check correctness of prior pruning.
+    Builds VCs in position and compares results. */
+#define DEBUG_PRIOR_PRUNING  0
+
 //----------------------------------------------------------------------------
 
 namespace
@@ -263,6 +267,25 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
                 provenType = SG_PROVEN_LOSS;
                 //LogInfo() << m_state->Position() << '\n'
                 //          << "winner=" << !ColorToPlay() << '\n';
+#if DEBUG_PRIOR_PRUNING
+                m_vcBrd->GetPosition().SetPosition(m_state->Position());
+                m_vcBrd->ComputeAll(ColorToPlay());
+                if (EndgameUtil::IsDeterminedState(*m_vcBrd, ColorToPlay()))
+                {
+                    if (!EndgameUtil::IsLostGame(*m_vcBrd, ColorToPlay()))
+                    {
+                        LogSevere() << m_state->Position() << "toPlay=" 
+                                    << ColorToPlay() << '\n';
+                        throw BenzeneException("Not a proven loss!");
+                    }
+                }
+                else
+                {
+                    LogSevere() << m_state->Position() << "toPlay=" 
+                                << ColorToPlay() << '\n';
+                    throw BenzeneException("Not actually a proven state!!");
+                }
+#endif
             }
             m_sharedData->treeStatistics.priorMovesAfter += moves.size();
 
