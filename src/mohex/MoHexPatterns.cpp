@@ -129,6 +129,7 @@ void MoHexPatterns::Rotate(int pattern[])
 
 std::string MoHexPatterns::ShowPattern6(const int p[], const int e[])
 {
+    UNUSED(e);
     static const int index[] = { -1,  1, -1,  2, -1, -2, 
                                   3, -1, -4, -1,  4, -2, 
                                  -1,  5, -1,  6, -1, -2, 
@@ -166,6 +167,7 @@ std::string MoHexPatterns::ShowPattern6(const int p[], const int e[])
 
 std::string MoHexPatterns::ShowPattern12(const int p[], const int e[])
 {
+    UNUSED(e);
     static const int index[] = { -1, -1, -1,  7, -1, -1, -1, -2,
                                   9, -1,  1, -1,  2, -1,  8, -2, 
                                  -1,  3, -1, -4, -1,  4, -1, -2, 
@@ -507,46 +509,45 @@ void MoHexPatterns::ReadPatterns(std::string filename)
         m_table[i].type = 0;
     }
 
-    std::ifstream ins;
-    std::string fname = MiscUtil::OpenFile(filename, ins);
-    FILE *stream = fopen(fname.c_str(), "r");
-    if (stream == NULL)
-        throw BenzeneException() << "Failed to open '" << fname << "'\n";
-
-    double gamma;
-    int A;
-    int W;
-    char temp[128];
-    int pattern[MAX_INDEX];
-    int edge[MAX_INDEX];
-    int Count[MAX_INDEX] = {0};
-
-    if (!fscanf(stream,"%d\n", &A))
-        throw BenzeneException() << "Error parsing number of patterns\n";
-
+    int count[MAX_INDEX] = {0};
     size_t prunableCount = 0;
-    double LargestGamma = 0;
-    double SmallestGamma = 9999.0f;
-    size_t HashTableEntryCount = 0;
-    int type;
+    double largestGamma = 0;
+    double smallestGamma = 9999.0f;
+    size_t hashTableEntryCount = 0;
 
-    while (!feof(stream))
+    std::ifstream ins;
+    MiscUtil::OpenFile(filename, ins);
     {
-#if 1
-        if (fscanf(stream, " %lf %d %d %s %d ", 
-                   &gamma, &W, &A, temp, &type) != 5)
-            throw BenzeneException() << "Error parsing pattern\n";
-#else
-        if (fscanf(stream, " %lf %d %d %s ", 
-                   &gamma, &W, &A, temp) != 4)
-            throw BenzeneException() << "Error parsing pattern\n";
-#endif
+        int A;
+        ins >> A; // skip number of patterns in file
+    }
+    while (ins.good()) 
+    {
+        std::string line;
+        if (!std::getline(ins, line))
+            break;
+        if (line.size() < 5)
+            continue;
+
+        double gamma;
+        int A, W, type;
+        char temp[128];
+        std::istringstream ss(line);
+    
+        ss >> gamma;
+        ss >> W;
+        ss >> A;
+        ss >> temp;
+        ss >> type;
+
 	int size = (int)strlen(temp);
+        int pattern[MAX_INDEX];
+        int edge[MAX_INDEX];
+
 	for (int i = 1; i <= size; i++)
         {
-            if (temp[i-1] == '5'){
+            if (temp[i-1] == '5')
                 temp[i-1] = '3';
-            }
 	    pattern[i] = (int)temp[i - 1] - 48;
         }
 
@@ -555,22 +556,22 @@ void MoHexPatterns::ReadPatterns(std::string filename)
             //LogInfo() << ShowPattern(size, pattern, edge) << '\n';
         }
 
- 	Count[size]++;
+ 	count[size]++;
 
-	if (gamma > LargestGamma)
-	    LargestGamma = gamma;
-	if (gamma < SmallestGamma)
-	    SmallestGamma = gamma;
+	if (gamma > largestGamma)
+	    largestGamma = gamma;
+	if (gamma < smallestGamma)
+	    smallestGamma = gamma;
 
 	for (int i = 1; i <= 6; i++)
 	{
 	    if (InsertHashTable(ComputeKey(size, pattern), gamma, type))
             {
-	        HashTableEntryCount++;
+	        hashTableEntryCount++;
                 if (type)
                     prunableCount++;
             }
-            if (HashTableEntryCount > TABLE_SIZE / 4)
+            if (hashTableEntryCount > TABLE_SIZE / 4)
                 throw BenzeneException("Table too small!\n");
 	    for (int j = 1; j <= 3; j++)
 	        Rotate(pattern);
@@ -579,13 +580,12 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 
     LogInfo() << "GlobalPatterns:\n";
     for (size_t i = 0; i < MAX_INDEX; i++)
-	if (Count[i] > 0)
-	    LogInfo() << "size " << i << "         =  " << Count[i] << '\n';
-    LogInfo() << "HashTableEntryCount  = " << HashTableEntryCount << '\n';
+	if (count[i] > 0)
+	    LogInfo() << "size " << i << "         =  " << count[i] << '\n';
+    LogInfo() << "HashTableEntryCount  = " << hashTableEntryCount << '\n';
     LogInfo() << "PrunableCount        = " << prunableCount << '\n';
-    LogInfo() << "LargestGamma         = " << LargestGamma << '\n';
-    LogInfo() << "SmallestGamma        = " << SmallestGamma << '\n';
-    fclose(stream);
+    LogInfo() << "LargestGamma         = " << largestGamma << '\n';
+    LogInfo() << "SmallestGamma        = " << smallestGamma << '\n';
 }
 
 //----------------------------------------------------------------------------
