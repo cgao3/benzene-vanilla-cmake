@@ -586,6 +586,9 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
         throw HtpFailure("Empty file");
     of << line << '\n';
 
+    double largestPrunedGamma = -1.0f;
+    size_t numPrunable = 0;
+
     StoneBoard brd(11);
     const ConstBoard& cbrd = brd.Const();
     PatternState pastate(brd);
@@ -595,7 +598,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
             break;
         if (line.size() < 5)
             continue;
-        int type;
+        int type, killer;
         size_t w, a;
         std::string pattern, gamma;
         std::istringstream ifs(line);
@@ -604,6 +607,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
         ifs >> a;
         ifs >> pattern;
         ifs >> type;
+        ifs >> killer;
 
         int size = (int)pattern.size();
         brd.StartNewGame();
@@ -619,6 +623,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
         pastate.Update();
         
         type = 0;
+        killer = 0;
         PatternHits hits;
         pastate.MatchOnCell(hprune, HEX_CELL_F6, 
                             PatternState::STOP_AT_FIRST_HIT, hits);
@@ -629,24 +634,43 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
             pastate.MatchOnCell(hdom, HEX_CELL_F6, 
                                 PatternState::STOP_AT_FIRST_HIT, hits);
             if (hits.size() > 0)
+            {
                 type = 2;
+                const std::vector<HexPoint>& moves1 = hits[0].Moves1();
+                for (int i = 1; i <= size; ++i)
+                    if (cbrd.PatternPoint(HEX_CELL_F6, i) == moves1[0])
+                        killer = i;
+                if (killer == 0)
+                    throw BenzeneException("Killer not found!");
+            }
         }
         if (type > 0) 
         {
-            LogInfo() << brd.Write() << '\n';
-            LogInfo() << "gamma=" << gamma 
+            LogInfo() << brd.Write() << '\n'
+                      << "gamma=" << gamma 
                       << " pat=" << hits[0].GetPattern()->GetName() 
-                      << " type=" << type << '\n';
-        }
+                      << " type=" << type 
+                      << " killer=" << killer << '\n';
+            numPrunable++;
 
+            std::istringstream ss(gamma);
+            double fgamma;
+            ss >> fgamma;
+            if (fgamma > largestPrunedGamma)
+                largestPrunedGamma = fgamma;
+        }
         of << std::setw(16) << std::fixed << std::setprecision(6) << gamma 
            << std::setw(11) << w 
            << std::setw(11) << a
            << std::setw(19) << pattern
-           << std::setw(11) << type << '\n';
+           << std::setw(11) << type 
+           << std::setw(11) << killer
+           << '\n';
     }
     of.close();
     f.close();
+    LogInfo() << "numPrunable=" << numPrunable << '\n';
+    LogInfo() << "largestPrunedGamma=" << largestPrunedGamma << '\n';
 }
 
 //----------------------------------------------------------------------------
