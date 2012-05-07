@@ -289,13 +289,15 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
             }
             m_sharedData->treeStatistics.priorMovesAfter += moves.size();
 
-            //if (moves.size() < oldSize)
-            // {
-            //     bitset_t bs;
-            //     for (size_t i = 0; i < moves.size(); ++i)
-            //         bs.set(moves[i].m_move);
-            //     LogInfo() << m_state->Position().Write(bs) << '\n';
-            // }
+#if 0
+            if (moves.size() < oldSize)
+            {
+                 bitset_t bs;
+                 for (size_t i = 0; i < moves.size(); ++i)
+                     bs.set(moves[i].m_move);
+                 LogInfo() << m_state->Position().Write(bs) << '\n';
+            }
+#endif
         }
         return false;
     }

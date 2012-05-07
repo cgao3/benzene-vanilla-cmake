@@ -99,8 +99,23 @@ void MoHexPatterns::InitializeZobrist()
 }
 
 
-void MoHexPatterns::Rotate(int pattern[])
+void MoHexPatterns::Rotate(int pattern[], int* killer)
 {
+    static const int rot[] = 
+        {  0, 
+           3,  1,  5,  2,  6,  4,
+           9,  7, 11,  8, 12, 10,
+          15, 13, 17, 14, 18, 16
+        };
+    static const int backrot[] =
+        {  0,
+           2,  4,  1,  6,  3,  5,
+           8, 10,  7, 12,  9, 11,
+          14, 16, 13, 18, 15, 17            
+        };
+
+    *killer = backrot[ *killer ];
+
     int temp = pattern[1];
 
     pattern[1] = pattern[3];
@@ -413,9 +428,10 @@ inline void MoHexPatterns::GetKeyFromBoardOld(uint64_t *key_6, uint64_t *key_12,
 
 double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
                                         HexPoint point, HexColor toPlay,
-                                        int* type) const
+                                        int* type, int* killer) const
 {
     *type = 0;
+    *killer = 0;
     double gamma = 1.0f;
     uint64_t key[3];
 
@@ -436,28 +452,41 @@ double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
     }
 #endif
 
+    static const int mirror[] = 
+        {  0,
+           3,  5,  1,  6,  2,  4,
+          11, 12,  9, 10,  7,  8,
+          15, 17, 13, 18, 14, 16
+        };
+          
     switch(size)
     {
     case 12:
-        gamma = QueryHashtable(key[1], type);
+        gamma = QueryHashtable(key[1], type, killer);
         if (gamma != 1.0f)
         {
+            if (toPlay == WHITE)
+                *killer = mirror[ *killer ];
             m_stats.hit12++;
             break;
         }
         m_stats.miss12++;
 
     case 6:
-        gamma = QueryHashtable(key[0], type);
+        gamma = QueryHashtable(key[0], type, killer);
         if (gamma == 1.0f)
             m_stats.miss6++;
         else   
+        {
+            if (toPlay == WHITE)
+                *killer = mirror[ *killer ];
             m_stats.hit6++;
+        }
     }
     return gamma;
 }
 
-double MoHexPatterns::QueryHashtable(uint64_t key, int *type) const
+double MoHexPatterns::QueryHashtable(uint64_t key, int *type, int* killer) const
 {
     *type = 0;
     const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
@@ -469,6 +498,7 @@ double MoHexPatterns::QueryHashtable(uint64_t key, int *type) const
 	else if (m_table[index].key == key)
 	{
             *type = m_table[index].type;
+            *killer = m_table[index].killer;
 	    return m_table[index].gamma;
 	}
         index++;
@@ -477,7 +507,8 @@ double MoHexPatterns::QueryHashtable(uint64_t key, int *type) const
     return 1.0f;
 }
 
-bool MoHexPatterns::InsertHashTable(uint64_t key, double gamma, int type)
+bool MoHexPatterns::InsertHashTable(uint64_t key, double gamma, 
+                                    int type, int killer)
 {
     const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
     uint64_t index = key & mask;
@@ -488,6 +519,7 @@ bool MoHexPatterns::InsertHashTable(uint64_t key, double gamma, int type)
             m_table[index].key = key;
             m_table[index].gamma = gamma;
             m_table[index].type = type;
+            m_table[index].killer = killer;
 	    return true;
 	}
 	else if (m_table[index].key == key)
@@ -507,6 +539,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
         m_table[i].key = 0;
         m_table[i].gamma = 1.0f;
         m_table[i].type = 0;
+        m_table[i].killer = 0;
     }
 
     int count[MAX_INDEX] = {0};
@@ -530,7 +563,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
             continue;
 
         double gamma;
-        int A, W, type;
+        int A, W, type, killer;
         char temp[128];
         std::istringstream ss(line);
     
@@ -539,6 +572,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
         ss >> A;
         ss >> temp;
         ss >> type;
+        ss >> killer;
 
 	int size = (int)strlen(temp);
         int pattern[MAX_INDEX];
@@ -551,11 +585,6 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 	    pattern[i] = (int)temp[i - 1] - 48;
         }
 
-        if (type)
-        {
-            //LogInfo() << ShowPattern(size, pattern, edge) << '\n';
-        }
-
  	count[size]++;
 
 	if (gamma > largestGamma)
@@ -563,9 +592,18 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 	if (gamma < smallestGamma)
 	    smallestGamma = gamma;
 
-	for (int i = 1; i <= 6; i++)
+        if (type == 2) 
+        {
+            if (pattern[killer] != 0) {
+                LogInfo() << ShowPattern(size, pattern, edge) << '\n';
+                LogInfo() << "killer=" << killer << '\n';
+                throw BenzeneException("Bad killer!\n");
+            }
+        }
+	for (int i = 1; i <= 2; i++)
 	{
-	    if (InsertHashTable(ComputeKey(size, pattern), gamma, type))
+            uint64_t key = ComputeKey(size, pattern);
+	    if (InsertHashTable(key, gamma, type, killer))
             {
 	        hashTableEntryCount++;
                 if (type)
@@ -574,7 +612,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
             if (hashTableEntryCount > TABLE_SIZE / 4)
                 throw BenzeneException("Table too small!\n");
 	    for (int j = 1; j <= 3; j++)
-	        Rotate(pattern);
+	        Rotate(pattern, &killer);
 	}
     }
 

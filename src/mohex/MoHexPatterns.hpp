@@ -32,7 +32,7 @@ public:
 
     double GetGammaFromBoard(const MoHexBoard& board, int size, 
                              HexPoint point, HexColor toPlay,
-                             int* type) const;
+                             int* type, int* killer) const;
 
     Statistics GetStatistics() const;
 
@@ -46,7 +46,7 @@ private:
     static uint64_t  m_zobrist[2][MAX_INDEX][6];
     static HexDirection m_direction[MAX_INDEX];
 
-    static void Rotate(int pattern[]);
+    static void Rotate(int pattern[], int* killer);
     static uint64_t ComputeKey(int size, int pattern[]);
 
     struct Data
@@ -54,6 +54,7 @@ private:
         uint64_t key;
         double gamma;
         int type;
+        int killer;
     };
 
     Data* m_table;
@@ -75,8 +76,8 @@ private:
                             const MoHexBoard& board, 
                             const HexPoint point, const HexColor toPlay) const;
 
-    double QueryHashtable(uint64_t key, int *type) const;
-    bool InsertHashTable(uint64_t key, double gamma, int type); 
+    double QueryHashtable(uint64_t key, int *type, int* killer) const;
+    bool InsertHashTable(uint64_t key, double gamma, int type, int killer); 
 
     static std::string ShowPattern6(const int p[], const int e[]);
     static std::string ShowPattern12(const int p[], const int e[]);
