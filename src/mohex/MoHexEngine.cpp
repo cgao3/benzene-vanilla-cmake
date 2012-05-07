@@ -217,6 +217,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.LazyDelete() << '\n'
             << "[bool] perform_pre_search " 
             << m_player.PerformPreSearch() << '\n'
+            << "[bool] prior_pruning "
+            << search.PriorPruning() << '\n'
             << "[bool] ponder "
             << m_player.Ponder() << '\n'
             << "[bool] reuse_subtree " 
@@ -285,6 +287,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetKeepGames(cmd.Arg<bool>(1));
         else if (name == "perform_pre_search")
             m_player.SetPerformPreSearch(cmd.Arg<bool>(1));
+        else if (name == "prior_pruning")
+            search.SetPriorPruning(cmd.Arg<bool>(1));
         else if (name == "ponder")
             m_player.SetPonder(cmd.Arg<bool>(1));
         else if (name == "use_livegfx")

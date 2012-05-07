@@ -99,6 +99,7 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     Search().SetLazyDelete(other.Search().LazyDelete());
     Search().SetProgressiveBiasConstant(other.Search().ProgressiveBiasConstant());
     Search().SetUctBiasConstant(other.Search().UctBiasConstant());
+    Search().SetPriorPruning(other.Search().PriorPruning());
 }
 
 //----------------------------------------------------------------------------

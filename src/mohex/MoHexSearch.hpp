@@ -130,6 +130,12 @@ public:
     /** See FillinMapBits(). */
     void SetFillinMapBits(int bits);
 
+    /** Whether to prune moves during prior computation. */
+    bool PriorPruning() const;
+
+    /** See PriorPruning() */
+    void SetPriorPruning(bool enable);
+
     // @} 
 
 private:
@@ -146,6 +152,9 @@ private:
     HexBoard* m_brd;
 
     int m_fillinMapBits;
+
+    /** See PriorPruning() */
+    bool m_priorPruning;
    
     /** Data among threads. */
     boost::scoped_ptr<MoHexSharedData> m_sharedData;
@@ -230,6 +239,16 @@ inline void MoHexSearch::SetFillinMapBits(int bits)
 inline const MoHexPatterns& MoHexSearch::GlobalPatterns() const
 {
     return m_globalPatterns;
+}
+
+inline bool MoHexSearch::PriorPruning() const
+{
+    return m_priorPruning;
+}
+
+inline void MoHexSearch::SetPriorPruning(bool enable)
+{
+    m_priorPruning = enable;
 }
 
 //----------------------------------------------------------------------------

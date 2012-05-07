@@ -260,7 +260,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
             size_t oldSize = moves.size();
             m_sharedData->treeStatistics.priorPositions++;
             m_sharedData->treeStatistics.priorMoves += oldSize;
-            m_priorKnowledge.ProcessPosition(moves, true);
+            m_priorKnowledge.ProcessPosition(moves, m_search.PriorPruning());
             if (moves.empty())
             {
                 m_sharedData->treeStatistics.priorProven++;
