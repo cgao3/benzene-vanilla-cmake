@@ -426,20 +426,58 @@ inline void MoHexPatterns::GetKeyFromBoardOld(uint64_t *key_6, uint64_t *key_12,
 #endif
 
 float MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
-                                        HexPoint point, HexColor toPlay,
-                                        int* type, int* killer) const
+                                        HexPoint point, HexColor toPlay) const
 {
-    *type = 0;
-    *killer = 0;
-    float gamma = 1.0f;
     uint64_t key[3];
-
     GetKeyFromBoard(key, size, board, point, toPlay);
-
 #if 0
     {
         uint64_t key_6a, key_12a, key_18a;
-        GetKeyFromBoardOld(&key_6a, &key_12a, &key_18a, size, board, point, toPlay);        
+        GetKeyFromBoardOld(&key_6a, &key_12a, &key_18a, size, board, 
+                           point, toPlay);        
+        if ((key_6a != key[0]) ||
+            (key_12a != key[1]))
+        {
+            LogInfo() << board.Write() << "p=" << point << '\n';
+            LogInfo() << key_6a << ' ' << key[0] << '\n';
+            LogInfo() << key_12a << ' ' << key[1] << '\n';
+            throw BenzeneException("Keys differ!\n");
+        }
+    }
+#endif
+    const Data* data;
+    switch(size)
+    {
+    case 12:
+        if ((data = QueryHashtable(key[1])) != NULL)
+        {
+            m_stats.hit12++;
+            return data->gamma;
+        }
+        m_stats.miss12++;
+
+    case 6:
+        if ((data = QueryHashtable(key[0])) != NULL)
+        {
+            m_stats.hit6++;
+            return data->gamma;
+        }
+        m_stats.miss6++;
+    }
+    return 1.0f;
+}
+
+void MoHexPatterns::Match(const MoHexBoard& board, int size,
+                          HexPoint point, HexColor toPlay,
+                          MoHexPatterns::Data* ret) const
+{
+    uint64_t key[3];
+    GetKeyFromBoard(key, size, board, point, toPlay);
+#if 0
+    {
+        uint64_t key_6a, key_12a, key_18a;
+        GetKeyFromBoardOld(&key_6a, &key_12a, &key_18a, size, board, 
+                           point, toPlay);        
         if ((key_6a != key[0]) ||
             (key_12a != key[1]))
         {
@@ -457,53 +495,50 @@ float MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
           11, 12,  9, 10,  7,  8,
           15, 17, 13, 18, 14, 16
         };
-          
+
+    const MoHexPatterns::Data* data;
     switch(size)
     {
     case 12:
-        gamma = QueryHashtable(key[1], type, killer);
-        if (gamma != 1.0f)
-        {
-            if (toPlay == WHITE)
-                *killer = mirror[ *killer ];
+        if ((data = QueryHashtable(key[1])) != NULL)
+	{
             m_stats.hit12++;
-            break;
-        }
+            *ret = *data;
+            if (toPlay == WHITE)
+                ret->killer = mirror[ ret->killer ];
+            return;
+	}
         m_stats.miss12++;
 
     case 6:
-        gamma = QueryHashtable(key[0], type, killer);
-        if (gamma == 1.0f)
-            m_stats.miss6++;
-        else   
-        {
-            if (toPlay == WHITE)
-                *killer = mirror[ *killer ];
+        if ((data = QueryHashtable(key[0])) != NULL)
+	{
             m_stats.hit6++;
+            *ret = *data;
+            if (toPlay == WHITE)
+                ret->killer = mirror[ ret->killer ];
+            return;
         }
+        m_stats.miss6++;
     }
-    return gamma;
+    return;
 }
 
-float MoHexPatterns::QueryHashtable(uint64_t key, int *type, int* killer) const
+
+const MoHexPatterns::Data* MoHexPatterns::QueryHashtable(uint64_t key) const
 {
-    *type = 0;
-    const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
+    static const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
     uint64_t index = key & mask;
     for (;;)
     {
 	if (m_table[index].key == 0)
-	    return 1.0f;
+            return NULL;
 	else if (m_table[index].key == key)
-	{
-            *type = m_table[index].type;
-            *killer = m_table[index].killer;
-	    return m_table[index].gamma;
-	}
+            return &m_table[index];
         index++;
         index &= mask;
     }
-    return 1.0f;
+    return NULL;
 }
 
 bool MoHexPatterns::InsertHashTable(uint64_t key, float gamma, 

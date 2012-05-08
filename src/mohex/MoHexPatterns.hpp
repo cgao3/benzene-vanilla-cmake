@@ -24,15 +24,31 @@ public:
         std::string ToString() const;
     };
 
+    struct Data
+    {
+        uint64_t key;
+        float gamma;
+        int type;
+        int killer;
+    };
+
     MoHexPatterns();
 
     ~MoHexPatterns();
 
     void ReadPatterns(std::string filename);
 
+    /** Returns gamma of pattern that matches. 
+        If no pattern matches, return 1.0f. */
     float GetGammaFromBoard(const MoHexBoard& board, int size, 
-                            HexPoint point, HexColor toPlay,
-                            int* type, int* killer) const;
+                            HexPoint point, HexColor toPlay) const;
+
+    /** Fills 'ret' with info of pattern that matches.
+        Does not touch 'ret' if no pattern matches. If matching
+        pattern has a killer, killer is mirrored if toPlay is
+        WHITE. */
+    void Match(const MoHexBoard& board, int size, 
+               HexPoint point, HexColor toPlay, Data* ret) const;
 
     Statistics GetStatistics() const;
 
@@ -48,14 +64,6 @@ private:
 
     static void Rotate(int pattern[], int* killer);
     static uint64_t ComputeKey(int size, int pattern[]);
-
-    struct Data
-    {
-        uint64_t key;
-        float gamma;
-        int type;
-        int killer;
-    };
 
     Data* m_table;
 
@@ -76,7 +84,7 @@ private:
                             const MoHexBoard& board, 
                             const HexPoint point, const HexColor toPlay) const;
 
-    float QueryHashtable(uint64_t key, int *type, int* killer) const;
+    const Data* QueryHashtable(uint64_t key) const;
     bool InsertHashTable(uint64_t key, float gamma, int type, int killer); 
 
     static std::string ShowPattern6(const int p[], const int e[]);
