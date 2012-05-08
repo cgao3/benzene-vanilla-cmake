@@ -77,6 +77,27 @@ HexPoint LastMoveFromHistory(const MoveSequence& history)
 
 //----------------------------------------------------------------------------
 
+std::string MoHexSharedData::TreeStatistics::ToString() const
+{
+    std::ostringstream os;
+    os << "Tree Statistics:\n"
+       << "Prior Positions     " << priorPositions << '\n'
+       << "Prior Proven        " << priorProven << '\n'                
+       << "Prior Avg Moves     " << std::setprecision(3)
+       << (double)priorMoves / (double)priorPositions << '\n'
+       << "Prior Avg After     " << std::setprecision(3) 
+       << (double)priorMovesAfter / (double)priorPositions << '\n'
+        
+       << "Know Positions      " << knowPositions << '\n'
+       << "Know Proven         " << knowProven << '\n'
+       << "Know Avg After      " << std::setprecision(3)
+       << (knowPositions > 0 ? 
+           (double)knowMovesAfter / (double)knowPositions : 0);
+    return os.str();
+}
+
+//----------------------------------------------------------------------------
+
 MoHexThreadState::AssertionHandler::AssertionHandler
 (const MoHexThreadState& state)
     : m_state(state)

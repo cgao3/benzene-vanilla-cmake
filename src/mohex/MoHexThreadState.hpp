@@ -55,25 +55,7 @@ struct MoHexSharedData
                            knowMovesAfter(0)
         { }
 
-        std::string ToString() const
-        {
-            std::ostringstream os;
-            os << "Tree Statistics:\n"
- 
-               << "Prior Positions     " << priorPositions << '\n'
-               << "Prior Proven        " << priorProven << '\n'                
-               << "Prior Avg Moves     " << std::setprecision(3)
-               << (double)priorMoves / (double)priorPositions << '\n'
-               << "Prior Avg After     " << std::setprecision(3) 
-               << (double)priorMovesAfter / (double)priorPositions << '\n'
-
-               << "Know Positions      " << knowPositions << '\n'
-               << "Know Proven         " << knowProven << '\n'
-               << "Know Avg After      "  << std::setprecision(3) 
-               << (double)knowMovesAfter / (double)knowPositions;
-                
-            return os.str();
-        }
+        std::string ToString() const;
     };
 
     /** Moves from begining of game leading to this position. */
