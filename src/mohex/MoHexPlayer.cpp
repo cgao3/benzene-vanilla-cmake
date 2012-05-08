@@ -184,7 +184,8 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     os << m_search.SharedData().treeStatistics.ToString() << '\n';
     os << m_shared_policy.Statistics().ToString() << '\n';  
     if (m_search.ProgressiveBiasConstant() > 0.0f) 
-        os << m_search.GlobalPatterns().GetStatistics().ToString() << '\n';
+        os << "GlobalPatterns:\n" 
+           << m_search.GlobalPatterns().GetStatistics().ToString() << '\n';
     LogInfo() << os.str() << '\n';
 
 #if 0

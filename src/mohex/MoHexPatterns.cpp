@@ -14,7 +14,6 @@ using namespace benzene;
 std::string MoHexPatterns::Statistics::ToString() const
 {
     std::ostringstream os;
-    os << "GlobalPatterns:\n";
     os << "6PatternHit         "  << hit6 << '\n';
     os << "6PatternMiss        "  << miss6 << '\n';
     os << "12PatternHit        "  << hit12 << '\n';
@@ -616,7 +615,6 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 	}
     }
 
-    LogInfo() << "GlobalPatterns:\n";
     for (size_t i = 0; i < MAX_INDEX; i++)
 	if (count[i] > 0)
 	    LogInfo() << "size " << i << "         =  " << count[i] << '\n';

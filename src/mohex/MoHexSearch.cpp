@@ -84,6 +84,7 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
 
     MoHexPatterns::InitializeDirection();
     MoHexPatterns::InitializeZobrist();
+    LogInfo() << "GlobalPatterns:\n";
     m_globalPatterns.ReadPatterns("mohex-global-pattern-gamma.txt");
 }
 
