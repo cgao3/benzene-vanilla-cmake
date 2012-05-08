@@ -426,13 +426,13 @@ inline void MoHexPatterns::GetKeyFromBoardOld(uint64_t *key_6, uint64_t *key_12,
 }
 #endif
 
-double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
+float MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
                                         HexPoint point, HexColor toPlay,
                                         int* type, int* killer) const
 {
     *type = 0;
     *killer = 0;
-    double gamma = 1.0f;
+    float gamma = 1.0f;
     uint64_t key[3];
 
     GetKeyFromBoard(key, size, board, point, toPlay);
@@ -486,7 +486,7 @@ double MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
     return gamma;
 }
 
-double MoHexPatterns::QueryHashtable(uint64_t key, int *type, int* killer) const
+float MoHexPatterns::QueryHashtable(uint64_t key, int *type, int* killer) const
 {
     *type = 0;
     const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
@@ -507,7 +507,7 @@ double MoHexPatterns::QueryHashtable(uint64_t key, int *type, int* killer) const
     return 1.0f;
 }
 
-bool MoHexPatterns::InsertHashTable(uint64_t key, double gamma, 
+bool MoHexPatterns::InsertHashTable(uint64_t key, float gamma, 
                                     int type, int killer)
 {
     const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
@@ -544,8 +544,8 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 
     int count[MAX_INDEX] = {0};
     size_t prunableCount = 0;
-    double largestGamma = 0;
-    double smallestGamma = 9999.0f;
+    float largestGamma = 0;
+    float smallestGamma = 9999.0f;
     size_t hashTableEntryCount = 0;
 
     std::ifstream ins;
@@ -562,7 +562,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
         if (line.size() < 5)
             continue;
 
-        double gamma;
+        float gamma;
         int A, W, type, killer;
         char temp[128];
         std::istringstream ss(line);

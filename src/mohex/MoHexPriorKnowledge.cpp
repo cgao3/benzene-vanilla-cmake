@@ -27,17 +27,17 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
         return;
 
     bitset_t safe, pruned;
-    double TotalGamma = 0;
-    double MoveGamma[BITSETSIZE];
+    float totalGamma = 0.0f;
+    float moveGamma[BITSETSIZE];
     const MoHexBoard& board = m_state.GetMoHexBoard();
     const MoHexPatterns& patterns = m_state.Search().GlobalPatterns();
     for (std::size_t i = 0; i < moves.size(); )
     {
         int type, killer;
         HexPoint move = (HexPoint)moves[i].m_move;
-        double gamma = patterns.GetGammaFromBoard(board, 12, move, 
-                                                  m_state.ColorToPlay(),
-                                                  &type, &killer);
+        float gamma = patterns.GetGammaFromBoard(board, 12, move, 
+                                                 m_state.ColorToPlay(),
+                                                 &type, &killer);
         if (doPruning && type && !safe.test(move))
         {
             if (type == 1) 
@@ -78,17 +78,17 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
             }
         }
 
-        MoveGamma[(int)move] = gamma;
-        TotalGamma += gamma;
+        moveGamma[(int)move] = gamma;
+        totalGamma += gamma;
         ++i;
     }
-    if (TotalGamma == 0)
+    if (totalGamma < 1e-6)
         return;
     for (std::size_t i = 0; i < moves.size(); ++i)
     {
-        double gamma = MoveGamma[(int)moves[i].m_move];
-        double prob = gamma / TotalGamma;
-        moves[i].m_prior = (float)prob;
+        float gamma = moveGamma[(int)moves[i].m_move];
+        float prob = gamma / totalGamma;
+        moves[i].m_prior = prob;
 	moves[i].m_raveValue = 0.5f;
 	moves[i].m_raveCount = 8;
     }

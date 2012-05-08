@@ -30,9 +30,9 @@ public:
 
     void ReadPatterns(std::string filename);
 
-    double GetGammaFromBoard(const MoHexBoard& board, int size, 
-                             HexPoint point, HexColor toPlay,
-                             int* type, int* killer) const;
+    float GetGammaFromBoard(const MoHexBoard& board, int size, 
+                            HexPoint point, HexColor toPlay,
+                            int* type, int* killer) const;
 
     Statistics GetStatistics() const;
 
@@ -52,7 +52,7 @@ private:
     struct Data
     {
         uint64_t key;
-        double gamma;
+        float gamma;
         int type;
         int killer;
     };
@@ -76,13 +76,12 @@ private:
                             const MoHexBoard& board, 
                             const HexPoint point, const HexColor toPlay) const;
 
-    double QueryHashtable(uint64_t key, int *type, int* killer) const;
-    bool InsertHashTable(uint64_t key, double gamma, int type, int killer); 
+    float QueryHashtable(uint64_t key, int *type, int* killer) const;
+    bool InsertHashTable(uint64_t key, float gamma, int type, int killer); 
 
     static std::string ShowPattern6(const int p[], const int e[]);
     static std::string ShowPattern12(const int p[], const int e[]);
     static std::string ShowPattern(int size, const int p[], const int e[]);
-
 };
 
 inline MoHexPatterns::Statistics MoHexPatterns::GetStatistics() const
