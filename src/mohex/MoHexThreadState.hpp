@@ -235,6 +235,9 @@ private:
     HexColor m_toPlay;
 
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
+
+    void AddTriangleFill(const HexPoint cell, const HexColor color);
+
 };
 
 inline const HexState& MoHexThreadState::State() const

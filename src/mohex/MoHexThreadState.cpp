@@ -214,6 +214,7 @@ void MoHexThreadState::Execute(SgMove sgmove)
     m_toPlay = m_state->ToPlay();
     m_lastMovePlayed = cell;
     m_atRoot = false;
+    bool loadedState = false;
 
     if (m_usingKnowledge)
     {
@@ -222,8 +223,16 @@ void MoHexThreadState::Execute(SgMove sgmove)
         {
             m_state->Position() = data.position;
             m_board = data.board;
+            loadedState = true;
         }
     }
+
+#if 0
+    if (!loadedState)
+    {
+        AddTriangleFillin(cell, !ColorToPlay() /* note flipped color! */);
+    }
+#endif
 }
 
 bool MoHexThreadState::GenerateAllMoves(SgUctValue count, 
@@ -465,6 +474,51 @@ void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
         m_lastMovePlayed = m_playoutStartLastMove;
         m_board = m_playoutStartBoard;
         m_toPlay = m_state->ToPlay();
+    }
+}
+
+//----------------------------------------------------------------------------
+
+void MoHexThreadState::AddTriangleFill(const HexPoint cell,
+                                       const HexColor color)
+{
+    // Check if move captures two cells
+    const ConstBoard& cbrd = m_board.Const();
+    for (int dd = 0; dd < 6; ++dd)
+    {
+        HexDirection d1 = (HexDirection)dd;
+        HexDirection d2 = (HexDirection)((dd + 1) % 6);
+        HexPoint e1 = cbrd.PointInDir(cell, d1);
+        if (m_board.GetColor(e1) != EMPTY)
+            continue;
+        HexPoint e2 = cbrd.PointInDir(cell, d2);
+        if (m_board.GetColor(e2) != EMPTY)
+        {
+            ++dd;  // skip next case where e2 is now e1
+            continue;
+        }
+        if (m_board.GetColor(cbrd.PointInDir(e1, d1)) != color)
+            continue;
+        if (m_board.GetColor(cbrd.PointInDir(e1, d2)) != color)
+            continue;
+        if (m_board.GetColor(cbrd.PointInDir(e2, d2)) != color)
+        {
+            // skip next case: this will be in direction
+            // -> d1 -> d1, and so must be color
+            ++dd; 
+            continue;
+        }
+        
+        // Matched!!
+        m_state->Position().SetColor(color, e1);
+        m_state->Position().SetColor(color, e2);
+        m_board.PlayMove(e1, color);
+        m_board.PlayMove(e2, color);
+        ++dd;  // skip next case where e2 is now e1
+
+        // LogInfo() << "=============================="
+        //           << m_state->Position().Write()
+        //           << m_board.Write() << '\n';            
     }
 }
 
