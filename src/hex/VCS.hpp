@@ -248,10 +248,10 @@ public:
     // @{
 
     template <class Stream>
-    void DumpFulls(Stream& os, HexPoint x, HexPoint y) const;
+    void DumpFulls(Stream& os, HexColor color, HexPoint x, HexPoint y) const;
 
     template <class Stream>
-    void DumpSemis(Stream& os, HexPoint x, HexPoint y) const;
+    void DumpSemis(Stream& os, HexColor color, HexPoint x, HexPoint y) const;
 
     template <class Stream>
     void DumpDataStats(Stream& os, int maxConnections, int numBins) const;
@@ -553,21 +553,47 @@ private:
 };
 
 template <class Stream>
-void VCS::DumpFulls(Stream& os, HexPoint x, HexPoint y) const
+void VCS::DumpFulls(Stream& os, HexColor color, HexPoint x, HexPoint y) const
 {
-    UNUSED(os);
-    UNUSED(x);
-    UNUSED(y);
-    BenzeneAssert(false /* stub */);
+    AndList* fulls = m_fulls[x][y];
+    if (!fulls)
+        return;
+    if (fulls->IsEmpty())
+        return;
+    for (CarrierList::Iterator i(*fulls); i; ++i)
+    {
+        os << color << ' ' << x << ' ' << y << " full ";
+        os << "or "; // FIXME: get actual rule used somehow? 
+        os << "[";
+        for (BitsetIterator c(i.Carrier()); c; ++c)
+            os << ' ' << *c;
+        os << " ] ";
+        os << "[ ] "; // GUI wants 'stones' here, just skip it.
+        os << '\n';
+    }
 }
 
 template <class Stream>
-void VCS::DumpSemis(Stream& os, HexPoint x, HexPoint y) const
+void VCS::DumpSemis(Stream& os, HexColor color, HexPoint x, HexPoint y) const
 {
-    UNUSED(os);
-    UNUSED(x);
-    UNUSED(y);
-    BenzeneAssert(false /* stub */);
+    OrList* semis = m_semis[x][y];
+    if (!semis)
+        return;
+    if (semis->IsEmpty())
+        return;
+    for (CarrierList::Iterator i(*semis); i; ++i)
+    {
+        os << color << ' ' << x << ' ' << y << " semi";
+        os << " and"; // FIXME: get actual rule used somehow? 
+        os << " [";
+        for (BitsetIterator c(i.Carrier()); c; ++c)
+            os << ' ' << *c;
+        os << " ] ";
+        os << "[ ] "; // GUI wants 'stones' here, just skip it.
+        // FIXME: get real key somehow!
+        os << *BitsetIterator(i.Carrier()) << ' ';
+        os << '\n';
+    }
 }
 
 template <class Stream>

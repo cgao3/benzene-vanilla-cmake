@@ -127,7 +127,7 @@ void VCCommands::CmdGetBetweenFull(HtpCommand& cmd)
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     cmd << '\n';
-    brd.Cons(color).DumpFulls(cmd, fcaptain, tcaptain);
+    brd.Cons(color).DumpFulls(cmd, color, fcaptain, tcaptain);
 }
 
 /** Returns list of VCs between two cells. */
@@ -141,7 +141,7 @@ void VCCommands::CmdGetBetweenSemi(HtpCommand& cmd)
     HexPoint fcaptain = brd.GetGroups().CaptainOf(from);
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     cmd << '\n';
-    brd.Cons(color).DumpSemis(cmd, fcaptain, tcaptain);
+    brd.Cons(color).DumpSemis(cmd, color, fcaptain, tcaptain);
 }
 
 /** Returns list of cells given cell is connected to via a full
