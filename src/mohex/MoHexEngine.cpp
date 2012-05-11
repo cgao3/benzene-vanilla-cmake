@@ -207,6 +207,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         cmd << '\n'
             << "[bool] backup_ice_info "
             << m_player.BackupIceInfo() << '\n'
+            << "[bool] extend_unstable_search "
+            << search.ExtendUnstableSearch() << '\n'
 #if HAVE_GCC_ATOMIC_BUILTINS
             << "[bool] lock_free " 
             << search.LockFree() << '\n'
@@ -277,6 +279,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
             m_player.SetBackupIceInfo(cmd.Arg<bool>(1));
+        else if (name == "extend_unstable_search")
+            search.SetExtendUnstableSearch(cmd.Arg<bool>(1));
         else if (name == "lazy_delete")
             search.SetLazyDelete(cmd.Arg<bool>(1));
 #if HAVE_GCC_ATOMIC_BUILTINS
