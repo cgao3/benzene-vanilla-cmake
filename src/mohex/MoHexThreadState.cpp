@@ -337,41 +337,39 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
                  LogInfo() << m_state->Position().Write(bs) << '\n';
             }
 #endif
-            // store vc responses from parent knowledge
+            // use vcm responses from parent's knowledge computation
             MoHexSharedData::StateData data;
             if (m_sharedData->stateData.Get(m_hashForLastState, data))
             {
                 //LogInfo() << "parent hash :" << m_hashForLastState << '\n';
                 for (size_t i = 0; i < data.vcm.size(); ++i)
                 {
-                    if (data.vcm[i].move == m_lastMovePlayed)
+                    if (data.vcm[i].move != m_lastMovePlayed)
+                        continue;
+                    m_sharedData->treeStatistics.vcmExpandedLater++;
+                    const vector<uint8_t>& res = data.vcm[i].responses;
+                    float totalGamma = 0.0f;
+                    for (size_t j = 0; j < res.size();  ++j)
                     {
-                        m_sharedData->treeStatistics.vcmExpandedLater++;
-                        const vector<uint8_t>& res = data.vcm[i].responses;
-                        float totalGamma = 0.0f;
-                        bitset_t rs;
-                        for (size_t j = 0; j < res.size();  ++j)
+                        for (size_t k = 0; k < moves.size(); ++k)
                         {
-                            for (size_t k = 0; k < moves.size(); ++k)
+                            if (moves[k].m_move == res[j])
                             {
-                                if (moves[k].m_move == res[j])
-                                {
-                                    rs.set(res[j]);
-                                    m_sharedData->treeStatistics.vcmResponses++;
-                                    moves[k].m_vcGamma = 1000.0f;
-                                    totalGamma += 1000.0f;
-                                }
+                                m_sharedData->treeStatistics.vcmResponses++;
+                                moves[k].m_vcGamma = 1000.0f;
+                                totalGamma += 1000.0f;
                             }
-                        }                        
-                        if (totalGamma > 0)
-                        {
-                            //LogInfo() << "lastMove=" << m_lastMovePlayed
-                            //          << m_state->Position().Write(rs) << '\n';
-                            for (size_t k = 0; k < moves.size(); ++k)
-                                moves[k].m_vcPrior /= totalGamma;
                         }
-                        break;
+                    }                        
+                    if (totalGamma > 0)
+                    {
+                        //LogInfo() << "lastMove=" << m_lastMovePlayed
+                        //          << m_state->Position().Write(rs) << '\n';
+                        for (size_t k = 0; k < moves.size(); ++k)
+                            moves[k].m_vcPrior 
+                                = moves[k].m_vcGamma / totalGamma;
                     }
+                    break;
                 }
             }
         }
@@ -614,7 +612,6 @@ void MoHexThreadState::DoVCMaintenanceInTree(const HexBoard& vcbrd,
         float totalGamma = 0.0f;
         const bitset_t moves = responses[p.Move()];
         m_sharedData->treeStatistics.vcmExpanded++;
-        m_sharedData->treeStatistics.vcmResponses += moves.count();
         for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
         {
             const SgUctNode& r = *ir;
@@ -624,13 +621,17 @@ void MoHexThreadState::DoVCMaintenanceInTree(const HexBoard& vcbrd,
             {
                 static const float bonusGamma = 1000.0f;
                 const_cast<SgUctNode&>(r).SetVCGamma(gamma + bonusGamma);
+                m_sharedData->treeStatistics.vcmResponses++;
                 totalGamma += bonusGamma;
             }
         }
-        for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
+        if (totalGamma > 0.0f)
         {
-            const SgUctValue prior = (*ir).VCGamma() / totalGamma;
-            const_cast<SgUctNode&>(*ir).SetVCPrior(prior);
+            for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
+            {
+                const SgUctValue prior = (*ir).VCGamma() / totalGamma;
+                const_cast<SgUctNode&>(*ir).SetVCPrior(prior);
+            }
         }
     }
 }
