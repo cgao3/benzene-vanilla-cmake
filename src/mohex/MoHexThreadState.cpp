@@ -92,7 +92,14 @@ std::string MoHexSharedData::TreeStatistics::ToString() const
        << "Know Proven         " << knowProven << '\n'
        << "Know Avg After      " << std::setprecision(3)
        << (knowPositions > 0 ? 
-           (double)knowMovesAfter / (double)knowPositions : 0);
+           (double)knowMovesAfter / (double)knowPositions : 0) << '\n'
+
+       << "VCM Probes          " << vcmProbes << '\n'
+       << "VCM Expanded        " << vcmExpanded << '\n'
+       << "VCM Avg Responses   " << std::setprecision(3)
+       << (vcmExpanded > 0 
+           ? (double)vcmResponses / (double)vcmExpanded : 0);
+       
     return os.str();
 }
 
@@ -401,6 +408,11 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
         LogInfo() << "===================================\n"
                   << "Recomputed state:" << '\n' << data.position << '\n'
                   << "Consider:" << data.position.Write(data.consider) << '\n';
+
+#if 1
+    DoVCMaintenanceInTree(*m_vcBrd, data.consider, ColorToPlay());
+#endif    
+
     return data.consider;
 }
 
@@ -409,6 +421,170 @@ void MoHexThreadState::TakeBackInTree(std::size_t nuMoves)
     SG_UNUSED(nuMoves);
 }
     
+//----------------------------------------------------------------------------
+
+void MoHexThreadState::DoVCMaintenanceInTree(const HexBoard& vcbrd, 
+                                             const bitset_t consider,
+                                             const HexColor toPlay)
+{
+    const HexColor opp = !toPlay;
+    const VCS& vcs = vcbrd.Cons(opp);
+    const Groups& groups = vcbrd.GetGroups();
+    std::vector<bitset_t> responses(BITSETSIZE);
+    bool haveGroupsConnected = false;
+    bool haveResponse = false;
+    for (GroupIterator xg(groups, opp); xg; ++xg)
+    {
+        HexPoint x = xg->Captain();
+        for (GroupIterator yg(groups, opp); 
+             yg->Captain() != xg->Captain(); ++yg)
+        {
+            HexPoint y = yg->Captain();
+            if (!vcs.FullExists(x, y))
+                continue;
+            haveGroupsConnected = true;
+            for (BitsetIterator p(vcs.FullIntersection(x, y) & consider);
+                 p; ++p)
+            {
+                for (CarrierList::Iterator s(vcs.GetSemiCarriers(x, y)); 
+                     s; ++s)
+                {
+                    bitset_t sxy = s.Carrier();
+                    if (sxy.test(*p))
+                        continue;
+                    
+                    // use semi's key as a direct response
+                    HexPoint key = vcs.SemiKey(sxy, x, y);
+                    if (key != INVALID_POINT)
+                    {
+                        responses[*p].set(key);
+                        haveResponse = true;
+                    }
+
+                    // Look for a 'flaring'-type move.
+                    // For all moves z full-connected to x:
+                    //   find a semi between z and y that does not hit p
+                    //   and does not touch sxy or fxz
+                    for (BitsetIterator z(vcs.GetFullNbs(x)); z; ++z)
+                    {
+                        if (*z == *p || *z == y || responses[*p].test(*z))
+                            continue;
+                        // FIXME: too ham-fisted? 
+                        // Look through list?
+                        bitset_t fxz = vcs.FullGreedyUnion(x, *z);
+                        if (fxz.test(*p) || ((fxz & sxy).any()))
+                            continue;
+
+                        for (CarrierList::Iterator 
+                                 s2(vcs.GetSemiCarriers(*z, y));
+                             s2; ++s2)
+                        {
+                            bitset_t szy = s2.Carrier();
+                            if (!szy.test(*p) 
+                                && ((szy & fxz).none())
+                                && ((szy & sxy).none()))
+                            {
+                                // found a flare!!!
+                                responses[*p].set(*z);
+#if 0
+                                LogInfo() << "FLARE xzy " 
+                                          << " x=" << x << " y=" << y
+                                          << " p=" << *p << " z=" << *z 
+                                          << '\n';
+#endif
+                                break;
+                            }
+                        }
+                    }
+
+                    // Look for a 'flaring'-type move.
+                    // For all moves z full-connected to y:
+                    //   find a semi between z and x that does not hit p
+                    //   and does not touch sxy or fyz
+                    for (BitsetIterator z(vcs.GetFullNbs(y)); z; ++z)
+                    {
+                        if (*z == *p || *z == x || responses[*p].test(*z))
+                            continue;
+                        // FIXME: too ham-fisted? 
+                        // Look through list?
+                        bitset_t fyz = vcs.FullGreedyUnion(y, *z);
+                        if (fyz.test(*p) || ((fyz & sxy).any()))
+                            continue;
+
+                        // find a semi between z and x that does not hit p
+                        // and does not touch sxy or fyz
+                        for (CarrierList::Iterator 
+                                 s2(vcs.GetSemiCarriers(*z, x));
+                             s2; ++s2)
+                        {
+                            bitset_t szx = s2.Carrier();
+                            if (!szx.test(*p) 
+                                && ((szx & fyz).none())
+                                && ((szx & sxy).none()))
+                            {
+                                // found a flare!!!
+                                responses[*p].set(*z);
+#if 0
+                                LogInfo() << "FLARE yzx "
+                                          << " x=" << x << " y=" << y
+                                          << " p=" << *p << " z=" << *z 
+                                          << '\n';
+#endif
+                                break;
+                            }
+                        }
+                    }
+                    
+                }
+            }
+        }
+    }
+    if (!haveGroupsConnected)
+        return;
+#if 0
+    LogInfo() << "toPlay=" << toPlay << '\n'
+              << "groupsConnected=" << haveGroupsConnected << '\n'
+              << "haveResponse=" << haveResponse 
+              << vcbrd.GetPosition().Write() << '\n';
+    for (int p = 0; p < BITSETSIZE; ++p)
+    {
+        if (!responses[p].none())
+        {
+            for (BitsetIterator r(responses[p]); r; ++r)
+                LogInfo() << (HexPoint)p << " -> " << *r << '\n';
+        }            
+    }
+#endif
+    
+    // Update priors in the tree
+    const SgUctNode* node = m_gameInfo.m_nodes.back();
+    for (SgUctChildIterator ip(m_search.Tree(), *node); ip; ++ip)
+    {
+        const SgUctNode& p = *ip;
+        if (responses[p.Move()].none())
+            continue;
+        m_sharedData->treeStatistics.vcmProbes++;
+        if (! p.HasChildren())
+        {
+            //LogInfo() << "VC probe not expanded! " << (HexPoint)p.Move() << '\n';
+            continue;
+        }
+        m_sharedData->treeStatistics.vcmExpanded++;
+        const bitset_t moves = responses[p.Move()];
+        const float totalBonus = 0.5f;
+        const float bonus = totalBonus / (float)moves.count();
+        m_sharedData->treeStatistics.vcmResponses += moves.count();
+        for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
+        {
+            const SgUctNode& r = *ir;
+            if (moves.test(r.Move()))
+            {
+                const_cast<SgUctNode&>(r).AddToPrior(bonus);
+            }
+        }
+    }
+}
+
 //----------------------------------------------------------------------------
 
 /** @page mohexplayouts MoHex Playout Phase

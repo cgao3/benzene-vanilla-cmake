@@ -223,6 +223,10 @@ public:
         Returns false if there is none. */
     bool SmallestSemiCarrier(bitset_t& carrier) const;
 
+    /** Computes key for semi between x and y. 
+        Returns INVALID_POINT on failure. */
+    HexPoint SemiKey(bitset_t carrier, HexPoint x, HexPoint y) const;
+
     /** Tries to get a key of the smallest carrier of semi VC
         connecting edges. Returns INVALID_POINT if there is none. */
     HexPoint SmallestSemiKey() const;
@@ -233,6 +237,8 @@ public:
 
     bool SemiExists() const;
 
+    bool SemiExists(HexPoint x, HexPoint y) const;
+
     /** Needed for endgame play */
     const CarrierList& GetFullCarriers() const;
     const CarrierList& GetSemiCarriers() const;
@@ -241,6 +247,7 @@ public:
 
     /** Needed for decomosition. */
     const CarrierList& GetFullCarriers(HexPoint x, HexPoint y) const;
+    const CarrierList& GetSemiCarriers(HexPoint x, HexPoint y) const;
 
     // @}
 
@@ -590,8 +597,7 @@ void VCS::DumpSemis(Stream& os, HexColor color, HexPoint x, HexPoint y) const
             os << ' ' << *c;
         os << " ] ";
         os << "[ ] "; // GUI wants 'stones' here, just skip it.
-        // FIXME: get real key somehow!
-        os << *BitsetIterator(i.Carrier()) << ' ';
+        os << SemiKey(i.Carrier(), x, y) << ' ';
         os << '\n';
     }
 }

@@ -1305,6 +1305,38 @@ bool VCS::SmallestSemiCarrier(bitset_t& carrier) const
     return true;
 }
 
+HexPoint VCS::SemiKey(bitset_t carrier, HexPoint x, HexPoint y) const
+{
+    bitset_t pairCapturedSet = m_capturedSet[x] | m_capturedSet[y];
+    for (BitsetIterator k(carrier); k; ++k)
+    {
+        bitset_t capturedSet = pairCapturedSet | m_capturedSet[*k];
+        if (!BitsetUtil::IsSubsetOf(capturedSet, carrier))
+            capturedSet.reset();
+        AndList* fulls1 = m_fulls[x][*k];
+        if (!fulls1)
+            continue;
+        AndList* fulls2 = m_fulls[y][*k];
+        if (!fulls2)
+            continue;
+        for (CarrierList::Iterator i(*fulls1); i; ++i)
+        {
+            if (!BitsetUtil::IsSubsetOf(i.Carrier(), carrier))
+                continue;
+            for (CarrierList::Iterator j(*fulls2); j; ++j)
+            {
+                if (!BitsetUtil::IsSubsetOf(j.Carrier(), carrier))
+                    continue;
+                if (BitsetUtil::IsSubsetOf(i.Carrier() & j.Carrier(),
+                                           capturedSet))
+                    return *k;
+            }
+        }
+    }
+    BenzeneAssert(false /* always should find a key */);
+    return INVALID_POINT;
+}
+
 HexPoint VCS::SmallestSemiKey() const
 {
     bitset_t carrier;
@@ -1361,6 +1393,14 @@ bool VCS::SemiExists() const
     return !semis->IsEmpty();
 }
 
+bool VCS::SemiExists(HexPoint x, HexPoint y) const
+{
+    OrList* semis = m_semis[x][y];
+    if (!semis)
+        return false;
+    return !semis->IsEmpty();
+}
+
 static CarrierList empty_carrier_list;
 
 const CarrierList& VCS::GetFullCarriers(HexPoint x, HexPoint y) const
@@ -1369,6 +1409,14 @@ const CarrierList& VCS::GetFullCarriers(HexPoint x, HexPoint y) const
     if (!fulls)
         return empty_carrier_list;
     return *fulls;
+}
+
+const CarrierList& VCS::GetSemiCarriers(HexPoint x, HexPoint y) const
+{
+    OrList* semis = m_semis[x][y];
+    if (!semis)
+        return empty_carrier_list;
+    return *semis;
 }
 
 const CarrierList& VCS::GetFullCarriers() const

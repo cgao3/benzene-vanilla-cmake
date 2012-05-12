@@ -45,14 +45,19 @@ struct MoHexSharedData
         std::size_t knowPositions;
         std::size_t knowProven;
         std::size_t knowMovesAfter;
-
+        std::size_t vcmProbes;
+        std::size_t vcmResponses;
+        std::size_t vcmExpanded;
         TreeStatistics() : priorMoves(0), 
                            priorMovesAfter(0),
                            priorPositions(0),
                            priorProven(0),
                            knowPositions(0),
                            knowProven(0),
-                           knowMovesAfter(0)
+                           knowMovesAfter(0),
+                           vcmProbes(0),
+                           vcmResponses(0),
+                           vcmExpanded(0)
         { }
 
         std::string ToString() const;
@@ -219,6 +224,9 @@ private:
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
 
     void AddTriangleFill(const HexPoint cell, const HexColor color);
+
+    void DoVCMaintenanceInTree(const HexBoard& vcbrd, const bitset_t consider,
+                               const HexColor toPlay);
 
 };
 
