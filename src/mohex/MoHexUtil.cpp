@@ -60,7 +60,7 @@ void MoHexUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
         const SgUctNode& child = *it;
         if (child.MoveCount() == 0)
             continue;
-        float influence = search.InverseEval(child.Mean());
+        SgUctValue influence = search.InverseEval(child.Mean());
         SgPoint move = child.Move();
         out << ' ' << MoHexUtil::MoveString(move) << ' ' 
             << std::fixed << std::setprecision(2) << influence;
