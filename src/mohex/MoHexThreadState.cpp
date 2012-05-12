@@ -569,18 +569,26 @@ void MoHexThreadState::DoVCMaintenanceInTree(const HexBoard& vcbrd,
             //LogInfo() << "VC probe not expanded! " << (HexPoint)p.Move() << '\n';
             continue;
         }
-        m_sharedData->treeStatistics.vcmExpanded++;
+        float totalGamma = 0.0f;
         const bitset_t moves = responses[p.Move()];
-        const float totalBonus = 0.5f;
-        const float bonus = totalBonus / (float)moves.count();
+        m_sharedData->treeStatistics.vcmExpanded++;
         m_sharedData->treeStatistics.vcmResponses += moves.count();
         for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
         {
             const SgUctNode& r = *ir;
+            const float gamma = r.VCGamma();
+            totalGamma += gamma;
             if (moves.test(r.Move()))
             {
-                const_cast<SgUctNode&>(r).AddToPrior(bonus);
+                static const float bonusGamma = 1000.0f;
+                const_cast<SgUctNode&>(r).SetVCGamma(gamma + bonusGamma);
+                totalGamma += bonusGamma;
             }
+        }
+        for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
+        {
+            const SgUctValue prior = (*ir).VCGamma() / totalGamma;
+            const_cast<SgUctNode&>(*ir).SetVCPrior(prior);
         }
     }
 }
