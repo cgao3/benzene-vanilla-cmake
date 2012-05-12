@@ -136,6 +136,11 @@ public:
     /** See PriorPruning() */
     void SetPriorPruning(bool enable);
 
+    /** Gamma for VC maintenance moves. */
+    float VCMGamma() const;
+
+    void SetVCMGamma(float gamma);
+
     // @} 
 
 private:
@@ -156,6 +161,8 @@ private:
     /** See PriorPruning() */
     bool m_priorPruning;
    
+    float m_vcmGamma;
+
     /** Data among threads. */
     boost::scoped_ptr<MoHexSharedData> m_sharedData;
 
@@ -249,6 +256,16 @@ inline bool MoHexSearch::PriorPruning() const
 inline void MoHexSearch::SetPriorPruning(bool enable)
 {
     m_priorPruning = enable;
+}
+
+inline float MoHexSearch::VCMGamma() const
+{
+    return m_vcmGamma;
+}
+
+inline void MoHexSearch::SetVCMGamma(float gamma)
+{
+    m_vcmGamma = gamma;
 }
 
 //----------------------------------------------------------------------------

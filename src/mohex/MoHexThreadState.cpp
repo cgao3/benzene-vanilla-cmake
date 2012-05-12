@@ -591,7 +591,7 @@ void MoHexThreadState::VCMInTree(const HexBoard& vcbrd,
             totalGamma += gamma;
             if (moves.test(r.Move()))
             {
-                static const float bonusGamma = 1000.0f;
+                const float bonusGamma = m_search.VCMGamma();
                 const_cast<SgUctNode&>(r).SetVCGamma(gamma + bonusGamma);
                 m_sharedData->treeStatistics.vcmResponses++;
                 totalGamma += bonusGamma;
@@ -628,8 +628,8 @@ void MoHexThreadState::VCMFromParent(std::vector<SgUctMoveInfo>& moves)
                 if (moves[k].m_move == responses[j])
                 {
                     m_sharedData->treeStatistics.vcmResponses++;
-                    moves[k].m_vcGamma = 1000.0f;
-                    totalGamma += 1000.0f;
+                    moves[k].m_vcGamma = m_search.VCMGamma();
+                    totalGamma += m_search.VCMGamma();
                 }
             }
         }

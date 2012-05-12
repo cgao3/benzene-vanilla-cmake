@@ -50,6 +50,7 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
       m_brd(0),
       m_fillinMapBits(16),
       m_priorPruning(true),
+      m_vcmGamma(1000.0f),
       m_sharedData(new MoHexSharedData(m_fillinMapBits)),
       m_root(0),
       m_globalPatterns()

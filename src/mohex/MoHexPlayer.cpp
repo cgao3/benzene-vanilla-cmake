@@ -102,6 +102,7 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     Search().SetUctBiasConstant(other.Search().UctBiasConstant());
     Search().SetPriorPruning(other.Search().PriorPruning());
     Search().SetExtendUnstableSearch(other.Search().ExtendUnstableSearch());
+    Search().SetVCMGamma(other.Search().VCMGamma());
 }
 
 //----------------------------------------------------------------------------
