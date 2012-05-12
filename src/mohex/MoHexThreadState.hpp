@@ -29,11 +29,20 @@ class MoHexSearch;
 /** Data shared among all threads. */
 struct MoHexSharedData
 {
+    struct VCMPair
+    {
+        uint8_t move;
+        std::vector<uint8_t> responses;
+        VCMPair() {};
+        VCMPair(uint8_t m) : move(m) {};
+    };
+
     struct StateData
     {
         MoHexBoard board;
         StoneBoard position;
         bitset_t consider;
+        std::vector<VCMPair> vcm;
     };
 
     struct TreeStatistics
@@ -48,6 +57,7 @@ struct MoHexSharedData
         std::size_t vcmProbes;
         std::size_t vcmResponses;
         std::size_t vcmExpanded;
+        std::size_t vcmExpandedLater;
         TreeStatistics() : priorMoves(0), 
                            priorMovesAfter(0),
                            priorPositions(0),
@@ -57,7 +67,8 @@ struct MoHexSharedData
                            knowMovesAfter(0),
                            vcmProbes(0),
                            vcmResponses(0),
-                           vcmExpanded(0)
+                           vcmExpanded(0),
+                           vcmExpandedLater(0)
         { }
 
         std::string ToString() const;
@@ -214,6 +225,8 @@ private:
 
     HexPoint m_playoutStartLastMove;
 
+    SgHashCode m_hashForLastState;
+
     /** True at the start of a game until the first move is played. */
     bool m_atRoot;
 
@@ -226,7 +239,8 @@ private:
     void AddTriangleFill(const HexPoint cell, const HexColor color);
 
     void DoVCMaintenanceInTree(const HexBoard& vcbrd, const bitset_t consider,
-                               const HexColor toPlay);
+                               const HexColor toPlay,
+                               std::vector<MoHexSharedData::VCMPair>& vcm);
 
 };
 
