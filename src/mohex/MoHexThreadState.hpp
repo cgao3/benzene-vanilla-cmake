@@ -237,11 +237,12 @@ private:
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
 
     void AddTriangleFill(const HexPoint cell, const HexColor color);
+    
+    void VCMInTree(const HexBoard& vcbrd, const bitset_t consider,
+                   const HexColor toPlay,
+                   std::vector<MoHexSharedData::VCMPair>& vcm);
 
-    void DoVCMaintenanceInTree(const HexBoard& vcbrd, const bitset_t consider,
-                               const HexColor toPlay,
-                               std::vector<MoHexSharedData::VCMPair>& vcm);
-
+    void VCMFromParent(std::vector<SgUctMoveInfo>& moves);
 };
 
 inline const HexState& MoHexThreadState::State() const

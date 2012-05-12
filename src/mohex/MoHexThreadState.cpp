@@ -301,6 +301,19 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
             m_sharedData->treeStatistics.priorPositions++;
             m_sharedData->treeStatistics.priorMoves += oldSize;
             m_priorKnowledge.ProcessPosition(moves, m_search.PriorPruning());
+            m_sharedData->treeStatistics.priorMovesAfter += moves.size();
+
+#if 0
+            // Debug: display moves after pruning
+            if (!moves.empty() && moves.size() < oldSize)
+            {
+                 bitset_t bs;
+                 for (size_t i = 0; i < moves.size(); ++i)
+                     bs.set(moves[i].m_move);
+                 LogInfo() << m_state->Position().Write(bs) << '\n';
+            }
+#endif
+            // Mark state as loss if no moves remain
             if (moves.empty())
             {
                 m_sharedData->treeStatistics.priorProven++;
@@ -327,50 +340,10 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
                 }
 #endif
             }
-            m_sharedData->treeStatistics.priorMovesAfter += moves.size();
-#if 0
-            if (moves.size() < oldSize)
+            else
             {
-                 bitset_t bs;
-                 for (size_t i = 0; i < moves.size(); ++i)
-                     bs.set(moves[i].m_move);
-                 LogInfo() << m_state->Position().Write(bs) << '\n';
-            }
-#endif
-            // use vcm responses from parent's knowledge computation
-            MoHexSharedData::StateData data;
-            if (m_sharedData->stateData.Get(m_hashForLastState, data))
-            {
-                //LogInfo() << "parent hash :" << m_hashForLastState << '\n';
-                for (size_t i = 0; i < data.vcm.size(); ++i)
-                {
-                    if (data.vcm[i].move != m_lastMovePlayed)
-                        continue;
-                    m_sharedData->treeStatistics.vcmExpandedLater++;
-                    const vector<uint8_t>& res = data.vcm[i].responses;
-                    float totalGamma = 0.0f;
-                    for (size_t j = 0; j < res.size();  ++j)
-                    {
-                        for (size_t k = 0; k < moves.size(); ++k)
-                        {
-                            if (moves[k].m_move == res[j])
-                            {
-                                m_sharedData->treeStatistics.vcmResponses++;
-                                moves[k].m_vcGamma = 1000.0f;
-                                totalGamma += 1000.0f;
-                            }
-                        }
-                    }                        
-                    if (totalGamma > 0)
-                    {
-                        //LogInfo() << "lastMove=" << m_lastMovePlayed
-                        //          << m_state->Position().Write(rs) << '\n';
-                        for (size_t k = 0; k < moves.size(); ++k)
-                            moves[k].m_vcPrior 
-                                = moves[k].m_vcGamma / totalGamma;
-                    }
-                    break;
-                }
+                // Apply pre-computed vcm responses from parent's knowledge
+                VCMFromParent(moves);
             }
         }
         return false;
@@ -435,9 +408,8 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     data.consider = EndgameUtil::MovesToConsider(*m_vcBrd, ColorToPlay());
     data.position = m_vcBrd->GetPosition();
     data.board.SetPosition(data.position);
-#if 1
-    DoVCMaintenanceInTree(*m_vcBrd, data.consider, ColorToPlay(), data.vcm);
-#endif
+    VCMInTree(*m_vcBrd, data.consider, ColorToPlay(), data.vcm);
+
     m_sharedData->stateData.Add(m_state->Hash(), data);
     m_sharedData->treeStatistics.knowMovesAfter += data.consider.count();
 
@@ -459,10 +431,10 @@ void MoHexThreadState::TakeBackInTree(std::size_t nuMoves)
     
 //----------------------------------------------------------------------------
 
-void MoHexThreadState::DoVCMaintenanceInTree(const HexBoard& vcbrd, 
-                                             const bitset_t consider,
-                                             const HexColor toPlay,
-                                             vector<MoHexSharedData::VCMPair >& vcm)
+void MoHexThreadState::VCMInTree(const HexBoard& vcbrd, 
+                                 const bitset_t consider,
+                                 const HexColor toPlay,
+                                 vector<MoHexSharedData::VCMPair >& vcm)
 {
     const HexColor opp = !toPlay;
     const VCS& vcs = vcbrd.Cons(opp);
@@ -633,6 +605,40 @@ void MoHexThreadState::DoVCMaintenanceInTree(const HexBoard& vcbrd,
                 const_cast<SgUctNode&>(*ir).SetVCPrior(prior);
             }
         }
+    }
+}
+
+void MoHexThreadState::VCMFromParent(std::vector<SgUctMoveInfo>& moves)
+{
+    MoHexSharedData::StateData data;
+    if (!m_sharedData->stateData.Get(m_hashForLastState, data))
+        return;
+    // LogInfo() << "parent hash :" << m_hashForLastState << '\n';
+    for (size_t i = 0; i < data.vcm.size(); ++i)
+    {
+        if (data.vcm[i].move != m_lastMovePlayed)
+            continue;
+        m_sharedData->treeStatistics.vcmExpandedLater++;
+        float totalGamma = 0.0f;
+        const vector<uint8_t>& responses = data.vcm[i].responses;
+        for (size_t j = 0; j < responses.size(); ++j)
+        {
+            for (size_t k = 0; k < moves.size(); ++k)
+            {
+                if (moves[k].m_move == responses[j])
+                {
+                    m_sharedData->treeStatistics.vcmResponses++;
+                    moves[k].m_vcGamma = 1000.0f;
+                    totalGamma += 1000.0f;
+                }
+            }
+        }
+        if (totalGamma > 0)
+        {
+            for (size_t k = 0; k < moves.size(); ++k)
+                moves[k].m_vcPrior = moves[k].m_vcGamma / totalGamma;
+        }
+        break;
     }
 }
 
