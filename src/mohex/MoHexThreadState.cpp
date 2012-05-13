@@ -20,7 +20,7 @@
 #include "MoHexThreadState.hpp"
 #include "MoHexUtil.hpp"
 #include "EndgameUtil.hpp"
-#include "SequenceHash.hpp"
+#include "VCUtil.hpp"
 
 using namespace benzene;
 
@@ -409,7 +409,9 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     data.position = m_vcBrd->GetPosition();
     data.board.SetPosition(data.position);
     VCMInTree(*m_vcBrd, data.consider, ColorToPlay(), data.vcm);
-
+    //VCMerge(*m_vcBrd, data.consider, ColorToPlay());
+    //VCExtend(*m_vcBrd, data.consider, ColorToPlay());
+    
     m_sharedData->stateData.Add(m_state->Hash(), data);
     m_sharedData->treeStatistics.knowMovesAfter += data.consider.count();
 
@@ -436,160 +438,32 @@ void MoHexThreadState::VCMInTree(const HexBoard& vcbrd,
                                  const HexColor toPlay,
                                  vector<MoHexSharedData::VCMPair >& vcm)
 {
-    const HexColor opp = !toPlay;
-    const VCS& vcs = vcbrd.Cons(opp);
-    const Groups& groups = vcbrd.GetGroups();
-    std::vector<bitset_t> responses(BITSETSIZE);
-    bool haveGroupsConnected = false;
-    bool haveResponse = false;
-    for (GroupIterator xg(groups, opp); xg; ++xg)
-    {
-        HexPoint x = xg->Captain();
-        for (GroupIterator yg(groups, opp); 
-             yg->Captain() != xg->Captain(); ++yg)
-        {
-            HexPoint y = yg->Captain();
-            if (!vcs.FullExists(x, y))
-                continue;
-            haveGroupsConnected = true;
-            for (BitsetIterator p(vcs.FullIntersection(x, y) & consider);
-                 p; ++p)
-            {
-                for (CarrierList::Iterator s(vcs.GetSemiCarriers(x, y)); 
-                     s; ++s)
-                {
-                    bitset_t sxy = s.Carrier();
-                    if (sxy.test(*p))
-                        continue;
-                    
-                    // use semi's key as a direct response
-                    HexPoint key = vcs.SemiKey(sxy, x, y);
-                    if (key != INVALID_POINT)
-                    {
-                        responses[*p].set(key);
-                        haveResponse = true;
-                    }
-
-                    // Look for a 'flaring'-type move.
-                    // For all moves z full-connected to x:
-                    //   find a semi between z and y that does not hit p
-                    //   and does not touch sxy or fxz
-                    for (BitsetIterator z(vcs.GetFullNbs(x)); z; ++z)
-                    {
-                        if (*z == *p || *z == y || responses[*p].test(*z))
-                            continue;
-                        // FIXME: too ham-fisted? 
-                        // Look through list?
-                        bitset_t fxz = vcs.FullGreedyUnion(x, *z);
-                        if (fxz.test(*p) || ((fxz & sxy).any()))
-                            continue;
-
-                        for (CarrierList::Iterator 
-                                 s2(vcs.GetSemiCarriers(*z, y));
-                             s2; ++s2)
-                        {
-                            bitset_t szy = s2.Carrier();
-                            if (!szy.test(*p) 
-                                && ((szy & fxz).none())
-                                && ((szy & sxy).none()))
-                            {
-                                // found a flare!!!
-                                responses[*p].set(*z);
-#if 0
-                                LogInfo() << "FLARE xzy " 
-                                          << " x=" << x << " y=" << y
-                                          << " p=" << *p << " z=" << *z 
-                                          << '\n';
-#endif
-                                break;
-                            }
-                        }
-                    }
-
-                    // Look for a 'flaring'-type move.
-                    // For all moves z full-connected to y:
-                    //   find a semi between z and x that does not hit p
-                    //   and does not touch sxy or fyz
-                    for (BitsetIterator z(vcs.GetFullNbs(y)); z; ++z)
-                    {
-                        if (*z == *p || *z == x || responses[*p].test(*z))
-                            continue;
-                        // FIXME: too ham-fisted? 
-                        // Look through list?
-                        bitset_t fyz = vcs.FullGreedyUnion(y, *z);
-                        if (fyz.test(*p) || ((fyz & sxy).any()))
-                            continue;
-
-                        // find a semi between z and x that does not hit p
-                        // and does not touch sxy or fyz
-                        for (CarrierList::Iterator 
-                                 s2(vcs.GetSemiCarriers(*z, x));
-                             s2; ++s2)
-                        {
-                            bitset_t szx = s2.Carrier();
-                            if (!szx.test(*p) 
-                                && ((szx & fyz).none())
-                                && ((szx & sxy).none()))
-                            {
-                                // found a flare!!!
-                                responses[*p].set(*z);
-#if 0
-                                LogInfo() << "FLARE yzx "
-                                          << " x=" << x << " y=" << y
-                                          << " p=" << *p << " z=" << *z 
-                                          << '\n';
-#endif
-                                break;
-                            }
-                        }
-                    }
-                    
-                }
-            }
-        }
-    }
-    if (!haveGroupsConnected)
-        return;
-#if 0
-    LogInfo() << "toPlay=" << toPlay << '\n'
-              << "groupsConnected=" << haveGroupsConnected << '\n'
-              << "haveResponse=" << haveResponse 
-              << vcbrd.GetPosition().Write() << '\n';
-    for (int p = 0; p < BITSETSIZE; ++p)
-    {
-        if (!responses[p].none())
-        {
-            for (BitsetIterator r(responses[p]); r; ++r)
-                LogInfo() << (HexPoint)p << " -> " << *r << '\n';
-        }            
-    }
-#endif
-    
-    // Update priors in the tree
     const SgUctNode* node = m_gameInfo.m_nodes.back();
     for (SgUctChildIterator ip(m_search.Tree(), *node); ip; ++ip)
     {
         const SgUctNode& p = *ip;
-        if (responses[p.Move()].none())
+        const HexPoint probe = (HexPoint)p.Move();
+        if (!consider.test(probe))
             continue;
+        bitset_t responses;
+        VCUtil::RespondToProbe(vcbrd, toPlay, probe, responses);
         m_sharedData->treeStatistics.vcmProbes++;
         if (! p.HasChildren())
         {
             // Record responses for when this child is expanded
-            vcm.push_back(MoHexSharedData::VCMPair(p.Move()));
-            for (BitsetIterator it(responses[p.Move()]); it; ++it)
+            vcm.push_back(MoHexSharedData::VCMPair((uint8_t)probe));
+            for (BitsetIterator it(responses); it; ++it)
                 vcm.back().responses.push_back(*it);
             continue;
         }
         float totalGamma = 0.0f;
-        const bitset_t moves = responses[p.Move()];
         m_sharedData->treeStatistics.vcmExpanded++;
         for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
         {
             const SgUctNode& r = *ir;
             const float gamma = r.VCGamma();
             totalGamma += gamma;
-            if (moves.test(r.Move()))
+            if (responses.test(r.Move()))
             {
                 const float bonusGamma = m_search.VCMGamma();
                 const_cast<SgUctNode&>(r).SetVCGamma(gamma + bonusGamma);
@@ -639,6 +513,119 @@ void MoHexThreadState::VCMFromParent(std::vector<SgUctMoveInfo>& moves)
                 moves[k].m_vcPrior = moves[k].m_vcGamma / totalGamma;
         }
         break;
+    }
+}
+
+void MoHexThreadState::VCExtend(const HexBoard& vcbrd, const bitset_t consider,
+                                const HexColor toPlay)
+{
+    UNUSED(consider);
+    bitset_t extend;
+    std::vector<float> bonus(BITSETSIZE, 0.0f);
+    static const float SIZE_BONUS = 1.5f;
+    const VCS& vcs = vcbrd.Cons(toPlay);
+    const StoneBoard& brd = vcbrd.GetPosition();
+    const Groups& groups = vcbrd.GetGroups();
+    for (GroupIterator xg(groups, toPlay); xg; ++xg)
+    {
+        const HexPoint x = xg->Captain();
+        for (BitsetIterator y(vcs.GetFullNbs(x)); y; ++y)
+        {
+            if (brd.GetColor(*y) != EMPTY)
+                continue;
+            extend.set(*y);
+            size_t size = std::numeric_limits<size_t>::max();
+            for (CarrierList::Iterator i(vcs.GetFullCarriers(x, *y)); i; ++i)
+            {
+                size_t count = i.Carrier().count();
+                if (count < size)
+                    size = count;
+            }
+            bonus[*y] += (float_t)(size * size) * SIZE_BONUS;
+        }
+    }
+    if (extend.none())
+        return;
+
+#if 0
+    LogInfo() << "extend:" << brd.Write(extend) << '\n';
+    for (BitsetIterator i(extend); i; ++i)
+        LogInfo() << '(' << *i << ' ' << bonus[*i] << ')';
+    LogInfo() << '\n';
+#endif
+
+    // Update priors in the tree
+    float totalGamma = 0.0f;
+    const SgUctNode* node = m_gameInfo.m_nodes.back();
+    for (SgUctChildIterator i(m_search.Tree(), *node); i; ++i)
+    {
+        const HexPoint p = static_cast<HexPoint>((*i).Move());
+        const float gamma = (*i).VCGamma();
+        const_cast<SgUctNode&>(*i).SetVCGamma(gamma + bonus[p]);
+        totalGamma += gamma + bonus[p];
+    }
+    if (totalGamma > 0.0f)
+    {
+        for (SgUctChildIterator i(m_search.Tree(), *node); i; ++i)
+        {
+            const SgUctValue prior = (*i).VCGamma() / totalGamma;
+            const_cast<SgUctNode&>(*i).SetVCPrior(prior);
+        }
+    }
+}
+
+void MoHexThreadState::VCMerge(const HexBoard& vcbrd, const bitset_t consider,
+                               const HexColor toPlay)
+{
+    UNUSED(consider);
+    bitset_t merge;
+    const VCS& vcs = vcbrd.Cons(toPlay);
+    const Groups& groups = vcbrd.GetGroups();
+    for (GroupIterator xg(groups, toPlay); xg; ++xg)
+    {
+        const HexPoint x = xg->Captain();
+        for (GroupIterator yg(groups, toPlay); 
+             yg->Captain() != xg->Captain(); ++yg)
+        {
+            const HexPoint y = yg->Captain();
+            if (vcs.FullExists(x, y)
+                //|| !vcs.SemiExists(x, y)
+                )
+                continue;
+            const bitset_t keys = vcs.GetFullNbs(x) & vcs.GetFullNbs(y);
+            for (BitsetIterator z(keys); z; ++z)
+            {
+                for (CarrierList::Iterator s1(vcs.GetFullCarriers(x, *z)); 
+                     s1; ++s1)
+                {
+                    const bitset_t xz = s1.Carrier();
+                    if ((xz & vcs.FullIntersection(*z, y)).any())
+                        continue;
+                    for (CarrierList::Iterator s2(vcs.GetFullCarriers(*z, y));
+                     s2; ++s2)
+                    {
+                        const bitset_t zy = s2.Carrier();
+                        if ((xz & zy).none())
+                            merge.set(*z);
+                    }
+                }
+            }
+#if 0
+            for (CarrierList::Iterator s(vcs.GetSemiCarriers(x, y)); s; ++s)
+            {
+                const HexPoint key = vcs.SemiKey(s.Carrier(), x, y);
+                //LogInfo() << "key=" << key
+                //          << vcbrd.GetPosition().Write(s.Carrier()) << '\n';
+                if (key != INVALID_POINT)
+                    merge.set(key);
+            }
+#endif
+        }
+    }
+    if (merge.count())
+    {
+        LogInfo() << "toPlay=" << toPlay << vcbrd.GetPosition().Write(merge)
+                  << '\n';
     }
 }
 

@@ -243,6 +243,11 @@ private:
                    std::vector<MoHexSharedData::VCMPair>& vcm);
 
     void VCMFromParent(std::vector<SgUctMoveInfo>& moves);
+
+    void VCMerge(const HexBoard& vcbrd, const bitset_t consider,
+                 const HexColor toPlay);
+    void VCExtend(const HexBoard& vcbrd, const bitset_t consider,
+                  const HexColor toPlay);
 };
 
 inline const HexState& MoHexThreadState::State() const

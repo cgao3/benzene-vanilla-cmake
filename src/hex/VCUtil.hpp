@@ -25,6 +25,13 @@ namespace VCUtil
         valid. */
     bool ValidEdgeBridge(const StoneBoard& brd, const bitset_t& carrier, 
                          HexPoint& endpoint, HexPoint& edge);
+
+    /** Computes responses to probe.
+        For each connected group xy, tries to restore connection xy
+        after probe p by playing key of semi not touched by p. Also
+        finds flaring moves around p. */
+    void RespondToProbe(const HexBoard& vcbrd, const HexColor toPlay,
+                        const HexPoint probe, bitset_t& responses);
 }
 
 //----------------------------------------------------------------------------

@@ -39,6 +39,7 @@ void VCCommands::Register(GtpEngine& e)
     Register(e, "vc-undo-incremental", &VCCommands::CmdUndoIncremental);
     Register(e, "vc-set-stats", &VCCommands::CmdSetInfo);
     Register(e, "vc-builder-stats", &VCCommands::CmdBuilderStats);
+    Register(e, "vc-maintenance-responses", &VCCommands::CmdVCMResponses);
 }
 
 void VCCommands::AddAnalyzeCommands(HtpCommand& cmd)
@@ -57,7 +58,8 @@ void VCCommands::AddAnalyzeCommands(HtpCommand& cmd)
         "inferior/VC Build Incremental/vc-build-incremental %m %p\n"
         "inferior/VC Build Undo Incremental/vc-undo-incremental\n"
         "string/VC Set Stats/vc-set-stats %c\n"
-        "string/VC Builder Stats/vc-builder-stats %c\n";
+        "string/VC Builder Stats/vc-builder-stats %c\n"
+        "plist/VC Maintenance Responses/vc-maintenance-responses %p\n";
 }
 
 void VCCommands::Register(GtpEngine& engine, const std::string& command,
@@ -237,6 +239,18 @@ void VCCommands::CmdUnionSemi(HtpCommand& cmd)
     HexPoint tcaptain = brd.GetGroups().CaptainOf(to);
     cmd << HexPointUtil::ToString(brd.Cons(color).
             SemiGreedyUnion(fcaptain, tcaptain));
+}
+
+//----------------------------------------------------------------------------
+
+void VCCommands::CmdVCMResponses(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    HexPoint p = HtpUtil::MoveArg(cmd, 0);
+    HexBoard& brd = *m_env.brd;
+    bitset_t responses;
+    VCUtil::RespondToProbe(brd, brd.GetPosition().WhoseTurn(), p, responses);
+    cmd << HexPointUtil::ToString(responses);
 }
 
 //----------------------------------------------------------------------------
