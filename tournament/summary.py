@@ -30,7 +30,7 @@ p1WinsBlack = Statistics()
 p1WinsWhite = Statistics()
 
 def analyzeTourney(fname, longOpening, maxvalid, showTable, plotScore,
-                   timeLimit):
+                   timeLimit, validOpenings):
     print "Analyzing: \'" + fname + "\'..."
     
     if plotScore:
@@ -68,11 +68,18 @@ def analyzeTourney(fname, longOpening, maxvalid, showTable, plotScore,
                 moves = string.split(string.strip(fullopening), ' ')
                 opening = moves[0]
 
+            considerGame = True    
+            if (validOpenings != []):
+                if (not opening in validOpenings):
+                    considerGame = False
+
             # TODO: check that results are of the form "C+", where C
             # is one of 'B' or 'W', instead of just checking the first
             # character.
-            if ((numvalid < maxvalid) and (bres == wres) and
-                ((bres[0] == 'B') or (bres[0] == 'W'))):
+            if (not considerGame):
+                print "Game not in valid openings"
+            elif ((numvalid < maxvalid) and (bres == wres) and
+                  ((bres[0] == 'B') or (bres[0] == 'W'))):
                 add_if_new(openings, opening)
                 add_if_new(progs, black)
                 add_if_new(progs, white)
@@ -218,7 +225,7 @@ def showIterativeResults(numvalid, table, opencount, openings,
 #------------------------------------------------------------------------------
 
 def usage():
-        print "Usage: ./summary [--count c] [--showTable] [--time max time] --file [tournament.result]"
+        print "Usage: ./summary [--count c] [--showTable] [--time max time] --openings [openings file] --file [tournament.result]"
         sys.exit(-1)
     
 def main():
@@ -229,10 +236,13 @@ def main():
     showTable = False
     plotScore = False
     resfile = ""
-    
+    openingsFile = ""
+    openings = []
+
     try:
         options = "clr:sf:"
-        longOptions = ["count=","long","showTable","plot","file=","time="]
+        longOptions = ["count=","long","showTable","plot","file=",
+                       "time=","openings="]
         opts, args = getopt.getopt(sys.argv[1:], options, longOptions)
     except getopt.GetoptError:
         usage()
@@ -248,13 +258,22 @@ def main():
             longOpening = True
         elif o in ("--plot"):
             plotScore = True
+        elif o in ("--openings"):
+            openingsFile = v
         elif o in ("--showTable"):
             showTable = True
-    
+            
     if (resfile == ""):
         usage()
     
+    if (openingsFile != ""):
+        f = open(openingsFile, 'r')
+        lines = f.readlines()
+        f.close()
+        for line in lines:
+            openings.append(string.strip(line))
+
     analyzeTourney(resfile, longOpening, count, showTable, 
-                   plotScore, timeLimit)
+                   plotScore, timeLimit, openings)
     
 main()
