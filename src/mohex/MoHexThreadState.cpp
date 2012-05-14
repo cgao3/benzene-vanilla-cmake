@@ -447,6 +447,8 @@ void MoHexThreadState::VCMInTree(const HexBoard& vcbrd,
             continue;
         bitset_t responses;
         VCUtil::RespondToProbe(vcbrd, toPlay, probe, responses);
+        if (responses.none())
+            continue;
         m_sharedData->treeStatistics.vcmProbes++;
         if (! p.HasChildren())
         {

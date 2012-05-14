@@ -69,29 +69,33 @@ void FlareUsingSemi(const VCS& vcs, const HexPoint x, const HexPoint y,
     {
         if (*z == probe || *z == y || flares.test(*z))
             continue;
-        // FIXME: too lazy?
-        // Should we look through list for fxz that don't touch sxy?
+#if 0
+        // Old way that didn't find as many.
+        // Many of the ones it doesn't find are kinda dumb though,
+        // so maybe this is better?
         const bitset_t fxz = vcs.FullGreedyUnion(x, *z);
         if (fxz.test(probe) || ((fxz & sxy).any()))
             continue;
-        
-        for (CarrierList::Iterator s2(vcs.GetSemiCarriers(*z, y)); s2; ++s2)
+#endif        
+
+        for (CarrierList::Iterator zx(vcs.GetFullCarriers(*z, x)); zx; ++zx)
         {
-            bitset_t szy = s2.Carrier();
-            if (!szy.test(probe) 
-                && ((szy & fxz).none())
-                && ((szy & sxy).none()))
+            const bitset_t fxz = zx.Carrier();
+            if (fxz.test(probe) || ((fxz & sxy).any()))
+                continue;
+            for (CarrierList::Iterator s2(vcs.GetSemiCarriers(*z, y)); s2; ++s2)
             {
-                // found a flare!!!
-                flares.set(*z);
-#if 0
-                LogInfo() << "FLARE xzy " 
-                          << " x=" << x << " y=" << y
-                          << " p=" << probe << " z=" << *z 
-                          << '\n';
-#endif
-                break;
+                bitset_t szy = s2.Carrier();
+                if (!szy.test(probe) 
+                    && ((szy & fxz).none())
+                    && ((szy & sxy).none()))
+                {
+                    flares.set(*z);
+                    break;
+                }
             }
+            if(flares.test(*z))
+                break;
         }
     }
 }
@@ -113,7 +117,11 @@ void VCUtil::RespondToProbe(const HexBoard& vcbrd, const HexColor toPlay,
             const HexPoint y = yg->Captain();
             if (!vcs.FullExists(x, y))
                 continue;
-            if (!vcs.FullIntersection(x, y).test(probe))
+            const bitset_t inter = vcs.FullIntersection(x, y);
+            // FIXME: compute responses even if empty intersection?
+            if (inter.none())
+                continue;
+            if (!inter.test(probe))
                 continue;
             for (CarrierList::Iterator s(vcs.GetSemiCarriers(x, y)); s; ++s)
             {
