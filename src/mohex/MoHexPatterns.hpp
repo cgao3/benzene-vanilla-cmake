@@ -24,15 +24,31 @@ public:
         std::string ToString() const;
     };
 
+    struct Data
+    {
+        uint64_t key;
+        float gamma;
+        int type;
+        int killer;
+    };
+
     MoHexPatterns();
 
     ~MoHexPatterns();
 
     void ReadPatterns(std::string filename);
 
-    double GetGammaFromBoard(const MoHexBoard& board, int size, 
-                             HexPoint point, HexColor toPlay,
-                             bool *isBadPattern) const;
+    /** Returns gamma of pattern that matches. 
+        If no pattern matches, return 1.0f. */
+    float GetGammaFromBoard(const MoHexBoard& board, int size, 
+                            HexPoint point, HexColor toPlay) const;
+
+    /** Fills 'ret' with info of pattern that matches.
+        Does not touch 'ret' if no pattern matches. If matching
+        pattern has a killer, killer is mirrored if toPlay is
+        WHITE. */
+    void Match(const MoHexBoard& board, int size, 
+               HexPoint point, HexColor toPlay, Data* ret) const;
 
     Statistics GetStatistics() const;
 
@@ -46,15 +62,8 @@ private:
     static uint64_t  m_zobrist[2][MAX_INDEX][6];
     static HexDirection m_direction[MAX_INDEX];
 
-    static void Rotate(int pattern[]);
+    static void Rotate(int pattern[], int* killer);
     static uint64_t ComputeKey(int size, int pattern[]);
-
-    struct Data
-    {
-        uint64_t key;
-        double gamma;
-        bool bad;
-    };
 
     Data* m_table;
 
@@ -75,8 +84,12 @@ private:
                             const MoHexBoard& board, 
                             const HexPoint point, const HexColor toPlay) const;
 
-    double QueryHashtable(uint64_t key, bool *isBadPattern) const;
-    bool InsertHashTable(uint64_t key, double gamma, bool bad); 
+    const Data* QueryHashtable(uint64_t key) const;
+    bool InsertHashTable(uint64_t key, float gamma, int type, int killer); 
+
+    static std::string ShowPattern6(const int p[], const int e[]);
+    static std::string ShowPattern12(const int p[], const int e[]);
+    static std::string ShowPattern(int size, const int p[], const int e[]);
 };
 
 inline MoHexPatterns::Statistics MoHexPatterns::GetStatistics() const

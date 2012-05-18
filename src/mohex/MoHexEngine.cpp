@@ -5,11 +5,13 @@
 #include "SgSystem.h"
 
 #include "BitsetIterator.hpp"
+#include "BoardUtil.hpp"
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
 #include "PlayAndSolve.hpp"
 #include "SwapCheck.hpp"
 #include "NeighborTracker.hpp"
+#include "Misc.hpp"
 
 using namespace benzene;
 
@@ -103,6 +105,8 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
     RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
+    RegisterCmd("mohex-self-play", &MoHexEngine::SelfPlay);
+    RegisterCmd("mohex-mark-prunable", &MoHexEngine::MarkPrunablePatterns);
 }
 
 MoHexEngine::~MoHexEngine()
@@ -169,7 +173,8 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "gfx/MoHex Rave Values/mohex-rave-values\n"
         "gfx/MoHex Prior Values/mohex-prior-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
-        "gfx/MoHex Cell Stats/mohex-cell-stats\n"
+        "gfx/MoHex Cell Stats/mohex-cell-stats %P\n"
+        "none/MoHex Self Play/mohex-self-play\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
 
@@ -202,6 +207,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         cmd << '\n'
             << "[bool] backup_ice_info "
             << m_player.BackupIceInfo() << '\n'
+            << "[bool] extend_unstable_search "
+            << search.ExtendUnstableSearch() << '\n'
 #if HAVE_GCC_ATOMIC_BUILTINS
             << "[bool] lock_free " 
             << search.LockFree() << '\n'
@@ -212,6 +219,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.LazyDelete() << '\n'
             << "[bool] perform_pre_search " 
             << m_player.PerformPreSearch() << '\n'
+            << "[bool] prior_pruning "
+            << search.PriorPruning() << '\n'
             << "[bool] ponder "
             << m_player.Ponder() << '\n'
             << "[bool] reuse_subtree " 
@@ -270,6 +279,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         std::string name = cmd.Arg(0);
         if (name == "backup_ice_info")
             m_player.SetBackupIceInfo(cmd.Arg<bool>(1));
+        else if (name == "extend_unstable_search")
+            search.SetExtendUnstableSearch(cmd.Arg<bool>(1));
         else if (name == "lazy_delete")
             search.SetLazyDelete(cmd.Arg<bool>(1));
 #if HAVE_GCC_ATOMIC_BUILTINS
@@ -280,6 +291,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetKeepGames(cmd.Arg<bool>(1));
         else if (name == "perform_pre_search")
             m_player.SetPerformPreSearch(cmd.Arg<bool>(1));
+        else if (name == "prior_pruning")
+            search.SetPriorPruning(cmd.Arg<bool>(1));
         else if (name == "ponder")
             m_player.SetPonder(cmd.Arg<bool>(1));
         else if (name == "use_livegfx")
@@ -446,55 +459,65 @@ void MoHexEngine::Bounds(HtpCommand& cmd)
 
 void MoHexEngine::CellStats(HtpCommand& cmd)
 {
+    HexPoint from = HtpUtil::MoveArg(cmd, 0);
+    HexPoint to = HtpUtil::MoveArg(cmd, 1);
     MoHexSearch& search = m_player.Search();
     MoHexThreadState* thread 
         = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
     if (!thread)
         throw HtpFailure() << "Thread not a MoHexThreadState!";
 
+    HexColor color = BLACK;
+    if (m_game.Board().GetColor(from) == m_game.Board().GetColor(to))
+        color = m_game.Board().GetColor(from);
+
     const int NUM_PLAYOUTS = 10000;
-    float won[BITSETSIZE];
-    memset(won, 0, sizeof(won));
-    
+    float wins = 0.0f;
+    std::vector<int> won(BITSETSIZE, 0);
+    std::vector<int> played(BITSETSIZE, 0);
     for (int i = 0; i < NUM_PLAYOUTS; ++i)
     {
         HexState state(m_game.Board(), m_game.Board().WhoseTurn());
         HexPoint lastMovePlayed = INVALID_POINT;
         thread->StartPlayout(state, lastMovePlayed);
-
-        Groups groups;
-        GroupBuilder::Build(state.Position(), groups);
-        NeighborTracker nbs;
-        nbs.Init(groups);
-
+        const MoHexBoard& mobrd = thread->GetMoHexBoard();
+        const ConstBoard& cbrd = mobrd.Const();
         bool skipRaveUpdate;
-        const HexState& threadState = thread->State();
-        while (!nbs.GameOver())
+        //while (mobrd.NumMoves() < cbrd.Width() * cbrd.Height())
+        while (!mobrd.GameOver())
         {
             SgMove move = thread->GeneratePlayoutMove(skipRaveUpdate);
             if (move == SG_NULLMOVE)
                 break;
-            nbs.Play(threadState.ToPlay(), (HexPoint)move, 
-                     threadState.Position());
             thread->ExecutePlayout(move);
         }
-        HexColor winner = nbs.GetWinner();
         for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
-            if (threadState.Position().GetColor(*p) == winner)
+            if (mobrd.GetColor(*p) == color)
+                played[*p]++;
+        if (mobrd.Parent(from) != mobrd.Parent(to))
+            continue;
+        wins++;
+        for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
+            if (mobrd.GetColor(*p) == color)
                 won[*p]++;
     }
 
     cmd << "INFLUENCE ";
     for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
     {
-        float v = won[*p] / NUM_PLAYOUTS;
+        float v = 0.0f;
+        if (played[*p] > 0)
+            v = (float)won[*p] / played[*p];
+#if 0        
         // zoom into [0.2, 0.8]
         v = 0.5f + (v - 0.5f) / (0.8f - 0.2f);
         if (v < 0.0f) v = 0.0f;
         if (v > 1.0f) v = 1.0f;
+#endif
         cmd << ' ' << static_cast<HexPoint>(*p) 
             << ' ' << std::fixed << std::setprecision(3) << v;
     }
+    cmd << " TEXT pct=" << wins * 100.0 / NUM_PLAYOUTS;
 }
 
 void MoHexEngine::FindTopMoves(HtpCommand& cmd)
@@ -516,6 +539,156 @@ void MoHexEngine::FindTopMoves(HtpCommand& cmd)
         cmd << ' ' << static_cast<HexPoint>(moves[i]) 
             << ' ' << (i + 1) 
             << '@' << std::fixed << std::setprecision(3) << scores[i];
+}
+
+void MoHexEngine::SelfPlay(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    std::size_t numGames = cmd.ArgMin<size_t>(0, 1);
+    StoneBoard board(m_game.Board());
+    Game game(board);
+    HexState state(board.Width());
+    for (size_t i = 0; i < numGames; ++i)
+    {
+        LogInfo() << "*********** Game " << (i + 1) << " ***********\n";
+        game.NewGame();
+        state.Position() = game.Board();
+        state.SetToPlay(BLACK);
+        
+        HexPoint firstMove = BoardUtil::RandomEmptyCell(state.Position());
+        game.PlayMove(state.ToPlay(), firstMove);
+        state.PlayMove(firstMove);
+
+        while (true)
+        {
+            double score;
+            HexPoint move = m_player.GenMove(state, game,
+                                             m_pe.SyncBoard(state.Position()),
+                                             m_player.MaxTime(), score);
+            if (HexEvalUtil::IsWinOrLoss(score))
+                break;
+            game.PlayMove(state.ToPlay(), move);
+            state.PlayMove(move);
+        }
+    }    
+}
+
+//----------------------------------------------------------------------------
+
+void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(2);
+    std::string infile = cmd.Arg(0);
+    std::string outfile = cmd.Arg(1);
+    std::vector<Pattern> infpat, prune, dom;
+    HashedPatternSet hprune, hdom;
+    std::ifstream ifile;
+    MiscUtil::OpenFile("mohex-prior-prune.txt", ifile);
+    Pattern::LoadPatternsFromStream(ifile, infpat);
+    for (size_t i = 0; i < infpat.size(); ++i)
+    {
+        if (infpat[i].GetType() == Pattern::DOMINATED)
+            dom.push_back(infpat[i]);
+        else
+            prune.push_back(infpat[i]);
+    }
+    LogInfo() << "Parsed " << prune.size() << " pruning patterns, "
+              << dom.size() << " domination patterns.\n";
+    hprune.Hash(prune);
+    hdom.Hash(dom);
+
+    std::ifstream f(infile.c_str());
+    std::ofstream of(outfile.c_str());
+    std::string line;
+    if (!std::getline(f, line)) 
+        throw HtpFailure("Empty file");
+    of << line << '\n';
+
+    double largestPrunedGamma = -1.0f;
+    size_t numPrunable = 0;
+
+    StoneBoard brd(11);
+    const ConstBoard& cbrd = brd.Const();
+    PatternState pastate(brd);
+    while (f.good()) 
+    {
+        if (!std::getline(f, line)) 
+            break;
+        if (line.size() < 5)
+            continue;
+        int type, killer;
+        size_t w, a;
+        std::string pattern, gamma;
+        std::istringstream ifs(line);
+        ifs >> gamma;
+        ifs >> w;
+        ifs >> a;
+        ifs >> pattern;
+        ifs >> type;
+        ifs >> killer;
+
+        int size = (int)pattern.size();
+        brd.StartNewGame();
+        for (int i = 1; i <= size; ++i)
+        {
+            HexPoint p = cbrd.PatternPoint(HEX_CELL_F6, i);
+            char pi = pattern[i - 1];
+            if (pi == '1' || pi == '3' || pi == '5')
+                brd.SetColor(BLACK, p);
+            else if (pi == '2' || pi == '4')
+                brd.SetColor(WHITE, p);
+        }
+        pastate.Update();
+        
+        type = 0;
+        killer = 0;
+        PatternHits hits;
+        pastate.MatchOnCell(hprune, HEX_CELL_F6, 
+                            PatternState::STOP_AT_FIRST_HIT, hits);
+        if (hits.size() > 0)
+            type = 1;
+        else 
+        {
+            pastate.MatchOnCell(hdom, HEX_CELL_F6, 
+                                PatternState::STOP_AT_FIRST_HIT, hits);
+            if (hits.size() > 0)
+            {
+                type = 2;
+                const std::vector<HexPoint>& moves1 = hits[0].Moves1();
+                for (int i = 1; i <= size; ++i)
+                    if (cbrd.PatternPoint(HEX_CELL_F6, i) == moves1[0])
+                        killer = i;
+                if (killer == 0)
+                    throw BenzeneException("Killer not found!");
+            }
+        }
+        if (type > 0) 
+        {
+            LogInfo() << brd.Write() << '\n'
+                      << "gamma=" << gamma 
+                      << " pat=" << hits[0].GetPattern()->GetName() 
+                      << " type=" << type 
+                      << " killer=" << killer << '\n';
+            numPrunable++;
+
+            std::istringstream ss(gamma);
+            double fgamma;
+            ss >> fgamma;
+            if (fgamma > largestPrunedGamma)
+                largestPrunedGamma = fgamma;
+        }
+        of << std::setw(16) << std::fixed << std::setprecision(6) << gamma 
+           << std::setw(11) << w 
+           << std::setw(11) << a
+           << std::setw(19) << pattern
+           << std::setw(11) << type 
+           << std::setw(11) << killer
+           << '\n';
+    }
+    of.close();
+    f.close();
+    LogInfo() << "numPrunable=" << numPrunable << '\n';
+    LogInfo() << "largestPrunedGamma=" << largestPrunedGamma << '\n';
 }
 
 //----------------------------------------------------------------------------

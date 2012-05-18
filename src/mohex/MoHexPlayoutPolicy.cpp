@@ -19,11 +19,11 @@ std::string MoHexPlayoutPolicyStatistics::ToString() const
 {
     std::ostringstream os;
     os << "Playout Statistics:\n"
-       << "Total          " << totalMoves << '\n'
-       << "Pattern        " << patternMoves << " ("
+       << "Total               " << totalMoves << '\n'
+       << "Pattern             " << patternMoves << " ("
        << std::setprecision(3) << double(patternMoves) * 100.0 
         / double(totalMoves) << "%)\n" 
-       << "Random         " << randomMoves << " ("
+       << "Random              " << randomMoves << " ("
        << std::setprecision(3) << double(randomMoves) * 100.0 
         / double(totalMoves) << "%)";
     return os.str();
@@ -79,7 +79,6 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
     MoHexPlayoutPolicyStatistics& stats = m_shared->Statistics();
     if (lastMove != INVALID_POINT && config.patternHeuristic)
     {
-        bool isBad;
         WeightedRandom localGamma(8);
         HexPoint localMove[8];
         const ConstBoard& cbrd = m_board.Const();
@@ -91,7 +90,7 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
             {
                 localMove[i] = *n;
                 float gamma = m_localPatterns.GetGammaFromBoard
-                    (m_board, 6, *n, toPlay, &isBad);
+                    (m_board, 6, *n, toPlay);
                 if (gamma != 1.0f) 
                 {
                     localGamma[i] = gamma;

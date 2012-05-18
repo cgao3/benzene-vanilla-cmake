@@ -40,7 +40,7 @@ void MoHexUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
     const SgUctNode& root = tree.Root();
     out << "VAR";
     std::vector<const SgUctNode*> bestValueChild;
-    bestValueChild.push_back(search.FindBestChild(root));
+    bestValueChild.push_back(search.FindBestChild(root, search.MoveSelect()));
     for (int i=0; i<4; i++) {
 	if (bestValueChild[i] == 0) break;
 	SgPoint move = bestValueChild[i]->Move();
@@ -50,7 +50,8 @@ void MoHexUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
 	else
 	    out << ' ' << (toPlay == SG_WHITE ? 'B' : 'W') << ' '
 		<< MoHexUtil::MoveString(move);
-	bestValueChild.push_back(search.FindBestChild(*(bestValueChild[i])));
+	bestValueChild.push_back(search.FindBestChild(*(bestValueChild[i]), 
+                                                      search.MoveSelect()) );
     }
     out << "\n";
     out << "INFLUENCE";

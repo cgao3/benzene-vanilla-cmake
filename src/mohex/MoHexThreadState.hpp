@@ -36,6 +36,28 @@ struct MoHexSharedData
         bitset_t consider;
     };
 
+    struct TreeStatistics
+    {
+        std::size_t priorMoves;
+        std::size_t priorMovesAfter;
+        std::size_t priorPositions;
+        std::size_t priorProven;
+        std::size_t knowPositions;
+        std::size_t knowProven;
+        std::size_t knowMovesAfter;
+
+        TreeStatistics() : priorMoves(0), 
+                           priorMovesAfter(0),
+                           priorPositions(0),
+                           priorProven(0),
+                           knowPositions(0),
+                           knowProven(0),
+                           knowMovesAfter(0)
+        { }
+
+        std::string ToString() const;
+    };
+
     /** Moves from begining of game leading to this position. */
     MoveSequence gameSequence;
 
@@ -50,6 +72,8 @@ struct MoHexSharedData
     /** Stores fillin information for states in the tree. */
     HashMap<StateData> stateData;
 
+    TreeStatistics treeStatistics;
+    
     explicit MoHexSharedData(int fillinMapBits);
 };
 
@@ -193,6 +217,9 @@ private:
     HexColor m_toPlay;
 
     bitset_t ComputeKnowledge(SgUctProvenType& provenType);
+
+    void AddTriangleFill(const HexPoint cell, const HexColor color);
+
 };
 
 inline const HexState& MoHexThreadState::State() const

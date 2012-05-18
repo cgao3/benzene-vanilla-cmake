@@ -31,6 +31,10 @@ static const bool DEBUG_KNOWLEDGE = false;
     Use to see what threads are doing knowledge computations. */
 static const bool TRACK_KNOWLEDGE = false;
 
+/** Check correctness of prior pruning.
+    Builds VCs in position and compares results. */
+#define DEBUG_PRIOR_PRUNING  0
+
 //----------------------------------------------------------------------------
 
 namespace
@@ -70,6 +74,27 @@ HexPoint LastMoveFromHistory(const MoveSequence& history)
 //----------------------------------------------------------------------------
 
 } // namespace
+
+//----------------------------------------------------------------------------
+
+std::string MoHexSharedData::TreeStatistics::ToString() const
+{
+    std::ostringstream os;
+    os << "Tree Statistics:\n"
+       << "Prior Positions     " << priorPositions << '\n'
+       << "Prior Proven        " << priorProven << '\n'                
+       << "Prior Avg Moves     " << std::setprecision(3)
+       << (double)priorMoves / (double)priorPositions << '\n'
+       << "Prior Avg After     " << std::setprecision(3) 
+       << (double)priorMovesAfter / (double)priorPositions << '\n'
+        
+       << "Know Positions      " << knowPositions << '\n'
+       << "Know Proven         " << knowProven << '\n'
+       << "Know Avg After      " << std::setprecision(3)
+       << (knowPositions > 0 ? 
+           (double)knowMovesAfter / (double)knowPositions : 0);
+    return os.str();
+}
 
 //----------------------------------------------------------------------------
 
@@ -210,6 +235,7 @@ void MoHexThreadState::Execute(SgMove sgmove)
     m_toPlay = m_state->ToPlay();
     m_lastMovePlayed = cell;
     m_atRoot = false;
+    bool loadedState = false;
 
     if (m_usingKnowledge)
     {
@@ -218,8 +244,16 @@ void MoHexThreadState::Execute(SgMove sgmove)
         {
             m_state->Position() = data.position;
             m_board = data.board;
+            loadedState = true;
         }
     }
+
+#if 0
+    if (!loadedState)
+    {
+        AddTriangleFillin(cell, !ColorToPlay() /* note flipped color! */);
+    }
+#endif
 }
 
 bool MoHexThreadState::GenerateAllMoves(SgUctValue count, 
@@ -234,14 +268,17 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         for (BitsetIterator it(m_sharedData->rootConsider); it; ++it)
             moves.push_back(SgUctMoveInfo(*it));
         if (count == 0)
-            m_priorKnowledge.ProcessPosition(moves);
+        {
+            m_sharedData->treeStatistics.priorPositions++;
+            m_priorKnowledge.ProcessPosition(moves, false);
+        }
         return false;
     }
     else if (count <= 0)
     {
         // First time we have been to this node. If solid winning
         // chain exists then mark as proven and abort. Otherwise,
-        // every empty cell is a valid move.
+        // every empty cell is a potentially valid move.
         if (IsProvenState(m_board, ColorToPlay(), provenType))
             return false;
         for (BitsetIterator it(m_state->Position().GetEmpty()); it; ++it)
@@ -249,7 +286,49 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         // If count is negative, then we are not actually expanding
         // this node, so do not compute prior knowledge.
         if (count == 0)
-            m_priorKnowledge.ProcessPosition(moves);
+        {
+            size_t oldSize = moves.size();
+            m_sharedData->treeStatistics.priorPositions++;
+            m_sharedData->treeStatistics.priorMoves += oldSize;
+            m_priorKnowledge.ProcessPosition(moves, m_search.PriorPruning());
+            if (moves.empty())
+            {
+                m_sharedData->treeStatistics.priorProven++;
+                provenType = SG_PROVEN_LOSS;
+                //LogInfo() << m_state->Position() << '\n'
+                //          << "winner=" << !ColorToPlay() << '\n';
+#if DEBUG_PRIOR_PRUNING
+                m_vcBrd->GetPosition().SetPosition(m_state->Position());
+                m_vcBrd->ComputeAll(ColorToPlay());
+                if (EndgameUtil::IsDeterminedState(*m_vcBrd, ColorToPlay()))
+                {
+                    if (!EndgameUtil::IsLostGame(*m_vcBrd, ColorToPlay()))
+                    {
+                        LogSevere() << m_state->Position() << "toPlay=" 
+                                    << ColorToPlay() << '\n';
+                        throw BenzeneException("Not a proven loss!");
+                    }
+                }
+                else
+                {
+                    LogSevere() << m_state->Position() << "toPlay=" 
+                                << ColorToPlay() << '\n';
+                    throw BenzeneException("Not actually a proven state!!");
+                }
+#endif
+            }
+            m_sharedData->treeStatistics.priorMovesAfter += moves.size();
+
+#if 0
+            if (moves.size() < oldSize)
+            {
+                 bitset_t bs;
+                 for (size_t i = 0; i < moves.size(); ++i)
+                     bs.set(moves[i].m_move);
+                 LogInfo() << m_state->Position().Write(bs) << '\n';
+            }
+#endif
+        }
         return false;
     }
     else
@@ -288,6 +367,7 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     }
     if (TRACK_KNOWLEDGE)
         LogInfo() << "know: " << hash << '\n';
+    m_sharedData->treeStatistics.knowPositions++;
     m_vcBrd->GetPosition().SetPosition(m_state->Position());
     m_vcBrd->ComputeAll(ColorToPlay());
     if (EndgameUtil::IsDeterminedState(*m_vcBrd, ColorToPlay()))
@@ -299,6 +379,7 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
             winner = !ColorToPlay();
             provenType = SG_PROVEN_LOSS;
         }
+        m_sharedData->treeStatistics.knowProven++;
         if (DEBUG_KNOWLEDGE)
             LogInfo() << "Found win for " << winner << ":\n"
                       << *m_vcBrd << '\n';
@@ -311,6 +392,7 @@ bitset_t MoHexThreadState::ComputeKnowledge(SgUctProvenType& provenType)
     data.position = m_vcBrd->GetPosition();
     data.board.SetPosition(data.position);
     m_sharedData->stateData.Add(m_state->Hash(), data);
+    m_sharedData->treeStatistics.knowMovesAfter += data.consider.count();
 
     m_state->Position() = data.position;
     m_board = data.board;
@@ -367,6 +449,7 @@ void MoHexThreadState::StartPlayout(const HexState& state,
         m_state.reset(new HexState(state));
     }
     *m_state = state;
+    m_board.SetPosition(m_state->Position());
     m_toPlay = m_state->ToPlay();
     m_lastMovePlayed = lastMovePlayed;
     StartPlayout();
@@ -413,6 +496,51 @@ void MoHexThreadState::TakeBackPlayout(std::size_t nuMoves)
         m_lastMovePlayed = m_playoutStartLastMove;
         m_board = m_playoutStartBoard;
         m_toPlay = m_state->ToPlay();
+    }
+}
+
+//----------------------------------------------------------------------------
+
+void MoHexThreadState::AddTriangleFill(const HexPoint cell,
+                                       const HexColor color)
+{
+    // Check if move captures two cells
+    const ConstBoard& cbrd = m_board.Const();
+    for (int dd = 0; dd < 6; ++dd)
+    {
+        HexDirection d1 = (HexDirection)dd;
+        HexDirection d2 = (HexDirection)((dd + 1) % 6);
+        HexPoint e1 = cbrd.PointInDir(cell, d1);
+        if (m_board.GetColor(e1) != EMPTY)
+            continue;
+        HexPoint e2 = cbrd.PointInDir(cell, d2);
+        if (m_board.GetColor(e2) != EMPTY)
+        {
+            ++dd;  // skip next case where e2 is now e1
+            continue;
+        }
+        if (m_board.GetColor(cbrd.PointInDir(e1, d1)) != color)
+            continue;
+        if (m_board.GetColor(cbrd.PointInDir(e1, d2)) != color)
+            continue;
+        if (m_board.GetColor(cbrd.PointInDir(e2, d2)) != color)
+        {
+            // skip next case: this will be in direction
+            // -> d1 -> d1, and so must be color
+            ++dd; 
+            continue;
+        }
+        
+        // Matched!!
+        m_state->Position().SetColor(color, e1);
+        m_state->Position().SetColor(color, e2);
+        m_board.PlayMove(e1, color);
+        m_board.PlayMove(e2, color);
+        ++dd;  // skip next case where e2 is now e1
+
+        // LogInfo() << "=============================="
+        //           << m_state->Position().Write()
+        //           << m_board.Write() << '\n';            
     }
 }
 
