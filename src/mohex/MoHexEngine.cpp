@@ -173,7 +173,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "gfx/MoHex Rave Values/mohex-rave-values\n"
         "gfx/MoHex Prior Values/mohex-prior-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
-        "gfx/MoHex Cell Stats/mohex-cell-stats\n"
+        "gfx/MoHex Cell Stats/mohex-cell-stats %P\n"
         "none/MoHex Self Play/mohex-self-play\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
@@ -459,55 +459,65 @@ void MoHexEngine::Bounds(HtpCommand& cmd)
 
 void MoHexEngine::CellStats(HtpCommand& cmd)
 {
+    HexPoint from = HtpUtil::MoveArg(cmd, 0);
+    HexPoint to = HtpUtil::MoveArg(cmd, 1);
     MoHexSearch& search = m_player.Search();
     MoHexThreadState* thread 
         = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
     if (!thread)
         throw HtpFailure() << "Thread not a MoHexThreadState!";
 
+    HexColor color = BLACK;
+    if (m_game.Board().GetColor(from) == m_game.Board().GetColor(to))
+        color = m_game.Board().GetColor(from);
+
     const int NUM_PLAYOUTS = 10000;
-    float won[BITSETSIZE];
-    memset(won, 0, sizeof(won));
-    
+    float wins = 0.0f;
+    std::vector<int> won(BITSETSIZE, 0);
+    std::vector<int> played(BITSETSIZE, 0);
     for (int i = 0; i < NUM_PLAYOUTS; ++i)
     {
         HexState state(m_game.Board(), m_game.Board().WhoseTurn());
         HexPoint lastMovePlayed = INVALID_POINT;
         thread->StartPlayout(state, lastMovePlayed);
-
-        Groups groups;
-        GroupBuilder::Build(state.Position(), groups);
-        NeighborTracker nbs;
-        nbs.Init(groups);
-
+        const MoHexBoard& mobrd = thread->GetMoHexBoard();
+        const ConstBoard& cbrd = mobrd.Const();
         bool skipRaveUpdate;
-        const HexState& threadState = thread->State();
-        while (!nbs.GameOver())
+        //while (mobrd.NumMoves() < cbrd.Width() * cbrd.Height())
+        while (!mobrd.GameOver())
         {
             SgMove move = thread->GeneratePlayoutMove(skipRaveUpdate);
             if (move == SG_NULLMOVE)
                 break;
-            nbs.Play(threadState.ToPlay(), (HexPoint)move, 
-                     threadState.Position());
             thread->ExecutePlayout(move);
         }
-        HexColor winner = nbs.GetWinner();
         for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
-            if (threadState.Position().GetColor(*p) == winner)
+            if (mobrd.GetColor(*p) == color)
+                played[*p]++;
+        if (mobrd.Parent(from) != mobrd.Parent(to))
+            continue;
+        wins++;
+        for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
+            if (mobrd.GetColor(*p) == color)
                 won[*p]++;
     }
 
     cmd << "INFLUENCE ";
     for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
     {
-        float v = won[*p] / NUM_PLAYOUTS;
+        float v = 0.0f;
+        if (played[*p] > 0)
+            v = (float)won[*p] / played[*p];
+#if 0        
         // zoom into [0.2, 0.8]
         v = 0.5f + (v - 0.5f) / (0.8f - 0.2f);
         if (v < 0.0f) v = 0.0f;
         if (v > 1.0f) v = 1.0f;
+#endif
         cmd << ' ' << static_cast<HexPoint>(*p) 
             << ' ' << std::fixed << std::setprecision(3) << v;
     }
+    cmd << " TEXT pct=" << wins * 100.0 / NUM_PLAYOUTS;
 }
 
 void MoHexEngine::FindTopMoves(HtpCommand& cmd)
