@@ -449,6 +449,7 @@ void MoHexThreadState::StartPlayout(const HexState& state,
         m_state.reset(new HexState(state));
     }
     *m_state = state;
+    m_board.SetPosition(m_state->Position());
     m_toPlay = m_state->ToPlay();
     m_lastMovePlayed = lastMovePlayed;
     StartPlayout();
