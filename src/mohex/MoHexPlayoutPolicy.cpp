@@ -79,32 +79,44 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
     MoHexPlayoutPolicyStatistics& stats = m_shared->Statistics();
     if (lastMove != INVALID_POINT && config.patternHeuristic)
     {
-        WeightedRandom localGamma(8);
-        HexPoint localMove[8];
-        const ConstBoard& cbrd = m_board.Const();
-        int i = 0;
         //LogInfo() << brd.Write() << '\n' << "lastMove=" << lastMove << '\n';
-        for (BoardIterator n(cbrd.Nbs(lastMove)); n; ++n, ++i)
+
+        HexPoint localMove[8];
+        float localGamma[8];
+        float localTotal = 0.0f;
+        const ConstBoard& cbrd = m_board.Const();
+        int num = 0;
+        for (BoardIterator n(cbrd.Nbs(lastMove)); n; ++n)
         {
             if (m_board.GetColor(*n) == EMPTY)
             {
-                localMove[i] = *n;
                 float gamma = m_localPatterns.GetGammaFromBoard
                     (m_board, 6, *n, toPlay);
                 if (gamma != 1.0f) 
                 {
-                    localGamma[i] = gamma;
-                    //LogInfo() << "i=" << i << " move=" << localMove[i]
-                    //          << " gamma[i]=" << localGamma[i] << '\n';
+                    localTotal += gamma;
+                    localMove[num] = *n;
+                    localGamma[num] = localTotal;
+                    // LogInfo() << "i=" << num << " move=" << localMove[num]
+                    //           << " gamma=" << gamma  
+                    //           << " gamma[i]=" << localGamma[num] << '\n';
+                    ++num;
                 }
             }            
         }
-        localGamma.Build();
-        if (m_random.Float(m_weights.Total() + localGamma.Total()) < 
-            localGamma.Total())
+        if (num > 0)
         {
-            move = localMove[ localGamma.Choose(m_random) ];
-            //LogInfo() << "Local! move=" << move << '\n';
+            float random = m_random.Float(m_weights.Total() + localTotal);
+            //LogInfo() << "random= " << random << '\n';
+            if (random < localTotal)
+            {
+                localGamma[num - 1] += 9999; // ensure it doesn't go past end
+                int i = 0;
+                while (localGamma[i] < random)
+                    ++i;
+                move = localMove[i];
+                //LogInfo() << "Local! move=" << move << '\n';
+            }
         }
         //move = GeneratePatternMove(toPlay, lastMove);
     }
