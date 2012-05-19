@@ -580,8 +580,8 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
     cmd.CheckNuArg(2);
     std::string infile = cmd.Arg(0);
     std::string outfile = cmd.Arg(1);
-    std::vector<Pattern> infpat, prune, dom;
-    HashedPatternSet hprune, hdom;
+    std::vector<Pattern> infpat, oppfill, vul, dom;
+    HashedPatternSet hoppfill, hvul, hdom;
     std::ifstream ifile;
     MiscUtil::OpenFile("mohex-prior-prune.txt", ifile);
     Pattern::LoadPatternsFromStream(ifile, infpat);
@@ -589,12 +589,16 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
     {
         if (infpat[i].GetType() == Pattern::DOMINATED)
             dom.push_back(infpat[i]);
+        else if (infpat[i].GetType() == Pattern::VULNERABLE)
+            vul.push_back(infpat[i]);
         else
-            prune.push_back(infpat[i]);
+            oppfill.push_back(infpat[i]);
     }
-    LogInfo() << "Parsed " << prune.size() << " pruning patterns, "
+    LogInfo() << "Parsed " << oppfill.size() << " opp fill patterns, "
+              << vul.size() << " vulnerable patterns, "
               << dom.size() << " domination patterns.\n";
-    hprune.Hash(prune);
+    hoppfill.Hash(oppfill);
+    hvul.Hash(vul);
     hdom.Hash(dom);
 
     std::ifstream f(infile.c_str());
@@ -643,23 +647,30 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
         type = 0;
         killer = 0;
         PatternHits hits;
-        pastate.MatchOnCell(hprune, HEX_CELL_F6, 
+        pastate.MatchOnCell(hoppfill, HEX_CELL_F6, 
                             PatternState::STOP_AT_FIRST_HIT, hits);
         if (hits.size() > 0)
             type = 1;
         else 
         {
-            pastate.MatchOnCell(hdom, HEX_CELL_F6, 
+            pastate.MatchOnCell(hvul, HEX_CELL_F6,
                                 PatternState::STOP_AT_FIRST_HIT, hits);
             if (hits.size() > 0)
-            {
                 type = 2;
-                const std::vector<HexPoint>& moves1 = hits[0].Moves1();
-                for (int i = 1; i <= size; ++i)
-                    if (cbrd.PatternPoint(HEX_CELL_F6, i) == moves1[0])
-                        killer = i;
-                if (killer == 0)
-                    throw BenzeneException("Killer not found!");
+            else 
+            {
+                pastate.MatchOnCell(hdom, HEX_CELL_F6, 
+                                    PatternState::STOP_AT_FIRST_HIT, hits);
+                if (hits.size() > 0)
+                {
+                    type = 3;
+                    const std::vector<HexPoint>& moves1 = hits[0].Moves1();
+                    for (int i = 1; i <= size; ++i)
+                        if (cbrd.PatternPoint(HEX_CELL_F6, i) == moves1[0])
+                            killer = i;
+                    if (killer == 0)
+                        throw BenzeneException("Killer not found!");
+                }
             }
         }
         if (type > 0) 
