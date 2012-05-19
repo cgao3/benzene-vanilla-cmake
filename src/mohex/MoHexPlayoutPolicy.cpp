@@ -84,17 +84,23 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
         HexPoint localMove[8];
         float localGamma[8];
         float localTotal = 0.0f;
+        MoHexPatterns::Data data;
         const ConstBoard& cbrd = m_board.Const();
         int num = 0;
         for (BoardIterator n(cbrd.Nbs(lastMove)); n; ++n)
         {
             if (m_board.GetColor(*n) == EMPTY)
             {
-                float gamma = m_localPatterns.GetGammaFromBoard
-                    (m_board, 6, *n, toPlay);
-                if (gamma != 1.0f) 
+                data.type = 0;
+                data.gamma = 1.0f;
+                m_localPatterns.Match(m_board, 6, *n, toPlay, &data);
+                // if (data.type)
+                //     LogInfo() << "lastMove=" << lastMove 
+                //               << " point=" << *n << " type=" << data.type
+                //               << m_board.Write() << '\n';
+                if (data.gamma != 1.0f) 
                 {
-                    localTotal += gamma;
+                    localTotal += data.gamma;
                     localMove[num] = *n;
                     localGamma[num] = localTotal;
                     // LogInfo() << "i=" << num << " move=" << localMove[num]
