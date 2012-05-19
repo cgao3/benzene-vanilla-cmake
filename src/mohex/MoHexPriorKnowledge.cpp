@@ -42,42 +42,46 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
 
         if (doPruning && data.type && !safe.test(move))
         {
-            if (data.type == 1) // can remove with no checks
+            switch(data.type)
             {
+            case 1:  // opponent filled
+            case 2:  // vulnerable
+                // Prune with no further checks
                 pruned.set(move);
                 std::swap(moves[i], moves.back());
                 moves.pop_back();
                 continue;
-            }
-            else if (data.type == 2)  // dominated
-            {
-                const HexPoint killerMove
-                    = board.Const().PatternPoint(move, data.killer);
-                if (board.GetColor(killerMove) != EMPTY)
-                {
-                    LogSevere() << board.Write() << '\n';
-                    LogSevere() << "move=" << move << '\n';
-                    LogSevere() << "killer=" << killerMove << ' ' 
-                                << data.killer << '\n';
-                    LogSevere() << "gamma=" << data.gamma << '\n';
-                    throw BenzeneException("Killer not empty!!!\n");
-                }
-                if (!pruned.test(killerMove))
-                {
-                    safe.set(killerMove);
-                    pruned.set(move);
-                    if (moves.size() == 1)
+              
+            case 3: // dominated
+                { 
+                    const HexPoint killerMove
+                        = board.Const().PatternPoint(move, data.killer);
+                    if (board.GetColor(killerMove) != EMPTY)
                     {
                         LogSevere() << board.Write() << '\n';
-                        LogSevere() << board.Write(pruned) << '\n';
-                        LogSevere() << board.Write(safe) << '\n';
                         LogSevere() << "move=" << move << '\n';
-                        LogSevere() << "killer=" << killerMove << '\n';
-                        throw BenzeneException("Pruned dominated to empty!!\n");
+                        LogSevere() << "killer=" << killerMove << ' ' 
+                                    << data.killer << '\n';
+                        LogSevere() << "gamma=" << data.gamma << '\n';
+                        throw BenzeneException("Killer not empty!!!\n");
                     }
-                    std::swap(moves[i], moves.back());
-                    moves.pop_back();
-                    continue;
+                    if (!pruned.test(killerMove))
+                    {
+                        safe.set(killerMove);
+                        pruned.set(move);
+                        if (moves.size() == 1)
+                        {
+                            LogSevere() << board.Write() << '\n';
+                            LogSevere() << board.Write(pruned) << '\n';
+                            LogSevere() << board.Write(safe) << '\n';
+                            LogSevere() << "move=" << move << '\n';
+                            LogSevere() << "killer=" << killerMove << '\n';
+                            throw BenzeneException("Pruned dominated to empty!!\n");
+                        }
+                        std::swap(moves[i], moves.back());
+                        moves.pop_back();
+                        continue;
+                    }
                 }
             }
         }

@@ -626,7 +626,7 @@ void MoHexPatterns::ReadPatterns(std::string filename)
 	if (gamma < smallestGamma)
 	    smallestGamma = gamma;
 
-        if (type == 2) 
+        if (type == 3) 
         {
             if (pattern[killer] != 0) {
                 LogInfo() << ShowPattern(size, pattern, edge) << '\n';
