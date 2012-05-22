@@ -93,7 +93,8 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
             {
                 data.type = 0;
                 data.gamma = 1.0f;
-                m_localPatterns.Match(m_board, 6, *n, toPlay, &data);
+                //m_localPatterns.Match(m_board, 6, *n, toPlay, &data);
+                m_localPatterns.MatchWithKeys(m_board.Keys(*n), 6, toPlay, &data);
                 // if (data.type)
                 //     LogInfo() << "lastMove=" << lastMove 
                 //               << " point=" << *n << " type=" << data.type

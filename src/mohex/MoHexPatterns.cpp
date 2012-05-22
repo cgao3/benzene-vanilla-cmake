@@ -212,17 +212,17 @@ uint64_t MoHexPatterns::ComputeKey(int size, int pattern[])
 {
     uint64_t key = 0;
     for (int i = 1; i <= size; i++)
-	key ^= m_zobrist[i][pattern[i]];
+        key ^= m_zobrist[i][pattern[i]];
     return key;
 }
 
-inline void MoHexPatterns::GetKeyFromBoard(uint64_t *key, const int size, 
-                                           const MoHexBoard& board, 
-                                           const HexPoint point, 
-                                           const HexColor toPlay) const
+void MoHexPatterns::GetKeyFromBoard(uint64_t *key, const int size, 
+                                    const MoHexBoard& board, 
+                                    const HexPoint point, 
+                                    const HexColor toPlay)
 {
     UNUSED(toPlay);
-    key[0] = key[1] = key[2] = 0;
+    key[0] = 0;
     static const int sizes[] = { 6, 12, 18, 9999 };
     const ConstBoard& cbrd = board.Const();
     for (int i = 1, r = 0; ; )
@@ -280,19 +280,16 @@ float MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
     return 1.0f;
 }
 
-void MoHexPatterns::Match(const MoHexBoard& board, int size,
-                          HexPoint point, HexColor toPlay,
-                          MoHexPatterns::Data* ret) const
-{
-    uint64_t key[3];
-    GetKeyFromBoard(key, size, board, point, toPlay);
 
+void MoHexPatterns::MatchWithKeys(const uint64_t* keys, int size, 
+                                  HexColor toPlay, Data* ret) const
+{
     const Data* data;
     const Data* table = m_table[toPlay];
     switch(size)
     {
     case 12:
-        if ((data = QueryHashtable(table, key[1])) != NULL)
+        if ((data = QueryHashtable(table, keys[1])) != NULL)
 	{
             m_stats.hit12++;
             *ret = *data;
@@ -301,7 +298,7 @@ void MoHexPatterns::Match(const MoHexBoard& board, int size,
         m_stats.miss12++;
 
     case 6:
-        if ((data = QueryHashtable(table, key[0])) != NULL)
+        if ((data = QueryHashtable(table, keys[0])) != NULL)
 	{
             m_stats.hit6++;
             *ret = *data;
@@ -309,7 +306,15 @@ void MoHexPatterns::Match(const MoHexBoard& board, int size,
         }
         m_stats.miss6++;
     }
-    return;
+}
+
+void MoHexPatterns::Match(const MoHexBoard& board, int size,
+                          HexPoint point, HexColor toPlay,
+                          MoHexPatterns::Data* ret) const
+{
+    uint64_t keys[3];
+    GetKeyFromBoard(keys, size, board, point, toPlay);
+    MatchWithKeys(keys, size, toPlay, ret);
 }
 
 const MoHexPatterns::Data* 

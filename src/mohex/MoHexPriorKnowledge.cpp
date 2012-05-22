@@ -38,7 +38,25 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
         const HexPoint move = (HexPoint)moves[i].m_move;
         data.type = 0;
         data.gamma = 1.0f;
-        patterns.Match(board, 12, move, toPlay, &data);
+        patterns.MatchWithKeys(board.Keys(move), 12, toPlay, &data);
+
+#if 0
+        {
+            uint64_t keys[3];
+            MoHexPatterns::GetKeyFromBoard(keys, 12, board, move, toPlay);
+            if ((keys[0] != board.Keys(move)[0])
+                || (keys[1] != board.Keys(move)[1]))
+            {
+                LogInfo() << board.Write() << '\n'
+                          << "move=" << move << '\n'
+                          << " key[0]=" << keys[0] << '\n'
+                          << "bkey[0]=" << board.Keys(move)[0] << '\n'
+                          << " key[1]=" << keys[1] << '\n'
+                          << "bkey[1]=" << board.Keys(move)[1] << '\n';
+                throw BenzeneException("Keys don't match!");
+            }
+        }
+#endif
 
         if (doPruning && data.type && !safe.test(move))
         {

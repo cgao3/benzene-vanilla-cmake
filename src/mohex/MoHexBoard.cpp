@@ -4,6 +4,7 @@
 
 #include "BoardUtil.hpp"
 #include "MoHexBoard.hpp"
+#include "MoHexPatterns.hpp"
 
 using namespace benzene;
 
@@ -47,9 +48,29 @@ void MoHexBoard::SetPosition(const StoneBoard& pos)
 {
     SetConstBoard(pos.Const());
     Clear();
+    ComputeKeysOnEmptyBoard();
     for (BoardIterator it(Const().Interior()); it; ++it)
         if (pos.IsOccupied(*it))
             PlayMove(*it, pos.GetColor(*it));
+
+#if 0
+    for (BoardIterator it(Const().Interior()); it; ++it)
+    {
+        if (GetColor(*it) != EMPTY)
+            continue;
+        uint64_t keys[3];
+        MoHexPatterns::GetKeyFromBoard(keys, 12, *this, *it, BLACK);
+        if ((keys[0] != Keys(*it)[0]) || (keys[1] != Keys(*it)[1]))
+        {
+            LogInfo() << "move=" << *it << '\n'
+                      << " key[0]=" << keys[0] << '\n'
+                      << "bkey[0]=" << Keys(*it)[0] << '\n'
+                      << " key[1]=" << keys[1] << '\n'
+                      << "bkey[1]=" << Keys(*it)[1] << '\n';
+            throw BenzeneException("blah");
+        }
+    }
+#endif
 }
 
 HexPoint MoHexBoard::Parent(HexPoint c) const
@@ -100,6 +121,46 @@ void MoHexBoard::PlayMove(HexPoint cell, HexColor toPlay)
         else
             m_emptyNbs++;
 #endif
+    }
+    
+    UpdateKeys(cell, toPlay);
+}
+
+void MoHexBoard::ComputeKeysOnEmptyBoard()
+{
+    for (BoardIterator it(Const().Interior()); it; ++it)
+    {
+        MoHexPatterns::GetKeyFromBoard(&m_keys[*it][0], 12, *this,
+                                       *it, BLACK);
+    }
+}
+
+void MoHexBoard::UpdateKeys(const HexPoint cell, const HexColor color)
+{
+    static const int inverse[] = 
+        { 0, 6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 7 };
+
+    const int c = (color == BLACK) ? 1 : 2;
+    for (int i = 1; i <= 6; ++i)
+    {
+        const HexPoint n = Const().PatternPoint(cell, i, BLACK);
+        if (GetColor(n) == EMPTY)
+        {
+            m_keys[n][0] ^= MoHexPatterns::m_zobrist[ inverse[i] ][ 0 ];
+            m_keys[n][0] ^= MoHexPatterns::m_zobrist[ inverse[i] ][ c ];
+            
+            m_keys[n][1] ^= MoHexPatterns::m_zobrist[ inverse[i] ][ 0 ];
+            m_keys[n][1] ^= MoHexPatterns::m_zobrist[ inverse[i] ][ c ];
+        }
+    }
+    for (int i = 7; i <= 12; ++i)
+    {
+        const HexPoint n = Const().PatternPoint(cell, i, BLACK);
+        if (GetColor(n) == EMPTY)
+        {
+            m_keys[n][1] ^= MoHexPatterns::m_zobrist[ inverse[i] ][ 0 ];
+            m_keys[n][1] ^= MoHexPatterns::m_zobrist[ inverse[i] ][ c ];
+        }
     }
 }
 

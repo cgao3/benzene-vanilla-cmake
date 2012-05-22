@@ -51,10 +51,11 @@ public:
     HexPoint SaveBridge(const HexPoint lastMove, const HexColor toPlay,
                         SgRandom& random) const;
 
-
     std::string Write() const;
 
     std::string Write(const bitset_t& b) const;
+
+    const uint64_t* Keys(HexPoint p) const;
 
 private:
     struct Cell
@@ -70,6 +71,8 @@ private:
     const ConstBoard* m_const;
     Cell m_cell[BITSETSIZE];
 
+    uint64_t m_keys[BITSETSIZE][2];
+
     int8_t m_numMoves;
 
 #if TRACK_LAST_MOVE_FOR_SAVE_BRIDGE
@@ -81,6 +84,8 @@ private:
     void SetConstBoard(const ConstBoard& brd);
     void SetColor(HexPoint cell, HexColor color);
     void Merge(HexPoint c1, HexPoint c2);
+    void ComputeKeysOnEmptyBoard();
+    void UpdateKeys(const HexPoint cell, const HexColor toPlay);
 };
 
 inline const ConstBoard& MoHexBoard::Const() const
@@ -120,6 +125,11 @@ inline HexColor MoHexBoard::GetWinner() const
 inline int MoHexBoard::NumMoves() const
 {
     return m_numMoves;
+}
+
+inline const uint64_t* MoHexBoard::Keys(HexPoint p) const
+{
+    return &m_keys[p][0];
 }
 
 //----------------------------------------------------------------------------
