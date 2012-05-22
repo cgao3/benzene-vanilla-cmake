@@ -35,6 +35,7 @@ public:
     static const size_t TABLE_SIZE = 1 << 19; // 512k slots
     static const size_t MAX_INDEX = 20;
     static uint64_t m_zobrist[MAX_INDEX][6];
+    static uint64_t m_zobrist_size[5];
 
     MoHexPatterns();
 
@@ -67,6 +68,7 @@ public:
     static void InitializeZobrist();
 
 private:
+    static uint64_t RandomHash();
     static int Mirror(int loc);
     static void MirrorAndFlipPattern(int size, int pattern[], int* killer);
     static void RotatePattern(int size, int pattern[], int* killer);

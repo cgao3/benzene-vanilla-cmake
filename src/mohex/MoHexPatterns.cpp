@@ -24,6 +24,7 @@ std::string MoHexPatterns::Statistics::ToString() const
 //----------------------------------------------------------------------------
 
 uint64_t MoHexPatterns::m_zobrist[MoHexPatterns::MAX_INDEX][6];
+uint64_t MoHexPatterns::m_zobrist_size[5];
 
 MoHexPatterns::MoHexPatterns()
     : m_table(2)
@@ -38,17 +39,22 @@ MoHexPatterns::~MoHexPatterns()
     delete[] m_table[1];
 }
 
+uint64_t MoHexPatterns::RandomHash()
+{
+    uint64_t a = SgRandom::Global().Int();
+    uint64_t b = SgRandom::Global().Int();
+    return (a << 32) | b;
+}
+
 void MoHexPatterns::InitializeZobrist()
 {
     int old_seed = SgRandom::Global().Seed();
     SgRandom::Global().SetSeed(1);
     for (size_t i = 0; i < MAX_INDEX; i++) 
 	for (int j = 0; j < 6; j++) 
-        {
-            uint64_t a = SgRandom::Global().Int();
-            uint64_t b = SgRandom::Global().Int();
-	    m_zobrist[i][j] = (a << 32) | b;
-        }
+	    m_zobrist[i][j] = RandomHash();
+    for (size_t i = 0; i < 5; ++i)
+        m_zobrist_size[i] = RandomHash();
     SgRandom::SetSeed(old_seed);
 }
 
@@ -210,9 +216,10 @@ std::string MoHexPatterns::ShowPattern(int size, const int p[], const int e[])
 
 uint64_t MoHexPatterns::ComputeKey(int size, int pattern[])
 {
-    uint64_t key = 0;
+    uint64_t key = (size == 6) ? m_zobrist_size[0] : m_zobrist_size[1];
     for (int i = 1; i <= size; i++)
-        key ^= m_zobrist[i][pattern[i]];
+        if (pattern[i])
+            key ^= m_zobrist[i][pattern[i]];
     return key;
 }
 
@@ -222,7 +229,7 @@ void MoHexPatterns::GetKeyFromBoard(uint64_t *key, const int size,
                                     const HexColor toPlay)
 {
     UNUSED(toPlay);
-    key[0] = 0;
+    key[0] = m_zobrist_size[0];
     static const int sizes[] = { 6, 12, 18, 9999 };
     const ConstBoard& cbrd = board.Const();
     for (int i = 1, r = 0; ; )
@@ -233,7 +240,7 @@ void MoHexPatterns::GetKeyFromBoard(uint64_t *key, const int size,
             switch(board.GetColor(n))
             {
             case EMPTY: 
-                key[r] ^= m_zobrist[i][0];
+                //key[r] ^= m_zobrist[i][0];
                 break;
                 
             case BLACK:
@@ -247,7 +254,7 @@ void MoHexPatterns::GetKeyFromBoard(uint64_t *key, const int size,
         }
         if (size < sizes[++r])
             break;
-        key[r] = key[r - 1];
+        key[r] = key[r - 1] ^ m_zobrist_size[r - 1] ^ m_zobrist_size[r];
     }
 }
 

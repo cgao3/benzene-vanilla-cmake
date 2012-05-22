@@ -53,7 +53,7 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
             {
                 LogInfo() << board.Write() << '\n'
                           << "move=" << move << '\n'
-                          << " key[0]="b << keys[0] << '\n'
+                          << " key[0]=" << keys[0] << '\n'
                           << "bkey[0]=" << board.Keys(move)[0] << '\n'
                           << " key[1]=" << keys[1] << '\n'
                           << "bkey[1]=" << board.Keys(move)[1] << '\n';
