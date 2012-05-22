@@ -79,45 +79,7 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
     MoHexPlayoutPolicyStatistics& stats = m_shared->Statistics();
     if (lastMove != INVALID_POINT && config.patternHeuristic)
     {
-        //LogInfo() << brd.Write() << '\n' << "lastMove=" << lastMove << '\n';
-
-        HexPoint localMove[8];
-        float localGamma[8];
-        float localTotal = 0.0f;
-        const ConstBoard& cbrd = m_board.Const();
-        int num = 0;
-        for (BoardIterator n(cbrd.Nbs(lastMove)); n; ++n)
-        {
-            if (m_board.GetColor(*n) == EMPTY)
-            {
-                const MoHexPatterns::Data* data;
-                m_localPatterns.MatchWithKeys(m_board.Keys(*n), 6, toPlay, &data);
-                if (data != NULL) 
-                {
-                    localTotal += data->gamma;
-                    localMove[num] = *n;
-                    localGamma[num] = localTotal;
-                    // LogInfo() << "i=" << num << " move=" << localMove[num]
-                    //           << " gamma=" << gamma  
-                    //           << " gamma[i]=" << localGamma[num] << '\n';
-                    ++num;
-                }
-            }            
-        }
-        if (num > 0)
-        {
-            float random = m_random.Float(m_weights.Total() + localTotal);
-            //LogInfo() << "random= " << random << '\n';
-            if (random < localTotal)
-            {
-                localGamma[num - 1] += 9999; // ensure it doesn't go past end
-                int i = 0;
-                while (localGamma[i] < random)
-                    ++i;
-                move = localMove[i];
-                //LogInfo() << "Local! move=" << move << '\n';
-            }
-        }
+        move = GenerateLocalPatternMove(toPlay, lastMove);
         //move = GeneratePatternMove(toPlay, lastMove);
     }
     if (move == INVALID_POINT) 
@@ -158,6 +120,51 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexColor toPlay,
                                                  const HexPoint lastMove)
 {
     return m_board.SaveBridge(lastMove, toPlay, m_random);
+}
+
+HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
+                                                      const HexPoint lastMove)
+{
+    HexPoint move = INVALID_POINT;
+    HexPoint localMove[8];
+    float localGamma[8];
+    float localTotal = 0.0f;
+    const ConstBoard& cbrd = m_board.Const();
+    int num = 0;
+    //LogInfo() << brd.Write() << '\n' << "lastMove=" << lastMove << '\n';
+    for (BoardIterator n(cbrd.Nbs(lastMove)); n; ++n)
+    {
+        if (m_board.GetColor(*n) == EMPTY)
+        {
+            const MoHexPatterns::Data* data;
+            m_localPatterns.MatchWithKeys(m_board.Keys(*n), 6, toPlay, &data);
+            if (data != NULL) 
+            {
+                localTotal += data->gamma;
+                localMove[num] = *n;
+                localGamma[num] = localTotal;
+                // LogInfo() << "i=" << num << " move=" << localMove[num]
+                //           << " gamma=" << gamma  
+                //           << " gamma[i]=" << localGamma[num] << '\n';
+                ++num;
+            }
+        }            
+    }
+    if (num > 0)
+    {
+        float random = m_random.Float(m_weights.Total() + localTotal);
+        //LogInfo() << "random= " << random << '\n';
+        if (random < localTotal)
+        {
+            localGamma[num - 1] += 9999; // ensure it doesn't go past end
+            int i = 0;
+            while (localGamma[i] < random)
+                ++i;
+            move = localMove[i];
+            //LogInfo() << "Local! move=" << move << '\n';
+        }
+    }
+    return move;
 }
 
 //----------------------------------------------------------------------------

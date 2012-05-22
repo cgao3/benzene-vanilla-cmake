@@ -143,6 +143,7 @@ private:
     const MoHexPatterns& m_localPatterns;
 
     HexPoint GeneratePatternMove(const HexColor toPlay, HexPoint lastMove);
+    HexPoint GenerateLocalPatternMove(const HexColor toPlay, HexPoint lastMove);
 
     HexPoint GenerateRandomMove();
 };
