@@ -29,17 +29,21 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
     bitset_t safe, pruned;
     float totalGamma = 0.0f;
     float moveGamma[BITSETSIZE];
-    MoHexPatterns::Data data;
     const HexColor toPlay = m_state.ColorToPlay();
     const MoHexBoard& board = m_state.GetMoHexBoard();
     const MoHexPatterns& patterns = m_state.Search().GlobalPatterns();
     for (std::size_t i = 0; i < moves.size(); )
     {
         const HexPoint move = (HexPoint)moves[i].m_move;
-        data.type = 0;
-        data.gamma = 1.0f;
+        const MoHexPatterns::Data* data;
         patterns.MatchWithKeys(board.Keys(move), 12, toPlay, &data);
-
+        if (data == NULL)
+        {
+            moveGamma[move] = 1.0f;
+            totalGamma += 1.0f;
+            ++i;
+            continue;
+        }
 #if 0
         {
             uint64_t keys[3];
@@ -49,7 +53,7 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
             {
                 LogInfo() << board.Write() << '\n'
                           << "move=" << move << '\n'
-                          << " key[0]=" << keys[0] << '\n'
+                          << " key[0]="b << keys[0] << '\n'
                           << "bkey[0]=" << board.Keys(move)[0] << '\n'
                           << " key[1]=" << keys[1] << '\n'
                           << "bkey[1]=" << board.Keys(move)[1] << '\n';
@@ -58,9 +62,9 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
         }
 #endif
 
-        if (doPruning && data.type && !safe.test(move))
+        if (doPruning && data->type && !safe.test(move))
         {
-            switch(data.type)
+            switch(data->type)
             {
             case 1:  // opponent filled
             case 2:  // vulnerable
@@ -73,14 +77,14 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
             case 3: // dominated
                 { 
                     const HexPoint killerMove
-                        = board.Const().PatternPoint(move, data.killer);
+                        = board.Const().PatternPoint(move, data->killer);
                     if (board.GetColor(killerMove) != EMPTY)
                     {
                         LogSevere() << board.Write() << '\n';
                         LogSevere() << "move=" << move << '\n';
                         LogSevere() << "killer=" << killerMove << ' ' 
-                                    << data.killer << '\n';
-                        LogSevere() << "gamma=" << data.gamma << '\n';
+                                    << data->killer << '\n';
+                        LogSevere() << "gamma=" << data->gamma << '\n';
                         throw BenzeneException("Killer not empty!!!\n");
                     }
                     if (!pruned.test(killerMove))
@@ -104,8 +108,8 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
             }
         }
 
-        moveGamma[move] = data.gamma;
-        totalGamma += data.gamma;
+        moveGamma[move] = data->gamma;
+        totalGamma += data->gamma;
         ++i;
     }
     if (totalGamma < 1e-6)

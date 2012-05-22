@@ -57,10 +57,10 @@ public:
         pattern has a killer, killer is mirrored if toPlay is
         WHITE. */
     void Match(const MoHexBoard& board, int size, 
-               HexPoint point, HexColor toPlay, Data* ret) const;
+               HexPoint point, HexColor toPlay, const Data** ret) const;
 
     void MatchWithKeys(const uint64_t* keys, int size, 
-                       HexColor toPlay, Data* ret) const;
+                       HexColor toPlay, const Data** ret) const;
     
     Statistics GetStatistics() const;
 
