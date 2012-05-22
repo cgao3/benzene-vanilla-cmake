@@ -240,7 +240,6 @@ void MoHexPatterns::GetKeyFromBoard(uint64_t *key, const int size,
             switch(board.GetColor(n))
             {
             case EMPTY: 
-                //key[r] ^= m_zobrist[i][0];
                 break;
                 
             case BLACK:
@@ -328,10 +327,10 @@ MoHexPatterns::QueryHashtable(const Data* table, uint64_t key) const
     uint64_t index = key & mask;
     for (;;)
     {
+	if (table[index].key == key)
+            return &table[index];
 	if (table[index].key == 0)
             return NULL;
-	else if (table[index].key == key)
-            return &table[index];
         index++;
         index &= mask;
     }
