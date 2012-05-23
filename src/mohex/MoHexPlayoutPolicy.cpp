@@ -126,26 +126,25 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
                                                       const HexPoint lastMove)
 {
     HexPoint move = INVALID_POINT;
-    HexPoint localMove[8];
-    float localGamma[8];
+    HexPoint localMove[20];
+    float localGamma[20];
     float localTotal = 0.0f;
-    const ConstBoard& cbrd = m_board.Const();
     int num = 0;
-    //LogInfo() << brd.Write() << '\n' << "lastMove=" << lastMove << '\n';
-    for (BoardIterator n(cbrd.Nbs(lastMove)); n; ++n)
+    const ConstBoard& cbrd = m_board.Const();
+    for (int i = 1; i <= 12; ++i)
+        //for (int i = 1; i <= 6; ++i)
     {
-        if (m_board.GetColor(*n) == EMPTY)
+        const HexPoint n = cbrd.PatternPoint(lastMove, i);
+        if (m_board.GetColor(n) == EMPTY)
         {
             const MoHexPatterns::Data* data;
-            m_localPatterns.MatchWithKeys(m_board.Keys(*n), 6, toPlay, &data);
+            m_localPatterns.MatchWithKeys(m_board.Keys(n), 12, toPlay, &data);
+            //m_localPatterns.MatchWithKeys(m_board.Keys(n), 6, toPlay, &data);
             if (data != NULL) 
             {
                 localTotal += data->gamma;
-                localMove[num] = *n;
+                localMove[num] = n;
                 localGamma[num] = localTotal;
-                // LogInfo() << "i=" << num << " move=" << localMove[num]
-                //           << " gamma=" << gamma  
-                //           << " gamma[i]=" << localGamma[num] << '\n';
                 ++num;
             }
         }            
@@ -153,7 +152,6 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
     if (num > 0)
     {
         float random = m_random.Float(m_weights.Total() + localTotal);
-        //LogInfo() << "random= " << random << '\n';
         if (random < localTotal)
         {
             localGamma[num - 1] += 9999; // ensure it doesn't go past end
@@ -161,7 +159,6 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
             while (localGamma[i] < random)
                 ++i;
             move = localMove[i];
-            //LogInfo() << "Local! move=" << move << '\n';
         }
     }
     return move;
