@@ -21,17 +21,19 @@ MoHexPriorKnowledge::~MoHexPriorKnowledge()
 }
 
 void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
+                                          const HexPoint lastMove,
                                           const bool doPruning)
 {
     if (m_state.Search().ProgressiveBiasConstant() == 0.0f)
         return;
 
-    bitset_t safe, pruned;
+    bitset_t safe, pruned, consider;
     float totalGamma = 0.0f;
     float moveGamma[BITSETSIZE];
     const HexColor toPlay = m_state.ColorToPlay();
     const MoHexBoard& board = m_state.GetMoHexBoard();
     const MoHexPatterns& patterns = m_state.Search().GlobalPatterns();
+    const MoHexPatterns& localPat = m_state.Search().LocalPatterns();
     for (std::size_t i = 0; i < moves.size(); )
     {
         const HexPoint move = (HexPoint)moves[i].m_move;
@@ -39,6 +41,7 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
         patterns.MatchWithKeys(board.Keys(move), 12, toPlay, &data);
         if (data == NULL)
         {
+            consider.set(move);
             moveGamma[move] = 1.0f;
             totalGamma += 1.0f;
             ++i;
@@ -108,9 +111,27 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
             }
         }
 
+        consider.set(move);
         moveGamma[move] = data->gamma;
         totalGamma += data->gamma;
         ++i;
+    }
+    if (lastMove != INVALID_POINT) 
+    {
+        for (int i = 1; i <= 12; ++i)
+        {
+            const HexPoint n = board.Const().PatternPoint(lastMove, i);
+            if (consider.test(n))
+            {
+                const MoHexPatterns::Data* data;
+                localPat.MatchWithKeys(board.Keys(n), 12, toPlay, &data);
+                if (data != NULL) 
+                {
+                    moveGamma[n] += data->gamma;
+                    totalGamma += data->gamma;
+                }
+            }            
+        }
     }
     if (totalGamma < 1e-6)
         return;

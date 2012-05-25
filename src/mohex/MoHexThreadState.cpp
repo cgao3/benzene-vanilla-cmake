@@ -270,7 +270,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         if (count == 0)
         {
             m_sharedData->treeStatistics.priorPositions++;
-            m_priorKnowledge.ProcessPosition(moves, false);
+            m_priorKnowledge.ProcessPosition(moves, m_lastMovePlayed, false);
         }
         return false;
     }
@@ -290,7 +290,8 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
             size_t oldSize = moves.size();
             m_sharedData->treeStatistics.priorPositions++;
             m_sharedData->treeStatistics.priorMoves += oldSize;
-            m_priorKnowledge.ProcessPosition(moves, m_search.PriorPruning());
+            m_priorKnowledge.ProcessPosition(moves, m_lastMovePlayed,
+                                             m_search.PriorPruning());
             if (moves.empty())
             {
                 m_sharedData->treeStatistics.priorProven++;
