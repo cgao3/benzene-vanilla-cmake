@@ -6,33 +6,12 @@
 #include "SgRandom.h"
 #include "SgHash.h"
 #include "MoHexPlayoutPolicy.hpp"
+#include "MoHexPatterns.hpp"
 #include "Misc.hpp"
 #include "PatternState.hpp"
 #include "BoardUtil.hpp"
 
 using namespace benzene;
-
-//----------------------------------------------------------------------------
-
-namespace {
-
-//----------------------------------------------------------------------------
-
-/** Shuffle a vector with the given random number generator. 
-    @todo Refactor this out somewhere. */
-template<typename T>
-void ShuffleVector(std::vector<T>& v, SgRandom& random)
-{
-    for (int i = static_cast<int>(v.size() - 1); i > 0; --i) 
-    {
-        int j = random.Int(i+1);
-        std::swap(v[i], v[j]);
-    }
-}
-
-//----------------------------------------------------------------------------
-
-} // annonymous namespace
 
 //----------------------------------------------------------------------------
 
@@ -64,9 +43,12 @@ MoHexSharedPolicy::~MoHexSharedPolicy()
 //----------------------------------------------------------------------------
 
 MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
-                                       MoHexBoard& board)
+                                       MoHexBoard& board, 
+                                       const MoHexPatterns& localPatterns)
     : m_shared(shared),
-      m_board(board)
+      m_board(board),
+      m_weights(BITSETSIZE),
+      m_localPatterns(localPatterns)
 {
 }
 
@@ -82,10 +64,11 @@ void MoHexPlayoutPolicy::InitializeForSearch()
 
 void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
-    m_moves.clear();
+    m_weights.Clear();
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
-        m_moves.push_back(*it);
-    ShuffleVector(m_moves, m_random);
+        m_weights[*it] = 1.0f;
+    m_weights.Build();
+    //LogInfo() << brd.Write() << "\nTotal() " << m_weights.Total() << '\n';
 }
 
 HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay, 
@@ -96,7 +79,8 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
     MoHexPlayoutPolicyStatistics& stats = m_shared->Statistics();
     if (lastMove != INVALID_POINT && config.patternHeuristic)
     {
-        move = GeneratePatternMove(toPlay, lastMove);
+        move = GenerateLocalPatternMove(toPlay, lastMove);
+        //move = GeneratePatternMove(toPlay, lastMove);
     }
     if (move == INVALID_POINT) 
     {
@@ -113,8 +97,8 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
 
 void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 {
-    UNUSED(move);
     UNUSED(toPlay);
+    m_weights.SetWeightAndUpdate(move, 0.0f);
 }
 
 //--------------------------------------------------------------------------
@@ -122,15 +106,12 @@ void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 /** Selects random move among the empty cells on the board. */
 HexPoint MoHexPlayoutPolicy::GenerateRandomMove()
 {
-    HexPoint ret = INVALID_POINT;
-    while (true) 
-    {
-	BenzeneAssert(!m_moves.empty());
-        ret = m_moves.back();
-        m_moves.pop_back();
-        if (m_board.GetColor(ret) == EMPTY)
-            break;
-    }
+    BenzeneAssert(m_weights.Total() >= 0.99f);
+    if (m_weights.Total() < 1)
+        throw BenzeneException() << "Total() < 1!!\n";
+    HexPoint ret = static_cast<HexPoint>(m_weights.Choose(m_random));
+    if (m_board.GetColor(ret) != EMPTY)
+        throw BenzeneException() << "Weighted move not empty!\n";
     return ret;
 }
 
@@ -139,6 +120,48 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexColor toPlay,
                                                  const HexPoint lastMove)
 {
     return m_board.SaveBridge(lastMove, toPlay, m_random);
+}
+
+HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
+                                                      const HexPoint lastMove)
+{
+    HexPoint move = INVALID_POINT;
+    HexPoint localMove[20];
+    float localGamma[20];
+    float localTotal = 0.0f;
+    int num = 0;
+    const ConstBoard& cbrd = m_board.Const();
+    for (int i = 1; i <= 12; ++i)
+        //for (int i = 1; i <= 6; ++i)
+    {
+        const HexPoint n = cbrd.PatternPoint(lastMove, i);
+        if (m_board.GetColor(n) == EMPTY)
+        {
+            const MoHexPatterns::Data* data;
+            m_localPatterns.MatchWithKeys(m_board.Keys(n), 12, toPlay, &data);
+            //m_localPatterns.MatchWithKeys(m_board.Keys(n), 6, toPlay, &data);
+            if (data != NULL) 
+            {
+                localTotal += data->gamma;
+                localMove[num] = n;
+                localGamma[num] = localTotal;
+                ++num;
+            }
+        }            
+    }
+    if (num > 0)
+    {
+        float random = m_random.Float(m_weights.Total() + localTotal);
+        if (random < localTotal)
+        {
+            localGamma[num - 1] += 9999; // ensure it doesn't go past end
+            int i = 0;
+            while (localGamma[i] < random)
+                ++i;
+            move = localMove[i];
+        }
+    }
+    return move;
 }
 
 //----------------------------------------------------------------------------

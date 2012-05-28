@@ -173,7 +173,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "gfx/MoHex Rave Values/mohex-rave-values\n"
         "gfx/MoHex Prior Values/mohex-prior-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
-        "gfx/MoHex Cell Stats/mohex-cell-stats\n"
+        "gfx/MoHex Cell Stats/mohex-cell-stats %P\n"
         "none/MoHex Self Play/mohex-self-play\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
@@ -467,55 +467,65 @@ void MoHexEngine::Bounds(HtpCommand& cmd)
 
 void MoHexEngine::CellStats(HtpCommand& cmd)
 {
+    HexPoint from = HtpUtil::MoveArg(cmd, 0);
+    HexPoint to = HtpUtil::MoveArg(cmd, 1);
     MoHexSearch& search = m_player.Search();
     MoHexThreadState* thread 
         = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
     if (!thread)
         throw HtpFailure() << "Thread not a MoHexThreadState!";
 
+    HexColor color = BLACK;
+    if (m_game.Board().GetColor(from) == m_game.Board().GetColor(to))
+        color = m_game.Board().GetColor(from);
+
     const int NUM_PLAYOUTS = 10000;
-    float won[BITSETSIZE];
-    memset(won, 0, sizeof(won));
-    
+    float wins = 0.0f;
+    std::vector<int> won(BITSETSIZE, 0);
+    std::vector<int> played(BITSETSIZE, 0);
     for (int i = 0; i < NUM_PLAYOUTS; ++i)
     {
         HexState state(m_game.Board(), m_game.Board().WhoseTurn());
         HexPoint lastMovePlayed = INVALID_POINT;
         thread->StartPlayout(state, lastMovePlayed);
-
-        Groups groups;
-        GroupBuilder::Build(state.Position(), groups);
-        NeighborTracker nbs;
-        nbs.Init(groups);
-
+        const MoHexBoard& mobrd = thread->GetMoHexBoard();
+        const ConstBoard& cbrd = mobrd.Const();
         bool skipRaveUpdate;
-        const HexState& threadState = thread->State();
-        while (!nbs.GameOver())
+        //while (mobrd.NumMoves() < cbrd.Width() * cbrd.Height())
+        while (!mobrd.GameOver())
         {
             SgMove move = thread->GeneratePlayoutMove(skipRaveUpdate);
             if (move == SG_NULLMOVE)
                 break;
-            nbs.Play(threadState.ToPlay(), (HexPoint)move, 
-                     threadState.Position());
             thread->ExecutePlayout(move);
         }
-        HexColor winner = nbs.GetWinner();
         for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
-            if (threadState.Position().GetColor(*p) == winner)
+            if (mobrd.GetColor(*p) == color)
+                played[*p]++;
+        if (mobrd.Parent(from) != mobrd.Parent(to))
+            continue;
+        wins++;
+        for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
+            if (mobrd.GetColor(*p) == color)
                 won[*p]++;
     }
 
     cmd << "INFLUENCE ";
     for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
     {
-        float v = won[*p] / NUM_PLAYOUTS;
+        float v = 0.0f;
+        if (played[*p] > 0)
+            v = (float)won[*p] / played[*p];
+#if 0        
         // zoom into [0.2, 0.8]
         v = 0.5f + (v - 0.5f) / (0.8f - 0.2f);
         if (v < 0.0f) v = 0.0f;
         if (v > 1.0f) v = 1.0f;
+#endif
         cmd << ' ' << static_cast<HexPoint>(*p) 
             << ' ' << std::fixed << std::setprecision(3) << v;
     }
+    cmd << " TEXT pct=" << wins * 100.0 / NUM_PLAYOUTS;
 }
 
 void MoHexEngine::FindTopMoves(HtpCommand& cmd)
@@ -578,8 +588,8 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
     cmd.CheckNuArg(2);
     std::string infile = cmd.Arg(0);
     std::string outfile = cmd.Arg(1);
-    std::vector<Pattern> infpat, prune, dom;
-    HashedPatternSet hprune, hdom;
+    std::vector<Pattern> infpat, oppfill, vul, dom;
+    HashedPatternSet hoppfill, hvul, hdom;
     std::ifstream ifile;
     MiscUtil::OpenFile("mohex-prior-prune.txt", ifile);
     Pattern::LoadPatternsFromStream(ifile, infpat);
@@ -587,12 +597,16 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
     {
         if (infpat[i].GetType() == Pattern::DOMINATED)
             dom.push_back(infpat[i]);
+        else if (infpat[i].GetType() == Pattern::VULNERABLE)
+            vul.push_back(infpat[i]);
         else
-            prune.push_back(infpat[i]);
+            oppfill.push_back(infpat[i]);
     }
-    LogInfo() << "Parsed " << prune.size() << " pruning patterns, "
+    LogInfo() << "Parsed " << oppfill.size() << " opp fill patterns, "
+              << vul.size() << " vulnerable patterns, "
               << dom.size() << " domination patterns.\n";
-    hprune.Hash(prune);
+    hoppfill.Hash(oppfill);
+    hvul.Hash(vul);
     hdom.Hash(dom);
 
     std::ifstream f(infile.c_str());
@@ -641,23 +655,30 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
         type = 0;
         killer = 0;
         PatternHits hits;
-        pastate.MatchOnCell(hprune, HEX_CELL_F6, 
+        pastate.MatchOnCell(hoppfill, HEX_CELL_F6, 
                             PatternState::STOP_AT_FIRST_HIT, hits);
         if (hits.size() > 0)
             type = 1;
         else 
         {
-            pastate.MatchOnCell(hdom, HEX_CELL_F6, 
+            pastate.MatchOnCell(hvul, HEX_CELL_F6,
                                 PatternState::STOP_AT_FIRST_HIT, hits);
             if (hits.size() > 0)
-            {
                 type = 2;
-                const std::vector<HexPoint>& moves1 = hits[0].Moves1();
-                for (int i = 1; i <= size; ++i)
-                    if (cbrd.PatternPoint(HEX_CELL_F6, i) == moves1[0])
-                        killer = i;
-                if (killer == 0)
-                    throw BenzeneException("Killer not found!");
+            else 
+            {
+                pastate.MatchOnCell(hdom, HEX_CELL_F6, 
+                                    PatternState::STOP_AT_FIRST_HIT, hits);
+                if (hits.size() > 0)
+                {
+                    type = 3;
+                    const std::vector<HexPoint>& moves1 = hits[0].Moves1();
+                    for (int i = 1; i <= size; ++i)
+                        if (cbrd.PatternPoint(HEX_CELL_F6, i) == moves1[0])
+                            killer = i;
+                    if (killer == 0)
+                        throw BenzeneException("Killer not found!");
+                }
             }
         }
         if (type > 0) 

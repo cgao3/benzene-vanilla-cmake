@@ -92,6 +92,8 @@ public:
 
     const MoHexPatterns& GlobalPatterns() const;
 
+    const MoHexPatterns& LocalPatterns() const;
+
     /** @see SetKeepGames()
         @throws SgException if KeepGames() was false at last invocation of
         StartSearch() */
@@ -176,6 +178,8 @@ private:
 
     MoHexPatterns m_globalPatterns;
 
+    MoHexPatterns m_localPatterns;
+
     /** Not implemented */
     MoHexSearch(const MoHexSearch& search);
 
@@ -246,6 +250,11 @@ inline void MoHexSearch::SetFillinMapBits(int bits)
 inline const MoHexPatterns& MoHexSearch::GlobalPatterns() const
 {
     return m_globalPatterns;
+}
+
+inline const MoHexPatterns& MoHexSearch::LocalPatterns() const
+{
+    return m_localPatterns;
 }
 
 inline bool MoHexSearch::PriorPruning() const

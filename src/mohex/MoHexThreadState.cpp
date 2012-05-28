@@ -127,7 +127,7 @@ MoHexThreadState::MoHexThreadState(const unsigned int threadId,
       m_assertionHandler(*this),
       m_state(0),
       m_vcBrd(0),
-      m_policy(sharedPolicy, m_board),
+      m_policy(sharedPolicy, m_board, sch.LocalPatterns()),
       m_sharedData(0),
       m_priorKnowledge(*this),
       m_search(sch),
@@ -280,7 +280,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
         if (count == 0)
         {
             m_sharedData->treeStatistics.priorPositions++;
-            m_priorKnowledge.ProcessPosition(moves, false);
+            m_priorKnowledge.ProcessPosition(moves, m_lastMovePlayed, false);
         }
         return false;
     }
@@ -300,7 +300,8 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
             size_t oldSize = moves.size();
             m_sharedData->treeStatistics.priorPositions++;
             m_sharedData->treeStatistics.priorMoves += oldSize;
-            m_priorKnowledge.ProcessPosition(moves, m_search.PriorPruning());
+            m_priorKnowledge.ProcessPosition(moves, m_lastMovePlayed,
+                                             m_search.PriorPruning());
             m_sharedData->treeStatistics.priorMovesAfter += moves.size();
 
 #if 0
@@ -671,6 +672,7 @@ void MoHexThreadState::StartPlayout(const HexState& state,
         m_state.reset(new HexState(state));
     }
     *m_state = state;
+    m_board.SetPosition(m_state->Position());
     m_toPlay = m_state->ToPlay();
     m_lastMovePlayed = lastMovePlayed;
     StartPlayout();

@@ -20,7 +20,7 @@ public:
     ~MoHexPriorKnowledge();
 
     void ProcessPosition(std::vector<SgUctMoveInfo>& moves,
-                         const bool doPruning);
+                         const HexPoint lastMove, const bool doPruning);
     
 private:
     const MoHexThreadState& m_state;

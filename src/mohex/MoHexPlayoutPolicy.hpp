@@ -8,10 +8,12 @@
 #include "SgSystem.h"
 #include "SgRandom.h"
 
-#include "HexState.hpp"
+#include "WeightedRandom.hpp"
 #include "MoHexBoard.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
+
+class MoHexPatterns;
 
 //----------------------------------------------------------------------------
 
@@ -110,8 +112,9 @@ class MoHexPlayoutPolicy
 {
 public:
     /** Creates a policy. */
-    MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
-                       MoHexBoard& board);
+    MoHexPlayoutPolicy(MoHexSharedPolicy* shared, 
+                       MoHexBoard& board,
+                       const MoHexPatterns& localPatterns);
 
     ~MoHexPlayoutPolicy();
 
@@ -132,12 +135,15 @@ private:
 
     MoHexBoard& m_board;
 
-    std::vector<HexPoint> m_moves;
-
     /** Generator for this policy. */
     SgRandom m_random;
 
+    WeightedRandom m_weights;
+
+    const MoHexPatterns& m_localPatterns;
+
     HexPoint GeneratePatternMove(const HexColor toPlay, HexPoint lastMove);
+    HexPoint GenerateLocalPatternMove(const HexColor toPlay, HexPoint lastMove);
 
     HexPoint GenerateRandomMove();
 };

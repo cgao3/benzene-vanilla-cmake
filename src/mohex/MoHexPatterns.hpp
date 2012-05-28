@@ -32,11 +32,21 @@ public:
         int killer;
     };
 
+    static const size_t TABLE_SIZE = 1 << 19; // 512k slots
+    static const size_t MAX_INDEX = 20;
+    static uint64_t m_zobrist[MAX_INDEX][6];
+    static uint64_t m_zobrist_size[5];
+
     MoHexPatterns();
 
     ~MoHexPatterns();
 
     void ReadPatterns(std::string filename);
+
+    static void GetKeyFromBoard(uint64_t *key, const int size, 
+                                const MoHexBoard& board, 
+                                const HexPoint point, 
+                                const HexColor toPlay);
 
     /** Returns gamma of pattern that matches. 
         If no pattern matches, return 1.0f. */
@@ -48,44 +58,29 @@ public:
         pattern has a killer, killer is mirrored if toPlay is
         WHITE. */
     void Match(const MoHexBoard& board, int size, 
-               HexPoint point, HexColor toPlay, Data* ret) const;
+               HexPoint point, HexColor toPlay, const Data** ret) const;
 
+    void MatchWithKeys(const uint64_t* keys, int size, 
+                       HexColor toPlay, const Data** ret) const;
+    
     Statistics GetStatistics() const;
-
-    static void InitializeDirection();
 
     static void InitializeZobrist();
 
 private:
-    static const size_t TABLE_SIZE = 1 << 20;
-    static const size_t MAX_INDEX = 20;
-    static uint64_t  m_zobrist[2][MAX_INDEX][6];
-    static HexDirection m_direction[MAX_INDEX];
-
-    static void Rotate(int pattern[], int* killer);
+    static uint64_t RandomHash();
+    static int Mirror(int loc);
+    static void MirrorAndFlipPattern(int size, int pattern[], int* killer);
+    static void RotatePattern(int size, int pattern[], int* killer);
     static uint64_t ComputeKey(int size, int pattern[]);
 
-    Data* m_table;
+    std::vector<Data*> m_table;
 
     mutable Statistics m_stats;
 
-    void GetKeyFromBoard(uint64_t *key, const int size, 
-                         const MoHexBoard& board, 
-                         const HexPoint point, const HexColor toPlay) const;
-
-    void GetKeyFromBoardBlackToPlay(uint64_t *key, const int size, 
-                                    const MoHexBoard& board, 
-                                    const HexPoint point) const;
-    void GetKeyFromBoardWhiteToPlay(uint64_t *key, const int size, 
-                                    const MoHexBoard& board, 
-                                    const HexPoint point) const;
-    void GetKeyFromBoardOld(uint64_t *key_6, uint64_t *key_12, 
-                            uint64_t *key_18, const int size, 
-                            const MoHexBoard& board, 
-                            const HexPoint point, const HexColor toPlay) const;
-
-    const Data* QueryHashtable(uint64_t key) const;
-    bool InsertHashTable(uint64_t key, float gamma, int type, int killer); 
+    const Data* QueryHashtable(const Data* table, uint64_t key) const;
+    bool InsertHashTable(Data* table, uint64_t key, float gamma, 
+                         int type, int killer); 
 
     static std::string ShowPattern6(const int p[], const int e[]);
     static std::string ShowPattern12(const int p[], const int e[]);

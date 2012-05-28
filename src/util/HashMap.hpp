@@ -74,6 +74,9 @@ public:
     /** Returns number of objects stored. */
     unsigned Count() const;
 
+    /** Returns total memory occupied. */
+    std::size_t Memory() const;
+
     /** Retrieves object with key. 
         Returns true on success and object is copied into
         out. Otherwise, returns false.*/
@@ -195,6 +198,12 @@ inline unsigned HashMap<T>::Count() const
     return m_count;
 }
 
+template<typename T>
+inline std::size_t HashMap<T>::Memory() const
+{
+    return m_size * (sizeof(int) + sizeof(Data));
+}
+
 /** Performs linear probing to find key. */
 template<typename T>
 bool HashMap<T>::FindKey(const SgHashCode& key, unsigned& slot) const
@@ -258,8 +267,8 @@ void HashMap<T>::Add(SgHashCode key, const T& value)
         LogSevere() << "HashMap: Full! Uhh oh...\n";
         abort();
     }
-    else if (m_count > m_size / 4)
-        LogWarning() << "HashMap: table becoming full...\n";
+    else if (m_count > 3 * m_size / 4)
+        LogWarning() << "HashMap: table over 75% full...\n";
 
     // Atomic: get offset into allocated memory and increment m_count.
     int offset = FetchAndAdd(&m_count, 1u);
