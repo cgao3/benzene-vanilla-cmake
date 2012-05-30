@@ -341,7 +341,7 @@ bool MoHexThreadState::GenerateAllMoves(SgUctValue count,
                 }
 #endif
             }
-            else
+            else if (m_usingKnowledge)
             {
                 // Apply pre-computed vcm responses from parent's knowledge
                 VCMFromParent(moves);
