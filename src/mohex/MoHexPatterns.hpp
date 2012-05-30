@@ -48,21 +48,20 @@ public:
                                 const HexPoint point, 
                                 const HexColor toPlay);
 
-    /** Returns gamma of pattern that matches. 
-        If no pattern matches, return 1.0f. */
-    float GetGammaFromBoard(const MoHexBoard& board, int size, 
-                            HexPoint point, HexColor toPlay) const;
-
-    /** Fills 'ret' with info of pattern that matches.
-        Does not touch 'ret' if no pattern matches. If matching
-        pattern has a killer, killer is mirrored if toPlay is
-        WHITE. */
+    /** Computes pattern key centered on point and looks up paterrn.
+        Stores pointer to pattern info in ret on a hit, stores NULL
+        on a miss. */
     void Match(const MoHexBoard& board, int size, 
                HexPoint point, HexColor toPlay, const Data** ret) const;
 
-    void MatchWithKeys(const uint64_t* keys, int size, 
-                       HexColor toPlay, const Data** ret) const;
-    
+    /** Uses pre-computed key to lookup pattern. */
+    void MatchWithKeys(const uint64_t* keys, const int size,
+                       const HexColor toPlay, const Data** ret) const;
+
+    /** Faster version of MatchWithKeys(). */
+    void MatchWithKeysBoth(const uint64_t* keys, const HexColor toPlay, 
+                           const Data** ret) const;
+   
     Statistics GetStatistics() const;
 
     static void InitializeZobrist();

@@ -257,38 +257,8 @@ void MoHexPatterns::GetKeyFromBoard(uint64_t *key, const int size,
     }
 }
 
-float MoHexPatterns::GetGammaFromBoard(const MoHexBoard& board, int size,
-                                       HexPoint point, HexColor toPlay) const
-{
-    uint64_t key[3];
-    GetKeyFromBoard(key, size, board, point, toPlay);
-
-    const Data* data;
-    const Data* table = m_table[toPlay];
-    switch(size)
-    {
-    case 12:
-        if ((data = QueryHashtable(table, key[1])) != NULL)
-        {
-            m_stats.hit12++;
-            return data->gamma;
-        }
-        m_stats.miss12++;
-
-    case 6:
-        if ((data = QueryHashtable(table, key[0])) != NULL)
-        {
-            m_stats.hit6++;
-            return data->gamma;
-        }
-        m_stats.miss6++;
-    }
-    return 1.0f;
-}
-
-
-void MoHexPatterns::MatchWithKeys(const uint64_t* keys, int size, 
-                                  HexColor toPlay, const Data** ret) const
+void MoHexPatterns::MatchWithKeys(const uint64_t* keys, const int size, 
+                                  const HexColor toPlay, const Data** ret) const
 {
     const Data* table = m_table[toPlay];
     switch(size)
@@ -311,6 +281,25 @@ void MoHexPatterns::MatchWithKeys(const uint64_t* keys, int size,
     }
 }
 
+void MoHexPatterns::MatchWithKeysBoth(const uint64_t* keys, 
+                                      const HexColor toPlay, 
+                                      const Data** ret) const
+{
+    const Data* table = m_table[toPlay];
+    if ((*ret = QueryHashtable(table, keys[1])) != NULL)
+    {
+        m_stats.hit12++;
+        return;
+    }
+    m_stats.miss12++;
+    if ((*ret = QueryHashtable(table, keys[0])) != NULL)
+    {
+        m_stats.hit6++;
+        return;
+    }
+    m_stats.miss6++;
+}
+
 void MoHexPatterns::Match(const MoHexBoard& board, int size,
                           HexPoint point, HexColor toPlay,
                           const Data** ret) const
@@ -320,7 +309,7 @@ void MoHexPatterns::Match(const MoHexBoard& board, int size,
     MatchWithKeys(keys, size, toPlay, ret);
 }
 
-const MoHexPatterns::Data* 
+inline const MoHexPatterns::Data* 
 MoHexPatterns::QueryHashtable(const Data* table, uint64_t key) const
 {
     static const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
