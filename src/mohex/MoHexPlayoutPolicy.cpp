@@ -132,14 +132,12 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
     int num = 0;
     const ConstBoard& cbrd = m_board.Const();
     for (int i = 1; i <= 12; ++i)
-        //for (int i = 1; i <= 6; ++i)
     {
         const HexPoint n = cbrd.PatternPoint(lastMove, i);
         if (m_board.GetColor(n) == EMPTY)
         {
             const MoHexPatterns::Data* data;
-            m_localPatterns.MatchWithKeys(m_board.Keys(n), 12, toPlay, &data);
-            //m_localPatterns.MatchWithKeys(m_board.Keys(n), 6, toPlay, &data);
+            m_localPatterns.MatchWithKeysBoth(m_board.Keys(n), toPlay, &data);
             if (data != NULL) 
             {
                 localTotal += data->gamma;

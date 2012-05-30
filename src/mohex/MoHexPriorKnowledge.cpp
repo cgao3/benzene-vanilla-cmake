@@ -38,7 +38,7 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
     {
         const HexPoint move = (HexPoint)moves[i].m_move;
         const MoHexPatterns::Data* data;
-        patterns.MatchWithKeys(board.Keys(move), 12, toPlay, &data);
+        patterns.MatchWithKeysBoth(board.Keys(move), toPlay, &data);
         if (data == NULL)
         {
             consider.set(move);
@@ -124,7 +124,7 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
             if (consider.test(n))
             {
                 const MoHexPatterns::Data* data;
-                localPat.MatchWithKeys(board.Keys(n), 12, toPlay, &data);
+                localPat.MatchWithKeysBoth(board.Keys(n), toPlay, &data);
                 if (data != NULL) 
                 {
                     moveGamma[n] += data->gamma;
