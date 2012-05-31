@@ -114,6 +114,7 @@ public:
     /** Creates a policy. */
     MoHexPlayoutPolicy(MoHexSharedPolicy* shared, 
                        MoHexBoard& board,
+                       const MoHexPatterns& globalPatterns,
                        const MoHexPatterns& localPatterns);
 
     ~MoHexPlayoutPolicy();
@@ -138,14 +139,16 @@ private:
     /** Generator for this policy. */
     SgRandom m_random;
 
-    WeightedRandom m_weights;
+    std::vector<WeightedRandom> m_weights;
+
+    const MoHexPatterns& m_globalPatterns;
 
     const MoHexPatterns& m_localPatterns;
 
     HexPoint GeneratePatternMove(const HexColor toPlay, HexPoint lastMove);
     HexPoint GenerateLocalPatternMove(const HexColor toPlay, HexPoint lastMove);
 
-    HexPoint GenerateRandomMove();
+    HexPoint GenerateRandomMove(const HexColor toPlay);
 };
 
 //----------------------------------------------------------------------------

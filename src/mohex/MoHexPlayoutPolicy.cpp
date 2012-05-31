@@ -44,10 +44,12 @@ MoHexSharedPolicy::~MoHexSharedPolicy()
 
 MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
                                        MoHexBoard& board, 
+                                       const MoHexPatterns& globalPatterns,
                                        const MoHexPatterns& localPatterns)
     : m_shared(shared),
       m_board(board),
-      m_weights(BITSETSIZE),
+      m_weights(2),
+      m_globalPatterns(globalPatterns),
       m_localPatterns(localPatterns)
 {
 }
@@ -64,11 +66,18 @@ void MoHexPlayoutPolicy::InitializeForSearch()
 
 void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
-    m_weights.Clear();
+    m_weights[0].Clear();
+    m_weights[1].Clear();
+    const MoHexPatterns::Data* data;
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
-        m_weights[*it] = 1.0f;
-    m_weights.Build();
-    //LogInfo() << brd.Write() << "\nTotal() " << m_weights.Total() << '\n';
+    {
+        m_globalPatterns.MatchWithKeysBoth(m_board.Keys(*it), BLACK, &data);
+        m_weights[0][*it] = (data != NULL) ? data->gamma : 1.0f;
+        m_globalPatterns.MatchWithKeysBoth(m_board.Keys(*it), WHITE, &data);
+        m_weights[1][*it] = (data != NULL) ? data->gamma : 1.0f;
+    }
+    m_weights[0].Build();
+    m_weights[1].Build();
 }
 
 HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay, 
@@ -85,7 +94,7 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
     if (move == INVALID_POINT) 
     {
 	stats.randomMoves++;
-        move = GenerateRandomMove();
+        move = GenerateRandomMove(toPlay);
     } 
     else 
         stats.patternMoves++;
@@ -98,18 +107,16 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
 void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 {
     UNUSED(toPlay);
-    m_weights.SetWeightAndUpdate(move, 0.0f);
+    m_weights[0].SetWeightAndUpdate(move, 0.0f);
+    m_weights[1].SetWeightAndUpdate(move, 0.0f);
 }
 
 //--------------------------------------------------------------------------
 
 /** Selects random move among the empty cells on the board. */
-HexPoint MoHexPlayoutPolicy::GenerateRandomMove()
+HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const HexColor toPlay)
 {
-    BenzeneAssert(m_weights.Total() >= 0.99f);
-    if (m_weights.Total() < 1)
-        throw BenzeneException() << "Total() < 1!!\n";
-    HexPoint ret = static_cast<HexPoint>(m_weights.Choose(m_random));
+    HexPoint ret = static_cast<HexPoint>(m_weights[toPlay].Choose(m_random));
     if (m_board.GetColor(ret) != EMPTY)
         throw BenzeneException() << "Weighted move not empty!\n";
     return ret;
@@ -137,6 +144,11 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
         if (m_board.GetColor(n) == EMPTY)
         {
             const MoHexPatterns::Data* data;
+            m_globalPatterns.MatchWithKeysBoth(m_board.Keys(n), BLACK, &data);
+            m_weights[0].SetWeightAndUpdate(n, (data != NULL) ? data->gamma : 1.0f);
+            m_globalPatterns.MatchWithKeysBoth(m_board.Keys(n), WHITE, &data);
+            m_weights[1].SetWeightAndUpdate(n, (data != NULL) ? data->gamma : 1.0f);
+
             m_localPatterns.MatchWithKeysBoth(m_board.Keys(n), toPlay, &data);
             if (data != NULL) 
             {
@@ -147,9 +159,13 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
             }
         }            
     }
+    // LogInfo() << m_board.Write() << '\n'
+    //           << "lastMove=" << lastMove
+    //           << " global=" << m_weights[toPlay].Total()
+    //           << " local=" << localTotal << '\n';
     if (num > 0)
     {
-        float random = m_random.Float(m_weights.Total() + localTotal);
+        float random = m_random.Float(m_weights[toPlay].Total() + localTotal);
         if (random < localTotal)
         {
             localGamma[num - 1] += 9999; // ensure it doesn't go past end

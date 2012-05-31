@@ -20,6 +20,8 @@ _BEGIN_BENZENE_NAMESPACE_
 class WeightedRandom
 {
 public:
+    WeightedRandom();
+
     WeightedRandom(int size);
 
     /** Sets all weights to 0.0f */
@@ -44,6 +46,8 @@ public:
 private:
     int m_size;
     std::vector<float> m_weights;
+
+    void Init(int size);
 };
 
 //----------------------------------------------------------------------------

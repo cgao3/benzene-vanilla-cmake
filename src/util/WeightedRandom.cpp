@@ -9,13 +9,24 @@
 #include "SgSystem.h"
 #include "SgRandom.h"
 #include "WeightedRandom.hpp"
+#include "Bitset.hpp"
 #include "Logger.hpp"
 
 using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+WeightedRandom::WeightedRandom()
+{
+    Init(BITSETSIZE);
+}
+
 WeightedRandom::WeightedRandom(int size)
+{
+    Init(size);
+}
+
+void WeightedRandom::Init(int size)
 {
     if (size > 256) size = 512;
     else if (size > 128) size = 256;
