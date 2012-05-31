@@ -23,13 +23,13 @@ void GoGuiGfxStatus(const SgUctSearch& search, std::ostream& out)
     const SgUctTree& tree = search.Tree();
     const SgUctNode& root = tree.Root();
     const SgUctSearchStat& stat = search.Statistics();
-    int abortPercent = static_cast<int>(stat.m_aborted.Mean() * 100);
     out << "TEXT N=" << static_cast<size_t>(root.MoveCount())
         << " V=" << std::setprecision(2) << root.Mean()
         << " Len=" << static_cast<int>(stat.m_gameLength.Mean())
         << " Tree=" << std::setprecision(1) << stat.m_movesInTree.Mean()
         << "/" << static_cast<int>(stat.m_movesInTree.Max())
-        << " Abrt=" << abortPercent << '%'
+        << " Know=" << std::setprecision(1) << stat.m_knowledgeDepth.Mean()
+        << "/" << static_cast<int>(stat.m_knowledgeDepth.Max())
         << " Gm/s=" << static_cast<int>(stat.m_gamesPerSecond) << '\n';
 }
 
