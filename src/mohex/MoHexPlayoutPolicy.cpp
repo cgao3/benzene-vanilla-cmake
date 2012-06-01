@@ -168,7 +168,7 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
             m_weights[1].SetWeightAndUpdate(n, UsePatternWeight(data));
 
             m_localPatterns.MatchWithKeysBoth(m_board.Keys(n), toPlay, &data);
-            if (data != NULL) 
+            if (data != NULL && data->type == 0) 
             {
                 localTotal += data->gamma;
                 localMove[num] = n;
