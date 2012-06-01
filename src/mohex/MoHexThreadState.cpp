@@ -54,23 +54,6 @@ bool IsProvenState(const MoHexBoard& board, HexColor toPlay,
     return false;
 }
 
-/** Returns INVALID_POINT if history is empty, otherwise last move
-    played to the board, ie, skips swap move. */
-HexPoint LastMoveFromHistory(const MoveSequence& history)
-{
-    HexPoint lastMove = INVALID_POINT;
-    if (!history.empty()) 
-    {
-	lastMove = history.back().Point();
-	if (lastMove == SWAP_PIECES) 
-        {
-            BenzeneAssert(history.size() == 2);
-            lastMove = history.front().Point();
-	}
-    }
-    return lastMove;
-}
-
 //----------------------------------------------------------------------------
 
 } // namespace
@@ -216,7 +199,8 @@ void MoHexThreadState::GameStart()
 {
     m_atRoot = true;
     m_isInPlayout = false;
-    m_lastMovePlayed = LastMoveFromHistory(m_sharedData->gameSequence);
+    m_lastMovePlayed = MoveSequenceUtil::LastMoveFromHistory
+        (m_sharedData->gameSequence);
     *m_state = m_sharedData->rootState;
     m_board = m_sharedData->rootBoard;
     m_toPlay = m_state->ToPlay();
