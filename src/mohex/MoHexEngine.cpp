@@ -104,6 +104,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-prior-values", &MoHexEngine::PriorValues);
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
     RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
+    RegisterCmd("mohex-playout-move", &MoHexEngine::PlayoutMove);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
     RegisterCmd("mohex-self-play", &MoHexEngine::SelfPlay);
     RegisterCmd("mohex-mark-prunable", &MoHexEngine::MarkPrunablePatterns);
@@ -174,6 +175,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "gfx/MoHex Prior Values/mohex-prior-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
         "gfx/MoHex Cell Stats/mohex-cell-stats %P\n"
+        "move/MoHex Playout Move/mohex-playout-move\n"
         "none/MoHex Self Play/mohex-self-play\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
@@ -489,8 +491,8 @@ void MoHexEngine::CellStats(HtpCommand& cmd)
         HexPoint lastMovePlayed = INVALID_POINT;
         thread->StartPlayout(state, lastMovePlayed);
         const MoHexBoard& mobrd = thread->GetMoHexBoard();
-        const ConstBoard& cbrd = mobrd.Const();
         bool skipRaveUpdate;
+        //const ConstBoard& cbrd = mobrd.Const();
         //while (mobrd.NumMoves() < cbrd.Width() * cbrd.Height())
         while (!mobrd.GameOver())
         {
@@ -515,7 +517,7 @@ void MoHexEngine::CellStats(HtpCommand& cmd)
     {
         float v = 0.0f;
         if (played[*p] > 0)
-            v = (float)won[*p] / played[*p];
+            v = (float)won[*p] / (float)played[*p];
 #if 0        
         // zoom into [0.2, 0.8]
         v = 0.5f + (v - 0.5f) / (0.8f - 0.2f);
@@ -526,6 +528,27 @@ void MoHexEngine::CellStats(HtpCommand& cmd)
             << ' ' << std::fixed << std::setprecision(3) << v;
     }
     cmd << " TEXT pct=" << wins * 100.0 / NUM_PLAYOUTS;
+}
+
+void MoHexEngine::PlayoutMove(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    MoHexThreadState* thread 
+        = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
+    if (!thread)
+        throw HtpFailure() << "Thread not a MoHexThreadState!";
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    HexPoint lastMovePlayed 
+        = MoveSequenceUtil::LastMoveFromHistory(m_game.History());
+    thread->StartPlayout(state, lastMovePlayed);
+    bool skipRaveUpdate;
+    const MoHexBoard& mobrd = thread->GetMoHexBoard();
+    const ConstBoard& cbrd = mobrd.Const();
+    if (mobrd.NumMoves() >= cbrd.Width() * cbrd.Height())
+        return;
+    HexPoint move = (HexPoint)thread->GeneratePlayoutMove(skipRaveUpdate);
+    Play(state.ToPlay(), move);
+    cmd << move;
 }
 
 void MoHexEngine::FindTopMoves(HtpCommand& cmd)

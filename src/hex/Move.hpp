@@ -95,6 +95,26 @@ inline std::ostream& operator<<(std::ostream& os, const MoveSequence& move)
     return os;
 }
 
+namespace MoveSequenceUtil
+{
+    /** Returns INVALID_POINT if history is empty, otherwise last move
+        played to the board, ie, skips swap move. */
+    inline HexPoint LastMoveFromHistory(const MoveSequence& history)
+    {
+        HexPoint lastMove = INVALID_POINT;
+        if (!history.empty()) 
+        {
+            lastMove = history.back().Point();
+            if (lastMove == SWAP_PIECES) 
+            {
+                BenzeneAssert(history.size() == 2);
+                lastMove = history.front().Point();
+            }
+        }
+        return lastMove;
+    }
+}
+
 //----------------------------------------------------------------------------
 
 _END_BENZENE_NAMESPACE_
