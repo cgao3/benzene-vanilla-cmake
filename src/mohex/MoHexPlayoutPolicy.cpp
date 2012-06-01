@@ -64,6 +64,24 @@ void MoHexPlayoutPolicy::InitializeForSearch()
 {
 }
 
+inline float UsePatternWeight(const MoHexPatterns::Data* data)
+{
+    if (data != NULL)
+    {
+        switch(data->type)
+        {
+        case 0: // normal
+            return std::min(data->gamma, 10.0f);
+        case 1: // opponent captured
+        case 2: // vulnerable
+            return 0.00001f;
+        case 3: // dominated
+            return 0.0001f;
+        }
+    }
+    return 1.0f;
+}
+
 void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
     m_weights[0].Clear();
@@ -72,9 +90,9 @@ void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
     {
         m_globalPatterns.MatchWithKeysBoth(m_board.Keys(*it), BLACK, &data);
-        m_weights[0][*it] = (data != NULL) ? data->gamma : 1.0f;
+        m_weights[0][*it] = UsePatternWeight(data);
         m_globalPatterns.MatchWithKeysBoth(m_board.Keys(*it), WHITE, &data);
-        m_weights[1][*it] = (data != NULL) ? data->gamma : 1.0f;
+        m_weights[1][*it] = UsePatternWeight(data);
     }
     m_weights[0].Build();
     m_weights[1].Build();
@@ -145,9 +163,9 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
         {
             const MoHexPatterns::Data* data;
             m_globalPatterns.MatchWithKeysBoth(m_board.Keys(n), BLACK, &data);
-            m_weights[0].SetWeightAndUpdate(n, (data != NULL) ? data->gamma : 1.0f);
+            m_weights[0].SetWeightAndUpdate(n, UsePatternWeight(data));
             m_globalPatterns.MatchWithKeysBoth(m_board.Keys(n), WHITE, &data);
-            m_weights[1].SetWeightAndUpdate(n, (data != NULL) ? data->gamma : 1.0f);
+            m_weights[1].SetWeightAndUpdate(n, UsePatternWeight(data));
 
             m_localPatterns.MatchWithKeysBoth(m_board.Keys(n), toPlay, &data);
             if (data != NULL) 
