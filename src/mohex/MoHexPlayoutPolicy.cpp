@@ -151,10 +151,7 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
                                                       const HexPoint lastMove)
 {
     HexPoint move = INVALID_POINT;
-    HexPoint localMove[20];
-    float localGamma[20];
-    float localTotal = 0.0f;
-    int num = 0;
+    m_localMoves.Clear();
     const ConstBoard& cbrd = m_board.Const();
     for (int i = 1; i <= 12; ++i)
     {
@@ -170,30 +167,45 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
             m_localPatterns.MatchWithKeysBoth(m_board.Keys(n), toPlay, &data);
             if (data != NULL && data->type == 0) 
             {
-                localTotal += data->gamma;
-                localMove[num] = n;
-                localGamma[num] = localTotal;
-                ++num;
+                m_localMoves.gammaTotal += data->gamma;
+                m_localMoves.ptr.push_back(data);
+                m_localMoves.move.push_back(n);
+                m_localMoves.gamma.push_back(m_localMoves.gammaTotal);
             }
         }            
     }
     // LogInfo() << m_board.Write() << '\n'
     //           << "lastMove=" << lastMove
     //           << " global=" << m_weights[toPlay].Total()
-    //           << " local=" << localTotal << '\n';
-    if (num > 0)
+    //           << " local=" << m_localMoves.gammaTotal 
+    //           << " numLocal=" << m_localMoves.move.size() << '\n';
+    if (!m_localMoves.move.empty())
     {
-        float random = m_random.Float(m_weights[toPlay].Total() + localTotal);
-        if (random < localTotal)
+        float random = m_random.Float(m_weights[toPlay].Total() + 
+                                      m_localMoves.gammaTotal);
+        if (random < m_localMoves.gammaTotal)
         {
-            localGamma[num - 1] += 9999; // ensure it doesn't go past end
+            m_localMoves.gamma.back() += 9999; // ensure it doesn't go past end
             int i = 0;
-            while (localGamma[i] < random)
+            while (m_localMoves.gamma[i] < random)
                 ++i;
-            move = localMove[i];
+            move = m_localMoves.move[i];
         }
     }
     return move;
 }
 
 //----------------------------------------------------------------------------
+
+void MoHexPlayoutPolicy::GetWeightsForLastMove
+(std::vector<float>& weights, HexColor toPlay) const
+{
+    weights.resize(BITSETSIZE);
+    for (int i = 0; i < BITSETSIZE; ++i)
+        weights[i] = m_weights[toPlay][i];
+    for (size_t i = 0; i < m_localMoves.move.size(); ++i)
+        weights[ m_localMoves.move[i] ] += m_localMoves.ptr[i]->gamma;
+}
+
+//----------------------------------------------------------------------------
+

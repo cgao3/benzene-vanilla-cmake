@@ -46,11 +46,6 @@ void WeightedRandom::Clear()
         m_weights[i] = 0.0f;
 }
 
-float& WeightedRandom::operator[](int p)
-{
-    return m_weights[p + m_size];
-}
-
 void WeightedRandom::SetWeightAndUpdate(int p, float w)
 {
     p += m_size;

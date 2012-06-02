@@ -105,6 +105,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
     RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
     RegisterCmd("mohex-playout-move", &MoHexEngine::PlayoutMove);
+    RegisterCmd("mohex-playout-weights", &MoHexEngine::PlayoutWeights);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
     RegisterCmd("mohex-self-play", &MoHexEngine::SelfPlay);
     RegisterCmd("mohex-mark-prunable", &MoHexEngine::MarkPrunablePatterns);
@@ -176,6 +177,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "pspairs/MoHex Bounds/mohex-bounds\n"
         "gfx/MoHex Cell Stats/mohex-cell-stats %P\n"
         "move/MoHex Playout Move/mohex-playout-move\n"
+        "pspairs/MoHex Playout Weights/mohex-playout-weights\n"
         "none/MoHex Self Play/mohex-self-play\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
@@ -549,6 +551,31 @@ void MoHexEngine::PlayoutMove(HtpCommand& cmd)
     HexPoint move = (HexPoint)thread->GeneratePlayoutMove(skipRaveUpdate);
     Play(state.ToPlay(), move);
     cmd << move;
+}
+
+void MoHexEngine::PlayoutWeights(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    MoHexThreadState* thread 
+        = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
+    if (!thread)
+        throw HtpFailure() << "Thread not a MoHexThreadState!";
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    HexPoint lastMovePlayed 
+        = MoveSequenceUtil::LastMoveFromHistory(m_game.History());
+    thread->StartPlayout(state, lastMovePlayed);
+    bool skipRaveUpdate;
+    const MoHexBoard& mobrd = thread->GetMoHexBoard();
+    const ConstBoard& cbrd = mobrd.Const();
+    if (mobrd.NumMoves() >= cbrd.Width() * cbrd.Height())
+        return;
+    thread->GeneratePlayoutMove(skipRaveUpdate);
+    std::vector<float> weights;
+    thread->Policy().GetWeightsForLastMove(weights, state.ToPlay());
+    for (int i = 0; i < BITSETSIZE; ++i)
+        if (weights[i] > 0.0f)
+            cmd << ' ' << static_cast<HexPoint>(i)
+                << ' ' << std::fixed << std::setprecision(3) << weights[i];
 }
 
 void MoHexEngine::FindTopMoves(HtpCommand& cmd)

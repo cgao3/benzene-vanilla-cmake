@@ -10,10 +10,9 @@
 
 #include "WeightedRandom.hpp"
 #include "MoHexBoard.hpp"
+#include "MoHexPatterns.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
-
-class MoHexPatterns;
 
 //----------------------------------------------------------------------------
 
@@ -131,7 +130,28 @@ public:
 
     void InitializeForSearch();
 
+    /** Fills weights with weight for each move.
+        Call after GenerateMove(). */
+    void GetWeightsForLastMove(std::vector<float>& weights, 
+                               HexColor toPlay) const;
+
 private:
+    struct LocalMoves
+    {
+        std::vector<HexPoint> move;
+        std::vector<float> gamma;
+        std::vector<const MoHexPatterns::Data*> ptr;
+        float gammaTotal;
+
+        void Clear()
+        {
+            move.clear();
+            gamma.clear();
+            ptr.clear();
+            gammaTotal = 0.0f;
+        }
+    };
+
     MoHexSharedPolicy* m_shared;
 
     MoHexBoard& m_board;
@@ -140,6 +160,8 @@ private:
     SgRandom m_random;
 
     std::vector<WeightedRandom> m_weights;
+
+    LocalMoves m_localMoves;
 
     const MoHexPatterns& m_globalPatterns;
 

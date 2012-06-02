@@ -31,6 +31,9 @@ public:
         Changing this value does not cause tree to be updated. */
     float& operator[](int p);
 
+    /** Access weight of p. O(1). */
+    const float& operator[](int p) const;
+
     /** Sets weight of p and updates tree. O(lg(size)). */
     void SetWeightAndUpdate(int p, float w);
 
@@ -49,6 +52,16 @@ private:
 
     void Init(int size);
 };
+
+inline float& WeightedRandom::operator[](int p)
+{
+    return m_weights[p + m_size];
+}
+
+inline const float& WeightedRandom::operator[](int p) const
+{
+    return m_weights[p + m_size];
+}
 
 //----------------------------------------------------------------------------
 
