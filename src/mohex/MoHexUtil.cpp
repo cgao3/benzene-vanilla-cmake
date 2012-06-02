@@ -49,7 +49,7 @@ const char* CleanCount(std::size_t count)
     else if (count < 1000*1000)
         sprintf(str, "%luk", count / 1000);
     else 
-        sprintf(str, "%.2fm", ((float)count / 1000*1000));
+        sprintf(str, "%.2fm", ((float)count / (1000*1000)));
     return str;
 }
 
