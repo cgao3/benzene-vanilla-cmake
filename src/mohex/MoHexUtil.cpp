@@ -25,7 +25,8 @@ void GoGuiGfxStatus(const SgUctSearch& search, std::ostream& out)
     const SgUctTree& tree = search.Tree();
     const SgUctNode& root = tree.Root();
     const SgUctSearchStat& stat = search.Statistics();
-    out << "TEXT N=" << static_cast<size_t>(root.MoveCount())
+    out << std::fixed
+        << "TEXT N=" << static_cast<size_t>(root.MoveCount())
         << " V=" << std::setprecision(2) << root.Mean()
         << " Len=" << static_cast<int>(stat.m_gameLength.Mean())
         << " Tree=" << std::setprecision(1) << stat.m_movesInTree.Mean()
@@ -37,8 +38,19 @@ void GoGuiGfxStatus(const SgUctSearch& search, std::ostream& out)
 
 int FixedValue(SgUctValue value, int precision)
 {
-    return (int)
-        (value * pow(10.0f, (double)precision) + 0.5f);
+    return (int) (value * pow(10.0f, (double)precision) + 0.5f);
+}
+
+const char* CleanCount(std::size_t count)
+{
+    static char str[16];
+    if (count < 1000)
+        sprintf(str, "%lu", count);
+    else if (count < 1000*1000)
+        sprintf(str, "%luk", count / 1000);
+    else 
+        sprintf(str, "%.2fm", ((float)count / 1000*1000));
+    return str;
 }
 
 }
@@ -84,7 +96,7 @@ void MoHexUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
         size_t count = static_cast<size_t>(child.MoveCount());
 	numChildren++;
 	out << ' ' << MoHexUtil::MoveString(child.Move())
-	    << ' ' << count;
+	    << ' ' << CleanCount(count);
     }
     out << '\n';
     GoGuiGfxStatus(search, out);
