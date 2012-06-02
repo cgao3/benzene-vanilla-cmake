@@ -18,6 +18,8 @@ using namespace benzene;
 
 //----------------------------------------------------------------------------
 
+namespace {
+
 void GoGuiGfxStatus(const SgUctSearch& search, std::ostream& out)
 {
     const SgUctTree& tree = search.Tree();
@@ -31,6 +33,14 @@ void GoGuiGfxStatus(const SgUctSearch& search, std::ostream& out)
         << " Know=" << std::setprecision(1) << stat.m_knowledgeDepth.Mean()
         << "/" << static_cast<int>(stat.m_knowledgeDepth.Max())
         << " Gm/s=" << static_cast<int>(stat.m_gamesPerSecond) << '\n';
+}
+
+int FixedValue(SgUctValue value, int precision)
+{
+    return (int)
+        (value * pow(10.0f, (double)precision) + 0.5f);
+}
+
 }
 
 void MoHexUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
@@ -62,8 +72,8 @@ void MoHexUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,
             continue;
         SgUctValue influence = search.InverseEval(child.Mean());
         SgPoint move = child.Move();
-        out << ' ' << MoHexUtil::MoveString(move) << ' ' 
-            << std::fixed << std::setprecision(2) << influence;
+        out << ' ' << MoHexUtil::MoveString(move) 
+            << " ." << FixedValue(influence, 3);
     }
     out << '\n'
         << "LABEL";
