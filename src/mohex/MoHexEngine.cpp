@@ -474,6 +474,8 @@ void MoHexEngine::CellStats(HtpCommand& cmd)
     HexPoint from = HtpUtil::MoveArg(cmd, 0);
     HexPoint to = HtpUtil::MoveArg(cmd, 1);
     MoHexSearch& search = m_player.Search();
+    if (!search.ThreadsCreated())
+        search.CreateThreads();
     MoHexThreadState* thread 
         = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
     if (!thread)
@@ -535,6 +537,8 @@ void MoHexEngine::CellStats(HtpCommand& cmd)
 void MoHexEngine::PlayoutMove(HtpCommand& cmd)
 {
     MoHexSearch& search = m_player.Search();
+    if (!search.ThreadsCreated())
+        search.CreateThreads();
     MoHexThreadState* thread 
         = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
     if (!thread)
@@ -556,6 +560,8 @@ void MoHexEngine::PlayoutMove(HtpCommand& cmd)
 void MoHexEngine::PlayoutWeights(HtpCommand& cmd)
 {
     MoHexSearch& search = m_player.Search();
+    if (!search.ThreadsCreated())
+        search.CreateThreads();
     MoHexThreadState* thread 
         = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
     if (!thread)
