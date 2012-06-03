@@ -118,10 +118,17 @@ public:
 
     ~MoHexPlayoutPolicy();
 
+    /** Clears info for old move, prepares for next move. */
+    void PrepareForMove();
+
+    /** Updates weight of move. 
+        Call this after updating the keys. */
+    void UpdateWeights(const HexPoint p, const HexColor toPlay);
+    
     /** Generates a move. */
     HexPoint GenerateMove(const HexColor toPlay, const HexPoint lastMove);
 
-    /** Plays move move. */
+    /** Plays move. */
     void PlayMove(const HexPoint move, const HexColor toPlay);
 
     /** Initializes for fast playing of moves during playout.

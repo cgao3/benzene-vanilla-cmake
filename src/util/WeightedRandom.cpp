@@ -54,6 +54,13 @@ void WeightedRandom::SetWeightAndUpdate(int p, float w)
         m_weights[p] = m_weights[2*p] + m_weights[2*p + 1];
 }
 
+void WeightedRandom::SetWeight(int p, float w)
+{
+    p += m_size;
+    m_weights[1] -= m_weights[p] - w;
+    m_weights[p] = w;
+}
+
 void WeightedRandom::Build()
 {
     for (int i = m_size - 1; i >= 1; --i)
@@ -65,7 +72,7 @@ float WeightedRandom::Total() const
     return m_weights[1];
 }
 
-int WeightedRandom::Choose(SgRandom& random)
+int WeightedRandom::Choose(SgRandom& random) const
 {
     int i;
     do {
@@ -89,6 +96,25 @@ int WeightedRandom::Choose(SgRandom& random)
         if (r > m_weights[i])
             i++;
     } while (m_weights[i] <= 1e-7);
+    return i - m_size;
+}
+
+int WeightedRandom::ChooseLinear(SgRandom& random) const
+{
+    int i;
+    do {
+        const float rand = random.Float(m_weights[1]);
+        float r = rand;
+        for (i = m_size; i < 2 * m_size; ++i) 
+        {
+            r -= m_weights[i];
+            if (r <= 0.00009 && m_weights[i] > 0.0f)
+                return i - m_size;
+        }
+        // LogInfo() << "Didn't find it!\n"
+        //           << "total=" << m_weights[1] << " rand=" << rand 
+        //           << " r=" << r << '\n';
+    } while (1);
     return i - m_size;
 }
 

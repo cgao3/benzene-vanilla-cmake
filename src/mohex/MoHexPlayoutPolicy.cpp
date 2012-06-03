@@ -125,8 +125,11 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
 void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 {
     UNUSED(toPlay);
-    m_weights[0].SetWeightAndUpdate(move, 0.0f);
-    m_weights[1].SetWeightAndUpdate(move, 0.0f);
+    //m_weights[0].SetWeightAndUpdate(move, 0.0f);
+    //m_weights[1].SetWeightAndUpdate(move, 0.0f);
+
+    m_weights[0].SetWeight(move, 0.0f);
+    m_weights[1].SetWeight(move, 0.0f);
 }
 
 //--------------------------------------------------------------------------
@@ -134,7 +137,9 @@ void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 /** Selects random move among the empty cells on the board. */
 HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const HexColor toPlay)
 {
-    HexPoint ret = static_cast<HexPoint>(m_weights[toPlay].Choose(m_random));
+    //HexPoint ret = static_cast<HexPoint>(m_weights[toPlay].Choose(m_random));
+    HexPoint ret = static_cast<HexPoint>(m_weights[toPlay]
+                                         .ChooseLinear(m_random));
     if (m_board.GetColor(ret) != EMPTY)
         throw BenzeneException() << "Weighted move not empty!\n";
     return ret;
@@ -147,33 +152,37 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexColor toPlay,
     return m_board.SaveBridge(lastMove, toPlay, m_random);
 }
 
+void MoHexPlayoutPolicy::PrepareForMove()
+{
+    m_localMoves.Clear();
+}
+
+void MoHexPlayoutPolicy::UpdateWeights(const HexPoint p, const HexColor toPlay)
+{
+    const MoHexPatterns::Data* data;
+    m_globalPatterns.MatchWithKeysBoth(m_board.Keys(p), BLACK, &data);
+    //m_weights[0].SetWeightAndUpdate(p, UsePatternWeight(data));
+    m_weights[0].SetWeight(p, UsePatternWeight(data));
+
+    m_globalPatterns.MatchWithKeysBoth(m_board.Keys(p), WHITE, &data);
+    //m_weights[1].SetWeightAndUpdate(p, UsePatternWeight(data));
+    m_weights[1].SetWeight(p, UsePatternWeight(data));
+
+    m_localPatterns.MatchWithKeysBoth(m_board.Keys(p), toPlay, &data);
+    if (data != NULL && data->type == 0) 
+    {
+        m_localMoves.gammaTotal += data->gamma;
+        m_localMoves.ptr.push_back(data);
+        m_localMoves.move.push_back(p);
+        m_localMoves.gamma.push_back(m_localMoves.gammaTotal);
+    }
+}
+
 HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
                                                       const HexPoint lastMove)
 {
+    UNUSED(lastMove);
     HexPoint move = INVALID_POINT;
-    m_localMoves.Clear();
-    const ConstBoard& cbrd = m_board.Const();
-    for (int i = 1; i <= 12; ++i)
-    {
-        const HexPoint n = cbrd.PatternPoint(lastMove, i);
-        if (m_board.GetColor(n) == EMPTY)
-        {
-            const MoHexPatterns::Data* data;
-            m_globalPatterns.MatchWithKeysBoth(m_board.Keys(n), BLACK, &data);
-            m_weights[0].SetWeightAndUpdate(n, UsePatternWeight(data));
-            m_globalPatterns.MatchWithKeysBoth(m_board.Keys(n), WHITE, &data);
-            m_weights[1].SetWeightAndUpdate(n, UsePatternWeight(data));
-
-            m_localPatterns.MatchWithKeysBoth(m_board.Keys(n), toPlay, &data);
-            if (data != NULL && data->type == 0) 
-            {
-                m_localMoves.gammaTotal += data->gamma;
-                m_localMoves.ptr.push_back(data);
-                m_localMoves.move.push_back(n);
-                m_localMoves.gamma.push_back(m_localMoves.gammaTotal);
-            }
-        }            
-    }
     // LogInfo() << m_board.Write() << '\n'
     //           << "lastMove=" << lastMove
     //           << " global=" << m_weights[toPlay].Total()

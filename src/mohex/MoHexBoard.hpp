@@ -13,6 +13,8 @@ class SgRandom;
 
 _BEGIN_BENZENE_NAMESPACE_
 
+class MoHexPlayoutPolicy;
+
 //----------------------------------------------------------------------------
 
 class MoHexBoard
@@ -25,6 +27,9 @@ public:
     void SetPosition(const StoneBoard& pos);
 
     void PlayMove(HexPoint cell, HexColor toPlay);
+
+    void PlayoutMove(HexPoint cell, HexColor toPlay,
+                     MoHexPlayoutPolicy& policy);
 
     void Clear();
 

@@ -37,6 +37,9 @@ public:
     /** Sets weight of p and updates tree. O(lg(size)). */
     void SetWeightAndUpdate(int p, float w);
 
+    /** Sets weight of p and updates total weight. O(1). */
+    void SetWeight(int p, float w);
+
     /** Builds tree. O(size). */
     void Build();
 
@@ -44,7 +47,10 @@ public:
     float Total() const;
 
     /** Select a leaf. O(lg(size)). */
-    int Choose(SgRandom& random);
+    int Choose(SgRandom& random) const;
+
+    /** Select a leaf. O(size). */
+    int ChooseLinear(SgRandom& random) const;
 
 private:
     int m_size;
