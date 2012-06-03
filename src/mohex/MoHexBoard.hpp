@@ -28,9 +28,6 @@ public:
 
     void PlayMove(HexPoint cell, HexColor toPlay);
 
-    void PlayoutMove(HexPoint cell, HexColor toPlay,
-                     MoHexPlayoutPolicy& policy);
-
     void Clear();
 
     HexColor GetColor(HexPoint cell) const;

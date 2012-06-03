@@ -119,50 +119,6 @@ void MoHexBoard::PlayMove(HexPoint cell, HexColor toPlay)
     }
 }
 
-void MoHexBoard::PlayoutMove(HexPoint cell, HexColor toPlay,
-                             MoHexPlayoutPolicy& policy)
-{
-    m_numMoves++;
-    SetColor(cell, toPlay);
-
-    policy.PrepareForMove();
-
-    m_lastMove = cell;
-    m_emptyNbs = 0;
-    m_oppNbs = 0;
-
-    // static const int inverse[] = 
-    //     { 0, 6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 7 };
-    // NOTE: we currently do not use the inverse array.
-    // It works out that we can just count backwards for both
-    // 6 and 12 patterns, which is a little faster.
-    const int p = (toPlay == BLACK) ? 1 : 2;
-    for (int i = 1, j = 6; i <= 6; ++i, --j)
-    {
-        const HexPoint n = Const().PatternPoint(cell, i, BLACK);
-        if (GetColor(n) == toPlay)
-            Merge(cell, n);
-        else if (GetColor(n) == !toPlay)
-            m_oppNbs++;
-        else
-        {
-            m_emptyNbs++;
-            m_keys[n][0] ^= MoHexPatterns::m_zobrist[ j ][ p ];
-            m_keys[n][1] ^= MoHexPatterns::m_zobrist[ j ][ p ];
-            policy.UpdateWeights(n, !toPlay);
-        }
-    }
-    for (int i = 7, j = 12; i <= 12; ++i, --j)
-    {
-        const HexPoint n = Const().PatternPoint(cell, i, BLACK);
-        if (GetColor(n) == EMPTY)
-        {
-            m_keys[n][1] ^= MoHexPatterns::m_zobrist[ j ][ p ];
-            policy.UpdateWeights(n, !toPlay);
-        }
-    }
-}
-
 void MoHexBoard::ComputeKeysOnEmptyBoard()
 {
     for (BoardIterator it(Const().Interior()); it; ++it)

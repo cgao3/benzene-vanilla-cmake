@@ -685,7 +685,7 @@ void MoHexThreadState::ExecutePlayout(SgMove sgmove)
     HexPoint cell = static_cast<HexPoint>(sgmove);
     SG_ASSERT(m_board.GetColor(cell) == EMPTY);
     m_policy.PlayMove(cell, ColorToPlay());
-    m_board.PlayoutMove(cell, ColorToPlay(), m_policy);
+    m_board.PlayMove(cell, ColorToPlay());
     m_lastMovePlayed = cell;
     m_toPlay = !m_toPlay;
 }

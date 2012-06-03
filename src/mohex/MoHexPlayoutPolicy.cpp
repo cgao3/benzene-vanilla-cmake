@@ -152,11 +152,6 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexColor toPlay,
     return m_board.SaveBridge(lastMove, toPlay, m_random);
 }
 
-void MoHexPlayoutPolicy::PrepareForMove()
-{
-    m_localMoves.Clear();
-}
-
 void MoHexPlayoutPolicy::UpdateWeights(const HexPoint p, const HexColor toPlay)
 {
     const MoHexPatterns::Data* data;
@@ -181,13 +176,19 @@ void MoHexPlayoutPolicy::UpdateWeights(const HexPoint p, const HexColor toPlay)
 HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
                                                       const HexPoint lastMove)
 {
-    UNUSED(lastMove);
-    HexPoint move = INVALID_POINT;
+    m_localMoves.Clear();
+    for (int i = 1; i <= 12; ++i)
+    {
+        const HexPoint n = m_board.Const().PatternPoint(lastMove, i);
+        if (m_board.GetColor(n) == EMPTY)
+            UpdateWeights(n, toPlay);
+    }
     // LogInfo() << m_board.Write() << '\n'
     //           << "lastMove=" << lastMove
     //           << " global=" << m_weights[toPlay].Total()
     //           << " local=" << m_localMoves.gammaTotal 
     //           << " numLocal=" << m_localMoves.move.size() << '\n';
+    HexPoint move = INVALID_POINT;
     if (!m_localMoves.move.empty())
     {
         float random = m_random.Float(m_weights[toPlay].Total() + 
