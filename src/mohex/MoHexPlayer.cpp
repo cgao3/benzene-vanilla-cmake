@@ -24,18 +24,6 @@ using namespace benzene;
 
 namespace {
 
-/** Returns true if one is a prefix of the other. */
-bool IsPrefixOf(const MoveSequence& a, const MoveSequence& b)
-{
-    for (std::size_t i = 0; i < a.size() && i < b.size(); ++i)
-    {
-        if (a[i] != b[i])
-            return false;
-    }
-    return true;
-}
-
-
 void SortConsiderSet(const bitset_t& consider, const Resistance& resist,
                      std::vector<HexPoint>& moves)
 {
@@ -344,7 +332,7 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
         LogInfo() << "ReuseSubtree: Backtracked to an earlier state.\n";
         return 0;
     }
-    if (!IsPrefixOf(oldSequence, newSequence))
+    if (!MoveSequenceUtil::IsPrefixOf(oldSequence, newSequence))
     {
         LogInfo() << "ReuseSubtree: Not a continuation.\n";
         return 0;

@@ -71,6 +71,8 @@ private:
 
     void RegisterCmd(const std::string& name,
                      GtpCallback<MoHexEngine>::Method method);
+
+    const SgUctNode* FindState(const Game& game) const;
 };
 
 //----------------------------------------------------------------------------

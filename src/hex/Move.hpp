@@ -113,6 +113,17 @@ namespace MoveSequenceUtil
         }
         return lastMove;
     }
+    
+    /** Returns true if one is a prefix of the other. */
+    inline bool IsPrefixOf(const MoveSequence& a, const MoveSequence& b)
+    {
+        for (std::size_t i = 0; i < a.size() && i < b.size(); ++i)
+        {
+            if (a[i] != b[i])
+                return false;
+        }
+        return true;
+    }
 }
 
 //----------------------------------------------------------------------------

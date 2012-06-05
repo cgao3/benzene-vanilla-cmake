@@ -50,6 +50,12 @@ namespace MoHexUtil
     
     /** Method used to print SgMoves during UCT. */
     std::string MoveString(SgMove move);
+
+    /** Returns top digits of a value in [0,1]. */
+    int FixedValue(SgUctValue value, int precision);
+
+    /** Returns a human readable count. */
+    const char* CleanCount(std::size_t count);
     
     /** Converts a HexColor to SgBlackWhite (Note: cannot be EMPTY). */
     SgBlackWhite ToSgBlackWhite(HexColor c);
@@ -57,6 +63,11 @@ namespace MoHexUtil
     /** Saves the uct tree to an sgf. */
     void SaveTree(const SgUctTree& tree, const StoneBoard& brd, 
                   HexColor toPlay, std::ostream& out, int maxDepth);
+}
+
+inline int MoHexUtil::FixedValue(double value, int precision)
+{
+    return (int) (value * pow(10.0f, (double)precision) + 0.5f);
 }
 
 //----------------------------------------------------------------------------

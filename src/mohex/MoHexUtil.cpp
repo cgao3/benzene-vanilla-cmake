@@ -36,12 +36,9 @@ void GoGuiGfxStatus(const SgUctSearch& search, std::ostream& out)
         << " Gm/s=" << static_cast<int>(stat.m_gamesPerSecond) << '\n';
 }
 
-int FixedValue(SgUctValue value, int precision)
-{
-    return (int) (value * pow(10.0f, (double)precision) + 0.5f);
 }
 
-const char* CleanCount(std::size_t count)
+const char* MoHexUtil::CleanCount(std::size_t count)
 {
     static char str[16];
     if (count < 1000)
@@ -51,8 +48,6 @@ const char* CleanCount(std::size_t count)
     else 
         sprintf(str, "%.2fm", ((float)count / (1000*1000)));
     return str;
-}
-
 }
 
 void MoHexUtil::GoGuiGfx(const SgUctSearch& search, SgBlackWhite toPlay,

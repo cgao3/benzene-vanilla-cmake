@@ -3,15 +3,18 @@
 //----------------------------------------------------------------------------
 
 #include "SgSystem.h"
+#include "SgUctTreeUtil.h"
 
 #include "BitsetIterator.hpp"
 #include "BoardUtil.hpp"
 #include "MoHexEngine.hpp"
 #include "MoHexPlayer.hpp"
+#include "MoHexUtil.hpp"
 #include "PlayAndSolve.hpp"
 #include "SwapCheck.hpp"
 #include "NeighborTracker.hpp"
 #include "Misc.hpp"
+#include "Move.hpp"
 
 using namespace benzene;
 
@@ -159,6 +162,38 @@ HexPoint MoHexEngine::DoSearch(HexColor color, double maxTime)
     }
 }
 
+const SgUctNode* MoHexEngine::FindState(const Game& game) const
+{
+    MoHexSearch& search = m_player.Search();
+    // Board size must be the same. This also catches the case where
+    // no previous search has been performed.
+    const StoneBoard& oldPosition = search.SharedData().rootState.Position();
+    const StoneBoard& newPosition = game.Board();
+    if (&oldPosition.Const() == 0)
+        throw HtpFailure() << "No previous search";
+    if (oldPosition.Width() != newPosition.Width() ||
+        oldPosition.Height() != newPosition.Height())
+        throw HtpFailure() << "Board size differs from last search";
+    const MoveSequence& oldSequence = search.SharedData().gameSequence;
+    const MoveSequence& newSequence = game.History();
+    if (oldSequence.size() > newSequence.size())
+        throw HtpFailure() << "Backtracked to earlier position"; 
+    if (!MoveSequenceUtil::IsPrefixOf(oldSequence, newSequence))
+        throw HtpFailure() << "Not a continuation";
+    const SgUctTree& tree = search.Tree();
+    const SgUctNode* node = &tree.Root();
+    for (std::size_t i = oldSequence.size(); i < newSequence.size(); ++i)
+    {
+        if (i && newSequence[i-1].Color() == newSequence[i].Color())
+            throw HtpFailure() << "Colors do not alternate in continuation";
+        HexPoint move = newSequence[i].Point();
+        node = SgUctTreeUtil::FindChildWithMove(tree, *node, move);
+        if (node == 0)
+            throw HtpFailure() << "State not in previous search";
+    }
+    return node;
+}
+
 //----------------------------------------------------------------------------
 
 void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
@@ -172,8 +207,8 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "none/MoHex Save Games/mohex-save-games %w\n"
         "var/MoHex PV/mohex-get-pv %m\n"
         "pspairs/MoHex Values/mohex-values\n"
-        "gfx/MoHex Rave Values/mohex-rave-values\n"
-        "gfx/MoHex Prior Values/mohex-prior-values\n"
+        "pspairs/MoHex Rave Values/mohex-rave-values\n"
+        "pspairs/MoHex Prior Values/mohex-prior-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
         "gfx/MoHex Cell Stats/mohex-cell-stats %P\n"
         "move/MoHex Playout Move/mohex-playout-move\n"
@@ -398,17 +433,25 @@ void MoHexEngine::Values(HtpCommand& cmd)
 {
     MoHexSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
-    for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
+    const SgUctNode* node = FindState(m_game);
+    for (SgUctChildIterator it(tree, *node); it; ++it)
     {
         const SgUctNode& child = *it;
-        SgPoint p = child.Move();
-        SgUctValue count = child.MoveCount();
-        SgUctValue mean = 0.0;
-        if (count > 0)
-            mean = search.InverseEval(child.Mean());
-        cmd << ' ' << static_cast<HexPoint>(p)
-            << ' ' << std::fixed << std::setprecision(3) << mean
-            << '@' << static_cast<std::size_t>(count);
+        HexPoint p = static_cast<HexPoint>(child.Move());
+        std::size_t count = (size_t)child.MoveCount();
+        cmd << ' ' << p << ' ';
+        if (child.IsProvenLoss())
+            cmd << "W@" << count;
+        else if (child.IsProvenWin())
+            cmd << "L@" << count;
+        else if (count == 0)
+            cmd << "0";
+        else 
+        {
+            SgUctValue mean = search.InverseEval(child.Mean());
+            cmd << '.' << MoHexUtil::FixedValue(mean, 3)
+                << '@' << MoHexUtil::CleanCount(count);
+        }
     }
 }
 
@@ -416,15 +459,40 @@ void MoHexEngine::RaveValues(HtpCommand& cmd)
 {
     MoHexSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
-    cmd << "INFLUENCE ";
-    for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
+    const SgUctNode* node = FindState(m_game);
+    for (SgUctChildIterator it(tree, *node); it; ++it)
     {
         const SgUctNode& child = *it;
-        SgPoint p = child.Move();
-        if (p == SG_PASS || ! child.HasRaveValue())
+        if (! child.HasRaveValue())
             continue;
-        cmd << ' ' << static_cast<HexPoint>(p)
-            << ' ' << std::fixed << std::setprecision(3) << child.RaveValue();
+        cmd << ' ' << static_cast<HexPoint>(child.Move()) << ' '
+            << '.' << MoHexUtil::FixedValue(child.RaveValue(), 3)
+            << '@' << MoHexUtil::CleanCount((size_t)child.RaveCount());
+    }
+}
+
+void MoHexEngine::Bounds(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    const SgUctTree& tree = search.Tree();
+    const SgUctNode* node = FindState(m_game);
+    for (SgUctChildIterator it(tree, *node); it; ++it)
+    {
+        const SgUctNode& child = *it;
+        std::size_t count = (size_t)child.MoveCount();
+        cmd << ' ' << static_cast<HexPoint>(child.Move()) << ' ';
+        if (child.IsProvenLoss())
+            cmd << "W@" << count;
+        else if (child.IsProvenWin())
+            cmd << "L@" << count;
+        else
+        {
+            // show bound even if count is 0
+            // FIXME: FixedValue() expects [0,1]... which the bound can exceed
+            SgUctValue bound = search.GetBound(search.Rave(), *node, child);
+            cmd << '.' << MoHexUtil::FixedValue(bound, 3)
+                << '@' << MoHexUtil::CleanCount(count);
+        }
     }
 }
 
@@ -432,14 +500,11 @@ void MoHexEngine::PriorValues(HtpCommand& cmd)
 {
     MoHexSearch& search = m_player.Search();
     const SgUctTree& tree = search.Tree();
-    cmd << "INFLUENCE ";
-    for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
+    const SgUctNode* node = FindState(m_game);
+    for (SgUctChildIterator it(tree, *node); it; ++it)
     {
         const SgUctNode& child = *it;
-        SgPoint p = child.Move();
-        if (p == SG_PASS)
-            continue;
-        cmd << ' ' << static_cast<HexPoint>(p)
+        cmd << ' ' << static_cast<HexPoint>(child.Move())
             << ' ' << std::fixed << std::setprecision(3) << child.Prior();
     }
 }
@@ -447,25 +512,16 @@ void MoHexEngine::PriorValues(HtpCommand& cmd)
 void MoHexEngine::GetPV(HtpCommand& cmd)
 {
     MoHexSearch& search = m_player.Search();
-    std::vector<SgMove> seq;
-    search.FindBestSequence(seq);
-    for (std::size_t i = 0; i < seq.size(); ++i)
-        cmd << static_cast<HexPoint>(seq[i]) << ' ';
-}
-
-void MoHexEngine::Bounds(HtpCommand& cmd)
-{
-    MoHexSearch& search = m_player.Search();
-    const SgUctTree& tree = search.Tree();
-    for (SgUctChildIterator it(tree, tree.Root()); it; ++it)
+    const SgUctNode* node = FindState(m_game);
+    const SgUctNode* current = node;
+    while (true)
     {
-        const SgUctNode& child = *it;
-        SgPoint p = child.Move();
-        if (p == SG_PASS || ! child.HasRaveValue())
-            continue;
-        SgUctValue bound = search.GetBound(search.Rave(), tree.Root(), child);
-        cmd << ' ' << static_cast<HexPoint>(p) 
-            << ' ' << std::fixed << std::setprecision(3) << bound;
+        current = search.FindBestChild(*current, search.MoveSelect());
+        if (current == 0)
+            break;
+        cmd << ' ' << static_cast<HexPoint>(current->Move());
+        if (! current->HasChildren())
+            break;
     }
 }
 
