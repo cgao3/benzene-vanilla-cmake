@@ -95,24 +95,16 @@ float MoHexPlayoutPolicy::PlayoutLocalGammaFunction(int type, float gamma)
     return gamma;
 }
 
-inline float UsePatternWeight(const MoHexPatterns::Data* data)
-{
-    if (data != NULL)
-        return data->gamma;
-    return 1.0f;
-}
-
 void MoHexPlayoutPolicy::InitializeForPlayout(const StoneBoard& brd)
 {
     m_weights[0].Clear();
     m_weights[1].Clear();
-    const MoHexPatterns::Data* data;
     for (BitsetIterator it(brd.GetEmpty()); it; ++it)
     {
-        m_globalPatterns.MatchWithKeysBoth(m_board.Keys(*it), BLACK, &data);
-        m_weights[0][*it] = UsePatternWeight(data);
-        m_globalPatterns.MatchWithKeysBoth(m_board.Keys(*it), WHITE, &data);
-        m_weights[1][*it] = UsePatternWeight(data);
+        m_weights[0][*it] = 
+            m_globalPatterns.GammaFromKeysBoth(m_board.Keys(*it), BLACK);
+        m_weights[1][*it] = 
+            m_globalPatterns.GammaFromKeysBoth(m_board.Keys(*it), WHITE);
     }
     m_weights[0].Build();
     m_weights[1].Build();
@@ -173,13 +165,13 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexColor toPlay,
 
 void MoHexPlayoutPolicy::UpdateWeights(const HexPoint p, const HexColor toPlay)
 {
+    float gamma;
+    gamma = m_globalPatterns.GammaFromKeysBoth(m_board.Keys(p), BLACK);
+    m_weights[0].SetWeight(p, gamma);
+    gamma = m_globalPatterns.GammaFromKeysBoth(m_board.Keys(p), WHITE);
+    m_weights[1].SetWeight(p, gamma);
+
     const MoHexPatterns::Data* data;
-    m_globalPatterns.MatchWithKeysBoth(m_board.Keys(p), BLACK, &data);
-    m_weights[0].SetWeight(p, UsePatternWeight(data));
-
-    m_globalPatterns.MatchWithKeysBoth(m_board.Keys(p), WHITE, &data);
-    m_weights[1].SetWeight(p, UsePatternWeight(data));
-
     m_localPatterns.MatchWithKeysBoth(m_board.Keys(p), toPlay, &data);
     if (data != NULL && data->type == 0) 
     {

@@ -67,6 +67,9 @@ public:
     void MatchWithKeysBoth(const uint64_t* keys, const HexColor toPlay, 
                            const Data** ret) const;
    
+    float GammaFromKeysBoth(const uint64_t* keys,
+                            const HexColor toPlay) const;
+
     Statistics GetStatistics() const;
 
     static void InitializeZobrist();

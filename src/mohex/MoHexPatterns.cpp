@@ -309,6 +309,26 @@ void MoHexPatterns::Match(const MoHexBoard& board, int size,
     MatchWithKeys(keys, size, toPlay, ret);
 }
 
+float MoHexPatterns::GammaFromKeysBoth(const uint64_t* keys,
+                                       const HexColor toPlay) const
+{
+    const Data* table = m_table[toPlay];
+    const Data* data;
+    if ((data = QueryHashtable(table, keys[1])) != NULL)
+    {
+        m_stats.hit12++;
+        return data->gamma;
+    }
+    m_stats.miss12++;
+    if ((data = QueryHashtable(table, keys[0])) != NULL)
+    {
+        m_stats.hit6++;
+        return data->gamma;
+    }
+    m_stats.miss6++;
+    return 1.0f;
+}
+
 inline const MoHexPatterns::Data* 
 MoHexPatterns::QueryHashtable(const Data* table, uint64_t key) const
 {
