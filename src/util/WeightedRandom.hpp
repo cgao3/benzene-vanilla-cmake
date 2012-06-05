@@ -54,9 +54,12 @@ public:
 
 private:
     int m_size;
-    std::vector<float> m_weights;
-
+    float* m_weights;
     void Init(int size);
+
+    /** Non-copyable */
+    WeightedRandom(const WeightedRandom& other);
+    void operator=(const WeightedRandom& other);
 };
 
 inline float& WeightedRandom::operator[](int p)

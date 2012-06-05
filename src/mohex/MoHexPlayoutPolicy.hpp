@@ -163,7 +163,7 @@ private:
     /** Generator for this policy. */
     SgRandom m_random;
 
-    std::vector<WeightedRandom> m_weights;
+    WeightedRandom* m_weights;
 
     LocalMoves m_localMoves;
 

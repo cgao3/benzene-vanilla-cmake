@@ -48,14 +48,15 @@ MoHexPlayoutPolicy::MoHexPlayoutPolicy(MoHexSharedPolicy* shared,
                                        const MoHexPatterns& localPatterns)
     : m_shared(shared),
       m_board(board),
-      m_weights(2),
       m_globalPatterns(globalPatterns),
       m_localPatterns(localPatterns)
 {
+    m_weights = new WeightedRandom[2];
 }
 
 MoHexPlayoutPolicy::~MoHexPlayoutPolicy()
 {
+    delete [] m_weights;
 }
 
 //----------------------------------------------------------------------------
@@ -125,9 +126,6 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
 void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 {
     UNUSED(toPlay);
-    //m_weights[0].SetWeightAndUpdate(move, 0.0f);
-    //m_weights[1].SetWeightAndUpdate(move, 0.0f);
-
     m_weights[0].SetWeight(move, 0.0f);
     m_weights[1].SetWeight(move, 0.0f);
 }
@@ -137,7 +135,9 @@ void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 /** Selects random move among the empty cells on the board. */
 HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const HexColor toPlay)
 {
-    //HexPoint ret = static_cast<HexPoint>(m_weights[toPlay].Choose(m_random));
+    // m_weights[toPlay].Build();
+    // HexPoint ret = static_cast<HexPoint>(m_weights[toPlay].Choose(m_random));
+
     HexPoint ret = static_cast<HexPoint>(m_weights[toPlay]
                                          .ChooseLinear(m_random));
     if (m_board.GetColor(ret) != EMPTY)
@@ -156,11 +156,9 @@ void MoHexPlayoutPolicy::UpdateWeights(const HexPoint p, const HexColor toPlay)
 {
     const MoHexPatterns::Data* data;
     m_globalPatterns.MatchWithKeysBoth(m_board.Keys(p), BLACK, &data);
-    //m_weights[0].SetWeightAndUpdate(p, UsePatternWeight(data));
     m_weights[0].SetWeight(p, UsePatternWeight(data));
 
     m_globalPatterns.MatchWithKeysBoth(m_board.Keys(p), WHITE, &data);
-    //m_weights[1].SetWeightAndUpdate(p, UsePatternWeight(data));
     m_weights[1].SetWeight(p, UsePatternWeight(data));
 
     m_localPatterns.MatchWithKeysBoth(m_board.Keys(p), toPlay, &data);

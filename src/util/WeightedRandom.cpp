@@ -11,7 +11,7 @@
 #include "WeightedRandom.hpp"
 #include "Bitset.hpp"
 #include "Logger.hpp"
-
+#include <math.h>
 using namespace benzene;
 
 //----------------------------------------------------------------------------
@@ -36,13 +36,13 @@ void WeightedRandom::Init(int size)
     else if (size > 8) size = 16;
     else size = 8;
     m_size = size;
-    m_weights.resize(2 * m_size);
+    m_weights = new float[2 * m_size];
     Clear();
 }
 
 void WeightedRandom::Clear()
 {
-    for (int i = 0; i < 2 * m_size; ++i)
+    for (int i = 0; i < 2 * m_size; ++i) 
         m_weights[i] = 0.0f;
 }
 
@@ -80,12 +80,10 @@ int WeightedRandom::Choose(SgRandom& random) const
         i = 2;
         while (i < m_size)
         {
-            /*
-            LogInfo() << "i=" << i << " r=" << r 
-                      << " w[" << i << "]=" << m_weights[i] 
-                      << " w[" << i+1 << "]=" << m_weights[i+1]
-                      << '\n';
-            */
+            // LogInfo() << "i=" << i << " r=" << r 
+            //           << " w[" << i << "]=" << m_weights[i] 
+            //           << " w[" << i+1 << "]=" << m_weights[i+1]
+            //           << '\n';
             if (r > m_weights[i]) 
             {
                 r -= m_weights[i];
