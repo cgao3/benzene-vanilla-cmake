@@ -37,6 +37,7 @@ public:
     void PriorValues(HtpCommand& cmd);
     void Bounds(HtpCommand& cmd);
     void CellStats(HtpCommand& cmd);
+    void DoPlayouts(HtpCommand& cmd);
     void PlayoutMove(HtpCommand& cmd);
     void PlayoutWeights(HtpCommand& cmd);
     void FindTopMoves(HtpCommand& cmd);
@@ -73,6 +74,10 @@ private:
                      GtpCallback<MoHexEngine>::Method method);
 
     const SgUctNode* FindState(const Game& game) const;
+
+    void PerformPlayout(MoHexThreadState* thread,
+                        const HexState& state,
+                        const HexPoint lastMovePlayed);
 };
 
 //----------------------------------------------------------------------------

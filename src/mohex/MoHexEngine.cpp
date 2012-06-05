@@ -107,6 +107,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-prior-values", &MoHexEngine::PriorValues);
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
     RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
+    RegisterCmd("mohex-do-playouts", &MoHexEngine::DoPlayouts);
     RegisterCmd("mohex-playout-move", &MoHexEngine::PlayoutMove);
     RegisterCmd("mohex-playout-weights", &MoHexEngine::PlayoutWeights);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
@@ -211,6 +212,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "pspairs/MoHex Prior Values/mohex-prior-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
         "gfx/MoHex Cell Stats/mohex-cell-stats %P\n"
+        "string/MoHex Do Playouts/mohex-do-playouts\n"
         "move/MoHex Playout Move/mohex-playout-move\n"
         "pspairs/MoHex Playout Weights/mohex-playout-weights\n"
         "none/MoHex Self Play/mohex-self-play\n"
@@ -525,6 +527,52 @@ void MoHexEngine::GetPV(HtpCommand& cmd)
     }
 }
 
+void MoHexEngine::PerformPlayout(MoHexThreadState* thread,
+                                 const HexState& state,
+                                 const HexPoint lastMovePlayed)
+{
+    thread->StartPlayout(state, lastMovePlayed);
+    const MoHexBoard& mobrd = thread->GetMoHexBoard();
+    bool skipRaveUpdate;
+    const ConstBoard& cbrd = mobrd.Const();
+    while (mobrd.NumMoves() < cbrd.Width() * cbrd.Height())
+    //while (!mobrd.GameOver())
+    {
+        SgMove move = thread->GeneratePlayoutMove(skipRaveUpdate);
+        if (move == SG_NULLMOVE)
+            break;
+        thread->ExecutePlayout(move);
+    }
+}
+
+void MoHexEngine::DoPlayouts(HtpCommand& cmd)
+{
+    cmd.CheckNuArgLessEqual(1);
+    size_t numPlayouts = 1000;
+    if (cmd.NuArg() == 1)
+        numPlayouts = cmd.ArgMin<size_t>(0, 1);
+    MoHexSearch& search = m_player.Search();
+    if (!search.ThreadsCreated())
+        search.CreateThreads();
+    MoHexThreadState* thread 
+        = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
+    if (!thread)
+        throw HtpFailure() << "Thread not a MoHexThreadState!";
+    const MoHexBoard& mobrd = thread->GetMoHexBoard();
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    HexPoint lastMovePlayed
+        = MoveSequenceUtil::LastMoveFromHistory(m_game.History());
+    size_t wins = 0;
+    for (size_t i = 0; i < numPlayouts; ++i)
+    {
+        PerformPlayout(thread, state, lastMovePlayed);
+        if (mobrd.GetWinner() == state.ToPlay())
+            wins++;
+    }
+    cmd << "wins=" << wins << " total=" << numPlayouts
+        << " score=" << (double)wins * 100.0 / (double)numPlayouts;
+}
+
 void MoHexEngine::CellStats(HtpCommand& cmd)
 {
     HexPoint from = HtpUtil::MoveArg(cmd, 0);
@@ -545,22 +593,14 @@ void MoHexEngine::CellStats(HtpCommand& cmd)
     float wins = 0.0f;
     std::vector<int> won(BITSETSIZE, 0);
     std::vector<int> played(BITSETSIZE, 0);
+
+    const MoHexBoard& mobrd = thread->GetMoHexBoard();
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    HexPoint lastMovePlayed
+        = MoveSequenceUtil::LastMoveFromHistory(m_game.History());
     for (int i = 0; i < NUM_PLAYOUTS; ++i)
     {
-        HexState state(m_game.Board(), m_game.Board().WhoseTurn());
-        HexPoint lastMovePlayed = INVALID_POINT;
-        thread->StartPlayout(state, lastMovePlayed);
-        const MoHexBoard& mobrd = thread->GetMoHexBoard();
-        bool skipRaveUpdate;
-        //const ConstBoard& cbrd = mobrd.Const();
-        //while (mobrd.NumMoves() < cbrd.Width() * cbrd.Height())
-        while (!mobrd.GameOver())
-        {
-            SgMove move = thread->GeneratePlayoutMove(skipRaveUpdate);
-            if (move == SG_NULLMOVE)
-                break;
-            thread->ExecutePlayout(move);
-        }
+        PerformPlayout(thread, state, lastMovePlayed);
         for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
             if (mobrd.GetColor(*p) == color)
                 played[*p]++;
@@ -571,7 +611,6 @@ void MoHexEngine::CellStats(HtpCommand& cmd)
             if (mobrd.GetColor(*p) == color)
                 won[*p]++;
     }
-
     cmd << "INFLUENCE ";
     for (BitsetIterator p(m_game.Board().GetEmpty()); p; ++p)
     {
