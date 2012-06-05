@@ -95,10 +95,12 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     LogInfo() << "Playout Patterns:\n";
     LogInfo() << "Global:\n";
     m_playoutGlobalPatterns
-        .ReadPatterns("mohex-global-playout-pattern-gamma.txt");
+        .ReadPatterns("mohex-global-playout-pattern-gamma.txt",
+                      MoHexPlayoutPolicy::PlayoutGlobalGammaFunction);
     LogInfo() << "Local:\n";
     m_playoutLocalPatterns
-        .ReadPatterns("mohex-local-playout-pattern-gamma.txt");
+        .ReadPatterns("mohex-local-playout-pattern-gamma.txt",
+                      MoHexPlayoutPolicy::PlayoutLocalGammaFunction);
 }
 
 MoHexSearch::~MoHexSearch()

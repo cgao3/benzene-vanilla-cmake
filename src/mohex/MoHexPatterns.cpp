@@ -365,7 +365,14 @@ bool MoHexPatterns::InsertHashTable(Data* table, uint64_t key, float gamma,
     return false;
 }
 
-void MoHexPatterns::ReadPatterns(std::string filename)
+float MoHexPatterns::DefaultGammaFunction(int type, float gamma)
+{
+    UNUSED(type);
+    return gamma;
+}
+
+void MoHexPatterns::ReadPatterns(std::string filename,
+                                 float (*GammaFunction)(int type, float gamma))
 {
     for (size_t i = 0; i < TABLE_SIZE; ++i)
     {
@@ -438,6 +445,9 @@ void MoHexPatterns::ReadPatterns(std::string filename)
                 throw BenzeneException("Bad killer!\n");
             }
         }
+
+        // Change gamma based on supplied gamma function
+        gamma = GammaFunction(type, gamma);
 
         // Add to black table
 	for (int i = 1; i <= 2; i++)

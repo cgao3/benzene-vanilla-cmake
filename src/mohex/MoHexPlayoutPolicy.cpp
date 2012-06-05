@@ -65,21 +65,40 @@ void MoHexPlayoutPolicy::InitializeForSearch()
 {
 }
 
+float MoHexPlayoutPolicy::PlayoutGlobalGammaFunction(int type, float gamma)
+{
+    switch(type)
+    {
+    case 0: // normal
+        return std::min(gamma, 10.0f);
+    case 1: // opponent captured
+    case 2: // vulnerable
+        return 0.00001f;
+    case 3: // dominated
+        return 0.0001f;
+    }
+    return gamma;
+}
+
+float MoHexPlayoutPolicy::PlayoutLocalGammaFunction(int type, float gamma)
+{
+    switch(type)
+    {
+    case 0: // normal
+        return gamma;
+    case 1: // opponent captured
+    case 2: // vulnerable
+        return 0.00001f;
+    case 3: // dominated
+        return 0.0001f;
+    }
+    return gamma;
+}
+
 inline float UsePatternWeight(const MoHexPatterns::Data* data)
 {
     if (data != NULL)
-    {
-        switch(data->type)
-        {
-        case 0: // normal
-            return std::min(data->gamma, 10.0f);
-        case 1: // opponent captured
-        case 2: // vulnerable
-            return 0.00001f;
-        case 3: // dominated
-            return 0.0001f;
-        }
-    }
+        return data->gamma;
     return 1.0f;
 }
 

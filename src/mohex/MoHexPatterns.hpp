@@ -41,7 +41,12 @@ public:
 
     ~MoHexPatterns();
 
-    void ReadPatterns(std::string filename);
+    static float DefaultGammaFunction(int type, float gamma);
+
+    void ReadPatterns(std::string filename,
+                      float (*GammaFunction)(int type, float gamma)
+                      =&DefaultGammaFunction
+                      );
 
     static void GetKeyFromBoard(uint64_t *key, const int size, 
                                 const MoHexBoard& board, 
