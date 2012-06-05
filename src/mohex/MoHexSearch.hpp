@@ -94,6 +94,10 @@ public:
 
     const MoHexPatterns& LocalPatterns() const;
 
+    const MoHexPatterns& PlayoutGlobalPatterns() const;
+
+    const MoHexPatterns& PlayoutLocalPatterns() const;
+
     /** @see SetKeepGames()
         @throws SgException if KeepGames() was false at last invocation of
         StartSearch() */
@@ -180,6 +184,10 @@ private:
 
     MoHexPatterns m_localPatterns;
 
+    MoHexPatterns m_playoutGlobalPatterns;
+
+    MoHexPatterns m_playoutLocalPatterns;
+
     /** Not implemented */
     MoHexSearch(const MoHexSearch& search);
 
@@ -255,6 +263,16 @@ inline const MoHexPatterns& MoHexSearch::GlobalPatterns() const
 inline const MoHexPatterns& MoHexSearch::LocalPatterns() const
 {
     return m_localPatterns;
+}
+
+inline const MoHexPatterns& MoHexSearch::PlayoutGlobalPatterns() const
+{
+    return m_playoutGlobalPatterns;
+}
+
+inline const MoHexPatterns& MoHexSearch::PlayoutLocalPatterns() const
+{
+    return m_playoutLocalPatterns;
 }
 
 inline bool MoHexSearch::PriorPruning() const

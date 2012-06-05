@@ -86,10 +86,19 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     SetVirtualLoss(true);
 
     MoHexPatterns::InitializeZobrist();
-    LogInfo() << "GlobalPatterns:\n";
+    LogInfo() << "Prior Patterns:\n";
+    LogInfo() << "Global:\n";
     m_globalPatterns.ReadPatterns("mohex-global-pattern-gamma.txt");
-    LogInfo() << "LocalPatterns:\n";
+    LogInfo() << "Local:\n";
     m_localPatterns.ReadPatterns("mohex-local-pattern-gamma.txt");
+
+    LogInfo() << "Playout Patterns:\n";
+    LogInfo() << "Global:\n";
+    m_playoutGlobalPatterns
+        .ReadPatterns("mohex-global-playout-pattern-gamma.txt");
+    LogInfo() << "Local:\n";
+    m_playoutLocalPatterns
+        .ReadPatterns("mohex-local-playout-pattern-gamma.txt");
 }
 
 MoHexSearch::~MoHexSearch()
