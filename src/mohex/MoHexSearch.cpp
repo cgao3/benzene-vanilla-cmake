@@ -101,6 +101,9 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     m_playoutLocalPatterns
         .ReadPatterns("mohex-local-playout-pattern-gamma.txt",
                       MoHexPlayoutPolicy::PlayoutLocalGammaFunction);
+    // Optimize for speed: store local gamma in global table for fast lookup
+    MoHexPatterns::AddLocalToGlobal(m_playoutGlobalPatterns,
+                                    m_playoutLocalPatterns);
 }
 
 MoHexSearch::~MoHexSearch()

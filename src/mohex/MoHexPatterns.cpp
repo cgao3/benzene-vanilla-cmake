@@ -214,7 +214,7 @@ std::string MoHexPatterns::ShowPattern(int size, const int p[], const int e[])
     return "-";
 }
 
-uint64_t MoHexPatterns::ComputeKey(int size, int pattern[])
+uint64_t MoHexPatterns::ComputeKey(int size, const int pattern[])
 {
     uint64_t key = (size == 6) ? m_zobrist_size[0] : m_zobrist_size[1];
     for (int i = 1; i <= size; i++)
@@ -399,13 +399,17 @@ void MoHexPatterns::ReadPatterns(std::string filename,
     {
         m_table[BLACK][i].key = 0;
         m_table[BLACK][i].gamma = 1.0f;
+        m_table[BLACK][i].localGamma = -1.0f;
         m_table[BLACK][i].type = 0;
         m_table[BLACK][i].killer = 0;
+        m_table[BLACK][i].id = -1;
 
         m_table[WHITE][i].key = 0;
         m_table[WHITE][i].gamma = 1.0f;
+        m_table[WHITE][i].localGamma = -1.0f;
         m_table[WHITE][i].type = 0;
         m_table[WHITE][i].killer = 0;
+        m_table[WHITE][i].id = -1;
     }
 
     int count[MAX_INDEX] = {0};
@@ -529,6 +533,42 @@ void MoHexPatterns::ReadPatterns(std::string filename,
               << ' ' << prunableCount[WHITE] << '\n';
     LogInfo() << "LargestGamma    = " << largestGamma << '\n';
     LogInfo() << "SmallestGamma   = " << smallestGamma << '\n';
+}
+
+//----------------------------------------------------------------------------
+
+void MoHexPatterns::AddLocalToGlobal(MoHexPatterns& global,
+                                     MoHexPatterns& local)
+{
+    for (BWIterator c; c; ++c)
+    {
+        Data* gt = global.m_table[*c];
+        for (size_t i = 0; i < TABLE_SIZE; ++i)
+        {        
+            uint64_t key = gt[i].key;
+            if (key == 0 || gt[i].type != 0)
+                continue;
+            const Pattern& gp = global.m_patterns[gt[i].id];
+            const Data* data = local.QueryHashtable(local.m_table[*c], key);
+            if (data == NULL)
+            {
+                // 12 pattern did not match, try the 6 pattern
+                uint64_t key6 = ComputeKey(6, gp.pattern);
+                data = local.QueryHashtable(local.m_table[*c], key6);
+            }
+            if (data != NULL) 
+            {
+                //const Pattern& lp = local.m_patterns[data->id];
+                // LogInfo() << "===== Match ======="
+                //           << ShowPattern(gp.size, gp.pattern, gp.pattern)
+                //           << ShowPattern(lp.size, lp.pattern, lp.pattern) 
+                //           << '\n' << "localGamma=" << data->gamma << '\n';
+                
+                // Take max local gamma in case of duplicates
+                gt[i].localGamma = std::max(gt[i].localGamma, data->gamma);
+            }
+        }
+    }
 }
 
 //----------------------------------------------------------------------------

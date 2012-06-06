@@ -166,20 +166,24 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexColor toPlay,
 void MoHexPlayoutPolicy::UpdateWeights(const HexPoint p, const HexColor toPlay)
 {
     float gamma;
-    gamma = m_globalPatterns.GammaFromKeysBoth(m_board.Keys(p), BLACK);
-    m_weights[0].SetWeight(p, gamma);
-    gamma = m_globalPatterns.GammaFromKeysBoth(m_board.Keys(p), WHITE);
-    m_weights[1].SetWeight(p, gamma);
+    gamma = m_globalPatterns.GammaFromKeysBoth(m_board.Keys(p), !toPlay);
+    m_weights[!toPlay].SetWeight(p, gamma);
 
     const MoHexPatterns::Data* data;
-    m_localPatterns.MatchWithKeysBoth(m_board.Keys(p), toPlay, &data);
-    if (data != NULL && data->type == 0) 
+    m_globalPatterns.MatchWithKeysBoth(m_board.Keys(p), toPlay, &data);
+    if (data != NULL)
     {
-        m_localMoves.gammaTotal += data->gamma;
-        m_localMoves.ptr.push_back(data);
-        m_localMoves.move.push_back(p);
-        m_localMoves.gamma.push_back(m_localMoves.gammaTotal);
-    }
+        m_weights[toPlay].SetWeight(p, data->gamma);
+        if (data->localGamma > 0.0f)
+        {
+            m_localMoves.gammaTotal += data->localGamma;
+            m_localMoves.ptr.push_back(data);
+            m_localMoves.move.push_back(p);
+            m_localMoves.gamma.push_back(m_localMoves.gammaTotal);
+        }
+    } 
+    else
+        m_weights[toPlay].SetWeight(p, 1.0f);
 }
 
 HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
@@ -223,7 +227,7 @@ void MoHexPlayoutPolicy::GetWeightsForLastMove
     for (int i = 0; i < BITSETSIZE; ++i)
         weights[i] = m_weights[toPlay][i];
     for (size_t i = 0; i < m_localMoves.move.size(); ++i)
-        weights[ m_localMoves.move[i] ] += m_localMoves.ptr[i]->gamma;
+        weights[ m_localMoves.move[i] ] += m_localMoves.ptr[i]->localGamma;
 }
 
 //----------------------------------------------------------------------------

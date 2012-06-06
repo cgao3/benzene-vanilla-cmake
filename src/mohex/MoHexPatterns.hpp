@@ -28,6 +28,7 @@ public:
     {
         uint64_t key;
         float gamma;
+        float localGamma;
         int type;
         int killer;
         int id;
@@ -86,12 +87,18 @@ public:
 
     static void InitializeZobrist();
 
+    /** Loads local gammas into global table. 
+        For each global pattern, compute the local pattern that
+        has the same key, try smaller sizes until a hit. */
+    static void AddLocalToGlobal(MoHexPatterns& global,
+                                 MoHexPatterns& local);
+
 private:
     static uint64_t RandomHash();
     static int Mirror(int loc);
     static void MirrorAndFlipPattern(int size, int pattern[], int* killer);
     static void RotatePattern(int size, int pattern[], int* killer);
-    static uint64_t ComputeKey(int size, int pattern[]);
+    static uint64_t ComputeKey(int size, const int pattern[]);
 
     std::vector<Data*> m_table;
     std::vector<Pattern> m_patterns;
