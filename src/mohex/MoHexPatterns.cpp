@@ -347,7 +347,7 @@ MoHexPatterns::QueryHashtable(const Data* table, uint64_t key) const
 }
 
 bool MoHexPatterns::InsertHashTable(Data* table, uint64_t key, float gamma, 
-                                    int type, int killer)
+                                    int type, int killer, int id)
 {
     const uint64_t mask = (uint64_t)(TABLE_SIZE - 1);
     uint64_t index = key & mask;
@@ -359,6 +359,7 @@ bool MoHexPatterns::InsertHashTable(Data* table, uint64_t key, float gamma,
             table[index].gamma = gamma;
             table[index].type = type;
             table[index].killer = killer;
+            table[index].id = id;
 	    return true;
 	}
 	else if (table[index].key == key)
@@ -473,8 +474,10 @@ void MoHexPatterns::ReadPatterns(std::string filename,
 	for (int i = 1; i <= 2; i++)
 	{
             uint64_t key = ComputeKey(size, pattern);
-	    if (InsertHashTable(m_table[BLACK], key, gamma, type, killer))
+            int id = (int)m_patterns.size();
+	    if (InsertHashTable(m_table[BLACK], key, gamma, type, killer, id))
             {
+                m_patterns.push_back(Pattern(size, pattern));
 	        tableEntries[BLACK]++;
                 if (type)
                     prunableCount[BLACK]++;
@@ -500,9 +503,11 @@ void MoHexPatterns::ReadPatterns(std::string filename,
 	for (int i = 1; i <= 2; i++)
 	{
             uint64_t key = ComputeKey(size, pattern);
-	    if (InsertHashTable(m_table[WHITE], key, gamma, type, killer))
+            int id = (int)m_patterns.size();
+	    if (InsertHashTable(m_table[WHITE], key, gamma, type, killer, id))
             {
 	        tableEntries[WHITE]++;
+                m_patterns.push_back(Pattern(size, pattern));
                 if (type)
                     prunableCount[WHITE]++;
             }
@@ -518,9 +523,9 @@ void MoHexPatterns::ReadPatterns(std::string filename,
 	if (count[i] > 0)
 	    LogInfo() << count[i] << ' ';
     LogInfo() << '\n';
-    LogInfo() << "TableEntries    = " << tableEntries[BLACK] 
+    LogInfo() << "TableEntries    = " << tableEntries[BLACK]
               << ' ' << tableEntries[WHITE] << '\n';
-    LogInfo() << "PrunableCount   = " << prunableCount[BLACK] 
+    LogInfo() << "PrunableCount   = " << prunableCount[BLACK]
               << ' ' << prunableCount[WHITE] << '\n';
     LogInfo() << "LargestGamma    = " << largestGamma << '\n';
     LogInfo() << "SmallestGamma   = " << smallestGamma << '\n';

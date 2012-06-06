@@ -30,6 +30,18 @@ public:
         float gamma;
         int type;
         int killer;
+        int id;
+    };
+
+    struct Pattern
+    {
+        int size;
+        int pattern[20];
+        Pattern(int s, int p[20])
+            : size(s)
+        {
+            memcpy(pattern, p, sizeof(pattern));
+        }
     };
 
     static const size_t TABLE_SIZE = 1 << 19; // 512k slots
@@ -82,12 +94,13 @@ private:
     static uint64_t ComputeKey(int size, int pattern[]);
 
     std::vector<Data*> m_table;
+    std::vector<Pattern> m_patterns;
 
     mutable Statistics m_stats;
 
     const Data* QueryHashtable(const Data* table, uint64_t key) const;
     bool InsertHashTable(Data* table, uint64_t key, float gamma, 
-                         int type, int killer); 
+                         int type, int killer, int id); 
 
     static std::string ShowPattern6(const int p[], const int e[]);
     static std::string ShowPattern12(const int p[], const int e[]);
