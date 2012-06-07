@@ -39,6 +39,7 @@ public:
     void CellStats(HtpCommand& cmd);
     void DoPlayouts(HtpCommand& cmd);
     void PlayoutMove(HtpCommand& cmd);
+    void PlayoutPlayPercent(HtpCommand& cmd);
     void PlayoutWeights(HtpCommand& cmd);
     void PlayoutGlobalWeights(HtpCommand& cmd);
     void PlayoutLocalWeights(HtpCommand& cmd);

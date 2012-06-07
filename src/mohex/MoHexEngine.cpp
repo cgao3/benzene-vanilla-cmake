@@ -109,6 +109,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
     RegisterCmd("mohex-do-playouts", &MoHexEngine::DoPlayouts);
     RegisterCmd("mohex-playout-move", &MoHexEngine::PlayoutMove);
+    RegisterCmd("mohex-playout-play-pct", &MoHexEngine::PlayoutPlayPercent);
     RegisterCmd("mohex-playout-weights", &MoHexEngine::PlayoutWeights);
     RegisterCmd("mohex-playout-global-weights", 
                 &MoHexEngine::PlayoutGlobalWeights);
@@ -218,6 +219,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "gfx/MoHex Cell Stats/mohex-cell-stats %P\n"
         "string/MoHex Do Playouts/mohex-do-playouts\n"
         "move/MoHex Playout Move/mohex-playout-move\n"
+        "pspairs/MoHex Playout Play Pct/mohex-playout-play-pct\n"
         "pspairs/MoHex Playout Weights/mohex-playout-weights\n"
         "pspairs/MoHex Playout Global Weights/mohex-playout-global-weights\n"  
         "pspairs/MoHex Playout Local Weights/mohex-playout-local-weights\n"
@@ -656,6 +658,40 @@ void MoHexEngine::PlayoutMove(HtpCommand& cmd)
     HexPoint move = (HexPoint)thread->GeneratePlayoutMove(skipRaveUpdate);
     Play(state.ToPlay(), move);
     cmd << move;
+}
+
+void MoHexEngine::PlayoutPlayPercent(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    if (!search.ThreadsCreated())
+        search.CreateThreads();
+    MoHexThreadState* thread 
+        = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
+    if (!thread)
+        throw HtpFailure() << "Thread not a MoHexThreadState!";
+    if (m_game.Board().GetEmpty().none())
+        return;
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    HexPoint lastMovePlayed 
+        = MoveSequenceUtil::LastMoveFromHistory(m_game.History());
+    thread->StartPlayout(state, lastMovePlayed);
+    bool skipRaveUpdate;
+    thread->GeneratePlayoutMove(skipRaveUpdate);
+    std::vector<float> weights;
+    thread->Policy().GetWeightsForLastMove(weights, state.ToPlay());
+    float total = 0.0f;
+    for (BitsetIterator i(m_game.Board().GetEmpty()); i; ++i)
+        total += weights[*i];
+    if (total < 1e-5)
+        return;
+    for (BitsetIterator i(m_game.Board().GetEmpty()); i; ++i)
+        if (weights[*i] > 0.0f)
+        {
+            float percent = 100.0f * weights[*i] / total;
+            cmd << ' ' << static_cast<HexPoint>(*i)
+                << ' ' << std::fixed << std::setprecision(1) << percent
+                << '%';
+        }
 }
 
 void MoHexEngine::PlayoutWeights(HtpCommand& cmd)
