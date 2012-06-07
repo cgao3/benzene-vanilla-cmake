@@ -237,11 +237,27 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalMove(const HexColor toPlay,
 void MoHexPlayoutPolicy::GetWeightsForLastMove
 (std::vector<float>& weights, HexColor toPlay) const
 {
-    weights.resize(BITSETSIZE);
+    weights.assign(BITSETSIZE, 0.0f);
     for (int i = 0; i < BITSETSIZE; ++i)
         weights[i] = m_weights[toPlay][i];
     for (size_t i = 0; i < m_localMoves.move.size(); ++i)
         weights[ m_localMoves.move[i] ] += m_localMoves.ptr[i]->localGamma;
+}
+
+void MoHexPlayoutPolicy::GetGlobalWeightsForLastMove
+(std::vector<float>& weights, HexColor toPlay) const
+{
+    weights.assign(BITSETSIZE, 0.0f);
+    for (int i = 0; i < BITSETSIZE; ++i)
+        weights[i] = m_weights[toPlay][i];
+}
+
+void MoHexPlayoutPolicy::GetLocalWeightsForLastMove
+(std::vector<float>& weights, HexColor toPlay) const
+{
+    weights.assign(BITSETSIZE, 0.0f);
+    for (size_t i = 0; i < m_localMoves.move.size(); ++i)
+        weights[ m_localMoves.move[i] ] = m_localMoves.ptr[i]->localGamma;
 }
 
 //----------------------------------------------------------------------------

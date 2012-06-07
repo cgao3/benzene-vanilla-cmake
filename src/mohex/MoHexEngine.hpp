@@ -40,6 +40,8 @@ public:
     void DoPlayouts(HtpCommand& cmd);
     void PlayoutMove(HtpCommand& cmd);
     void PlayoutWeights(HtpCommand& cmd);
+    void PlayoutGlobalWeights(HtpCommand& cmd);
+    void PlayoutLocalWeights(HtpCommand& cmd);
     void FindTopMoves(HtpCommand& cmd);
     void SelfPlay(HtpCommand& cmd);
     void MarkPrunablePatterns(HtpCommand& cmd);

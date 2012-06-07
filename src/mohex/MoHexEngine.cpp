@@ -110,6 +110,10 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-do-playouts", &MoHexEngine::DoPlayouts);
     RegisterCmd("mohex-playout-move", &MoHexEngine::PlayoutMove);
     RegisterCmd("mohex-playout-weights", &MoHexEngine::PlayoutWeights);
+    RegisterCmd("mohex-playout-global-weights", 
+                &MoHexEngine::PlayoutGlobalWeights);
+    RegisterCmd("mohex-playout-local-weights", 
+                &MoHexEngine::PlayoutLocalWeights);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
     RegisterCmd("mohex-self-play", &MoHexEngine::SelfPlay);
     RegisterCmd("mohex-mark-prunable", &MoHexEngine::MarkPrunablePatterns);
@@ -215,6 +219,8 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "string/MoHex Do Playouts/mohex-do-playouts\n"
         "move/MoHex Playout Move/mohex-playout-move\n"
         "pspairs/MoHex Playout Weights/mohex-playout-weights\n"
+        "pspairs/MoHex Playout Global Weights/mohex-playout-global-weights\n"  
+        "pspairs/MoHex Playout Local Weights/mohex-playout-local-weights\n"
         "none/MoHex Self Play/mohex-self-play\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
@@ -661,22 +667,70 @@ void MoHexEngine::PlayoutWeights(HtpCommand& cmd)
         = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
     if (!thread)
         throw HtpFailure() << "Thread not a MoHexThreadState!";
+    if (m_game.Board().GetEmpty().none())
+        return;
     HexState state(m_game.Board(), m_game.Board().WhoseTurn());
     HexPoint lastMovePlayed 
         = MoveSequenceUtil::LastMoveFromHistory(m_game.History());
     thread->StartPlayout(state, lastMovePlayed);
     bool skipRaveUpdate;
-    const MoHexBoard& mobrd = thread->GetMoHexBoard();
-    const ConstBoard& cbrd = mobrd.Const();
-    if (mobrd.NumMoves() >= cbrd.Width() * cbrd.Height())
-        return;
     thread->GeneratePlayoutMove(skipRaveUpdate);
     std::vector<float> weights;
     thread->Policy().GetWeightsForLastMove(weights, state.ToPlay());
-    for (int i = 0; i < BITSETSIZE; ++i)
-        if (weights[i] > 0.0f)
-            cmd << ' ' << static_cast<HexPoint>(i)
-                << ' ' << std::fixed << std::setprecision(3) << weights[i];
+    for (BitsetIterator i(m_game.Board().GetEmpty()); i; ++i)
+        if (weights[*i] > 0.0f)
+            cmd << ' ' << static_cast<HexPoint>(*i)
+                << ' ' << std::fixed << std::setprecision(3) << weights[*i];
+}
+
+void MoHexEngine::PlayoutGlobalWeights(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    if (!search.ThreadsCreated())
+        search.CreateThreads();
+    MoHexThreadState* thread 
+        = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
+    if (!thread)
+        throw HtpFailure() << "Thread not a MoHexThreadState!";
+    if (m_game.Board().GetEmpty().none())
+        return;
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    HexPoint lastMovePlayed 
+        = MoveSequenceUtil::LastMoveFromHistory(m_game.History());
+    thread->StartPlayout(state, lastMovePlayed);
+    bool skipRaveUpdate;
+    thread->GeneratePlayoutMove(skipRaveUpdate);
+    std::vector<float> weights;
+    thread->Policy().GetGlobalWeightsForLastMove(weights, state.ToPlay());
+    for (BitsetIterator i(m_game.Board().GetEmpty()); i; ++i)
+        if (weights[*i] > 0.0f)
+            cmd << ' ' << static_cast<HexPoint>(*i)
+                << ' ' << std::fixed << std::setprecision(3) << weights[*i];
+}
+
+void MoHexEngine::PlayoutLocalWeights(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    if (!search.ThreadsCreated())
+        search.CreateThreads();
+    MoHexThreadState* thread 
+        = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
+    if (!thread)
+        throw HtpFailure() << "Thread not a MoHexThreadState!";
+    if (m_game.Board().GetEmpty().none())
+        return;
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    HexPoint lastMovePlayed 
+        = MoveSequenceUtil::LastMoveFromHistory(m_game.History());
+    thread->StartPlayout(state, lastMovePlayed);
+    bool skipRaveUpdate;
+    thread->GeneratePlayoutMove(skipRaveUpdate);
+    std::vector<float> weights;
+    thread->Policy().GetLocalWeightsForLastMove(weights, state.ToPlay());
+    for (BitsetIterator i(m_game.Board().GetEmpty()); i; ++i)
+        if (weights[*i] > 0.0f)
+            cmd << ' ' << static_cast<HexPoint>(*i)
+                << ' ' << std::fixed << std::setprecision(3) << weights[*i];
 }
 
 void MoHexEngine::FindTopMoves(HtpCommand& cmd)

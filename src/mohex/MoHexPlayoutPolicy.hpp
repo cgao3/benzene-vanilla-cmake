@@ -139,6 +139,12 @@ public:
     void GetWeightsForLastMove(std::vector<float>& weights, 
                                HexColor toPlay) const;
 
+    void GetGlobalWeightsForLastMove(std::vector<float>& weights,
+                                     HexColor toPlay) const;
+
+    void GetLocalWeightsForLastMove(std::vector<float>& weights,
+                                    HexColor toPlay) const;
+
     /** Used during pattern initialization. */
     static float PlayoutGlobalGammaFunction(int type, float gamma);
     static float PlayoutLocalGammaFunction(int type, float gamma);
