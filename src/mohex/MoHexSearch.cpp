@@ -88,18 +88,18 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     MoHexPatterns::InitializeZobrist();
     LogInfo() << "Prior Patterns:\n";
     LogInfo() << "Global:\n";
-    m_globalPatterns.ReadPatterns("mohex-global-pattern-gamma.txt");
+    m_globalPatterns.ReadPatterns("mohex-global-pattern-gamma.txt", false);
     LogInfo() << "Local:\n";
-    m_localPatterns.ReadPatterns("mohex-local-pattern-gamma.txt");
+    m_localPatterns.ReadPatterns("mohex-local-pattern-gamma.txt", false);
 
     LogInfo() << "Playout Patterns:\n";
     LogInfo() << "Global:\n";
     m_playoutGlobalPatterns
         .ReadPatterns("mohex-global-playout-pattern-gamma.txt",
-                      MoHexPlayoutPolicy::PlayoutGlobalGammaFunction);
+                      true, MoHexPlayoutPolicy::PlayoutGlobalGammaFunction);
     LogInfo() << "Local:\n";
     m_playoutLocalPatterns
-        .ReadPatterns("mohex-local-playout-pattern-gamma.txt",
+        .ReadPatterns("mohex-local-playout-pattern-gamma.txt", false,
                       MoHexPlayoutPolicy::PlayoutLocalGammaFunction);
     // Optimize for speed: store local gamma in global table for fast lookup
     MoHexPatterns::AddLocalToGlobal(m_playoutGlobalPatterns,

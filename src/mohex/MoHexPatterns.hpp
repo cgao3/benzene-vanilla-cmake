@@ -58,6 +58,7 @@ public:
     static float DefaultGammaFunction(int type, float gamma);
 
     void ReadPatterns(std::string filename,
+                      bool makeMirrorComplete,
                       float (*GammaFunction)(int type, float gamma)
                       =&DefaultGammaFunction
                       );
