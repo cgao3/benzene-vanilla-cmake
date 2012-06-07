@@ -399,6 +399,7 @@ void MoHexPatterns::ReadPatterns(std::string filename,
     {
         m_table[BLACK][i].key = 0;
         m_table[BLACK][i].gamma = 1.0f;
+        m_table[BLACK][i].otherGamma =  1.0f;
         m_table[BLACK][i].localGamma = -1.0f;
         m_table[BLACK][i].type = 0;
         m_table[BLACK][i].killer = 0;
@@ -406,6 +407,7 @@ void MoHexPatterns::ReadPatterns(std::string filename,
 
         m_table[WHITE][i].key = 0;
         m_table[WHITE][i].gamma = 1.0f;
+        m_table[WHITE][i].otherGamma =  1.0f;
         m_table[WHITE][i].localGamma = -1.0f;
         m_table[WHITE][i].type = 0;
         m_table[WHITE][i].killer = 0;
@@ -522,6 +524,60 @@ void MoHexPatterns::ReadPatterns(std::string filename,
 	}
     }
 
+    // Pre-compute the gamma for the opposite color
+    size_t mirrorsAdded[2] = { 0, 0 };
+    for (BWIterator c; c; ++c)
+    {
+        const HexColor color = *c;
+        const HexColor other = !color;
+        Data* gt = m_table[color];
+        for (size_t i = 0; i < TABLE_SIZE; ++i)
+        {        
+            const uint64_t key = gt[i].key;
+            const float gamma = gt[i].gamma;
+            if (key == 0)
+                continue;
+            const Pattern& cp = m_patterns[gt[i].id];
+            const Data* data = QueryHashtable(m_table[other], key);
+            if (data == NULL)
+            {
+                // mirror of this pattern was not encoded for this color
+                // create a 'fake' entry for opponent
+                float fakeGamma = 1.0f;
+                int fakeType = 0;
+                int fakeKiller = 0;
+                if (cp.size == 12)
+                {
+                    // try using the 6-pattern
+                    uint64_t key6 = ComputeKey(6, cp.pattern);
+                    data = QueryHashtable(m_table[other], key6);
+                    if (data != NULL)
+                    {
+                        fakeGamma = data->gamma;
+                        fakeType = data->type;
+                        fakeKiller = data->killer;
+                    }
+                }
+                InsertHashTable(m_table[other], key, fakeGamma, fakeType,
+                                fakeKiller, gt[i].id);
+                data = QueryHashtable(m_table[other], key);
+                const_cast<Data*>(data)->otherGamma = gamma;
+                gt[i].otherGamma = fakeGamma;
+                mirrorsAdded[other]++;
+                tableEntries[other]++;
+            }
+            else 
+            {
+                // const Pattern& lp = m_patterns[data->id];
+                // LogInfo() << "===== Match ======="
+                //           << ShowPattern(cp.size, cp.pattern, cp.pattern)
+                //           << ShowPattern(lp.size, lp.pattern, lp.pattern) 
+                //           << '\n' << gt[i].gamma << ' ' << data->gamma << '\n';
+                gt[i].otherGamma = data->gamma;
+            }
+        }
+    }
+
     LogInfo() << "Size            = ";
     for (size_t i = 0; i < MAX_INDEX; i++)
 	if (count[i] > 0)
@@ -529,6 +585,8 @@ void MoHexPatterns::ReadPatterns(std::string filename,
     LogInfo() << '\n';
     LogInfo() << "TableEntries    = " << tableEntries[BLACK]
               << ' ' << tableEntries[WHITE] << '\n';
+    LogInfo() << "MirrorsAdded    = " << mirrorsAdded[BLACK] 
+              << ' ' << mirrorsAdded[WHITE] << '\n';
     LogInfo() << "PrunableCount   = " << prunableCount[BLACK]
               << ' ' << prunableCount[WHITE] << '\n';
     LogInfo() << "LargestGamma    = " << largestGamma << '\n';

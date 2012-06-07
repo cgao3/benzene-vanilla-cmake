@@ -165,15 +165,32 @@ HexPoint MoHexPlayoutPolicy::GeneratePatternMove(const HexColor toPlay,
 
 void MoHexPlayoutPolicy::UpdateWeights(const HexPoint p, const HexColor toPlay)
 {
-    float gamma;
-    gamma = m_globalPatterns.GammaFromKeysBoth(m_board.Keys(p), !toPlay);
-    m_weights[!toPlay].SetWeight(p, gamma);
-
     const MoHexPatterns::Data* data;
     m_globalPatterns.MatchWithKeysBoth(m_board.Keys(p), toPlay, &data);
     if (data != NULL)
     {
-        m_weights[toPlay].SetWeight(p, data->gamma);
+#if 0
+        const MoHexPatterns::Data* data2;
+        m_globalPatterns.MatchWithKeysBoth(m_board.Keys(p), !toPlay, &data2);
+        if (data->otherGamma != gamma)
+            throw BenzeneException() << "NOT EQUAL\n " 
+                                     << " data=>key=" << data->key << '\n'
+                                     << " data->gamma=" << data->gamma
+                                     << " data->otherGamma=" << data->otherGamma
+                                     << " data->type=" << data->type << '\n'
+
+                                     << " data2->key=" << data2->key << '\n'
+                                     << " data2->gamma=" << data2->gamma
+                                     << " data2->otherGamma=" << data2->otherGamma
+                                     << " data2->type=" << data2->type << '\n'
+                
+                                     << " gamma=" << gamma << '\n'
+                                     << m_globalPatterns.ShowPattern(data->id) << '\n' 
+                                     << m_globalPatterns.ShowPattern(data2->id) << '\n'
+                                     << "p = " << p << m_board.Write() << '\n';
+#endif
+        m_weights[!toPlay].SetWeight(p, data->otherGamma);
+        m_weights[ toPlay].SetWeight(p, data->gamma);
         if (data->localGamma > 0.0f)
         {
             m_localMoves.gammaTotal += data->localGamma;

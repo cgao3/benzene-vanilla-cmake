@@ -29,6 +29,7 @@ public:
         uint64_t key;
         float gamma;
         float localGamma;
+        float otherGamma;
         int type;
         int killer;
         int id;
@@ -93,6 +94,8 @@ public:
     static void AddLocalToGlobal(MoHexPatterns& global,
                                  MoHexPatterns& local);
 
+    std::string ShowPattern(int id) const;
+
 private:
     static uint64_t RandomHash();
     static int Mirror(int loc);
@@ -118,6 +121,13 @@ inline MoHexPatterns::Statistics MoHexPatterns::GetStatistics() const
 {
     return m_stats;
 }
+
+inline std::string MoHexPatterns::ShowPattern(int id) const
+{
+    return ShowPattern(m_patterns[id].size, m_patterns[id].pattern,
+                       m_patterns[id].pattern);
+}
+
 
 //----------------------------------------------------------------------------
 
