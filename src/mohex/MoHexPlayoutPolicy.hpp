@@ -37,9 +37,9 @@ struct MoHexPlayoutPolicyStatistics
 {
     std::size_t totalMoves;
 
-    std::size_t randomMoves;
+    std::size_t globalMoves;
 
-    std::size_t patternMoves;
+    std::size_t localMoves;
 
     MoHexPlayoutPolicyStatistics();
 
@@ -48,8 +48,8 @@ struct MoHexPlayoutPolicyStatistics
 
 inline MoHexPlayoutPolicyStatistics::MoHexPlayoutPolicyStatistics()
     : totalMoves(0),
-      randomMoves(0),
-      patternMoves(0)
+      globalMoves(0),
+      localMoves(0)
 {
 }
 
@@ -176,9 +176,8 @@ private:
     const MoHexPatterns& m_localPatterns;
 
     HexPoint GeneratePatternMove(const HexColor toPlay, HexPoint lastMove);
-    HexPoint GenerateLocalPatternMove(const HexColor toPlay, HexPoint lastMove);
-
-    HexPoint GenerateRandomMove(const HexColor toPlay);
+    HexPoint GenerateLocalMove(const HexColor toPlay, HexPoint lastMove);
+    HexPoint GenerateGlobalMove(const HexColor toPlay);
 };
 
 //----------------------------------------------------------------------------

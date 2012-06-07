@@ -20,11 +20,11 @@ std::string MoHexPlayoutPolicyStatistics::ToString() const
     std::ostringstream os;
     os << "Playout Statistics:\n"
        << "Total               " << totalMoves << '\n'
-       << "Pattern             " << patternMoves << " ("
-       << std::setprecision(3) << double(patternMoves) * 100.0 
+       << "Local               " << localMoves << " ("
+       << std::setprecision(3) << double(localMoves) * 100.0 
         / double(totalMoves) << "%)\n" 
-       << "Random              " << randomMoves << " ("
-       << std::setprecision(3) << double(randomMoves) * 100.0 
+       << "Global              " << globalMoves << " ("
+       << std::setprecision(3) << double(globalMoves) * 100.0 
         / double(totalMoves) << "%)";
     return os.str();
 }
@@ -115,21 +115,15 @@ HexPoint MoHexPlayoutPolicy::GenerateMove(const HexColor toPlay,
 {
     HexPoint move = INVALID_POINT;
     const MoHexPlayoutPolicyConfig& config = m_shared->Config();
-    MoHexPlayoutPolicyStatistics& stats = m_shared->Statistics();
     if (lastMove != INVALID_POINT && config.patternHeuristic)
     {
-        move = GenerateLocalPatternMove(toPlay, lastMove);
-        //move = GeneratePatternMove(toPlay, lastMove);
+        move = GenerateLocalMove(toPlay, lastMove);
     }
     if (move == INVALID_POINT) 
     {
-	stats.randomMoves++;
-        move = GenerateRandomMove(toPlay);
+        move = GenerateGlobalMove(toPlay);
     } 
-    else 
-        stats.patternMoves++;
-
-    stats.totalMoves++;
+    m_shared->Statistics().totalMoves++;
     BenzeneAssert(m_board.GetColor(move) == EMPTY);
     return move;
 }
@@ -144,8 +138,10 @@ void MoHexPlayoutPolicy::PlayMove(const HexPoint move, const HexColor toPlay)
 //--------------------------------------------------------------------------
 
 /** Selects random move among the empty cells on the board. */
-HexPoint MoHexPlayoutPolicy::GenerateRandomMove(const HexColor toPlay)
+HexPoint MoHexPlayoutPolicy::GenerateGlobalMove(const HexColor toPlay)
 {
+    m_shared->Statistics().globalMoves++;
+        
     // m_weights[toPlay].Build();
     // HexPoint ret = static_cast<HexPoint>(m_weights[toPlay].Choose(m_random));
 
@@ -203,8 +199,8 @@ void MoHexPlayoutPolicy::UpdateWeights(const HexPoint p, const HexColor toPlay)
         m_weights[toPlay].SetWeight(p, 1.0f);
 }
 
-HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
-                                                      const HexPoint lastMove)
+HexPoint MoHexPlayoutPolicy::GenerateLocalMove(const HexColor toPlay,
+                                               const HexPoint lastMove)
 {
     m_localMoves.Clear();
     for (int i = 1; i <= 12; ++i)
@@ -225,6 +221,7 @@ HexPoint MoHexPlayoutPolicy::GenerateLocalPatternMove(const HexColor toPlay,
                                       m_localMoves.gammaTotal);
         if (random < m_localMoves.gammaTotal)
         {
+            m_shared->Statistics().localMoves++;
             m_localMoves.gamma.back() += 9999; // ensure it doesn't go past end
             int i = 0;
             while (m_localMoves.gamma[i] < random)
