@@ -138,14 +138,11 @@ void MoHexSearch::OnSearchIteration(SgUctValue gameNumber,
         std::ostringstream os;
         os << "gogui-gfx:\n";
         os << "uct\n";
-        HexColor initial_toPlay = m_sharedData->rootState.ToPlay();
-        MoHexUtil::GoGuiGfx(*this, 
-                            MoHexUtil::ToSgBlackWhite(initial_toPlay),
-                            os);
-        os << "\n";
+        HexColor toPlay = m_sharedData->rootState.ToPlay();
+        MoHexUtil::GoGuiGfx(*this, MoHexUtil::ToSgBlackWhite(toPlay), os);
+        os << '\n';
         std::cout << os.str();
         std::cout.flush();
-        LogFine() << os.str() << '\n';
     }
 }
 
