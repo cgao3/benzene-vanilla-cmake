@@ -255,6 +255,7 @@ void MoHexPlayoutPolicy::GetGlobalWeightsForLastMove
 void MoHexPlayoutPolicy::GetLocalWeightsForLastMove
 (std::vector<float>& weights, HexColor toPlay) const
 {
+    UNUSED(toPlay);
     weights.assign(BITSETSIZE, 0.0f);
     for (size_t i = 0; i < m_localMoves.move.size(); ++i)
         weights[ m_localMoves.move[i] ] = m_localMoves.ptr[i]->localGamma;
