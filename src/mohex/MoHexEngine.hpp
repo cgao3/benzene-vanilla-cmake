@@ -42,6 +42,7 @@ public:
     void PlayoutWeights(HtpCommand& cmd);
     void PlayoutGlobalWeights(HtpCommand& cmd);
     void PlayoutLocalWeights(HtpCommand& cmd);
+    void SearchStatistics(HtpCommand& cmd);
     void FindTopMoves(HtpCommand& cmd);
     void SelfPlay(HtpCommand& cmd);
     void MarkPrunablePatterns(HtpCommand& cmd);

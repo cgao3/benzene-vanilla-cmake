@@ -114,6 +114,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
                 &MoHexEngine::PlayoutGlobalWeights);
     RegisterCmd("mohex-playout-local-weights", 
                 &MoHexEngine::PlayoutLocalWeights);
+    RegisterCmd("mohex-search-statistics", &MoHexEngine::SearchStatistics);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
     RegisterCmd("mohex-self-play", &MoHexEngine::SelfPlay);
     RegisterCmd("mohex-mark-prunable", &MoHexEngine::MarkPrunablePatterns);
@@ -221,6 +222,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "pspairs/MoHex Playout Weights/mohex-playout-weights\n"
         "pspairs/MoHex Playout Global Weights/mohex-playout-global-weights\n"  
         "pspairs/MoHex Playout Local Weights/mohex-playout-local-weights\n"
+        "string/MoHex Search Statistics/mohex-search-statistics\n"
         "none/MoHex Self Play/mohex-self-play\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
@@ -752,6 +754,23 @@ void MoHexEngine::PlayoutLocalWeights(HtpCommand& cmd)
         if (weights[*i] > 0.0f)
             cmd << ' ' << static_cast<HexPoint>(*i)
                 << ' ' << std::fixed << std::setprecision(3) << weights[*i];
+}
+
+void MoHexEngine::SearchStatistics(HtpCommand& cmd)
+{
+    const MoHexSearch& search = m_player.Search();
+    cmd << m_player.SearchStatistics() << '\n';
+    cmd << search.SharedData().treeStatistics.ToString() << '\n';
+    if (search.ProgressiveBiasConstant() > 0.0f) 
+    {
+        cmd << "GlobalPatterns:\n" 
+            << search.GlobalPatterns().GetStatistics().ToString()
+            << "LocalPatterns:\n"
+            << search.LocalPatterns().GetStatistics().ToString() << '\n';
+    }
+    cmd << m_player.SharedPolicy().Statistics().ToString() << '\n';
+    cmd << "Global Patterns:\n"
+        << search.PlayoutGlobalPatterns().GetStatistics().ToString();
 }
 
 void MoHexEngine::FindTopMoves(HtpCommand& cmd)

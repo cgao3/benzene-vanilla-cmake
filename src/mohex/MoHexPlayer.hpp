@@ -39,6 +39,9 @@ public:
     /** Copy settings from other player. */
     void CopySettingsFrom(const MoHexPlayer& other);
 
+    /** Returns statistics of last search. */
+    std::string SearchStatistics() const;
+
     /** Find the top moves in a position.
         Performs multiple calls to Search(), removing the previous
         move returned from the consider set. This gives a rough
@@ -106,6 +109,8 @@ protected:
     MoHexSharedPolicy m_shared_policy;
     
     MoHexSearch m_search;
+
+    std::string m_search_statistics;
    
     bool m_backup_ice_info;
 
@@ -171,6 +176,11 @@ inline MoHexSharedPolicy& MoHexPlayer::SharedPolicy()
 inline const MoHexSharedPolicy& MoHexPlayer::SharedPolicy() const
 {
     return m_shared_policy;
+}
+
+inline std::string MoHexPlayer::SearchStatistics() const
+{
+    return m_search_statistics;
 }
 
 inline bool MoHexPlayer::BackupIceInfo() const
