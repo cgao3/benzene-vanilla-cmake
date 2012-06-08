@@ -100,7 +100,6 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
     RegisterCmd("param_mohex_policy", &MoHexEngine::MoHexPolicyParam);
     RegisterCmd("mohex-save-tree", &MoHexEngine::SaveTree);
-    RegisterCmd("mohex-save-games", &MoHexEngine::SaveGames);
     RegisterCmd("mohex-get-pv", &MoHexEngine::GetPV);
     RegisterCmd("mohex-values", &MoHexEngine::Values);
     RegisterCmd("mohex-rave-values", &MoHexEngine::RaveValues);
@@ -210,7 +209,6 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "param/MoHex Param/param_mohex\n"
         "param/MoHex Policy Param/param_mohex_policy\n"
         "none/MoHex Save Tree/mohex-save-tree %w\n"
-        "none/MoHex Save Games/mohex-save-games %w\n"
         "var/MoHex PV/mohex-get-pv %m\n"
         "pspairs/MoHex Values/mohex-values\n"
         "pspairs/MoHex Rave Values/mohex-rave-values\n"
@@ -262,8 +260,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << "[bool] lock_free " 
             << search.LockFree() << '\n'
 #endif
-            << "[bool] keep_games "
-            << search.KeepGames() << '\n'
             << "[bool] lazy_delete "
             << search.LazyDelete() << '\n'
             << "[bool] perform_pre_search " 
@@ -340,8 +336,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
         else if (name == "lock_free")
             search.SetLockFree(cmd.Arg<bool>(1));
 #endif
-        else if (name == "keep_games")
-            search.SetKeepGames(cmd.Arg<bool>(1));
         else if (name == "perform_pre_search")
             m_player.SetPerformPreSearch(cmd.Arg<bool>(1));
         else if (name == "prior_pruning")
@@ -428,15 +422,6 @@ void MoHexEngine::SaveTree(HtpCommand& cmd)
     if (cmd.NuArg() == 2)
         maxDepth = cmd.ArgMin<int>(1, 0);
     search.SaveTree(file, maxDepth);
-}
-
-/** Saves games from last search to a SGF. */
-void MoHexEngine::SaveGames(HtpCommand& cmd)
-{
-    MoHexSearch& search = m_player.Search();
-    cmd.CheckNuArg(1);
-    std::string filename = cmd.Arg(0);
-    search.SaveGames(filename);
 }
 
 void MoHexEngine::Values(HtpCommand& cmd)

@@ -30,7 +30,6 @@ public:
     void MoHexParam(HtpCommand& cmd);
     void MoHexPolicyParam(HtpCommand& cmd);
     void SaveTree(HtpCommand& cmd);
-    void SaveGames(HtpCommand& cmd);
     void GetPV(HtpCommand& cmd);
     void Values(HtpCommand& cmd);
     void RaveValues(HtpCommand& cmd);

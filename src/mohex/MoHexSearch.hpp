@@ -98,13 +98,6 @@ public:
 
     const MoHexPatterns& PlayoutLocalPatterns() const;
 
-    /** @see SetKeepGames()
-        @throws SgException if KeepGames() was false at last invocation of
-        StartSearch() */
-    void SaveGames(const std::string& fileName) const;
-
-    void AppendGame(const std::vector<SgMove>& sequence);
-
     /** @see MoHexUtil::SaveTree() */
     void SaveTree(std::ostream& out, int maxDepth) const;
 
@@ -114,14 +107,6 @@ public:
 
     /** @name Hex-specific parameters */
     // @{
-
-    /** Keeps a SGF tree of all games.
-        Games are cleared in each OnStartSearch(). Games can be saved
-        with SaveGames(). */
-    void SetKeepGames(bool enable);
-
-    /** See SetKeepGames(). */
-    bool KeepGames() const;
 
     /** Enables output of live graphics commands for HexGui.
         See GoGuiGfx() */
@@ -174,10 +159,6 @@ private:
 
     StoneBoard m_lastPositionSearched;
 
-    /** See SetKeepGames().
-        Should be non-null only if KeepGames() is true. */
-    SgNode* m_root;
-
     SgUctValue m_nextLiveGfx;
 
     MoHexPatterns m_globalPatterns;
@@ -210,19 +191,9 @@ inline const HexBoard& MoHexSearch::Board() const
     return *m_brd;
 }
 
-inline bool MoHexSearch::KeepGames() const
-{
-    return m_keepGames;
-}
-
 inline bool MoHexSearch::LiveGfx() const
 {
     return m_liveGfx;
-}
-
-inline void MoHexSearch::SetKeepGames(bool enable)
-{
-    m_keepGames = enable;
 }
 
 inline void MoHexSearch::SetLiveGfx(bool enable)

@@ -179,15 +179,6 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
            << m_search.GlobalPatterns().GetStatistics().ToString() << '\n';
     LogInfo() << os.str() << '\n';
 
-#if 0
-    if (m_save_games) 
-    {
-        std::string filename = "uct-games.sgf";
-        uct.SaveGames(filename);
-        LogInfo() << "Games saved in '" << filename << "'.\n";
-    }
-#endif
-
     // Return move recommended by MoHexSearch
     if (sequence.size() > 0) 
         return static_cast<HexPoint>(sequence[0]);
