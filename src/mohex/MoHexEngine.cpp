@@ -115,6 +115,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-playout-local-weights", 
                 &MoHexEngine::PlayoutLocalWeights);
     RegisterCmd("mohex-search-statistics", &MoHexEngine::SearchStatistics);
+    RegisterCmd("mohex-pattern-match-on-cell",&MoHexEngine::PatternMatchOnCell);
     RegisterCmd("mohex-find-top-moves", &MoHexEngine::FindTopMoves);
     RegisterCmd("mohex-self-play", &MoHexEngine::SelfPlay);
     RegisterCmd("mohex-mark-prunable", &MoHexEngine::MarkPrunablePatterns);
@@ -223,6 +224,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "pspairs/MoHex Playout Global Weights/mohex-playout-global-weights\n"  
         "pspairs/MoHex Playout Local Weights/mohex-playout-local-weights\n"
         "string/MoHex Search Statistics/mohex-search-statistics\n"
+        "string/MoHex Pattern Match On Cell/mohex-pattern-match-on-cell %p\n"
         "none/MoHex Self Play/mohex-self-play\n"
         "pspairs/MoHex Top Moves/mohex-find-top-moves %c\n";
 }
@@ -771,6 +773,71 @@ void MoHexEngine::SearchStatistics(HtpCommand& cmd)
     cmd << m_player.SharedPolicy().Statistics().ToString() << '\n';
     cmd << "Global Patterns:\n"
         << search.PlayoutGlobalPatterns().GetStatistics().ToString();
+}
+
+void MoHexEngine::PatternMatchOnCell(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(1);
+    HexPoint p = HtpUtil::MoveArg(cmd, 0);
+    MoHexSearch& search = m_player.Search();
+    if (!search.ThreadsCreated())
+        search.CreateThreads();
+    MoHexThreadState* thread 
+        = dynamic_cast<MoHexThreadState*>(&search.ThreadState(0));
+    if (!thread)
+        throw HtpFailure() << "Thread not a MoHexThreadState!";
+    HexState state(m_game.Board(), m_game.Board().WhoseTurn());
+    HexPoint lastMovePlayed 
+        = MoveSequenceUtil::LastMoveFromHistory(m_game.History());
+    thread->StartPlayout(state, lastMovePlayed);
+    const MoHexBoard& mobrd = thread->GetMoHexBoard();
+    
+    const MoHexPatterns::Data* data;
+    cmd << "Prior Patterns:\n"
+        << "---------------\n";
+    search.GlobalPatterns().Match(mobrd, 12, p, state.ToPlay(), &data);
+    if (data == NULL)
+        cmd << "No global match.\n";
+    else
+    {
+        cmd << search.GlobalPatterns().ShowPattern(data->id)
+            << "Global key=" << data->key << '\n'
+            << "type=" << data->type << " killer=" << data->killer
+            << " gamma=" << data->gamma << '\n';
+    }
+    search.LocalPatterns().Match(mobrd, 12, p, state.ToPlay(), &data);
+    if (data == NULL)
+        cmd << "No local match.\n";
+    else
+    {
+        cmd << search.LocalPatterns().ShowPattern(data->id)
+            << "Local key=" << data->key << '\n'
+            << "type=" << data->type << " killer=" << data->killer
+            << " gamma=" << data->gamma << '\n';
+    }
+    
+    cmd << "\nPlayout Patterns:\n"
+        << "-----------------\n";
+    search.PlayoutGlobalPatterns().Match(mobrd, 12, p, state.ToPlay(), &data);
+    if (data == NULL)
+        cmd << "No global match.\n";
+    else
+    {
+        cmd << search.PlayoutGlobalPatterns().ShowPattern(data->id)
+            << "Global key=" << data->key << '\n'
+            << "type=" << data->type << " killer=" << data->killer
+            << " gamma=" << data->gamma << '\n';
+    }
+    search.PlayoutLocalPatterns().Match(mobrd, 12, p, state.ToPlay(), &data);
+    if (data == NULL)
+        cmd << "No local match.\n";
+    else
+    {
+        cmd << search.PlayoutLocalPatterns().ShowPattern(data->id)
+            << "Local key=" << data->key << '\n'
+            << "type=" << data->type << " killer=" << data->killer
+            << " gamma=" << data->gamma << '\n';
+    }
 }
 
 void MoHexEngine::FindTopMoves(HtpCommand& cmd)
