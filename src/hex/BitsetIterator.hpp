@@ -62,7 +62,7 @@ inline void BitsetIterator::operator++()
         
 inline bool BitsetIterator::boolean_test() const
 {
-    return (m_index != FIRST_INVALID);
+    return (m_index < FIRST_INVALID);
 }
 
 //----------------------------------------------------------------------------
