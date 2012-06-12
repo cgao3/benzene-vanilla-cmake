@@ -67,11 +67,11 @@ private:
 
     uint64_t m_keys[BITSETSIZE][2];
 
-    int8_t m_numMoves;
+    uint8_t m_numMoves;
 
-    int8_t m_lastMove;
-    int8_t m_emptyNbs;
-    int8_t m_oppNbs;
+    uint8_t m_lastMove;
+    uint8_t m_emptyNbs;
+    uint8_t m_oppNbs;
 
     void SetConstBoard(const ConstBoard& brd);
     void SetColor(HexPoint cell, HexColor color);
