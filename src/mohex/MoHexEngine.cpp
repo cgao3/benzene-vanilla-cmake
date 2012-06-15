@@ -136,7 +136,16 @@ void MoHexEngine::RegisterCmd(const std::string& name,
 double MoHexEngine::TimeForMove(HexColor color)
 {
     if (m_player.UseTimeManagement())
-        return m_game.TimeRemaining(color) * 0.12;
+    {
+        double numMovesRemaining = 5.0f;
+        if (m_game.Board().Width() >= 13)
+            // On average 27 moves/game. (12/13)^27 ~= 0.115
+            numMovesRemaining = 13.0f;
+        else if (m_game.Board().Width() >= 11)
+            // On average 17 moves/game. (7/8)^17 ~= 0.103.
+            numMovesRemaining = 8.0f;
+        return m_game.TimeRemaining(color) / numMovesRemaining;
+    }
     return m_player.MaxTime();
 }
 
