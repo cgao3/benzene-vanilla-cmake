@@ -19,11 +19,14 @@ Script ./MoHexScript.py
 #  IntegerGammaParameter
 # For GammaParameter, quadratic regression is performed on log(x)
 # Warning: 123 and not 123.0 should be used for IntegerParameter
-IntegerParameter knowledge_threshold        64  2048
-IntegerParameter expand_threshold            1  50
-IntegerParameter randomize_rave_frequency    1  100
-LinearParameter  progressive_bias          0.0  50.0
-LinearParameter  vc_progressive_bias       0.0  50.0
+IntegerGammaParameter knowledge_threshold        64  2048
+IntegerGammaParameter expand_threshold            1  100
+IntegerGammaParameter randomize_rave_frequency    1  100
+GammaParameter  progressive_bias          0.1  100.0
+GammaParameter  vc_progressive_bias       0.1  100.0
+GammaParameter  rave_weight_final         1.0  1000000.0
+LinearParameter rave_weight_initial       0.1  10.0
+
 
 # This could be the list of machine names in a distributed experiment.
 # In order to run 4 games in parallel, 2 on machine1, 2 on machine2: 

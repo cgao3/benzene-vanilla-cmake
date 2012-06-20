@@ -64,57 +64,41 @@ optimized_program = '/local/scratch/broderic/hex/benzene-local/benzene/src/mohex
 gtp_prefix = 'param_mohex'
 
 # GTP commands sent to the optimized program before starting
-optimized_settings = ''
-optimized_settings += """
-param_mohex max_memory 2000000000
-param_mohex max_games 999999
-param_mohex max_time  999999
-param_mohex use_time_management 1
-param_game  game_time 60
-param_mohex num_threads 4
-param_mohex virtual_loss 1
-param_mohex reuse_subtree 1
-"""
+optimized_settings = [
+    "param_mohex max_memory 2000000000",
+    "param_mohex max_games 100",
+    "param_mohex max_time  999999",
+    "param_mohex use_time_management 1",
+    "param_game  game_time 60",
+    "param_mohex num_threads 4",
+    "param_mohex virtual_loss 1",
+    "param_mohex reuse_subtree 1"]
+
 # (fixed) opponent program
 opponent_program = '/local/scratch/broderic/hex/benzene-local/benzene/src/mohex/mohex.jun15'
 
 # GTP commands sent to the opponent program before starting
-opponent_settings = ''
-opponent_settings += """
-param_mohex max_memory 2000000000
-param_mohex max_games 999999
-param_mohex max_time  999999
-param_mohex use_time_management 1
-param_game  game_time 60
-param_mohex num_threads 4
-param_mohex virtual_loss 1
-param_mohex reuse_subtree 1
-"""
+opponent_settings = [
+    "param_mohex max_memory 2000000000",
+    "param_mohex max_games 100",
+    "param_mohex max_time  999999",
+    "param_mohex use_time_management 1",
+    "param_game  game_time 60",
+    "param_mohex num_threads 4",
+    "param_mohex virtual_loss 1",
+    "param_mohex reuse_subtree 1"]
 
 #############################################################################
 # You should not have to edit anything beyond this point
 #############################################################################
 
-#
-# Create initialization file for the program to be optimized
-#
-gtp_file = open('optimized_settings.gtp', 'w')
-gtp_file.write(optimized_settings)
-
+# Add options to optimized programs settings
 i = 4
-params = []
 while i < len(sys.argv):
     name = sys.argv[i - 1]
     value = sys.argv[i]
-    gtp_file.write(gtp_prefix + ' ' + name + ' ' + value + '\n')
+    optimized_settings.append(gtp_prefix + ' ' + name + ' ' + value + '\n')
     i += 2
-
-gtp_file.close()
-
-#
-# Create initialization file for the opponent
-#
-open('opponent_settings.gtp', 'w').write(opponent_settings)
 
 #
 # Protect program names with quotes
@@ -125,14 +109,9 @@ open('opponent_settings.gtp', 'w').write(opponent_settings)
 #
 # Run one game
 #
-
-optcmd = "nice " + optimized_program + " --seed %SRAND" \
-    + " --config " + path + "/optimized_settings.gtp" \
-    + " --logfile-name " + path + "/optimized.log"    
+optcmd = "nice " + optimized_program + " --seed %SRAND --use-logfile=false"
     
-oppcmd = "nice " + opponent_program  + " --seed %SRAND" \
-    + " --config " + path + "/opponent_settings.gtp" \
-    + " --logfile-name " + path + "/opponent.log"
+oppcmd = "nice " + opponent_program  + " --seed %SRAND --use-logfile=false"
 
 optLogName = path + "/optimized-stderr.log"
 oppLogName = path + "/opponent-stderr.log"
@@ -143,22 +122,42 @@ bcmd = ''
 wcmd = ''
 bLogName = ''
 wLogName = ''
+bsettings = []
+wsettings = []
 if (seed % 2 == 0): # (black, white) = (optimized, opponent)
     bcmd = optcmd
     bLogName = optLogName
+    bsettings = optimized_settings
     wcmd = oppcmd
     wLogName = oppLogName
+    wsettings = opponent_settings
 else:               # (black, white) = (opponent, optimized)
     bcmd = oppcmd
     bLogName = oppLogName
+    bsettings = opponent_settings
     wcmd = optcmd
     wLogName = optLogName
+    wsettings = optimized_settings
 
+print bcmd
 black = Program("B", bcmd, bLogName, verbose)
+print wcmd
 white = Program("W", wcmd, wLogName, verbose)
-    
-opening = randomOpening(size, seed / 2)
 
+# pass settings to programs
+try:
+    for opt in bsettings:
+        black.sendCommand(opt)
+    for opt in wsettings:
+        white.sendCommand(opt)
+except GamePlayer.Error:
+    print "Error during initialization!"
+    print gamePlayer.getErrorMessage()
+except Program.Died:
+    print "Error during initialization!"
+    print "program died"
+   
+opening = randomOpening(size, seed / 2)
 resultBlack = "?"
 resultWhite = "?"
 error = 0
@@ -169,7 +168,8 @@ try:
     game = gamePlayer.play(opening, verbose)
     resultBlack = black.getResult()
     resultWhite = white.getResult()
-    gamePlayer.save(path + "/game.sgf", seed, resultBlack, resultWhite)
+    filename = path + ("/%07d.sgf" % seed)
+    gamePlayer.save(filename, seed, resultBlack, resultWhite)
 
     result = "?"
     if resultBlack == resultWhite:
