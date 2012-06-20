@@ -334,7 +334,9 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << "[string] rave_weight_final "
             << search.RaveWeightFinal() << '\n'
             << "[string] rave_weight_initial "
-            << search.RaveWeightInitial() << '\n';
+            << search.RaveWeightInitial() << '\n'
+            << "[string] uct_bias_constant "
+            << search.UctBiasConstant() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
@@ -367,6 +369,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
            m_player.SetReuseSubtree(cmd.Arg<bool>(1));
         else if (name == "bias_term")
             search.SetBiasTermConstant(cmd.Arg<float>(1));
+        else if (name == "uct_bias_constant")
+            search.SetUctBiasConstant(cmd.Arg<float>(1));
         else if (name == "expand_threshold")
             search.SetExpandThreshold(cmd.ArgMin<int>(1, 0));
         else if (name == "knowledge_threshold")
