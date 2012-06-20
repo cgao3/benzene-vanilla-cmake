@@ -51,14 +51,20 @@ os.chdir(path)
 #############################################################################
 
 # command prefix and suffix (typically used for distributed computation)
-#command_prefix = 'ssh ' + processor + ' cd ' + path + ';'
-command_prefix = ''
+size = 13
+command_prefix = 'ssh ' + processor + ' '
 command_suffix = ''
 
-size = 13
+optimized_program = '/local/scratch/broderic/hex/benzene-local/benzene/src/mohex/mohex.jun20'
+opponent_program = '/local/scratch/broderic/hex/benzene-local/benzene/src/mohex/mohex.jun20'
 
+if "joffre" in processor:
+    command_prefix = 'ssh joffre "ssh ' + processor + ' '
+    command_suffix = '"'
+    optimized_program = '/usr/joffre/broderic/hex/benzene-local/benzene/src/mohex/mohex.jun20'
+    opponent_program = '/usr/joffre/broderic/hex/benzene-local/benzene/src/mohex/mohex.jun20'
+    
 # program to be optimized
-optimized_program = '/local/scratch/broderic/hex/benzene-local/benzene/src/mohex/mohex.jun15'
 
 # setting a parameter is done with "<gtp_prefix> <parameter_name> <value>"
 gtp_prefix = 'param_mohex'
@@ -66,24 +72,23 @@ gtp_prefix = 'param_mohex'
 # GTP commands sent to the optimized program before starting
 optimized_settings = [
     "param_mohex max_memory 2000000000",
-    "param_mohex max_games 100",
+    "param_mohex max_games 999999",
     "param_mohex max_time  999999",
     "param_mohex use_time_management 1",
-    "param_game  game_time 60",
+    "param_game  game_time 180",
     "param_mohex num_threads 4",
     "param_mohex virtual_loss 1",
     "param_mohex reuse_subtree 1"]
 
 # (fixed) opponent program
-opponent_program = '/local/scratch/broderic/hex/benzene-local/benzene/src/mohex/mohex.jun15'
 
 # GTP commands sent to the opponent program before starting
 opponent_settings = [
     "param_mohex max_memory 2000000000",
-    "param_mohex max_games 100",
+    "param_mohex max_games 999999",
     "param_mohex max_time  999999",
     "param_mohex use_time_management 1",
-    "param_game  game_time 60",
+    "param_game  game_time 180",
     "param_mohex num_threads 4",
     "param_mohex virtual_loss 1",
     "param_mohex reuse_subtree 1"]
@@ -109,10 +114,8 @@ while i < len(sys.argv):
 #
 # Run one game
 #
-optcmd = "nice " + optimized_program + " --seed %SRAND --use-logfile=false"
-    
-oppcmd = "nice " + opponent_program  + " --seed %SRAND --use-logfile=false"
-
+optcmd = optimized_program + " --seed %SRAND --use-logfile=false"
+oppcmd = opponent_program  + " --seed %SRAND --use-logfile=false"
 optLogName = path + "/optimized-stderr.log"
 oppLogName = path + "/opponent-stderr.log"
 
@@ -139,14 +142,14 @@ else:               # (black, white) = (opponent, optimized)
     wLogName = optLogName
     wsettings = optimized_settings
 
-print bcmd
-black = Program("B", bcmd, bLogName, verbose)
-print wcmd
-white = Program("W", wcmd, wLogName, verbose)
+
+black = Program("B", command_prefix + bcmd + command_suffix, bLogName, verbose)
+white = Program("W", command_prefix + wcmd + command_suffix, wLogName, verbose)
 
 # pass settings to programs
 try:
     for opt in bsettings:
+        print opt
         black.sendCommand(opt)
     for opt in wsettings:
         white.sendCommand(opt)
