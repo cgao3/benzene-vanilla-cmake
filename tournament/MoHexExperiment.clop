@@ -21,8 +21,8 @@ Script ./MoHexScript.py
 # Warning: 123 and not 123.0 should be used for IntegerParameter
 IntegerGammaParameter knowledge_threshold        64  2048
 IntegerGammaParameter expand_threshold            1  100
-IntegerGammaParameter uct_bias_constant         0.1  100
 IntegerGammaParameter randomize_rave_frequency    1  1000
+GammaParameter        uct_bias_constant         0.1  100
 GammaParameter        progressive_bias          0.1  100.0
 GammaParameter        vc_progressive_bias       0.1  100.0
 GammaParameter        rave_weight_final         1.0  1000000.0
@@ -33,8 +33,11 @@ LinearParameter       rave_weight_initial       0.1  10.0
 # In order to run 4 games in parallel, 2 on machine1, 2 on machine2: 
 Processor joffre10
 Processor joffre10
+Processor joffre10
 Processor joffre09
 Processor joffre09
+Processor joffre09
+Processor joffre08
 Processor joffre08
 Processor joffre08
 

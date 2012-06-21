@@ -16,6 +16,7 @@ import os
 import shutil
 import platform
 import random
+import time
 from program import Program
 from gameplayer import GamePlayer
 from game import Game
@@ -142,14 +143,14 @@ else:               # (black, white) = (opponent, optimized)
     wLogName = optLogName
     wsettings = optimized_settings
 
-
+time.sleep(random.random())
 black = Program("B", command_prefix + bcmd + command_suffix, bLogName, verbose)
+time.sleep(random.random())
 white = Program("W", command_prefix + wcmd + command_suffix, wLogName, verbose)
 
 # pass settings to programs
 try:
     for opt in bsettings:
-        print opt
         black.sendCommand(opt)
     for opt in wsettings:
         white.sendCommand(opt)
