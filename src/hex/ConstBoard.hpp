@@ -322,27 +322,23 @@ inline bool ConstBoard::operator!=(const ConstBoard& other) const
 
 inline HexPoint ConstBoard::PointInDir(HexPoint point, HexDirection dir) const
 {
-    BenzeneAssert(IsInterior(point));
     return m_pointInDir[0][point][dir];
 }
 
 inline HexPoint ConstBoard::PointInDir(HexPoint point, HexDirection dir,
                                        HexColor colorOfObtuse) const
 {
-    BenzeneAssert(IsInterior(point));
     return m_pointInDir[colorOfObtuse][point][dir];
 }
 
 inline HexPoint ConstBoard::PatternPoint(HexPoint point, int dir) const
 {
-    BenzeneAssert(IsInterior(point));
     return m_patternPoint[0][point][dir];
 }
 
 inline HexPoint ConstBoard::PatternPoint(HexPoint point, int dir, 
                                          HexColor colorOfObtuse) const
 {
-    BenzeneAssert(IsInterior(point));
     return m_patternPoint[colorOfObtuse][point][dir];
 }
 
