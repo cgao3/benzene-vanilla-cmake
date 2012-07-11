@@ -55,10 +55,10 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
       m_localPatterns()
 {
     SetBiasTermConstant(0.0);
-    SetExpandThreshold(2);
+    SetExpandThreshold(10);
     {
         std::vector<SgUctValue> thresholds;
-        thresholds.push_back(400);
+        thresholds.push_back(256);
         SetKnowledgeThreshold(thresholds);
     }
     // Use 2 GB for search trees, but not more than half of the system memory
@@ -74,12 +74,13 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     SetMoveSelect(SG_UCTMOVESELECT_COUNT);
     SetNumberThreads(1);    
     SetRave(true);
-    SetRandomizeRaveFrequency(20);
+    SetRandomizeRaveFrequency(30);
+    SetUctBiasConstant(0.22);
     SetWeightRaveUpdates(false);
-    SetRaveWeightInitial(1.0);
-    SetRaveWeightFinal(20000.0);
-    SetProgressiveBiasConstant(1.0f);
-    SetVCProgressiveBiasConstant(1.5f);
+    SetRaveWeightInitial(2.12f);
+    SetRaveWeightFinal(830.0);
+    SetProgressiveBiasConstant(2.47f);
+    SetVCProgressiveBiasConstant(1.85f);
     SetLazyDelete(true);
     SetVirtualLoss(true);
 
