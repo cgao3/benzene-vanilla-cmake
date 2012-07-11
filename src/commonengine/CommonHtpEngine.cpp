@@ -170,7 +170,7 @@ void CommonHtpEngine::CmdHandbookAdd(HtpCommand& cmd)
     if (!sgffile)
         throw HtpFailure() << "cannot load sgf";
 
-    SgGameReader sgreader(sgffile, 11);
+    SgGameReader sgreader(sgffile, 13);
     SgNode* root = sgreader.ReadGame(); 
     if (root == 0)
         throw HtpFailure() << "cannot load file";
@@ -528,7 +528,7 @@ void CommonHtpEngine::CmdAddFillinToSgf(HtpCommand& cmd)
     std::ifstream file(filename.c_str());
     if (!file)
         throw HtpFailure() << "cannot load file";
-    SgGameReader sgreader(file, 11);
+    SgGameReader sgreader(file, 13);
     SgNode* root = sgreader.ReadGame(); 
     if (root == 0)
         throw HtpFailure() << "cannot load file";

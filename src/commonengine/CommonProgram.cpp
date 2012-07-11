@@ -30,7 +30,7 @@ void CommonProgram::RegisterCmdLineArguments()
 {
     m_options_desc.add_options()
         ("boardsize", 
-         po::value<int>(&m_boardsize)->default_value(11),
+         po::value<int>(&m_boardsize)->default_value(13),
          "Sets the size of the board.");
     BenzeneProgram::RegisterCmdLineArguments();
 }

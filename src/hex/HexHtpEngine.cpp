@@ -334,7 +334,7 @@ void HexHtpEngine::CmdLoadSgf(HtpCommand& cmd)
     std::ifstream file(filename.c_str());
     if (!file)
         throw HtpFailure() << "cannot load file";
-    SgGameReader sgreader(file, 11);
+    SgGameReader sgreader(file, 13);
     SgNode* root = sgreader.ReadGame(); 
     if (root == 0)
         throw HtpFailure() << "cannot load file";

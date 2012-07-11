@@ -68,21 +68,12 @@ AC_ARG_ENABLE([upto14x14],
    [upto14x14=$enableval],
    [upto14x14=no])
 
-AC_ARG_ENABLE([upto13x13],
-   AS_HELP_STRING([--enable-upto13x13], 
-                  [support boards up to 13x13 (default is no)]),
-   [upto13x13=$enableval],
-   [upto13x13=no])
-
 if test "x$upto19x19" = "xyes"
 then
         CXXFLAGS="$CXXFLAGS -DSUPPORT_19x19"
 elif test "x$upto14x14" = "xyes"
 then
         CXXFLAGS="$CXXFLAGS -DSUPPORT_14x14"
-elif test "x$upto13x13" = "xyes"
-then
-        CXXFLAGS="$CXXFLAGS -DSUPPORT_13x13"
 fi
 
 dnl Location of the fuego source and libraries

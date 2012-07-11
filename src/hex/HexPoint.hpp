@@ -87,21 +87,13 @@ static const int MAX_WIDTH  = 14;
 /** The maximum height of a valid ConstBoard. */
 static const int MAX_HEIGHT = 14;
 
-#elif defined(SUPPORT_13x13)
+#else
 
 /** The maximum width of a valid ConstBoard. */
 static const int MAX_WIDTH  = 13;
 
 /** The maximum height of a valid ConstBoard. */
 static const int MAX_HEIGHT = 13;
-
-#else
-
-/** The maximum width of a valid ConstBoard. */
-static const int MAX_WIDTH  = 11;
-
-/** The maximum height of a valid ConstBoard. */
-static const int MAX_HEIGHT = 11;
 
 #endif
 
@@ -117,13 +109,9 @@ static const int MAX_HEIGHT = 11;
 
 #include "HexPoints14x14.hpp"
 
-#elif defined(SUPPORT_13x13)
-
-#include "HexPoints13x13.hpp"
-
 #else
 
-#include "HexPoints11x11.hpp"
+#include "HexPoints13x13.hpp"
 
 #endif
 
