@@ -70,6 +70,8 @@ private:
 
     BookBuilderCommands<MoHexPlayer> m_bookCommands;
 
+    float m_timeControlOverride;
+
     HexPoint GenMove(HexColor color, bool useGameClock);
 
     HexPoint DoSearch(HexColor color, double maxTime);

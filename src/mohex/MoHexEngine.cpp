@@ -94,7 +94,8 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
       m_player(player), 
       m_book(0),
       m_bookCheck(m_book),
-      m_bookCommands(m_game, m_pe, m_book, m_bookCheck, m_player)
+      m_bookCommands(m_game, m_pe, m_book, m_bookCheck, m_player),
+      m_timeControlOverride(-1.0f)
 {
     m_bookCommands.Register(*this);
     RegisterCmd("param_mohex", &MoHexEngine::MoHexParam);
@@ -144,6 +145,12 @@ double MoHexEngine::TimeForMove(HexColor color)
         else if (m_game.Board().Width() >= 11)
             // On average 17 moves/game. (7/8)^17 ~= 0.103.
             numMovesRemaining = 8.0f;
+
+        // Use the override value if it is set.
+        // This can be used for tuning time control in CLOP.
+        if (m_timeControlOverride > 0.0f)
+            numMovesRemaining = m_timeControlOverride;
+
         return m_game.TimeRemaining(color) / numMovesRemaining;
     }
     return m_player.MaxTime();
@@ -337,6 +344,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.RaveWeightFinal() << '\n'
             << "[string] rave_weight_initial "
             << search.RaveWeightInitial() << '\n'
+            << "[string] time_control_override "
+            << m_timeControlOverride << '\n'
             << "[string] uct_bias_constant "
             << search.UctBiasConstant() << '\n';
     }
@@ -413,6 +422,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetWeightRaveUpdates(cmd.Arg<bool>(1));
         else if (name == "search_singleton")
             m_player.SetSearchSingleton(cmd.Arg<bool>(1));
+        else if (name == "time_control_override")
+            m_timeControlOverride = cmd.ArgMin<float>(1, 1);
         else if (name == "use_parallel_solver")
             m_useParallelSolver = cmd.Arg<bool>(1);
         else if (name == "use_time_management")
