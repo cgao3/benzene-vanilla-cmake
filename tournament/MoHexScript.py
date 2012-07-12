@@ -42,8 +42,9 @@ seed = int(sys.argv[2])
 #
 # Create empty directory for this seed, and chdir to it
 #
-path = "/local/scratch/broderic/hex/MoHexExperiment/game-%07d" % seed
-shutil.rmtree(path, ignore_errors = True)
+#path = "/local/scratch/broderic/hex/MoHexExperiment/game-%07d" % seed
+#shutil.rmtree(path, ignore_errors = True)
+path = "/local/scratch/broderic/hex/MoHexExperiment/"
 os.makedirs(path)
 os.chdir(path)
 
@@ -107,18 +108,12 @@ while i < len(sys.argv):
     i += 2
 
 #
-# Protect program names with quotes
-#
-#optimized_program = '\\"' + optimized_program + '\\"'
-#opponent_program = '\\"' + opponent_program + '\\"'
-
-#
 # Run one game
 #
 optcmd = optimized_program + " --seed %SRAND --use-logfile=false"
 oppcmd = opponent_program  + " --seed %SRAND --use-logfile=false"
-optLogName = path + "/optimized-stderr.log"
-oppLogName = path + "/opponent-stderr.log"
+optLogName = path + ("/%07d-optimized-stderr.log" % seed)
+oppLogName = path + ("/%07d-opponent-stderr.log" % seed)
 
 verbose = False
 
