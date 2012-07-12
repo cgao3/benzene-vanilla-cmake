@@ -77,6 +77,7 @@ void MoHexPlayer::CopySettingsFrom(const MoHexPlayer& other)
     SetUseRootData(other.UseRootData());
     Search().SetMaxNodes(other.Search().MaxNodes());
     Search().SetNumberThreads(other.Search().NumberThreads());
+    Search().SetFirstPlayUrgency(other.Search().FirstPlayUrgency());
     Search().SetRandomizeRaveFrequency
         (other.Search().RandomizeRaveFrequency());
     Search().SetRaveWeightFinal(other.Search().RaveWeightFinal());
