@@ -149,6 +149,8 @@ public:
     static float PlayoutGlobalGammaFunction(int type, float gamma);
     static float PlayoutLocalGammaFunction(int type, float gamma);
 
+    static float m_globalGammaCap;
+
 private:
     struct LocalMoves
     {

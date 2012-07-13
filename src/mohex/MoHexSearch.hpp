@@ -98,6 +98,8 @@ public:
 
     const MoHexPatterns& PlayoutLocalPatterns() const;
 
+    void LoadPatterns();
+
     /** @see MoHexUtil::SaveTree() */
     void SaveTree(std::ostream& out, int maxDepth) const;
 

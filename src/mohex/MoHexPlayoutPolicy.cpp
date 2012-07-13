@@ -65,12 +65,14 @@ void MoHexPlayoutPolicy::InitializeForSearch()
 {
 }
 
+float MoHexPlayoutPolicy::m_globalGammaCap = 1.0f;
+
 float MoHexPlayoutPolicy::PlayoutGlobalGammaFunction(int type, float gamma)
 {
     switch(type)
     {
     case 0: // normal
-        return std::min(gamma, 1.0f);
+        return std::min(gamma, m_globalGammaCap);
     case 1: // opponent captured
     case 2: // vulnerable
         return 0.00001f;

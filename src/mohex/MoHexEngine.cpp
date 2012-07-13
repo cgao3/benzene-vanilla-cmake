@@ -314,6 +314,8 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             << search.FillinMapBits() << '\n'
             << "[string] first_play_urgency "
             << search.FirstPlayUrgency() << '\n'
+            << "[string] playout_global_gamma_cap "
+            << MoHexPlayoutPolicy::m_globalGammaCap << '\n'
             << "[string] knowledge_threshold "
             << KnowledgeThresholdToString(search.KnowledgeThreshold()) << '\n'
             << "[string] number_playouts_per_visit "
@@ -430,6 +432,11 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             m_player.SetUseTimeManagement(cmd.Arg<bool>(1));
         else if (name == "virtual_loss")
             search.SetVirtualLoss(cmd.Arg<bool>(1));
+        else if (name == "playout_global_gamma_cap")
+        {
+            MoHexPlayoutPolicy::m_globalGammaCap = cmd.ArgMin<float>(1, 0);
+            search.LoadPatterns();
+        }
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }
