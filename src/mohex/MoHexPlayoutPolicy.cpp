@@ -65,7 +65,7 @@ void MoHexPlayoutPolicy::InitializeForSearch()
 {
 }
 
-float MoHexPlayoutPolicy::m_globalGammaCap = 1.0f;
+float MoHexPlayoutPolicy::m_globalGammaCap = 0.157f;
 
 float MoHexPlayoutPolicy::PlayoutGlobalGammaFunction(int type, float gamma)
 {

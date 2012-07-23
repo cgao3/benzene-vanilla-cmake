@@ -141,7 +141,7 @@ double MoHexEngine::TimeForMove(HexColor color)
         double numMovesRemaining = 5.0f;
         if (m_game.Board().Width() >= 13)
             // On average 27 moves/game. (12/13)^27 ~= 0.115
-            numMovesRemaining = 13.0f;
+            numMovesRemaining = 13.5f;
         else if (m_game.Board().Width() >= 11)
             // On average 17 moves/game. (7/8)^17 ~= 0.103.
             numMovesRemaining = 8.0f;
