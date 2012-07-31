@@ -105,6 +105,7 @@ MoHexEngine::MoHexEngine(int boardsize, MoHexPlayer& player)
     RegisterCmd("mohex-values", &MoHexEngine::Values);
     RegisterCmd("mohex-rave-values", &MoHexEngine::RaveValues);
     RegisterCmd("mohex-prior-values", &MoHexEngine::PriorValues);
+    RegisterCmd("mohex-gamma-values", &MoHexEngine::GammaValues);
     RegisterCmd("mohex-bounds", &MoHexEngine::Bounds);
     RegisterCmd("mohex-cell-stats", &MoHexEngine::CellStats);
     RegisterCmd("mohex-do-playouts", &MoHexEngine::DoPlayouts);
@@ -231,6 +232,7 @@ void MoHexEngine::CmdAnalyzeCommands(HtpCommand& cmd)
         "pspairs/MoHex Values/mohex-values\n"
         "pspairs/MoHex Rave Values/mohex-rave-values\n"
         "pspairs/MoHex Prior Values/mohex-prior-values\n"
+        "pspairs/MoHex Gamma Values/mohex-gamma-values\n"
         "pspairs/MoHex Bounds/mohex-bounds\n"
         "gfx/MoHex Cell Stats/mohex-cell-stats %P\n"
         "string/MoHex Do Playouts/mohex-do-playouts\n"
@@ -540,6 +542,19 @@ void MoHexEngine::PriorValues(HtpCommand& cmd)
         const SgUctNode& child = *it;
         cmd << ' ' << static_cast<HexPoint>(child.Move())
             << ' ' << std::fixed << std::setprecision(3) << child.Prior();
+    }
+}
+
+void MoHexEngine::GammaValues(HtpCommand& cmd)
+{
+    MoHexSearch& search = m_player.Search();
+    const SgUctTree& tree = search.Tree();
+    const SgUctNode* node = FindState(m_game);
+    for (SgUctChildIterator it(tree, *node); it; ++it)
+    {
+        const SgUctNode& child = *it;
+        cmd << ' ' << static_cast<HexPoint>(child.Move())
+            << ' ' << std::fixed << std::setprecision(3) << child.Gamma();
     }
 }
 
