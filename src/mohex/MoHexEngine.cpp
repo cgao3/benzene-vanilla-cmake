@@ -338,8 +338,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
 #endif
             << "[string] progressive_bias "
             << search.ProgressiveBiasConstant() << '\n'
-            << "[string] vc_progressive_bias "
-            << search.VCProgressiveBiasConstant() << '\n'
             << "[string] vcm_gamma "
             << search.VCMGamma() << '\n'
             << "[string] randomize_rave_frequency "
@@ -414,8 +412,6 @@ void MoHexEngine::MoHexParam(HtpCommand& cmd)
             search.SetNumberPlayouts(cmd.ArgMin<int>(1, 1));
         else if (name == "progressive_bias")
             search.SetProgressiveBiasConstant(cmd.ArgMin<float>(1, 0));
-        else if (name == "vc_progressive_bias")
-            search.SetVCProgressiveBiasConstant(cmd.ArgMin<float>(1, 0));
         else if (name == "vcm_gamma")
             search.SetVCMGamma(cmd.ArgMin<float>(1, 0));
         else if (name == "rave_weight_final")

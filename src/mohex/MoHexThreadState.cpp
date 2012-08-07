@@ -445,12 +445,12 @@ void MoHexThreadState::VCMInTree(const HexBoard& vcbrd,
                 vcm.back().responses.push_back(*it);
             continue;
         }
-        float totalGamma = 0.0f;
+        SgUctValue totalGamma = 0.0f;
         m_sharedData->treeStatistics.vcmExpanded++;
         for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
         {
             const SgUctNode& r = *ir;
-            const float gamma = r.Gamma();
+            const SgUctValue gamma = r.Gamma();
             totalGamma += gamma;
             if (responses.test(r.Move()))
             {
@@ -486,7 +486,7 @@ void MoHexThreadState::VCMFromParent(std::vector<SgUctMoveInfo>& moves)
         if (data.vcm[i].move != m_lastMovePlayed)
             continue;
         m_sharedData->treeStatistics.vcmExpandedLater++;
-        float totalGamma = 0.0f;
+        SgUctValue totalGamma = 0.0f;
         const vector<uint8_t>& responses = data.vcm[i].responses;
         for (size_t j = 0; j < responses.size(); ++j)
         {
@@ -514,8 +514,8 @@ void MoHexThreadState::VCExtend(const HexBoard& vcbrd, const bitset_t consider,
 {
     UNUSED(consider);
     bitset_t extend;
-    std::vector<float> bonus(BITSETSIZE, 0.0f);
-    static const float SIZE_BONUS = 1.5f;
+    std::vector<SgUctValue> bonus(BITSETSIZE, 0.0f);
+    static const SgUctValue SIZE_BONUS = 1.5f;
     const VCS& vcs = vcbrd.Cons(toPlay);
     const StoneBoard& brd = vcbrd.GetPosition();
     const Groups& groups = vcbrd.GetGroups();
@@ -548,12 +548,12 @@ void MoHexThreadState::VCExtend(const HexBoard& vcbrd, const bitset_t consider,
 #endif
 
     // Update priors in the tree
-    float totalGamma = 0.0f;
+    SgUctValue totalGamma = 0.0f;
     const SgUctNode* node = m_gameInfo.m_nodes.back();
     for (SgUctChildIterator i(m_search.Tree(), *node); i; ++i)
     {
         const HexPoint p = static_cast<HexPoint>((*i).Move());
-        const float gamma = (*i).Gamma();
+        const SgUctValue gamma = (*i).Gamma();
         const_cast<SgUctNode&>(*i).SetGamma(gamma + bonus[p]);
         totalGamma += gamma + bonus[p];
     }

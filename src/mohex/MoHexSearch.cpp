@@ -49,7 +49,7 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
       m_brd(0),
       m_fillinMapBits(16),
       m_priorPruning(true),
-      m_vcmGamma(1000.0f),
+      m_vcmGamma(282.0f),
       m_sharedData(new MoHexSharedData(m_fillinMapBits)),
       m_globalPatterns(),
       m_localPatterns()
@@ -81,7 +81,6 @@ MoHexSearch::MoHexSearch(SgUctThreadStateFactory* factory, int maxMoves)
     SetRaveWeightInitial(2.12f);
     SetRaveWeightFinal(830.0f);
     SetProgressiveBiasConstant(2.47f);
-    SetVCProgressiveBiasConstant(1.85f);
     SetLazyDelete(true);
     SetVirtualLoss(true);
 
