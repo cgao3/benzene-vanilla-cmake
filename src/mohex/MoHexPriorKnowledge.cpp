@@ -140,6 +140,7 @@ void MoHexPriorKnowledge::ProcessPosition(std::vector<SgUctMoveInfo>& moves,
         const float gamma = moveGamma[moves[i].m_move];
         const float prob = gamma / totalGamma;
         moves[i].m_prior = prob;
+        moves[i].m_gamma = gamma;
 	moves[i].m_raveValue = 0.5f;
 	moves[i].m_raveCount = 8;
     }

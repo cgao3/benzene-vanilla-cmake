@@ -450,22 +450,26 @@ void MoHexThreadState::VCMInTree(const HexBoard& vcbrd,
         for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
         {
             const SgUctNode& r = *ir;
-            const float gamma = r.VCGamma();
+            const float gamma = r.Gamma();
             totalGamma += gamma;
             if (responses.test(r.Move()))
             {
+                // LogInfo() << vcbrd.GetPosition().Write() << '\n' 
+                //           << "probe=" << probe 
+                //           << " respons=" << (HexPoint)r.Move() << '\n';
                 const float bonusGamma = m_search.VCMGamma();
-                const_cast<SgUctNode&>(r).SetVCGamma(gamma + bonusGamma);
+                const_cast<SgUctNode&>(r).SetGamma(gamma + bonusGamma);
                 m_sharedData->treeStatistics.vcmResponses++;
                 totalGamma += bonusGamma;
+                //LogInfo() << "gamma=" << r.Gamma() << '\n';
             }
         }
         if (totalGamma > 0.0f)
         {
             for (SgUctChildIterator ir(m_search.Tree(), p); ir; ++ir)
             {
-                const SgUctValue prior = (*ir).VCGamma() / totalGamma;
-                const_cast<SgUctNode&>(*ir).SetVCPrior(prior);
+                const SgUctValue prior = (*ir).Gamma() / totalGamma;
+                const_cast<SgUctNode&>(*ir).SetPrior(prior);
             }
         }
     }
@@ -491,7 +495,7 @@ void MoHexThreadState::VCMFromParent(std::vector<SgUctMoveInfo>& moves)
                 if (moves[k].m_move == responses[j])
                 {
                     m_sharedData->treeStatistics.vcmResponses++;
-                    moves[k].m_vcGamma = m_search.VCMGamma();
+                    moves[k].m_gamma += m_search.VCMGamma();
                     totalGamma += m_search.VCMGamma();
                 }
             }
@@ -499,7 +503,7 @@ void MoHexThreadState::VCMFromParent(std::vector<SgUctMoveInfo>& moves)
         if (totalGamma > 0)
         {
             for (size_t k = 0; k < moves.size(); ++k)
-                moves[k].m_vcPrior = moves[k].m_vcGamma / totalGamma;
+                moves[k].m_prior = moves[k].m_gamma / totalGamma;
         }
         break;
     }
@@ -549,16 +553,16 @@ void MoHexThreadState::VCExtend(const HexBoard& vcbrd, const bitset_t consider,
     for (SgUctChildIterator i(m_search.Tree(), *node); i; ++i)
     {
         const HexPoint p = static_cast<HexPoint>((*i).Move());
-        const float gamma = (*i).VCGamma();
-        const_cast<SgUctNode&>(*i).SetVCGamma(gamma + bonus[p]);
+        const float gamma = (*i).Gamma();
+        const_cast<SgUctNode&>(*i).SetGamma(gamma + bonus[p]);
         totalGamma += gamma + bonus[p];
     }
     if (totalGamma > 0.0f)
     {
         for (SgUctChildIterator i(m_search.Tree(), *node); i; ++i)
         {
-            const SgUctValue prior = (*i).VCGamma() / totalGamma;
-            const_cast<SgUctNode&>(*i).SetVCPrior(prior);
+            const SgUctValue prior = (*i).Gamma() / totalGamma;
+            const_cast<SgUctNode&>(*i).SetPrior(prior);
         }
     }
 }

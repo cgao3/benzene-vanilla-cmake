@@ -34,6 +34,7 @@ public:
     void Values(HtpCommand& cmd);
     void RaveValues(HtpCommand& cmd);
     void PriorValues(HtpCommand& cmd);
+    void GammaValues(HtpCommand& cmd);
     void Bounds(HtpCommand& cmd);
     void CellStats(HtpCommand& cmd);
     void DoPlayouts(HtpCommand& cmd);
