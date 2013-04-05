@@ -7,7 +7,7 @@ TEMP=`getopt -o ho:r:s:t:: --long help,openings:,rounds:,size:,type: -- "$@"`
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
-SIZE=11
+SIZE=13
 ROUNDS=10
 OPENINGS=""
 TYPE="iterative"
