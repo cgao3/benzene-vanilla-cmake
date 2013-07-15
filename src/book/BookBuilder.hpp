@@ -93,7 +93,8 @@ protected:
 
     void EnsureRootExists();
 
-    bool GenerateMoves(std::vector<SgMove>& moves, float& value);
+    bool GenerateMoves(std::size_t count, std::vector<SgMove>& moves, 
+                       float& value);
 
     void GetAllLegalMoves(std::vector<SgMove>& moves);
 
@@ -243,10 +244,6 @@ void BookBuilder<PLAYER>::CreateWorkers()
         PLAYER* newPlayer = new PLAYER();
         /** @todo Use concept checking to verify this method exists. */
         newPlayer->CopySettingsFrom(m_orig_player);
-        newPlayer->SetSearchSingleton(true);
-        // Set select to something not SG_UCTMOVESELECT_COUNT to
-        // force it to perform the required number of playouts.
-        newPlayer->Search().SetMoveSelect(SG_UCTMOVESELECT_BOUND);
 
         m_players.push_back(newPlayer);
         m_boards.push_back(new HexBoard(*m_brd));
@@ -317,6 +314,14 @@ float BookBuilder<PLAYER>::Worker::operator()(const SgMove& move)
 
     HexEval score;
     m_brd->GetPosition().SetPosition(state.Position());
+    
+    PLAYER* player = dynamic_cast<PLAYER*>(m_player);
+    BenzeneAssert(player);
+    player->SetSearchSingleton(true);
+    player->SetReuseSubtree(false);
+    // Set select to something not SG_UCTMOVESELECT_COUNT to
+    // force it to perform the required number of playouts.
+    player->Search().SetMoveSelect(SG_UCTMOVESELECT_BOUND);
     m_player->GenMove(state, game, *m_brd, 99999, score);
     return score;
 }
@@ -429,19 +434,16 @@ void BookBuilder<PLAYER>::EnsureRootExists()
     untouched. Returns false otherwise, in which case moves will
     contain the sorted moves and value will be untouched. */
 template<class PLAYER>
-bool BookBuilder<PLAYER>::GenerateMoves(std::vector<SgMove>& moves,
+bool BookBuilder<PLAYER>::GenerateMoves(std::size_t count,
+                                        std::vector<SgMove>& moves,
                                         float& value)
 {
     // Turn off ICE (controlled by method UseICE()): compute the moves
     // to consider without using any ice, so that we do not leave the
     // book if opponent plays an inferiogr move.
     HexColor toMove = m_state.ToPlay();
-    bool useICE = m_brd->UseICE();
-    m_brd->SetUseICE(m_use_ice);
     m_brd->GetPosition().SetPosition(m_state.Position());
     m_brd->ComputeAll(toMove);
-    m_brd->SetUseICE(useICE);
-
     {
         HexEval hexValue;
         if (EndgameUtil::IsDeterminedState(*m_brd, toMove, hexValue))
@@ -450,26 +452,30 @@ bool BookBuilder<PLAYER>::GenerateMoves(std::vector<SgMove>& moves,
             return true;
         }
     }
-
     bitset_t children = EndgameUtil::MovesToConsider(*m_brd, toMove);
     BenzeneAssert(children.any());
-    
-    Resistance resist;
-    resist.Evaluate(*m_brd);
-    std::vector<HexMoveValue> ordered;
-    
-    // BUG: This does NOT take swap into account. This means the
-    // ordered set of moves returned in the root state is not ordered
-    // according to the swap rule. No real way to fix this while using
-    // resistance values, but it is possible to fix if we used mohex
-    // evaluations to sort the moves.
 
-    for (BitsetIterator it(children); it; ++it)
-        // use negative so higher values go to front
-        ordered.push_back(HexMoveValue(*it, -resist.Score(*it)));
-    std::stable_sort(ordered.begin(), ordered.end());
-    for (std::size_t i = 0; i < ordered.size(); ++i)
-        moves.push_back(ordered[i].point());
+    // stupid crap to meet interface of player
+    StoneBoard blah(m_state.Position());
+    Game game(blah);
+    std::vector<HexPoint> mymoves;
+    std::vector<double> scores;
+    
+    PLAYER* player = dynamic_cast<PLAYER*>(m_players[0]);
+    BenzeneAssert(player);
+    player->SetSearchSingleton(false);
+    player->Search().SetMoveSelect(SG_UCTMOVESELECT_COUNT);
+    player->FindTopMoves(count, m_state, game, *m_brd, children, 
+                         999999, mymoves, scores);
+    LogInfo() << "Top moves:";
+    for (std::size_t i = 0; i < mymoves.size(); ++i)
+    {
+        LogInfo() << " (" << mymoves[i]
+                  << ", " << std::fixed << std::setprecision(3) << scores[i]
+                  << ')';
+        moves.push_back(static_cast<SgMove>(mymoves[i]));
+    }
+    LogInfo() << '\n';
     return false;
 }
 
