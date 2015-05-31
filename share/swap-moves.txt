@@ -1,3 +1,5 @@
+# modified by RBH at Yokohama
+
 # Contains (boardsize, move) pairs each denoting a move that should be
 # swapped for that boardsize. Assume black is the vertical player and
 # goes first.
@@ -165,7 +167,7 @@
 11x11 c2
 11x11 d2
 11x11 e2
-11x11 f2
+#11x11 f2
 11x11 g2
 11x11 h2
 11x11 i2

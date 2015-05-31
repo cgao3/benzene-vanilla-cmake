@@ -1090,7 +1090,11 @@ void MoHexEngine::Ponder()
     // Call genmove() after 0.2 seconds delay to avoid calls 
     // in very short intervals between received commands
     boost::xtime time;
-    boost::xtime_get(&time, boost::TIME_UTC);
+    #if BOOST_VERSION >= 105000
+        boost::xtime_get(&time, boost::TIME_UTC_);
+    #else
+        boost::xtime_get(&time, boost::TIME_UTC);
+    #endif
     for (int i = 0; i < 200; ++i)
     {
         if (SgUserAbort())
