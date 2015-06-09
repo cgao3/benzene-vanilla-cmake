@@ -346,7 +346,7 @@ void LinkedList<T>::Clear()
     ListNode<T>* node = m_head.GetNext();
     while (node != 0)
     {
-        ListNode<T>* next = node.GetNext();
+        ListNode<T>* next = node->GetNext();
         m_pool.Put(node);
         node = next;
     }
