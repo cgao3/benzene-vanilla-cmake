@@ -304,7 +304,9 @@ SgUctTree* MoHexPlayer::TryReuseSubtree(const MoHexSharedData& oldData,
     // no previous search has been performed.
     const StoneBoard& oldPosition = oldData.rootState.Position();
     const StoneBoard& newPosition = newData.rootState.Position();
-    if (&oldPosition.Const() == 0)
+    if (&oldPosition.Const() == 0) // comment by Chao, return the reference of pointer seems to be bad! Const() return & *ConstBoard..
+        return 0;
+    if (oldPosition.ConstPtr()==0) //added by Chao
         return 0;
     if (oldPosition.Width() != newPosition.Width() ||
         oldPosition.Height() != newPosition.Height())

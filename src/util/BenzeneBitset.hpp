@@ -11,7 +11,7 @@
 
 #include <cstddef>              
 #include <string>
-#include <bits/functexcept.h>   
+//#include <bits/functexcept.h>   
 
 #include "Benzene.hpp"
 #include "BenzeneException.hpp"

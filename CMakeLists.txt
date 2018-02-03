@@ -1,0 +1,263 @@
+cmake_minimum_required(VERSION 3.5)
+project(benzene-cmake)
+
+find_package(Boost COMPONENTS thread system filesystem program_options date_time)
+
+set(CMAKE_CXX_STANDARD 11)
+set(pkgdatadir ${CMAKE_CURRENT_SOURCE_DIR}/share)
+set(top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
+add_definitions(-DABS_TOP_SRCDIR="${top_srcdir}"
+        -DDATADIR="${pkgdatadir}"
+        -DNDEBUG
+        )
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wconversion -Wextra")
+if (${APPLE}) 
+    message("using -stdlib=libc++")
+    set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -O3 -Wconversion -Wextra")
+    set(CMAKE_EXE_LINKER_FLAGS "-stdlib=libc++")
+endif()
+
+add_subdirectory(src)
+
+#include_directories(/usr/local/Cellar/boost/1.64.0_1/include/)
+include_directories(${top_srcdir}/src/hex)
+include_directories(${top_srcdir}/src/util)
+include_directories(${top_srcdir}/src/book)
+#include_directories(src/benzenetest)
+#include_directories(src/test)
+include_directories(${top_srcdir}/src/simpleplayers)
+include_directories(${top_srcdir}/src/solver)
+include_directories(${top_srcdir}/src/commonengine)
+include_directories(${top_srcdir}/src/wolve)
+include_directories(${top_srcdir}/src/mohex)
+include_directories(${top_srcdir}/src/smartgame)
+include_directories(${top_srcdir}/src/gtpengine)
+include_directories(${Boost_INCLUDE_DIRS})
+
+set(SOURCE_FILES
+        doc/pages/mainpage.cpp
+        src/benzenetest/BenzeneTestEngine.cpp
+        src/benzenetest/BenzeneTestEngine.hpp
+        src/benzenetest/BenzeneTestMain.cpp
+        src/benzenetest/BenzeneTestProgram.cpp
+        src/benzenetest/BenzeneTestProgram.hpp
+        src/book/Book.cpp
+        src/book/Book.hpp
+        src/book/BookBuilder.hpp
+        src/book/BookBuilderCommands.hpp
+        src/book/BookCheck.cpp
+        src/book/BookCheck.hpp
+        src/book/BookCommands.cpp
+        src/book/BookCommands.hpp
+        src/book/CacheBook.cpp
+        src/book/CacheBook.hpp
+        src/commonengine/CommonHtpEngine.cpp
+        src/commonengine/CommonHtpEngine.hpp
+        src/commonengine/CommonProgram.cpp
+        src/commonengine/CommonProgram.hpp
+        src/commonengine/PlayAndSolve.cpp
+        src/commonengine/PlayAndSolve.hpp
+        src/commonengine/SwapCheck.cpp
+        src/commonengine/SwapCheck.hpp
+        src/hex/test/BitsetIteratorTest.cpp
+        src/hex/test/BoardIteratorTest.cpp
+        src/hex/test/BoardUtilTest.cpp
+        src/hex/test/CarrierListTest.cpp
+        src/hex/test/ConstBoardTest.cpp
+        src/hex/test/DecompositionsTest.cpp
+        src/hex/test/EndgameUtilTest.cpp
+        src/hex/test/GraphUtilTest.cpp
+        src/hex/test/GroupsTest.cpp
+        src/hex/test/HexBoardTest.cpp
+        src/hex/test/HexColorTest.cpp
+        src/hex/test/HexPointTest.cpp
+        src/hex/test/ICEngineTest.cpp
+        src/hex/test/InferiorCellsTest.cpp
+        src/hex/test/PatternStateTest.cpp
+        src/hex/test/RingGodelTest.cpp
+        src/hex/test/SequenceHashTest.cpp
+        src/hex/test/StateDBTest.cpp
+        src/hex/test/StoneBoardTest.cpp
+        src/hex/test/VCUtilTest.cpp
+        src/hex/test/ZobristHashTest.cpp
+        src/hex/BenzenePlayer.cpp
+        src/hex/BenzenePlayer.hpp
+        src/hex/BitsetIterator.hpp
+        src/hex/BitsetMap.hpp
+        src/hex/BoardIterator.hpp
+        src/hex/BoardUtil.cpp
+        src/hex/BoardUtil.hpp
+        src/hex/ConstBoard.cpp
+        src/hex/ConstBoard.hpp
+        src/hex/Decompositions.cpp
+        src/hex/Decompositions.hpp
+        src/hex/EndgameUtil.cpp
+        src/hex/EndgameUtil.hpp
+        src/hex/Game.cpp
+        src/hex/Game.hpp
+        src/hex/GraphUtil.cpp
+        src/hex/GraphUtil.hpp
+        src/hex/Groups.cpp
+        src/hex/Groups.hpp
+        src/hex/HandCodedPattern.cpp
+        src/hex/HandCodedPattern.hpp
+        src/hex/HashedPatternSet.cpp
+        src/hex/HashedPatternSet.hpp
+        src/hex/Hex.hpp
+        src/hex/HexAbSearch.cppfuego_root
+        src/hex/HexAbSearch.hpp
+        src/hex/HexBoard.cpp
+        src/hex/HexBoard.hpp
+        src/hex/HexColor.hpp
+        src/hex/HexEnvironment.cpp
+        src/hex/HexEnvironment.hpp
+        src/hex/HexEval.cpp
+        src/hex/HexEval.hpp
+        src/hex/HexHtpEngine.cpp
+        src/hex/HexHtpEngine.hpp
+        src/hex/HexModState.hpp
+        src/hex/HexPlayer.hpp
+        src/hex/HexPoint.cpp
+        src/hex/HexPoint.hpp
+        src/hex/HexPoints11x11.hpp
+        src/hex/HexPoints13x13.hpp
+        src/hex/HexPoints14x14.hpp
+        src/hex/HexPoints19x19.hpp
+        src/hex/HexProp.cpp
+        src/hex/HexProp.hpp
+        src/hex/HexSgUtil.cpp
+        src/hex/HexSgUtil.hpp
+        src/hex/HexState.hpp
+        src/hex/HexStateAssertRestored.hpp
+        src/hex/ICEngine.cpp
+        src/hex/ICEngine.hpp
+        src/hex/IcePatternSet.cpp
+        src/hex/IcePatternSet.hpp
+        src/hex/InferiorCells.cpp
+        src/hex/InferiorCells.hpp
+        src/hex/Move.hpp
+        src/hex/NeighborTracker.cpp
+        src/hex/NeighborTracker.hpp
+        src/hex/Pattern.cpp
+        src/hex/Pattern.hpp
+        src/hex/PatternState.cpp
+        src/hex/PatternState.hpp
+        src/hex/Resistance.cpp
+        src/hex/Resistance.hpp
+        src/hex/RingGodel.cpp
+        src/hex/RingGodel.hpp
+        src/hex/SearchedState.hpp
+        src/hex/SequenceHash.cpp
+        src/hex/SequenceHash.hpp
+        src/hex/StateDB.hpp
+        src/hex/StoneBoard.cpp
+        src/hex/StoneBoard.hpp
+        src/hex/TwoDistance.cpp
+        src/hex/TwoDistance.hpp
+        src/hex/VCCommands.cpp
+        src/hex/VCCommands.hpp
+        src/hex/VCOr.cpp
+        src/hex/VCOr.hpp
+        src/hex/VCPattern.cpp
+        src/hex/VCPattern.hpp
+        src/hex/VCS.cpp
+        src/hex/VCS.hpp
+        src/hex/VCUtil.cpp
+        src/hex/VCUtil.hpp
+        src/hex/ZobristHash.cpp
+        src/hex/ZobristHash.hpp
+        src/hex/ZobristHashes.hpp
+        src/mohex/MoHexEngine.cpp
+        src/mohex/MoHexEngine.hpp
+        src/mohex/MoHexMain.cpp
+        src/mohex/MoHexPlayer.cpp
+        src/mohex/MoHexPlayer.hpp
+        src/mohex/MoHexPlayoutPolicy.cpp
+        src/mohex/MoHexPlayoutPolicy.hpp
+        src/mohex/MoHexPriorKnowledge.cpp
+        src/mohex/MoHexPriorKnowledge.hpp
+        src/mohex/MoHexProgram.cpp
+        src/mohex/MoHexProgram.hpp
+        src/mohex/MoHexSearch.cpp
+        src/mohex/MoHexSearch.hpp
+        src/mohex/MoHexThreadState.cpp
+        src/mohex/MoHexThreadState.hpp
+        src/mohex/MoHexUtil.cpp
+        src/mohex/MoHexUtil.hpp
+        src/simpleplayers/HandicapPlayer.cpp
+        src/simpleplayers/HandicapPlayer.hpp
+        src/simpleplayers/PerfectPlayer.cpp
+        src/simpleplayers/PerfectPlayer.hpp
+        src/simpleplayers/VulPreCheck.cpp
+        src/simpleplayers/VulPreCheck.hpp
+        src/solver/BenzeneSolver.hpp
+        src/solver/DfpnCommands.cpp
+        src/solver/DfpnCommands.hpp
+        src/solver/DfpnSolver.cpp
+        src/solver/DfpnSolver.hpp
+        src/solver/DfsCommands.cpp
+        src/solver/DfsCommands.hpp
+        src/solver/DfsData.cpp
+        src/solver/DfsData.hpp
+        src/solver/DfsSolver.cpp
+        src/solver/DfsSolver.hpp
+        src/solver/nn.h
+        src/solver/nnevaluate.cpp
+        src/solver/ProofUtil.cpp
+        src/solver/ProofUtil.hpp
+        src/solver/SolverDB.hpp
+        src/test/TestMain.cpp
+        src/util/test/AtomicMemoryTest.cpp
+        src/util/test/BitsetTest.cpp
+        src/util/test/ChangeLogTest.cpp
+        src/util/test/DigraphTest.cpp
+        src/util/test/HashMapTest.cpp
+        src/util/test/LinkedListTest.cpp
+        src/util/test/LoggerTest.cpp
+        src/util/test/SortedSequenceTest.cpp
+        src/util/test/UnionFindTest.cpp
+        src/util/AtomicMemory.hpp
+        src/util/Benzene.hpp
+        src/util/BenzeneAssert.hpp
+        src/util/BenzeneBitset.hpp
+        src/util/BenzeneException.cpp
+        src/util/BenzeneException.hpp
+        src/util/BenzeneProgram.cpp
+        src/util/BenzeneProgram.hpp
+        src/util/Bitset.cpp
+        src/util/Bitset.hpp
+        src/util/ChangeLog.hpp
+        src/util/Digraph.hpp
+        src/util/HashDB.hpp
+        src/util/HashMap.hpp
+        src/util/LinkedList.hpp
+        src/util/Logger.cpp
+        src/util/Logger.hpp
+        src/util/lssolve.cpp
+        src/util/lssolve.h
+        src/util/mat.hpp
+        src/util/Misc.cpp
+        src/util/Misc.hpp
+        src/util/Queue.hpp
+        src/util/SafeBool.hpp
+        src/util/SortedSequence.hpp
+        src/util/TransTable.hpp
+        src/util/Types.hpp
+        src/util/UnionFind.hpp
+        src/util/vec.hpp
+        src/wolve/WolveEngine.cpp
+        src/wolve/WolveEngine.hpp
+        src/wolve/WolveMain.cpp
+        src/wolve/WolvePlayer.cpp
+        src/wolve/WolvePlayer.hpp
+        src/wolve/WolveProgram.cpp
+        src/wolve/WolveProgram.hpp
+        src/wolve/WolveSearch.cpp
+        src/wolve/WolveSearch.hpp
+        src/wolve/WolveTimeControl.cpp
+        src/wolve/WolveTimeControl.hpp
+        src/config.h
+        tools/mergesgf/MergeSgfMain.cpp
+		)
+

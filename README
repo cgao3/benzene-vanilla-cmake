@@ -1,127 +1,25 @@
-Project Benzene README
+A CMake managed Vanilla Benzene for playing and solving Hex.
 
-----------------------
- Obtaining the source
-----------------------
+No need to install Fuego, as Benzene only uses smartgame/ and gtpengine/,
+they are now copied to src/ and will compile with other code together.
 
-Checkout the source from sourceforge using git:
+How to build?
 
-git clone git://benzene.git.sourceforge.net/gitroot/benzene/benzene benzene
+cd to project directory, 
+   
+   mkdir build
+   cd build
+   cmake ../ 
+if there is no error, then just
+   make 
 
-----------
- Building
-----------
+This will make all requirred libraries and produce two executables src/wolve/wolve and src/mohex/mohex
 
-You will need the fuego includes and library objects. To get them,
-checkout fuego from sourceforge.net. For example, from within your
-benzene directory:
+Additional remarks for mac os:
+in src/mohex/CMakeLists.txt
+/usr/local/Cellar/berkeley-db/6.2.23/lib/
+if your berkeley-db is at a different dir other than the above one, please uncomment and replace the correct dir in line 12
 
-% cd ..
-% svn co https://fuego.svn.sourceforge.net/svnroot/fuego/trunk fuego
-% cd fuego
-% autoreconf -i
-% ./configure --enable-assert 
-
-(NOTE: This current build of Benzene is tested with revision 1371
-(circa January 2011). It is possible that in the future the trunk
-version of fuego can differ drastically from this version. It may be
-necessary to checkout a branch in the fuego repository created near
-revision 1371 to get the compile to work, or to checkout revision 1371
-itself with the "-r 1371" option to "svn co".)
-
-Include the "--enable-assert" if you will be doing development on
-Benzene. The compilation will fail if you want to use assertions in 
-Benzene but not in Fuego. 
-
-If you will not be doing development or testing, or would prefer
-maximum speed and performance, then you can safely exclude the
-"--enable-assert" option.
-
-% make
-
-Change back to the benzene directory. 
-
-% cd ../benzene
-
-If you checked out your benzene code from a git repository you will need
-to run autotools to create your configure script. If you downloaded a
-distribution tarball, go straight to the 'configure' step.
-
-% autoreconf -i
-
-This should complete without error. 
-
-Now run configure (skip to here if you downloaded a benzene tarball): 
-
-% ./configure --with-fuego-root=[absolute path to fuego] --enable-assert=yes
-
-"--with-fuego-root" simply tells benzene where it can find the fuego files it
-needs.  Do not use a relative path as this will cause an error in the
-next step, ie, do not use "--with-fuego-root=../fuego/".
-
-Recall that if you compiled Fuego without assertions then you cannot use
-assertions in Benzene, and so you should leave off the assert option
-to 'configure'.
-
-If you want to support boardsizes up to 13x13, include the option
-"--enable-upto13x13=yes". This will degrade performance, so only use
-this if you want to play on 13x13.
-
-If you want to support boardsizes up to 14x14, include the option
-"--enable-upto14x14=yes". This will degrade performance a little more
-(and will override the 13x13 option), so only use this if you want to
-play on 14x14.
-
-If you want to support boardsizes up to 19x19, include the option
-"--enable-upto19x19=yes". This will degrade performance even further,
-so again, only use this if you want to play on very large boards. This
-option supercedes "--enable-upto13x13" and "--enable-upto14x14", so if
-you use "--enable-upto19x19" only it will have any effect.
-
-'configure' should finish without error. If 'configure' fails to find
-BOOST or BerkeleyDB, you may need to direct it to those files
-explicitly (good luck, buddy!).  If all is well, then do:
-
-% make
-
-This will build everything. If you have a multi-core processor, do
-"make -j#" where # is the number of cores you wish to use. This will
-greatly speed up the build process.
-
-MoHex and Wolve executables can be found under src/mohex/ and src/wolve
-respectively. 
-
-To build and run the unit tests, do:
-
-% make check
-
--------------
- Development
--------------
-
-If you are only modifying existing source files, then a simple 'make'
-is enough to build the new code properly. If you wish to add or remove
-source files, then you will have to edit the proper 'Makefile.am'
-files.  If you modify any 'Makefile.am', you will need to recreate the
-makefiles with 'config.status':
-
-[add some source files, make changes in all relevant Makefile.am]
-% autoreconf -i
-% ./config.status [this will use the settings from the last './configure']
-% make
-
-------------
- Installing
-------------
-
-There is no need to install benzene. If you do wish to install it, the
-code will be installed to "${prefix}/bin" and the data files from
-"share/" will be stored under "${prefix}/benzene/share/".
-
-Two locations are checked when loading these data files when the
-program starts up. The first is the "share/" directory where benzene
-was compiled. The second is the installed data directory mentioned
-above. The source directory is checked first, then the data directory.
-If neither exists the program will abort. 
-
-
+Prerequisite libraries: 
+ berkeley-db
+ libboost-all
