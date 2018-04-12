@@ -431,7 +431,7 @@ To learn more about benzene, see early documents
 
 * **Jakub Pawlewicz** - *Developed stronger VC and parallel solver* 
 
-* **Aja Huang ** - *Developed MoHex 2.0 which uses trained pattern weights as in-tree prior knowledge and probabilistic playout*
+* **Aja Huang** - *Developed MoHex 2.0 which uses trained pattern weights as in-tree prior knowledge and probabilistic playout*
 
 * **Kenny Young** - *Fixed incompatible APIs with recent boost etc*
 * **Chao Gao** - *Reorganized benzene using CMake, fixed an issue on Mac when resue_subtree is on*
