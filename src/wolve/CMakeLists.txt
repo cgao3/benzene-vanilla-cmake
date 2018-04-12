@@ -20,5 +20,6 @@ target_link_libraries(wolve
         solver 
         commonengine
         simpleplayers
-        boost_system boost_filesystem boost_program_options boost_thread boost_date_time
+        ${Boost_LIBRARIES}
+        #boost_system boost_filesystem boost_program_options boost_thread boost_date_time
         db)

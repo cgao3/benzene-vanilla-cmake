@@ -15,5 +15,6 @@ target_link_libraries(solver
         fuego_smartgame
         fuego_gtpengine
         pthread
-        boost_system boost_filesystem boost_program_options boost_thread boost_date_time
+        ${Boost_LIBRARIES}
+        #boost_system boost_filesystem boost_program_options boost_thread boost_date_time
         db)

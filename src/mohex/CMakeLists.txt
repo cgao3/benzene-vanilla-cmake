@@ -21,5 +21,5 @@ target_link_libraries(mohex
         commonengine
         simpleplayers
         ${Boost_LIBRARIES}
-        boost_system boost_filesystem boost_program_options boost_thread boost_date_time
+        #boost_system boost_filesystem boost_program_options boost_thread boost_date_time
         db)
