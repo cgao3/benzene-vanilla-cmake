@@ -1,7 +1,8 @@
-# benzene-vanilla-cmake
+# benzene-vanilla-cmake (MoHex 2.0 and Wolve)
 
 A CMake managed benzene repository for playing and solving Hex.
 See http://benzene.sourceforge.net/ for description of the benzene project up to 2011. 
+Note that the 2011 version has a rather weak MCTS engine if not given many lock-free threads; see the 2011 Computer Olympiad Hex tournament report for details.  
 
 This repository contains later development of benzene until 2015, including:
 
@@ -416,10 +417,46 @@ Some tips
 * For small board sizes such as `8x8`, `9x9`, and `10x10`. So far, all `8x8` and `9x9` openings have been solved (which implies perfect play). For `10x10`, only two openings have been solved. On those board sizes, knowledge computation in benzene is likely to be more useful, so in MoHex, one may set `param_mohex knowledge_threshold 0` to improve the performance. Also turn on the solver via `param_mohex use_parallel_solver 1` and `param_dfpn threads 4`.  
 * On `11x11` and `13x13`. Those two board sizes were adopted in previous computer Olympiads. In the competitions, MoHex was running on a computer with many cores, maximizing the benefit due to `lock_free` (with `param_mohex lock_free 1`) parallel MCTS and multi-threading solver.   
 
+
+## HexGUI
+It is also convenient to load MoHex or Wolve with [HexGUI](https://github.com/ryanbhayward/hexgui).
+
+Here are the steps: 
+1. Download `HexGui` from `github`. 
+```shell
+git clone https://github.com/ryanbhayward/hexgui
+cd hexgui/bin
+echo "PATH=PATH:`pwd`" >> ~/.bashrc
+source ~/.bashrc
+hexgui
+```
+
+2. In HexGui, click menu `Program -> New Program `
+
+In the popup window, fill 
+
+```
+Name: mohex #or anything you want 
+Command: /home/your_home/benzene-vanilla/build/src/mohex/mohex #i.e., the full path to your exe of mohex
+```
+![](hexgui_add_program.png)
+
+Then, `Program -> Connect to Local Program`,  your just added program will appear, click it and then `OK`. 
+
+![](hexgui_connect_local_program.png)
+
+If no error occurs, you are now connected to your `mohex` executable in `HexGui`. 
+You may want to check on `View -> Show Shell, Show Analyze`. 
+
+Click on the rightmost of the toolbar to set parameters for your `mohex`. 
+
+**Remark:**
+`HexGui` is open source, but the code has been untouched for many years. You are welcome to modify or add new features to `HexGui` if you are interested in.  
+
 ## Further Reading
 
 To learn more about benzene, see early documents 
-* [Phillip Henderson's thesis](https://webdocs.cs.ualberta.ca/~hayward/theses/ph.pdf).
+* [Philip Henderson's thesis](https://webdocs.cs.ualberta.ca/~hayward/theses/ph.pdf).
 
 * [Monte Carlo Tree Search in Hex](https://ieeexplore.ieee.org/document/5551182/). 
 
@@ -427,7 +464,7 @@ To learn more about benzene, see early documents
 
 ## Contributors
 
-* **Broderick Arneson and Phillip Henderson** - *Major developer of the codebase, initiated the project*
+* **Broderick Arneson and Philip Henderson** - *Major developer of the codebase, initiated the project*
 
 * **Jakub Pawlewicz** - *Developed stronger VC and parallel solver* 
 
