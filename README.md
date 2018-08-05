@@ -426,7 +426,7 @@ Here are the steps:
 ```shell
 git clone https://github.com/ryanbhayward/hexgui
 cd hexgui/bin
-echo "PATH=PATH:`pwd`" >> ~/.bashrc
+echo "PATH=$PATH:`pwd`/hexgui" >> ~/.bashrc
 source ~/.bashrc
 hexgui
 ```
