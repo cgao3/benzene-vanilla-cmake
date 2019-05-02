@@ -1,0 +1,45 @@
+The key is about the patterns. Attached hex99-3.txt is a text formatted all hex 9x9 patterns. (Actually pattern 2 to pattern 283 are used for hex 8x8 before). The attached text file may contain some extra junk comma mark. I am sure they have been fixed or not.
+
+The file is like followings:
+"RN 1",
+"BT 14",
+"BN 0",
+"WM 19 1 2 3 4 10 11 12 13 19 20 21 22 28 29 30 31 37 38 39",
+"BM 24",
+"ND 3",
+"PS 2 5 286",
+"PP 2 32 33",
+"PP 5 23 16 15 14 8 7 6 5",
+"PP 286 9 17 18 25 26 27 34 35 36 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80",
+"BN 1",
+"WM 9 9 17 18 25 26 27 34 35 36",
+"BM 40",
+ ....
+
+“RN” is the rule number , same as the pattern number. Pattern 1 (RN 1) is the a hex 9x9 board with center played by black stone (see attached). Pattern 1 has 80 empty positions.
+"BT" is total number of branches (if then branch) for the above pattern.
+"BN" is the branch number.
+"WM" is about white playing positions (first number is the total number of positions)
+if white's move fill in any positions in WM, the black will play BM:
+"BM" is the black's response move (the following number is position black should play).
+After black playing "BM" move, the board will be decomposed.
+"ND" the total number of decomposed patterns.
+"PS" is the decomposed pattern numbers.
+ "PP" is about the decomposed pattern's positions (first number is the decomposed pattern number, later is the decomposed pattern position corresponding to the position of previous pattern. For example, "PP 2 32 33" means this decomposed pattern is pattern 2, its first position is at previous pattern's position 32 and its second position is at previous pattern's position 33.
+
+....
+followings "BN 2", ... "BN 3", .... .... "BN 13". They all if than branch of Pattern 1.
+
+......
+
+then ...
+"RN 2"....
+
+all in similar way ...
+
+It is because the symmetry of the board, Pattern 1 only need considering 40 positions of 80.
+
+If you start from pattern 1, following all branches of the pattern and go down, you will get all patterns!
+
+Best Regards,
+Jing
