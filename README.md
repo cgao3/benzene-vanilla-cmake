@@ -417,6 +417,8 @@ Some tips
 * For small board sizes such as `8x8`, `9x9`, and `10x10`. So far, all `8x8` and `9x9` openings have been solved (which implies perfect play). For `10x10`, only two openings have been solved. On those board sizes, knowledge computation in benzene is likely to be more useful, so in MoHex, one may set `param_mohex knowledge_threshold 0` to improve the performance. Also turn on the solver via `param_mohex use_parallel_solver 1` and `param_dfpn threads 4`.  
 * On `11x11` and `13x13`. Those two board sizes were adopted in previous computer Olympiads. In the competitions, MoHex was running on a computer with many cores, maximizing the benefit due to `lock_free` (with `param_mohex lock_free 1`) parallel MCTS and multi-threading solver.   
 
+**NOTE:** 9x9 center move `e5` is also solved by [Jing Yang by a pattern decomposition approach](https://webdocs.cs.ualberta.ca/~hayward/papers/yang7.pdf). `src/jing/` contains an implementation of the player using `benzene` APIs. It is a perfect player assuming black starts from center move `e5`. The main advantage of this implementation is that it supports visualization of the pattern list coverage. This is helpful in understanding how the over 700 patterns are used in detail. 
+See [this video](https://youtu.be/y4XOL0O7enU) for a demo. 
 
 ## HexGUI
 It is also convenient to load MoHex or Wolve with [HexGUI](https://github.com/ryanbhayward/hexgui).
@@ -426,7 +428,7 @@ Here are the steps:
 ```shell
 git clone https://github.com/ryanbhayward/hexgui
 cd hexgui/bin
-echo "PATH=$PATH:`pwd`/hexgui" >> ~/.bashrc
+echo "PATH=\$PATH:`pwd`/hexgui" >> ~/.bashrc
 source ~/.bashrc
 hexgui
 ```
@@ -452,6 +454,7 @@ Click on the rightmost of the toolbar to set parameters for your `mohex`.
 
 **Remark:**
 `HexGui` is open source, but the code has been untouched for many years. You are welcome to modify or add new features to `HexGui` if you are interested in.  
+
 
 ## Further Reading
 
