@@ -22,6 +22,7 @@ add_subdirectory(src)
 
 #include_directories(/usr/local/Cellar/boost/1.64.0_1/include/)
 include_directories(${top_srcdir}/src/hex)
+include_directories(${top_srcdir}/src/precomputation)
 include_directories(${top_srcdir}/src/util)
 include_directories(${top_srcdir}/src/book)
 #include_directories(src/benzenetest)
@@ -100,8 +101,6 @@ set(SOURCE_FILES
         src/hex/GraphUtil.hpp
         src/hex/Groups.cpp
         src/hex/Groups.hpp
-        src/hex/HandCodedPattern.cpp
-        src/hex/HandCodedPattern.hpp
         src/hex/HashedPatternSet.cpp
         src/hex/HashedPatternSet.hpp
         src/hex/Hex.hpp
@@ -185,12 +184,11 @@ set(SOURCE_FILES
         src/mohex/MoHexThreadState.hpp
         src/mohex/MoHexUtil.cpp
         src/mohex/MoHexUtil.hpp
+	src/precomputation/PatternPrecomputation.cpp
         src/simpleplayers/HandicapPlayer.cpp
         src/simpleplayers/HandicapPlayer.hpp
         src/simpleplayers/PerfectPlayer.cpp
         src/simpleplayers/PerfectPlayer.hpp
-        src/simpleplayers/VulPreCheck.cpp
-        src/simpleplayers/VulPreCheck.hpp
         src/solver/BenzeneSolver.hpp
         src/solver/DfpnCommands.cpp
         src/solver/DfpnCommands.hpp
