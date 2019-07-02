@@ -5,9 +5,12 @@
 #include "SgSystem.h"
 #include "SgTimer.h"
 
-#include "Decompositions.hpp"
 #include "BitsetIterator.hpp"
+#include "BoardUtil.hpp"
+#include "Decompositions.hpp"
+#include "HexColor.hpp"
 #include "Groups.hpp"
+#include "PatternState.hpp"
 #include "VCS.hpp"
 #include "HexBoard.hpp"
 #include "VCUtil.hpp"
@@ -62,13 +65,19 @@ HexBoard::~HexBoard()
 
 //----------------------------------------------------------------------------
 
-void HexBoard::ComputeInferiorCells(HexColor color_to_move)
+HexPoint HexBoard::ComputeInferiorCells(HexColor color_to_move,
+					HexPoint last_move,
+					bool only_around_last_move)
 {
     if (m_use_ice) 
     {
         InferiorCells inf;
-        m_ice->ComputeInferiorCells(color_to_move, m_groups, m_patterns, inf);
-        IceUtil::Update(m_inf, inf);
+	HexPoint reverser =
+	  m_ice->ComputeInferiorCells(color_to_move, m_groups,
+				      m_patterns, inf, last_move,
+				      only_around_last_move);
+	IceUtil::Update(m_inf, inf);
+	return reverser;
     }
 }
 
@@ -83,8 +92,8 @@ void HexBoard::BuildVCs(const Groups& oldGroups,
 {
     BenzeneAssert((added[BLACK] & added[WHITE]).none());
     for (BWIterator c; c; ++c)
-        m_cons[*c]->Build(m_builder_param, oldGroups, m_groups, m_patterns,
-                        added, use_changelog);
+        m_cons[*c]->Build(m_builder_param, oldGroups, m_groups,
+			  m_patterns, added, use_changelog);
 }
 
 void HexBoard::RevertVCs()
@@ -112,14 +121,14 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move)
         bool found = false;
         for (BWIterator c; c; ++c) 
         {
-            bitset_t captured;
-            if (Decompositions::Find(*this, *c, captured))
+            bitset_t fillin;
+            if (Decompositions::Find(*this, *c, fillin))
             {
                 LogFine() << "Decomposition " << decompositions << ": for " 
-			  << *c << ".\n" << m_brd.Write(captured) << '\n';
+			  << *c << ".\n" << m_brd.Write(fillin) << '\n';
             
-                AddStones(*c, captured, color_to_move);
-                m_inf.AddCaptured(*c, captured);
+                AddStones(*c, fillin, color_to_move);
+                m_inf.AddFillin(*c, fillin);
             
                 LogFine() << "After decomposition " << decompositions 
 			  << ": " << m_brd << '\n';
@@ -135,7 +144,8 @@ void HexBoard::HandleVCDecomposition(HexColor color_to_move)
     LogFine() << "Found " << decompositions << " decompositions.\n";
 }
 
-void HexBoard::ComputeAll(HexColor color_to_move)
+HexPoint HexBoard::ComputeAll(HexColor color_to_move, HexPoint last_move,
+			      bool add_fillin, bool only_around_last_move)
 {
     SgTimer timer;
 
@@ -143,7 +153,9 @@ void HexBoard::ComputeAll(HexColor color_to_move)
     GroupBuilder::Build(m_brd, m_groups);
     m_inf.Clear();
 
-    ComputeInferiorCells(color_to_move);
+    Groups old_groups(m_groups);
+    HexPoint reverser =
+      ComputeInferiorCells(color_to_move, last_move, only_around_last_move);
 
     if (m_use_vcs)
     {
@@ -151,6 +163,25 @@ void HexBoard::ComputeAll(HexColor color_to_move)
         HandleVCDecomposition(color_to_move);
     }
     LogFine() << timer.GetTime() << "s to compute all.\n";
+
+    if (add_fillin)
+    {
+	m_brd.AddColor(BLACK, m_inf.Fillin(BLACK));
+	m_brd.AddColor(WHITE, m_inf.Fillin(WHITE));
+	m_brd.AddPlayed(m_inf.Fillin(BLACK) | m_inf.Fillin(WHITE));
+	
+	bitset_t added[BLACK_AND_WHITE];
+	added[BLACK] = m_inf.Fillin(BLACK);
+	added[WHITE] = m_inf.Fillin(WHITE);
+	if (m_use_vcs)
+	    BuildVCs(old_groups, added, false);
+
+	m_patterns.Update(added[BLACK] | added[WHITE]);
+    }
+
+    if (m_inf.Fillin(BLACK).test(reverser) || m_inf.Fillin(WHITE).test(reverser))
+        reverser = INVALID_POINT;
+    return reverser;
 }
 
 void HexBoard::PlayMove(HexColor color, HexPoint cell)
@@ -179,6 +210,37 @@ void HexBoard::PlayMove(HexColor color, HexPoint cell)
         HandleVCDecomposition(!color);
     }
     LogFine() << timer.GetTime() << "s to play stones.\n";
+}
+
+void HexBoard::TryMove(HexColor color, HexPoint cell)
+{
+    LogFine() << "Playing (" << color << ", " << cell << ")\n";
+
+    SgTimer timer;
+    PushHistory(color, cell);
+    bitset_t old = m_brd.GetColor(color);
+
+    m_brd.PlayMove(color, cell);
+    m_patterns.Update(cell);
+    Groups oldGroups(m_groups);
+    GroupBuilder::Build(m_brd, m_groups);
+
+    if (m_use_ice) 
+    {
+        InferiorCells inf;
+        m_ice->ComputeFillin(m_groups, m_patterns, inf, color,
+			     ICEngine::MONOCOLOR_USING_CAPTURED);
+        IceUtil::Update(m_inf, inf);
+    }
+    
+    if (m_use_vcs)
+    {
+        bitset_t added[BLACK_AND_WHITE];
+	added[color] = m_brd.GetColor(color) - old;
+        BuildVCs(oldGroups, added, true);
+        HandleVCDecomposition(!color);
+    }
+    LogFine() << timer.GetTime() << "s to try move.\n";
 }
 
 void HexBoard::PlayStones(HexColor color, const bitset_t& played,
@@ -254,6 +316,7 @@ void HexBoard::UndoMove()
     LogFine() << timer.GetTime() << "s to undo move.\n";
 }
 
+
 //----------------------------------------------------------------------------
 
 void HexBoard::ClearHistory()
@@ -279,13 +342,27 @@ void HexBoard::PopHistory()
     if (m_backup_ice_info && hist.last_played != INVALID_POINT)
     {
         // Cells that were not marked as inferior in parent state
-        // and are either dead or captured (for the color to play in the
-        // parent state) are marked as dominated. 
+        // and are monocolor-filled are marked as dominated.
+        // @warning : this may give wrong pruning if the fill was
+        // not monocolor
         bitset_t a = m_brd.GetEmpty() - hist.inf.All();
-        a &= m_inf.Dead() | m_inf.Captured(hist.to_play);
+        a &= m_inf.Fillin(hist.to_play);
+	
+        for (BitsetIterator p(a); p; ++p)
+            hist.inf.AddInferior(*p, hist.last_played);
 
-        for (BitsetIterator p(a); p; ++p) 
-            hist.inf.AddDominated(*p, hist.last_played);
+	if (m_brd.IsSelfRotation())
+	{
+	    // In this case, the computation is done on only half of the
+	    // board, and we want EndgameUtil::RemoveRotation to work
+	    // properly, which forces to add the symetrical inferior.
+	    HexPoint rot_last_played =
+	      BoardUtil::Rotate(m_brd.Const(), hist.last_played);
+	    for (BitsetIterator p(a); p; ++p)
+	        hist.inf.AddInferior
+		  (BoardUtil::Rotate(m_brd.Const(), *p), rot_last_played);
+	}
+		   
     }
     m_inf = hist.inf;
     m_groups = hist.groups;

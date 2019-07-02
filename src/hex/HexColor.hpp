@@ -19,6 +19,9 @@ _BEGIN_BENZENE_NAMESPACE_
 */
 typedef enum { BLACK=0, WHITE=1, EMPTY=2 } HexColor;
 
+/** Color used when one has to be picked arbitrarily. */
+static const HexColor ARBITRARY_COLOR = BLACK;
+
 //----------------------------------------------------------------------------
 
 /** Color of player to move first in a game of Hex. */
@@ -29,11 +32,6 @@ static const HexColor FIRST_TO_PLAY = BLACK;
 /** Color of player who is trying to form a vertical chain (i.e. joining
     NORTH to SOUTH). */
 static const HexColor VERTICAL_COLOR = BLACK;
-
-//----------------------------------------------------------------------------
-
-/** Color that all dead cells are set to. */
-static const HexColor DEAD_COLOR = BLACK;
 
 //----------------------------------------------------------------------------
 

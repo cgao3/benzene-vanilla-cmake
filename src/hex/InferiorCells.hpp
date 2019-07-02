@@ -13,73 +13,6 @@ _BEGIN_BENZENE_NAMESPACE_
 
 //----------------------------------------------------------------------------
 
-class VulnerableKiller
-{
-public:
-
-    /** Creates killer with empty carrier. */
-    VulnerableKiller(HexPoint killer);
-
-    /** Creates killer with given carrier. */
-    VulnerableKiller(HexPoint killer, const bitset_t& carrier);
-
-    HexPoint killer() const;
-    bitset_t carrier() const;
-
-    bool operator==(const VulnerableKiller& other) const;
-    bool operator!=(const VulnerableKiller& other) const;
-    bool operator<(const VulnerableKiller& other) const;
-
-private:
-    HexPoint m_killer;
-    bitset_t m_carrier;
-};
-
-inline VulnerableKiller::VulnerableKiller(HexPoint killer)
-    : m_killer(killer),
-      m_carrier()
-{
-}
-
-inline VulnerableKiller::VulnerableKiller(HexPoint killer, 
-                                          const bitset_t& carrier)
-    : m_killer(killer),
-      m_carrier(carrier)
-{
-}
-
-inline HexPoint VulnerableKiller::killer() const
-{
-    return m_killer;
-}
-
-inline bitset_t VulnerableKiller::carrier() const
-{
-    return m_carrier;
-}
-
-inline bool VulnerableKiller::operator==(const VulnerableKiller& other) const
-{
-    /** @todo This ignores the carrier. This means only the first (killer,
-        carrier) pair is stored for each killer.  We may want to
-        keep only the smallest carrier, or all of them.  */
-    return (m_killer == other.m_killer);
-}
-
-inline bool VulnerableKiller::operator!=(const VulnerableKiller& other) const
-{
-    return !operator==(other);
-}
-
-inline bool VulnerableKiller::operator<(const VulnerableKiller& other) const
-{
-    if (m_killer != other.m_killer)
-        return m_killer < other.m_killer;
-    return false;
-}
-
-//----------------------------------------------------------------------------
-
 /** Set of inferior cells. */
 class InferiorCells
 {
@@ -90,127 +23,103 @@ public:
     
     //------------------------------------------------------------------------
 
-    bitset_t Dead() const;
-    bitset_t Captured(HexColor color) const;
-    bitset_t PermInf(HexColor color) const;
-    bitset_t PermInfCarrier(HexColor color) const;
-    bitset_t MutualFillin(HexColor color) const;
-    bitset_t MutualFillinCarrier(HexColor color) const;
+    bitset_t Fillin(HexColor color) const;
 
-    /** Returns the set of vulnerable cells. */
+    /** Vulnerables could be included in SReversible, but given they block no
+	pattern separating them allows to detect more pruning. */
     bitset_t Vulnerable() const;
 
-    /** Returns the set of reversible cells.
+    /** Also contains the threat-reversible as they are handled together.
+	Actually, most following "SRev" functions also include them,
+	unless there is a corresponding "TRev" one. */
+    bitset_t SReversible() const;
 
-        @note An empty cell can be both reversible and vulnerable. In
-        this case it will be vulnerable and not appear in the cells
-        returned by Reversible(). */
-    bitset_t Reversible() const;
-
-    /** Returns the set of dominated cells.  This is not the same as
-        the set of all cells dominated by some other cell. The
-        returned is a maximal set of dominated cells that can be ignored
+    /** Returns the set of inferior cells.  This is not the same as
+        the set of all cells inferior to some other cell. The
+        returned is a maximal set of inferior cells that can be pruned
         during move
 
-        @note A cell can be both dominated (have an outgoing arc in
-        the domination graph), and be vulnerable (have an outgoing arc
-        in the vulnerable graph) and/or reversible. In such a case, the
-        cell will never appear in the cells returned by Dominated(). */
-
-    bitset_t Dominated() const;
+        @note A cell can be both inferior (have an outgoing arc in the
+        inferiority graph) and strong-reversible. In such a case, the
+        cell will never appear in the cells returned by Inferior(). */
+    bitset_t Inferior() const;
 
     bitset_t All() const;
 
-    bitset_t Fillin(HexColor color) const;
+    const std::set<HexPoint>& Killers(HexPoint p) const;
+    const std::set<HexPoint>& SReversers(HexPoint p) const;
 
-    const std::set<VulnerableKiller>& Killers(HexPoint p) const;
-
-    const std::set<HexPoint>& Reversers(HexPoint p) const;
-    bitset_t AllReversers() const;
-    bitset_t AllReversibleCarriers() const;
+    /** The blocker is:
+	- for a strong-reverse pattern, the reverser
+	- for a threat-reverse pattern, the reverser and the reversible
+    */
+    const bitset_t Blockers() const;
+    /** The carrier is the set of all cells except the reverser and
+	the reversible. */
+    const bitset_t SReversibleCarriers() const;
     
     //------------------------------------------------------------------------
 
     /** Returns a string representation of its internal state.
         The format is as follows:
         1)  First character is either f (for fill-in) or i (for ignorable)
-        2a) If fill-in, 2nd character is c/d/p/u (captured/dead/perminf/mutual)
-            and 3rd character is b/w (black/white fill-in colour)
-        2b) If ignorable, 2nd character is v/r/d (vulnerable/reversible/domin)
-            and 3rd entry is list of killers/reversers/dominators
-     */
+        2a) If fill-in, 2nd character is e/b/w (either/black/white)
+        2b) If ignorable, 2nd character is v/s/i (vulnerable/strong-reversible
+	  /inferior) and 3rd entry is list of killers/reversers/superiors
+    */
     std::string GuiOutput() const;
 
-    /** Examines the vulnerable cells; returns the set of
+    /** Examines the reversible cells; returns the set of
         presimplicial cells on the cells they kill. */
     bitset_t FindPresimplicialPairs() const;
 
-    /** Uses the inferior cell information to compute the deduction set.
-        This is the part of the proof set used to derive the equivalent
-        ICE-reduced board.
-        The proof set is composed of this, the played stones, and (some
-        subset of) the empty cells on the ICE-reduced board.
-        Note: it is assumed the color passed in is the player for whom
-        the pruning (vulnerable, reversible, dominated) was computed, so
-        these are not used... just the fillin.
-    */
-    bitset_t DeductionSet(HexColor color) const;
-
     //------------------------------------------------------------------------
 
-    void AddDead(const bitset_t& dead);
-    void AddDead(HexPoint dead);
-    
-    void AddCaptured(HexColor color, const bitset_t& captured);
-    void AddCaptured(HexColor color, HexPoint captured);
+    void AddFillin(HexColor color, HexPoint fillin);
+    void AddFillin(HexColor color, const bitset_t& fillin);
 
-    void AddPermInf(HexColor color, const bitset_t& cells, 
-                    const bitset_t& carrier);
-    void AddPermInf(HexColor color, HexPoint cell, const bitset_t& carrier);
-    
-    void AddMutualFillin(HexColor color, const bitset_t& cells, 
-                         const bitset_t& carrier);
-    void AddMutualFillin(HexColor color, HexPoint cell,
-                         const bitset_t& carrier);
+    /** A cell is vulnerable when it is strong-reversible with no carrier. */
+    void AddVulnerable(HexPoint vulnerable,
+		       HexPoint killer);
+    void AddVulnerable(HexPoint vulnerable,
+		       const std::set<HexPoint>& killers);
 
-    void AddDominated(HexPoint cell, HexPoint dominator);
-    void AddDominated(HexPoint cell, const std::set<HexPoint>& dom);
+    /** Theis function test if the cell is already known to be strong-
+	reversible (or vulnerable). In this case, it does nothing. */
+    void AddSReversible(HexPoint reversible,
+			const bitset_t& carrier,
+			HexPoint reverser,
+			bool is_threat);
 
-    void AddVulnerable(HexPoint cell, HexPoint killer);
-    void AddVulnerable(HexPoint cell, const std::set<HexPoint>& killers);
-    void AddVulnerable(HexPoint cell, const VulnerableKiller& killer);
-    void AddVulnerable(HexPoint cell, const std::set<VulnerableKiller>& dom);
+    void AddInferior(HexPoint inferior,
+		     HexPoint superior);
+    void AddInferior(HexPoint inferior,
+		     const std::set<HexPoint>& superiors);
 
-    void AddReversible(HexPoint cell, bitset_t carrier, HexPoint reverser);
-    void AddReversible(HexPoint cell, bitset_t carrier,
-                       const std::set<HexPoint>& reversers);
-
-    void AddDominatedFrom(const InferiorCells& other);
+    /** Make sure to have cleared before calling these. */
     void AddVulnerableFrom(const InferiorCells& other);
-    void AddReversibleFrom(const InferiorCells& other);
-    void AddPermInfFrom(HexColor color, const InferiorCells& other);
-    void AddMutualFillinFrom(HexColor color, const InferiorCells& other);
-
+    void AddSReversibleFrom(const InferiorCells& other);
+    void AddInferiorFrom(const InferiorCells& other);
+  
     //------------------------------------------------------------------------
 
     void Clear();
 
-    void ClearDead();
+    void ClearFillin(HexColor color);
     void ClearVulnerable();
-    void ClearReversible();
-    void ClearDominated();
-    void ClearCaptured(HexColor color);
-    void ClearPermInf(HexColor color);
-    void ClearMutualFillin(HexColor color);
+    void ClearSReversible();
+    void ClearInferior();
 
-    void RemoveDead(const bitset_t& dead);
-    void RemoveCaptured(HexColor color, const bitset_t& captured);
-    void RemoveDominated(const bitset_t& dominated);
+    void RemoveFillin(HexColor color, HexPoint fillin);
+    void RemoveFillin(HexColor color, const bitset_t& fillin);
+
+    void RemoveVulnerable(HexPoint vunerable);
     void RemoveVulnerable(const bitset_t& vulnerable);
-    void RemoveReversible(const bitset_t& reversible);
-    void RemoveReversible(HexPoint reversible);
-    void RemovePermInf(HexColor color, const bitset_t& perminf);
-    void RemoveMutualFillin(HexColor color, const bitset_t& mutual);
+    void RemoveSReversible(HexPoint reversible);
+    void RemoveSReversible(const bitset_t& reversible);
+
+    void RemoveInferior(HexPoint inferior);
+    void RemoveInferior(const bitset_t& inferior);
     
 private:
 
@@ -220,109 +129,70 @@ private:
 
     //------------------------------------------------------------------------
 
-    bitset_t m_dead;
+    bitset_t m_fillin[BLACK_AND_WHITE];
 
-    bitset_t m_captured[BLACK_AND_WHITE];
-
-    bitset_t m_perm_inf[BLACK_AND_WHITE];
-    bitset_t m_perm_inf_carrier[BLACK_AND_WHITE];
-
-    bitset_t m_mutual_fillin[BLACK_AND_WHITE];
-    bitset_t m_mutual_fillin_carrier[BLACK_AND_WHITE];
-
-    //------------------------------------------------------------------------
-
-    /** Vulnerable cells; not those involved in presimplicial
-        pairs, though. */
     bitset_t m_vulnerable;
-    std::set<VulnerableKiller> m_killers[BITSETSIZE];
-    
-    //------------------------------------------------------------------------
+    std::set<HexPoint> m_killers[BITSETSIZE];
+    bitset_t m_s_reversible;
+    std::set<HexPoint> m_s_reversers[BITSETSIZE];
 
-    /** Reversible cells and their reversers. */
-    bitset_t m_reversible;
-    std::set<HexPoint> m_reversers[BITSETSIZE];
-    /** Data to test for independent captured-reversible sets. */
-    bitset_t m_allReversibleCarriers;
-    bitset_t m_allReversers;
+    bitset_t m_blockers;
+    bitset_t m_s_reversible_carriers;
 
     //------------------------------------------------------------------------
 
     /** Graph of domination; dominated cells point to their
         dominators. */
-    Digraph<HexPoint> m_dom_graph;
+    Digraph<HexPoint> m_inf_graph;
 
-    /** True if the dominated set has been computed from the
-        domination graph.  Set to false whenever the domination graph
-        changes. */
-    mutable bool m_dominated_computed;
+    /** True if the inferior set has been computed from the
+        inferiority graph.  Set to false whenever the inferiority
+        graph changes. */
+    mutable bool m_inferior_computed;
 
-    /** The sources of the domination graph minus a few
+    /** The sources of the inferiority graph minus a few
         representatives. */
-    mutable bitset_t m_dominated;
+    mutable bitset_t m_inferior;
     
 };
-
-inline bitset_t InferiorCells::Dead() const
-{
-    return m_dead;
-}
     
+inline bitset_t InferiorCells::Fillin(HexColor color) const
+{
+    return m_fillin[color];
+}
+
 inline bitset_t InferiorCells::Vulnerable() const
 {
     return m_vulnerable;
 }
 
-inline bitset_t InferiorCells::Reversible() const
+inline bitset_t InferiorCells::SReversible() const
 {
-    return m_reversible;
-}
-
-inline bitset_t InferiorCells::Captured(HexColor color) const
-{
-    return m_captured[color];
-}
-
-inline bitset_t InferiorCells::PermInf(HexColor color) const
-{
-    return m_perm_inf[color];
-}
-
-inline bitset_t InferiorCells::PermInfCarrier(HexColor color) const
-{
-    return m_perm_inf_carrier[color];
-}
-
-inline bitset_t InferiorCells::MutualFillin(HexColor color) const
-{
-    return m_mutual_fillin[color];
-}
-
-inline bitset_t InferiorCells::MutualFillinCarrier(HexColor color) const
-{
-    return m_mutual_fillin_carrier[color];
+    return m_s_reversible;
 }
 
 inline 
-const std::set<VulnerableKiller>& InferiorCells::Killers(HexPoint p) const
+const std::set<HexPoint>& InferiorCells::Killers(HexPoint p) const
 {
     return m_killers[p];
 }
 
 inline 
-const std::set<HexPoint>& InferiorCells::Reversers(HexPoint p) const
+const std::set<HexPoint>& InferiorCells::SReversers(HexPoint p) const
 {
-    return m_reversers[p];
+    return m_s_reversers[p];
 }
 
-inline bitset_t InferiorCells::AllReversers() const
+inline 
+const bitset_t InferiorCells::Blockers() const
 {
-    return m_allReversers;
+    return m_blockers;
 }
 
-inline bitset_t InferiorCells::AllReversibleCarriers() const
+inline 
+const bitset_t InferiorCells::SReversibleCarriers() const
 {
-    return m_allReversibleCarriers;
+    return m_s_reversible_carriers;
 }
 
 //------------------------------------------------------------------------
@@ -331,7 +201,7 @@ inline bitset_t InferiorCells::AllReversibleCarriers() const
 namespace InferiorCellsUtil
 {
 
-    bitset_t FindDominationCaptains(const Digraph<HexPoint>& graph);
+    bitset_t PrunableFromInferiorityGraph(const Digraph<HexPoint>& graph);
 
 }
 

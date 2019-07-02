@@ -88,9 +88,7 @@ bitset_t ComputeConsiderSet(const HexBoard& brd, HexColor color)
 {
     bitset_t consider = VCUtil::GetMustplay(brd, color);
     const InferiorCells& inf = brd.GetInferiorCells();
-    consider = consider - inf.Vulnerable()
-                        - inf.Reversible()
-                        - inf.Dominated()
+    consider = consider - inf.All()
           - ComputeLossesViaStrategyStealingArgument(brd.GetPosition(), color);
     if (brd.GetPosition().IsSelfRotation())
         consider = RemoveRotations(brd.GetPosition(), consider);
@@ -99,22 +97,21 @@ bitset_t ComputeConsiderSet(const HexBoard& brd, HexColor color)
 
 bitset_t StonesInProof(const HexBoard& brd, HexColor color)
 {
-    return brd.GetPosition().GetPlayed(color) 
-        | brd.GetInferiorCells().DeductionSet(color);
+    return brd.GetPosition().GetColor(color) 
+        | brd.GetInferiorCells().Fillin(color);
 }
 
 /** Priority is given to eliminating the most easily-answered
     moves first (i.e. dead cells require no answer, answering
-    vulnerable plays only requires knowledge of local adjacencies,
+    reversible plays only requires knowledge of local adjacencies,
     etc.) */
 void TightenMoveBitset(bitset_t& moveBitset, const InferiorCells& inf)
 {
-    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Dead());
+    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Fillin(ARBITRARY_COLOR));
+    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Fillin(!ARBITRARY_COLOR));
     BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Vulnerable());
-    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Captured(BLACK));
-    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Captured(WHITE));
-    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Reversible());
-    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Dominated());
+    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.SReversible());
+    BitsetUtil::SubtractIfLeavesAny(moveBitset, inf.Inferior());
     BenzeneAssert(moveBitset.any());
 }
     

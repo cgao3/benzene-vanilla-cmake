@@ -190,18 +190,19 @@ public:
     /** @name Methods not modifying Hash() */
     // @{
 
-    /** Adds the cells in b as stones of color. Does not modify
-        hash. */
+    /** Adds the cell c as stone of color. Does not modify hash. */
+    void AddColor(HexColor color, HexPoint cell);
+
+    /** Adds the cells in b as stones of color. Does not modify hash. */
     void AddColor(HexColor color, const bitset_t& b);
 
-    /** Sets cells in b to EMPTY. Does not modify hash.  */
-    void RemoveColor(HexColor color, const bitset_t& b);
-
-    /** Sets color of cell. Does not modify hash. */
-    void SetColor(HexColor color, HexPoint cell);
+    /** Picks a color, to decide an either-fillin.
+	color_tb is the tie breaker.  */
+    HexColor PickColor(HexColor color_tb, HexPoint cell);
+    HexColor PickColor(HexColor color_tb, const bitset_t& b);
 
     /** Sets color of cells in bitset. Does not modify hash. */
-    void SetColor(HexColor color, const bitset_t& bs);
+    void SetColor(HexColor color, const bitset_t& b);
 
     /** Returns true if rotating the board returns the same board. */
     bool IsSelfRotation() const;
@@ -215,6 +216,9 @@ public:
 
     /** Clears the board and plays the edge stones. */
     void StartNewGame();
+
+    /** Adds some played stones. Hash is recomputed.  @see Hash(). */
+    void AddPlayed(const bitset_t& p);
 
     /** Sets the played stones. These stones, and only these stones,
         will contribute to the board hash and board id. Hash is

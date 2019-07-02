@@ -62,15 +62,15 @@ HexPoint PerfectPlayer::Search(const HexState& state, const Game& game,
         brd.GetPosition().SetPosition(state.Position());
         brd.ComputeAll(color);
         const InferiorCells& inf = brd.GetInferiorCells();
-        if (m_fillinWinner == color && inf.Captured(color).any())
+        if (m_fillinWinner == color && inf.Fillin(color).any())
         {
             LogInfo() << "PerfectPlayer: Playing into our fillin...\n";
-            return RandomBit(inf.Captured(color), SgRandom::Global());
+            return RandomBit(inf.Fillin(color), SgRandom::Global());
         }
-        else if (m_fillinWinner == !color && inf.Captured(!color).any())
+        else if (m_fillinWinner == !color && inf.Fillin(!color).any())
         {
             LogInfo() << "PerfectPlayer: Playing into opponent fillin...\n";
-            return RandomBit(inf.Captured(color), SgRandom::Global());
+            return RandomBit(inf.Fillin(color), SgRandom::Global());
         }
         LogInfo() << "PerfectPlayer: Playing random empty cell...\n";
         return RandomBit(state.Position().GetEmpty(), SgRandom::Global());

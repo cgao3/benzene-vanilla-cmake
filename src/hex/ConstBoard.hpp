@@ -8,6 +8,7 @@
 
 #include "Hex.hpp"
 #include "BoardIterator.hpp"
+#include "Bitset.hpp"
 #include "Pattern.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -147,8 +148,12 @@ public:
     BoardIterator Nbs(HexPoint cell) const;
 
     /** Returns iterator to the neighbourhood extending outward by
-        radius cells of cell. */
+        radius of cell. */
     BoardIterator Nbs(HexPoint cell, int radius) const;
+
+    /** Returns bitset_t containing the neighbourhood extending
+	outward by radius of b. */
+    bitset_t Nbs(const bitset_t& b, int radius) const;
 
     //------------------------------------------------------------------------
 

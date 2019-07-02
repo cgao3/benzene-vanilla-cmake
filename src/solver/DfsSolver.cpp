@@ -68,10 +68,6 @@ HexColor DfsSolver::Solve(const HexState& state, HexBoard& brd,
     m_state.reset(new HexState(state));
     m_workBrd = &brd;
 
-    // DfsSolver currently cannot handle permanently inferior cells.
-    if (m_workBrd->ICE().FindPermanentlyInferior())
-        throw BenzeneException("Permanently Inferior not supported "
-                               "in DfsSolver!");
     // Check if state is already solved
     DfsData data;
     bool win = false;
@@ -312,7 +308,6 @@ bool DfsSolver::SolveDecomposition(PointSequence& variation,
     solution.proof = (dsolution[0].proof & carrier[0]) 
         | (dsolution[1].proof & carrier[1]) 
         | m_workBrd->GetPosition().GetColor(!color);
-    solution.proof = solution.proof - m_workBrd->GetDead();
     return false;
 }
 
@@ -468,16 +463,6 @@ void DfsSolver::HandleProof(const PointSequence& variation,
             << color << " to play.\n"
             << loser << " loses.\n"
             << "Losing stones hit proof:\n"
-            << m_workBrd->Write(solution.proof) << '\n'
-            << *m_workBrd << '\n'
-            << "PV: " << HexPointUtil::ToString(variation) << '\n';
-    // Verify dead cells do not intersect proof
-    if ((m_workBrd->GetDead() & solution.proof).any()) 
-        throw BenzeneException()
-            << "DfsSolver::HandleProof:\n"
-            << color << " to play.\n"
-            << loser << " loses.\n"
-            << "Dead cells hit proof:\n"
             << m_workBrd->Write(solution.proof) << '\n'
             << *m_workBrd << '\n'
             << "PV: " << HexPointUtil::ToString(variation) << '\n';

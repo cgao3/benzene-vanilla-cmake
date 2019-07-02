@@ -66,8 +66,7 @@ protected:
 private:
     bool m_search_singleton;
           
-    HexPoint InitSearch(HexBoard& brd, HexColor color, 
-                        bitset_t& consider, double& score);
+    HexPoint InitSearch(HexBoard& brd, HexColor color, double& score);
 
     HexPoint CheckEndgame(HexBoard& brd, HexColor color, 
                           bitset_t& consider, double& score);

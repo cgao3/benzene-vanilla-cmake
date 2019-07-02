@@ -113,10 +113,10 @@ HexPoint MoHexPlayer::Search(const HexState& state, const Game& game,
     if (m_performPreSearch && PerformPreSearch(brd, color, consider, 
                                                maxTime * 0.2, winningSequence))
     {
-	LogInfo() << "Winning sequence found before UCT search!\n"
-		  << "Sequence: " << winningSequence[0] << '\n';
+    	LogInfo() << "Winning sequence found before UCT search!\n"
+    		  << "Sequence: " << winningSequence[0] << '\n';
         score = IMMEDIATE_WIN;
-	return winningSequence[0];
+    	return winningSequence[0];
     }
     timer.Stop();
     LogInfo() << "Time for PreSearch: " << timer.GetTime() << "s\n";
@@ -204,10 +204,8 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
                                    bitset_t& consider, double maxTime, 
                                    PointSequence& winningSequence)
 {
-   
     bitset_t losing;
     HexColor other = !color;
-    PointSequence seq;
     bool foundWin = false;
 
     SgTimer elapsed;
@@ -223,16 +221,16 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
                       << '(' << i << '/' << moves.size() << ").\n";
             break;
         }
-        brd.PlayMove(color, moves[i]);
-        seq.push_back(moves[i]);
+        brd.TryMove(color, moves[i]);
         if (EndgameUtil::IsLostGame(brd, other)) // Check for winning move
         {
+	    PointSequence seq;
+	    seq.push_back(moves[i]);
             winningSequence = seq;
             foundWin = true;
         }	
         else if (EndgameUtil::IsWonGame(brd, other))
             losing.set(moves[i]);
-        seq.pop_back();
         brd.UndoMove();
     }
 
@@ -242,21 +240,21 @@ bool MoHexPlayer::PerformPreSearch(HexBoard& brd, HexColor color,
 
     // Backing up cannot cause this to happen, right? 
     BenzeneAssert(!EndgameUtil::IsDeterminedState(brd, color));
-
     // Use the backed-up ice info to shrink the moves to consider
     if (m_backup_ice_info) 
     {
-        bitset_t new_consider 
-            = EndgameUtil::MovesToConsider(brd, color) & consider;
-
+        bitset_t new_consider = EndgameUtil::MovesToConsider(brd, color);
+	// We cannot intersect with the previous consider as there is a
+	// risk that not the same choices were made concerning cycles
+	// (among other issues)
         if (new_consider.count() < consider.count()) 
         {
             consider = new_consider;       
-            LogFine() << "$$$$$$ new moves to consider $$$$$$" 
+            LogFine() << "$$$$$$ new moves to prune $$$$$$" 
                       << brd.Write(consider) << '\n';
         }
     }
-
+    
     // Subtract any losing moves from the set we consider, unless all of them
     // are losing (in which case UCT search will find which one resists the
     // loss well).

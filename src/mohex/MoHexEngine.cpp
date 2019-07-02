@@ -946,26 +946,26 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
     cmd.CheckNuArg(2);
     std::string infile = cmd.Arg(0);
     std::string outfile = cmd.Arg(1);
-    std::vector<Pattern> infpat, oppfill, vul, dom;
-    HashedPatternSet hoppfill, hvul, hdom;
+    std::vector<Pattern> infpat, oppfill, rev, inf;
+    HashedPatternSet hoppfill, hrev, hdom;
     std::ifstream ifile;
     MiscUtil::OpenFile("mohex-prior-prune.txt", ifile);
     Pattern::LoadPatternsFromStream(ifile, infpat);
     for (size_t i = 0; i < infpat.size(); ++i)
     {
-        if (infpat[i].GetType() == Pattern::DOMINATED)
-            dom.push_back(infpat[i]);
-        else if (infpat[i].GetType() == Pattern::VULNERABLE)
-            vul.push_back(infpat[i]);
+        if (infpat[i].GetType() == Pattern::WHITE_INFERIOR)
+            inf.push_back(infpat[i]);
+        else if (infpat[i].GetType() == Pattern::WHITE_STRONG_REVERSIBLE)
+            rev.push_back(infpat[i]);
         else
             oppfill.push_back(infpat[i]);
     }
     LogInfo() << "Parsed " << oppfill.size() << " opp fill patterns, "
-              << vul.size() << " vulnerable patterns, "
-              << dom.size() << " domination patterns.\n";
+              << rev.size() << " strong reversible patterns, "
+              << inf.size() << " inferior patterns.\n";
     hoppfill.Hash(oppfill);
-    hvul.Hash(vul);
-    hdom.Hash(dom);
+    hrev.Hash(rev);
+    hdom.Hash(inf);
 
     std::ifstream f(infile.c_str());
     std::ofstream of(outfile.c_str());
@@ -986,7 +986,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
             break;
         if (line.size() < 5)
             continue;
-        int type, killer;
+        int type, reverser;
         size_t w, a;
         std::string pattern, gamma;
         std::istringstream ifs(line);
@@ -995,7 +995,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
         ifs >> a;
         ifs >> pattern;
         ifs >> type;
-        ifs >> killer;
+        ifs >> reverser;
 
         int size = (int)pattern.size();
         brd.StartNewGame();
@@ -1011,7 +1011,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
         pastate.Update();
         
         type = 0;
-        killer = 0;
+        reverser = 0;
         PatternHits hits;
         pastate.MatchOnCell(hoppfill, HEX_CELL_F6, 
                             PatternState::STOP_AT_FIRST_HIT, hits);
@@ -1019,7 +1019,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
             type = 1;
         else 
         {
-            pastate.MatchOnCell(hvul, HEX_CELL_F6,
+            pastate.MatchOnCell(hrev, HEX_CELL_F6,
                                 PatternState::STOP_AT_FIRST_HIT, hits);
             if (hits.size() > 0)
                 type = 2;
@@ -1033,9 +1033,9 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
                     const std::vector<HexPoint>& moves1 = hits[0].Moves1();
                     for (int i = 1; i <= size; ++i)
                         if (cbrd.PatternPoint(HEX_CELL_F6, i) == moves1[0])
-                            killer = i;
-                    if (killer == 0)
-                        throw BenzeneException("Killer not found!");
+                            reverser = i;
+                    if (reverser == 0)
+                        throw BenzeneException("Reverser not found!");
                 }
             }
         }
@@ -1045,7 +1045,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
                       << "gamma=" << gamma 
                       << " pat=" << hits[0].GetPattern()->GetName() 
                       << " type=" << type 
-                      << " killer=" << killer << '\n';
+                      << " reverser=" << reverser << '\n';
             numPrunable++;
 
             std::istringstream ss(gamma);
@@ -1059,7 +1059,7 @@ void MoHexEngine::MarkPrunablePatterns(HtpCommand& cmd)
            << std::setw(11) << a
            << std::setw(19) << pattern
            << std::setw(11) << type 
-           << std::setw(11) << killer
+           << std::setw(11) << reverser
            << '\n';
     }
     of.close();

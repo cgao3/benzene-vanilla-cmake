@@ -9,10 +9,11 @@
 #include "BitsetIterator.hpp"
 #include "Decompositions.hpp"
 #include "CommonProgram.hpp"
-#include "HexSgUtil.hpp"
 #include "CommonHtpEngine.hpp"
-#include "Resistance.hpp"
 #include "DfsSolver.hpp"
+#include "HexSgUtil.hpp"
+#include "PatternState.hpp"
+#include "Resistance.hpp"
 #include "SwapCheck.hpp"
 #include "TwoDistance.hpp"
 #include "VCS.hpp"
@@ -50,11 +51,11 @@ CommonHtpEngine::CommonHtpEngine(int boardsize)
     RegisterCmd("handbook-add", &CommonHtpEngine::CmdHandbookAdd);
     RegisterCmd("compute-inferior", &CommonHtpEngine::CmdComputeInferior);
     RegisterCmd("compute-fillin", &CommonHtpEngine::CmdComputeFillin);
-    RegisterCmd("compute-vulnerable", &CommonHtpEngine::CmdComputeVulnerable);
-    RegisterCmd("compute-reversible", &CommonHtpEngine::CmdComputeReversible);
-    RegisterCmd("compute-dominated", &CommonHtpEngine::CmdComputeDominated);
-    RegisterCmd("compute-dominated-cell",
-                &CommonHtpEngine::CmdComputeDominatedOnCell);
+    RegisterCmd("compute-s-reversible", &CommonHtpEngine::CmdComputeSReversible);
+    RegisterCmd("compute-reversible-cell",
+                &CommonHtpEngine::CmdComputeReversibleOnCell);
+    RegisterCmd("compute-inferior-cell",
+                &CommonHtpEngine::CmdComputeInferiorOnCell);
     RegisterCmd("find-comb-decomp", &CommonHtpEngine::CmdFindCombDecomp);
     RegisterCmd("find-split-decomp", &CommonHtpEngine::CmdFindSplitDecomp);
     RegisterCmd("encode-pattern", &CommonHtpEngine::CmdEncodePattern);
@@ -100,11 +101,10 @@ void CommonHtpEngine::CmdAnalyzeCommands(HtpCommand& cmd)
     cmd << 
         "string/Benzene License/benzene-license\n"
         "inferior/Compute Inferior/compute-inferior %m\n"
-        "inferior/Compute Vulnerable/compute-vulnerable %m\n"
+        "inferior/Compute Strong Reversible/compute-s-reversible %m\n"
         "inferior/Compute Fillin/compute-fillin %m\n"
-        "inferior/Compute Reversible/compute-reversible %m\n"
-        "inferior/Compute Dominated/compute-dominated %m\n"
-        "inferior/Compute Dominated Cell/compute-dominated-cell %m\n"
+        "inferior/Compute Reversible Cell/compute-reversible-cell %m\n"
+        "inferior/Compute Inferior Cell/compute-inferior-cell %m\n"
         "plist/Find Comb Decomp/find-comb-decomp %c\n"
         "plist/Find Split Decomp/find-split-decomp %c\n"
         "string/Encode Pattern/encode-pattern %P\n"
@@ -250,8 +250,8 @@ void CommonHtpEngine::CmdComputeInferior(HtpCommand& cmd)
     cmd << '\n';
 }
 
-/** Computes fillin for the given board. Color argument affects order
-    for computing vulnerable/presimplicial pairs. */
+/** Computes fillin for the given board. Cells are preferably colored
+    with color. */
 void CommonHtpEngine::CmdComputeFillin(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
@@ -260,14 +260,17 @@ void CommonHtpEngine::CmdComputeFillin(HtpCommand& cmd)
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd.GetPosition(), brd.GetGroups());
     InferiorCells inf;
-    m_pe.ice.ComputeFillin(color, brd.GetGroups(), brd.GetPatternState(), inf);
+    m_pe.ice.ComputeFillin(brd.GetGroups(), brd.GetPatternState(),
+			   inf, color);
     inf.ClearVulnerable();
+    inf.ClearSReversible();
     cmd << inf.GuiOutput();
     cmd << '\n';
 }
 
-/** Computes vulnerable cells on the current board for the given color. */
-void CommonHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
+/** Computes strong reversible (and vulnerable) cells on the current
+    board for the given color. */
+void CommonHtpEngine::CmdComputeSReversible(HtpCommand& cmd)
 {
     cmd.CheckNuArg(1);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
@@ -275,44 +278,36 @@ void CommonHtpEngine::CmdComputeVulnerable(HtpCommand& cmd)
     brd.GetPatternState().Update();
     GroupBuilder::Build(brd.GetPosition(), brd.GetGroups());
     InferiorCells inf;
-    m_pe.ice.FindVulnerable(brd.GetPatternState(), col, 
-                            brd.GetPosition().GetEmpty(), inf);
+    m_pe.ice.FindSReversible(brd.GetPatternState(), col, 
+			     brd.GetPosition().GetEmpty(), inf);
+    m_pe.ice.FindTReversible(brd.GetPatternState(), col, 
+			     brd.GetPosition().GetEmpty(), inf);
     cmd << inf.GuiOutput();
     cmd << '\n';
 }
 
-/** Computes reversible cells on the current board for the given color. */
-void CommonHtpEngine::CmdComputeReversible(HtpCommand& cmd)
+/** Finds inferior patterns matching given cell. */
+void CommonHtpEngine::CmdComputeReversibleOnCell(HtpCommand& cmd)
 {
-    cmd.CheckNuArg(1);
+    cmd.CheckNuArg(2);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
+    HexPoint cell = HtpUtil::MoveArg(cmd, 1);
     HexBoard& brd = m_pe.SyncBoard(m_game.Board());
+    if (m_game.Board().GetColor(cell) != EMPTY
+	&& m_game.Board().GetColor(cell) != col)
+        return;
     brd.GetPatternState().Update();
-    GroupBuilder::Build(brd.GetPosition(), brd.GetGroups());
-    InferiorCells inf;
-    m_pe.ice.FindReversible(brd.GetPatternState(), col, 
-                            brd.GetPosition().GetEmpty(), inf);
-    cmd << inf.GuiOutput();
-    cmd << '\n';
+    HexPoint p =
+      m_pe.ice.IsReversible(brd.GetPatternState(),
+			    col, cell);
+    if (p)
+        cmd << p << '\n';
+    else
+        cmd << "not reversible\n";
 }
 
-/** Computes dominated cells on the current board for the given color. */
-void CommonHtpEngine::CmdComputeDominated(HtpCommand& cmd)
-{
-    cmd.CheckNuArg(1);
-    HexColor col = HtpUtil::ColorArg(cmd, 0);
-    HexBoard& brd = m_pe.SyncBoard(m_game.Board());
-    brd.GetPatternState().Update();
-    GroupBuilder::Build(brd.GetPosition(), brd.GetGroups());
-    InferiorCells inf;
-    m_pe.ice.FindDominated(brd.GetPatternState(), col, 
-                           brd.GetPosition().GetEmpty(), inf);
-    cmd << inf.GuiOutput();
-    cmd << '\n';
-}
-
-/** Finds dominated patterns matching given cell. */
-void CommonHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
+/** Finds inferior patterns matching given cell. */
+void CommonHtpEngine::CmdComputeInferiorOnCell(HtpCommand& cmd)
 {
     cmd.CheckNuArg(2);
     HexColor col = HtpUtil::ColorArg(cmd, 0);
@@ -321,9 +316,9 @@ void CommonHtpEngine::CmdComputeDominatedOnCell(HtpCommand& cmd)
     if (m_game.Board().GetColor(cell) != EMPTY)
         return;
     brd.GetPatternState().Update();
-    PatternHits hits;
-    m_pe.ice.FindDominatedOnCell(brd.GetPatternState(), col, 
-                                 cell, hits);
+    PatternHits hits =
+      m_pe.ice.FindInferiorOnCell(brd.GetPatternState(),
+				  col, cell);
     for (std::size_t i = 0; i < hits.size(); ++i)
         cmd << " " << hits[i].GetPattern()->GetName();
     cmd << '\n';

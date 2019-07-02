@@ -16,8 +16,7 @@ using namespace benzene;
 bitset_t ProofUtil::MaximumProofSet(const HexBoard& brd, HexColor toPlay)
 {
     return brd.GetPosition().GetEmpty()
-        | brd.GetPosition().GetPlayed(toPlay)
-        | brd.GetInferiorCells().DeductionSet(toPlay);
+      | brd.GetPosition().GetColor(toPlay); // includes the fillin
 }
 
 bitset_t ProofUtil::InitialProofForOpponent(const HexBoard& brd, 
@@ -26,32 +25,24 @@ bitset_t ProofUtil::InitialProofForOpponent(const HexBoard& brd,
     // Add opponent played stones and deduction set.
     const InferiorCells& inf = brd.GetInferiorCells();
     bitset_t proof = brd.GetPosition().GetPlayed(!toPlay);
-    proof |= inf.DeductionSet(!toPlay);
+    proof |= inf.Fillin(!toPlay);
 
     // Add all semi-connections from the mustplay.
     proof |= brd.Cons(!toPlay).GetSmallestSemisUnion();
 
-    // Add reversable reversers. 
-    // The carriers do NOT need to be included in the proof, since
-    // they are captured by the (losing) player, not his opponent (for
-    // whom we are building the proof set).
-    // TODO: Currently, we just add the first reverser: we should see
-    // if any reverser is already in the proof, since then we wouldn't
-    // need to add one.
-    for (BitsetIterator p(inf.Reversible()); p; ++p) 
+    // Add reversers.
+    // TODO: Currently, we just add the first reverser: we should see if
+    // any reverser is already in the proof, since then we wouldn't need
+    // to add one.
+    for (BitsetIterator p(inf.SReversible()); p; ++p) 
     {
-        const std::set<HexPoint>& reversers = inf.Reversers(*p);
+        const std::set<HexPoint>& reversers = inf.SReversers(*p);
         proof.set(*reversers.begin());
     }
-    // Add vulnerable killers and their carriers.
-    // TODO: Currently, we just add the first killer: we should see if
-    // any killer is already in the proof, since then we wouldn't need
-    // to add one.
     for (BitsetIterator p(inf.Vulnerable()); p; ++p) 
     {
-        const std::set<VulnerableKiller>& killers = inf.Killers(*p);
-        proof.set((*killers.begin()).killer());
-        proof |= ((*killers.begin()).carrier());
+        const std::set<HexPoint>& killers = inf.Killers(*p);
+        proof.set(*killers.begin());
     }
     return proof;
 }
@@ -69,21 +60,20 @@ bool ProofUtil::ShrinkProof(bitset_t& proof, const StoneBoard& board,
 
     // Give winner only his stones inside proof; 
     HexColor winner = !loser;
-    brd.AddColor(winner, board.GetPlayed(winner) & proof);
+    brd.AddColor(winner, board.GetColor(winner) & proof);
     pastate.Update();
     GroupBuilder::Build(brd, groups);
 
-    // Compute fillin and remove captured cells from the proof
+    // Remove stones that the opponent could fillin from the proof
     InferiorCells inf;
-    ice.ComputeFillin(loser, groups, pastate, inf, 
-                      HexColorSetUtil::Only(loser));
-    BenzeneAssert(inf.Captured(winner).none());
+    ice.ComputeFillin(groups, pastate, inf, loser,
+		      ICEngine::MONOCOLOR);
+    BenzeneAssert(inf.Fillin(winner).none());
 
-    bitset_t filled = inf.Dead() | inf.Captured(loser);
-    bitset_t shrunk_proof = proof - filled;
-    bool shrunkTheProof = shrunk_proof.count() < proof.count();
+    bitset_t shrunk_proof = proof - inf.Fillin(loser);
+    bool shrunk_the_proof = shrunk_proof.count() < proof.count();
     proof = shrunk_proof;
-    return shrunkTheProof;
+    return shrunk_the_proof;
 }
 
 //----------------------------------------------------------------------------

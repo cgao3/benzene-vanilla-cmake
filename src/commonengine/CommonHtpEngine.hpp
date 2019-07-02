@@ -33,10 +33,9 @@ public:
         - @link CmdHandbookAdd() @c handbook-add @endlink
         - @link CmdComputeInferior() @c compute-inferior @endlink
         - @link CmdComputeFillin() @c compute-fillin @endlink
-        - @link CmdComputeVulnerable() @c compute-vulnerable @endlink
-        - @link CmdComputeReversible() @c compute-reversible @endlink
-        - @link CmdComputeDominated() @c compute-dominated @endlink
-        - @link CmdComputeDominatedOnCell() @c compute-dominated-cell @endlink
+        - @link CmdComputeSReversible() @c compute-s-reversible @endlink
+        - @link CmdComputeInferiorOnCell() @c compute-inferior-cell @endlink
+	- @link CmdComputeReversibleOnCell() @c compute-reversible-cell @endlink
         - @link CmdFindCombDecomp() @c find-comb-decomp @endlink
         - @link CmdFindSplitDecomp() @c find-split-decomp @endlink
         - @link CmdEncodePattern() @c encode-pattern @endlink
@@ -55,10 +54,9 @@ public:
     void CmdHandbookAdd(HtpCommand& cmd);
     void CmdComputeInferior(HtpCommand& cmd);
     void CmdComputeFillin(HtpCommand& cmd);
-    void CmdComputeVulnerable(HtpCommand& cmd);
-    void CmdComputeReversible(HtpCommand& cmd);
-    void CmdComputeDominated(HtpCommand& cmd);
-    void CmdComputeDominatedOnCell(HtpCommand& cmd);
+    void CmdComputeSReversible(HtpCommand& cmd);
+    void CmdComputeReversibleOnCell(HtpCommand& cmd);
+    void CmdComputeInferiorOnCell(HtpCommand& cmd);
     void CmdFindCombDecomp(HtpCommand& cmd);
     void CmdFindSplitDecomp(HtpCommand& cmd);
     void CmdEncodePattern(HtpCommand& cmd);

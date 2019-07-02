@@ -29,13 +29,20 @@ HexPoint BenzenePlayer::GenMove(const HexState& state, const Game& game,
                                 double& score)
 {
     HexPoint move = INVALID_POINT;
-    bitset_t consider;
-
-    move = InitSearch(brd, state.ToPlay(), consider, score);
+    
+    move = InitSearch(brd, state.ToPlay(), score);
+    // Calls brd.ComputeAll(state.ToPlay())
     if (move != INVALID_POINT)
         return move;
-
+        
+    bitset_t consider;
+    
     move = CheckEndgame(brd, state.ToPlay(), consider, score);
+    // Have been removed from consider :
+    // - the cells not in the vc-mustplay ;
+    // - the cells inferior according to ComputeAll() ;
+    // - the cells losing by strategy stealing argument ;
+    // - the cells symetrical by rotation (if symetrical).
     if (move != INVALID_POINT) 
         return move;
 
@@ -49,8 +56,8 @@ HexPoint BenzenePlayer::GenMove(const HexState& state, const Game& game,
     temporarily turned off (so it can pass the players a non-empty
     consider set).
 */
-HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color, 
-                                   bitset_t& consider, double& score)
+HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
+				   double& score)
 {
     // Resign if the game is already over
     Groups groups;
@@ -61,7 +68,7 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
         return RESIGN;
     }
     StoneBoard original(brd.GetPosition());
-    brd.ComputeAll(color);
+    brd.ComputeAll(color,INVALID_POINT); // the fillin is added to brd
     m_fillinCausedWin = false;
     m_fillinWinner = EMPTY;
     if (brd.GetGroups().IsGameOver()) 
@@ -69,15 +76,14 @@ HexPoint BenzenePlayer::InitSearch(HexBoard& brd, HexColor color,
         // Fillin caused win, remove and re-compute without ice.
         m_fillinCausedWin = true;
         m_fillinWinner = brd.GetGroups().GetWinner();
-        LogInfo() << "Captured cells caused win! Removing...\n";
+        LogInfo() << "Fillin caused win! Removing...\n";
         brd.GetPosition().SetPosition(original);
         bool oldUseIce = brd.UseICE();
         brd.SetUseICE(false);
         brd.ComputeAll(color);
         brd.SetUseICE(oldUseIce);
         BenzeneAssert(!brd.GetGroups().IsGameOver());
-    } 
-    consider = brd.GetPosition().GetEmpty();
+    }
     score = 0;
     return INVALID_POINT;
 }

@@ -35,47 +35,48 @@ void IcePatternSet::LoadPatterns(std::string name)
     {
         Pattern p(patterns[i]);
         switch(p.GetType()) {
-        case Pattern::DEAD:
-            m_dead.push_back(p);
+        case Pattern::EITHER_FILLIN:
+            m_e_fillin.push_back(p);
+	    p.FlipColors();
+	    m_e_fillin.push_back(p);
             break;
 
-        case Pattern::CAPTURED:
-            // WHITE is first!!
-            m_captured[WHITE].push_back(p);  
+        case Pattern::WHITE_FILLIN:
+            m_fillin[WHITE].push_back(p);
+	    if (p.GetEmpty().size() == p.GetMoves1().size())
+	        m_captured[WHITE].push_back(p);
             p.FlipColors();
-            m_captured[BLACK].push_back(p);
+            m_fillin[BLACK].push_back(p);
+            if (p.GetEmpty().size() == p.GetMoves1().size())
+	        m_captured[BLACK].push_back(p);
+	    break;
+
+        case Pattern::WHITE_STRONG_REVERSIBLE:
+            m_s_reversible[WHITE].push_back(p);
+	    if (p.GetEmpty().size() == 1) // the only one is the reverser
+	        m_vulnerable[WHITE].push_back(p);
+            p.FlipColors();
+            m_s_reversible[BLACK].push_back(p);
+	    if (p.GetEmpty().size() == 1)
+	        m_vulnerable[BLACK].push_back(p);
             break;
 
-        case Pattern::PERMANENTLY_INFERIOR:
-            // WHITE is first!!
-            m_permanently_inferior[WHITE].push_back(p);  
+	case Pattern::WHITE_THREAT_REVERSIBLE:
+            m_t_reversible[WHITE].push_back(p);
             p.FlipColors();
-            m_permanently_inferior[BLACK].push_back(p);
+            m_t_reversible[BLACK].push_back(p);
             break;
 
-        case Pattern::MUTUAL_FILLIN:
-            // BLACK is first; should maybe be WHITE to match other fillin?
-            m_mutual_fillin[BLACK].push_back(p);
+        case Pattern::WHITE_INFERIOR:
+            m_inferior[WHITE].push_back(p);
             p.FlipColors();
-            m_mutual_fillin[WHITE].push_back(p);
+            m_inferior[BLACK].push_back(p);
             break;
 
-        case Pattern::VULNERABLE:
-            m_vulnerable[BLACK].push_back(p);
-            p.FlipColors();
-            m_vulnerable[WHITE].push_back(p);
-            break;
-
-        case Pattern::REVERSIBLE:
-            m_reversible[BLACK].push_back(p);
-            p.FlipColors();
+	case Pattern::WHITE_REVERSIBLE:
             m_reversible[WHITE].push_back(p);
-            break;
-
-        case Pattern::DOMINATED:
-            m_dominated[BLACK].push_back(p);
             p.FlipColors();
-            m_dominated[WHITE].push_back(p);
+            m_reversible[BLACK].push_back(p);
             break;
 
         default:
@@ -84,15 +85,16 @@ void IcePatternSet::LoadPatterns(std::string name)
         }
     }
 
-    m_hashed_dead.Hash(m_dead);
+    m_hashed_e_fillin.Hash(m_e_fillin);
     for (BWIterator it; it; ++it) 
     {
-        m_hashed_captured[*it].Hash(m_captured[*it]);
-        m_hashed_permanently_inferior[*it].Hash(m_permanently_inferior[*it]);
-        m_hashed_mutual_fillin[*it].Hash(m_mutual_fillin[*it]);
-        m_hashed_vulnerable[*it].Hash(m_vulnerable[*it]);
-        m_hashed_reversible[*it].Hash(m_reversible[*it]);
-        m_hashed_dominated[*it].Hash(m_dominated[*it]);
+        m_hashed_fillin[*it].Hash(m_fillin[*it]);
+        m_hashed_s_reversible[*it].Hash(m_s_reversible[*it]);
+	m_hashed_t_reversible[*it].Hash(m_t_reversible[*it]);
+        m_hashed_inferior[*it].Hash(m_inferior[*it]);
+	m_hashed_captured[*it].Hash(m_captured[*it]);
+	m_hashed_vulnerable[*it].Hash(m_vulnerable[*it]);
+	m_hashed_reversible[*it].Hash(m_reversible[*it]);
     }
 }
 

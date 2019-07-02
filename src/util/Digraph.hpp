@@ -84,11 +84,12 @@ public:
     
     //------------------------------------------------------------------------
 
+    /** If explores and element of killing, stops and return true. */
+    bool DFS(const HexPoint p, std::set<T>& visited,
+	     std::set<T>& killing, std::vector<T>& stack) const;
+
     /** Stores all vertices that are on a two cycle in cycles. */
     void FindTwoCycles(std::set<T>& cycles) const;
-
-    /** Stores the strongly connected components in out. */
-    void FindStronglyConnectedComponents(std::vector< std::set<T> >& out) const;
 
     //------------------------------------------------------------------------
 
@@ -116,22 +117,6 @@ public:
     void RemoveVertex(const T& vertex);
     
 private:
- 
-    //------------------------------------------------------------------------
-
-    typedef std::pair<int, T> ScoreNodePair;
-    typedef std::set<ScoreNodePair, std::greater<ScoreNodePair> > OrderedChildren;
-
-    void OrderChildren(const std::set<T>& children, 
-                       std::map<T, int>& tiebreaker, 
-                       std::map<T, int>& finished, 
-                       OrderedChildren& out) const;
-
-    void DFS(int& step, 
-             const T& vertex, 
-             std::map<T, int>& tiebreaker, 
-             std::map<T, int>& finished,
-             std::set<T>& visited) const;
 
     //------------------------------------------------------------------------
 
@@ -374,86 +359,33 @@ bool Digraph<T>::VertexExists(const T& v) const
 
 //----------------------------------------------------------------------------
 
-template<typename T>
-void Digraph<T>::OrderChildren(const std::set<T>& children, 
-                               std::map<T, int>& tiebreaker, 
-                               std::map<T, int>& finished, 
-                               OrderedChildren& out) const
-{
-    // consider vertices that have not been visited/expanded 
-    for (const_iterator p = children.begin(); p != children.end(); ++p) {
-        if (finished[*p] == 0) {
-            out.insert(std::make_pair(tiebreaker[*p], *p));
-        }
-    }
-}
 
 template<typename T>
-void Digraph<T>::DFS(int& step, 
-                     const T& vertex, 
-                     std::map<T, int>& tiebreaker, 
-                     std::map<T, int>& finished,
-                     std::set<T>& visited) const
+bool Digraph<T>::DFS(const HexPoint p, std::set<T>& visited,
+		     std::set<T>& killing, std::vector<T>& stack) const
 {
-    finished[vertex] = -1; // mark as expanded, but not finished. 
-
-    // visit children in order determined by tiebreaker
-    OrderedChildren children;
-    OrderChildren(m_out[vertex], tiebreaker, finished, children);
-
-    typename OrderedChildren::iterator it;
-    for (it = children.begin(); it != children.end(); ++it) {
-        const T& child = it->second;
-        DFS(++step, child, tiebreaker, finished, visited);
-    }
-
-    // mark vertex as finished, add it to the set of visited vertices
-    finished[vertex] = ++step;
-    visited.insert(vertex);
-}
-
-template<typename T>
-void 
-Digraph<T>::FindStronglyConnectedComponents(std::vector< std::set<T> >& out) 
-    const
-{
-    // finishing times of each vertex in first dfs; used as the
-    // tiebreaker in the second dfs.
-    typename std::map<T, int> finished;
-
+    bool stopped = false;
+    visited.insert(p);
+    for (std::set<HexPoint>::iterator it = m_out[p].begin();
+	 it != m_out[p].end(); ++it)
     {
-        int step = 1;
-        typename std::map<T, int> tiebreaker;
-        for (const_iterator p = m_vertices.begin(); p != m_vertices.end(); ++p) {
-            if (finished[*p] > 0) continue;
-            std::set<T> visited;
-            this->DFS(step, *p, tiebreaker, finished, visited);
-        }
+        if (visited.find(*it) != visited.end())
+	    continue;
+	if (killing.find(*it) != killing.end())
+	{
+	    stopped = true;
+	    break;
+	}
+	if (DFS(*it, visited, killing, stack))
+	{
+	    stopped = true;
+	    break;
+	}
     }
-
-    Digraph<T> t;
-    Transpose(t);
-    out.clear();
-
-    {
-        int step = 1;
-        typename std::map<T, int> finished2;
-
-        // visit children in order determined by tiebreaker
-        OrderedChildren children;
-        OrderChildren(m_vertices, finished, finished2, children);
-
-        typename OrderedChildren::iterator it;
-        for (it = children.begin(); it != children.end(); ++it) {
-            const T& child = it->second;
-            if (finished2[child] > 0) continue;
-
-            std::set<T> visited;
-            t.DFS(step, child, finished, finished2, visited);
-            out.push_back(visited);
-        }
-    }
+    stack.push_back(p);
+    return stopped;
 }
+
 
 //----------------------------------------------------------------------------
 

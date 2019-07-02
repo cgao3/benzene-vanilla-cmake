@@ -92,9 +92,15 @@ struct DfpnBounds
 
     /** Sets the bounds to (INFTY, 0). */
     static void SetToLosing(DfpnBounds& bounds);
+  
+    /** Copies the bounds. */
+    void Copy(const DfpnBounds& other);
+
+    /** Changes the player's perspective. */
+    void Swap();
 
     /** Needed for some template functions. */
-    const DfpnBounds& GetBounds() const;
+    const DfpnBounds& GetBounds(HexPoint p) const;
 };
 
 inline DfpnBounds::DfpnBounds()
@@ -148,7 +154,18 @@ inline void DfpnBounds::SetToLosing(DfpnBounds& bounds)
     bounds.delta = 0;
 }
 
-inline const DfpnBounds& DfpnBounds::GetBounds() const
+inline void DfpnBounds::Copy(const DfpnBounds& other)
+{
+    phi = other.phi;
+    delta = other.delta;
+}
+
+inline void DfpnBounds::Swap()
+{
+    std::swap(phi,delta);
+}
+
+inline const DfpnBounds& DfpnBounds::GetBounds(HexPoint p) const
 {
     return *this;
 }
@@ -203,9 +220,15 @@ public:
 
     std::size_t MoveIndex(HexPoint x) const;
 
+    bool Exists(HexPoint x) const;
+
     void PlayMove(std::size_t index, HexState& state) const;
 
     void UndoMove(std::size_t index, HexState& state) const;
+
+    template <class T>
+    const DfpnBounds GetBounds(size_t i,
+			       const std::vector<T> childrenBounds) const; 
 
 private:
     friend class DfpnData;
@@ -224,6 +247,12 @@ inline HexPoint DfpnChildren::FirstMove(std::size_t index) const
     return m_children[index];
 }
 
+inline bool DfpnChildren::Exists(HexPoint x) const
+{
+  return (std::find(m_children.begin(), m_children.end(), x)
+	  != m_children.end());
+}
+
 //----------------------------------------------------------------------------
 
 /** State in DfpnHashTable.
@@ -239,10 +268,23 @@ public:
     DfpnChildren m_children;
 
     HexPoint m_bestMove;
+
+    bitset_t m_fillin[BLACK_AND_WHITE];
+
+    // When the node is created, a search for a reverser is performed.
+    // If none is founds, then m_reversible = INVALID_POINT, and m_reverser
+    // and m_reversibleBounds are unused.
+    // If one is founds, then m_reversible is the last move, m_reverser is
+    // its reverser and m_reversibleBounds is the bounds of either the
+    // reverser or the child that is the easiest to prove, depending on some
+    // heuristic.
+    // No reverser is computed for a parent node different from the one
+    // for which the data is created.
+    HexPoint m_reversible;
+    HexPoint m_reverser;
+    DfpnBounds m_reversibleBounds;
     
     size_t m_work;
-
-    bitset_t m_maxProofSet;
 
     float m_evaluationScore;
 
@@ -250,9 +292,11 @@ public:
 
     std::string Print() const;
 
-    const DfpnBounds& GetBounds() const;
+    const DfpnBounds& GetBounds(HexPoint lastMove) const;
 
     void Validate();
+
+    bool IsReversible(HexPoint lastMove) const;
 
     /** @name SgHashTable methods. */
     // @{
@@ -289,7 +333,7 @@ inline DfpnData::DfpnData()
     : m_work(0),
       m_isValid(false)
 {
-}
+}     
 
 inline std::string DfpnData::Print() const
 {
@@ -298,16 +342,21 @@ inline std::string DfpnData::Print() const
        << "bounds=" << m_bounds << ' '
        << "children=" << m_children.Size() << ' '
        << "bestmove=" << m_bestMove << ' '
-       << "work=" << m_work << ' '
-       << "maxpfset=not printing"
+       << "fillin=" << m_fillin[BLACK].count() << '/'
+                    << m_fillin[WHITE].count() << ' '
+       << "reversible=" << m_reversible << ' ';
+    if (m_reversible)
+        os << "reverser=" << m_reverser << ' '
+	   << "reversiblebounds=" << m_reversibleBounds << ' ';
+    os << "work=" << m_work << ' '
        << "evaluation=" << m_evaluationScore
        << ']';
     return os.str();
 }
 
-inline const DfpnBounds& DfpnData::GetBounds() const
+inline bool DfpnData::IsReversible(HexPoint lastMove) const
 {
-    return m_bounds;
+    return m_reversible && lastMove == m_reversible;
 }
 
 inline bool DfpnData::IsBetterThan(const DfpnData& data) const
@@ -356,11 +405,11 @@ public:
     /** Returns number of moves played so far. */
     int Depth() const;
 
-    /** Hash of last state. */
-    SgHashCode LastHash() const;
-
     /** Move played from parent state to bring us to this state. */
     HexPoint LastMove() const;
+
+    /** Hash of last state. */
+    SgHashCode LastHash() const;
 
 private:
 
@@ -395,14 +444,14 @@ inline int DfpnHistory::Depth() const
     return static_cast<int>(m_move.size() - 1);
 }
 
-inline SgHashCode DfpnHistory::LastHash() const
-{
-    return m_hash.back();
-}
-
 inline HexPoint DfpnHistory::LastMove() const
 {
     return m_move.back();
+}
+
+inline SgHashCode DfpnHistory::LastHash() const
+{
+    return m_hash.back();
 }
 
 //----------------------------------------------------------------------------
@@ -724,8 +773,6 @@ private:
 
     size_t m_numVCbuilds;
 
-    SgStatisticsExt<float, std::size_t> m_prunedSiblingStats;
-
     SgStatisticsExt<float, std::size_t> m_moveOrderingPercent;
 
     SgStatisticsExt<float, std::size_t> m_moveOrderingIndex;
@@ -757,6 +804,7 @@ private:
         std::vector<DfpnData> childrenData;
         std::vector<DfpnBounds> virtualBounds;
         std::size_t bestIndex;
+        std::size_t reverserIndex;
         TopMidData* parent;
 
         TopMidData(DfpnData& data, DfpnBounds& vBounds,
@@ -773,34 +821,54 @@ private:
                   TopMidData* parent, bool& midCalled);
 
     size_t MID(const DfpnBounds& maxBounds, const size_t workBound,
+               DfpnData& data, const DfpnData& parentData);
+    size_t MID(const DfpnBounds& maxBounds, const size_t workBound,
                DfpnData& data);
 
-    size_t CreateData(DfpnData& data);
+    size_t CreateData(DfpnData& data, const DfpnData& parentData);
 
-    bitset_t ChildrenToPrune(DfpnChildren& children,
-                             HexPoint bestMove, bitset_t maxProofSet);
-
-    void UpdateSolvedBestMove(DfpnData& data,
+    void UpdateSolvedBestMove(const DfpnBounds& bounds,
+			      DfpnData& data,
                               const std::vector<DfpnData>& childrenData);
 
-    void UpdateStatsOnWin(const std::vector<DfpnData>& childrenData,
+    void UpdateStatsOnWin(const DfpnChildren& children,
+			  const std::vector<DfpnData>& childrenData,
                           size_t bestIndex, size_t work);
 
     DfpnBoundType GetDeltaBound(DfpnBoundType delta) const;
 
     template <class T>
-    size_t ComputeMaxChildIndex(const std::vector<T>& childrenBounds) const;
+    size_t ComputeMaxChildIndex(const DfpnChildren& children,
+				const std::vector<T>& childrenBounds) const;
 
     template <class T>
     void SelectChild(size_t& bestIndex, DfpnBounds& childMaxBounds,
                      const DfpnBounds& currentBounds,
+		     const DfpnChildren& children,
                      const std::vector<T>& childrenBounds,
-                     const DfpnBounds& maxBounds, size_t maxChildIndex);
+                     const DfpnBounds& maxBounds, size_t maxChildIndex,
+		     DfpnBoundType boundOnDelta=DfpnBounds::INFTY);
+    template <class T>
+    void SelectChildReversible(size_t& bestIndex, DfpnBounds& childMaxBounds,
+	             size_t reverserIndex,
+		     bool reverserChosen,
+                     const DfpnBounds& currentBounds,
+		     const DfpnChildren& children,
+                     const std::vector<T>& childrenBounds,
+		     const DfpnBounds& maxBounds, size_t maxChildIndex);
+		     
 
     template <class T>
     void UpdateBounds(DfpnBounds& bounds,
+		      const DfpnChildren& chldren,
                       const std::vector<T>& childrenBounds,
                       size_t maxChildIndex) const;
+    template <class T>
+    bool UpdateReversibleBounds(DfpnBounds& bounds,
+		      size_t reverserIndex,
+		      const DfpnChildren& children,
+		      const std::vector<T>& childrenBounds,
+		      size_t maxChildIndex) const;
 
     bool CheckAbort();
 

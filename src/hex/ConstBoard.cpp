@@ -119,6 +119,18 @@ int ConstBoard::Distance(HexPoint x, HexPoint y) const
 
 //----------------------------------------------------------------------
 
+bitset_t ConstBoard::Nbs(const bitset_t& b, int radius) const
+{
+    bitset_t nbs = b;
+    for (BitsetIterator p (b); p; ++p)
+        for (BoardIterator q = Nbs(*p, radius); q; ++q)
+	    nbs.set(*q);
+    return nbs;
+}
+  
+
+//----------------------------------------------------------------------
+
 void ConstBoard::Init()
 {
     LogFine() << "--- ConstBoard"

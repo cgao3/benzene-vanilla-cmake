@@ -84,6 +84,13 @@ _BEGIN_BENZENE_NAMESPACE_
     between '[' and '/' characters (this comes from Jack's pattern
     file format).
 
+    There may also be a comment between the '/' and the closing ']',
+    used for precomputation.
+    If a (either-)fillin pattern contains the comment "deduce-only",
+    it means that it has not to be included in the final file, because
+    it would not be rigorous (see comment for fillin patterns), but one
+    can use it to deduce inferiority or reversibility results.
+
     A mirrored copy of a pattern is stored if two names are
     encountered before the pattern string.  No checking is done to
     determine if a mirror is really necessary.
@@ -113,17 +120,15 @@ _BEGIN_BENZENE_NAMESPACE_
 
     @verbatim
         |
-        |              B B   
-        |             B * B                         [31/0]
-        |   
-        |             B * B 
-        |              B B                          [31m/0]
-        |   
-        |!:1,0,0,1;1,1,0,0;1,1,0,0;1,1,0,0;0,0,0,0;0,0,0,0;
+        |               W
+	|              * ^
+	|             W W W                          [capt-1-3/]
+	|
+	|f:1,0,0,1,0;1,0,1,0,0;0,0,0,0,0;0,0,0,0,0;1,0,1,0,0;5,0,5,0,0;
         |
     @endverbatim
 
-    This defines a pattern with name "31" and its mirror "31m".
+    This defines a fillin pattern with name "capt-1-3" and no comment.
 
     Lines not starting in the first column and not containing a name
     between a pair of '[' and '/' are simply ignored.
@@ -141,14 +146,20 @@ public:
         must be >= 1 and <= 7. */
     static const int MAX_EXTENSION = 3;
 
+    /** Patterns should not have any cell of moves1 further that this.
+	If they do, they may not always be detected, but nothing will
+	fail. */
+    static const int MAX_EXTENSION_MOVES1 = 1;
+
     //-----------------------------------------------------------------------
 
     /** Pattern encodes a move. */
-    static const int HAS_MOVES1    = 0x01;
-    static const int HAS_MOVES2    = 0x02;
+    static const int HAS_EMPTY     = 0x01;
+    static const int HAS_MOVES1    = 0x02;
+    static const int HAS_MOVES2    = 0x04;
 
     /** Pattern has a weight (used by MOHEX patterns). */
-    static const int HAS_WEIGHT    = 0x04;
+    static const int HAS_WEIGHT    = 0x08;
 
     //-----------------------------------------------------------------------
 
@@ -163,40 +174,63 @@ public:
         defined pattern. */
     static const char UNKNOWN = ' ';
     
-    /** Marks that the cell the pattern is centered on is dead. */
-    static const char DEAD = 'd';
+    /** Marks that the cell the pattern is centered on can be
+        fillined by either player (typically, a dead cell). */
+    static const char EITHER_FILLIN = 'e';
+
+    /** Marks that the cell the pattern is centered on can be 
+        white-fillined (typically, a captured cell).
+        Often, other nearby cells can also be fillined, they
+        are in MARKED1.
+	Finally, for some patterns, a simple fillin may create
+	more wining moves for white, making it unrigorous if we are
+	unlucky with the pruning due to inferiority. Thus, some
+	cells may be in MARKED2, and black-coloring them solves
+	this problem. These cells have to be captured after the
+	white-coloring, else an important optimisation with mode
+	MONOCOLOR_USING_CAPTURE will fail, @see ComputePatternFillin. */
+    static const char WHITE_FILLIN = 'f';
+
+    /** Marks that the cell the pattern is centerd on is
+        strong reversed by black playing in in MARKED2, ie
+	after black's move white's stone could be removed.
+	Often, other neaby cells are reversed by the same cell,
+	they are in MARKED1. */
+    static const char WHITE_STRONG_REVERSIBLE = 's';
+
+    /** Marks that the cell the pattern is centerd on is
+        threat reversed by black playing in in MARKED2, ie
+	after not only is (not strong) reverses it, but also
+	there is a move ouside the reverse pattern such that,
+	if white keeps playing in the reverse pattern, black
+	can black-colors everything. */
+    static const char WHITE_THREAT_REVERSIBLE = 't';
 
     /** Marks that the cell the pattern is centered on is
-        captured. Captured patterns denote a strategy to make this
-        cell and any cells in MARKED2 as captured.
-    */
-    static const char CAPTURED = 'c';
+        white-inferior to the cell in MARKED2.
+	Often, other nearby cells are inferior to the same cell,
+	they are in MARKED1. */
+    static const char WHITE_INFERIOR = 'i';
 
-    /** Marks a permanently inferior cell. MARKED2 holds its
-        carrier. */
-    static const char PERMANENTLY_INFERIOR = 'p';
+    /** Marks that the cell the pattern is centered on is
+        white-reversible to the cell in MARKED2 (ie, after
+	white plays in the first, black should respond in the
+	second). */
+    static const char WHITE_REVERSIBLE = 'r';
 
-    /** Mutual fillin. MARKED1 is fillin for one player, MARKED2 is
-        fillin for other, and cell itself can be assigned to either. */
-    static const char MUTUAL_FILLIN = 'u';
+    /** Patterns used by VCS. */
+    static const char VC_CAPTURE = 'c';
 
-    /** Marks a vulnerable cell. MARKED1 holds its killer, and MARKED2
-        holds its carrier. */
-    static const char VULNERABLE = 'v';
-
-    /** Marks a reversible cell. MARKED1 holds its reverser. */
-    static const char REVERSIBLE = 'r';
-
-    /** Marks a dominated cell. MARKED1 holds its killer. */
-    static const char DOMINATED = '!';
+  /* The two following types are currently unused, all the code
+     corresponding to them is commented. */
 
     /** A mohex pattern.  These patterns are used during the random
         playout phase of an UCT search. */
-    static const char MOHEX = 'm';
+    //static const char MOHEX = 'm';
 
     /** A mohex pattern. These patterns are used during the random
         playout phase of an UCT search. */
-    static const char SHIFT = 's';
+    //static const char SHIFT = 's';
 
     // @} // @name
 
@@ -240,14 +274,22 @@ public:
     /** Returns the pattern's name. */
     std::string GetName() const;
 
+    /** Returns the pattern's comment. */
+    std::string GetComment() const;
+
     /** Sets the name of this pattern. */
     void SetName(const std::string& s);
 
+    /** Sets the comment of this pattern. */
+    void SetComment(const std::string& s);
+
     /** Returns the pattern's type. */
     char GetType() const;
-    
-    /** Returns the list of (slice, bit) pairs for moves defined in the
-        marked field (f = 0 or 1). */  
+
+    /** Returns the list of (slice, bit) pairs for moves defined in
+        the field. */  
+    const std::vector<std::pair<int, int> >& GetEmpty() const;
+  
     const std::vector<std::pair<int, int> >& GetMoves1() const;
 
     const std::vector<std::pair<int, int> >& GetMoves2() const;
@@ -290,8 +332,15 @@ private:
     /** Name of the pattern. */
     std::string m_name;
 
+    /** Comment (for precomputation) */
+    std::string m_comment;
+
     /** Flags. */
     int m_flags;
+
+    /** (slice, bit) pairs of cells in not FEATURE_BLACK
+        nor FEATURE_WHITE. */
+    std::vector<std::pair<int, int> > m_empty;
 
     /** (slice, bit) pairs of cells in FEATURE_MARKED1. */
     std::vector<std::pair<int, int> > m_moves1;
@@ -328,6 +377,11 @@ inline std::string Pattern::GetName() const
     return m_name;
 }
 
+inline std::string Pattern::GetComment() const
+{
+    return m_comment;
+}
+
 inline int Pattern::GetFlags() const
 {
     return m_flags;
@@ -346,6 +400,17 @@ inline const Pattern::slice_t* Pattern::GetData() const
 inline void Pattern::SetName(const std::string& s) 
 {
     m_name = s; 
+}
+
+inline void Pattern::SetComment(const std::string& s) 
+{
+    m_comment = s; 
+}
+
+inline const std::vector<std::pair<int, int> >& Pattern::GetEmpty() const
+{
+    BenzeneAssert(m_flags & HAS_EMPTY);
+    return m_empty;
 }
 
 inline const std::vector<std::pair<int, int> >& Pattern::GetMoves1() const

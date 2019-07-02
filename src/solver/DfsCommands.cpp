@@ -152,8 +152,6 @@ void DfsCommands::CmdSolveState(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    if (brd.ICE().FindPermanentlyInferior())
-        throw HtpFailure("Permanently inferior not supported in DfsSolver.");
     HexState state(m_game.Board(), color);
     DfsSolutionSet solution;
     HexColor winner = m_solver.Solve(state, brd, solution, m_positions);
@@ -181,8 +179,6 @@ void DfsCommands::CmdSolverFindWinning(HtpCommand& cmd)
     cmd.CheckNuArg(1);
     HexColor color = HtpUtil::ColorArg(cmd, 0);
     HexBoard& brd = m_env.SyncBoard(m_game.Board());
-    if (brd.ICE().FindPermanentlyInferior())
-        throw HtpFailure("Permanently inferior not supported in DfsSolver");
     brd.ComputeAll(color);
     bitset_t consider = (EndgameUtil::IsDeterminedState(brd, color) ?
                          brd.GetPosition().GetEmpty() :

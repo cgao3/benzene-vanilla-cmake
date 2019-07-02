@@ -18,23 +18,35 @@ _BEGIN_BENZENE_NAMESPACE_
 class PatternHit
 {
 public:
-    /** Creates an instance with a single encoded move1, and
-        move2 is empty. */
-    PatternHit(const Pattern* pat, HexPoint move);
 
     /** Creates an instance with a set of encoded move1, and
         move2 is empty. */
-    PatternHit(const Pattern* pat, const std::vector<HexPoint>& moves1);
+    PatternHit(const Pattern* pat,
+	       const std::vector<HexPoint>& empty,
+	       const std::vector<HexPoint>& moves1);
 
-    /** Creates an instance with two sets of encoded moves. */
-    PatternHit(const Pattern* pat, 
+    /** Creates an instance with a set of encoded moves1, and
+        a single move2. */
+    PatternHit(const Pattern* pat,
+	       const std::vector<HexPoint>& empty,
+               const std::vector<HexPoint>& moves1,
+               const HexPoint move2);
+
+    /** Creates an instance with two sets of encoded moves1
+	and moves2. */
+    PatternHit(const Pattern* pat,
+	       const std::vector<HexPoint>& empty,
                const std::vector<HexPoint>& moves1,
                const std::vector<HexPoint>& moves2);
 
     /** Returns the pattern. */
     const Pattern* GetPattern() const;
 
-    /** Returns the set of moves the pattern encodes. */
+    /** Returns the set of moves the pattern encodes.
+        The empty cells also include moves1 and moves2 if they
+        are not black nor white. */
+    const std::vector<HexPoint>& Empty() const;
+  
     const std::vector<HexPoint>& Moves1() const;
 
     const std::vector<HexPoint>& Moves2() const;
@@ -42,30 +54,42 @@ public:
 private:
     const Pattern* m_pattern;
 
+    std::vector<HexPoint> m_empty;
+
     std::vector<HexPoint> m_moves1;
 
+    /** Currently, no kind of pattern has more then one
+        element in moves2 */
     std::vector<HexPoint> m_moves2;
 };
 
-inline PatternHit::PatternHit(const Pattern* pat, HexPoint move)
-    : m_pattern(pat),
-      m_moves1(1, move),
-      m_moves2()
-{
-}
-
-inline PatternHit::PatternHit(const Pattern* pat, 
+inline PatternHit::PatternHit(const Pattern* pat,
+			      const std::vector<HexPoint>& empty,
                               const std::vector<HexPoint>& moves1)
     : m_pattern(pat),
+      m_empty(empty),
       m_moves1(moves1),
       m_moves2()
 {
 }
 
-inline PatternHit::PatternHit(const Pattern* pat, 
+inline PatternHit::PatternHit(const Pattern* pat,
+			      const std::vector<HexPoint>& empty,
+                              const std::vector<HexPoint>& moves1,
+                              const HexPoint move2)
+    : m_pattern(pat),
+      m_empty(empty),
+      m_moves1(moves1),
+      m_moves2(1, move2)
+{
+}
+
+inline PatternHit::PatternHit(const Pattern* pat,
+			      const std::vector<HexPoint>& empty,
                               const std::vector<HexPoint>& moves1,
                               const std::vector<HexPoint>& moves2)
     : m_pattern(pat),
+      m_empty(empty),
       m_moves1(moves1),
       m_moves2(moves2)
 {
@@ -74,6 +98,11 @@ inline PatternHit::PatternHit(const Pattern* pat,
 inline const Pattern* PatternHit::GetPattern() const
 {
     return m_pattern;
+}
+
+inline const std::vector<HexPoint>& PatternHit::Empty() const
+{
+    return m_empty;
 }
 
 inline const std::vector<HexPoint>& PatternHit::Moves1() const
@@ -162,12 +191,11 @@ public:
     void Update();
 
     /** Updates the pattern checking information only for the given
-        move.  Sweeps over all cells updateRadius() distance from
+        move.  Sweeps over all cells UpdateRadius() distance from
         cell. */
     void Update(HexPoint cell);
 
-    /** Calls Update(cell) for each move in changed, each of which
-        must correspond to an occupied cell. */
+    /** Calls Update(cell) for each move in changed. */
     void Update(const bitset_t& changed);
 
     /** Update only the ring godels of the neighbours of cell. */
@@ -179,7 +207,7 @@ public:
 
     // @{
 
-    /** Options controlling pattern matching behavoir at a cell. */
+    /** Options controlling pattern matching behavior at a cell. */
     typedef enum 
     {
         /** Stops the search after first hit. */
@@ -280,6 +308,7 @@ private:
 
     bool CheckRotatedPattern(HexPoint cell, 
                              const RotatedPattern& rotpat,
+			     std::vector<HexPoint>& empty,
                              std::vector<HexPoint>& moves1,
                              std::vector<HexPoint>& moves2) const;
 };

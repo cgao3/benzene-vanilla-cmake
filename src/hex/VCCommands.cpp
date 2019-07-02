@@ -174,8 +174,8 @@ void VCCommands::CmdGetMustPlay(HtpCommand& cmd)
     bitset_t mustplay = VCUtil::GetMustplay(*m_env.brd, color);
     InferiorCells inf(m_env.brd->GetInferiorCells());
     inf.ClearVulnerable();
-    inf.ClearReversible();
-    inf.ClearDominated();
+    inf.ClearSReversible();
+    inf.ClearInferior();
     cmd << inf.GuiOutput();
     if (!EndgameUtil::IsDeterminedState(*m_env.brd, color))
     {

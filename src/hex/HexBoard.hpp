@@ -73,20 +73,38 @@ public:
 
     //-----------------------------------------------------------------------
 
-    /** Clears history.  Computes dead/vcs for current state. */
-    void ComputeAll(HexColor color);
+    /** Clears history. Computes fillin/reversible/inferior/vcs for
+	current state.
+	If last_move is valid, then it returns a reverser, if found. Else
+	it return INVALID_POINT. Note: if reverser is fillined, then
+	INVALID_POINT is returned instead.
+        If add_fillin then the fillin is added and the hash is modified.
+	If only_around_last_move, then fillin is computed only around it
+	(this should be used only if add_fillin has been true before). */
+    HexPoint ComputeAll(HexColor color,
+			HexPoint last_move = INVALID_POINT,
+			bool add_fillin = false,
+		        bool only_around_last_move = false);
+
+    HexPoint ComputeInferiorCells(HexColor color_to_move,
+				  HexPoint last_move = INVALID_POINT,
+				  bool only_around_last_move = false);
 
     /** Stores old state on stack, plays move to board, updates
         ics/vcs.  Hash is modified by the move.  Allows ice info to
         be backed-up. */
     void PlayMove(HexColor color, HexPoint cell);
+
+    /** Same as PlayMove, but only monocolor fillin is computed
+	instead of both color and inferior cells. */
+    void TryMove(HexColor color, HexPoint cell);
     
     /** Stores old state on stack, plays set of stones, updates
         ics/vcs. HASH IS NOT MODIFIED! No ice info will be backed up,
         but this set of moves can be reverted with a single call to
         UndoMove(). */
     void PlayStones(HexColor color, const bitset_t& played,
-                            HexColor color_to_move);
+		    HexColor color_to_move);
         
     /** Reverts to last state stored on the stack, restoring all state
         info. If the option is on, also backs up inferior cell
@@ -100,11 +118,6 @@ public:
     const StoneBoard& GetPosition() const;
 
     const ConstBoard& Const() const;
-
-    /** Returns the set of dead cells on the board. This is the union
-        of all cells found dead previously during the history of moves
-        since the last ComputeAll() call.  */
-    bitset_t GetDead() const;
     
     /** Returns the set of inferior cell. */
     const InferiorCells& GetInferiorCells() const;
@@ -212,8 +225,6 @@ private:
         often. */
     void operator=(const HexBoard& other);
 
-    void ComputeInferiorCells(HexColor color_to_move);
-
     void BuildVCs();
 
     void BuildVCs(const Groups& oldGroups, bitset_t added[BLACK_AND_WHITE],
@@ -246,11 +257,6 @@ inline const StoneBoard& HexBoard::GetPosition() const
 inline const ConstBoard& HexBoard::Const() const
 {
     return m_brd.Const();
-}
-
-inline bitset_t HexBoard::GetDead() const
-{
-    return m_inf.Dead();
 }
 
 inline const InferiorCells& HexBoard::GetInferiorCells() const

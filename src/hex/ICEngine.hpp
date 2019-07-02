@@ -10,7 +10,6 @@
 #include "Groups.hpp"
 #include "InferiorCells.hpp"
 #include "IcePatternSet.hpp"
-#include "HandCodedPattern.hpp"
 #include "PatternState.hpp"
 
 _BEGIN_BENZENE_NAMESPACE_
@@ -40,28 +39,57 @@ public:
     /** @name Board modifying functions of ICEngine */
     // @{
 
-    /** Categorizes cells as dead, captured, etc. Board will be
-        modified with the fill-in.
-    */
-    void ComputeInferiorCells(HexColor color, Groups& board,
-                              PatternState& pastate, 
-                              InferiorCells& out) const;
-    
-    /** Computes fill-in; dominated and vulnerable cells are not
-        stored.
-    */
-    void ComputeFillin(HexColor color, Groups& board, 
-                       PatternState& pastate, InferiorCells& out,
-                       HexColorSet colors_to_capture=ALL_COLORS) const;
+    /** Categorizes cells as fillined, inferior, etc. for color.
+	If last_move is valid, then it return a reverser if there is one,
+	else it returns INVALID_POINT. */
+    HexPoint ComputeInferiorCells(HexColor color, Groups& groups,
+				  PatternState& pastate, 
+				  InferiorCells& inf,
+				  HexPoint last_move=INVALID_POINT,
+				  bool only_around_last_move=false) const;
+  
+    /** The different fillin modes that can be used for the next functions.
+	In MONOCOLOR_USING_CAPTURED, captured cells are also computed for
+	the othe color, but at the end they are cleared. This mode is stronger
+	than MONOCOLOR but slower. This can be disabled, @see UseCapture.
 
-    /** Computes only the dead and captured cells; board will be
-        modified to have the captured cells filled-in. Returns number of
-        cells filled-in.
-    */
-    std::size_t ComputeDeadCaptured(Groups& board, PatternState& pastate,
-                                    InferiorCells& inf, 
-                                    HexColorSet colors_to_capture) const;
-    
+	/!\ : MONOCOLOR fillin mode may result in more winning moves for
+	player color, which after inferior pruning may cause incorrect results.
+	Thus, you should use it only if:
+	- you will not compute any inferior cells on it (for instance if you
+	are just trying to find new inferior results);
+	- color is not the next to move;
+	- you don't care about rigour (for instance in the player) (indeed, in
+	practice, this hardly ever fails). */
+    typedef enum { MONOCOLOR, MONOCOLOR_USING_CAPTURED, BICOLOR } FillinMode;
+  
+    /** Computes fillin, and returns the number of cells fillined.
+	If consider is given, then the fillin is computed from consider. 
+	If last_move is given, then the fillin is computed around it. This
+        is equivalent to calling it with consider equal to the set of empty
+	cells close to it..*/
+    std::size_t ComputeFillin(
+			Groups& groups, PatternState& pastate,
+			InferiorCells& inf, HexColor color,
+			FillinMode mode=BICOLOR) const ;
+    std::size_t ComputeFillin(
+			Groups& groups, PatternState& pastate,
+			InferiorCells& inf, HexColor color,
+			FillinMode mode,
+			HexPoint last_move) const ;
+    std::size_t ComputeFillin(
+			Groups& groups, PatternState& pastate,
+			InferiorCells& inf, HexColor color,
+			FillinMode mode,
+		        const bitset_t& consider,
+			bool clear_inf=true) const ;
+  
+    std::size_t ComputePatternFillin(
+		        PatternState& pastate,
+			InferiorCells& inf, HexColor color,
+			FillinMode mode,
+		        const bitset_t& consider) const;
+  
     // @} // @name
 
     //------------------------------------------------------------------------
@@ -69,55 +97,42 @@ public:
     /** @name Methods to find various types of inferior cells */
     // @{ 
 
-    /** Returns the dead cells among the consider set. */
-    bitset_t FindDead(const PatternState& board, 
-                      const bitset_t& consider) const;
+    /** Finds strong-reversible (and vulnerable) cells for color
+	among the consider set. */
+    void FindSReversible(const PatternState& pastate, HexColor color,
+			 const bitset_t& consider,
+			 InferiorCells& inf) const;
+    /** Finds threat-reversible cells for color
+	among the consider set. */
+    void FindTReversible(const PatternState& pastate, HexColor color,
+			 const bitset_t& consider,
+			 InferiorCells& inf) const;
 
     /** Finds vulnerable cells for color among the consider set. */
-    void FindVulnerable(const PatternState& board, HexColor color,
+    void FindVulnerable(const PatternState& pastate, HexColor color,
 			const bitset_t& consider,
 			InferiorCells& inf) const;
 
-    /** Finds reversible cells for color among the consider set. */
-    void FindReversible(const PatternState& board, HexColor color,
-			const bitset_t& consider,
-			InferiorCells& inf) const;
+    /** Finds inferior cells for color among the consider set using
+	local patterns. */
+    void FindInferior(const PatternState& board, HexColor color, 
+                      const bitset_t& consider, InferiorCells& inf) const;
 
-    /** Finds dominated cells for color among the consider set using
-        local patterns. Calls FindHandCodedDominated(). */
-    void FindDominated(const PatternState& board, HexColor color, 
-                       const bitset_t& consider, InferiorCells& inf) const;
-
-    /** Finds all dominated cell patterns for color on this one cell. */
-    void FindDominatedOnCell(const PatternState& pastate,
-                             HexColor color, 
-                             HexPoint cell,
-                             PatternHits& hits) const;
-
-    /** Finds cells dominated via hand-coded patterns. */
-    void FindHandCodedDominated(const StoneBoard& board, HexColor color,
-                                const bitset_t& consider, 
-                                InferiorCells& inf) const;
-
-    /** Finds captured cells for color among the consider set using
-        local patterns. */
-    bitset_t FindCaptured(const PatternState& board, HexColor color, 
-                          const bitset_t& consider) const;
-
-    /** Finds the permanently inferior cells for color among consider
-        set using local patterns. */
-    bitset_t FindPermanentlyInferior(const PatternState& board, 
-                                     HexColor color, 
-                                     const bitset_t& consider,
-                                     bitset_t& carrier) const;
-
-    /** Finds the mutual fillin cells for color among consider
-        set using local patterns. */
-    void FindMutualFillin(const PatternState& board, 
-                          HexColor color, 
-                          const bitset_t& consider,
-                          bitset_t& carrier,
-                          bitset_t *mut) const;
+    /** The following two functions use MAX_EXTENSION_MOVES1, and thus may
+	miss a few patterns. */
+  
+    /** If the cell is (non necessarily strongly) reversible, then
+	returns a reverser, else returns INVALID_POINT.
+	The cell can be empty or not.
+	/!\ : if p is occupied and fillin has been computed using it,
+	this function may (of course) return incorrect result. */
+    HexPoint IsReversible(PatternState& pastate,
+			  HexColor color, HexPoint p) const;
+  
+    /** Finds all inferior cell patterns for color on this one cell. */
+    PatternHits FindInferiorOnCell(const PatternState& pastate,
+				   HexColor color, 
+				   HexPoint cell) const;
 
     // @} // @name
     
@@ -132,49 +147,17 @@ public:
     /** @see FindPresimplicialPairs() */
     void SetFindPresimplicialPairs(bool enable);
 
-    /** @todo Document permanently inferior cells. */
-    bool FindPermanentlyInferior() const;
-
-    /** @see FindPermanentlyInferior() */
-    void SetFindPermanentlyInferior(bool enable);
-
-    /** @todo Document mutual fillin. */
-    bool FindMutualFillin() const;
-
-    /** @see FindMutualFillin() */
-    void SetFindMutualFillin(bool enable);
-
     /** Find all killers for each cell if true, stop at first if false. */
     bool FindAllPatternKillers() const;
 
     /** @see FindAllPatternKillers() */
     void SetFindAllPatternKillers(bool enable);
 
-    /** Find all reversers for each cell if true, stop at first if false. */
-    bool FindAllPatternReversers() const;
+    /** Find all superiors for each cell if true, stop at first if false. */
+    bool FindAllPatternSuperiors() const;
 
-    /** @see FindAllPatternReversers() */
-    void SetFindAllPatternReversers(bool enable);
-
-    /** Find all dominators for each cell if true, stop at first if false. */
-    bool FindAllPatternDominators() const;
-
-    /** @see FindAllPatternDominators() */
-    void SetFindAllPatternDominators(bool enable);
-
-    /** @todo Document hand coded patterns. */
-    bool UseHandCodedPatterns() const;
-
-    /** @see UseHandCodedPatterns() */
-    void SetUseHandCodedPatterns(bool enable);
-
-    /** Performs a 1-ply search for the opponent: any dead stones
-        created in child states are backed-up as vulnerable cells in
-        this state, with the killer set to all the created fillin.*/
-    bool BackupOpponentDead() const;
-
-    /** @see BackupOpponentDead() */
-    void SetBackupOpponentDead(bool enable);
+    /** @see FindAllPatternSuperiors() */
+    void SetFindAllPatternSuperiors(bool enable);
 
     /** @todo Document three sided dead regions. */
     bool FindThreeSidedDeadRegions() const;
@@ -184,7 +167,6 @@ public:
 
     /** Performs a dead region sweep on each iteration of
         the fillin loop if true, only at the end if false. 
-
         @todo Link to fillin algo documentation!
     */
     bool IterativeDeadRegions() const;
@@ -192,71 +174,69 @@ public:
     /** @see IterativeDeadRegions() */
     void SetIterativeDeadRegions(bool enable);
 
+    /** If disabled, MONOCOLOR_USING_CAPTURE is treated as
+        MONOCOLOR in ComputeFillin(). */
+    bool UseCapture() const;
+
+    /** @see UseCapture() */
+    void SetUseCapture(bool enable);
+  
+    /** If disabled, no reverser is computed by ComputeInferiorCells(). */
+    bool FindReversible() const;
+
+    /** @see FindReversible() */
+    void SetFindReversible(bool enable);
+
+    /** If disabled, strongly reversible patterns are not use in
+	IsReversible(). */
+    bool UseSReversibleAsReversible() const;
+
+    /** @see UseSReversibleAsReversible() */
+    void SetUseSReversibleAsReversible(bool enable);
+
     // @}
 
 private:
     /** @see FindPresimplicialPairs() */
     bool m_find_presimplicial_pairs;
 
-    /** @see FindPermanentlyInferior() */
-    bool m_find_permanently_inferior;
-
-    /** @see FindMutualFillin() */
-    bool m_find_mutual_fillin;
-
     /** @see FindAllPatternKillers() */
     bool m_find_all_pattern_killers;
 
-    /** @see FindAllPatternReversers() */
-    bool m_find_all_pattern_reversers;
-
-    /** @see FindAllPatternDominators() */
-    bool m_find_all_pattern_dominators;
-
-    /** @see UseHandCodedPatterns() */
-    bool m_use_handcoded_patterns;
-
-    /** @see BackupOpponentDead() */
-    bool m_backup_opponent_dead;
+    /** @see FindAllPatternSuperiors() */
+    bool m_find_all_pattern_superiors;
 
     /** @see FindThreeSidedDeadRegions() */
     bool m_find_three_sided_dead_regions;
 
     /** @see IterativeDeadRegions() */
     bool m_iterative_dead_regions;
-    
-    std::vector<HandCodedPattern> m_hand_coded;
+
+    /** @see UseCapture() */
+    bool m_use_capture;
+
+    /** @see FindReversible() */
+    bool m_find_reversible;
+
+    /** @see UseSReversibleAsReversible() */
+    bool m_use_s_reversible_as_reversible;
 
     IcePatternSet m_patterns;
 
     void LoadPatterns();
 
-    void LoadHandCodedPatterns();
-
-    std::size_t FillinPermanentlyInferior(Groups& groups, 
-                                          PatternState& board, HexColor color,
-                                          InferiorCells& out, 
-                                          HexColorSet colors_to_capture) const;
-
-    std::size_t FillInMutualFillin(Groups& groups, 
-                                   PatternState& board, HexColor color,
-                                   InferiorCells& out, 
-                                   HexColorSet colors_to_capture) const;
-
-    std::size_t CliqueCutsetDead(Groups& groups, PatternState& pastate, 
-                                 InferiorCells& out) const;
-
-    std::size_t BackupOpponentDead(HexColor color, const StoneBoard& board, 
-                              PatternState& pastate, InferiorCells& out) const;
+    std::size_t CliqueCutsetDead(HexColor color, Groups& groups,
+				 PatternState& pastate, 
+                                 InferiorCells& inf) const;
 
     std::size_t FillInVulnerable(HexColor color, Groups& groups, 
-                                 PatternState& pastate, InferiorCells& inf, 
-                                 HexColorSet colors_to_capture) const;
+                                 PatternState& pastate,
+				 InferiorCells& inf) const;
 
-    void CheckHandCodedDominates(const StoneBoard& brd, HexColor color,
-                                 const HandCodedPattern& pattern, 
-                                 const bitset_t& consider, 
-                                 InferiorCells& inf) const;
+    static FillinMode TurnOffCapture(FillinMode mode);
+    static bool UsesCapture(FillinMode mode);
+    static bool IsMonocolorUsingCapture(FillinMode mode);
+    static bool Bicolor(FillinMode mode);
 
 };
 
@@ -270,26 +250,6 @@ inline void ICEngine::SetFindPresimplicialPairs(bool enable)
     m_find_presimplicial_pairs = enable;
 }
 
-inline bool ICEngine::FindPermanentlyInferior() const
-{
-    return m_find_permanently_inferior;
-}
-
-inline void ICEngine::SetFindPermanentlyInferior(bool enable)
-{
-    m_find_permanently_inferior = enable;
-}
-
-inline bool ICEngine::FindMutualFillin() const
-{
-    return m_find_mutual_fillin;
-}
-
-inline void ICEngine::SetFindMutualFillin(bool enable)
-{
-    m_find_mutual_fillin = enable;
-}
-
 inline bool ICEngine::FindAllPatternKillers() const
 {
     return m_find_all_pattern_killers;
@@ -300,44 +260,14 @@ inline void ICEngine::SetFindAllPatternKillers(bool enable)
     m_find_all_pattern_killers = enable;
 }
 
-inline bool ICEngine::FindAllPatternReversers() const
+inline bool ICEngine::FindAllPatternSuperiors() const
 {
-    return m_find_all_pattern_reversers;
+    return m_find_all_pattern_superiors;
 }
 
-inline void ICEngine::SetFindAllPatternReversers(bool enable)
+inline void ICEngine::SetFindAllPatternSuperiors(bool enable)
 {
-    m_find_all_pattern_reversers = enable;
-}
-
-inline bool ICEngine::FindAllPatternDominators() const
-{
-    return m_find_all_pattern_dominators;
-}
-
-inline void ICEngine::SetFindAllPatternDominators(bool enable)
-{
-    m_find_all_pattern_dominators = enable;
-}
-
-inline bool ICEngine::UseHandCodedPatterns() const
-{
-    return m_use_handcoded_patterns;
-}
-
-inline void ICEngine::SetUseHandCodedPatterns(bool enable)
-{
-    m_use_handcoded_patterns = enable;
-}
-
-inline bool ICEngine::BackupOpponentDead() const
-{
-    return m_backup_opponent_dead;
-}
-
-inline void ICEngine::SetBackupOpponentDead(bool enable)
-{
-    m_backup_opponent_dead = enable;
+    m_find_all_pattern_superiors = enable;
 }
 
 inline bool ICEngine::FindThreeSidedDeadRegions() const
@@ -358,6 +288,36 @@ inline bool ICEngine::IterativeDeadRegions() const
 inline void ICEngine::SetIterativeDeadRegions(bool enable)
 {
     m_iterative_dead_regions = enable;
+}
+
+inline bool ICEngine::UseCapture() const
+{
+    return m_use_capture;
+}
+
+inline void ICEngine::SetUseCapture(bool enable)
+{
+    m_use_capture = enable;
+}
+
+inline bool ICEngine::FindReversible() const
+{
+    return m_find_reversible;
+}
+
+inline void ICEngine::SetFindReversible(bool enable)
+{
+    m_find_reversible = enable;
+}
+
+inline bool ICEngine::UseSReversibleAsReversible() const
+{
+    return m_use_s_reversible_as_reversible;
+}
+
+inline void ICEngine::SetUseSReversibleAsReversible(bool enable)
+{
+    m_use_s_reversible_as_reversible = enable;
 }
 
 //----------------------------------------------------------------------------

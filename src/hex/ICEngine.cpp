@@ -5,9 +5,10 @@
 #include "SgSystem.h"
 #include "SgTimer.h"
 
-#include "BitsetIterator.hpp"
-#include "ICEngine.hpp"
 #include "BoardUtil.hpp"
+#include "BitsetIterator.hpp"
+#include "HexColor.hpp"
+#include "ICEngine.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -31,26 +32,26 @@ bitset_t ComputeEdgeUnreachableRegions(const StoneBoard& brd, HexColor c,
                                        bool flowFrom1=true,
                                        bool flowFrom2=true)
 {
-    bitset_t reachable1, reachable2;
+    bitset_t reachable;
     bitset_t flowSet = (brd.GetEmpty() | brd.GetColor(c)) 
         & brd.Const().GetCells();
     if (flowFrom1) 
     {
         bitset_t flowSet1 = flowSet;
         flowSet1.set(HexPointUtil::colorEdge1(c));
-        reachable1 
-            = BoardUtil::ReachableOnBitset(brd.Const(), flowSet1, stopSet,
-                                           HexPointUtil::colorEdge1(c));
+        reachable
+	  |= BoardUtil::ReachableOnBitset(brd.Const(), flowSet1, stopSet,
+					  HexPointUtil::colorEdge1(c));
     }
     if (flowFrom2) 
     {
         bitset_t flowSet2 = flowSet;
         flowSet2.set(HexPointUtil::colorEdge2(c));
-        reachable2 
-            = BoardUtil::ReachableOnBitset(brd.Const(), flowSet2, stopSet,
-                                           HexPointUtil::colorEdge2(c));
+        reachable
+            |= BoardUtil::ReachableOnBitset(brd.Const(), flowSet2, stopSet,
+					    HexPointUtil::colorEdge2(c));
     }
-    return brd.GetEmpty() - (reachable1 | reachable2);
+    return brd.GetEmpty() - reachable;
 }
 
 /** Computes dead regions on the board created by a single group's
@@ -68,7 +69,7 @@ bitset_t ComputeDeadRegions(const Groups& groups)
     {
         /** @note We believe single stone groups cannot isolate regions by
 	    themselves (i.e. they need to be combined with a non-singleton
-	    group to create a dead region. This should be proven [Phil]. */
+	    group to create a dead region). This should be proven [Phil]. */
 	if (i->Size() == 1)
             continue;
 	
@@ -272,8 +273,8 @@ bool IsClique(const ConstBoard& brd, const std::vector<HexPoint>& vn,
 }
 
 /** Finds dead and vulnerable cells using graph theory; ie, not using
-    local patterns. The board will have any found dead cells
-    filled-in. */
+    local patterns. The board will have any found dead cells filled
+    in color. */
 void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
                                         PatternState& pastate,
                                         InferiorCells& inf)
@@ -286,7 +287,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
     bitset_t consider = brd.GetEmpty();
     consider = consider - adj_to_both_edges;
     
-    // Find presimplicial cells and their dominators
+    // find presimplicial cells and their dominators
     for (BitsetIterator p(consider); p; ++p) 
     {
         std::set<HexPoint> enbs, cnbs;
@@ -475,10 +476,9 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
     // Add the simplicial stones to the board
     if (simplicial.any())
     {
-        inf.AddDead(simplicial);
-        brd.AddColor(DEAD_COLOR, simplicial);
+	inf.AddFillin(color, simplicial);
+        brd.AddColor(color, simplicial);
         pastate.Update(simplicial);
-        GroupBuilder::Build(brd, groups);
     }
 }
 
@@ -488,19 +488,18 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
 
 //----------------------------------------------------------------------------
 
+// By default, strongly reversible are not used as reversible because they
+// are most of the time pruned.
 ICEngine::ICEngine()
-    : m_find_presimplicial_pairs(true),
-      m_find_permanently_inferior(true),
-      m_find_mutual_fillin(false),
-      m_find_all_pattern_killers(true),
-      m_find_all_pattern_reversers(false),
-      m_find_all_pattern_dominators(false),
-      m_use_handcoded_patterns(true),
-      m_backup_opponent_dead(false),
+    : m_find_presimplicial_pairs(false),
+      m_find_all_pattern_killers(false),
+      m_find_all_pattern_superiors(true),
       m_find_three_sided_dead_regions(false),
-      m_iterative_dead_regions(false)
+      m_iterative_dead_regions(false),
+      m_use_capture(true),
+      m_find_reversible(true),
+      m_use_s_reversible_as_reversible(false)
 {
-    LoadHandCodedPatterns();
     LoadPatterns();
 }
 
@@ -510,14 +509,6 @@ ICEngine::~ICEngine()
 
 //----------------------------------------------------------------------------
 
-/** Creates the set of hand-coded patterns. */
-void ICEngine::LoadHandCodedPatterns()
-{
-    HandCodedPattern::CreatePatterns(m_hand_coded);
-    LogFine() << "ICEngine: " << m_hand_coded.size()
-              << " hand coded patterns.\n";
-}
-
 /** Loads local patterns from "ice-pattern-file". */
 void ICEngine::LoadPatterns()
 {
@@ -526,224 +517,11 @@ void ICEngine::LoadPatterns()
 
 //----------------------------------------------------------------------------
 
-std::size_t ICEngine::ComputeDeadCaptured(Groups& groups, PatternState& pastate,
-                                          InferiorCells& inf, 
-                                          HexColorSet colors_to_capture) const
-{
-    StoneBoard& brd = groups.Board();
-    // find dead and captured cells and fill them in. 
-    std::size_t count = 0;
-    while (true) 
-    {
-        // search for dead; if some are found, fill them in
-        // and iterate again.
-        while (true) 
-        {
-            /** @todo This can be optimized quite a bit. */
-            bitset_t dead = FindDead(pastate, brd.GetEmpty());
-            if (dead.none()) 
-                break;
-            count += dead.count();
-            inf.AddDead(dead);
-            brd.AddColor(DEAD_COLOR, dead);
-            pastate.Update(dead);
-        }
-
-        // search for black captured cells; if some are found,
-        // fill them in and go back to look for more dead. 
-        {
-            bitset_t black;
-            if (HexColorSetUtil::InSet(BLACK, colors_to_capture))
-                black = FindCaptured(pastate, BLACK, brd.GetEmpty());
-            if (black.any()) 
-            {
-                count += black.count();
-                inf.AddCaptured(BLACK, black);
-                brd.AddColor(BLACK, black);
-                pastate.Update(black);
-                continue;
-            }
-        }
-
-        // search for white captured cells; if some are found, fill
-        // them in and go back to look for more dead/black captured.
-        {
-            bitset_t white;
-            if (HexColorSetUtil::InSet(WHITE, colors_to_capture))
-                white = FindCaptured(pastate, WHITE, brd.GetEmpty());
-            if (white.any()) 
-            {
-                count += white.count();
-                inf.AddCaptured(WHITE, white);
-                brd.AddColor(WHITE, white);
-                pastate.Update(white);
-                continue;
-            }
-        }
-        // did not find any fillin, so abort.
-        break;
-    }
-    if (count)
-        GroupBuilder::Build(brd, groups);
-    return count;
-}
-
-/** Calls FindPermanentlyInferior() and adds any found to the board
-    and the set of inferior cells.x */
-std::size_t ICEngine::FillinPermanentlyInferior(Groups& groups, 
-                                         PatternState& pastate,
-                                         HexColor color, InferiorCells& out, 
-                                         HexColorSet colors_to_capture) const
-{
-    if (!m_find_permanently_inferior) 
-        return 0;
-    if (!HexColorSetUtil::InSet(color, colors_to_capture)) 
-        return 0;
-    StoneBoard& brd = groups.Board();
-    bitset_t carrier;
-    bitset_t perm = FindPermanentlyInferior(pastate, color, brd.GetEmpty(), 
-                                            carrier);
-    if (perm.any())
-    {
-        out.AddPermInf(color, perm, carrier);
-        brd.AddColor(color, perm);
-        pastate.Update(perm);
-        GroupBuilder::Build(brd, groups);
-    }
-    return perm.count();
-}
-
-/** Calls FindMutualFillin() and adds any found to the board and the
-    set of inferior cells.x */
-std::size_t ICEngine::FillInMutualFillin(Groups& groups, PatternState& pastate,
-                                         HexColor color, InferiorCells& out, 
-                                         HexColorSet colors_to_capture) const
-{
-    if (!m_find_mutual_fillin)
-        return 0;
-    /** Can only use mutual fillin when both colours can be captured. */
-    if (!HexColorSetUtil::InSet(BLACK, colors_to_capture) ||
-        !HexColorSetUtil::InSet(WHITE, colors_to_capture))
-        return 0;
-    StoneBoard& brd = groups.Board();
-    bitset_t carrier;
-    bitset_t mut[BLACK_AND_WHITE];
-    FindMutualFillin(pastate, color, brd.GetEmpty(), carrier, mut);
-    if (mut[BLACK].any())
-    {
-        BenzeneAssert(mut[WHITE].any());
-        BenzeneAssert((mut[BLACK] & mut[WHITE]).none());
-        /** Note: mutual fillin carrier is same for both colors (* cells). */
-        out.AddMutualFillin(BLACK, mut[BLACK], carrier);
-        brd.AddColor(BLACK, mut[BLACK]);
-        pastate.Update(mut[BLACK]);
-        out.AddMutualFillin(WHITE, mut[WHITE], carrier);
-        brd.AddColor(WHITE, mut[WHITE]);
-        pastate.Update(mut[WHITE]);
-        GroupBuilder::Build(brd, groups);
-    }
-    else
-        BenzeneAssert(mut[WHITE].none());
-    return (mut[BLACK] | mut[WHITE]).count();
-}
-
-/** Finds vulnerable cells for color and finds presimplicial pairs
-    and fills them in for the other color.  Simplicial stones will
-    be added as dead and played to the board as DEAD_COLOR. */
-std::size_t ICEngine::FillInVulnerable(HexColor color, Groups& groups, 
-                               PatternState& pastate, InferiorCells& inf, 
-                               HexColorSet colors_to_capture) const
-{
-    std::size_t count = 0;
-    inf.ClearVulnerable();
-
-    UseGraphTheoryToFindDeadVulnerable(color, groups, pastate, inf);
-
-    // Find vulnerable cells with local patterns--do not ignore the
-    // presimplicial cells previously found because a pattern
-    // may encode another dominator.
-    bitset_t consider = groups.Board().GetEmpty() - inf.Dead();
-    FindVulnerable(pastate, color, consider, inf);
-    
-    // Fill in presimplicial pairs only if we are doing fillin for the
-    // other player.
-    if (HexColorSetUtil::InSet(!color, colors_to_capture)) 
-    {
-        bitset_t captured = inf.FindPresimplicialPairs();
-        if (captured.any()) 
-        {
-            inf.AddCaptured(!color, captured);
-            groups.Board().AddColor(!color, captured);
-            pastate.Update(captured);
-            GroupBuilder::Build(groups.Board(), groups);
-        }
-        count += captured.count();
-    }
-    return count;
-}
-
-/** Calls ComputeDeadRegions() and FindThreeSetCliques() and adds
-    fill-in to board and set of inferior cells. */
-std::size_t ICEngine::CliqueCutsetDead(Groups& groups, PatternState& pastate,
-                                       InferiorCells& out) const
-{
-    bitset_t notReachable = ComputeDeadRegions(groups);
-    if (m_find_three_sided_dead_regions)
-        notReachable |= FindThreeSetCliques(groups);
-    if (notReachable.any()) 
-    {
-        out.AddDead(notReachable);
-        groups.Board().AddColor(DEAD_COLOR, notReachable);
-        pastate.Update(notReachable);
-        GroupBuilder::Build(groups.Board(), groups);
-    }
-    return notReachable.count();
-}
-
-void ICEngine::ComputeFillin(HexColor color, Groups& groups, 
-                             PatternState& pastate, InferiorCells& out,
-                             HexColorSet colors_to_capture) const
-{
-    out.Clear();
-    bool considerCliqueCutset = true;
-    while(true)
-    {
-        std::size_t count;
-        int iterations = 0;
-        for (;; ++iterations)
-        {
-            count = 0;
-            count += ComputeDeadCaptured(groups, pastate, out,
-                                         colors_to_capture);
-            count += FillinPermanentlyInferior(groups, pastate, color, out, 
-                                               colors_to_capture);
-            count += FillinPermanentlyInferior(groups, pastate, !color, out, 
-                                               colors_to_capture);
-            count += FillInMutualFillin(groups, pastate, color, out, 
-                                        colors_to_capture);
-            count += FillInMutualFillin(groups, pastate, !color, out, 
-                                        colors_to_capture);
-            count += FillInVulnerable(!color, groups, pastate, out, 
-                                      colors_to_capture);
-            count += FillInVulnerable(color, groups, pastate, out, 
-                                      colors_to_capture);
-            if (0 == count)
-                break;
-            considerCliqueCutset = true;
-        }
-        if (m_iterative_dead_regions && considerCliqueCutset)
-            count = CliqueCutsetDead(groups, pastate, out);
-        if (0 == count)
-            break;
-        considerCliqueCutset = false;
-    }
-    if (!m_iterative_dead_regions)
-        CliqueCutsetDead(groups, pastate, out);
-}
-
-void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
-                                    PatternState& pastate,
-                                    InferiorCells& out) const
+HexPoint ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
+					PatternState& pastate,
+					InferiorCells& inf,
+					HexPoint last_move,
+					bool only_around_last_move) const
 {
 #ifndef NDEBUG
     BenzeneAssert(groups.Board() == pastate.Board());
@@ -751,360 +529,572 @@ void ICEngine::ComputeInferiorCells(HexColor color, Groups& groups,
 #endif
     SgTimer timer;
 
-    ComputeFillin(color, groups, pastate, out);
+    StoneBoard& brd = pastate.Board();
+    HexPoint reverser = INVALID_POINT;
+    bool find_reversible = m_find_reversible && (last_move != INVALID_POINT);
 
+    // Warning : we cannot fillin to find reversible, as there is a risk that
+    // the fillin is different from the one used for pruning at last step.
+    // Thus, unless the fillin is incremental, we are forced to just use the
+    // stones placed on the board.
+    
+    if (find_reversible)
     {
-        // Note: We consider vulnerable cells when matching reversible patterns
-        //       since the captured pattern applies to the entire carrier, not
-        //       just the centre cell of the pattern.
-        bitset_t consider = groups.Board().GetEmpty();
-        FindReversible(pastate, color, consider, out);
+	BenzeneAssert(brd.IsColor(last_move, !color));
+	reverser = IsReversible(pastate, !color, last_move);
     }
+    if (only_around_last_move)
+        ComputeFillin(groups, pastate, inf, color, BICOLOR, last_move);
+    else
+        ComputeFillin(groups, pastate, inf, color, BICOLOR);
 
-    {
-        bitset_t consider = groups.Board().GetEmpty()
-                            - out.Vulnerable()
-                            - out.Reversible();
-        FindDominated(pastate, color, consider, out);
-    }
-
-    if (m_backup_opponent_dead) 
-    {
-        // Play opponent in all empty cells, any dead they created
-        // are actually vulnerable to the move played. 
-        int found = BackupOpponentDead(color, groups.Board(), pastate, out);
-        if (found) {
-            LogFine() << "Found " << found 
-                      << " cells vulnerable to opponent moves.\n";
-        }
-    }
+    bitset_t consider = groups.Board().GetEmpty();
+    FindSReversible(pastate, color, consider, inf);
+    FindTReversible(pastate, color, consider, inf);
+    FindInferior(pastate, color, consider, inf);
     
     LogFine() << "  " << timer.GetTime() << "s to find inferior cells.\n";
 
 #ifndef NDEBUG
     BenzeneAssert(groups.Board().Hash() == oldBoard.Hash());
 #endif
+    
+    return reverser;
 }
 
-/** For each empty cell on the board, the move is played with the
-    opponent's stone (ie, !color) and the fill-in is computed.  Any
-    dead cells in this state are backed-up as vulnerable cells in the
-    original state, with the set of captured stones as the
-    vulnerable-carrier.  This can be moderately expensive.
-        
-    @todo Link to the "ice-backup-opp-dead" option, or link it's
-    documentation here.  
-*/
-std::size_t ICEngine::BackupOpponentDead(HexColor color, 
-                                         const StoneBoard& board,
-                                         PatternState& pastate,
-                                         InferiorCells& out) const
+std::size_t ICEngine::ComputeFillin(Groups& groups, PatternState& pastate,
+				    InferiorCells& inf, HexColor color,
+                                    FillinMode mode) const
 {
-    StoneBoard brd(board);
-    PatternState ps(brd);
-    ps.CopyState(pastate);
+    return ComputeFillin(groups, pastate, inf, color, mode,
+			 groups.Board().GetEmpty());
+}
 
-    bitset_t reversible = out.Reversible();
-    bitset_t dominated = out.Dominated();
+std::size_t ICEngine::ComputeFillin(Groups& groups, PatternState& pastate,
+				    InferiorCells& inf, HexColor color,
+                                    FillinMode mode,
+				    HexPoint last_move) const
+{
+    if (last_move == INVALID_POINT)
+        return ComputeFillin(groups, pastate, inf, color, mode);
+    bitset_t consider;
+    for (BoardIterator p = groups.Board().Const()
+	   .Nbs(last_move, Pattern::MAX_EXTENSION);
+	 p; ++p)
+        consider.set(*p);
+    consider &= groups.Board().GetEmpty();
+    return ComputeFillin(groups, pastate, inf, color, mode, consider);
+}
 
-    std::size_t found = 0;
-    for (BitsetIterator p(board.GetEmpty()); p; ++p) 
+std::size_t ICEngine::ComputeFillin(Groups& groups, PatternState& pastate,
+				    InferiorCells& inf, HexColor color,
+                                    FillinMode mod,
+				    const bitset_t& consider,
+				    bool clear_inf) const
+{
+    FillinMode mode = (m_use_capture ? mod : TurnOffCapture(mod));
+    StoneBoard& board = groups.Board(); // physically == pastate.Board()
+    std::size_t count = 0 ;
+    if (clear_inf) inf.Clear();
+    
+    bool first = true;
+    while(true)
     {
-        brd.StartNewGame();
-        brd.SetColor(BLACK, board.GetBlack());
-        brd.SetColor(WHITE, board.GetWhite());
-        brd.PlayMove(!color, *p);
-        ps.Update();
-        Groups groups;
-        GroupBuilder::Build(brd, groups);
-
-        InferiorCells inf;
-        ComputeFillin(color, groups, ps, inf);
-        bitset_t filled = inf.Fillin(BLACK) | inf.Fillin(WHITE);
-
-        for (BitsetIterator d(inf.Dead()); d; ++d) 
-        {
-            /** @todo Add if already vulnerable? */
-            if (!out.Vulnerable().test(*d)
-                && !reversible.test(*d)
-                && !dominated.test(*d)) 
-            {
-                bitset_t carrier = filled;
-                carrier.reset(*d);
-                carrier.reset(*p);
-                out.AddVulnerable(*d, VulnerableKiller(*p, carrier));
-                found++;
-            }
-        }
+        if (first)
+	    count += ComputePatternFillin(pastate, inf, color,
+					  mode, consider);
+	else
+	    count += ComputePatternFillin(pastate, inf, color,
+					  mode, board.GetEmpty());
+	if (m_find_presimplicial_pairs)
+	{
+	    std::size_t loc_count = FillInVulnerable(color, groups,
+						     pastate, inf);
+	    if (UsesCapture(mode))
+	        loc_count += FillInVulnerable(!color, groups,
+					      pastate, inf);
+	    if (loc_count != 0)
+	    {
+		count += loc_count;
+		continue;
+	    }
+	}
+	
+        if (m_iterative_dead_regions)
+	{
+	    std::size_t loc_count = CliqueCutsetDead(color, groups,
+						     pastate, inf);
+	    if (loc_count != 0)
+	    {
+	        count += loc_count;
+		continue;
+	    }
+	}
+	
+	break;
     }
-    return found;
+    
+    if (!m_iterative_dead_regions)
+        count += CliqueCutsetDead(color, groups, pastate, inf);
+
+    bitset_t captured = inf.Fillin(!color);
+    if (IsMonocolorUsingCapture(mode) && captured.any())
+    // we un-fillin the captured cell for the other color, and then we
+    // try to monocolor-fillin.
+    {
+        inf.ClearFillin(!color);
+	board.AddColor(EMPTY, captured);
+	pastate.Update(captured);
+	count -= captured.count();
+	bitset_t consider = groups.Board().Const()
+	  .Nbs(captured, Pattern::MAX_EXTENSION)
+	  & groups.Board().GetEmpty();
+	GroupBuilder::Build(board, groups);
+	std::size_t loc_count = ComputeFillin(groups, pastate, inf, color,
+					      MONOCOLOR, consider, false);
+	if (loc_count)
+	{
+	    count += loc_count;
+	    GroupBuilder::Build(board, groups);
+	}
+    }
+    else if (count)
+        GroupBuilder::Build(board, groups);
+    return count;
+}
+
+std::size_t ICEngine::ComputePatternFillin(
+				    PatternState& pastate,
+				    InferiorCells& inf, HexColor color,
+				    FillinMode mode,
+				    const bitset_t& cons) const
+{
+    StoneBoard& board = pastate.Board();
+    bitset_t consider = cons;
+    std::size_t count = 0;
+    while (consider.any())
+    {
+	// consider changes inside the loop, but the starting tests ensure
+	// correctness whatever the behaviour is.
+	for (BitsetIterator p(consider); p; ++p) 
+	{
+	    if (!consider.test(*p)) continue;
+	    consider.reset(*p);
+	    if (inf.Fillin(BLACK).test(*p)
+		|| inf.Fillin(WHITE).test(*p))
+	        continue;
+	    PatternHits hits ;
+	    pastate.MatchOnCell(m_patterns.HashedEFillin(), *p,
+				PatternState::STOP_AT_FIRST_HIT, hits);
+	    if (!hits.empty())
+	    {
+	        HexColor c = ( Bicolor(mode) ?
+			       board.PickColor(color, *p) : color );
+		inf.AddFillin(c, *p);
+		board.AddColor(c, *p);
+		pastate.Update(*p);
+		for (BoardIterator n = board.Const()
+		       .Nbs(*p,Pattern::MAX_EXTENSION); n; ++n)
+		    if (board.IsEmpty(*n))
+		        consider.set(*n);
+		++count;
+		continue;
+	    }
+	    
+	    std::vector<HexColor> to_fillin;
+	    to_fillin.push_back(color);
+	    if (UsesCapture(mode))
+	        to_fillin.push_back(!color);
+
+	    for (std::vector<HexColor>::const_iterator c = to_fillin.begin();
+		 c != to_fillin.end(); ++c)
+	    {
+	      if (*c == color || Bicolor(mode))
+	          pastate.MatchOnCell(m_patterns.HashedFillin(*c), *p,
+				      PatternState::STOP_AT_FIRST_HIT, hits);
+	      else
+		  pastate.MatchOnCell(m_patterns.HashedCaptured(*c), *p,
+				      PatternState::STOP_AT_FIRST_HIT, hits);
+	      if (!hits.empty())
+	      {
+		    inf.AddFillin(*c, *p);
+		    board.AddColor(*c, *p);
+		    pastate.Update(*p);
+		    for (BoardIterator n = board.Const()
+			   .Nbs(*p,Pattern::MAX_EXTENSION)
+			   ; n; ++n)
+		        if (board.IsEmpty(*n))
+			    consider.set(*n);
+		    ++count;
+		    const std::vector<HexPoint>& others = hits[0].Moves1();
+		    const std::vector<HexPoint>& opps = hits[0].Moves2();
+		    for (std::vector<HexPoint>::const_iterator
+			   it = others.begin(); it != others.end(); ++it)
+		    {
+			consider.reset(*it);
+			inf.AddFillin(*c, *it);
+			board.AddColor(*c, *it);
+			pastate.Update(*it);
+			for (BoardIterator n = board.Const()
+			       .Nbs(*it,Pattern::MAX_EXTENSION)
+			       ; n; ++n)
+			    if (board.IsEmpty(*n))
+			        consider.set(*n);
+			++count;
+		    }
+		    
+		    if (UsesCapture(mode))
+		    // This optimisation (making it work for M_U_C too)
+		    // works only because the cells in opps are captured.
+		    {
+		        for (std::vector<HexPoint>::const_iterator
+			       it = opps.begin(); it != opps.end(); ++it)
+			{
+			    consider.reset(*it);
+			    inf.AddFillin(!*c, *it);
+			    board.AddColor(!*c, *it);
+			    pastate.Update(*it);
+			    for (BoardIterator n = board.Const()
+				   .Nbs(*it,Pattern::MAX_EXTENSION)
+				   ; n; ++n)
+			        if (board.IsEmpty(*n))
+				    consider.set(*n);
+			    ++count;
+			}
+		    }
+		    break; // do not fillin for the other color
+		}
+	    }
+	}
+    }
+    return count;
+}
+
+/** Finds vulnerable cells for !color and finds presimplicial pairs and
+    fills them for color.  Simplicial stones will be filled as color. */
+std::size_t ICEngine::FillInVulnerable(HexColor color, Groups& groups, 
+				       PatternState& pastate,
+				       InferiorCells& inf) const
+{ 
+    inf.ClearVulnerable();
+    inf.ClearSReversible();
+
+    UseGraphTheoryToFindDeadVulnerable(!color, groups, pastate, inf);
+
+    bitset_t consider = groups.Board().GetEmpty();
+    FindVulnerable(pastate, !color, consider, inf);
+    
+    bitset_t fillin = inf.FindPresimplicialPairs();
+    if (fillin.any()) 
+    {
+        inf.AddFillin(color, fillin);
+	groups.Board().AddColor(color, fillin);
+	pastate.Update(fillin);
+    }
+    return fillin.count();
+}
+
+/** Calls ComputeDeadRegions() and FindThreeSetCliques() and adds
+    fillin to board and set of inferior cells. */
+std::size_t ICEngine::CliqueCutsetDead(HexColor color, Groups& groups,
+				       PatternState& pastate,
+                                       InferiorCells& inf) const
+{
+    StoneBoard& brd = groups.Board();
+    bitset_t notReachable = ComputeDeadRegions(groups);
+    if (m_find_three_sided_dead_regions)
+        notReachable |= FindThreeSetCliques(groups);
+    if (notReachable.any()) 
+    {
+        inf.AddFillin(color, notReachable);
+        brd.AddColor(color, notReachable);
+        pastate.Update(notReachable);
+    }
+    return notReachable.count();
 }
 
 //----------------------------------------------------------------------------
 
-bitset_t ICEngine::FindDead(const PatternState& pastate,
-                            const bitset_t& consider) const
-{
-    return pastate.MatchOnBoard(consider, m_patterns.HashedDead());
-}
-
-bitset_t ICEngine::FindCaptured(const PatternState& pastate, HexColor color, 
-                                const bitset_t& consider) const
-{
-    bitset_t captured;
-    for (BitsetIterator p(consider); p; ++p) 
-    {
-        if (captured.test(*p)) 
-            continue;
-        PatternHits hits;
-        pastate.MatchOnCell(m_patterns.HashedCaptured(color), *p,
-                            PatternState::STOP_AT_FIRST_HIT, hits);
-        // Mark carrier as captured if carrier does not intersect the
-        // set of captured cells found in this pass. 
-        if (!hits.empty()) 
-        {
-            BenzeneAssert(hits.size() == 1);
-            const std::vector<HexPoint>& moves = hits[0].Moves2();
-            bitset_t carrier;
-            for (unsigned i = 0; i < moves.size(); ++i)
-                carrier.set(moves[i]);
-            carrier.set(*p);
-            if ((carrier & captured).none())
-                captured |= carrier;
-        }
-    }
-    return captured;
-}
-
-bitset_t ICEngine::FindPermanentlyInferior(const PatternState& pastate, 
-                                           HexColor color, 
-                                           const bitset_t& consider,
-                                           bitset_t& carrier) const
+void ICEngine::FindSReversible(const PatternState& pastate, HexColor color,
+			       const bitset_t& consider,
+			       InferiorCells& inf) const
 {
     std::vector<PatternHits> hits(FIRST_INVALID);
-    bitset_t ret = pastate.MatchOnBoard(consider, 
-                                 m_patterns.HashedPermInf(color), 
-                                 PatternState::STOP_AT_FIRST_HIT, hits);
-    for (BitsetIterator p(ret); p; ++p) 
+    bitset_t rev = pastate.MatchOnBoard(consider, 
+					m_patterns.HashedSReversible(color),
+				        PatternState::MATCH_ALL, hits);
+    // We have to use MATCH_ALL not to miss a vulnerable because of
+    // a reversible, because some reversible may not be usable, and
+    // because some reversible patterns have several reversible cells.
+
+    // If it is vulnerable, we try not to add+remove as reversible.
+    for (BitsetIterator p(rev); p; ++p) 
     {
-        BenzeneAssert(hits[*p].size() == 1);
-        const std::vector<HexPoint>& moves = hits[*p][0].Moves2();
-        for (unsigned i=0; i<moves.size(); ++i)
-            carrier.set(moves[i]);
+        for (unsigned i=0; i<hits[*p].size(); ++i) 
+        {
+	    const std::vector<HexPoint>& empty = hits[*p][i].Empty();
+	    if (empty.size() != 1)
+	        continue;
+	    // the only empty cell is the reverser, so vulnerable
+	    const std::vector<HexPoint>& killer = hits[*p][i].Moves2();
+	    BenzeneAssert(killer.size() == 1);
+	    inf.AddVulnerable(*p, killer[0]);
+	    if (!m_find_all_pattern_killers)
+	      break;
+        }
     }
-    return ret;
+    
+    for (BitsetIterator p(rev); p; ++p) 
+    {
+	for (unsigned i=0; i<hits[*p].size(); ++i) 
+	{
+	    const std::vector<HexPoint>& empty = hits[*p][i].Empty();
+	    if (empty.size() == 1)
+	        continue;
+	    const std::vector<HexPoint>& others = hits[*p][i].Moves1();
+	    const std::vector<HexPoint>& reverser = hits[*p][i].Moves2();
+	    BenzeneAssert(reverser.size() == 1);
+	    bitset_t carrier;
+	    for (unsigned j=0; j<empty.size(); ++j)
+	        if (empty[j] != reverser[0])  
+		    carrier.set(empty[j]);
+	    inf.AddSReversible(*p, carrier, reverser[0], false);
+	    carrier.set(*p);
+	    for (std::vector<HexPoint>::const_iterator it = others.begin();
+		 it != others.end(); ++it)
+	    {
+	        carrier.reset(*it);
+		inf.AddSReversible(*it, carrier, reverser[0], false);
+		carrier.set(*it);
+	    }
+	}
+    }
 }
 
-void ICEngine::FindMutualFillin(const PatternState& pastate, 
-                                HexColor color, 
-                                const bitset_t& consider,
-                                bitset_t& carrier,
-                                bitset_t *mut) const
+void ICEngine::FindTReversible(const PatternState& pastate, HexColor color,
+			       const bitset_t& consider,
+			       InferiorCells& inf) const
 {
-    bitset_t altered;
-    for (BitsetIterator p(consider); p; ++p) 
+    std::vector<PatternHits> hits(FIRST_INVALID);
+    bitset_t rev = pastate.MatchOnBoard(consider, 
+					m_patterns.HashedTReversible(color),
+				        PatternState::MATCH_ALL, hits);
+    
+    for (BitsetIterator p(rev); p; ++p) 
     {
-        PatternHits hits;
-        pastate.MatchOnCell(m_patterns.HashedMutualFillin(color), *p,
-                            PatternState::STOP_AT_FIRST_HIT, hits);
-        if (hits.empty())
-            continue;
-
-        /** Ensure this mutual fillin pattern does not interfere with
-            any other already-added mutual fillin.
-         */
-        BenzeneAssert(hits.size() == 1);
-        bitset_t willAlter;
-        willAlter.set(*p);
-        const std::vector<HexPoint>& moves1 = hits[0].Moves1();
-        for (unsigned i = 0; i < moves1.size(); ++i)
-                willAlter.set(moves1[i]);
-        const std::vector<HexPoint>& moves2 = hits[0].Moves2();
-        for (unsigned i = 0; i < moves2.size(); ++i)
-                willAlter.set(moves2[i]);
-        if ((willAlter & altered).any())
-            continue;
-
-        /** The mutual fillin can be added. */
-        altered |= willAlter;
-        carrier.set(*p);
-        for (unsigned i = 0; i < moves1.size(); ++i)
-            mut[color].set(moves1[i]);
-        for (unsigned i = 0; i < moves2.size(); ++i)
-            mut[!color].set(moves2[i]);
+	for (unsigned i=0; i<hits[*p].size(); ++i) 
+	{
+	    const std::vector<HexPoint>& empty = hits[*p][i].Empty();
+	    const std::vector<HexPoint>& reverser = hits[*p][i].Moves2();
+	    BenzeneAssert(reverser.size() == 1);
+	    bitset_t carrier;
+	    for (unsigned j=0; j<empty.size(); ++j)
+	        if (empty[j] != reverser[0])  
+		    carrier.set(empty[j]);
+	    inf.AddSReversible(*p, carrier, reverser[0], true);
+	}
     }
 }
 
 void ICEngine::FindVulnerable(const PatternState& pastate, HexColor color,
-                              const bitset_t& consider,
-                              InferiorCells& inf) const
+			      const bitset_t& consider,
+			      InferiorCells& inf) const
 {
     PatternState::MatchMode matchmode = PatternState::STOP_AT_FIRST_HIT;
     if (m_find_all_pattern_killers)
         matchmode = PatternState::MATCH_ALL;
-
+  
     std::vector<PatternHits> hits(FIRST_INVALID);
     bitset_t vul = pastate.MatchOnBoard(consider, 
-                                     m_patterns.HashedVulnerable(color),
-                                     matchmode, hits);
-
-    // Add the new vulnerable cells with their killers
+					m_patterns.HashedVulnerable(color),
+				        matchmode, hits);
+    
     for (BitsetIterator p(vul); p; ++p) 
     {
-        for (unsigned j=0; j<hits[*p].size(); ++j) 
+        for (unsigned i=0; i<hits[*p].size(); ++i) 
         {
-            const std::vector<HexPoint>& moves1 = hits[*p][j].Moves1();
-            BenzeneAssert(moves1.size() == 1);
-            HexPoint killer = moves1[0];
-            bitset_t carrier;
-            const std::vector<HexPoint>& moves2 = hits[*p][j].Moves2();
-            for (unsigned i=0; i<moves2.size(); ++i) {
-                carrier.set(moves2[i]);
-            }
-            inf.AddVulnerable(*p, VulnerableKiller(killer, carrier));
+	    const std::vector<HexPoint>& reverser = hits[*p][i].Moves2();
+	    BenzeneAssert(reverser.size() == 1);
+	    inf.AddVulnerable(*p, reverser[0]);
+	    if (!m_find_all_pattern_killers)
+	        break;
         }
     }
 }
 
-void ICEngine::FindReversible(const PatternState& pastate, HexColor color, 
-                              const bitset_t& consider,
-                              InferiorCells& inf) const
+void ICEngine::FindInferior(const PatternState& pastate, HexColor color, 
+			    const bitset_t& consider,
+			    InferiorCells& inf) const
 {
-    PatternState::MatchMode matchmode = PatternState::STOP_AT_FIRST_HIT;
-    if (m_find_all_pattern_reversers)
-        matchmode = PatternState::MATCH_ALL;
+    PatternState::MatchMode matchmode =
+      (m_find_all_pattern_superiors ?
+       PatternState::MATCH_ALL :
+       PatternState::STOP_AT_FIRST_HIT);
 
-    // Find reversers using patterns
     std::vector<PatternHits> hits(FIRST_INVALID);
-    bitset_t rev = pastate.MatchOnBoard(consider,
-                                        m_patterns.HashedReversible(color),
-                                        matchmode, hits);
-    // Add the new reversible cells with their reversers
-    for (BitsetIterator p(rev); p; ++p) 
+    bitset_t infe = pastate.MatchOnBoard(consider,
+					 m_patterns.HashedInferior(color),
+					 matchmode, hits);
+
+    for (BitsetIterator p(infe); p; ++p) 
     {
-        for (unsigned j=0; j<hits[*p].size(); ++j) 
+        for (unsigned i=0; i<hits[*p].size(); ++i) 
         {
-            const std::vector<HexPoint>& moves1 = hits[*p][j].Moves1();
-            BenzeneAssert(moves1.size() == 1);
-            HexPoint reverser = moves1[0];
-            // Carriers are mandatory for reversible patterns;
-            // otherwise cannot check for independence
-            BenzeneAssert(hits[*p][j].Moves2().size() != 0);
-            bitset_t carrier;
-            const std::vector<HexPoint>& moves2 = hits[*p][j].Moves2();
-            for (unsigned i=0; i<moves2.size(); ++i) {
-                carrier.set(moves2[i]);
-            }
-            inf.AddReversible(*p, carrier, reverser);
+            const std::vector<HexPoint>& others = hits[*p][i].Moves1();
+	    const std::vector<HexPoint>& superior = hits[*p][i].Moves2();
+            BenzeneAssert(superior.size() == 1);
+            inf.AddInferior(*p, superior[0]);
+	    for (unsigned j=0; j<others.size(); ++j)
+	    {
+		inf.AddInferior(others[j], superior[0]);
+	    }
         }
     }
 }
 
-void ICEngine::FindDominated(const PatternState& pastate, HexColor color, 
-                             const bitset_t& consider,
-                             InferiorCells& inf) const
+HexPoint ICEngine::IsReversible(PatternState& pastate,
+				HexColor color, HexPoint p) const
 {
-    PatternState::MatchMode matchmode = PatternState::STOP_AT_FIRST_HIT;
-    if (m_find_all_pattern_dominators)
-        matchmode = PatternState::MATCH_ALL;
+    if (!p)
+        return INVALID_POINT;
 
-    // Find dominators using patterns
-    std::vector<PatternHits> hits(FIRST_INVALID);
-    bitset_t dom = pastate.MatchOnBoard(consider,
-                                        m_patterns.HashedDominated(color),
-                                        matchmode, hits);
-    // Add the new dominated cells with their dominators
-    for (BitsetIterator p(dom); p; ++p) 
+    pastate.Update();
+    PatternHits hits;
+    
+    // First, the patterns centered on p.
+    pastate.MatchOnCell(m_patterns.HashedReversible(color), p,
+    		        PatternState::STOP_AT_FIRST_HIT, hits);
+    if (!hits.empty())
+        return hits[0].Moves2()[0];
+    
+    if (!m_use_s_reversible_as_reversible)
+        return INVALID_POINT;
+    
+    pastate.MatchOnCell(m_patterns.HashedSReversible(color), p,
+		        PatternState::STOP_AT_FIRST_HIT, hits);
+    if (!hits.empty())
+	return hits[0].Moves2()[0];
+    
+    // Then, the patterns centered on a nearby cell.
+    // There is no not-strongly-reversible pattern of this kind.
+    StoneBoard& brd = pastate.Board();
+    bool occupied = brd.IsOccupied(p);
+ 
+    if (occupied)
     {
-        for (unsigned j = 0; j < hits[*p].size(); ++j) 
-        {
-            const std::vector<HexPoint>& moves1 = hits[*p][j].Moves1();
-            BenzeneAssert(moves1.size() == 1);
-            inf.AddDominated(*p, moves1[0]);
-            // For now, no dominated patterns have carriers
-            // Note: this can change in the future if more complex ICE
-            // patterns are found
-            BenzeneAssert(hits[*p][j].Moves2().size() == 0);
-        }
+        BenzeneAssert(brd.IsColor(p, color));
+	brd.AddColor(EMPTY,p);
+	pastate.Update(p);
     }
-    // Add dominators found via hand coded patterns
-    if (m_use_handcoded_patterns)
-        FindHandCodedDominated(pastate.Board(), color, consider, inf);
-}
-
-void ICEngine::FindDominatedOnCell(const PatternState& pastate,
-                                   HexColor color, 
-                                   HexPoint cell,
-                                   PatternHits& hits) const
-{
-    PatternState::MatchMode matchmode = PatternState::MATCH_ALL;
-    pastate.MatchOnCell(m_patterns.HashedDominated(color), cell,
-                        matchmode, hits);
-}
-
-void ICEngine::FindHandCodedDominated(const StoneBoard& board, 
-                                      HexColor color,
-                                      const bitset_t& consider, 
-                                      InferiorCells& inf) const
-{
-    // If board is rectangular, these hand-coded patterns should not
-    // be used because they need to be mirrored (which is not a valid
-    // operation on non-square boards).
-    if (board.Width() != board.Height()) 
-        return;
-    for (unsigned i=0; i<m_hand_coded.size(); ++i)
-        CheckHandCodedDominates(board, color, m_hand_coded[i], 
-                                consider, inf);
-}
-
-/** Handles color flipping/rotations for this hand-coded pattern.  If
-    pattern matches, dominators are added to inf. */
-void ICEngine::CheckHandCodedDominates(const StoneBoard& brd,
-                                       HexColor color,
-                                       const HandCodedPattern& pattern, 
-                                       const bitset_t& consider, 
-                                       InferiorCells& inf) const
-{
-    if (brd.Width() < 4 || brd.Height() < 3)
-        return;
-    HandCodedPattern pat(pattern);
-    // Mirror and flip colors if checking for white
-    if (color == WHITE) 
+    
+    for (BoardIterator q = brd.Const()
+	   .Nbs(p, Pattern::MAX_EXTENSION_MOVES1);
+	 q; ++q)
     {
-        pat.mirror(brd.Const());
-        pat.flipColors();
+        if (brd.IsOccupied(*q))
+	    continue;
+	PatternHits loc_hits;
+	pastate.MatchOnCell(m_patterns.HashedSReversible(color), *q,
+			    PatternState::MATCH_ALL, loc_hits);
+        for (unsigned i=0; i<loc_hits.size(); ++i)
+	{
+	    const std::vector<HexPoint>& others = loc_hits[i].Moves1();
+	    if (find(others.begin(), others.end(), p) != others.end())
+	    {
+	        if (occupied) {brd.AddColor(color,p); pastate.Update(p);}
+		return loc_hits[i].Moves2()[0];
+	    }
+	}
     }
-    // Top corner
-    if (consider.test(pat.dominatee()) && pat.check(brd))
-        inf.AddDominated(pat.dominatee(), pat.dominator());
-    // Bottom corner
-    pat.rotate(brd.Const());
-    if (consider.test(pat.dominatee()) && pat.check(brd))
-        inf.AddDominated(pat.dominatee(), pat.dominator());
+    if (occupied) {brd.AddColor(color,p); pastate.Update(p);}
+    return INVALID_POINT;
+}
+
+PatternHits ICEngine::FindInferiorOnCell(const PatternState& pastate,
+					 HexColor color, 
+					 HexPoint cell) const
+{
+    PatternHits hits;
+    StoneBoard brd = pastate.Board();
+    pastate.MatchOnCell(m_patterns.HashedInferior(color), cell,
+		        PatternState::MATCH_ALL, hits);
+    for (BoardIterator p = brd.Const()
+	   .Nbs(cell, Pattern::MAX_EXTENSION_MOVES1);
+	 p; ++p)
+    {
+        if (brd.IsOccupied(*p))
+	    continue;
+	PatternHits loc_hits;
+	pastate.MatchOnCell(m_patterns.HashedInferior(color), *p,
+			    PatternState::MATCH_ALL, loc_hits);
+        for (unsigned i=0; i<loc_hits.size(); ++i)
+	{
+	    const std::vector<HexPoint>& others = loc_hits[i].Moves1();
+	    if (find(others.begin(), others.end(), cell) != others.end())
+	        hits.push_back(loc_hits[i]);
+	}
+    }
+    return hits;
+}
+
+
+ICEngine::FillinMode ICEngine::TurnOffCapture(FillinMode mode)
+{
+    switch (mode)
+    {
+	case MONOCOLOR : return MONOCOLOR;
+	case MONOCOLOR_USING_CAPTURED : return MONOCOLOR;
+	case BICOLOR : return BICOLOR;
+    }
+}
+
+bool ICEngine::UsesCapture(FillinMode mode)
+{
+    switch (mode)
+    {
+	case MONOCOLOR : return false;
+	case MONOCOLOR_USING_CAPTURED : return true;
+	case BICOLOR : return true;
+    }
+}
+
+bool ICEngine::IsMonocolorUsingCapture(FillinMode mode)
+{
+    switch (mode)
+    {
+	case MONOCOLOR : return false;
+	case MONOCOLOR_USING_CAPTURED : return true;
+	case BICOLOR : return false;
+    }
+}
+
+bool ICEngine::Bicolor(FillinMode mode)
+{
+    switch (mode)
+    {
+	case MONOCOLOR : return false;
+	case MONOCOLOR_USING_CAPTURED : return false;
+	case BICOLOR : return true;
+    }
 }
 
 //----------------------------------------------------------------------------
 
 void IceUtil::Update(InferiorCells& out, const InferiorCells& in)
 {
-    // Overwrite old vulnerable/dominated with new vulnerable/dominated 
+    // Overwrite old prunable with new prunable
     out.ClearVulnerable();
-    out.ClearReversible();
-    out.ClearDominated();
+    out.ClearSReversible();
+    out.ClearInferior();
     out.AddVulnerableFrom(in);
-    out.AddReversibleFrom(in);
-    out.AddDominatedFrom(in);
+    out.AddSReversibleFrom(in);
+    out.AddInferiorFrom(in);
 
     // Add the new fillin to the old fillin
     for (BWIterator c; c; ++c) 
     {
-        out.AddCaptured(*c, in.Captured(*c));
-        out.AddPermInfFrom(*c, in);
-        out.AddMutualFillinFrom(*c, in);
+        out.AddFillin(*c, in.Fillin(*c));
     }
-
-    // Add the new dead cells.
-    out.AddDead(in.Dead());
 }
 
 //----------------------------------------------------------------------------

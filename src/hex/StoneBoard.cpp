@@ -81,40 +81,65 @@ bool StoneBoard::IsLegal(HexPoint cell) const
 
 //----------------------------------------------------------------------------
 
-void StoneBoard::AddColor(HexColor color, const bitset_t& b)
+void StoneBoard::AddColor(HexColor color, HexPoint cell)
 {
-    BenzeneAssert(HexColorUtil::isBlackWhite(color));
-    m_stones[color] |= b;
-    BenzeneAssert(IsBlackWhiteDisjoint());
-}
-
-void StoneBoard::RemoveColor(HexColor color, const bitset_t& b)
-{
-    BenzeneAssert(HexColorUtil::isBlackWhite(color));
-    m_stones[color] = m_stones[color] - b;
-    BenzeneAssert(IsBlackWhiteDisjoint());
-}
-
-void StoneBoard::SetColor(HexColor color, HexPoint cell)
-{
-    BenzeneAssert(HexColorUtil::isValidColor(color));
-    BenzeneAssert(Const().IsValid(cell));
     if (color == EMPTY) {
         m_stones[BLACK].reset(cell);
         m_stones[WHITE].reset(cell);
     } else {
+      //m_stones[!color].reset(cell);
         m_stones[color].set(cell);
-        BenzeneAssert(IsBlackWhiteDisjoint());
     }
 }
 
-void StoneBoard::SetColor(HexColor color, const bitset_t& bs)
+void StoneBoard::AddColor(HexColor color, const bitset_t& b)
 {
-    /** @todo Should we make this support EMPTY color too? */
+    if (color == EMPTY) {
+        m_stones[BLACK] -= b;
+        m_stones[WHITE] -= b;
+    } else {
+      //m_stones[!color] -= b;
+        m_stones[color] |= b;
+    }
+}
+
+// Heuristic: color that is the most present among the neighbours.
+// @todo implement a better one, the ideal would be a small neural net.
+HexColor StoneBoard::PickColor(HexColor color_tb, HexPoint cell)
+{
+    int black_supp;
+    for (BoardIterator n = m_const->Nbs(cell); n; ++n)
+    {
+        if (IsBlack(*n)) 
+	    ++black_supp;
+	if (IsWhite(*n)) 
+	    --black_supp;
+    }
+    if (black_supp > 0)
+        return BLACK;
+    if (black_supp < 0)
+        return WHITE;
+    return color_tb;
+}
+
+// Heuristic: just use color_tb, to be fast.
+HexColor StoneBoard::PickColor(HexColor color_tb, const bitset_t& b)
+{
+    return color_tb;
+}
+
+void StoneBoard::SetColor(HexColor color, const bitset_t& b)
+{
     BenzeneAssert(HexColorUtil::isBlackWhite(color));
-    BenzeneAssert(Const().IsValid(bs));
-    m_stones[color] = bs;
+    BenzeneAssert(Const().IsValid(b));
+    m_stones[color] = b;
     BenzeneAssert(IsBlackWhiteDisjoint());
+}
+
+void StoneBoard::AddPlayed(const bitset_t& played)
+{
+    m_played |= played;
+    ComputeHash();
 }
 
 void StoneBoard::SetPlayed(const bitset_t& played)
@@ -152,7 +177,7 @@ void StoneBoard::PlayMove(HexColor color, HexPoint cell)
     m_played.set(cell);
     if (Const().IsLocation(cell))
         m_hash.Update(color, cell);
-    SetColor(color, cell);
+    AddColor(color, cell);
 }
 
 void StoneBoard::UndoMove(HexPoint cell)
@@ -164,7 +189,7 @@ void StoneBoard::UndoMove(HexPoint cell)
     m_played.reset(cell);
     if (Const().IsLocation(cell))
         m_hash.Update(color, cell);
-    SetColor(EMPTY, cell);
+    AddColor(EMPTY, cell);
 }
 
 //----------------------------------------------------------------------------
@@ -217,7 +242,7 @@ void StoneBoard::SetPosition(const std::string& str)
     /** @note This depends on the order defined by Interior(). */
     StartNewGame();
     int cell = 0;
-    for (std::size_t i = 0;
+    for (int i = 0;
          i < str.size() && cell < Width() * Height();
          ++i)
     {
@@ -238,12 +263,12 @@ void StoneBoard::SetPosition(const std::string& str)
         }
         else if (str[i] == 'b')
         {
-            SetColor(BLACK, p);
+            AddColor(BLACK, p);
             cell++;
         }
         else if (str[i] == 'w')
         {
-            SetColor(WHITE, p);
+            AddColor(WHITE, p);
             cell++;
         }
     }

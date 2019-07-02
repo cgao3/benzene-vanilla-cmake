@@ -86,42 +86,42 @@ void HexEnvironmentCommands::ParamICE(HtpCommand& cmd)
     if (cmd.NuArg() == 0)
     {
         cmd << '\n'
-            << "[bool] backup_opponent_dead "
-            << ice.BackupOpponentDead() << '\n'
-            << "[bool] find_all_pattern_dominators "
-            << ice.FindAllPatternDominators() << '\n'
+            << "[bool] find_all_pattern_superiors "
+            << ice.FindAllPatternSuperiors() << '\n'
             << "[bool] find_all_pattern_killers "
             << ice.FindAllPatternKillers() << '\n'
-            << "[bool] find_permanently_inferior "
-            << ice.FindPermanentlyInferior() << '\n'
             << "[bool] find_presimplicial_pairs " 
             << ice.FindPresimplicialPairs() << '\n'
             << "[bool] find_three_sided_dead_regions "
             << ice.FindThreeSidedDeadRegions() << '\n'
             << "[bool] iterative_dead_regions "
             << ice.IterativeDeadRegions() << '\n'
-            << "[bool] use_hand_coded_patterns "
-            << ice.UseHandCodedPatterns() << '\n';
+	    << "[bool] use_capture "
+            << ice.UseCapture() << '\n'
+	    << "[bool] find_reversible "
+            << ice.FindReversible() << '\n'
+	    << "[bool] use_s_reversible_as_reversible "
+            << ice.UseSReversibleAsReversible() << '\n';
     }
     else if (cmd.NuArg() == 2)
     {
         std::string name = cmd.Arg(0);
-        if (name == "backup_opponent_dead")
-            ice.SetBackupOpponentDead(cmd.Arg<bool>(1));
-        else if (name == "find_all_pattern_dominators")
-            ice.SetFindAllPatternDominators(cmd.Arg<bool>(1));
+        if (name == "find_all_pattern_superiors")
+            ice.SetFindAllPatternSuperiors(cmd.Arg<bool>(1));
         else if (name == "find_all_pattern_killers")
             ice.SetFindAllPatternKillers(cmd.Arg<bool>(1));
-        else if (name == "find_permanently_inferior")
-            ice.SetFindPermanentlyInferior(cmd.Arg<bool>(1));
         else if (name == "find_presimplicial_pairs")
             ice.SetFindPresimplicialPairs(cmd.Arg<bool>(1));
         else if (name == "find_three_sided_dead_regions")
             ice.SetFindThreeSidedDeadRegions(cmd.Arg<bool>(1));
         else if (name == "iterative_dead_regions")
             ice.SetIterativeDeadRegions(cmd.Arg<bool>(1));
-        else if (name == "use_hand_coded_patterns")
-            ice.SetUseHandCodedPatterns(cmd.Arg<bool>(1));
+	else if (name == "use_capture")
+            ice.SetUseCapture(cmd.Arg<bool>(1));
+	else if (name == "find_reversible")
+            ice.SetFindReversible(cmd.Arg<bool>(1));
+	else if (name == "use_s_reversible_as_reversible")
+            ice.SetUseSReversibleAsReversible(cmd.Arg<bool>(1));
         else
             throw HtpFailure() << "Unknown parameter: " << name;
     }

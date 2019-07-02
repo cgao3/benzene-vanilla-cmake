@@ -85,8 +85,8 @@ void PatternMatcherData::Initialize()
                             else 
                             {
                                 played_in_slice[p1][p2] = s;
-                                played_in_godel[p1][p2] = (1 << g);
                             }
+			    played_in_godel[p1][p2] = (1 << g);
                             inverse_slice_godel[p1][s][g] = p2;
                         }
                     }
@@ -149,21 +149,32 @@ void PatternState::Update(HexPoint cell)
     BenzeneAssert(m_brd.Const().IsLocation(cell));
     int r = m_update_radius;
     HexColor color = m_brd.GetColor(cell);
-    BenzeneAssert(HexColorUtil::isBlackWhite(color));
     if (HexPointUtil::isEdge(cell)) 
         goto handleEdge;
-    for (BoardIterator p = m_brd.Const().Nbs(cell, r); p; ++p) 
-    {
-        int slice = m_data->played_in_slice[*p][cell];
-        int godel = m_data->played_in_godel[*p][cell];
-        m_slice_godel[*p][color][slice] |= godel;
-        // Update *p's ring godel if we played next to it
-        if (godel == 1)
-        {
-            m_ring_godel[*p].AddColorToSlice(slice, color);
-            m_ring_godel[*p].RemoveColorFromSlice(slice, EMPTY);
-        }
-    }
+    if (HexColorUtil::isBlackWhite(color))
+        for (BoardIterator p = m_brd.Const().Nbs(cell, r); p; ++p) 
+	{
+	    int slice = m_data->played_in_slice[*p][cell];
+	    int godel = m_data->played_in_godel[*p][cell];
+	    m_slice_godel[*p][color][slice] |= godel;
+	    // Update *p's ring godel if we played next to it
+	    if (godel == 1)
+	    {
+	        m_ring_godel[*p].AddColorToSlice(slice, color);
+                m_ring_godel[*p].RemoveColorFromSlice(slice, EMPTY);
+	    }
+	}
+    else
+        for (BoardIterator p = m_brd.Const().Nbs(cell, r); p; ++p) 
+	{
+	    int slice = m_data->played_in_slice[*p][cell];
+	    int godel = m_data->played_in_godel[*p][cell];
+	    m_slice_godel[*p][BLACK][slice] &= ~godel;
+	    m_slice_godel[*p][WHITE][slice] &= ~godel;
+	    // Update *p's ring godel if we played next to it
+	    if (godel == 1)
+		m_ring_godel[*p].SetSliceToColor(slice, EMPTY);
+	}
     return;
 
  handleEdge:
@@ -189,10 +200,7 @@ void PatternState::Update(HexPoint cell)
 void PatternState::Update(const bitset_t& changed)
 {
     for (BitsetIterator p(changed); p; ++p) 
-    {
-        BenzeneAssert(m_brd.IsOccupied(*p));
         Update(*p);
-    }
 }
 
 void PatternState::Update()
@@ -228,10 +236,11 @@ void PatternState::MatchOnCell(const HashedPatternSet& patset,
     RotatedPatternList::const_iterator it = rlist.begin();
     for (; it != rlist.end(); ++it) 
     {
-        std::vector<HexPoint> moves1, moves2;
-        if (CheckRotatedPattern(cell, *it, moves1, moves2)) 
+        std::vector<HexPoint> empty, moves1, moves2;
+        if (CheckRotatedPattern(cell, *it, empty, moves1, moves2)) 
         {
-            hits.push_back(PatternHit(it->GetPattern(), moves1, moves2));
+	    hits.push_back(PatternHit(it->GetPattern(),
+				      empty, moves1, moves2));
             if (mode == STOP_AT_FIRST_HIT)
                 break;
         }
@@ -275,6 +284,7 @@ bitset_t PatternState::MatchOnBoard(const bitset_t& consider,
     it matches.  Pattern encoded moves are stored in moves. */
 bool PatternState::CheckRotatedPattern(HexPoint cell, 
                                        const RotatedPattern& rotpat,
+				       std::vector<HexPoint>& empty,
                                        std::vector<HexPoint>& moves1,
                                        std::vector<HexPoint>& moves2) const
 {
@@ -286,7 +296,17 @@ bool PatternState::CheckRotatedPattern(HexPoint cell,
         matches = CheckRotatedSlices(cell, rotpat);
     if (matches) 
     {
-        if (pattern->GetFlags() & Pattern::HAS_MOVES1) 
+        if (pattern->GetFlags() & Pattern::HAS_EMPTY) 
+        {
+            for (unsigned i = 0; i < pattern->GetEmpty().size(); ++i) 
+            {
+                int slice = pattern->GetEmpty()[i].first;
+                int bit = pattern->GetEmpty()[i].second;
+                empty.push_back(m_data->GetRotatedMove(cell, slice, bit, 
+						       rotpat.Angle()));
+            }
+        }
+	if (pattern->GetFlags() & Pattern::HAS_MOVES1) 
         {
             for (unsigned i = 0; i < pattern->GetMoves1().size(); ++i) 
             {
@@ -333,7 +353,7 @@ bool PatternState::CheckRotatedSlices(HexPoint cell, const Pattern& pattern,
         int j = (angle + i) % Pattern::NUM_SLICES;
         int black_b = gb[i] & pat[j][Pattern::FEATURE_CELLS];
         int white_b = gw[i] & pat[j][Pattern::FEATURE_CELLS];
-        int empty_b = black_b | white_b;
+        int not_empty_b = black_b | white_b;
         int black_p = pat[j][Pattern::FEATURE_BLACK];
         int white_p = pat[j][Pattern::FEATURE_WHITE];
         int empty_p = pat[j][Pattern::FEATURE_CELLS] - 
@@ -345,7 +365,7 @@ bool PatternState::CheckRotatedSlices(HexPoint cell, const Pattern& pattern,
         // is both black and white. 
         // TODO: all cells to be black/white/empty (ie, dead cells),
         // in which case we would use ((empty_b & empty_p) != empty_p)
-        if (empty_b & empty_p)
+        if (not_empty_b & empty_p)
             matches = false;
         else if ((black_b & black_p) != black_p)
             matches = false;
