@@ -286,7 +286,7 @@ void UseGraphTheoryToFindDeadVulnerable(HexColor color, Groups& groups,
     bitset_t consider = brd.GetEmpty();
     consider = consider - adj_to_both_edges;
     
-    // find presimplicial cells and their dominators
+    // Find presimplicial cells and their dominators
     for (BitsetIterator p(consider); p; ++p) 
     {
         std::set<HexPoint> enbs, cnbs;
