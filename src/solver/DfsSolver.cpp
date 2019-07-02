@@ -217,11 +217,11 @@ bool DfsSolver::SolveState(PointSequence& variation, DfsSolutionSet& solution)
         if (m_use_decompositions
             && Decompositions::FindSplitting(*m_workBrd, !color, group))
         {
-            winning_state = SolveDecomposition(variation, solution, group);
+	    winning_state = SolveDecomposition(variation, solution, group);
         } 
         else 
         {
-            winning_state = SolveInteriorState(variation, solution);
+	    winning_state = SolveInteriorState(variation, solution);
         }
     }
 
@@ -408,7 +408,7 @@ bool DfsSolver::SolveInteriorState(PointSequence& variation,
         {
             // Win: copy proof over, copy pv, abort!
             winning_state = true;
-            solution.proof = child.proof;
+            solution.proof = child.proof; 
             solution.SetPV(cell, child.pv);
             solution.m_numMoves = child.m_numMoves + 1;
             solution.stats.winning_expanded++;
@@ -472,6 +472,7 @@ void DfsSolver::HandleProof(const PointSequence& variation,
     {
         ProofUtil::ShrinkProof(solution.proof, m_state->Position(), loser, 
                                m_workBrd->ICE());
+	
         bitset_t pruned;
         pruned  = BoardUtil::ReachableOnBitset(m_workBrd->Const(), 
                                                 solution.proof, 
@@ -497,11 +498,11 @@ void DfsSolver::HandleProof(const PointSequence& variation,
         throw BenzeneException()
             << "DfsSolver::HandleProof:\n"
             << "Proof does not touch both edges!\n"
-            << m_workBrd->Write(solution.proof) << '\n'
+	    << m_workBrd->Write(solution.proof) << '\n'
             << "Original proof:\n"
-            << m_workBrd->Write(old_proof) << '\n'
-            << *m_workBrd << '\n'
-            << color << " to play.\n"
+	    << m_workBrd->Write(old_proof) << '\n'
+	    << m_workBrd->Write() << '\n'
+	    << winner << " wins, " << color << " to play.\n"
             << "PV: " << HexPointUtil::ToString(variation) << '\n';
 
     /** @todo HANDLE BEST MOVES PROPERLY! 
