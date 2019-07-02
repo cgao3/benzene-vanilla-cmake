@@ -1,5 +1,6 @@
 add_subdirectory( book/ )
 add_subdirectory( hex/ )
+add_subdirectory( precomputation/ )
 add_subdirectory( util/ )
 add_subdirectory( solver/ )
 add_subdirectory( commonengine/ )
