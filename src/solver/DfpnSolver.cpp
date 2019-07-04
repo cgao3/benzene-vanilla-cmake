@@ -1043,15 +1043,11 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
         // parents and thus forget that one move was reversible.
         data.m_reversible = INVALID_POINT;
     
-    //std::cout << data.m_reverser << " reverses " << data.m_reversible << "\n";
     DfpnBounds& bounds =
       (isReversible ? data.m_reversibleBounds : data.m_bounds);
-    //std::cout << "bounds: " << bounds
-    //	      << " - maxBounds: " << maxBounds << "\n";
     
     if (!maxBounds.GreaterThan(bounds))
     {
-      //std::cout << "break from bounds outside\n";
         if (work)
         {
             if (bounds.IsSolved())
@@ -1090,11 +1086,6 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 			 childrenData, maxChildIndex);
 	if (data.m_bounds.IsSolved())
 	    data.m_reversibleBounds = data.m_bounds;
-
-	//std::cout << "Reversible: " << isReversible
-	//		  << " - Chosen: " << reverserChosen << "\n";
-	//std::cout << "bounds: " << bounds
-	//		  << " - maxBounds: " << maxBounds << "\n";
 	
         if (bounds.IsSolved())
             NotifyListeners(*m_history, data);
@@ -1106,9 +1097,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
             m_guiFx.Write();
         }
 	
-        if (!maxBounds.GreaterThan(bounds)){
-	  //std::cout << "break from bounds\n";
-	    break;}
+        if (!maxBounds.GreaterThan(bounds))
+	    break;
         if (work >= workBound)
             break;
 	
@@ -1125,12 +1115,6 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 			maxBounds, maxChildIndex);
 	data.m_bestMove = data.m_children.FirstMove(bestIndex);
 	
-	// Recurse on best child
-	/*std::cout << "Récursion : from "
-		  << m_history->LastMove()
-		  << " to "
-		  << data.m_bestMove
-		  << "\n";*/
 	if (m_useGuiFx && depth == 0)
 	    m_guiFx.SetPV(data.m_bestMove, childrenData[bestIndex]
 			            .GetBounds(INVALID_POINT));
