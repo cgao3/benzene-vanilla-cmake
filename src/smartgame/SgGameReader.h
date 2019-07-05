@@ -46,8 +46,7 @@ public:
     /** Create reader from an input stream.
         @param in The input stream.
         @param defaultSize The (game-dependent) default board size, if file
-        contains no SZ property.
-        no SZ property. */
+        contains no SZ property. */
     SgGameReader(std::istream& in, int defaultSize = 19);
 
     /** Get warnings of last ReadGame or ReadGames. */
