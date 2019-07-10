@@ -63,7 +63,7 @@ public:
     /** Returns a string representation of its internal state.
         The format is as follows:
         1)  First character is either f (for fill-in) or i (for ignorable)
-        2a) If fill-in, 2nd character is e/b/w (either/black/white)
+        2a) If fill-in, 2nd character is b/w (black/white)
         2b) If ignorable, 2nd character is v/s/i (vulnerable/strong-reversible
 	  /inferior) and 3rd entry is list of killers/reversers/superiors
     */
