@@ -4,12 +4,15 @@
 
 #include "SgSystem.h"
 #include "SgWrite.h"
+
 #include "BitsetIterator.hpp"
 #include "BoardUtil.hpp"
 #include "DfpnSolver.hpp"
-#include "HexPoint.hpp"
-#include "PatternState.hpp"
 #include "EndgameUtil.hpp"
+#include "HexColor.hpp"
+#include "HexPoint.hpp"
+#include "HexSgUtil.hpp"
+#include "PatternState.hpp"
 #include "ProofUtil.hpp"
 #include "Resistance.hpp"
 
@@ -700,6 +703,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     size_t work = 0;
     TopMidData d(data, vBounds, m_state->Hash(), parent);
 
+    bool claimedWin = data.ClaimedWin();
     bool isReversible = data.IsReversible(m_history->LastMove());
     DfpnBounds& bounds =
       (isReversible ? data.m_reversibleBounds : data.m_bounds);
@@ -707,7 +711,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
     if (data.m_work < m_threadWork &&
         (depth != 0 || (data.m_work == 0)))
     {
-        if (vBounds.phi <= vBounds.delta)
+        if (vBounds.phi <= vBounds.delta || claimedWin)
             DfpnBounds::SetToWinning(vBounds);
         else
             DfpnBounds::SetToLosing(vBounds);
@@ -774,18 +778,45 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 
         size_t maxChildIndex = ComputeMaxChildIndex(data.m_children,
 						    d.childrenData);
-        if (isReversible)
-	    UpdateReversibleBounds(bounds, d.reverserIndex,
-				   data.m_children, d.childrenData,
-				   maxChildIndex);
-	else
-	    UpdateBounds(bounds, data.m_children,
-			 d.childrenData, maxChildIndex);
+	if (claimedWin)
+	    if (!UpdateClaimedWinBounds(bounds, d.reverserIndex,
+					data.m_children, d.childrenData))
+	    {
+	        // @todo Make it more clean than using std::cout.
+	        std::cout << "Bad claim: "
+			  << data.m_children.FirstMove(d.reverserIndex)
+			  << " does not win after "
+			  << m_history->LastMove()
+			  << '\n';
+		claimedWin = false;
+		isReversible = false;
+		data.ClaimWin(false);
+	    }
+	if (!claimedWin)
+	{
+	    if (isReversible)
+	        UpdateReversibleBounds(bounds, d.reverserIndex,
+				       data.m_children, d.childrenData,
+				       maxChildIndex);
+	    else
+	        UpdateBounds(bounds, data.m_children,
+			     d.childrenData, maxChildIndex);
+	}
 	if (data.m_bounds.IsSolved())
 	    data.m_reversibleBounds = data.m_bounds;
+	if (data.m_reversibleBounds.IsWinning())
+	    data.m_bounds = data.m_reversibleBounds;
 
         size_t virtualMaxChildIndex = ComputeMaxChildIndex(data.m_children,
 							   d.virtualBounds);
+	if (claimedWin)
+	    if (!UpdateClaimedWinBounds(vBounds, d.reverserIndex,
+					data.m_children, d.virtualBounds))
+	    // Ideally, this should never happen unless the real bounds
+	    // have this problem too.
+	    // In this case, we are escaping as the vBounds are too large,
+	    // so later we may assume that all went well.
+	        DfpnBounds::SetToLosing(vBounds);
         if (isReversible)
 	    reverserChosen =
 	      UpdateReversibleBounds(vBounds, d.reverserIndex,
@@ -805,7 +836,10 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
             m_guiFx.UpdateBounds(m_history->LastMove(), bounds);
 
 	DfpnBounds childMaxBounds;
-	if (isReversible)
+	if (claimedWin)
+	    SelectChildClaimedWin(d.bestIndex, childMaxBounds,
+				  d.reverserIndex, maxBounds);
+	else if (isReversible)
 	    SelectChildReversible(d.bestIndex, childMaxBounds,
 		        d.reverserIndex, reverserChosen, vBounds,
 		        data.m_children, d.virtualBounds,
@@ -893,7 +927,7 @@ size_t DfpnSolver::CreateData(DfpnData& data, const DfpnData& parentData)
         return 0;
 
     HexColor colorToMove = m_state->ToPlay();
-
+    
     StoneBoard& brd = m_workBoard->GetPosition();
     brd.SetPosition(m_state->Position());
     brd.AddColor(BLACK, parentData.m_fillin[BLACK]);
@@ -1034,7 +1068,8 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
     int depth = m_history->Depth();
     size_t work = CreateData(data, parentData);
     data.m_work += work;
-    
+
+    bool claimedWin = data.ClaimedWin();
     bool isReversible = data.IsReversible(m_history->LastMove());
     if (!isReversible && !data.m_reversibleBounds.IsLosing())
         // This needs more experimenting, maybe to remove ?
@@ -1075,17 +1110,36 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
       
         if (m_useGuiFx && depth == 0)
             m_guiFx.SetChildren(data.m_children, childrenData);
-		
-	if (isReversible)
-	    reverserChosen =
-	      UpdateReversibleBounds(bounds, reverserIndex,
-				     data.m_children, childrenData,
-				     maxChildIndex);
-	else
-	    UpdateBounds(bounds, data.m_children,
-			 childrenData, maxChildIndex);
+
+	if (claimedWin)
+	    if (!UpdateClaimedWinBounds(bounds, reverserIndex,
+					data.m_children, childrenData))
+	    {
+	        // @todo Make it more clean than using std::cout.
+	        std::cout << "Bad claim: "
+			  << data.m_children.FirstMove(reverserIndex)
+			  << " does not win after "
+			  << m_history->LastMove()
+			  << '\n';
+		claimedWin = false;
+		isReversible = false;
+		data.ClaimWin(false);
+	    }
+	if (!claimedWin)
+	{
+	    if (isReversible)
+	        reverserChosen =
+		  UpdateReversibleBounds(bounds, reverserIndex,
+					 data.m_children, childrenData,
+					 maxChildIndex);
+	    else
+	        UpdateBounds(bounds, data.m_children,
+			     childrenData, maxChildIndex);
+	}
 	if (data.m_bounds.IsSolved())
 	    data.m_reversibleBounds = data.m_bounds;
+	if (data.m_reversibleBounds.IsWinning())
+	    data.m_bounds = data.m_reversibleBounds;
 	
         if (bounds.IsSolved())
             NotifyListeners(*m_history, data);
@@ -1104,7 +1158,10 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 	
         // Select most proving child
         DfpnBounds childMaxBounds;
-	if (isReversible)	
+	if (claimedWin)
+	    SelectChildClaimedWin(bestIndex, childMaxBounds,
+				  reverserIndex, maxBounds);
+	else if (isReversible)	
 	    SelectChildReversible(bestIndex, childMaxBounds,
 			reverserIndex, reverserChosen, bounds,
 		        data.m_children, childrenData,
@@ -1278,6 +1335,16 @@ void DfpnSolver::SelectChildReversible(size_t& bestIndex,
 	        limitOnDelta);
 }
 
+void DfpnSolver::SelectChildClaimedWin(size_t& bestIndex,
+			     DfpnBounds& childMaxBounds,
+			     size_t reverserIndex,
+                             const DfpnBounds& maxBounds)
+{
+    childMaxBounds.delta = maxBounds.phi;
+    childMaxBounds.phi = maxBounds.delta;
+    bestIndex = reverserIndex;
+}
+
 template <class T>
 void DfpnSolver::UpdateBounds(DfpnBounds& bounds,
 			      const DfpnChildren& children,
@@ -1322,10 +1389,27 @@ bool DfpnSolver::UpdateReversibleBounds(DfpnBounds& bounds,
     if (reverserBounds.delta <= bounds.phi)
     // In case of tie, we reverse.
     {
-	bounds.Copy(reverserBounds);
+	bounds = reverserBounds;
 	return true;
     }
     return false;
+}
+
+template <class T>
+bool DfpnSolver::UpdateClaimedWinBounds(DfpnBounds& bounds,
+			      size_t reverserIndex,
+			      const DfpnChildren& children,
+                              const std::vector<T>& childrenBounds) const
+{
+    DfpnBounds reverserBounds =
+      children.GetBounds(reverserIndex,childrenBounds);
+    if (reverserBounds.IsWinning())
+    // This is a problem, as the child was claimed losing, so
+    // we forget our claim.
+        return false;
+    reverserBounds.Swap();
+    bounds = reverserBounds;
+    return true;
 }
 
 void DfpnSolver::LookupDataTT(DfpnData& data, const DfpnChildren& children, 
@@ -1477,7 +1561,8 @@ void DfpnSolver::DbDump(DfpnStates& positions)
         throw BenzeneException("Db backup filename is empty!\n");
     ofstream os(m_db_bak_filename.c_str(), ios::out|ios::binary|ios::trunc);
     if (!os.is_open())
-        throw BenzeneException() << "Error creating file '" << m_db_bak_filename << "'\n";
+        throw BenzeneException() << "Error creating file '"
+				 << m_db_bak_filename << "'\n";
     positions.Database()->Dump(os);
 }
 
@@ -1489,7 +1574,8 @@ void DfpnSolver::DbRestore(DfpnStates& positions)
         throw BenzeneException("Db backup filename is empty!\n");
     ifstream is(m_db_bak_filename.c_str(), ios::in|ios::binary);
     if (!is.is_open())
-        throw BenzeneException() << "Error opening file '" << m_db_bak_filename << "'\n";
+        throw BenzeneException() << "Error opening file '"
+				 << m_db_bak_filename << "'\n";
     positions.Database()->Restore(is);
 }
 
@@ -1505,7 +1591,8 @@ void DfpnSolver::TtDump(DfpnStates& positions, bool locked)
         m_tt_mutex.unlock_shared();
     ofstream os(m_tt_bak_filename.c_str(), ios::out|ios::binary|ios::trunc);
     if (!os.is_open())
-        throw BenzeneException() << "Error creating file '" << m_tt_bak_filename << "'\n";
+        throw BenzeneException() << "Error creating file '"
+				 << m_tt_bak_filename << "'\n";
     size_t count = 0;
     if (locked)
         m_tt_mutex.lock_shared();
@@ -1520,7 +1607,8 @@ void DfpnSolver::TtDump(DfpnStates& positions, bool locked)
         os.write(reinterpret_cast<const char *>(&k), sizeof(k));
         os.write(reinterpret_cast<const char *>(data.get()), size);
         if (os.bad())
-            throw BenzeneException() << "Error writing to file '" << m_tt_bak_filename << "'\n";
+            throw BenzeneException() << "Error writing to file '"
+				     << m_tt_bak_filename << "'\n";
         count++;
         if (locked)
             m_tt_mutex.lock_shared();
@@ -1541,7 +1629,8 @@ void DfpnSolver::TtRestore(DfpnStates& positions)
         throw BenzeneException("Tt backup filename is empty!\n");
     ifstream is(m_tt_bak_filename.c_str(), ios::in|ios::binary|ios::ate);
     if (!is.is_open())
-        throw BenzeneException() << "Error opening file '" << m_tt_bak_filename << "'\n";
+        throw BenzeneException() << "Error opening file '"
+				 << m_tt_bak_filename << "'\n";
     ifstream::pos_type size = is.tellg();
     is.seekg(0, ios::beg);
     static const size_t SIZE = 1 << 20;
@@ -1576,6 +1665,106 @@ void DfpnSolver::TtRestore(DfpnStates& positions)
     LogDfpnThread()
         << "Tt restore: #entries=" << count
         << " time=" << timer.GetTime() << '\n';
+}
+
+// Each tree is assume to be composed of alternating turns, but the starting
+// player can be anyone. Swap is not handled.
+// Every claimedWinner move is assumed to win, if there are several the first
+// one is kept but the others are used to do deeper claims.
+// For details about the implementation, see the comment on m_reverser in
+// DfpnSolver.hpp.
+size_t DfpnSolver::AddClaimsToTt(SgGameReader& sgreader, HexColor claimedWinner,
+				 const HexBoard& board, DfpnStates& positions)
+{
+    size_t claims = 0;
+
+    m_positions = &positions;
+    // Initialize boards and history.
+    m_workBoard.reset(new HexBoard(board)); // no need to empty
+    m_state.reset(new HexState(m_workBoard->GetPosition(), ARBITRARY_COLOR));
+    m_state->Position().StartNewGame();
+    m_history.reset(new DfpnHistory());
+    
+    DfpnData parentData;
+    for (SgNode* node = sgreader.ReadGame(); node; node = sgreader.ReadGame())
+    {
+        m_state->SetToPlay(HexSgUtil::SgColorToHexColor(
+			          node->LeftMostSon()->NodePlayer()));
+        claims += AddNodeToTt(node, claimedWinner, parentData);
+    }
+    
+    return claims;
+}
+
+// Auxiliary function for AddClaimsToTt.
+size_t DfpnSolver::AddNodeToTt(const SgNode* node, HexColor claimedWinner,
+			       const DfpnData& parentData)
+{
+    if (!node)
+	return 0;
+  
+    size_t claims = 0;
+    
+    HexPoint move =
+      (!node->IsRoot() ?
+       HexSgUtil::SgPointToHexPoint(node->NodeMove(),
+				    m_state->Position().Height())
+       : INVALID_POINT);
+
+    if (!node->IsRoot())
+    {
+        m_state->PlayMove(move);
+	m_history->Push(move, m_state->Hash());
+    }
+
+    SgNode* son = node->LeftMostSon();
+    SgNode* bro = node->RightBrother();
+    
+    DfpnData data;
+    if (son)
+        // I don't know how locks work, but this part is always
+        // called with one single thread running so there should
+        // not be any problem.
+        TTReadNoLock(*m_state, data);
+    
+    // If claimedWinner is to play, we add to the tt
+    if (m_state->ToPlay() == claimedWinner && son)
+    {
+	CreateData(data, parentData);
+	if (!data.m_bounds.IsSolved()
+	    && !data.ClaimedWin())
+	{
+	    HexPoint sonMove =
+	      HexSgUtil::SgPointToHexPoint(son->NodeMove(),
+					   m_state->Position().Height());
+	    if (!data.m_children.Exists(sonMove))
+	    {
+	        // The user should make sure this does not happen.
+	        std::cout << "Warning: the claim " << sonMove
+			  << " was pruned in"
+			  << m_state->Position() << '\n';
+		data.m_children.AddChildBack(sonMove);
+	    }
+	    data.ClaimWin(true);
+	    data.m_reverser = sonMove;
+	    TTWrite(*m_state, data);
+	    ++claims;
+	}
+    }
+
+    // Recursive call on the first child.
+    claims += AddNodeToTt(son, claimedWinner, data);
+
+    if (!node->IsRoot())
+    {
+        m_state->UndoMove(move);
+	m_history->Pop();
+    }
+    
+    // Recursive call on the next brother.
+    claims += AddNodeToTt(bro, claimedWinner, parentData);
+
+    return claims;
 }
 
 void DfpnSolver::TryDoBackups(bool adjust_start)

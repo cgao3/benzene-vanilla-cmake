@@ -497,6 +497,16 @@ void GtpCommand::CheckNuArgLessEqual(std::size_t number) const
     throw GtpFailure() << "command needs at most " << number << " arguments";
 }
 
+void GtpCommand::CheckNuArgMoreEqual(std::size_t number) const
+{
+    if (NuArg() >= number)
+        return;
+    if (number == 1)
+        throw GtpFailure() << "command needs at least one argument";
+    else
+    throw GtpFailure() << "command needs at least " << number << " arguments";
+}
+
 double GtpCommand::FloatArg(std::size_t number) const
 {
     return Arg<double>(number);

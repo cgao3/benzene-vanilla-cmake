@@ -248,6 +248,11 @@ public:
         @throws GtpFailure If command has more arguments */
     void CheckNuArgLessEqual(std::size_t number) const;
 
+    /** Check minimum number of arguments.
+        @param number Expected maximum number of arguments
+        @throws GtpFailure If command has less arguments */
+    void CheckNuArgMoreEqual(std::size_t number) const;
+
     /** Get command ID.
         @return ID or empty string, if command has no ID */
     std::string ID() const;

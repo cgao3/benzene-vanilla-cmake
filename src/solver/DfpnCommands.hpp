@@ -49,6 +49,7 @@ private:
     void CmdParamSolverDB(HtpCommand& cmd);
     void CmdSolveState(HtpCommand& cmd);
     void CmdFindWinning(HtpCommand& cmd);
+    void CmdClaimsSgf(HtpCommand& cmd);
     void CmdClearTT(HtpCommand& cmd);
     void CmdGetState(HtpCommand& cmd);
     void CmdGetBounds(HtpCommand& cmd);

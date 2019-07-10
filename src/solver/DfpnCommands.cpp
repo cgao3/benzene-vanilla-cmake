@@ -2,6 +2,10 @@
 /** @file DfpnCommands.cpp */
 //----------------------------------------------------------------------------
 
+#include "SgSystem.h"
+#include "SgGameReader.h"
+#include "SgNode.h"
+
 #include "BitsetIterator.hpp"
 #include "EndgameUtil.hpp"
 #include "DfpnCommands.hpp"
@@ -36,6 +40,7 @@ void DfpnCommands::Register(GtpEngine& e)
     Register(e, "dfpn-get-pv", &DfpnCommands::CmdGetPV);
     Register(e, "dfpn-solve-state", &DfpnCommands::CmdSolveState);
     Register(e, "dfpn-solver-find-winning", &DfpnCommands::CmdFindWinning);
+    Register(e, "dfpn-claims", &DfpnCommands::CmdClaims);
     Register(e, "dfpn-open-db", &DfpnCommands::CmdOpenDB);
     Register(e, "dfpn-close-db", &DfpnCommands::CmdCloseDB);
     Register(e, "dfpn-merge-db", &DfpnCommands::CmdMergeDB);
@@ -67,6 +72,7 @@ void DfpnCommands::AddAnalyzeCommands(HtpCommand& cmd)
         "var/DFPN Get PV/dfpn-get-pv %m\n"
         "string/DFPN Solve State/dfpn-solve-state %m\n"
         "plist/DFPN Find Winning/dfpn-solver-find-winning %m\n"
+        "none/DFPN Claims/dfpn-claims %m\n"
         "none/DFPN Open DB/dfpn-open-db %r\n"
         "none/DFPN Close DB/dfpn-close-db\n"
         "none/DFPN Merge DB/dfpn-merge-db %r\n"
@@ -261,6 +267,34 @@ void DfpnCommands::CmdFindWinning(HtpCommand& cmd)
     }
     LogInfo() << "Total Elapsed Time: " << timer.GetTime() << '\n';
     cmd << HexPointUtil::ToString(winning);
+}
+
+/** Adds claims from the sgf to the tt. */
+void DfpnCommands::CmdClaims(HtpCommand& cmd)
+{
+    cmd.CheckNuArg(2);
+    
+    std::string filename = cmd.Arg(0);
+    if (filename.size() < 5 || filename.substr(filename.size()-4) != ".sgf")
+        throw HtpFailure() << "first argument must be .sgf";
+    std::ifstream file(filename.c_str());
+    if (!file)
+        throw HtpFailure() << "cannot load file";
+
+    // I didn't manage to test that the size in the sgf is the same
+    // as the size of the board. @todo
+    SgGameReader sgreader(file, m_game.Board().Width());
+    sgreader.PrintWarnings(std::cerr);
+      
+    HexColor claimedWinner = HtpUtil::ColorArg(cmd, 1);
+
+    const HexBoard& brd = m_env.SyncBoard(m_game.Board());
+    if (brd.Height() != brd.Width())
+        throw HtpFailure() << "non-square boards not supported";
+
+    LogInfo() << m_solver.AddClaimsToTt(sgreader, claimedWinner,
+					brd, m_positions)
+	     << " claim(s) added to tt.\n";
 }
 
 /** Clears the current dfpn hashtable. */

@@ -6,6 +6,7 @@
 #define SOLVERDFPN_HPP
 
 #include "SgSystem.h"
+#include "SgGameReader.h"
 #include "SgHashTable.h"
 #include "SgStatistics.h"
 #include "SgTimer.h"
@@ -222,6 +223,8 @@ public:
 
     bool Exists(HexPoint x) const;
 
+    void AddChildBack(HexPoint x);
+
     void PlayMove(std::size_t index, HexState& state) const;
 
     void UndoMove(std::size_t index, HexState& state) const;
@@ -249,8 +252,13 @@ inline HexPoint DfpnChildren::FirstMove(std::size_t index) const
 
 inline bool DfpnChildren::Exists(HexPoint x) const
 {
-  return (std::find(m_children.begin(), m_children.end(), x)
-	  != m_children.end());
+    return (std::find(m_children.begin(), m_children.end(), x)
+	    != m_children.end());
+}
+
+inline void DfpnChildren::AddChildBack(HexPoint x)
+{
+    m_children.push_back(x);
 }
 
 //----------------------------------------------------------------------------
@@ -279,7 +287,20 @@ public:
     // reverser or the child that is the easiest to prove, depending on some
     // heuristic.
     // No reverser is computed for a parent node different from the one
-    // for which the data is created.
+    // for which the data is created. This has one theorical reason:
+    // a priori, from two different parents, the fill may be very different
+    // and thus I think that a reverser computed using the fill may not
+    // hold.
+
+    // This is also used for claims from a SGF: in a state, it is assumed
+    // that one move is winning, so it reverses everything.
+    // In this case, m_reversible = ALL, which is interpreted as
+    // "any move", and only the reverser is searched (but if is is found
+    // losing then the search is performed normally among the rest, after
+    // diplaying a warning). Also, the bounds take into account only this
+    // child claimed winning, so this node is more often searched.
+    // This is not really a reverser, so some names may be inappropriate,
+    // but it is important not to add more data in the tt.
     HexPoint m_reversible;
     HexPoint m_reverser;
     DfpnBounds m_reversibleBounds;
@@ -297,6 +318,8 @@ public:
     void Validate();
 
     bool IsReversible(HexPoint lastMove) const;
+    void ClaimWin(bool enable);
+    bool ClaimedWin() const;
 
     /** @name SgHashTable methods. */
     // @{
@@ -325,6 +348,11 @@ public:
     // @}
 
 private:
+  
+    // This definition should not cause any problem as the last move
+    // is never RESIGN.
+    static const HexPoint ALL = RESIGN;
+  
     bool m_isValid;
 };
 
@@ -343,11 +371,16 @@ inline std::string DfpnData::Print() const
        << "children=" << m_children.Size() << ' '
        << "bestmove=" << m_bestMove << ' '
        << "fillin=" << m_fillin[BLACK].count() << '/'
-                    << m_fillin[WHITE].count() << ' '
-       << "reversible=" << m_reversible << ' ';
+                    << m_fillin[WHITE].count() << ' ';
     if (m_reversible)
-        os << "reverser=" << m_reverser << ' '
+    {
+      if (ClaimedWin())
+	    os << "claimed win ";
+	else
+	    os << "reversible=" << m_reversible << ' ';
+	os << "reverser=" << m_reverser << ' '
 	   << "reversiblebounds=" << m_reversibleBounds << ' ';
+    }
     os << "work=" << m_work << ' '
        << "evaluation=" << m_evaluationScore
        << ']';
@@ -356,7 +389,21 @@ inline std::string DfpnData::Print() const
 
 inline bool DfpnData::IsReversible(HexPoint lastMove) const
 {
-    return m_reversible && lastMove == m_reversible;
+    return m_reversible &&
+      (lastMove == m_reversible || m_reversible == ALL);
+}
+
+inline void DfpnData::ClaimWin(bool enable)
+{
+    if (enable)
+        m_reversible = ALL;
+    else
+        m_reversible = INVALID_POINT;
+}
+
+inline bool DfpnData::ClaimedWin() const
+{
+    return m_reversible == ALL;
 }
 
 inline bool DfpnData::IsBetterThan(const DfpnData& data) const
@@ -527,6 +574,11 @@ public:
 
     /** Restores tt from backup. */
     void TtRestore(DfpnStates& positions);
+
+    /** Adds to the tt the claims that claimedWinner's moves from
+	sgreader are winning. */
+    size_t AddClaimsToTt(SgGameReader& sgreader, HexColor claimedWinner,
+			 const HexBoard& brd, DfpnStates& positions);
 
     void AddListener(DfpnListener& listener);
 
@@ -856,6 +908,9 @@ private:
 		     const DfpnChildren& children,
                      const std::vector<T>& childrenBounds,
 		     const DfpnBounds& maxBounds, size_t maxChildIndex);
+    void SelectChildClaimedWin(size_t& bestIndex, DfpnBounds& childMaxBounds,
+	             size_t reverserIndex,
+		     const DfpnBounds& maxBounds);
 		     
 
     template <class T>
@@ -869,6 +924,11 @@ private:
 		      const DfpnChildren& children,
 		      const std::vector<T>& childrenBounds,
 		      size_t maxChildIndex) const;
+    template <class T>
+    bool UpdateClaimedWinBounds(DfpnBounds& bounds,
+		      size_t reverserIndex,
+		      const DfpnChildren& children,
+		      const std::vector<T>& childrenBounds) const;
 
     bool CheckAbort();
 
@@ -897,6 +957,9 @@ private:
     void DBWrite(const HexState& state, DfpnData& data);
 
     bool DBRead(const HexState& state, DfpnData& data);
+
+    size_t AddNodeToTt(const SgNode* node, HexColor claimedWinner,
+		       const DfpnData& parentData);
 
     void TryDoBackups(bool adjust_start = false);
 
