@@ -45,7 +45,7 @@ namespace HexSgUtil
     /** Returns true if node constains any of the following
         properties: propAddBlack, propAddWhite, propAddEmpty,
         propPlayer. */
-    bool NodeHasSetupInfo(SgNode* node);
+    bool NodeHasSetupInfo(const SgNode* node);
 
     /** Set the position setup properties of this node to encode the 
         given board.*/

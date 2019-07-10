@@ -61,7 +61,7 @@ void HexSgUtil::AddMoveToNode(SgNode* node, HexColor color,
     HexProp::AddMoveProp(node, sgcell, sgcolor);
 }
 
-bool HexSgUtil::NodeHasSetupInfo(SgNode* node)
+bool HexSgUtil::NodeHasSetupInfo(const SgNode* node)
 {
     if (   node->HasProp(SG_PROP_ADD_BLACK)
         || node->HasProp(SG_PROP_ADD_WHITE)

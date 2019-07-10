@@ -782,11 +782,11 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 	    if (!UpdateClaimedWinBounds(bounds, d.reverserIndex,
 					data.m_children, d.childrenData))
 	    {
-	        LogInfo() << "Bad claim: "
-			  << data.m_children.FirstMove(d.reverserIndex)
-			  << " does not win after "
-			  << m_history->LastMove()
-			  << '\n';
+	        LogWarning() << "Bad claim: "
+			     << data.m_children.FirstMove(d.reverserIndex)
+			     << " does not win after "
+			     << m_history->LastMove()
+			     << '\n';
 		claimedWin = false;
 		isReversible = false;
 		data.ClaimWin(false);
@@ -1114,11 +1114,11 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 	    if (!UpdateClaimedWinBounds(bounds, reverserIndex,
 					data.m_children, childrenData))
 	    {
-	        LogInfo() << "Bad claim: "
-			  << data.m_children.FirstMove(reverserIndex)
-			  << " does not win after "
-			  << m_history->LastMove()
-			  << '\n';
+	        LogWarning() << "Bad claim: "
+			     << data.m_children.FirstMove(reverserIndex)
+			     << " does not win after "
+			     << m_history->LastMove()
+			     << '\n';
 		claimedWin = false;
 		isReversible = false;
 		data.ClaimWin(false);
@@ -1666,7 +1666,9 @@ void DfpnSolver::TtRestore(DfpnStates& positions)
 }
 
 // Each tree is assume to be composed of alternating turns, but the starting
-// player can be anyone. Swap is not handled.
+// player can be anyone. Swap is not handled. Point added are handled in a
+// very simple way, you should do it only at the root to be safe.
+// (in particular this may mess up with the player to move)
 // Every claimedWinner move is assumed to win, if there are several the first
 // one is kept but the others are used to do deeper claims.
 // For details about the implementation, see the comment on m_reverser in
@@ -1694,26 +1696,38 @@ size_t DfpnSolver::AddClaimsToTt(SgGameReader& sgreader, HexColor claimedWinner,
     return claims;
 }
 
-// Auxiliary function for AddClaimsToTt.
+// Auxiliary function for AddClaimsToTt().
 size_t DfpnSolver::AddNodeToTt(const SgNode* node, HexColor claimedWinner,
 			       const DfpnData& parentData)
 {
     if (!node)
 	return 0;
+    
+    int height = m_state->Position().Height();
+
+    // Handling points added.
+    if (HexSgUtil::NodeHasSetupInfo(node))
+    {
+        std::vector<HexPoint> black, white, empty;
+	HexSgUtil::GetSetupPosition(node, height,
+				    black, white, empty);
+	for (std::vector<HexPoint>::iterator it = black.begin();
+	     it != black.end(); ++it)
+	    m_state->Position().PlayMove(BLACK, *it);
+	for (std::vector<HexPoint>::iterator it = white.begin();
+	     it != white.end(); ++it)
+	    m_state->Position().PlayMove(WHITE, *it);
+    }
   
     size_t claims = 0;
     
     HexPoint move =
-      (!node->IsRoot() ?
-       HexSgUtil::SgPointToHexPoint(node->NodeMove(),
-				    m_state->Position().Height())
+      (node->HasNodeMove() ?
+       HexSgUtil::SgPointToHexPoint(node->NodeMove(), height)
        : INVALID_POINT);
 
-    if (!node->IsRoot())
-    {
+    if (move)
         m_state->PlayMove(move);
-	m_history->Push(move, m_state->Hash());
-    }
 
     SgNode* son = node->LeftMostSon();
     SgNode* bro = node->RightBrother();
@@ -1733,14 +1747,13 @@ size_t DfpnSolver::AddNodeToTt(const SgNode* node, HexColor claimedWinner,
 	    && !data.ClaimedWin())
 	{
 	    HexPoint sonMove =
-	      HexSgUtil::SgPointToHexPoint(son->NodeMove(),
-					   m_state->Position().Height());
+	      HexSgUtil::SgPointToHexPoint(son->NodeMove(), height);
 	    if (!data.m_children.Exists(sonMove))
 	    {
 	        // The user should make sure this does not happen.
-	        LogInfo() << "Warning: the claim " << sonMove
-			  << " was pruned in"
-			  << m_state->Position() << '\n';
+	        LogWarning() << "The claim " << sonMove
+			     << " was pruned in"
+			     << m_state->Position() << '\n';
 		data.m_children.AddChildBack(sonMove);
 	    }
 	    data.ClaimWin(true);
@@ -1753,11 +1766,8 @@ size_t DfpnSolver::AddNodeToTt(const SgNode* node, HexColor claimedWinner,
     // Recursive call on the first child.
     claims += AddNodeToTt(son, claimedWinner, data);
 
-    if (!node->IsRoot())
-    {
+    if (move)
         m_state->UndoMove(move);
-	m_history->Pop();
-    }
     
     // Recursive call on the next brother.
     claims += AddNodeToTt(bro, claimedWinner, parentData);
