@@ -782,8 +782,7 @@ size_t DfpnSolver::TopMid(const DfpnBounds& maxBounds,
 	    if (!UpdateClaimedWinBounds(bounds, d.reverserIndex,
 					data.m_children, d.childrenData))
 	    {
-	        // @todo Make it more clean than using std::cout.
-	        std::cout << "Bad claim: "
+	        LogInfo() << "Bad claim: "
 			  << data.m_children.FirstMove(d.reverserIndex)
 			  << " does not win after "
 			  << m_history->LastMove()
@@ -1115,8 +1114,7 @@ size_t DfpnSolver::MID(const DfpnBounds& maxBounds,
 	    if (!UpdateClaimedWinBounds(bounds, reverserIndex,
 					data.m_children, childrenData))
 	    {
-	        // @todo Make it more clean than using std::cout.
-	        std::cout << "Bad claim: "
+	        LogInfo() << "Bad claim: "
 			  << data.m_children.FirstMove(reverserIndex)
 			  << " does not win after "
 			  << m_history->LastMove()
@@ -1740,7 +1738,7 @@ size_t DfpnSolver::AddNodeToTt(const SgNode* node, HexColor claimedWinner,
 	    if (!data.m_children.Exists(sonMove))
 	    {
 	        // The user should make sure this does not happen.
-	        std::cout << "Warning: the claim " << sonMove
+	        LogInfo() << "Warning: the claim " << sonMove
 			  << " was pruned in"
 			  << m_state->Position() << '\n';
 		data.m_children.AddChildBack(sonMove);
