@@ -45,69 +45,69 @@ e:1,1,0,0,0;1,1,0,0,0;0,0,0,0,0;1,0,1,0,0;0,0,0,0,0;1,1,0,0,0;
 e:1,1,0,0,0;1,1,0,0,0;0,0,0,0,0;1,0,1,0,0;1,0,1,0,0;0,0,0,0,0;
 
               W ° B
-	     W *   B
+             W *   B
               W ° B                        [dead-3--3/no-s_r]
 
 e:6,6,0,0,0;1,0,0,0,0;1,0,1,0,0;1,0,1,0,0;1,0,1,0,0;5,4,0,0,0;
 
               W   !
-	     W *   B
+             W *   B
               W   B                        [spec_s0_from_dead-3--3/]
 
               W   B
-	     W *   B
+             W *   B
               W   !                        [spec_s0_from_dead-3--3m/]
 
 s:6,2,0,0,4;0,0,0,0,0;1,0,1,0,0;1,0,1,0,0;1,0,1,0,0;4,4,0,0,0;
 
               W   B
-	     W *   !
+             W *   !
               W   B                        [spec_s1_from_dead-3--3/]
 
 s:6,4,0,0,2;0,0,0,0,0;1,0,1,0,0;1,0,1,0,0;1,0,1,0,0;4,4,0,0,0;
 
               !   W
-	     B *   W
+             B *   W
               B   W                        [spec_s2_from_dead-3--3/]
 
               B   W
-	     B *   W
+             B *   W
               !   W                        [spec_s2_from_dead-3--3m/]
 
 s:6,0,6,0,0;0,0,0,0,0;1,0,0,0,1;1,1,0,0,0;1,1,0,0,0;4,0,4,0,0;
 
               B   W
-	     ! *   W
+             ! *   W
               B   W                        [spec_s3_from_dead-3--3/]
 
 s:6,0,6,0,0;0,0,0,0,0;1,1,0,0,0;1,0,0,0,1;1,1,0,0,0;4,0,4,0,0;
 
               W   B
-	     W * w B
+             W * w B
                 B B                        [dead-2--4/]
 
                 B B
-	     W * w B
+             W * w B
               W   B                        [dead-2--4m/]
 
 e:7,6,1,0,0;0,0,0,0,0;1,0,1,0,0;1,0,1,0,0;0,0,0,0,0;5,5,0,0,0;
 
               W   B
-	     W * ° B
+             W * ° B
                 ! B                        [spec_s_from_dead-2--4/]
 
                 ! B
-	     W * ° B
+             W * ° B
               W   B                        [spec_s_from_dead-2--4m/]
 
 s:7,6,0,0,0;0,0,0,0,0;1,0,1,0,0;1,0,1,0,0;0,0,0,0,0;5,4,0,0,1;
 
               B   W
-	     B * ° W
+             B * ° W
                 ! W                        [spec_i_from_dead-2--4/]
 
                 ! W
-	     B * ° W
+             B * ° W
               B   W                        [spec_i_from_dead-2--4m/]
 
 s:7,0,6,0,0;0,0,0,0,0;1,1,0,0,0;1,1,0,0,0;0,0,0,0,0;5,0,4,0,1;
@@ -897,7 +897,7 @@ f:15,4,8,0,3;1,0,1,0,0;0,0,0,0,0;1,1,0,0,0;0,0,0,0,0;5,4,1,0,0;
        white-fillined then they may cause more moves to be
        winning for white and thus cause a problem if other
        moves are pruned because inferior.
-	Still, they are used to deduce inferior or strong
+        Still, they are used to deduce inferior or strong
        reversible patterns.
 
             W   B B
