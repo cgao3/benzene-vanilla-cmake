@@ -29,7 +29,9 @@ using namespace benzene ;
   fillin and have comment "it", they can be ignored by the argument
   "no-it". The "no-inf" argument also has this secondary effect.
     Some patterns are "big", by default they are unused. They can be used by
-  the argument "use-big".
+  the argument "use-big". It may be useful to use some of them depending on
+  your board size, run some tests, the choices are based on tests on openings 
+  for 7x7.
 
     The patterns with "no-s_r" (resp. "no-inf") generate no strong reversible
   (resp. no inferior) pattern.
@@ -129,21 +131,12 @@ void AddVariations(Pattern pat, std::ofstream& out,
         return;
     }
 
-    /*if (Contains(pat,"nd"))
-    {
-        return;
-    }
-
-    if (Contains(pat,"npi"))
-    {
-        return;
-	}*/
-
     char type = pat.GetType() ;
     
     // If a pattern is "deduce-only", do not include.
     if (!Contains(pat,"deduce-only"))
     {
+        bool add = true;
         switch (type)
 	{
 	case Pattern::WHITE_FILLIN :
@@ -153,17 +146,22 @@ void AddVariations(Pattern pat, std::ofstream& out,
 	    ++ppi.e_fillin_copied;
 	    break;
 	case Pattern::WHITE_STRONG_REVERSIBLE :
-	    ++ppi.s_reversible_derived;
+	    add = deduce_s_reversible; 
+	    if (deduce_s_reversible) ++ppi.s_reversible_derived;
 	    break;
 	case Pattern::WHITE_INFERIOR :
-	    ++ppi.inferior_derived;
+	    add = deduce_inferior; 
+	    if (deduce_inferior) ++ppi.inferior_derived;
 	    break;
 	default :
 	    throw BenzeneException() << "Bad type in fillin-patterns.txt: "
 				     << type ;
 	}
-	out << " [" << pat.GetName() << "/]" << std::endl ;
-	out << pat.Serialize() << std::endl ;
+	if (add)
+	{
+	    out << " [" << pat.GetName() << "/]" << std::endl ;
+	    out << pat.Serialize() << std::endl ;
+	}
     }
     else
     {
@@ -340,9 +338,9 @@ int main( int argc, char *argv[] )
 		  << ppi.s_reversible_copied << " strong reversible copied.\n"
 		  << ppi.inferior_derived << " inferior derived.\n"
 		  << ppi.inferior_copied << " inferior copied.\n"
+		  << ppi.it_ignored << " iterative ignored.\n"
 		  << ppi.t_reversible_copied << " threat reversible copied.\n"
 		  << ppi.reversible_copied << " reversible copied.\n"
-		  << ppi.it_ignored << " iterative ignored.\n"
 		  << ppi.big_ignored << " big ignored.\n";
     }
     else {throw BenzeneException() << "Could not open ice-patterns.txt";};
