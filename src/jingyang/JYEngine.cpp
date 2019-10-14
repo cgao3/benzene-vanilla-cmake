@@ -94,6 +94,9 @@ void JYEngine::CmdUndo(benzene::HtpCommand &cmd) {
         m_player.m_cur_pattern_list=m_player.m_prev_pattern_list_stack.back();
         m_player.m_prev_pattern_list_stack.pop_back();
     }
+    //Board is rotated after first white move, so undoing first white move must undo the rotation.
+    if(m_game.History().size() < 3) 
+        m_player.m_is_rotate180=false;
     HexHtpEngine::CmdUndo(cmd);
 }
 
