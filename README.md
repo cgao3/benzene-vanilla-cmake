@@ -31,7 +31,7 @@ CMakve version 3.5 or above
 Dependent libraries: 
 ```
 Boost, version 1.54 or higher
-on Ubuntu, install boost via sudo apt-get install libboost-dev-all
+on Ubuntu, install boost via sudo apt-get install libboost-all-dev
 ```
 
 ```
