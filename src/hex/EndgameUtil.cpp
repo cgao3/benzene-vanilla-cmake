@@ -119,12 +119,12 @@ void TightenMoveBitset(bitset_t& moveBitset, const InferiorCells& inf)
     subject to that restriction, tries to be a non-inferior move (using
     the member variables), and then to overlap as many other connections
     as possible. */
-HexPoint MostOverlappingMove(const CarrierList& carriers,
+HexPoint MostOverlappingMove(const StoneBoard& brd,
+			     const CarrierList& carriers,
                              const InferiorCells& inf)
 {
-    bitset_t intersectSmallest;
-    intersectSmallest.flip();
-    
+    bitset_t intersectSmallest = brd.Const().GetLocations() - brd.GetPlayed();
+
     // compute intersection of smallest until next one makes it empty
     for (CarrierList::Iterator it(carriers); it; ++it)
     {
@@ -151,8 +151,9 @@ HexPoint MostOverlappingMove(const CarrierList& carriers,
 	    if (intersectSmallest.test(i) && it.Carrier().test(i))
 		numHits[i]++;
     }
-    
-    int curBestMove = -1;
+
+    BenzeneAssert(intersectSmallest.any());
+    int curBestMove = BitsetUtil::FirstSetBit(intersectSmallest);
     int curMostHits = 0;
     for (int i = 0; i < BITSETSIZE; i++) 
     {
@@ -164,9 +165,6 @@ HexPoint MostOverlappingMove(const CarrierList& carriers,
 	}
     }
     
-    if (curMostHits == 0)
-        LogWarning() << "curMostHits == 0!!\n";
-    BenzeneAssert(curMostHits > 0);
     return (HexPoint)curBestMove;
 }
     
@@ -187,7 +185,8 @@ HexPoint PlayWonGame(const HexBoard& brd, HexColor color)
     if (brd.Cons(color).FullExists())
     {
         LogFine() << "Winning VC.\n";
-        return MostOverlappingMove(brd.Cons(color).GetFullCarriers(),
+        return MostOverlappingMove(brd.GetPosition(),
+				   brd.Cons(color).GetFullCarriers(),
                                    brd.GetInferiorCells());
     }
     // Should never get here!
@@ -209,6 +208,7 @@ HexPoint PlayLostGame(const HexBoard& brd, HexColor color)
         @see @ref playingdeterminedstates 
     */
     return MostOverlappingMove(
+	brd.GetPosition(),
         brd.Cons(other).SemiExists() ?
         brd.Cons(other).GetSemiCarriers() : brd.Cons(other).GetFullCarriers(),
         brd.GetInferiorCells());
