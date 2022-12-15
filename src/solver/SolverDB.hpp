@@ -132,7 +132,7 @@ SolverDBParameters& SolverDB<HASH, DB, DATA>::Parameters()
 template<class HASH, class DB, class DATA>
 void SolverDB<HASH, DB, DATA>::SetParameters(const SolverDBParameters& p)
 {
-    return m_param = p;
+    m_param = p;
 }
 
 template<class HASH, class DB, class DATA>
