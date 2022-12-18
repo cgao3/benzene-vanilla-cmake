@@ -19,7 +19,6 @@
 
 using boost::barrier;
 using boost::condition;
-using boost::thread;
 using boost::xtime;
 using boost::xtime_get;
 #endif
@@ -354,7 +353,7 @@ void ReadThread::Function::ExecuteSleepLine(const string& line)
             xtime_get(&time, boost::TIME_UTC);
         #endif
         time.sec += seconds;
-        thread::sleep(time);
+        boost::thread::sleep(time);
         cerr << "GtpEngine: sleep done\n";
     }
 }
